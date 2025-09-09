@@ -12,6 +12,7 @@ import {showModal} from '../../actions/modal';
 import {showModal as showModalSf} from '@sourcefabric/common';
 import {MODALS} from '../../constants/modals';
 import {CoverageProfilesModal} from '../../components/ContentProfiles/CoverageProfileModal';
+import {ManageExportTemplatesModal} from '../../components/ExportTemplates/ManageExportTemplates';
 
 const ActionsSubnavDropdownComponent = (props) => {
     let items = [];
@@ -57,6 +58,15 @@ const ActionsSubnavDropdownComponent = (props) => {
         items.push({
             label: gettext('Manage Event & Planning Filters'),
             action: props.openEventsPlanningFiltersModal,
+        });
+    }
+
+    if (props.privileges[PRIVILEGES.MANAGE_EXPORT_TEMPLATES]) {
+        items.push({
+            label: gettext('Manage Export Templates'),
+            action: () => showModalSf(({closeModal}) => (
+                <ManageExportTemplatesModal closeModal={closeModal} />
+            )),
         });
     }
 

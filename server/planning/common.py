@@ -12,25 +12,36 @@ from typing import NamedTuple, Dict, Any, Set, Optional, Union
 
 import re
 import time
-from flask import current_app as app
-from collections import namedtuple
-from datetime import timedelta, datetime
-from superdesk.resource import not_analyzed, build_custom_hateoas
-from superdesk import get_resource_service, logger
-from superdesk.metadata.item import ITEM_TYPE, CONTENT_STATE
-from superdesk.utc import utcnow
-from superdesk.celery_app import celery
-from superdesk.errors import SuperdeskApiError
-from apps.archive.common import get_user, get_auth
-from apps.publish.enqueue import get_enqueue_service
-from .item_lock import LOCK_SESSION, LOCK_ACTION, LOCK_TIME, LOCK_USER
-from eve.utils import config, ParsedRequest
-from werkzeug.datastructures import MultiDict
-from superdesk.etree import parse_html
 import json
 from bson import ObjectId
+from collections import namedtuple
+from eve.utils import ParsedRequest
+from datetime import timedelta, datetime
+from werkzeug.datastructures import MultiDict
+from quart_babel import gettext
 
-from planning.types import Planning, Coverage, Event
+from superdesk.core import get_app_config, get_current_app
+from superdesk.resource_fields import ID_FIELD, VERSION
+from superdesk.resource import not_analyzed, build_custom_hateoas
+from superdesk.publish_async.commands import publish_item
+from superdesk import get_resource_service, logger
+from superdesk.eve_async import AsyncEveCursor
+from superdesk.metadata.item import ITEM_TYPE, CONTENT_STATE
+from superdesk.utc import utcnow
+from superdesk.errors import SuperdeskApiError
+from apps.archive.common import get_user, get_auth
+from apps.publish.content.common import ITEM_PUBLISH
+from superdesk.etree import parse_html
+
+from planning.types import (
+    Planning,
+    Coverage,
+    Event,
+    EventAutosaveResourceModel,
+    PlanningAutosaveResourceModel,
+)
+
+from .item_lock import LOCK_SESSION, LOCK_ACTION, LOCK_TIME, LOCK_USER
 
 ITEM_STATE = "state"
 ITEM_EXPIRY = "expiry"
@@ -161,118 +172,96 @@ DUPLICATE_EVENT_IGNORED_FIELDS = {
 
 
 def set_item_expiry(doc):
-    expiry_minutes = app.settings.get("PLANNING_EXPIRY_MINUTES", None)
+    expiry_minutes = get_app_config("PLANNING_EXPIRY_MINUTES", None)
     if expiry_minutes is not None:
         doc[ITEM_EXPIRY] = utcnow() + timedelta(minutes=expiry_minutes)
     else:
         doc[ITEM_EXPIRY] = None
 
 
-def get_max_recurrent_events(current_app=None):
-    if current_app is not None:
-        return int(current_app.config.get("MAX_RECURRENT_EVENTS", 200))
-    return int(app.config.get("MAX_RECURRENT_EVENTS", 200))
+def get_max_recurrent_events():
+    return int(get_app_config("MAX_RECURRENT_EVENTS", 200))
 
 
-def planning_auto_assign_to_workflow(current_app=None):
-    if current_app is not None:
-        return current_app.config.get("PLANNING_AUTO_ASSIGN_TO_WORKFLOW", False)
-    return app.config.get("PLANNING_AUTO_ASSIGN_TO_WORKFLOW", False)
+def planning_auto_assign_to_workflow():
+    return get_app_config("PLANNING_AUTO_ASSIGN_TO_WORKFLOW", False)
 
 
-def event_templates_enabled(current_app=None):
-    if current_app is not None:
-        return current_app.config.get("PLANNING_EVENT_TEMPLATES_ENABLED", False)
-    return app.config.get("PLANNING_EVENT_TEMPLATES_ENABLED", False)
+def event_templates_enabled():
+    return get_app_config("PLANNING_EVENT_TEMPLATES_ENABLED", False)
 
 
-def get_long_event_duration_threshold(current_app=None):
-    if current_app is not None:
-        return current_app.config.get("LONG_EVENT_DURATION_THRESHOLD", -1)
-    return app.config.get("LONG_EVENT_DURATION_THRESHOLD", -1)
+def get_long_event_duration_threshold():
+    return get_app_config("LONG_EVENT_DURATION_THRESHOLD", -1)
 
 
-def get_planning_allow_scheduled_updates(current_app=None):
-    if current_app is not None:
-        return current_app.config.get("PLANNING_ALLOW_SCHEDULED_UPDATES", True)
-    return app.config.get("PLANNING_ALLOW_SCHEDULED_UPDATES", True)
+def get_planning_allow_scheduled_updates():
+    return get_app_config("PLANNING_ALLOW_SCHEDULED_UPDATES", True)
 
 
-def get_planning_use_xmp_for_pic_assignments(current_app=None):
-    if current_app is not None:
-        return current_app.config.get("PLANNING_USE_XMP_FOR_PIC_ASSIGNMENTS", False)
-    return app.config.get("PLANNING_USE_XMP_FOR_PIC_ASSIGNMENTS", False)
+def get_planning_use_xmp_for_pic_assignments():
+    return get_app_config("PLANNING_USE_XMP_FOR_PIC_ASSIGNMENTS", False)
 
 
-def get_planning_xmp_assignment_mapping(current_app=None):
-    if current_app is not None:
-        return current_app.config.get("PLANNING_XMP_ASSIGNMENT_MAPPING", "")
-    return app.config.get("PLANNING_XMP_ASSIGNMENT_MAPPING", "")
+def get_planning_xmp_assignment_mapping():
+    return get_app_config("PLANNING_XMP_ASSIGNMENT_MAPPING", "")
 
 
-def get_planning_use_xmp_for_pic_slugline(current_app=None):
-    if current_app is not None:
-        return current_app.config.get("PLANNING_USE_XMP_FOR_PIC_SLUGLINE", False)
-    return app.config.get("PLANNING_USE_XMP_FOR_PIC_SLUGLINE", False)
+def get_planning_use_xmp_for_pic_slugline():
+    return get_app_config("PLANNING_USE_XMP_FOR_PIC_SLUGLINE", False)
 
 
-def get_planning_xmp_slugline_mapping(current_app=None):
-    if current_app is not None:
-        return current_app.config.get("PLANNING_XMP_SLUGLINE_MAPPING", "")
-    return app.config.get("PLANNING_XMP_SLUGLINE_MAPPING", "")
+def get_planning_xmp_slugline_mapping():
+    return get_app_config("PLANNING_XMP_SLUGLINE_MAPPING", "")
 
 
-def get_planning_allowed_coverage_link_types(current_app=None):
-    return (current_app or app).config.get("PLANNING_ALLOWED_COVERAGE_LINK_TYPES", [])
+def get_planning_allowed_coverage_link_types():
+    return get_app_config("PLANNING_ALLOWED_COVERAGE_LINK_TYPES", [])
 
 
-def get_planning_auto_close_popup_editor(current_app=None):
-    if current_app is not None:
-        return current_app.config.get("PLANNING_AUTO_CLOSE_POPUP_EDITOR", True)
-    return app.config.get("PLANNING_AUTO_CLOSE_POPUP_EDITOR", True)
+def get_planning_auto_close_popup_editor():
+    return get_app_config("PLANNING_AUTO_CLOSE_POPUP_EDITOR", True)
 
 
-def get_start_of_week(current_app=None):
-    return (current_app or app).config.get("START_OF_WEEK", 0)
+def get_start_of_week():
+    return get_app_config("START_OF_WEEK", 0)
 
 
-def get_assignment_acceptance_email_address(current_app=None):
-    if current_app is not None:
-        return current_app.config.get("PLANNING_ACCEPT_ASSIGNMENT_EMAIL", "")
-    return app.config.get("PLANNING_ACCEPT_ASSIGNMENT_EMAIL", "")
+def get_assignment_acceptance_email_address():
+    return get_app_config("PLANNING_ACCEPT_ASSIGNMENT_EMAIL", "")
 
 
-def get_notify_self_on_assignment(current_app=None):
-    return (current_app or app).config.get("PLANNING_SEND_NOTIFICATION_FOR_SELF_ASSIGNMENT", False)
+def get_notify_self_on_assignment():
+    return get_app_config("PLANNING_SEND_NOTIFICATION_FOR_SELF_ASSIGNMENT", False)
 
 
-def get_config_default_create_planning_series_with_event_series(current_app=None):
-    return (current_app or app).config.get("DEFAULT_CREATE_PLANNING_SERIES_WITH_EVENT_SERIES", False)
+def get_config_default_create_planning_series_with_event_series():
+    return get_app_config("DEFAULT_CREATE_PLANNING_SERIES_WITH_EVENT_SERIES", False)
 
 
-def get_config_event_fields_to_sync_with_planning(current_app=None) -> Set[str]:
-    config_value = (current_app or app).config.get("SYNC_EVENT_FIELDS_TO_PLANNING", "")
+def get_config_event_fields_to_sync_with_planning() -> Set[str]:
+    config_value = get_app_config("SYNC_EVENT_FIELDS_TO_PLANNING", "")
     return set(config_value.split(",") if isinstance(config_value, str) else config_value)
 
 
-def get_config_event_related_item_search_provider_name(current_app=None) -> Optional[str]:
-    return (current_app or app).config.get("EVENT_RELATED_ITEM_SEARCH_PROVIDER_NAME")
+def get_config_event_related_item_search_provider_name() -> Optional[str]:
+    return get_app_config("EVENT_RELATED_ITEM_SEARCH_PROVIDER_NAME")
 
 
 def remove_lock_information(item):
     item.update({LOCK_USER: None, LOCK_SESSION: None, LOCK_TIME: None, LOCK_ACTION: None})
 
 
-def get_default_coverage_status_qcode_on_ingest(current_app=None):
-    return (current_app or app).config.get("PLANNING_DEFAULT_COVERAGE_STATUS_ON_INGEST", "ncostat:int")
+def get_default_coverage_status_qcode_on_ingest():
+    return get_app_config("PLANNING_DEFAULT_COVERAGE_STATUS_ON_INGEST", "ncostat:int")
 
 
 def get_config_planning_duplicate_retain_assignee_details(current_app=None):
-    return (current_app or app).config.get("PLANNING_DUPLICATE_RETAIN_ASSIGNEE_DETAILS", False)
+    return (current_app or get_current_app()).config.get("PLANNING_DUPLICATE_RETAIN_ASSIGNEE_DETAILS", False)
 
 
 def get_config_assignment_manual_reassignment_only(current_app=None):
-    return (current_app or app).config.get("ASSIGNMENT_MANUAL_REASSIGNMENT_ONLY", False)
+    return (current_app or get_current_app()).config.get("ASSIGNMENT_MANUAL_REASSIGNMENT_ONLY", False)
 
 
 def get_coverage_status_from_cv(qcode: str):
@@ -291,11 +280,11 @@ def get_coverage_status_from_cv(qcode: str):
 def is_locked_in_this_session(item, user_id=None, session_id=None):
     if user_id is None:
         user = get_user(required=True)
-        user_id = str(user.get(config.ID_FIELD))
+        user_id = str(user.get(ID_FIELD))
 
     if session_id is None:
         session = get_auth()
-        session_id = str(session.get(config.ID_FIELD))
+        session_id = str(session.get(ID_FIELD))
 
     return str(item.get(LOCK_USER)) == user_id and str(item.get(LOCK_SESSION)) == session_id
 
@@ -331,11 +320,9 @@ def get_formatted_address(location, seperator=" "):
     return location.get("name", "") + seperator + location.get("formatted_address", "")
 
 
-def get_street_map_url(current_app=None):
+def get_street_map_url():
     """Get the Street Map URL"""
-    if current_app is not None:
-        return current_app.config.get("STREET_MAP_URL", "https://www.google.com.au/maps/?q=")
-    return app.config.get("STREET_MAP_URL", "https://www.google.com.au/maps/?q=")
+    return get_app_config("STREET_MAP_URL", "https://www.google.com.au/maps/?q=")
 
 
 def get_item_post_state(item, new_post_state, repost=False):
@@ -373,8 +360,11 @@ def post_required(updates, original):
     return pub_status is not None
 
 
-def update_post_item(updates, original):
+async def update_post_item(updates, original):
     """Method to update(re-post) a posted item after the item is updated"""
+    # TODO-ASYNC: update once `events_post` & `planning_post` are async
+    # also to use pydantic models intead of dicts
+
     pub_status = None
     # Save&Post or Save&Unpost
     if updates.get("pubstatus"):
@@ -391,10 +381,10 @@ def update_post_item(updates, original):
             item_post_service = get_resource_service(resource_name)
             doc = {
                 "etag": updates.get("_etag"),
-                original.get(ITEM_TYPE): original.get(config.ID_FIELD),
+                original.get(ITEM_TYPE): original.get(ID_FIELD),
                 "pubstatus": pub_status,
             }
-            return item_post_service.post([doc])
+            return await item_post_service.post_async([doc])
 
 
 def get_coverage_type_name(qcode):
@@ -413,13 +403,14 @@ def get_coverage_type_name(qcode):
     return coverage_type.get("name", qcode)
 
 
-def remove_autosave_on_spike(item):
+async def remove_autosave_on_spike(item):
     if item.get("lock_action") == "edit":
-        autosave_service = get_resource_service("planning_autosave")
         if item.get("type") == "event":
-            autosave_service = get_resource_service("event_autosave")
+            autosave_service = EventAutosaveResourceModel.get_service()
+        else:
+            autosave_service = PlanningAutosaveResourceModel.get_service()
 
-        autosave_service.delete_action(lookup={"_id": item.get(config.ID_FIELD)})
+        await autosave_service.delete_many(lookup={"_id": item.get(ID_FIELD)})
 
 
 def update_returned_document(doc, item, custom_hateoas):
@@ -431,25 +422,39 @@ def update_returned_document(doc, item, custom_hateoas):
 
 def get_version_item_for_post(item):
     version = int(time.time() * 1000)
-    item.setdefault(config.VERSION, version)
+    item.setdefault(VERSION, version)
     item.setdefault("item_id", item["_id"])
     return version, item
 
 
-@celery.task(soft_time_limit=600)
-def enqueue_planning_item(id):
+async def enqueue_planning_item(id):
     """
     Get the version of the item to be published from the planning versions collection and enqueue it.
 
     :param id:
     :return:
     """
-    planning_version = get_resource_service("published_planning").find_one(req=None, _id=id)
+    planning_version = await get_resource_service("published_planning").find_one_async(req=None, _id=id)
+
     if planning_version:
-        try:
-            get_enqueue_service("publish").enqueue_item(planning_version.get("published_item"), "event")
-        except Exception:
-            logger.exception("Failed to queue {} item {}".format(planning_version.get("type"), id))
+        item = planning_version.get("published_item")
+        publish_response = await publish_item(
+            item,
+            item_id=item[ID_FIELD],
+            item_type=item[ITEM_TYPE],
+            operation=ITEM_PUBLISH,
+            published_state=item.get(ITEM_STATE) or "published",
+            publish_to_content_api=True,
+        )
+
+        if not publish_response.routed:
+            if not len(publish_response.matched_products) and not len(publish_response.matched_api_products):
+                error_message = gettext("Item didn't match any Products")
+            elif not len(publish_response.subscribers) and not len(publish_response.content_api_subscribers):
+                error_message = gettext("Item not published to any Subscribers")
+            else:
+                error_message = gettext("Failed to route item")
+            logger.warning(error_message, extra=publish_response.to_dict())
     else:
         logger.error("Failed to retrieve planning item from planning versions with id: {}".format(id))
 
@@ -475,11 +480,9 @@ def get_start_of_next_week(date=None, start_of_week=0):
     return current_date + timedelta(days=diff)
 
 
-def get_event_max_multi_day_duration(current_app=None):
+def get_event_max_multi_day_duration():
     """Get the max multi day duration"""
-    if current_app is not None:
-        return int(current_app.config.get(MAX_MULTI_DAY_EVENT_DURATION, 365))
-    return int(app.config.get(MAX_MULTI_DAY_EVENT_DURATION, 365))
+    return int(get_app_config(MAX_MULTI_DAY_EVENT_DURATION, 365))
 
 
 def set_original_creator(doc):
@@ -492,10 +495,19 @@ def set_original_creator(doc):
     doc["original_creator"] = user
 
 
-def list_uniq_with_order(list):
+def unique_items_in_order(input_list: list) -> list:
+    """
+    Removes duplicates from a list while preserving the original order.
+    """
     seen = set()
-    seen_add = seen.add
-    return [x for x in list if not (x in seen or seen_add(x))]
+    unique_list = []
+
+    for item in input_list:
+        if item not in seen:
+            seen.add(item)
+            unique_list.append(item)
+
+    return unique_list
 
 
 def set_ingested_event_state(updates, original):
@@ -524,7 +536,7 @@ def set_actioned_date_to_event(updates, original):
             updates["actioned_date"] = original["dates"]["start"]
 
 
-def get_archive_items_for_assignment(assignment_id, descending_rewrite_seq=True):
+async def get_archive_items_for_assignment(assignment_id, descending_rewrite_seq=True) -> AsyncEveCursor:
     if not assignment_id:
         return []
 
@@ -533,16 +545,16 @@ def get_archive_items_for_assignment(assignment_id, descending_rewrite_seq=True)
     must_not = [{"term": {"state": "spiked"}}]
     must = [{"term": {"assignment_id": str(assignment_id)}}, {"term": {"type": "text"}}]
 
-    query = {"query": {"filtered": {"filter": {"bool": {"must": must, "must_not": must_not}}}}}
+    query: dict = {"query": {"filtered": {"filter": {"bool": {"must": must, "must_not": must_not}}}}}
     query["sort"] = [{"rewrite_sequence": "desc" if descending_rewrite_seq else "asc"}]
     query["size"] = 200
 
     req.args["source"] = json.dumps(query)
     req.args["repo"] = "archive,published,archived"
-    return list(get_resource_service("search").get(req, None))
+    return await get_resource_service("search").get_async(req, None)
 
 
-def get_related_items(item, assignment=None):
+async def get_related_items(item, assignment=None):
     # If linking updates is not configured, return just this item
     if not planning_link_updates_to_coverage():
         return [item]
@@ -553,7 +565,7 @@ def get_related_items(item, assignment=None):
     must = [{"term": {"event_id": item.get("event_id")}}, {"term": {"type": "text"}}]
 
     if assignment:
-        must.append({"term": {"assignment_id": str(assignment.get(config.ID_FIELD))}})
+        must.append({"term": {"assignment_id": str(assignment.get(ID_FIELD))}})
 
     query = {"query": {"filtered": {"filter": {"bool": {"must": must, "must_not": must_not}}}}}
     query["sort"] = [{"rewrite_sequence": "asc"}]
@@ -561,22 +573,22 @@ def get_related_items(item, assignment=None):
 
     req.args["source"] = json.dumps(query)
     req.args["repo"] = "archive,published,archived"
-    items_list = get_resource_service("search").get(req, None)
+    items_list = await get_resource_service("search").get_async(req, None)
 
     archive_list = {}
-    for i in items_list:
+    async for i in items_list:
         # If item is published, get archive item or the item itself
-        if i.get(config.ID_FIELD) not in archive_list:
-            archive_list[i.get(config.ID_FIELD)] = i.get("archive_item") or i
+        if i.get(ID_FIELD) not in archive_list:
+            archive_list[i.get(ID_FIELD)] = i.get("archive_item") or i
 
     # This is to ensure if elastic search is not updated, we add or remove the item
-    if str(item.get(config.ID_FIELD)) not in archive_list:
+    if str(item.get(ID_FIELD)) not in archive_list:
         return list(archive_list.values()) + [item]
     else:
         return list(archive_list.values())
 
 
-def update_assignment_on_link_unlink(assignment_id, item, published_updated=None):
+async def update_assignment_on_link_unlink(assignment_id, item, published_updated=None):
     if published_updated is None:
         published_updated = []
 
@@ -589,27 +601,29 @@ def update_assignment_on_link_unlink(assignment_id, item, published_updated=None
     ]
     if (
         item.get("state") in published_states
-        and item.get(config.ID_FIELD) not in published_updated
+        and item.get(ID_FIELD) not in published_updated
         and not item.get("_type") == "archived"
     ):
         # This will also update corrected, killed version of the published item
-        get_resource_service("published").update_published_items(item[config.ID_FIELD], "assignment_id", assignment_id)
+        await get_resource_service("published").update_published_items(item[ID_FIELD], "assignment_id", assignment_id)
 
-        published_updated.append(item.get(config.ID_FIELD))
+        published_updated.append(item.get(ID_FIELD))
 
     if item.get("_type") == "archived":
-        get_resource_service("archived").system_update(
-            ObjectId(item[config.ID_FIELD]), {"assignment_id": assignment_id}, item
+        await get_resource_service("archived").system_update_async(
+            ObjectId(item[ID_FIELD]), {"assignment_id": assignment_id}, item
         )
     else:
-        get_resource_service("archive").system_update(item[config.ID_FIELD], {"assignment_id": assignment_id}, item)
+        await get_resource_service("archive").system_update_async(
+            item[ID_FIELD], {"assignment_id": assignment_id}, item
+        )
 
 
-def planning_link_updates_to_coverage(current_app=None):
-    return (current_app if current_app else app).config.get("PLANNING_LINK_UPDATES_TO_COVERAGES", False)
+def planning_link_updates_to_coverage():
+    return get_app_config("PLANNING_LINK_UPDATES_TO_COVERAGES", False)
 
 
-def is_valid_event_planning_reason(updates, original):
+async def is_valid_event_planning_reason(updates, original):
     """Custom validation for reason field.
 
     This method is called from item action endpoints to validate the reason is required or not.
@@ -633,20 +647,19 @@ def is_valid_event_planning_reason(updates, original):
     item_type = original.get(ITEM_TYPE)
 
     # get the validator based on the item_type and lock_action
-    validator = (
-        get_resource_service("planning_types").find_one(req=None, name="{}_{}".format(item_type, lock_action)) or {}
-    )
+    planning_types_service = get_resource_service("planning_types")
+    validator = await planning_types_service.find_one_async(req=None, name=f"{item_type}_{lock_action}")
 
-    if not validator.get("schema"):
+    if not validator or not validator.get("schema"):
         return True
 
-    reason_mapping = validator.get("schema").get("reason") or {}
+    reason_mapping = validator.get("schema", {}).get("reason") or {}
     if reason_mapping.get("required") and not updates.get("reason"):
         return False
     return True
 
 
-def get_contacts_from_item(item):
+async def get_contacts_from_item(item):
     contact_ids = []
 
     if item.get("event_contact_info"):
@@ -661,8 +674,7 @@ def get_contacts_from_item(item):
                 contact_ids.append(str(coverage["planning"]["contact_info"]))
 
     query = {"query": {"bool": {"must": [{"terms": {"_id": contact_ids}}, {"term": {"public": "true"}}]}}}
-    contacts = get_resource_service("contacts").search(query)
-    return list(contacts)
+    return await get_resource_service("contacts").search_async(query)
 
 
 def get_next_assignment_status(assignment, next_state):
@@ -702,8 +714,8 @@ def get_delivery_publish_time(updates, original=None):
     return schdl_stngs.get("utc_publish_schedule") or updates.get("firstpublished") or original.get("firstpublished")
 
 
-def get_coverage_for_assignment(assignment):
-    planning_item = get_resource_service("planning").find_one(req=None, _id=assignment.get("planning_item"))
+async def get_coverage_for_assignment(assignment):
+    planning_item = await get_resource_service("planning").find_one_async(req=None, _id=assignment.get("planning_item"))
     return next(
         (c for c in (planning_item or {}).get("coverages", []) if c["coverage_id"] == assignment["coverage_item"]),
         None,
@@ -768,7 +780,7 @@ def _sync_coverage_assigned_to(coverages, lookup_field, id_field):
         return
 
     assignments = {
-        str(assignment[config.ID_FIELD]): assignment
+        str(assignment[ID_FIELD]): assignment
         for assignment in get_resource_service("assignments").get_from_mongo(
             req=None,
             lookup={lookup_field: {"$in": [coverage[id_field] for coverage in coverages]}},
@@ -786,7 +798,7 @@ def _sync_coverage_assigned_to(coverages, lookup_field, id_field):
             continue
 
         assignment.setdefault("assigned_to", {})
-        coverage["assigned_to"]["assignment_id"] = assignment[config.ID_FIELD]
+        coverage["assigned_to"]["assignment_id"] = assignment[ID_FIELD]
         coverage["assigned_to"]["desk"] = assignment["assigned_to"].get("desk")
         coverage["assigned_to"]["user"] = assignment["assigned_to"].get("user")
         coverage["assigned_to"]["contact"] = assignment["assigned_to"].get("contact")
@@ -872,3 +884,10 @@ def get_coverage_from_planning(planning_item: Planning, coverage_id: str) -> Opt
 def prepare_ingested_item_for_storage(doc: Union[Event, Planning]) -> None:
     doc.setdefault("state", "ingested")
     doc["ingest_pubstatus"] = doc.pop("pubstatus", "usable")  # pubstatus is set when posted
+
+
+def assignment_allows_multiple_content_linked(assignment: dict) -> bool:
+    try:
+        return assignment["planning"]["multiple_content"] is True
+    except (KeyError, TypeError):
+        return False

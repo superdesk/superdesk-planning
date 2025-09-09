@@ -76,7 +76,7 @@ Feature: Event Search
                     "unique_id": "786",
                     "unique_name": "name",
                     "name": "event 786",
-                    "state": "published",
+                    "state": "active",
                     "pubstatus": "usable",
                     "slugline": "test3 slugline",
                     "definition_short": "short value",
@@ -88,7 +88,7 @@ Feature: Event Search
                         "end": "2016-01-03T00:00:00+0000"
                     },
                     "subject": [{"qcode": "test qcode 2", "name": "test name"}],
-                    "lock_session": "ident1",
+                    "lock_session": "683459ee32f5061cba2138b0",
                     "priority": 7
                 }
             ]
@@ -315,6 +315,7 @@ Feature: Event Search
 
     @auth
     Scenario: Users can only see their events without the planning_global_filters privilege
+        Given empty "events"
         Given "events"
         """
         [{

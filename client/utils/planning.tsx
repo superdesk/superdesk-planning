@@ -1269,7 +1269,7 @@ function getPlanningByDate(
         };
         const primaryEventIds = getRelatedEventIdsForPlanning(plan, 'primary');
 
-        plan.event = primaryEventIds.length > 0 ?
+        plan.event = primaryEventIds.length > 0 && events ?
             events[primaryEventIds[0]] :
             undefined;
         plan.coverages.forEach((coverage) => {
@@ -1388,10 +1388,15 @@ function getCoverageIcon(
         : getItemWorkflowState(coverage.assigned_to) === WORKFLOW_STATE.CANCELLED;
     const iconType: 'normal' | 'cancelled' = cancelled ? 'cancelled' : 'normal';
     const iconForUnknownType = cancelled ? 'icon-file-cancel' : 'icon-file';
+    const contentType = coverage?.planning?.multiple_content === true ? PLANNING.G2_CONTENT_TYPE.MULTIPLE_TEXT : type;
 
     const coverageIcons = {
         [PLANNING.G2_CONTENT_TYPE.TEXT]: {
             normal: 'icon-text',
+            cancelled: 'icon-text-cancel',
+        },
+        [PLANNING.G2_CONTENT_TYPE.MULTIPLE_TEXT]: {
+            normal: 'icon-takes-package',
             cancelled: 'icon-text-cancel',
         },
         [PLANNING.G2_CONTENT_TYPE.VIDEO]: {
@@ -1424,7 +1429,7 @@ function getCoverageIcon(
         },
     };
 
-    return coverageIcons[type]?.[iconType] ?? iconForUnknownType;
+    return coverageIcons[contentType]?.[iconType] ?? iconForUnknownType;
 }
 
 function getCoverageIconColor(item: IPlanningCoverageItem): string | undefined {
@@ -1552,9 +1557,10 @@ function defaultCoverageValues(
     preferredCoverageDesks?: {[key: string]: IDesk['_id']},
 ): DeepPartial<IPlanningCoverageItem> {
     const {contentProfiles} = planningApi;
-    const coverageProfile = contentProfiles.get('coverage');
-    const defaultValues = (contentProfiles.getDefaultValues(coverageProfile)) as DeepPartial<IPlanningCoverageItem>;
     const allProfiles = coverageProfiles(planningApi.redux.store.getState());
+    const coverageProfile = allProfiles.find((x) => x.content_type === g2contentType)
+        ?? contentProfiles.get('coverage');
+    const defaultValues = (contentProfiles.getDefaultValues(coverageProfile)) as DeepPartial<IPlanningCoverageItem>;
 
     // if new profile hasn't been created for the type don't set to anything, backend also accepts objectid only
     const profileId = allProfiles.find((x) => x.content_type === g2contentType)?._id ?? undefined;

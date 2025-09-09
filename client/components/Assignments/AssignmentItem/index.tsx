@@ -4,7 +4,7 @@ import {get, debounce, Cancelable} from 'lodash';
 import {OverlayTrigger, Tooltip} from 'react-bootstrap';
 
 import {superdeskApi} from '../../../superdeskApi';
-import {IUser, IDesk} from 'superdesk-api';
+import {IUser, IDesk, IArticle} from 'superdesk-api';
 import {
     IAssignmentItem,
     IAssignmentPriority,
@@ -23,9 +23,10 @@ import {Menu} from 'superdesk-ui-framework/react';
 import {UserAvatarWithMargin} from '../../../components/UserAvatar';
 import {Item, Border, Column, Row} from '../../UI/List';
 
-import {getComponentForField, getAssignmentsListView} from './fields';
+import {getComponentForField, getAssignmentsListView, AssignmentViewField} from './fields';
+import {LineItems} from '../../../components/UI/List/LineItems';
 
-interface IProps {
+export interface IAssignmentItemProps {
     assignment: IAssignmentItem;
     lockedItems: ILockedItems;
     isCurrentUser: boolean;
@@ -38,6 +39,7 @@ interface IProps {
     assignedUser?: IUser;
     assignedDesk?: IDesk;
     contacts: {[key: string]: IContactItem};
+    archiveItems: {[itemId: string]: IArticle};
 
     onClick(assignment: IAssignmentItem): void;
     onDoubleClick(assignment: IAssignmentItem): void;
@@ -47,6 +49,11 @@ interface IProps {
     startWorking(assignment: IAssignmentItem): void;
     removeAssignment(assignment: IAssignmentItem): void;
     revertAssignment(assignment: IAssignmentItem): void;
+    onDoubleClickArchiveItem(item: IArticle): void;
+    relatedUI?: {
+        visible: boolean;
+        toggleVisibility(): void;
+    }
 }
 
 interface IState {
@@ -54,7 +61,7 @@ interface IState {
     hover: boolean;
 }
 
-export class AssignmentItem extends React.Component<IProps, IState> {
+export class AssignmentItem extends React.Component<IAssignmentItemProps, IState> {
     private _delayedClick: (() => void) & Cancelable | undefined;
 
     constructor(props) {
@@ -75,19 +82,9 @@ export class AssignmentItem extends React.Component<IProps, IState> {
         this.renderContentColumn = this.renderContentColumn.bind(this);
         this.renderAvatar = this.renderAvatar.bind(this);
         this.renderActionsMenu = this.renderActionsMenu.bind(this);
-        this.onFocus = this.onFocus.bind(this);
         this.onItemHoverOn = this.onItemHoverOn.bind(this);
         this.onItemHoverOff = this.onItemHoverOff.bind(this);
         this.handleKeyDown = this.handleKeyDown.bind(this);
-    }
-
-    onFocus(event: React.FocusEvent<HTMLLIElement>) {
-        const {querySelectorParent} = superdeskApi.utilities;
-
-        if (!querySelectorParent(event.target, 'button', {self: true})) {
-            // Don't trigger click event if focus went through menu or button inside the list item
-            this.props.onClick(this.props.assignment);
-        }
     }
 
     onItemHoverOn() {
@@ -104,7 +101,11 @@ export class AssignmentItem extends React.Component<IProps, IState> {
     }
 
     onDoubleClick() {
-        this.props.onDoubleClick(this.props.assignment);
+        if (this.props.assignment.planning?.multiple_content === true) {
+            this.props.relatedUI?.toggleVisibility();
+        } else {
+            this.props.onDoubleClick(this.props.assignment);
+        }
     }
 
     handleSingleAndDoubleClick(event: React.MouseEvent<HTMLLIElement>) {
@@ -152,30 +153,41 @@ export class AssignmentItem extends React.Component<IProps, IState> {
         );
     }
 
-    renderField(field) {
-        const FieldComponent = getComponentForField(field);
-
-        // @ts-ignore
-        return <FieldComponent {...this.props} key={field} />;
-    }
-
     renderContentColumn() {
         const listViewConfig = getAssignmentsListView();
 
         return (
-            <Column grow={true} border={false}>
-                <Row>
-                    <span className="sd-overflow-ellipsis sd-list-item--element-grow">
-                        {listViewConfig.firstLine.map((field) =>
-                            this.renderField(field)
-                        )}
-                    </span>
-                </Row>
-                <Row>
-                    {listViewConfig.secondLine.map((field) =>
-                        this.renderField(field)
-                    )}
-                </Row>
+            <Column grow border={false}>
+                <LineItems
+                    firstLine={listViewConfig.firstLine}
+                    secondLine={listViewConfig.secondLine}
+                    renderFieldsWithProps={(fields) => {
+                        return fields.map((field) => {
+                            const FieldComponent = getComponentForField(field.fieldId as AssignmentViewField);
+
+                            const fieldsProps = {
+                                priority: {
+                                    priorities: this.props.priorities,
+                                },
+                                desk: {
+                                    assignedDesk: this.props.assignedDesk,
+                                },
+                                headline: {
+                                    archiveItems: this.props.archiveItems,
+                                }
+                            };
+
+                            return (
+                                <FieldComponent
+                                    assignment={this.props.assignment}
+                                    fieldsProps={fieldsProps}
+                                    fieldOptions={field.fieldOptions}
+                                    key={field.fieldId}
+                                />
+                            );
+                        });
+                    }}
+                />
             </Column>
         );
     }
@@ -264,7 +276,7 @@ export class AssignmentItem extends React.Component<IProps, IState> {
                 null,
                 assignment
             ),
-            [ASSIGNMENTS.ITEM_ACTIONS.PREVIEW_ARCHIVE.actionName]: this.onDoubleClick,
+            [ASSIGNMENTS.ITEM_ACTIONS.PREVIEW_ARCHIVE.actionName]: this.props.onDoubleClick,
             [ASSIGNMENTS.ITEM_ACTIONS.CONFIRM_AVAILABILITY.actionName]: completeAssignment.bind(
                 null,
                 assignment
@@ -282,7 +294,8 @@ export class AssignmentItem extends React.Component<IProps, IState> {
                 privileges,
                 lockedItems,
                 contentTypes,
-                itemActionsCallBack
+                itemActionsCallBack,
+                this.props.archiveItems,
             )
             : [];
 

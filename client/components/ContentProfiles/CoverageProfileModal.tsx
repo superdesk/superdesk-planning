@@ -264,6 +264,7 @@ export class CoverageProfilesModal extends React.Component<IProps, IState> {
                             'genre',
                             'news_coverage_status',
                             'no_content_linking',
+                            'anpa_category',
                         ]}
                         disableRequiredFields={['no_content_linking']}
                         updateField={this.updateField}

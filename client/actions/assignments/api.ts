@@ -1,8 +1,9 @@
 import moment from 'moment-timezone';
 import {get, cloneDeep, has, pick} from 'lodash';
 
+import {IArticle} from 'superdesk-api';
 import {appConfig} from 'appConfig';
-import {IAssignmentItem} from '../../interfaces';
+import {IAssignmentItem, ISearchQueryOperator} from '../../interfaces';
 import {planningApi} from '../../superdeskApi';
 
 import * as selectors from '../../selectors';
@@ -11,7 +12,8 @@ import {ASSIGNMENTS, ALL_DESKS, SORT_DIRECTION} from '../../constants';
 import planningUtils from '../../utils/planning';
 import {getErrorMessage, isExistingItem, gettext} from '../../utils';
 import planningActions from '../planning/api';
-import {assignmentsViewRequiresArchiveItems} from '../../components/Assignments/AssignmentItem/fields';
+
+export const SEARCH_QUERY_OPERATORS: Array<ISearchQueryOperator> = ['must', 'must_not', 'should'];
 
 const setBaseQuery = ({must = []}) => ({
     type: ASSIGNMENTS.ACTIONS.SET_BASE_QUERY,
@@ -164,6 +166,7 @@ const query = ({
     size = null,
     ignoreScheduledUpdates = false,
     max_results = null,
+    baseQuery = null,
 }) => (
     (dispatch, getState, {api}) => {
         const filterByValues = {
@@ -176,10 +179,20 @@ const query = ({
         let sort = '[("' + (get(filterByValues, orderByField, 'planning.scheduled')) + '", '
             + (orderDirection === SORT_DIRECTION.ASCENDING ? 1 : -1) + ')]';
 
-        const baseQuery = selectors.getBaseAssignmentQuery(getState());
+        const baseElasticQuery = selectors.getBaseAssignmentQuery(getState());
+
+        if (baseQuery) {
+            // Combine the elastic queries from the provided baseQuery and the one from the redux store
+            for (const field of SEARCH_QUERY_OPERATORS) {
+                if (baseQuery[field]) {
+                    baseElasticQuery[field] = (baseElasticQuery[field] || []).concat(baseQuery[field]);
+                }
+            }
+        }
+
         const query = constructQuery({
             systemTimezone: appConfig.default_timezone,
-            baseQuery: baseQuery,
+            baseQuery: baseElasticQuery,
             searchQuery: searchQuery,
             deskId: deskId,
             userId: userId,
@@ -250,9 +263,7 @@ const fetchAssignmentById = (id, force = false, recieve = true) => (
 const receivedAssignments = (assignments) => (
     (dispatch) => {
         dispatch(actions.contacts.fetchContactsFromAssignments(assignments));
-        if (assignmentsViewRequiresArchiveItems()) {
-            dispatch(actions.assignments.api.loadArchiveItems(assignments));
-        }
+        dispatch(actions.assignments.api.loadArchiveItems(assignments));
         dispatch({
             type: ASSIGNMENTS.ACTIONS.RECEIVED_ASSIGNMENTS,
             payload: assignments,
@@ -326,29 +337,6 @@ const link = (assignment, newsItem, reassign) => (
                 newsItem.assignment_id = item.assignment_id;
                 return Promise.resolve(item);
             }, (error) => Promise.reject(error))
-    )
-);
-
-/**
- * Action to create news item from assignment and template
- * @param {String} assignmentId - Id of the Assignment
- * @param {String} templateName - name of the template to use
- * @return Promise
- */
-const createFromTemplateAndShow = (assignmentId, templateName) => (
-    (dispatch, getState, {api, authoringWorkspace, notify}) => (
-        api('assignments_content').save({}, {
-            assignment_id: assignmentId,
-            template_name: templateName,
-        })
-            .then((item) => authoringWorkspace.edit(item),
-                (error) => {
-                    notify.error(
-                        getErrorMessage(error, 'Failed to lock the Assignment.')
-                    );
-                    return Promise.reject(error);
-                }
-            )
     )
 );
 
@@ -541,11 +529,11 @@ const removeAssignment = (assignment) => (
     )
 );
 
-function unlink(assignment: IAssignmentItem) {
+function unlink(assignment: IAssignmentItem, itemId: IArticle['_id']) {
     return (dispatch, getState, {api, notify}) => (
         api('assignments_unlink').save({}, {
             assignment_id: assignment._id,
-            item_id: get(assignment, 'item_ids[0]'),
+            item_id: itemId,
         })
             .then(() => {
                 notify.success(gettext('Assignment reverted.'));
@@ -564,7 +552,6 @@ const self = {
     fetchAssignmentById,
     save,
     link,
-    createFromTemplateAndShow,
     complete,
     revert,
     loadPlanningAndEvent,

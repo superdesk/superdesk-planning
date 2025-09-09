@@ -435,7 +435,6 @@ describe('actions.events.ui', () => {
 
         afterEach(() => {
             restoreSinonStub(main.createNew);
-            restoreSinonStub(eventsApi.duplicate);
             restoreSinonStub(eventsApi.fetchEventFiles);
             restoreSinonStub(moment.tz.guess);
         });

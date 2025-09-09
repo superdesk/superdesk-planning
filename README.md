@@ -227,6 +227,11 @@ Below sections include the config options that can be defined in settings.py.
     * If this option is not defined, or is an empty array, then all content types can be linked
     * Otherwise only the content types in the list are allowed to be linked to a coverage
     * This includes fulfilment of an Assignment
+* ASSIGNMENT_LINK_DUPLICATE_CONTENT
+    * Default to false
+    * When duplicating content that is linked to an Assignment with multiple content enabled,
+    * this setting determines whether the newly created duplicate item retains the Assignment link (if true)
+    * or removes the assignment_id from the duplicate item (if false).
 
 ### Development tools config
 

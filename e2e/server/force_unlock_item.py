@@ -9,11 +9,13 @@
 # at https://www.sourcefabric.org/superdesk/license
 
 from bson import ObjectId
-from superdesk import Blueprint, blueprint, get_resource_service
+from superdesk import blueprint, get_resource_service
+from superdesk.flask import Blueprint
 from planning.item_lock import LockService
 from apps.common.components.utils import get_component
 
 
+# TODO-ASYNC: migrate to async endpoint
 bp = Blueprint("e2e_force_unlock", __name__)
 
 

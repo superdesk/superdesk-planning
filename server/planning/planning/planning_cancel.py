@@ -8,12 +8,13 @@
 # AUTHORS and LICENSE files distributed with this source code, or
 # at https://www.sourcefabric.org/superdesk/license
 
+from superdesk.eve_async.service import AsyncBaseService
+from superdesk.flask import request
+from superdesk.resource_fields import ID_FIELD
 from superdesk import get_resource_service
-from superdesk.services import BaseService
 from superdesk.notification import push_notification
 from superdesk.errors import SuperdeskApiError
 from apps.archive.common import get_user, get_auth
-from eve.utils import config
 from copy import deepcopy
 from .planning import PlanningResource, planning_schema
 from planning.common import (
@@ -25,7 +26,6 @@ from planning.common import (
     ASSIGNMENT_WORKFLOW_STATE,
     get_coverage_status_from_cv,
 )
-from flask import request
 
 
 planning_cancel_schema = deepcopy(planning_schema)
@@ -51,14 +51,14 @@ class PlanningCancelResource(PlanningResource):
     merge_nested_documents = True
 
 
-class PlanningCancelService(BaseService):
-    def on_update(self, updates, original):
-        if not is_valid_event_planning_reason(updates, original):
+class PlanningCancelService(AsyncBaseService):
+    async def on_update_async(self, updates, original):
+        if not await is_valid_event_planning_reason(updates, original):
             raise SuperdeskApiError.badRequestError(message="Reason is required field.")
 
-    def update(self, id, updates, original):
-        user = get_user(required=True).get(config.ID_FIELD, "")
-        session = get_auth().get(config.ID_FIELD, "")
+    async def update_async(self, id, updates, original):
+        user = get_user(required=True).get(ID_FIELD, "")
+        session = get_auth().get(ID_FIELD, "")
 
         event_cancellation = request.view_args.get("event_cancellation")
         cancel_all_coverage = updates.pop("cancel_all_coverage", False)
@@ -78,7 +78,7 @@ class PlanningCancelService(BaseService):
                 ASSIGNMENT_WORKFLOW_STATE.COMPLETED,
             ]:
                 ids.append(coverage.get("coverage_id"))
-                planning_service.cancel_coverage(
+                await planning_service.cancel_coverage(
                     coverage,
                     coverage_cancel_state,
                     coverage.get("workflow_status"),
@@ -94,7 +94,7 @@ class PlanningCancelService(BaseService):
                 item = self.backend.update(self.datasource, id, updates, original)
                 push_notification(
                     "coverage:cancelled",
-                    planning_item=str(original[config.ID_FIELD]),
+                    planning_item=str(original[ID_FIELD]),
                     user=str(user),
                     session=str(session),
                     reason=reason,
@@ -106,11 +106,11 @@ class PlanningCancelService(BaseService):
 
         self._cancel_plan(updates, reason)
 
-        item = self.backend.update(self.datasource, id, updates, original)
+        item = await self.backend.update_async(self.datasource, id, updates, original)
 
         push_notification(
             "planning:cancelled",
-            item=str(original[config.ID_FIELD]),
+            item=str(original[ID_FIELD]),
             user=str(user),
             session=str(session),
             reason=reason,
@@ -124,7 +124,7 @@ class PlanningCancelService(BaseService):
         updates["state_reason"] = reason
         updates[ITEM_STATE] = WORKFLOW_STATE.CANCELLED
 
-    def on_updated(self, updates, original):
+    async def on_updated_async(self, updates, original):
         lock_action = original.get("lock_action")
         allowed_actions = [
             ITEM_ACTIONS.EDIT,
@@ -136,7 +136,7 @@ class PlanningCancelService(BaseService):
             or lock_action in allowed_actions
             or self.is_related_event_completed(updates, original)
         ):
-            update_post_item(updates, original)
+            await update_post_item(updates, original)
 
     def is_related_event_completed(self, updates, original):
         if (

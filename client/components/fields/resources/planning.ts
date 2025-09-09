@@ -3,6 +3,7 @@ import {registerEditorField} from './registerEditorFields';
 import {superdeskApi} from '../../../superdeskApi';
 
 import {EditorFieldMultilingualText} from '../editor/base/multilingualText';
+import {EditorFieldToggle} from '../editor/base/toggle';
 
 registerEditorField(
     'description_text',
@@ -23,4 +24,13 @@ registerEditorField(
     }),
     null,
     true
+);
+
+registerEditorField(
+    'multiple_content',
+    EditorFieldToggle,
+    () => ({
+        label: superdeskApi.localization.gettext('Multiple Content'),
+        field: 'planning.multiple_content',
+    })
 );

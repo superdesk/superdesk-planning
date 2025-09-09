@@ -14,6 +14,8 @@ from flask import json
 from datetime import datetime, timedelta
 from copy import deepcopy
 
+from behave.api.async_step import async_run_until_complete
+
 from superdesk.tests.publish_steps import *  # noqa
 from superdesk.tests.steps import (
     then,
@@ -38,6 +40,7 @@ from superdesk.utc import utcnow, utc_to_local
 from superdesk import get_resource_service, etree
 from superdesk.io.feed_parsers import XMLFeedParser
 from wooper.assertions import assert_equal
+from planning.tests import fixtures as planning_fixtures
 
 
 def get_local_end_of_day(context, day=None, timezone=None):
@@ -48,15 +51,17 @@ def get_local_end_of_day(context, day=None, timezone=None):
 
 
 @then("we get a list with {total_count} items")
-def step_impl_list(context, total_count):
-    step_impl_then_get_existing(context)
-    data = get_json_data(context.response)
-    assert len(data["_items"]) == int(total_count), len(data["_items"])
+@async_run_until_complete
+async def step_impl_list(context, total_count):
+    await step_impl_then_get_existing(context)
+    data = await get_json_data(context.response)
+    assert len(data["_items"]) == int(total_count), f"Expected: {total_count}. Found: {len(data['_items'])}"
 
 
 @then("we get field {field} exactly")
-def step_impl_exactly(context, field):
-    data = get_json_data(context.response)
+@async_run_until_complete
+async def step_impl_exactly(context, field):
+    data = await get_json_data(context.response)
     # if it's a list, takes the first item
     if "_items" in data and len(data["_items"]) > 0:
         data = data["_items"][0]
@@ -68,104 +73,110 @@ def step_impl_exactly(context, field):
 
 
 @then('we store "{tag}" from patch')
-def step_imp_store_item_from_patch(context, tag):
-    data = get_json_data(context.response)
+@async_run_until_complete
+async def step_imp_store_item_from_patch(context, tag):
+    data = await get_json_data(context.response)
     setattr(context, tag, data)
 
 
 @then('we store "{tag}" from last duplicated item')
-def step_imp_store_last_duplicate_item(context, tag):
-    data = get_json_data(context.response)
+@async_run_until_complete
+async def step_imp_store_last_duplicate_item(context, tag):
+    data = await get_json_data(context.response)
     new_id = data["duplicate_to"][-1]
     setattr(context, tag, {"id": new_id})
 
 
 @then('we store "{tag}" from last rescheduled item')
-def step_imp_store_last_rescheduled_item(context, tag):
-    data = get_json_data(context.response)
+@async_run_until_complete
+async def step_imp_store_last_rescheduled_item(context, tag):
+    data = await get_json_data(context.response)
     new_id = data["reschedule_to"]
     setattr(context, tag, {"id": new_id})
 
 
 @then("we get an event file reference")
-def step_impl_then_get_event_file(context):
-    assert_200(context.response)
-    data = get_json_data(context.response)
+@async_run_until_complete
+async def step_impl_then_get_event_file(context):
+    await assert_200(context.response)
+    data = await get_json_data(context.response)
     url = "/upload-raw/%s" % data["filemeta"]["media_id"]
     headers = [("Accept", "application/json")]
     headers = unique_headers(headers, context.headers)
-    response = context.client.get(get_prefixed_url(context.app, url), headers=headers)
-    assert_200(response)
-    assert len(response.get_data()), response
-    fetched_data = get_json_data(context.response)
+    response = await context.client.get(get_prefixed_url(context.app, url), headers=headers)
+    await assert_200(response)
+    assert len((await response.get_data())), response
+    fetched_data = await get_json_data(context.response)
     context.fetched_data = fetched_data
 
 
 @then("we can delete that event file")
-def step_impl_we_delete_event_file(context):
+@async_run_until_complete
+async def step_impl_we_delete_event_file(context):
     url = "/events_files/%s" % context.fetched_data["_id"]
     context.headers.append(("Accept", "application/json"))
     headers = if_match(context, context.fetched_data.get("_etag"))
     response = context.client.delete(get_prefixed_url(context.app, url), headers=headers)
-    assert_200(response)
-    response = context.client.get(get_prefixed_url(context.app, url), headers=headers)
+    await assert_200(response)
+    response = await context.client.get(get_prefixed_url(context.app, url), headers=headers)
     assert_404(response)
 
 
 @when('we spike {resource} "{item_id}"')
-def step_impl_when_spike_resource(context, resource, item_id):
-    data = context.text or {}
+@async_run_until_complete
+async def step_impl_when_spike_resource(context, resource, item_id):
+    data = json.loads(context.text or "{}")
     resource = apply_placeholders(context, resource)
     item_id = apply_placeholders(context, item_id)
 
     item_url = "/{}/{}".format(resource, item_id)
     spike_url = "/{}/spike/{}".format(resource, item_id)
 
-    res = get_res(item_url, context)
+    res = await get_res(item_url, context)
     headers = if_match(context, res.get("_etag"))
 
-    context.response = context.client.patch(
-        get_prefixed_url(context.app, spike_url), data=json.dumps(data), headers=headers
-    )
+    context.response = await context.client.patch(get_prefixed_url(context.app, spike_url), json=data, headers=headers)
 
 
 @when('we unspike {resource} "{item_id}"')
-def step_impl_when_unspike_resource(context, resource, item_id):
-    data = context.text or {}
+@async_run_until_complete
+async def step_impl_when_unspike_resource(context, resource, item_id):
+    data = json.loads(context.text or "{}")
     resource = apply_placeholders(context, resource)
     item_id = apply_placeholders(context, item_id)
 
     item_url = "/{}/{}".format(resource, item_id)
     unspike_url = "/{}/unspike/{}".format(resource, item_id)
 
-    res = get_res(item_url, context)
+    res = await get_res(item_url, context)
     headers = if_match(context, res.get("_etag"))
 
-    context.response = context.client.patch(
-        get_prefixed_url(context.app, unspike_url), data=json.dumps(data), headers=headers
+    context.response = await context.client.patch(
+        get_prefixed_url(context.app, unspike_url), json=data, headers=headers
     )
 
 
 @when('we perform {action} on {resource} "{item_id}"')
-def step_imp_when_action_resource(context, action, resource, item_id):
-    data = context.text or {}
+@async_run_until_complete
+async def step_imp_when_action_resource(context, action, resource, item_id):
+    data = json.loads(context.text or "{}")
     resource = apply_placeholders(context, resource)
     item_id = apply_placeholders(context, item_id)
 
     item_url = "/{}/{}".format(resource, item_id)
     action_url = "/{}/{}/{}".format(resource, action, item_id)
 
-    res = get_res(item_url, context)
+    res = await get_res(item_url, context)
     headers = if_match(context, res.get("_etag"))
 
-    context.response = context.client.patch(
-        get_prefixed_url(context.app, action_url), data=json.dumps(data), headers=headers
-    )
+    context.response = await context.client.patch(get_prefixed_url(context.app, action_url), json=data, headers=headers)
 
 
 @then('we get text in "{field}"')
-def then_we_get_text_in_response_field(context, field):
-    response = get_json_data(context.response)[field]
+@async_run_until_complete
+async def then_we_get_text_in_response_field(context, field):
+    data = await get_json_data(context.response)
+    response = data[field]
 
     # Remove blank lines to make testing easier
     response_text = "\n".join([line for line in response.split("\n") if len(line)])
@@ -174,9 +185,10 @@ def then_we_get_text_in_response_field(context, field):
 
 
 @then('we store assignment id in "{tag}" from coverage {index}')
-def then_we_store_assignment_id_from_coverage(context, tag, index):
+@async_run_until_complete
+async def then_we_store_assignment_id_from_coverage(context, tag, index):
     index = int(index)
-    response = get_json_data(context.response)
+    response = await get_json_data(context.response)
     assert len(response.get("coverages")), "Coverage are not defined."
     coverage = response.get("coverages")[index]
     assignment_id = coverage.get("assigned_to", {}).get("assignment_id")
@@ -184,9 +196,10 @@ def then_we_store_assignment_id_from_coverage(context, tag, index):
 
 
 @then('we store coverage id in "{tag}" from coverage {index}')
-def then_we_store_coverage_id(context, tag, index):
+@async_run_until_complete
+async def then_we_store_coverage_id(context, tag, index):
     index = int(index)
-    response = get_json_data(context.response)
+    response = await get_json_data(context.response)
     assert len(response.get("coverages")), "Coverage are not defined."
     coverage = response.get("coverages")[index]
     coverage_id = coverage.get("coverage_id")
@@ -194,10 +207,11 @@ def then_we_store_coverage_id(context, tag, index):
 
 
 @then('we store coverage id in "{tag}" from plan {planning_index} coverage {coverage_index}')
-def then_we_store_planning_coverage_id(context, tag, planning_index, coverage_index):
+@async_run_until_complete
+async def then_we_store_planning_coverage_id(context, tag, planning_index, coverage_index):
     planning_index = int(planning_index)
     coverage_index = int(coverage_index)
-    response = get_json_data(context.response) or {}
+    response = await get_json_data(context.response) or {}
 
     try:
         planning_item = response["_items"][planning_index]
@@ -215,9 +229,10 @@ def then_we_store_planning_coverage_id(context, tag, planning_index, coverage_in
 
 
 @then("we get {coverage_count} coverages")
-def then_we_get_coverages_count(context, coverage_count):
+@async_run_until_complete
+async def then_we_get_coverages_count(context, coverage_count):
     coverage_count = int(coverage_count)
-    response = get_json_data(context.response) or {}
+    response = await get_json_data(context.response) or {}
 
     try:
         actual_coverage_count = len(response["coverages"])
@@ -231,10 +246,11 @@ def then_we_get_coverages_count(context, coverage_count):
 
 
 @then('we store scheduled_update id in "{tag}" from scheduled_update {index} of coverage {coverage_index}')
-def then_we_store_scheduled_update_id_from_assignment_coverage(context, tag, index, coverage_index):
+@async_run_until_complete
+async def then_we_store_scheduled_update_id_from_assignment_coverage(context, tag, index, coverage_index):
     index = int(index)
     coverage_index = int(coverage_index)
-    response = get_json_data(context.response)
+    response = await get_json_data(context.response)
     assert len(response.get("coverages")), "Coverage are not defined."
     coverage = response.get("coverages")[coverage_index]
     assert len(coverage.get("scheduled_updates")), "scheduled_updates are not defined."
@@ -243,10 +259,11 @@ def then_we_store_scheduled_update_id_from_assignment_coverage(context, tag, ind
 
 
 @then('we store assignment id in "{tag}" from scheduled_update {index} of coverage {coverage_index}')
-def then_we_store_assignment_id_from_scheduled_update_coverage(context, tag, index, coverage_index):
+@async_run_until_complete
+async def then_we_store_assignment_id_from_scheduled_update_coverage(context, tag, index, coverage_index):
     index = int(index)
     coverage_index = int(coverage_index)
-    response = get_json_data(context.response)
+    response = await get_json_data(context.response)
     coverage = (response.get("coverages") or [])[coverage_index]
     assert len(coverage.get("scheduled_updates")), "scheduled_updates are not defined."
     scheduled_update = coverage["scheduled_updates"][index]
@@ -254,18 +271,20 @@ def then_we_store_assignment_id_from_scheduled_update_coverage(context, tag, ind
 
 
 @then("the assignment not created for coverage {index}")
-def then_assignment_not_created_for_coverage(context, index):
+@async_run_until_complete
+async def then_assignment_not_created_for_coverage(context, index):
     index = int(index)
-    response = get_json_data(context.response)
+    response = await get_json_data(context.response)
     assert len(response.get("coverages")), "Coverage are not defined."
     coverage = response.get("coverages")[index]
     assert not coverage.get("assigned_to", {}).get("assignment_id"), "Coverage has an assignment"
 
 
 @then("assignment {index} is scheduled for end of today")
-def then_assignment_scheduled_for_end_of_day(context, index):
+@async_run_until_complete
+async def then_assignment_scheduled_for_end_of_day(context, index):
     index = int(index)
-    response = get_json_data(context.response)
+    response = await get_json_data(context.response)
     assert len(response.get("coverages")), "Coverages are not defined"
     coverage = response.get("coverages")[index]
     eod = get_local_end_of_day(context).strftime(DATETIME_FORMAT)
@@ -273,8 +292,9 @@ def then_assignment_scheduled_for_end_of_day(context, index):
 
 
 @then("we get array of {field} by {fid}")
-def then_we_get_array_of_by(context, field, fid):
-    response = get_json_data(context.response)
+@async_run_until_complete
+async def then_we_get_array_of_by(context, field, fid):
+    response = await get_json_data(context.response)
     assert field in response, "{} field not defined".format(field)
     assert len(response.get(field)), "{} field not defined".format(field)
     context_data = json.loads(apply_placeholders(context, context.text))
@@ -289,17 +309,19 @@ def then_we_get_array_of_by(context, field, fid):
 
 
 @then("planning item has current date")
-def then_item_has_current_date(context):
-    response = get_json_data(context.response)
+@async_run_until_complete
+async def then_item_has_current_date(context):
+    response = await get_json_data(context.response)
     assert "planning_date" in response, "planning_date field not defined"
     response_date_time = datetime.strptime(response["planning_date"], DATETIME_FORMAT)
     assert response_date_time.date() == get_local_end_of_day(context).date(), "Planning Item has not got current date"
 
 
 @then("coverage {index} has current date")
-def then_coverage_has_current_date(context, index):
+@async_run_until_complete
+async def then_coverage_has_current_date(context, index):
     index = int(index)
-    response = get_json_data(context.response)
+    response = await get_json_data(context.response)
     assert len(response.get("coverages")), "Coverages are not defined"
     coverage = response.get("coverages")[index]
     response_date_time = datetime.strptime(coverage["planning"]["scheduled"], DATETIME_FORMAT)
@@ -337,8 +359,9 @@ def then_get_transmitted_item(context, path):
 
 
 @when('we fetch events from "{provider_name}" ingest "{guid}"')
-def step_impl_fetch_from_provider_ingest(context, provider_name, guid):
-    with context.app.test_request_context(context.app.config["URL_PREFIX"]):
+@async_run_until_complete
+async def step_impl_fetch_from_provider_ingest(context, provider_name, guid):
+    async with context.app.test_request_context(context.app.config["URL_PREFIX"]):
         ingest_provider_service = get_resource_service("ingest_providers")
         provider = ingest_provider_service.find_one(name=provider_name, req=None)
 
@@ -348,9 +371,9 @@ def step_impl_fetch_from_provider_ingest(context, provider_name, guid):
         if isinstance(feeding_parser, XMLFeedParser):
             with open(file_path, "rb") as f:
                 xml_string = etree.etree.fromstring(f.read())
-                parsed = feeding_parser.parse(xml_string, provider)
+                parsed = await feeding_parser.parse(xml_string, provider)
         else:
-            parsed = feeding_parser.parse(file_path, provider)
+            parsed = await feeding_parser.parse(file_path, provider)
 
         items = [parsed] if not isinstance(parsed, list) else parsed
 
@@ -358,21 +381,22 @@ def step_impl_fetch_from_provider_ingest(context, provider_name, guid):
             item["versioncreated"] = utcnow()
             item["expiry"] = utcnow() + timedelta(minutes=20)
 
-        failed = context.ingest_items(items, provider, provider_service)
+        failed = await context.ingest_items(items, provider, provider_service)
         assert len(failed) == 0, failed
 
-        provider = ingest_provider_service.find_one(name=provider_name, req=None)
-        ingest_provider_service.system_update(provider["_id"], {LAST_ITEM_UPDATE: utcnow()}, provider)
+        provider = await ingest_provider_service.find_one_async(name=provider_name, req=None)
+        await ingest_provider_service.system_update_async(provider["_id"], {LAST_ITEM_UPDATE: utcnow()}, provider)
 
         for item in items:
             set_placeholder(context, "{}.{}".format(provider_name, item["guid"]), item["_id"])
 
 
 @when('we duplicate event "{event_id}"')
-def step_impl_when_we_duplicate_event(context, event_id):
-    with context.app.test_request_context(context.app.config["URL_PREFIX"]):
+@async_run_until_complete
+async def step_impl_when_we_duplicate_event(context, event_id):
+    async with context.app.test_request_context(context.app.config["URL_PREFIX"]):
         events_service = get_resource_service("events")
-        original_event = events_service.find_one(req=None, _id=event_id)
+        original_event = await events_service.find_one_async(req=None, _id=event_id)
         duplicate_event = deepcopy(original_event)
 
         for key, value in original_event.items():
@@ -408,7 +432,7 @@ def then_set_assignment_manual_reassignment_only(context):
 def then_set_use_xmp_for_pic_assignments(context):
     ABS_PATH = os.path.abspath(os.path.join(os.path.dirname(__file__), "../"))
     BEHAVE_TESTS_FIXTURES_PATH = ABS_PATH + "/steps/fixtures"
-    context.app.settings["BEHAVE_TESTS_FIXTURES_PATH"] = BEHAVE_TESTS_FIXTURES_PATH
+    context.app.config["BEHAVE_TESTS_FIXTURES_PATH"] = BEHAVE_TESTS_FIXTURES_PATH
     context.app.config["PLANNING_USE_XMP_FOR_PIC_ASSIGNMENTS"] = True
 
 
@@ -416,7 +440,7 @@ def then_set_use_xmp_for_pic_assignments(context):
 def then_set_xmp_assignment_mapping(context):
     ABS_PATH = os.path.abspath(os.path.join(os.path.dirname(__file__), "../"))
     BEHAVE_TESTS_FIXTURES_PATH = ABS_PATH + "/steps/fixtures"
-    context.app.settings["BEHAVE_TESTS_FIXTURES_PATH"] = BEHAVE_TESTS_FIXTURES_PATH
+    context.app.config["BEHAVE_TESTS_FIXTURES_PATH"] = BEHAVE_TESTS_FIXTURES_PATH
     context.app.config["PLANNING_USE_XMP_FOR_PIC_ASSIGNMENTS"] = True
     context.app.config["PLANNING_XMP_ASSIGNMENT_MAPPING"] = {
         "xpath": "//x:xmpmeta/rdf:RDF/rdf:Description",
@@ -433,7 +457,7 @@ def then_set_xmp_assignment_mapping(context):
 def then_set_xmp_slugline_mapping(context):
     ABS_PATH = os.path.abspath(os.path.join(os.path.dirname(__file__), "../"))
     BEHAVE_TESTS_FIXTURES_PATH = ABS_PATH + "/steps/fixtures"
-    context.app.settings["BEHAVE_TESTS_FIXTURES_PATH"] = BEHAVE_TESTS_FIXTURES_PATH
+    context.app.config["BEHAVE_TESTS_FIXTURES_PATH"] = BEHAVE_TESTS_FIXTURES_PATH
     context.app.config["PLANNING_USE_XMP_FOR_PIC_SLUGLINE"] = True
     context.app.config["PLANNING_XMP_SLUGLINE_MAPPING"] = {
         "xpath": "//x:xmpmeta/rdf:RDF/rdf:Description/dc:title/rdf:Alt/rdf:li",
@@ -450,28 +474,31 @@ def then_set_xmp_slugline_mapping(context):
 def then_set_use_xmp_for_pic_slugline(context):
     ABS_PATH = os.path.abspath(os.path.join(os.path.dirname(__file__), "../"))
     BEHAVE_TESTS_FIXTURES_PATH = ABS_PATH + "/steps/fixtures"
-    context.app.settings["BEHAVE_TESTS_FIXTURES_PATH"] = BEHAVE_TESTS_FIXTURES_PATH
+    context.app.config["BEHAVE_TESTS_FIXTURES_PATH"] = BEHAVE_TESTS_FIXTURES_PATH
     context.app.config["PLANNING_USE_XMP_FOR_PIC_SLUGLINE"] = True
 
 
 @then("we have string {check_string} in media stream")
-def step_impl_then_get_media_stream(context, check_string):
-    assert_200(context.response)
-    data = get_json_data(context.response)
+@async_run_until_complete
+async def step_impl_then_get_media_stream(context, check_string):
+    await assert_200(context.response)
+    data = await get_json_data(context.response)
     url = "/upload-raw/%s" % data["filemeta"]["media_id"]
-    headers = [("Content - Type", "application / octet - stream")]
+    headers = [("Content-Type", "application/octet-stream")]
     headers = unique_headers(headers, context.headers)
-    response = context.client.get(get_prefixed_url(context.app, url), headers=headers)
-    assert_200(response)
-    assert len(response.get_data()), response
+    response = await context.client.get(get_prefixed_url(context.app, url), headers=headers)
+    await assert_200(response)
+    response_data = await response.get_data()
+    assert len(response_data), response
     check_string = apply_placeholders(context, check_string)
-    assert check_string in str(response.stream.response.data)
+    assert check_string.encode() in response_data
 
 
 @then("we get the following order")
-def step_impl_then_get_response_order(context):
-    assert_200(context.response)
-    response_data = (get_json_data(context.response) or {}).get("_items")
+@async_run_until_complete
+async def step_impl_then_get_response_order(context):
+    await assert_200(context.response)
+    response_data = (await get_json_data(context.response) or {}).get("_items")
     ids = [item["_id"] for item in response_data]
     expected_order = json.loads(context.text)
 
@@ -479,13 +506,28 @@ def step_impl_then_get_response_order(context):
 
 
 @when('we create "{resource}" autosave from context item "{name}"')
-def create_autosave_from_context_item(context, resource, name):
+@async_run_until_complete
+async def create_autosave_from_context_item(context, resource, name):
     item = deepcopy(getattr(context, name))
 
     # Remove system fields
     for field in ["_created", "_updated", "_etag", "_links", "_status"]:
         item.pop(field, None)
 
-    context.response = context.client.post(
+    context.response = await context.client.post(
         get_prefixed_url(context.app, f"/{resource}_autosave"), data=json.dumps(item), headers=context.headers
     )
+
+
+@when("we configure planning for publishing")
+@async_run_until_complete
+async def step_impl_configure_planning_subscribers(context):
+    async with context.app.test_request_context(context.app.config["URL_PREFIX"]):
+        await planning_fixtures.publish_config.configure_planning_publishing()
+
+
+@when("we configure content for publishing")
+@async_run_until_complete
+async def step_impl_configure_content_subscribers(context):
+    async with context.app.test_request_context(context.app.config["URL_PREFIX"]):
+        await planning_fixtures.publish_config.configure_content_publishing()

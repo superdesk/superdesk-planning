@@ -2,7 +2,7 @@ import React from 'react';
 import classNames from 'classnames';
 
 interface IProps {
-    children: JSX.Element | Array<JSX.Element>;
+    children?: JSX.Element | Array<JSX.Element>;
     className?: string;
     right?: boolean;
 }

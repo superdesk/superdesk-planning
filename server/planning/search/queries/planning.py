@@ -25,6 +25,8 @@ from .common import (
     get_sort_field,
     get_sort_order,
     search_text_field,
+    FilterFunctionType,
+    Params,
 )
 
 
@@ -340,7 +342,23 @@ def search_coverage_assignment_status(params: Dict[str, Any], query: elastic.Ela
             )
 
 
-PLANNING_SEARCH_FILTERS: List[Callable[[Dict[str, Any], elastic.ElasticQuery], None]] = [
+def search_description_text(params: Params, query: elastic.ElasticQuery):
+    search_text_field(params, query, "description_text")
+
+
+def search_abstract(params: Params, query: elastic.ElasticQuery):
+    search_text_field(params, query, "abstract")
+
+
+def search_headline(params: Params, query: elastic.ElasticQuery):
+    search_text_field(params, query, "headline")
+
+
+def search_keywords(params: Params, query: elastic.ElasticQuery):
+    search_text_field(params, query, "keywords")
+
+
+PLANNING_SEARCH_FILTERS: list[FilterFunctionType] = [
     search_planning,
     search_agendas,
     search_no_agenda_assigned,
@@ -356,11 +374,15 @@ PLANNING_SEARCH_FILTERS: List[Callable[[Dict[str, Any], elastic.ElasticQuery], N
     set_search_sort,
     search_coverage_assigned_user,
     search_coverage_assignment_status,
+    search_description_text,
+    search_abstract,
+    search_headline,
+    search_keywords,
 ]
 
 PLANNING_SEARCH_FILTERS.extend(COMMON_SEARCH_FILTERS)
 
-PLANNING_PARAMS: List[str] = [
+PLANNING_PARAMS = [
     "agendas",
     "no_agenda_assigned",
     "ad_hoc_planning",
@@ -373,6 +395,12 @@ PLANNING_PARAMS: List[str] = [
     "event_item",
     "coverage_user_id",
     "coverage_assignment_status",
+    "description_text",
+    "abstract",
+    "headline",
+    "slugline",
+    "keywords",
+    "priority",
 ]
 
 PLANNING_PARAMS.extend(COMMON_PARAMS)

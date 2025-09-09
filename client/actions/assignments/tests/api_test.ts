@@ -541,8 +541,8 @@ describe('actions.assignments.api', () => {
         it('adds the assignments to the store', () => {
             store.dispatch(assignmentsApi.receivedAssignments(data.assignments));
 
-            expect(store.dispatch.callCount).toBe(3);
-            expect(store.dispatch.args[2][0]).toEqual({
+            expect(store.dispatch.callCount).toBe(4);
+            expect(store.dispatch.args[3][0]).toEqual({
                 type: ASSIGNMENTS.ACTIONS.RECEIVED_ASSIGNMENTS,
                 payload: data.assignments,
             });

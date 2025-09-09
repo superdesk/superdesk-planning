@@ -1,7 +1,6 @@
 import React from 'react';
 
 import {IArticle, IVocabulary, IVocabularyItem} from 'superdesk-api';
-
 import {getAssignmentTypeInfo, editPlanningInNewTab} from './utils/assignments';
 import {SluglineComponent} from './components/Assignments/AssignmentItem/fields/Slugline';
 import {DueDateComponent} from './components/Assignments/AssignmentItem/fields/DueDate';

@@ -9,12 +9,12 @@
 # at https://www.sourcefabric.org/superdesk/license
 
 from planning.tests import TestCase
-from superdesk import get_resource_service
+from .planning_validate import validate_docs
 
 
 class PlanningValidateServiceTest(TestCase):
-    def test_validate_on_post(self):
-        with self.app.app_context():
+    async def test_validate_on_post(self):
+        async with self.app.app_context():
             self.app.data.insert(
                 "planning_types",
                 [
@@ -35,7 +35,7 @@ class PlanningValidateServiceTest(TestCase):
                 ],
             )
 
-            errors = get_resource_service("planning_validator").post(
+            errors = await validate_docs(
                 [
                     {
                         "validate_on_post": True,
@@ -46,11 +46,10 @@ class PlanningValidateServiceTest(TestCase):
                         },
                     }
                 ]
-            )[0]
+            )
+            self.assertEqual(errors[0], ["SLUGLINE is a required field"])
 
-            self.assertEqual(errors, ["SLUGLINE is a required field"])
-
-            errors = get_resource_service("planning_validator").post(
+            errors = await validate_docs(
                 [
                     {
                         "validate_on_post": True,
@@ -62,11 +61,10 @@ class PlanningValidateServiceTest(TestCase):
                         },
                     }
                 ]
-            )[0]
+            )
+            self.assertEqual(errors[0], [])
 
-            self.assertEqual(errors, [])
-
-            errors = get_resource_service("planning_validator").post(
+            errors = await validate_docs(
                 [
                     {
                         "validate_on_post": False,
@@ -77,14 +75,13 @@ class PlanningValidateServiceTest(TestCase):
                         },
                     }
                 ]
-            )[0]
+            )
+            self.assertEqual(len(errors[0]), 3)
+            self.assertIn("NAME is a required field", errors[0])
+            self.assertIn("CALENDARS is a required field", errors[0])
+            self.assertIn("DATES is a required field", errors[0])
 
-            self.assertEqual(len(errors), 3)
-            self.assertIn("NAME is a required field", errors)
-            self.assertIn("CALENDARS is a required field", errors)
-            self.assertIn("DATES is a required field", errors)
-
-            errors = get_resource_service("planning_validator").post(
+            errors = await validate_docs(
                 [
                     {
                         "validate_on_post": False,
@@ -102,6 +99,5 @@ class PlanningValidateServiceTest(TestCase):
                         },
                     }
                 ]
-            )[0]
-
-            self.assertEqual(errors, [])
+            )
+            self.assertEqual(errors[0], [])

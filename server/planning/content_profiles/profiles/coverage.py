@@ -10,7 +10,7 @@
 
 import superdesk.schema as schema
 
-from .fields import subjectField, BaseSchema, DateTimeField, BooleanField, TextField
+from .fields import subjectField, BaseSchema, DateTimeField, BooleanField, TextField, MultipleContentField
 
 
 class CoverageSchema(BaseSchema):
@@ -19,6 +19,7 @@ class CoverageSchema(BaseSchema):
     ednote = TextField(field_type="multi_line")
     files = schema.ListField()
     g2_content_type = schema.ListField(required=True)
+    anpa_category = schema.ListField()
     genre = schema.ListField()
     headline = schema.StringField()
     internal_note = TextField(field_type="multi_line", expandable=True)
@@ -32,6 +33,7 @@ class CoverageSchema(BaseSchema):
     no_content_linking = BooleanField()
     scheduled_updates = schema.ListField()
     priority = schema.IntegerField()
+    multiple_content = MultipleContentField(read_only=False, default_value=False)
 
 
 DEFAULT_COVERAGE_PROFILE = {
@@ -73,6 +75,11 @@ DEFAULT_COVERAGE_PROFILE = {
             "enabled": True,
             "index": 9,
         },
+        "multiple_content": {
+            "enabled": False,
+            "index": 10,
+        },
+        "anpa_category": {"enabled": False},
         "subject": {"enabled": False},
         # Fields disabled by default
         "contact_info": {"enabled": False},

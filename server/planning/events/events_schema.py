@@ -128,11 +128,11 @@ events_schema = {
                 "type": "string",
                 "nullable": True,
             },
-            "end_tz": {"type": "string"},
+            "end_tz": {"type": "string", "nullable": True},
             "all_day": {"type": "boolean", "nullable": True},
             "no_end_time": {"type": "boolean", "nullable": True},
-            "duration": {"type": "string"},
-            "confirmation": {"type": "string"},
+            "duration": {"type": "string", "nullable": True},
+            "confirmation": {"type": "string", "nullable": True},
             "recurring_date": {
                 "type": "list",
                 "nullable": True,
@@ -167,6 +167,7 @@ events_schema = {
             "ex_date": {"type": "list", "mapping": {"type": "date"}},
             "ex_rule": {
                 "type": "dict",
+                "nullable": True,
                 "schema": {
                     "frequency": {"type": "string"},
                     "interval": {"type": "string"},

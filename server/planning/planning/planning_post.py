@@ -7,24 +7,22 @@
 # For the full copyright and license information, please see the
 # AUTHORS and LICENSE files distributed with this source code, or
 # at https://www.sourcefabric.org/superdesk/license
+import logging
 
 from typing import List
 from copy import deepcopy
-import logging
-
-from flask import abort
 from eve.utils import config
 
-from superdesk import get_resource_service
-from superdesk.errors import SuperdeskApiError
-from superdesk.resource import Resource
-from superdesk.services import BaseService
-from superdesk.notification import push_notification
 from superdesk.utc import utcnow
+from superdesk.flask import abort
+from superdesk.resource import Resource
+from superdesk import get_resource_service, logger
+from superdesk.eve_async.service import AsyncBaseService
+from superdesk.errors import SuperdeskApiError
+from superdesk.notification import push_notification
 
-from planning.types import Planning, Event
-from .planning import PlanningResource
-from planning.utils import get_related_event_items_for_planning
+from planning.validate import validate_docs
+from planning.planning import PlanningResource
 from planning.common import (
     WORKFLOW_STATE,
     POST_STATE,
@@ -35,7 +33,10 @@ from planning.common import (
     get_version_item_for_post,
     get_contacts_from_item,
 )
+from planning.planning.planning_history_async_service import PlanningHistoryAsyncService
 from planning.content_profiles.utils import is_cancel_planning_with_event_enabled
+from planning.utils import get_related_event_items_for_planning
+from planning.types import Event, Planning
 
 logger = logging.getLogger(__name__)
 
@@ -54,35 +55,36 @@ class PlanningPostResource(PlanningResource):
     item_methods = []
 
 
-class PlanningPostService(BaseService):
-    def create(self, docs, **kwargs):
+class PlanningPostService(AsyncBaseService):
+    async def create_async(self, docs, **kwargs):
         ids = []
         assignments_to_delete = []
-        cancel_plan_with_event_enabled = is_cancel_planning_with_event_enabled()
+        cancel_plan_with_event_enabled = await is_cancel_planning_with_event_enabled()
         for doc in docs:
-            plan = get_resource_service("planning").find_one(req=None, _id=doc["planning"])
+            plan = await get_resource_service("planning").find_one_async(req=None, _id=doc["planning"])
             related_events = get_related_event_items_for_planning(plan, "primary")
-            self.validate_item(plan, related_events, doc["pubstatus"], cancel_plan_with_event_enabled)
+
+            await self.validate_item(plan, related_events, doc["pubstatus"], cancel_plan_with_event_enabled)
 
             if not plan:
                 abort(412)
 
             if kwargs.get("related_planning"):
-                self.validate_related_item(plan)
+                await self.validate_related_item(plan)
 
             self.validate_post_state(doc["pubstatus"])
 
             if doc["pubstatus"] == POST_STATE.USABLE:
                 for related_event in related_events:
-                    self.post_associated_event(related_event)
+                    await self.post_associated_event(related_event)
 
-            self.post_planning(plan, doc["pubstatus"], assignments_to_delete, **kwargs)
+            await self.post_planning(plan, doc["pubstatus"], assignments_to_delete, **kwargs)
             ids.append(doc["planning"])
 
-        get_resource_service("planning").delete_assignments_for_coverages(assignments_to_delete)
+        await get_resource_service("planning").delete_assignments_for_coverages(assignments_to_delete)
         return ids
 
-    def on_created(self, docs):
+    async def on_created_async(self, docs):
         for doc in docs:
             push_notification(
                 "planning:posted",
@@ -98,7 +100,7 @@ class PlanningPostService(BaseService):
             abort(409)
 
     @staticmethod
-    def validate_item(
+    async def validate_item(
         doc: Planning, related_events: List[Event], new_post_status: str, cancel_plan_with_event_enabled: bool
     ):
         if (
@@ -108,9 +110,8 @@ class PlanningPostService(BaseService):
         ):
             raise SuperdeskApiError(message="Can't post the planning item as event is already unposted/cancelled.")
 
-        errors = get_resource_service("planning_validator").post(
-            [{"validate_on_post": True, "type": "planning", "validate": doc}]
-        )[0]
+        errors_list = await validate_docs([{"validate_on_post": True, "type": "planning", "validate": doc}])
+        errors = errors_list[0]
 
         if errors:
             # We use abort here instead of raising SuperdeskApiError.badRequestError
@@ -119,22 +120,22 @@ class PlanningPostService(BaseService):
 
         if doc.get("coverages"):
             for coverage in doc["coverages"]:
-                errors = get_resource_service("planning_validator").post(
+                errors_list = await validate_docs(
                     [{"validate_on_post": True, "type": "coverage", "validate": coverage}]
-                )[0]
+                )
+                errors = errors_list[0]
                 if errors:
                     abort(400, description=errors)
 
     @staticmethod
-    def validate_related_item(doc):
-        errors = get_resource_service("planning_validator").post(
-            [{"validate_on_post": False, "type": "planning", "validate": doc}]
-        )[0]
+    async def validate_related_item(doc):
+        errors_list = await validate_docs([{"validate_on_post": False, "type": "planning", "validate": doc}])
+        errors = errors_list[0]
 
         if errors:
             return abort(400, description=["Related planning : " + error for error in errors])
 
-    def post_associated_event(self, event):
+    async def post_associated_event(self, event):
         """If the planning item is associated with an even that is not posted we need to post the event
 
         :param event_id:
@@ -143,7 +144,7 @@ class PlanningPostService(BaseService):
         if event:
             update_method = UPDATE_ALL if event.get("recurrence_id") else UPDATE_SINGLE
             if event and event.get("pubstatus") is None:
-                get_resource_service("events_post").post(
+                await get_resource_service("events_post").post_async(
                     [
                         {
                             "event": event[config.ID_FIELD],
@@ -153,8 +154,9 @@ class PlanningPostService(BaseService):
                         }
                     ]
                 )
+                pass
 
-    def post_planning(self, plan, new_post_state, assignments_to_delete, **kwargs):
+    async def post_planning(self, plan, new_post_state, assignments_to_delete, **kwargs):
         """Post a Planning item"""
         updates = {
             "state": get_item_post_state(plan, new_post_state),
@@ -175,20 +177,20 @@ class PlanningPostService(BaseService):
                     if coverage.get("planning", {}).pop("workflow_status_reason", None):
                         coverage["planning"]["workflow_status_reason"] = None
 
-        updated_plan = get_resource_service("planning").update(plan["_id"], updates, plan)
+        updated_plan = await get_resource_service("planning").update_async(plan["_id"], updates, plan)
         plan.update(updated_plan)
 
         # Set a version number
         version, plan = get_version_item_for_post(plan)
-        self.publish_planning(plan, version)
+        await self.publish_planning(plan, version)
 
         # Save the version into the history
         updates["version"] = version
-        get_resource_service("planning_history")._save_history(plan, updates, "post")
+        await PlanningHistoryAsyncService()._save_history(plan, updates, "post")
 
-    def publish_planning(self, plan, version):
+    async def publish_planning(self, plan, version):
         # Check and remove private contacts while posting planning, only public contact will be visible
-        public_contact_ids = [str(contact["_id"]) for contact in get_contacts_from_item(plan)]
+        public_contact_ids = [str(contact["_id"]) async for contact in await get_contacts_from_item(plan)]
         for coverage in plan.get("coverages") or []:
             if (coverage.get("planning") or {}).get("contact_info"):
                 if str(coverage["planning"]["contact_info"]) not in public_contact_ids:
@@ -197,7 +199,7 @@ class PlanningPostService(BaseService):
 
         """Enqueue the planning item"""
         # Create an entry in the planning versions collection for this published version
-        version_id = get_resource_service("published_planning").post(
+        version_id = await get_resource_service("published_planning").post_async(
             [
                 {
                     "item_id": plan["_id"],
@@ -208,8 +210,8 @@ class PlanningPostService(BaseService):
             ]
         )
         if version_id:
-            # Asynchronously enqueue the item for publishing.
-            enqueue_planning_item.apply_async(kwargs={"id": version_id[0]}, serializer="eve/json")
+            # Enqueue the item for publishing.
+            await enqueue_planning_item(version_id[0])
         else:
             logger.error("Failed to save planning version for planning item id {}".format(plan["_id"]))
 

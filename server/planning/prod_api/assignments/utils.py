@@ -10,10 +10,11 @@
 
 from typing import List
 from bson import ObjectId
-from flask import json
-from eve.utils import config, ParsedRequest
-from eve_elastic.elastic import ElasticCursor
+from eve.utils import ParsedRequest
 
+from superdesk.core import json
+from superdesk.resource_fields import ID_FIELD
+from superdesk.eve_async import ElasticAsyncEveCursor
 from superdesk import get_resource_service
 
 from prod_api.items import ItemsResource
@@ -24,7 +25,7 @@ from .resource import AssignmentsResource
 def construct_assignment_link(assignment):
     return {
         "title": AssignmentsResource.resource_title,
-        "href": f"{AssignmentsResource.url}/{assignment[config.ID_FIELD]}",
+        "href": f"{AssignmentsResource.url}/{assignment[ID_FIELD]}",
         "state": (assignment.get("assigned_to") or {}).get("state"),
         "scheduled": (assignment.get("planning") or {}).get("scheduled"),
         "content_type": (assignment.get("planning") or {}).get("g2_content_type"),
@@ -34,13 +35,13 @@ def construct_assignment_link(assignment):
 def construct_content_link(content):
     return {
         "title": ItemsResource.resource_title,
-        "href": f"{ItemsResource.url}/{content[config.ID_FIELD]}",
+        "href": f"{ItemsResource.url}/{content[ID_FIELD]}",
         "state": content["state"],
         "pubstatus": content["pubstatus"],
     }
 
 
-def construct_assignment_links(assignment_ids: List[ObjectId]):
+async def construct_assignment_links(assignment_ids: List[ObjectId]):
     req = ParsedRequest()
     req.args = {
         "source": json.dumps(
@@ -53,13 +54,15 @@ def construct_assignment_links(assignment_ids: List[ObjectId]):
     }
     req.sort = '[("planning.scheduled", 1)]'
     assignments = get_resource_service("assignments").get(req=req, lookup=None)
-    content_items = {content["assignment_id"]: content for content in get_news_items_for_assignments(assignment_ids)}
+    content_items = {
+        content["assignment_id"]: content async for content in await get_news_items_for_assignments(assignment_ids)
+    }
 
     links = []
     for assignment in assignments:
         link = construct_assignment_link(assignment)
-        if content_items.get(str(assignment[config.ID_FIELD])):
-            content_item = content_items[str(assignment[config.ID_FIELD])]
+        if content_items.get(str(assignment[ID_FIELD])):
+            content_item = content_items[str(assignment[ID_FIELD])]
 
             if content_item:
                 content_link = construct_content_link(content_item)
@@ -72,15 +75,15 @@ def construct_assignment_links(assignment_ids: List[ObjectId]):
     return links
 
 
-def get_news_item_for_assignment(assignment_id: ObjectId) -> ElasticCursor:
+async def get_news_item_for_assignment(assignment_id: ObjectId) -> ElasticAsyncEveCursor:
     req = ParsedRequest()
     req.args = {
         "source": json.dumps({"query": {"bool": {"must": {"term": {"assignment_id": str(assignment_id)}}}}}),
     }
-    return get_resource_service("archive").get(req=req, lookup=None)
+    return await get_resource_service("archive").get_async(req=req, lookup=None)
 
 
-def get_news_items_for_assignments(assignment_ids: List[ObjectId]) -> ElasticCursor:
+async def get_news_items_for_assignments(assignment_ids: List[ObjectId]) -> ElasticAsyncEveCursor:
     req = ParsedRequest()
     req.args = {
         "source": json.dumps(
@@ -93,7 +96,7 @@ def get_news_items_for_assignments(assignment_ids: List[ObjectId]) -> ElasticCur
             }
         ),
     }
-    return get_resource_service("archive").get(req=req, lookup=None)
+    return await get_resource_service("archive").get_async(req=req, lookup=None)
 
 
 def get_assignment_ids_from_planning(item):

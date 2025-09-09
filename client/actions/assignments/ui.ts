@@ -1,6 +1,7 @@
 import {get, cloneDeep, forEach} from 'lodash';
 import moment from 'moment';
 
+import {IArticle} from 'superdesk-api';
 import {planningApi, superdeskApi} from '../../superdeskApi';
 import {IAssignmentItem} from '../../interfaces';
 
@@ -202,12 +203,18 @@ const queryAndSetAssignmentListGroups = (groupKey, page = 1) => (
         const assignmentListSelectors = selectors.getAssignmentGroupSelectors[groupKey];
         const group = ASSIGNMENTS.LIST_GROUPS[groupKey];
 
-        querySearchSettings.states = group.states;
+        if (!group.excludeStatesFromQuery) {
+            querySearchSettings.states = group.states;
+        }
+
         querySearchSettings.page = page;
         querySearchSettings.dateFilter = group.dateFilter;
         querySearchSettings.orderDirection = assignmentListSelectors.sortOrder(getState());
         if (group.max_results) {
             querySearchSettings.max_results = group.max_results;
+        }
+        if (group.baseQuery != null) {
+            querySearchSettings.baseQuery = group.baseQuery;
         }
 
         return dispatch(assignments.api.query(querySearchSettings))
@@ -364,14 +371,22 @@ const addToAssignmentListGroup = (assignmentIds, totalNoOfItems, group) => ({
  * @param {object} assignment - The Assignment to preview
  * @return object
  */
-const preview = (assignment) => (
+const preview = (
+    assignment: IAssignmentItem,
+    initialTab?: 'ASSIGNMENT' | 'CONTENT' | 'HISTORY',
+    archiveItem?: IArticle,
+) => (
     (dispatch, getState, {$timeout, $location}) => (
         dispatch(assignments.api.loadPlanningAndEvent(assignment))
             .then(() => {
                 $timeout(() => $location.search('assignment', get(assignment, '_id', null)));
                 return dispatch({
                     type: ASSIGNMENTS.ACTIONS.PREVIEW_ASSIGNMENT,
-                    payload: assignment,
+                    payload: {
+                        assignmentId: assignment._id,
+                        initialTab: initialTab ?? 'ASSIGNMENT',
+                        archiveItemId: archiveItem?._id,
+                    },
                 });
             })
     )
@@ -460,7 +475,7 @@ const onFulFilAssignment = (assignment) => (
                 return Promise.resolve(item);
             }, (error) => {
                 notify.error(
-                    getErrorMessage(error, 'Failed to fulfil assignment.')
+                    getErrorMessage(error, 'Failed to link to assignment.')
                 );
                 $scope.reject();
                 dispatch(actions.actionInProgress(false));
@@ -493,11 +508,11 @@ function revert(item: IAssignmentItem) {
             .then((lockedItem) => {
                 const contentTypes = selectors.general.contentTypes(getState());
 
-                if (!assignmentUtils.isTextAssignment(item, contentTypes)) {
+                if (!assignmentUtils.isTextAssignment(item, contentTypes) || item.planning?.multiple_content) {
                     return dispatch(assignments.api.revert(lockedItem))
-                        .then((lockedItem) => {
+                        .then((updatedItem) => {
                             notify.success(gettext('The assignment has been reverted.'));
-                            return Promise.resolve(lockedItem);
+                            return Promise.resolve(updatedItem);
                         }, (error) => {
                             notify.error(getErrorMessage(error, gettext('Failed to revert the assignment.')));
                             return Promise.reject(error);
@@ -655,14 +670,15 @@ function startWorking(assignment: IAssignmentItem) {
                         });
 
                         const onSelect = (template) => (
-                            dispatch(assignments.api.createFromTemplateAndShow(
+                            planningApi.assignments.createAndOpenArticleFromTemplate(
                                 assignment._id,
                                 template.template_name
-                            )).catch((error) => {
-                                planningApi.locks.unlockItem(assignment);
-                                notify.error(getErrorMessage(error, gettext('Failed to create an archive item.')));
-                                return Promise.reject(error);
-                            })
+                            )
+                                .catch((error) => {
+                                    planningApi.locks.unlockItem(assignment);
+                                    notify.error(getErrorMessage(error, gettext('Failed to create an archive item.')));
+                                    return Promise.reject(error);
+                                })
                         );
                         const onCancel = () => planningApi.locks.unlockItem(lockedAssignment);
 

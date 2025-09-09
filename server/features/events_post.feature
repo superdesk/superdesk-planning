@@ -1,4 +1,6 @@
 Feature: Events Post
+    Background: Initial setup
+        When we configure planning for publishing
 
     @auth
     @notification

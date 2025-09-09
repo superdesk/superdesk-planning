@@ -9,13 +9,22 @@
 # at https://www.sourcefabric.org/superdesk/license
 
 from eve import Eve
-from flask_babel import lazy_gettext
+from quart_babel import lazy_gettext
 
 import superdesk
 
 from .resource import PlanningTypesResource, ContentProfilesResource
 from .service import PlanningTypesService, ContentProfilesService
 from planning.common import get_config_event_related_item_search_provider_name
+
+from .planning_types_async_service import PlanningTypesAsyncService
+from .module import planning_types_resource_config, coverage_profiles_resource_config
+
+__all__ = [
+    "planning_types_resource_config",
+    "PlanningTypesAsyncService",
+    "coverage_profiles_resource_config",
+]
 
 
 def init_app(app: Eve):
@@ -33,7 +42,7 @@ def init_app(app: Eve):
     )
     ContentProfilesResource(ContentProfilesResource.endpoint_name, app=app, service=content_profiles_service)
 
-    event_related_item_search_provider_name = get_config_event_related_item_search_provider_name(app)
+    event_related_item_search_provider_name = get_config_event_related_item_search_provider_name()
     if event_related_item_search_provider_name:
         app.client_config.setdefault("planning", {})[
             "event_related_item_search_provider_name"

@@ -103,7 +103,7 @@ Feature: Rewrite content
         """
         {
         "_items": [
-          {"state": "pending", "content_type": "text",
+          {"state": "success", "content_type": "text",
           "subscriber_id": "#wire#", "item_id": "#archive._id#", "item_version": 2,
           "ingest_provider": "__none__",
           "destination": {

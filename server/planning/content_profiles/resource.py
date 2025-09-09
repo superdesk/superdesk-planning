@@ -89,6 +89,8 @@ class PlanningTypesResource(superdesk.Resource):
         "PATCH": "planning_manage_content_profiles",
     }
 
+    internal_resource = False
+
 
 class ContentProfilesResource(superdesk.Resource):
     endpoint_name = "coverage_profiles"

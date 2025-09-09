@@ -622,6 +622,9 @@ export interface ICoveragePlanningDetails {
     internal_note: string;
     workflow_status_reason: string;
     priority?: number;
+    multiple_content?: boolean;
+    subject?: Array<{name: string; qcode: string; scheme: string}>;
+    anpa_category?: Array<{name: string; qcode: string}>;
 }
 
 export interface ICoverageScheduledUpdate {
@@ -652,6 +655,7 @@ export interface IPlanningCoverageItem {
     firstcreated: string;
     versioncreated: string;
     add_coverage_to_workflow: boolean;
+    anpa_category: Array<Omit<IANPACategory, 'subject'>>;
     profile?: string; // coverage profile id
     subject?: Array<IVocabularyItem>;
     planning: ICoveragePlanningDetails;
@@ -860,8 +864,8 @@ export interface IAssignmentItem extends IBaseRestApiResponse {
     accepted: boolean;
     planning: ICoveragePlanningDetails;
 
-    coverage_item: string;
-    planning_item: string;
+    coverage_item: IPlanningCoverageItem['coverage_id'];
+    planning_item: IPlanningItem['_id'];
     scheduled_update_id: string;
 
     assigned_to: {
@@ -891,6 +895,12 @@ export interface IAssignmentItem extends IBaseRestApiResponse {
     lock_session: string;
     lock_action: string;
     _to_delete: boolean;
+    item_ids?: Array<string>; // Populated by API upon response (not stored in DB)
+    linked_items?: Array<{
+        _id: IArticle['_id'];
+        _type: IArticle['_type'];
+        event_id: IArticle['event_id'];
+    }>;
 }
 
 export interface IBaseListItemProps<T> {
@@ -976,6 +986,8 @@ export interface ICommonAdvancedSearchParams {
         name?: string;
     }>;
     priority?: Array<number>;
+    internal_note?: string;
+    ednote?: string;
 }
 
 export interface ICommonSearchParams<T extends IEventOrPlanningItem> {
@@ -997,6 +1009,7 @@ export interface ICommonSearchParams<T extends IEventOrPlanningItem> {
     source?: string;
     coverage_user_id?: string;
     coverage_assignment_status?: ICoverageAssigned['qcode'];
+    include_associated_planning: boolean;
 }
 
 export interface IEventSearchParams extends ICommonSearchParams<IEventItem> {
@@ -1007,8 +1020,14 @@ export interface IEventSearchParams extends ICommonSearchParams<IEventItem> {
     advancedSearch?: ICommonAdvancedSearchParams & {
         location?: IEventLocation;
         reference?: string;
+        invitation_details?: string;
+        accreditation_details?: string;
+        registration_details?: string;
+        accreditation_info?: string;
+        definition_short?: string;
+        definition_long?: string;
+        registration?: string;
     };
-
 }
 
 export interface IPlanningSearchParams extends ICommonSearchParams<IPlanningItem> {
@@ -1024,6 +1043,8 @@ export interface IPlanningSearchParams extends ICommonSearchParams<IPlanningItem
         g2_content_type?: IG2ContentType;
         noCoverage?: boolean;
         urgency?: IUrgency;
+        description_text?: string;
+        headline?: string;
     };
 }
 
@@ -1284,6 +1305,7 @@ export interface ICoverageFormProfile {
         news_coverage_status: IProfileEditorField;
         scheduled: IProfileEditorField;
         slugline: IProfileEditorField;
+        multiple_content: IProfileEditorField;
     };
     name: 'coverage';
     schema: {
@@ -1300,6 +1322,7 @@ export interface ICoverageFormProfile {
         news_coverage_status: IProfileSchemaTypeList;
         scheduled: IProfileSchemaTypeDateTime;
         slugline: IProfileSchemaTypeString;
+        multiple_content: IProfileSchemaType;
     };
 }
 
@@ -1392,6 +1415,7 @@ export interface IFormAutosave {
 }
 
 export interface ISearchParams {
+    ednote: any;
     // Common Params
     item_ids?: Array<string>;
     name?: string;
@@ -1433,6 +1457,14 @@ export interface ISearchParams {
     location?: IEventLocation;
     calendars?: Array<ICalendar>;
     no_calendar_assigned?: boolean;
+    invitation_details?: string;
+    accreditation_details?: string;
+    registration_details?: string;
+    internal_note?: string;
+    accreditation_info?: string;
+    definition_short?: string;
+    definition_long?: string;
+    registration?: string;
 
     // Planning Params
     agendas?: Array<IAgenda['_id']>;
@@ -1446,6 +1478,8 @@ export interface ISearchParams {
     featured?: boolean;
     include_scheduled_updates?: boolean;
     event_item?: Array<IEventItem['_id']>;
+    description_text?: string;
+    headline?: string;
 
     // Pagination
     page?: number;
@@ -1479,6 +1513,7 @@ export interface ISearchAPIParams {
     source?: string;
     coverage_user_id?: string;
     priority?: string;
+    ednote?: string;
 
     // Event Params
     reference?: string;
@@ -1486,6 +1521,14 @@ export interface ISearchAPIParams {
     calendars?: string;
     no_calendar_assigned?: boolean;
     only_future?: boolean;
+    invitation_details?: string;
+    accreditation_details?: string;
+    registration_details?: string;
+    internal_note?: string;
+    accreditation_info?: string;
+    definition_short?: string;
+    definition_long?: string;
+    registration?: string;
 
     // Planning Params
     agendas?: string;
@@ -1499,6 +1542,8 @@ export interface ISearchAPIParams {
     include_scheduled_updates?: boolean;
     event_item?: string;
     coverage_assignment_status?: ICoverageAssigned['qcode']
+    description_text?: string;
+    headline?: string;
 
     // Pagination
     page?: number;
@@ -1550,6 +1595,7 @@ export interface ISearchFilterSchedule {
     _last_sent?: string;
     frequency: SCHEDULE_FREQUENCY;
     hour: number;
+    hours?: Array<string>;
     day: number;
     week_days: Array<WEEK_DAY>;
 }
@@ -2300,6 +2346,7 @@ export interface IPlanningAPI {
     };
     assignments: {
         getById(assignmentId: IAssignmentItem['_id']): Promise<IAssignmentItem>;
+        createAndOpenArticleFromTemplate(assignmentId: IAssignmentItem['_id'], templateName: string): Promise<void>;
     };
     coverages: {
         cancelCoverage(
@@ -2424,3 +2471,5 @@ export interface IPlanningAPI {
         unlockFeaturedPlanning(): Promise<void>;
     };
 }
+
+export type ISearchQueryOperator = 'must' | 'must_not' | 'should';

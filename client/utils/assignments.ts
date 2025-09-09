@@ -1,7 +1,7 @@
 import {get, includes, isNil, find} from 'lodash';
 import moment from 'moment';
 
-import {IVocabularyItem} from 'superdesk-api';
+import {IArticle, IVocabularyItem} from 'superdesk-api';
 import {
     IAssignmentItem,
     ISession,
@@ -63,17 +63,40 @@ function canRemoveAssignment(
         self.isAssignmentInEditableState(assignment);
 }
 
-const canStartWorking = (assignment, session, privileges, contentTypes) => (
-    !!privileges[PRIVILEGES.ARCHIVE] &&
-    !get(assignment, 'lock_user') &&
-    self.isTextAssignment(assignment, contentTypes) &&
-    get(assignment, 'assigned_to.state') === ASSIGNMENTS.WORKFLOW_STATE.ASSIGNED &&
-    (
-        !get(assignment, 'assigned_to.user') ||
-        assignment.assigned_to.user === get(session, 'identity._id')
-    ) &&
-    !isAssignedToProvider(assignment)
-);
+function canStartWorking(
+    assignment: IAssignmentItem,
+    session: ISession,
+    privileges: IPrivileges,
+    contentTypes: Array<IG2ContentType>
+): boolean {
+    if (
+        !privileges[PRIVILEGES.ARCHIVE]
+        || isAssignedToProvider(assignment)
+        || !self.isTextAssignment(assignment, contentTypes)
+    ) {
+        return false;
+    }
+
+    if (assignment.planning?.multiple_content) {
+        // If this Assignment allows multiple content linked,
+        // make sure the Assignment is not in a completed state
+        return (
+            [
+                ASSIGNMENTS.WORKFLOW_STATE.ASSIGNED,
+                ASSIGNMENTS.WORKFLOW_STATE.IN_PROGRESS,
+                ASSIGNMENTS.WORKFLOW_STATE.SUBMITTED,
+            ].includes(assignment.assigned_to?.state)
+        );
+    } else {
+        // Otherwise if this Assignment only allows 1 content linked, then make sure the Assignment
+        // is not locked and assigned to the current user (or not assigned to anyone)
+        return (
+            assignment.assigned_to?.state === ASSIGNMENTS.WORKFLOW_STATE.ASSIGNED
+            && !assignment.lock_user
+            && (!assignment.assigned_to?.user || assignment.assigned_to?.user === session.identity._id)
+        );
+    }
+}
 
 function canFulfilAssignment(
     assignment: IAssignmentItem,
@@ -83,7 +106,16 @@ function canFulfilAssignment(
 ) {
     return !!privileges[PRIVILEGES.ARCHIVE] &&
         isNotLockRestricted(assignment, session, lockedItems) &&
-        get(assignment, 'assigned_to.state') === ASSIGNMENTS.WORKFLOW_STATE.ASSIGNED;
+        (
+            assignment.assigned_to?.state === ASSIGNMENTS.WORKFLOW_STATE.ASSIGNED ||
+            (
+                assignment.planning?.multiple_content &&
+                [
+                    ASSIGNMENTS.WORKFLOW_STATE.SUBMITTED,
+                    ASSIGNMENTS.WORKFLOW_STATE.IN_PROGRESS,
+                ].includes(assignment.assigned_to?.state)
+            )
+        );
 }
 
 const isAssignmentInEditableState = (assignment) => (
@@ -168,6 +200,13 @@ const getContactLabel = (assignment) => (
         gettext('Coverage Contact')
 );
 
+function getArticleNameForOpenCoverageAction(item: IArticle): string {
+    const name = item.headline || item.slugline;
+    const genre = item?.genre?.[0]?.name;
+
+    return genre != null ? `${genre} - ${name}` : name;
+}
+
 function getAssignmentActions(
     assignment: IAssignmentItem,
     session: ISession,
@@ -175,6 +214,7 @@ function getAssignmentActions(
     lockedItems: ILockedItems,
     contentTypes: Array<IG2ContentType>,
     callBacks: {[key: string]: (...args: Array<any>) => any},
+    archiveItems: {[itemId: string]: IArticle},
 ) {
     if (!isExistingItem(assignment) || lockUtils.isLockRestricted(assignment, session, lockedItems)) {
         return [];
@@ -236,11 +276,23 @@ function getAssignmentActions(
             break;
 
         case ASSIGNMENTS.ITEM_ACTIONS.PREVIEW_ARCHIVE.actionName:
-            callBacks[callBackName] &&
-                actions.push({
-                    ...ASSIGNMENTS.ITEM_ACTIONS.PREVIEW_ARCHIVE,
-                    callback: callBacks[callBackName].bind(null, assignment),
-                });
+            if (callBacks[callBackName] != null) {
+                if ((assignment.linked_items?.length ?? 0) > 1) {
+                    actions.push({
+                        ...ASSIGNMENTS.ITEM_ACTIONS.PREVIEW_ARCHIVE,
+                        callback: assignment.linked_items.map((linkedItem) => ({
+                            label: getArticleNameForOpenCoverageAction(archiveItems[linkedItem._id]),
+                            callback: superdeskApi.ui.article.edit.bind(null, linkedItem._id),
+                        })),
+
+                    });
+                } else {
+                    actions.push({
+                        ...ASSIGNMENTS.ITEM_ACTIONS.PREVIEW_ARCHIVE,
+                        callback: callBacks[callBackName].bind(null, assignment),
+                    });
+                }
+            }
             break;
 
         case ASSIGNMENTS.ITEM_ACTIONS.REVERT_AVAILABILITY.actionName:

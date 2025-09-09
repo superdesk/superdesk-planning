@@ -12,8 +12,7 @@ from datetime import datetime
 from dateutil.rrule import rrule, HOURLY
 import pytz
 
-from flask import current_app as app
-
+from superdesk.core import get_app_config
 from superdesk.utc import local_to_utc
 
 from planning.tests import TestCase
@@ -25,26 +24,26 @@ def to_naive(date_str):
 
 
 def to_utc(date_str):
-    return local_to_utc(app.config["DEFAULT_TIMEZONE"], datetime.strptime(date_str, "%Y-%m-%dT%H"))
+    return local_to_utc(get_app_config("DEFAULT_TIMEZONE"), datetime.strptime(date_str, "%Y-%m-%dT%H"))
 
 
 def to_local(date_str):
-    local_tz = pytz.timezone(app.config["DEFAULT_TIMEZONE"])
+    local_tz = pytz.timezone(get_app_config("DEFAULT_TIMEZONE"))
     local_datetime = datetime.strptime(date_str, "%Y-%m-%dT%H")
 
     return local_tz.localize(local_datetime)
 
 
 class ExportScheduledFiltersTestCase(TestCase):
-    def setUp(self):
-        super().setUp()
+    async def asyncSetUp(self):
+        await super().asyncSetUp()
         self.app.config["DEFAULT_TIMEZONE"] = "Australia/Sydney"
         self.app.config["ADMINS"] = ["superdesk@test.com"]
 
     def _test(self, report, start, end, expected_hits):
         count = 0
         for now in rrule(HOURLY, dtstart=to_naive(start), until=to_naive(end)):
-            local_tz = pytz.timezone(app.config["DEFAULT_TIMEZONE"])
+            local_tz = pytz.timezone(get_app_config("DEFAULT_TIMEZONE"))
             now_local = local_tz.localize(now)
 
             response = ExportScheduledFilters().should_export(report, now_local)
@@ -58,7 +57,7 @@ class ExportScheduledFiltersTestCase(TestCase):
 
             if response:
                 # Update the last sent time to now
-                report["_last_sent"] = local_to_utc(app.config["DEFAULT_TIMEZONE"], now_local)
+                report["_last_sent"] = local_to_utc(get_app_config("DEFAULT_TIMEZONE"), now_local)
                 count += 1
 
         self.assertEqual(len(expected_hits), count)
@@ -227,5 +226,51 @@ class ExportScheduledFiltersTestCase(TestCase):
                 to_local("2018-10-01T00"),
                 to_local("2018-11-01T00"),
                 to_local("2018-12-01T00"),
+            ],
+        )
+
+    def test_send_report_multiple_hours_per_day(self):
+        # Export should run on weekdays (Mon–Fri) at 08:00 and 16:00
+        report = {
+            "frequency": "weekly",
+            "hours": ["08:00", "16:00"],
+            "week_days": ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"],
+        }
+
+        self._test(
+            report=report,
+            start="2018-06-04T00",
+            end="2018-06-08T23",
+            expected_hits=[
+                to_local("2018-06-04T08"),
+                to_local("2018-06-04T16"),
+                to_local("2018-06-05T08"),
+                to_local("2018-06-05T16"),
+                to_local("2018-06-06T08"),
+                to_local("2018-06-06T16"),
+                to_local("2018-06-07T08"),
+                to_local("2018-06-07T16"),
+                to_local("2018-06-08T08"),
+                to_local("2018-06-08T16"),
+            ],
+        )
+
+    def test_send_report_multiple_hours_with_last_sent(self):
+        # Simulate already sent at 08:00 on June 4
+        report = {
+            "frequency": "weekly",
+            "hours": ["08:00", "16:00"],
+            "week_days": ["Monday", "Tuesday"],
+            "_last_sent": to_utc("2018-06-04T08"),
+        }
+
+        self._test(
+            report=report,
+            start="2018-06-04T00",
+            end="2018-06-05T23",
+            expected_hits=[
+                to_local("2018-06-04T16"),
+                to_local("2018-06-05T08"),
+                to_local("2018-06-05T16"),
             ],
         )

@@ -4,8 +4,9 @@ var webpackConfig = require('./webpack.config.js')
 
 module.exports = function(config) {
     // in karma, entry is read from files prop
-    // webpackConfig.entry = {}
-    // webpackConfig.devtool = 'inline-source-map'
+    webpackConfig.entry = {}
+    webpackConfig.devtool = 'eval';
+    webpackConfig.mode = 'development';
     config.set({
 
         // base path that will be used to resolve all patterns (eg. files, exclude)

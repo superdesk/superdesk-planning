@@ -1,15 +1,19 @@
 import React from 'react';
-import PropTypes from 'prop-types';
 import classNames from 'classnames';
 
 import './style.scss';
+
+interface IMainColumnProps {
+    children?: React.ReactNode;
+    padded?: boolean;
+}
 
 /**
  * @ngdoc react
  * @name MainColumn
  * @description Main panel component of column box
  */
-export const MainColumn = ({children, padded}) => (
+export const MainColumn: React.FC<IMainColumnProps> = ({children, padded}) => (
     <div
         className={classNames(
             'sd-column-box__main-column',
@@ -18,8 +22,3 @@ export const MainColumn = ({children, padded}) => (
         {children}
     </div>
 );
-
-MainColumn.propTypes = {
-    children: PropTypes.node,
-    padded: PropTypes.bool,
-};

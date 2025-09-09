@@ -179,7 +179,8 @@ Feature: Recurring Events & Planning
                     "planning": {
                         "slugline": "test text slugline v2",
                         "g2_content_type": "text",
-                        "scheduled": "2024-11-22T15:00:00.000Z"
+                        "scheduled": "2024-11-22T15:00:00.000Z",
+                        "news_coverage_status": {"qcode": "ncostat:int"}
                     }
                 },
                 {
@@ -190,7 +191,8 @@ Feature: Recurring Events & Planning
                     "planning": {
                         "slugline": "test pic slugline v2",
                         "g2_content_type": "picture",
-                        "scheduled": "2024-11-22T16:00:00.000Z"
+                        "scheduled": "2024-11-22T16:00:00.000Z",
+                        "news_coverage_status": {"qcode": "ncostat:int"}
                     }
                 }
             ]
@@ -278,12 +280,16 @@ Feature: Recurring Events & Planning
                         {
                             "coverage_id": "#TEXT_COVERAGE_2_ID#",
                             "slugline": "test text slugline v3",
-                            "scheduled": "2024-11-22T17:00:00+0000"
+                            "scheduled": "2024-11-22T17:00:00+0000",
+                            "g2_content_type": "text",
+                            "news_coverage_status": "ncostat:int"
                         },
                         {
                             "coverage_id": "#PIC_COVERAGE_2_ID#",
                             "slugline": "test pic slugline v3",
-                            "scheduled": "2024-11-22T18:00:00+0000"
+                            "scheduled": "2024-11-22T18:00:00+0000",
+                            "g2_content_type": "picture",
+                            "news_coverage_status": "ncostat:int"
                         }
                     ]
                 }
@@ -391,7 +397,8 @@ Feature: Recurring Events & Planning
                     "planning": {
                         "slugline": "test text slugline v2",
                         "g2_content_type": "text",
-                        "scheduled": "2024-11-22T17:00:00.000Z"
+                        "scheduled": "2024-11-22T17:00:00.000Z",
+                        "news_coverage_status": {"qcode": "ncostat:int"}
                     }
                 },
                 {
@@ -402,7 +409,8 @@ Feature: Recurring Events & Planning
                     "planning": {
                         "slugline": "test pic slugline v2",
                         "g2_content_type": "picture",
-                        "scheduled": "2024-11-22T18:00:00.000Z"
+                        "scheduled": "2024-11-22T18:00:00.000Z",
+                        "news_coverage_status": {"qcode": "ncostat:int"}
                     }
                 }
             ]
@@ -492,7 +500,8 @@ Feature: Recurring Events & Planning
                     "planning": {
                         "slugline": "test text slugline v2",
                         "g2_content_type": "text",
-                        "scheduled": "2024-11-22T17:00:00.000Z"
+                        "scheduled": "2024-11-22T17:00:00.000Z",
+                        "news_coverage_status": {"qcode": "ncostat:int"}
                     }
                 },
                 {
@@ -503,7 +512,8 @@ Feature: Recurring Events & Planning
                     "planning": {
                         "slugline": "test pic slugline v2",
                         "g2_content_type": "picture",
-                        "scheduled": "2024-11-22T18:00:00.000Z"
+                        "scheduled": "2024-11-22T18:00:00.000Z",
+                        "news_coverage_status": {"qcode": "ncostat:int"}
                     }
                 }
             ]
@@ -588,9 +598,22 @@ Feature: Recurring Events & Planning
                     "planning_id": "#PLAN3._id#",
                     "update_method": "all",
                     "coverages": [
-                        {"coverage_id": "#TEXT_COVERAGE_3_ID#"},
-                        {"coverage_id": "#PIC_COVERAGE_3_ID#"},
                         {
+                            "coverage_id": "#TEXT_COVERAGE_3_ID#",
+                            "slugline": "test text slugline v3",
+                            "scheduled": "2024-11-22T17:00:00+0000",
+                            "g2_content_type": "text",
+                            "news_coverage_status": "ncostat:int"
+                        },
+                        {
+                            "coverage_id": "#PIC_COVERAGE_3_ID#",
+                            "slugline": "test pic slugline v3",
+                            "scheduled": "2024-11-22T18:00:00+0000",
+                            "g2_content_type": "picture",
+                            "news_coverage_status": "ncostat:int"
+                        },
+                        {
+                            "coverage_id": "6834696421f83fc293588ae9",
                             "g2_content_type": "video",
                             "slugline": "test video slugline",
                             "scheduled": "2024-11-23T19:00:00+0000",

@@ -2,6 +2,7 @@ import React from 'react';
 import {connect} from 'react-redux';
 import {get, throttle} from 'lodash';
 
+import {IArticle} from 'superdesk-api';
 import {superdeskApi} from '../../superdeskApi';
 
 import {UI, KEYCODES} from '../../constants';
@@ -9,7 +10,7 @@ import * as selectors from '../../selectors';
 import * as actions from '../../actions';
 import {assignmentUtils} from '../../utils';
 
-import {AssignmentItem} from './AssignmentItem';
+import {AssignmentMultiTextItem} from './AssignmentItem/AssignmentMultiTextItem';
 import {Header, Group} from '../UI/List';
 import {OrderDirectionIcon} from '../OrderBar';
 import {ListItemLoader} from 'superdesk-ui-framework/react/components/ListItemLoader';
@@ -56,6 +57,7 @@ interface IProps {
     contacts?: any;
     isLoading?: boolean;
     dayField?: string;
+    archiveItems: {[itemId: string]: IArticle};
 }
 
 interface IState {
@@ -214,6 +216,7 @@ class AssignmentGroupListComponent extends React.Component<IProps, IState> {
             contentTypes,
             desks,
             contacts,
+            archiveItems,
         } = this.props;
 
         const assignment = this.props.assignments[index];
@@ -226,11 +229,14 @@ class AssignmentGroupListComponent extends React.Component<IProps, IState> {
         const assignedDesk = desks.find((desk) => get(assignment, 'assigned_to.desk') === desk._id);
 
         return (
-            <AssignmentItem
+            <AssignmentMultiTextItem
                 key={assignment._id}
                 assignment={assignment}
                 onClick={this.props.preview.bind(this, assignment)}
                 onDoubleClick={onDoubleClick}
+                onDoubleClickArchiveItem={(archiveItem: IArticle) => (
+                    this.props.preview(assignment, 'CONTENT', archiveItem)
+                )}
                 assignedUser={assignedUser}
                 isCurrentUser={isCurrentUser}
                 lockedItems={this.props.lockedItems}
@@ -248,6 +254,7 @@ class AssignmentGroupListComponent extends React.Component<IProps, IState> {
                 contentTypes={contentTypes}
                 assignedDesk={assignedDesk}
                 contacts={contacts}
+                archiveItems={archiveItems}
             />
         );
     }
@@ -361,11 +368,14 @@ const mapStateToProps = (state, ownProps) => {
         desks: selectors.general.desks(state),
         contacts: selectors.general.contactsById(state),
         isLoading: assignmentDataSelector.isLoading(state),
+        archiveItems: selectors.getStoredArchiveItems(state),
     };
 };
 
 const mapDispatchToProps = (dispatch) => ({
-    preview: (assignment) => dispatch(actions.assignments.ui.preview(assignment)),
+    preview: (assignment, initialTab, archiveItem) => (
+        dispatch(actions.assignments.ui.preview(assignment, initialTab, archiveItem))
+    ),
     reassign: (assignment) => dispatch(actions.assignments.ui.reassign(assignment)),
     completeAssignment: (assignment) => dispatch(actions.assignments.ui.complete(assignment)),
     revertAssignment: (assignment) => dispatch(actions.assignments.ui.revert(assignment)),

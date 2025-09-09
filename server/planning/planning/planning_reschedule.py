@@ -8,10 +8,10 @@
 # AUTHORS and LICENSE files distributed with this source code, or
 # at https://www.sourcefabric.org/superdesk/license
 
-from superdesk.services import BaseService
+from superdesk.eve_async.service import AsyncBaseService
+from superdesk.resource_fields import ID_FIELD
 from superdesk.notification import push_notification
 from apps.archive.common import get_user, get_auth
-from eve.utils import config
 from copy import deepcopy
 from .planning import PlanningResource, planning_schema
 from planning.common import WORKFLOW_STATE, ITEM_STATE, get_coverage_type_name
@@ -42,8 +42,8 @@ class PlanningRescheduleResource(PlanningResource):
     merge_nested_documents = True
 
 
-class PlanningRescheduleService(BaseService):
-    def update(self, id, updates, original):
+class PlanningRescheduleService(AsyncBaseService):
+    async def update_async(self, id, updates, original):
         reason = updates.pop("reason", None)
         self._reschedule_plan(updates, original, reason)
 
@@ -51,17 +51,17 @@ class PlanningRescheduleService(BaseService):
         coverages = updates.get("coverages") or []
 
         for coverage in coverages:
-            self._reschedule_coverage(coverage, reason)
+            await self._reschedule_coverage(coverage, reason)
 
-        return self.backend.update(self.datasource, id, updates, original)
+        return await self.backend.update_async(self.datasource, id, updates, original)
 
-    def on_updated(self, updates, original):
-        user = get_user(required=True).get(config.ID_FIELD, "")
-        session = get_auth().get(config.ID_FIELD, "")
+    async def on_updated_async(self, updates, original):
+        user = get_user(required=True).get(ID_FIELD, "")
+        session = get_auth().get(ID_FIELD, "")
 
         push_notification(
             "planning:rescheduled",
-            item=str(original[config.ID_FIELD]),
+            item=str(original[ID_FIELD]),
             user=str(user),
             session=str(session),
         )
@@ -74,7 +74,7 @@ class PlanningRescheduleService(BaseService):
         else:
             updates[ITEM_STATE] = updates.get(ITEM_STATE) or WORKFLOW_STATE.RESCHEDULED
 
-    def _reschedule_coverage(self, coverage, reason):
+    async def _reschedule_coverage(self, coverage, reason):
         if coverage.get("workflow_status") != WORKFLOW_STATE.CANCELLED:
             coverage["planning"]["workflow_status_reason"] = reason
             coverage["workflow_status"] = WORKFLOW_STATE.CANCELLED
@@ -82,15 +82,15 @@ class PlanningRescheduleService(BaseService):
         assigned_to = coverage.get("assigned_to")
         if assigned_to:
             assignment_service = get_resource_service("assignments")
-            assignment = assignment_service.find_one(req=None, _id=assigned_to.get("assignment_id"))
+            assignment = await assignment_service.find_one_async(req=None, _id=assigned_to.get("assignment_id"))
             slugline = assignment.get("planning").get("slugline", "")
             coverage_type = assignment.get("planning").get("g2_content_type", "")
-            PlanningNotifications().notify_assignment(
+            await PlanningNotifications().notify_assignment(
                 coverage_status=coverage.get("workflow_status"),
                 target_user=assignment.get("assigned_to").get("user"),
-                target_desk=assignment.get("assigned_to").get("desk")
-                if not assignment.get("assigned_to").get("user")
-                else None,
+                target_desk=(
+                    assignment.get("assigned_to").get("desk") if not assignment.get("assigned_to").get("user") else None
+                ),
                 message="assignment_rescheduled_msg",
                 slugline=slugline,
                 coverage_type=get_coverage_type_name(coverage_type),

@@ -397,7 +397,7 @@ class ContentProfileModalComponent extends React.Component<IProps, IState> {
                         <i className="icon-close-small" />
                     </a>
                 </Modal.Header>
-                <Modal.Body className="sd-padding--0 sd-padding-t--2" noScroll={true}>
+                <Modal.Body className="sd-padding--0" noScroll={true}>
                     {!this.state.saving ? null : (
                         <div className="sd-loader" />
                     )}

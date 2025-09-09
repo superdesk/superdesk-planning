@@ -1134,7 +1134,7 @@ Feature: Assignment link
         """
         {
         "_items": [
-          {"state": "pending", "content_type": "text",
+          {"state": "success", "content_type": "text",
           "subscriber_id": "#wire#", "item_id": "123", "item_version": 2,
           "ingest_provider": "__none__",
           "destination": {

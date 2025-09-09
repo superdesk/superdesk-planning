@@ -169,7 +169,7 @@ export class PlanningDetailsWidget extends React.PureComponent<IArticleSideWidge
                                 />
                                 <div className="sd-margin-t--1" />
                                 <Button
-                                    text={gettext('Fulfil Assignment')}
+                                    text={gettext('Link to Assignment')}
                                     icon="bolt"
                                     onClick={this.dispatchFulfilAssignment}
                                     expand

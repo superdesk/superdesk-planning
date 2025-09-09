@@ -1,36 +1,40 @@
 import React from 'react';
-import PropTypes from 'prop-types';
 
 import {ButtonStack} from './ButtonStack';
+
+interface IButtonProps {
+    children?: React.ReactNode;
+    className?: string;
+    right?: boolean;
+    buttonClassName?: string;
+    onClick?: () => void;
+    padded?: boolean;
+    testId?: string;
+    disabled?: boolean;
+}
 
 /**
  * @ngdoc react
  * @name Button
  * @description Button of a Sub Nav bar
  */
-export const Button = ({children, className, right, buttonClassName, onClick, padded, testId}) => (
+export const Button: React.FC<IButtonProps> = ({
+    children,
+    className,
+    right = false,
+    buttonClassName,
+    onClick,
+    padded = false,
+    testId,
+    disabled,
+}) => (
     <ButtonStack
         right={right}
         padded={padded}
         className={className}
     >
-        <button className={buttonClassName} onClick={onClick} data-test-id={testId}>
+        <button className={buttonClassName} onClick={onClick} data-test-id={testId} disabled={disabled}>
             {children}
         </button>
     </ButtonStack>
 );
-
-Button.propTypes = {
-    children: PropTypes.node,
-    className: PropTypes.string,
-    right: PropTypes.bool,
-    buttonClassName: PropTypes.string,
-    onClick: PropTypes.func,
-    padded: PropTypes.bool,
-    testId: PropTypes.string,
-};
-
-Button.defaultProps = {
-    right: false,
-    padded: false,
-};

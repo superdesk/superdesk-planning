@@ -2,7 +2,7 @@ import * as React from 'react';
 import {connect} from 'react-redux';
 import {get} from 'lodash';
 
-import {IDesk, IUser} from 'superdesk-api';
+import {IDesk, IUser, IArticle} from 'superdesk-api';
 import {
     IAssignmentItem,
     IAssignmentPriority,
@@ -53,6 +53,7 @@ interface IStateProps {
     currentWorkspace: 'ASSIGNMENTS' | 'AUTHORING' | 'AUTHORING_WIDGET';
     contentTypes: Array<IG2ContentType>;
     files: Array<IFile>;
+    archiveItems: {[itemId: string]: IArticle};
 }
 
 interface IDispatchProps {
@@ -121,7 +122,9 @@ class AssignmentPreviewContainerComponent extends React.Component<IProps> {
             privileges,
             lockedItems,
             contentTypes,
-            itemActionsCallBack);
+            itemActionsCallBack,
+            this.props.archiveItems,
+        );
     }
 
     render() {
@@ -176,7 +179,7 @@ class AssignmentPreviewContainerComponent extends React.Component<IProps> {
                         <ContentBlockInner grow={true}>
                             <Button
                                 type="primary"
-                                text={gettext('Fulfil Assignment')}
+                                text={gettext('Link to Assignment')}
                                 onClick={() => {
                                     onFulFilAssignment(assignment);
                                 }}
@@ -270,6 +273,7 @@ const mapStateToProps = (state) => ({
     currentWorkspace: selectors.general.currentWorkspace(state),
     contentTypes: selectors.general.contentTypes(state),
     files: selectors.general.files(state),
+    archiveItems: selectors.getStoredArchiveItems(state),
 });
 
 const mapDispatchToProps = (dispatch) => ({

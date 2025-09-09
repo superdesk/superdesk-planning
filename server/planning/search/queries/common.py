@@ -8,7 +8,8 @@
 # AUTHORS and LICENSE files distributed with this source code, or
 # at https://www.sourcefabric.org/superdesk/license
 
-from typing import Dict, Any, Optional, List, Callable, Union
+from typing import Dict, Any, Optional, List, Callable, Union, Awaitable
+from inspect import isawaitable
 import logging
 from datetime import datetime
 
@@ -29,6 +30,22 @@ from planning.content_profiles.utils import get_multilingual_fields
 logger = logging.getLogger(__name__)
 
 
+Params = Dict[str, Any]
+
+
+FilterFunctionType = (
+    Callable[[Params, elastic.ElasticQuery], None] | Callable[[Params, elastic.ElasticQuery], Awaitable[None]]
+)
+
+
+def is_in_datetime_format(value: str, datetime_format: str) -> bool:
+    try:
+        datetime.strptime(value, datetime_format)
+        return True
+    except ValueError:
+        return False
+
+
 def get_date_params(params: Dict[str, Any]):
     date_filter = (params.get("date_filter") or "").strip().lower()
     time_zone = params.get("time_zone")
@@ -37,10 +54,12 @@ def get_date_params(params: Dict[str, Any]):
         start_date = params.get("start_date")
         if start_date:
             if isinstance(start_date, str):
-                if not start_date.endswith("+0000"):
+                if is_in_datetime_format(start_date, "%Y-%m-%d"):
+                    params["start_date"] += "T00:00:00+0000"
+                elif is_in_datetime_format(start_date, "%Y-%m-%dT%H:%M:%S"):
                     params["start_date"] += "+0000"
-                    start_date = params["start_date"]
 
+                start_date = params["start_date"]
                 str_to_date(params["start_date"])  # validating if date can be parsed
             elif isinstance(start_date, datetime):
                 start_date = date_to_str(start_date)
@@ -52,9 +71,12 @@ def get_date_params(params: Dict[str, Any]):
         end_date = params.get("end_date")
         if end_date:
             if isinstance(end_date, str):
-                if not end_date.endswith("+0000"):
+                if is_in_datetime_format(end_date, "%Y-%m-%d"):
+                    params["end_date"] += "T23:59:59+0000"
+                elif is_in_datetime_format(end_date, "%Y-%m-%dT%H:%M:%S"):
                     params["end_date"] += "+0000"
-                    end_date = params["end_date"]
+
+                end_date = params["end_date"]
                 str_to_date(params["end_date"])  # validating if date can be parsed
             elif isinstance(end_date, datetime):
                 end_date = date_to_str(end_date)
@@ -178,8 +200,47 @@ def search_anpa_category(params: Dict[str, Any], query: elastic.ElasticQuery):
 def search_subject(params: Dict[str, Any], query: elastic.ElasticQuery):
     subjects = str_to_array(params.get("subject"))
 
-    if len(subjects):
-        query.must.append(elastic.terms(field="subject.qcode", values=subjects))
+    subjects_by_scheme: Dict[str, List[str]] = {}
+    for subject in subjects:
+        scheme, code = subject.split(":", 1) if ":" in subject else ("", subject)
+        subjects_by_scheme.setdefault(scheme, []).append(code)
+
+    for scheme, codes in subjects_by_scheme.items():
+        if scheme:
+            query.must.append(
+                elastic.nested(
+                    "subject",
+                    {
+                        "bool": {
+                            "must": [
+                                elastic.term(field="subject.scheme", value=scheme),
+                                elastic.terms(field="subject.qcode", values=codes),
+                            ]
+                        }
+                    },
+                )
+            )
+        else:
+            query.must.append(
+                elastic.nested(
+                    "subject",
+                    {
+                        "bool": {
+                            "must": [
+                                elastic.terms(field="subject.qcode", values=codes),
+                                {
+                                    "bool": {
+                                        "should": [
+                                            elastic.term(field="subject.scheme", value=""),
+                                            {"bool": {"must_not": elastic.field_exists("subject.scheme")}},
+                                        ],
+                                    },
+                                },
+                            ]
+                        }
+                    },
+                )
+            )
 
 
 def search_posted(params: Dict[str, Any], query: elastic.ElasticQuery):
@@ -205,7 +266,7 @@ def search_language(params: Dict[str, Any], query: elastic.ElasticQuery):
         )
 
 
-def search_locked(params: Dict[str, Any], query: elastic.ElasticQuery):
+async def search_locked(params: Dict[str, Any], query: elastic.ElasticQuery):
     if len(params.get("lock_state") or ""):
 
         def add_field_exist_query():
@@ -224,16 +285,18 @@ def search_locked(params: Dict[str, Any], query: elastic.ElasticQuery):
         ids = set()
         event_items = set()
         recurrence_ids = set()
-        locked_items = search_service.get_locked_items(projections=["_id", "type", "recurrence_id", "related_events"])
+        locked_items = await search_service.get_locked_items(
+            projections=["_id", "type", "recurrence_id", "related_events"]
+        )
 
-        if not locked_items.count():
+        if not await locked_items.count():
             # If there are no locked items there is no need to perform logic
             # for the relationships between locked items
             # Simply apply generic `field_exists` query to the original query
             add_field_exist_query()
             return
 
-        for item in locked_items:
+        async for item in locked_items:
             related_primary_events = get_related_event_ids_for_planning(item, "primary")
             if item.get("recurrence_id"):
                 # This item is associated with a recurring series of events
@@ -358,22 +421,26 @@ def search_date_non_schedule(params: Dict[str, Any], query: elastic.ElasticQuery
         query.filter.append(query_range)
 
 
-def construct_query(
+async def construct_query(
     repo: str,
     params: Dict[str, Any],
-    filters: List[Callable[[Dict[str, Any], elastic.ElasticQuery], None]],
+    filters: list[FilterFunctionType],
 ) -> Dict[str, Any]:
     query = elastic.ElasticQuery()
 
     if repo == "events":
-        query.multilingual_fields = get_multilingual_fields("event")
+        query.multilingual_fields = await get_multilingual_fields("event")
     elif repo == "planning":
-        query.multilingual_fields = get_multilingual_fields("planning")
+        query.multilingual_fields = await get_multilingual_fields("planning")
     else:
-        query.multilingual_fields = get_multilingual_fields("event").union(get_multilingual_fields("planning"))
+        query.multilingual_fields = (await get_multilingual_fields("event")).union(
+            await get_multilingual_fields("planning")
+        )
 
     for search_filter in filters:
-        search_filter(params, query)
+        response = search_filter(params, query)
+        if isawaitable(response):
+            await response
 
     return query.build()
 
@@ -392,9 +459,9 @@ def remove_filter_params_from_query(filter_params: Dict[str, Any], params: Dict[
         params["exclude_states"] = True
 
 
-def construct_search_query(
+async def construct_search_query(
     repo: str,
-    filters: List[Callable[[Dict[str, Any], elastic.ElasticQuery], None]],
+    filters: list[FilterFunctionType],
     params: Dict[str, Any],
     search_params: Optional[Dict[str, Any]],
 ) -> Dict[str, Any]:
@@ -409,11 +476,11 @@ def construct_search_query(
         # Set `time_zone` and start_of_week,  SDESK - 7264
         filter_params["time_zone"] = params.get("time_zone")
         filter_params["start_of_week"] = params.get("start_of_week")
-        filter_query = construct_query(repo, filter_params, filters)
+        filter_query = await construct_query(repo, filter_params, filters)
 
         remove_filter_params_from_query(filter_params, params)
 
-        param_query = construct_query(repo, params, filters)
+        param_query = await construct_query(repo, params, filters)
         query.sort = param_query.pop("sort", [])
 
         if len(param_query["query"]["bool"]):
@@ -425,7 +492,7 @@ def construct_search_query(
             filter_query["sort"] = query.sort
             return filter_query
     else:
-        return construct_query(repo, params, filters)
+        return await construct_query(repo, params, filters)
 
 
 def get_params_from_search_filter(search_filter: Optional[Dict[str, Any]]) -> Dict[str, Any]:
@@ -476,7 +543,20 @@ def search_priority(params: Dict[str, Any], query: elastic.ElasticQuery):
         query.must.append(elastic.terms(field="priority", values=priorities))
 
 
-COMMON_SEARCH_FILTERS: List[Callable[[Dict[str, Any], elastic.ElasticQuery], None]] = [
+def search_invitation_details(params: Dict[str, Any], query: elastic.ElasticQuery):
+    if params.get("invitation_details"):
+        query.must.append(elastic.match_phrase(field="invitation_details", value=params["invitation_details"]))
+
+
+def search_ednote(params: Dict[str, Any], query: elastic.ElasticQuery):
+    search_text_field(params, query, "ednote")
+
+
+def search_internal_note(params: Dict[str, Any], query: elastic.ElasticQuery):
+    search_text_field(params, query, "internal_note")
+
+
+COMMON_SEARCH_FILTERS: list[FilterFunctionType] = [
     search_item_ids,
     search_name,
     search_full_text,
@@ -492,10 +572,13 @@ COMMON_SEARCH_FILTERS: List[Callable[[Dict[str, Any], elastic.ElasticQuery], Non
     search_original_creator,
     search_source,
     search_priority,
+    search_invitation_details,
+    search_ednote,
+    search_internal_note,
 ]
 
 
-COMMON_PARAMS: List[str] = [
+COMMON_PARAMS = [
     "item_ids",
     "name",
     "tz_offset",
@@ -528,4 +611,6 @@ COMMON_PARAMS: List[str] = [
     "original_creator",
     "source",
     "priority",
+    "ednote",
+    "internal_note",
 ]

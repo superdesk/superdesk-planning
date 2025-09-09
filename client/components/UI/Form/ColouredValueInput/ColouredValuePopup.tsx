@@ -5,9 +5,7 @@ import classNames from 'classnames';
 import {gettext, onEventCapture} from '../../utils';
 import {getVocabularyItemFieldTranslated} from '../../../../utils/vocabularies';
 import {KEYCODES} from '../../constants';
-
-import {Popup, Header, Content, Label} from '../../Popup';
-
+import {Header, Content, Label} from '../../Popup';
 import './style.scss';
 
 interface IProps {
@@ -22,25 +20,13 @@ interface IProps {
     onChange(option: any): void;
     onCancel(): void;
     getClassNamesForOption(option: any): string;
-
-    // Popup target element & callbacks
-    target: string;
-    popupContainer(): HTMLElement;
-    onPopupOpen(): void;
-    onPopupClose(): void;
 }
 
 interface IState {
     activeIndex: number;
 }
 
-
-/**
- * @ngdoc react
- * @name ColouredValuePopup
- * @description Popup component to show color coded options
- */
-export class ColouredValuePopup extends React.Component<IProps, IState> {
+export class ColouredValueDropdown extends React.Component<IProps, IState> {
     constructor(props) {
         super(props);
         this.onKeyDown = this.onKeyDown.bind(this);
@@ -104,8 +90,6 @@ export class ColouredValuePopup extends React.Component<IProps, IState> {
 
     render() {
         const {
-            target,
-            onCancel,
             title,
             clearable,
             onChange,
@@ -113,28 +97,24 @@ export class ColouredValuePopup extends React.Component<IProps, IState> {
             options,
             labelKey = 'name',
             valueKey = 'qcode',
-            popupContainer,
-            onPopupOpen,
-            onPopupClose,
             language,
         } = this.props;
 
         return (
-            <Popup
-                target={target}
-                close={onCancel}
+            <div
+                data-test-id="coloured-popup-contents"
                 className="select-coloured-value__popup"
-                popupContainer={popupContainer}
+                style={{
+                    backgroundColor: 'var(--color-dropdown-menu-Bg)',
+                    boxShadow: 'var(--sd-shadow__dropdown)',
+                }}
                 onKeyDown={this.onKeyDown}
-                onPopupOpen={onPopupOpen}
-                onPopupClose={onPopupClose}
             >
                 {title && (
                     <Header noPadding={true}>
                         <Label text={title} centerText={true} />
                     </Header>
                 )}
-
                 <Content noPadding={true}>
                     <ul>
                         {!clearable ? null : (
@@ -172,7 +152,7 @@ export class ColouredValuePopup extends React.Component<IProps, IState> {
                         ))}
                     </ul>
                 </Content>
-            </Popup>
+            </div>
         );
     }
 }

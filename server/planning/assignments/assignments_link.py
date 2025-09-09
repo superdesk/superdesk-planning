@@ -6,12 +6,17 @@
 # AUTHORS and LICENSE files distributed with this source code, or
 # at https://www.sourcefabric.org/superdesk/license
 from copy import deepcopy
-from flask_babel import _
 
-from superdesk import Resource, Service, get_resource_service
+from quart_babel import gettext as _
+from bson import ObjectId
+
+from superdesk.core import get_config
+from superdesk.resource_fields import ID_FIELD
+from superdesk.flask import g
+from superdesk import Resource, get_resource_service
+from superdesk.eve_async.service import AsyncBaseService
 from superdesk.errors import SuperdeskApiError
 from superdesk.metadata.item import ITEM_STATE, CONTENT_STATE
-from eve.utils import config
 from planning.common import (
     ASSIGNMENT_WORKFLOW_STATE,
     get_related_items,
@@ -20,7 +25,9 @@ from planning.common import (
     get_next_assignment_status,
     get_delivery_publish_time,
     is_content_link_to_coverage_allowed,
+    assignment_allows_multiple_content_linked,
 )
+from .assignments_history_async import AssignmentsHistoryAsyncService
 from apps.archive.common import get_user, is_assigned_to_a_desk
 from apps.content import push_content_notification
 from superdesk.notification import push_notification
@@ -29,28 +36,30 @@ import logging
 logger = logging.getLogger(__name__)
 
 
-class AssignmentsLinkService(Service):
-    def on_create(self, docs):
+class AssignmentsLinkService(AsyncBaseService):
+    async def on_create_async(self, docs):
         for doc in docs:
-            self._validate(doc)
+            await self._validate(doc)
 
-    def create(self, docs):
+    async def create_async(self, docs, **kwargs):
         ids = []
         production = get_resource_service("archive")
 
         for doc in docs:
-            assignment = get_resource_service("assignments").find_one(req=None, _id=doc.pop("assignment_id"))
+            assignment = await get_resource_service("assignments").find_one_async(
+                req=None, _id=doc.pop("assignment_id")
+            )
             item_id = doc.pop("item_id")
-            actioned_item = production.find_one(req=None, _id=item_id)
-            related_items = get_related_items(actioned_item)
-            ids = self.link_archive_items_to_assignments(assignment, related_items, actioned_item, doc)
+            actioned_item = await production.find_one_async(req=None, _id=item_id)
+            related_items = await get_related_items(actioned_item)
+            ids = await self.link_archive_items_to_assignments(assignment, related_items, actioned_item, doc)
 
         return ids
 
-    def link_archive_items_to_assignments(self, assignment, related_items, actioned_item, doc):
+    async def link_archive_items_to_assignments(self, assignment, related_items, actioned_item, doc):
         assignments_service = get_resource_service("assignments")
         delivery_service = get_resource_service("delivery")
-        assignments_service.validate_assignment_action(assignment)
+        await assignments_service.validate_assignment_action(assignment)
         already_completed = assignment["assigned_to"]["state"] == ASSIGNMENT_WORKFLOW_STATE.COMPLETED
         items = []
         ids = []
@@ -61,9 +70,9 @@ class AssignmentsLinkService(Service):
         for item in related_items:
             if not item.get("assignment_id") or (item["_id"] == actioned_item.get("_id") and doc.get("force")):
                 # Update the delivery for the item if one exists
-                delivery = delivery_service.find_one(req=None, item_id=item[config.ID_FIELD])
+                delivery = await delivery_service.find_one_async(req=None, item_id=item[ID_FIELD])
                 if delivery:
-                    delivery_service.patch(
+                    await delivery_service.patch_async(
                         delivery["_id"],
                         {
                             "assignment_id": assignment["_id"],
@@ -74,8 +83,8 @@ class AssignmentsLinkService(Service):
                     # Add a delivery for the item
                     deliveries.append(
                         {
-                            "item_id": item[config.ID_FIELD],
-                            "assignment_id": assignment.get(config.ID_FIELD),
+                            "item_id": item[ID_FIELD],
+                            "assignment_id": assignment.get(ID_FIELD),
                             "planning_id": assignment["planning_item"],
                             "coverage_id": assignment["coverage_item"],
                             "item_state": doc.get("item_state") or item.get("state"),
@@ -87,9 +96,9 @@ class AssignmentsLinkService(Service):
 
                 if not doc.get("skip_archive_update", False):
                     # Update archive/published collection with assignment linking
-                    update_assignment_on_link_unlink(assignment[config.ID_FIELD], item, published_updated_items)
+                    await update_assignment_on_link_unlink(assignment[ID_FIELD], item, published_updated_items)
 
-                ids.append(item.get(config.ID_FIELD))
+                ids.append(item.get(ID_FIELD))
                 items.append(item)
 
                 if (
@@ -102,9 +111,9 @@ class AssignmentsLinkService(Service):
 
         # Create all deliveries
         if len(deliveries) > 0:
-            delivery_service.post(deliveries)
+            await delivery_service.post_async(deliveries)
 
-        assignment_was_updated = self.update_assignment(
+        assignment_was_updated = await self.update_assignment(
             updates,
             assignment,
             actioned_item,
@@ -112,7 +121,7 @@ class AssignmentsLinkService(Service):
             already_completed,
             need_complete,
         )
-        actioned_item["assignment_id"] = assignment[config.ID_FIELD]
+        actioned_item["assignment_id"] = assignment[ID_FIELD]
         doc.update(actioned_item)
 
         # Save assignment history
@@ -120,8 +129,7 @@ class AssignmentsLinkService(Service):
         if len(ids) > 0:
             updates["assigned_to"]["item_ids"] = ids
             if not assignment.get("scheduled_update_id"):
-                assignment_history_service = get_resource_service("assignments_history")
-                assignment_history_service.on_item_content_link(updates, assignment)
+                await AssignmentsHistoryAsyncService().on_item_content_link(updates, assignment)
 
             if (
                 not assignment_was_updated
@@ -132,24 +140,24 @@ class AssignmentsLinkService(Service):
                 and not need_complete
             ):
                 # publishing planning item
-                assignments_service.publish_planning(assignment["planning_item"])
+                await assignments_service.publish_planning(assignment["planning_item"])
 
         # Send notifications
         push_content_notification(items)
         push_notification(
             "content:link",
-            item=str(actioned_item[config.ID_FIELD]),
-            assignment=assignment[config.ID_FIELD],
+            item=str(actioned_item[ID_FIELD]),
+            assignment=assignment[ID_FIELD],
         )
         return ids
 
-    def _validate(self, doc):
-        assignment = get_resource_service("assignments").find_one(req=None, _id=doc.get("assignment_id"))
+    async def _validate(self, doc):
+        assignment = await get_resource_service("assignments").find_one_async(req=None, _id=doc.get("assignment_id"))
 
         if not assignment:
             raise SuperdeskApiError.badRequestError("Assignment not found.")
 
-        item = get_resource_service("archive").find_one(req=None, _id=doc.get("item_id"))
+        item = await get_resource_service("archive").find_one_async(req=None, _id=doc.get("item_id"))
 
         if not item:
             raise SuperdeskApiError.badRequestError("Content item not found.")
@@ -170,10 +178,8 @@ class AssignmentsLinkService(Service):
         if not is_assigned_to_a_desk(item):
             raise SuperdeskApiError.badRequestError("Content not in workflow. Cannot link assignment and content.")
 
-        if not item.get("rewrite_of"):
-            delivery = get_resource_service("delivery").find_one(req=None, assignment_id=doc.get("assignment_id"))
-
-            if delivery:
+        if not item.get("rewrite_of") and not assignment_allows_multiple_content_linked(assignment):
+            if await get_resource_service("delivery").count_async({"assignment_id": doc.get("assignment_id")}) > 0:
                 raise SuperdeskApiError.badRequestError(
                     "Content already exists for the assignment. Cannot link assignment and content."
                 )
@@ -182,14 +188,14 @@ class AssignmentsLinkService(Service):
             if assignment.get("scheduled_update_id"):
                 raise SuperdeskApiError.badRequestError("Only updates can be linked to a scheduled update assignment")
 
-        coverage = get_coverage_for_assignment(assignment)
+        coverage = await get_coverage_for_assignment(assignment)
         allowed_states = [
             ASSIGNMENT_WORKFLOW_STATE.IN_PROGRESS,
             ASSIGNMENT_WORKFLOW_STATE.COMPLETED,
         ]
         if (
             coverage
-            and len(coverage.get("scheduled_updates")) > 0
+            and len(coverage.get("scheduled_updates") or []) > 0
             and str(assignment["_id"]) != str((coverage.get("assigned_to") or {}).get("assignment_id"))
         ):
             if (coverage.get("assigned_to") or {}).get("state") not in allowed_states:
@@ -204,7 +210,7 @@ class AssignmentsLinkService(Service):
                 if assigned_to.get("state") not in allowed_states:
                     raise SuperdeskApiError("Previous scheduled-update pending content-linking/completion")
 
-    def update_assignment(
+    async def update_assignment(
         self,
         updates,
         assignment,
@@ -230,8 +236,8 @@ class AssignmentsLinkService(Service):
         # on fulfiling the assignment the user is assigned the assignment, for add to planning it is not
         if reassign:
             user = get_user()
-            if user and str(user.get(config.ID_FIELD)) != (assignment.get("assigned_to") or {}).get("user"):
-                updates["assigned_to"]["user"] = str(user.get(config.ID_FIELD))
+            if user and str(user.get(ID_FIELD)) != (assignment.get("assigned_to") or {}).get("user"):
+                updates["assigned_to"]["user"] = str(user.get(ID_FIELD))
                 updated = True
 
             # if the item & assignment are'nt on the same desk, move the assignment to the item desk
@@ -245,9 +251,9 @@ class AssignmentsLinkService(Service):
                 updated = True
 
         if need_complete:
-            get_resource_service("assignments_complete").update(assignment[config.ID_FIELD], updates, assignment)
+            await get_resource_service("assignments_complete").update_async(assignment[ID_FIELD], updates, assignment)
         if updated:
-            get_resource_service("assignments").patch(assignment[config.ID_FIELD], updates)
+            await get_resource_service("assignments").patch_async(assignment[ID_FIELD], updates)
 
         return updated
 
@@ -268,3 +274,72 @@ class AssignmentsLinkResource(Resource):
     item_methods = []
 
     privileges = {"POST": "archive"}
+
+
+async def _get_assignment_for_content_duplicate(item: dict) -> dict | None:
+    """Retrieve Assignment to link to the duplicate content item.
+
+    If this item returns None, then the newly created duplicate item is not to be linked to an Assignment.
+    Returns true if all of the following conditions are met:
+
+    * ``ASSIGNMENT_LINK_DUPLICATE_CONTENT`` setting is enabled
+    * The original item has ``assignment_id`` (linked to an Assignment)
+    * Assignment with ``assignment_id`` exists
+    * Item is not being duplicated to the personal space
+    * Assignment has ``planning.multiple_content`` enabled
+
+    :param: item: The content item where the Assignment is to be possibly linked to
+    :return: Returns the assignment data if it exists and meets the criteria for multiple content
+            link duplication. Otherwise, returns None.
+    """
+
+    if not get_config(bool, "ASSIGNMENT_LINK_DUPLICATE_CONTENT", False):
+        return None
+
+    assignment_id: ObjectId | None = item.get("assignment_id")
+    if not assignment_id:
+        return None
+    elif not (item.get("task") or {}).get("desk"):
+        return None
+
+    assignment: dict | None = g.get("archive_assignment")
+    if not assignment:
+        assignment = await get_resource_service("assignments").find_one_async(req=None, _id=assignment_id)
+        if not assignment:
+            logger.warning(f"Failed to find assignment {assignment_id} for duplicated item {item['_id']}")
+            return None
+        g.archive_assignment = assignment
+
+    if not assignment_allows_multiple_content_linked(assignment):
+        return None
+
+    return assignment
+
+
+async def on_archive_item_duplicate(updated: dict, original: dict, operation: str) -> None:
+    """Remove the ``assignment_id`` from the duplicated item.
+
+    Before the duplicated item is to be created, check to see if the new item is to be linked to the same Assignment.
+    If it is not, then remove the ``assignment_id`` from the duplicated item.
+    """
+
+    if not await _get_assignment_for_content_duplicate(updated):
+        updated.pop("assignment_id", None)
+
+
+async def on_archive_item_duplicated(updated: dict, original: dict, operation: str) -> None:
+    """Link the newly created duplicated item to the Assignment."""
+
+    assignment = await _get_assignment_for_content_duplicate(updated)
+    if assignment:
+        await get_resource_service("assignments_link").post_async(
+            [
+                {
+                    "assignment_id": assignment["_id"],
+                    "item_id": updated["_id"],
+                    "reassign": False,
+                    "force": True,  # Force the linking, even though this item has ``assignment_id``
+                    "skip_archive_update": True,  # No need to update item, as we've already done this
+                }
+            ]
+        )

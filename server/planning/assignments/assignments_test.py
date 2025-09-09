@@ -1,6 +1,6 @@
 from planning.tests import TestCase
 from superdesk import get_resource_service
-import flask
+from superdesk.flask import g
 from bson import ObjectId
 
 
@@ -59,9 +59,9 @@ class AssignmentsTestCase(TestCase):
         "item_id": "item1",
     }
 
-    def setUp(self):
-        super().setUp()
-        with self.app.app_context():
+    async def asyncSetUp(self):
+        await super().asyncSetUp()
+        async with self.app.app_context():
             self.app.data.insert("users", self.users)
             self.app.data.insert("auth", self.auth)
             self.app.data.insert("archive", [self.archive_item])
@@ -69,13 +69,13 @@ class AssignmentsTestCase(TestCase):
             self.app.data.insert("planning", [self.planning_item])
             self.app.data.insert("delivery", [self.delivery_item])
 
-    def test_delivery_record_deleted(self):
-        with self.app.app_context():
-            flask.g.user = self.users[0]
-            flask.g.auth = self.auth[0]
+    async def test_delivery_record_deleted(self):
+        async with self.app.app_context():
+            g.user = self.users[0]
+            g.auth = self.auth[0]
             delivery_service = get_resource_service("delivery")
             assignment_service = get_resource_service("assignments")
 
-            self.assertIsNotNone(delivery_service.find_one(req=None, item_id="item1"))
-            assignment_service.delete_action(lookup={"_id": ObjectId("5b20652a1d41c812e24aa49e")})
+            self.assertIsNotNone(await delivery_service.find_one_async(req=None, item_id="item1"))
+            await assignment_service.delete_action_async(lookup={"_id": ObjectId("5b20652a1d41c812e24aa49e")})
             self.assertIsNone(delivery_service.find_one(req=None, item_id="item1"))

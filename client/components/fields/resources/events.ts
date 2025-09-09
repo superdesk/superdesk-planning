@@ -69,6 +69,17 @@ registerEditorField(
 );
 
 registerEditorField(
+    'registration',
+    EditorFieldMultilingualText,
+    () => ({
+        label: superdeskApi.localization.gettext('Registration'),
+        field: 'registration',
+    }),
+    null,
+    false,
+);
+
+registerEditorField(
     'invitation_details',
     EditorFieldMultilingualText,
     () => ({

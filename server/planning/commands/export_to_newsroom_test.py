@@ -7,12 +7,17 @@
 # For the full copyright and license information, please see the
 # AUTHORS and LICENSE files distributed with this source code, or
 # at https://www.sourcefabric.org/superdesk/license
+
 import mock
 from datetime import timedelta
-from .export_to_newsroom import ExportToNewsroom
-from superdesk import get_resource_service
+
 from superdesk.utc import utcnow
+
 from planning.tests import TestCase
+from planning.events.events_service import EventsAsyncService
+
+from .export_to_newsroom import ExportToNewsroom
+from ..planning import PlanningAsyncService
 
 
 class MockTransmitter:
@@ -27,17 +32,19 @@ class MockTransmitter:
 
 
 class ExportToNewsroomTest(TestCase):
-    def setUp(self):
-        super().setUp()
+    async def asyncSetUp(self):
+        await super().asyncSetUp()
 
-        self.event_service = get_resource_service("events")
-        self.planning_service = get_resource_service("planning")
+        self.event_service = EventsAsyncService()
+        self.planning_service = PlanningAsyncService()
 
-    def setUp_data(self):
+    async def setup_data(self):
         utc_now = utcnow()
+        self.setup_test_user()
+
         events = [
             {
-                "_id": "draft",
+                "guid": "draft",
                 "dates": {
                     "start": utc_now,
                     "end": utc_now + timedelta(days=1),
@@ -48,7 +55,7 @@ class ExportToNewsroomTest(TestCase):
                 "type": "event",
             },
             {
-                "_id": "scheduled",
+                "guid": "scheduled",
                 "dates": {
                     "start": utc_now,
                     "end": utc_now + timedelta(days=1),
@@ -60,7 +67,7 @@ class ExportToNewsroomTest(TestCase):
                 "type": "event",
             },
             {
-                "_id": "postponed",
+                "guid": "postponed",
                 "dates": {
                     "start": utc_now,
                     "end": utc_now + timedelta(days=1),
@@ -72,7 +79,7 @@ class ExportToNewsroomTest(TestCase):
                 "type": "event",
             },
             {
-                "_id": "rescheduled",
+                "guid": "rescheduled",
                 "dates": {
                     "start": utc_now,
                     "end": utc_now + timedelta(days=1),
@@ -84,7 +91,7 @@ class ExportToNewsroomTest(TestCase):
                 "type": "event",
             },
             {
-                "_id": "cancelled",
+                "guid": "cancelled",
                 "dates": {
                     "start": utc_now,
                     "end": utc_now + timedelta(days=1),
@@ -96,7 +103,7 @@ class ExportToNewsroomTest(TestCase):
                 "type": "event",
             },
             {
-                "_id": "killed",
+                "guid": "killed",
                 "dates": {
                     "start": utc_now,
                     "end": utc_now + timedelta(days=1),
@@ -108,7 +115,7 @@ class ExportToNewsroomTest(TestCase):
                 "type": "event",
             },
             {
-                "_id": "postponed-not-published",
+                "guid": "postponed-not-published",
                 "dates": {
                     "start": utc_now,
                     "end": utc_now + timedelta(days=1),
@@ -119,7 +126,7 @@ class ExportToNewsroomTest(TestCase):
                 "type": "event",
             },
             {
-                "_id": "rescheduled-not-published",
+                "guid": "rescheduled-not-published",
                 "dates": {
                     "start": utc_now,
                     "end": utc_now + timedelta(days=1),
@@ -130,7 +137,7 @@ class ExportToNewsroomTest(TestCase):
                 "type": "event",
             },
             {
-                "_id": "cancelled-not-published",
+                "guid": "cancelled-not-published",
                 "dates": {
                     "start": utc_now,
                     "end": utc_now + timedelta(days=1),
@@ -144,14 +151,14 @@ class ExportToNewsroomTest(TestCase):
 
         planning = [
             {
-                "_id": "draft",
+                "guid": "draft",
                 "planning_date": utc_now,
                 "slugline": "planning slugline",
                 "state": "draft",
                 "type": "planning",
             },
             {
-                "_id": "scheduled",
+                "guid": "scheduled",
                 "planning_date": utc_now,
                 "slugline": "planning slugline",
                 "state": "scheduled",
@@ -159,7 +166,7 @@ class ExportToNewsroomTest(TestCase):
                 "type": "planning",
             },
             {
-                "_id": "postponed",
+                "guid": "postponed",
                 "planning_date": utc_now,
                 "slugline": "planning slugline",
                 "state": "postponed",
@@ -167,7 +174,7 @@ class ExportToNewsroomTest(TestCase):
                 "type": "planning",
             },
             {
-                "_id": "rescheduled",
+                "guid": "rescheduled",
                 "planning_date": utc_now,
                 "slugline": "planning slugline",
                 "state": "rescheduled",
@@ -175,7 +182,7 @@ class ExportToNewsroomTest(TestCase):
                 "type": "planning",
             },
             {
-                "_id": "cancelled",
+                "guid": "cancelled",
                 "planning_date": utc_now,
                 "slugline": "planning slugline",
                 "state": "cancelled",
@@ -183,7 +190,7 @@ class ExportToNewsroomTest(TestCase):
                 "type": "planning",
             },
             {
-                "_id": "killed",
+                "guid": "killed",
                 "planning_date": utc_now,
                 "slugline": "planning slugline",
                 "state": "killed",
@@ -191,21 +198,21 @@ class ExportToNewsroomTest(TestCase):
                 "type": "planning",
             },
             {
-                "_id": "postponed-not-published",
+                "guid": "postponed-not-published",
                 "planning_date": utc_now,
                 "slugline": "planning slugline",
                 "state": "postponed",
                 "type": "planning",
             },
             {
-                "_id": "rescheduled-not-published",
+                "guid": "rescheduled-not-published",
                 "planning_date": utc_now,
                 "slugline": "planning slugline",
                 "state": "rescheduled",
                 "type": "planning",
             },
             {
-                "_id": "cancelled-not-published",
+                "guid": "cancelled-not-published",
                 "planning_date": utc_now,
                 "slugline": "planning slugline",
                 "state": "cancelled",
@@ -213,16 +220,16 @@ class ExportToNewsroomTest(TestCase):
             },
         ]
 
-        self.event_service.create(events)
-        self.planning_service.create(planning)
+        await self.event_service.create(events)
+        await self.planning_service.create(planning)
 
     @mock.patch("planning.commands.export_to_newsroom.NewsroomHTTPTransmitter")
-    def test_events_events_planning(self, mock_transmitter):
-        with self.app.app_context():
-            self.setUp_data()
+    async def test_events_events_planning(self, mock_transmitter):
+        async with self.app.app_context():
+            await self.setup_data()
 
             mock_transmitter.return_value = MockTransmitter()
-            ExportToNewsroom().run(assets_url="foo", resource_url="bar")
+            await ExportToNewsroom().run(assets_url="foo", resource_url="bar")
             valid_ids = ["scheduled", "postponed", "rescheduled"]
 
             for item_id in mock_transmitter.return_value.events:

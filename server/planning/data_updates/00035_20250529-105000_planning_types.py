@@ -54,7 +54,7 @@ class DataUpdate(BaseDataUpdate):
                     }
                     index += 1
 
-            mongodb_collection.update({"name": resource_type}, {"$set": {"schema": schema, "editor": editor}})
+            mongodb_collection.update_many({"name": resource_type}, {"$set": {"schema": schema, "editor": editor}})
 
     def backwards(self, mongodb_collection, mongodb_database):
         pass

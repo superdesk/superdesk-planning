@@ -92,19 +92,26 @@ export default createReducer(initialLockState, {
             }
         }
 
-        for (const relatedEventId of getRelatedEventIdsForPlanning(planning)) {
-            // lock related planning unless event itself is locked
-            // if event itself is locked, locking a related planning item would drop event's lock
-            if (nextEventLocks[relatedEventId]?.item_type !== 'event') {
-                nextEventLocks[relatedEventId] = {
-                    action: planning.lock_action,
-                    item_id: planning._id,
-                    item_type: 'planning',
-                    session: planning.lock_session,
-                    time: planning.lock_time,
-                    user: planning.lock_user,
-                };
+        for (const relatedEventId of getRelatedEventIdsForPlanning(planning, 'primary')) {
+            const currentLock = nextEventLocks[relatedEventId];
+
+            // If planning lock is empty, don't overwrite existing event lock
+            if (
+                planning.lock_user == null &&
+                planning.lock_session == null &&
+                planning.lock_action == null
+            ) {
+                continue;
             }
+
+            nextEventLocks[relatedEventId] = {
+                action: planning.lock_action,
+                item_id: planning._id,
+                item_type: 'planning',
+                session: planning.lock_session,
+                time: planning.lock_time,
+                user: planning.lock_user,
+            };
         }
 
         return {

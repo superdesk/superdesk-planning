@@ -2,6 +2,7 @@ import {setup, login, addItems, waitForPageLoad, SubNavBar} from '../../support/
 import {createPlanningFor} from '../../fixtures/planning';
 import {FeaturedModal} from '../../support/planning/planning/featuredModal';
 import {PlanningList, PlanningEditor, PlanningPreview} from '../../support/planning';
+import {setupPlanningPublishing} from '../../fixtures/publish_config';
 
 describe('Planning.Featured', () => {
     const subnav = new SubNavBar();
@@ -12,6 +13,7 @@ describe('Planning.Featured', () => {
 
     beforeEach(() => {
         setup({fixture_profile: 'planning_prepopulate_data'}, '/#/planning');
+        setupPlanningPublishing();
         addItems('planning', [
             createPlanningFor.today({
                 slugline: 'Today_Featured_1',

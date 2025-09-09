@@ -10,3 +10,4 @@ export {LocationInput} from './locationInput';
 export {NewCheckboxInput} from './newCheckbox';
 export {TreeSelect} from './treeSelect';
 export {CoverageUserSelectInput} from './coverageUserSelectInput';
+export {TimePickerInput} from './timePickerInput';
