@@ -7,6 +7,7 @@ import {
     ToggleInput,
     SelectInput,
     LocationInput,
+    UrgencyInput,
     TreeSelect,
 } from '../common/inputs';
 import {PlanningList} from './planningList';
@@ -71,7 +72,7 @@ export class AdvancedSearch {
                 getSearchPanel,
                 '[data-test-id=field-featured]'
             ),
-            urgency: new TreeSelect(getSearchPanel, '[data-test-id=field-urgency]', false),
+            urgency: new UrgencyInput(getSearchPanel, '[data-test-id=field-urgency]'),
             g2_content_type: new SelectInput(
                 getSearchPanel,
                 '[data-test-id=field-g2_content_type] select'

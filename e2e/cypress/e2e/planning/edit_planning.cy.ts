@@ -28,7 +28,7 @@ describe('Planning.Planning: edit metadata', () => {
             ednote: 'Ed. Note',
             anpa_category: ['Domestic Sport'],
             subject: ['sports awards'],
-            urgency: ['2'],
+            urgency: '2',
             'flags.marked_for_not_publication': true,
         };
 
