@@ -3,7 +3,7 @@ import React from 'react';
 import {superdeskApi} from '../../../superdeskApi';
 import {IAssignmentItemProps, AssignmentItem} from './index';
 import {ArchiveItem} from '../../Archive';
-import {NestedItem} from '../../UI/List';
+import {NestedItem} from '../../../components/UI/List/NestedItem';
 
 interface IState {
     expanded: boolean;
