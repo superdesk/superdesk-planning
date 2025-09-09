@@ -6,6 +6,7 @@ import {
     IExtensionActivationResult,
     onPublishMiddlewareResult,
     IAuthoringAction,
+    IVocabularyText,
 } from 'superdesk-api';
 import {IPlanningAssignmentService} from './interfaces';
 import {getAssignmentService} from './utils';
@@ -310,7 +311,7 @@ const extension: IExtension = {
             );
         });
 
-        customTextFields.forEach((field) => {
+        customTextFields.forEach((field: IVocabularyText) => {
             const isSingleLine = field.field_options?.single ?? false;
             const TextField = isSingleLine
                 ? extensionBridge.editor.fields.EditorFieldText
@@ -326,7 +327,7 @@ const extension: IExtension = {
                 undefined,
                 true
             );
-        })
+        });
 
         return Promise.resolve(result);
     },
