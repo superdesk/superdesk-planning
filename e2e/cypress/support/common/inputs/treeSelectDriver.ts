@@ -12,8 +12,8 @@ export class TreeSelectDriver {
         
         this.parent()
             .find(this.selector)
-            .find('[data-test-id="clear-value"]')
-            .then(($clearBtn) => {
+            .then(($field) => {
+                const $clearBtn = $field.find('[data-test-id="clear-value"]');
                 if ($clearBtn.length > 0) {
                     cy.wrap($clearBtn).click();
                 }
