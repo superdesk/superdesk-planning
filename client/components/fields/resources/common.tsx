@@ -74,6 +74,16 @@ registerEditorField(
         getId: (item: any) => item.qcode,
         getLabel: (item: any) => item.name,
         getOptions: () => [],
+        getValue: () => {
+            const value = props.item[props.field];
+
+            return value && value !== '' && value !== null ? [value] : [];
+        },
+        onSelectionChange: (field: string, values: Array<string>) => {
+            const newValue = values && values.length > 0 ? values[0] : null;
+
+            props.onChange(field, newValue);
+        },
         // eslint-disable-next-line react/display-name
         optionTemplate: (item: any) => (
             <DropdownItemTemplate
@@ -104,6 +114,16 @@ registerEditorField(
         getId: (item: any) => item.qcode,
         getLabel: (item: any) => item.name,
         getOptions: () => [],
+        getValue: () => {
+            const value = props.item[props.field];
+
+            return value && value !== '' && value !== null ? [value] : [];
+        },
+        onSelectionChange: (field: string, values: Array<string>) => {
+            const newValue = values && values.length > 0 ? values[0] : null;
+
+            props.onChange(field, newValue);
+        },
         // eslint-disable-next-line react/display-name
         optionTemplate: (item: any) => (
             <DropdownItemTemplate

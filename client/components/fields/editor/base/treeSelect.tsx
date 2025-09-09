@@ -19,6 +19,8 @@ export interface IEditorFieldTreeSelectProps<T = any> extends IEditorFieldProps 
     filterScheme?(value: Array<ITreeNode<T>>): Array<ITreeNode<T>>;
     optionTemplate?(item: T): React.ComponentType<T> | JSX.Element;
     valueTemplate?(): React.ComponentType<{item: T}>;
+    getValue?(): Array<T>;
+    onSelectionChange?(field: string, values: Array<string>): void;
 }
 
 export class EditorFieldTreeSelect<T> extends React.PureComponent<IEditorFieldTreeSelectProps<T>> {
@@ -37,23 +39,27 @@ export class EditorFieldTreeSelect<T> extends React.PureComponent<IEditorFieldTr
             values.map((item) => this.props.getId(item)) :
             values;
 
-        if (!this.props.allowMultiple) {
-            newValues = newValues[0];
+        if (this.props.onSelectionChange) {
+            this.props.onSelectionChange(this.props.field, newValues);
+        } else {
+            if (!this.props.allowMultiple) {
+                newValues = newValues[0];
+            }
+            this.props.onChange(this.props.field, newValues);
         }
-
-        this.props.onChange(this.props.field, newValues);
     }
 
     getViewValue() {
         let values = get(this.props.item, this.props.field, this.props.defaultValue);
-        let viewValues;
-        const options = this.props.getOptions();
 
         if (values == null) {
             values = [];
         } else if (!Array.isArray(values)) {
             values = [values];
         }
+
+        let viewValues;
+        const options = this.props.getOptions();
 
         values = this.props.filterScheme ? this.props.filterScheme(values) : values;
 
