@@ -19,7 +19,7 @@ export interface IEditorFieldTreeSelectProps<T = any> extends IEditorFieldProps 
     filterScheme?(value: Array<ITreeNode<T>>): Array<ITreeNode<T>>;
     optionTemplate?(item: T): React.ComponentType<T> | JSX.Element;
     valueTemplate?(): React.ComponentType<{item: T}>;
-    getValue?(): Array<T>;
+    getValue?(item: T, field: string): Array<T>;
     onSelectionChange?(field: string, values: Array<string>): void;
 }
 
@@ -50,7 +50,13 @@ export class EditorFieldTreeSelect<T> extends React.PureComponent<IEditorFieldTr
     }
 
     getViewValue() {
-        let values = get(this.props.item, this.props.field, this.props.defaultValue);
+        let values;
+
+        if (this.props.getValue) {
+            values = this.props.getValue(this.props.item, this.props.field);
+        } else {
+            values = get(this.props.item, this.props.field, this.props.defaultValue);
+        }
 
         if (values == null) {
             values = [];

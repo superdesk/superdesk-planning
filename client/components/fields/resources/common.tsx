@@ -74,10 +74,10 @@ registerEditorField(
         getId: (item: any) => item.qcode,
         getLabel: (item: any) => item.name,
         getOptions: () => [],
-        getValue: () => {
-            const value = props.item[props.field];
+        getValue: (item: any, field: string) => {
+            const value = item[field];
 
-            return value && value !== '' && value !== null ? [value] : [];
+            return (value !== null && value !== undefined && value !== '') ? [value] : [];
         },
         onSelectionChange: (field: string, values: Array<string>) => {
             const newValue = values && values.length > 0 ? values[0] : null;
@@ -114,10 +114,10 @@ registerEditorField(
         getId: (item: any) => item.qcode,
         getLabel: (item: any) => item.name,
         getOptions: () => [],
-        getValue: () => {
-            const value = props.item[props.field];
+        getValue: (item: any, field: string) => {
+            const value = item[field];
 
-            return value && value !== '' && value !== null ? [value] : [];
+            return (value !== null && value !== undefined && value !== '') ? [value] : [];
         },
         onSelectionChange: (field: string, values: Array<string>) => {
             const newValue = values && values.length > 0 ? values[0] : null;
