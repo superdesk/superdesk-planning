@@ -1,24 +1,13 @@
 import * as React from 'react';
 import {get} from 'lodash';
 
-import {IEditorFieldProps, IProfileSchemaTypeString} from '../../../../interfaces';
-
+import {IEditorFieldTextAreaProps} from './textArea.interface';
 import {Row, TextAreaInput} from '../../../UI/Form';
 
-interface IProps extends IEditorFieldProps {
-    maxLength?: number;
-    schema?: IProfileSchemaTypeString;
-    multiLine?: boolean;
-    autoHeight?: boolean;
-    rows?: number;
-    labelIcon?: string;
-    noPadding?: boolean;
-}
-
-export class EditorFieldTextArea extends React.PureComponent<IProps> {
+export class EditorFieldTextArea extends React.PureComponent<IEditorFieldTextAreaProps> {
     node: React.RefObject<HTMLDivElement>;
 
-    constructor(props) {
+    constructor(props: IEditorFieldTextAreaProps) {
         super(props);
 
         this.node = React.createRef();

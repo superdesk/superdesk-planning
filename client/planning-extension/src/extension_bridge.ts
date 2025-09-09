@@ -14,6 +14,8 @@ import {IPropsEditorFieldCoverages} from '../../components/fields/editor/coverag
 import {IEditorFieldLocationProps} from '../../components/fields/editor/Location.interface';
 import {IEditorFieldEventRecurringRulesProps} from '../../components/fields/editor/EventRecurringRules.interface';
 import {IEventScheduleFieldProps} from '../../components/fields/editor/EventSchedule.interface';
+import {IEditorFieldTextProps} from '../../components/fields/editor/base/text.interface';
+import {IEditorFieldTextAreaProps} from '../../components/fields/editor/base/textArea.interface';
 
 interface IEditorFieldVocabularyProps extends IEditorFieldProps {
     options: Array<any>;
@@ -56,6 +58,8 @@ interface IExtensionBridge {
             EditorFieldEventRecurringRules: React.ComponentType<IEditorFieldEventRecurringRulesProps>;
             EditorFieldEventSchedule: React.ComponentType<IEventScheduleFieldProps>;
             EditorFieldCV: React.ComponentType<IEditorFieldProps>;
+            EditorFieldText: React.ComponentType<IEditorFieldTextProps>;
+            EditorFieldTextArea: React.ComponentType<IEditorFieldTextAreaProps>;
         },
     }
     ui: {

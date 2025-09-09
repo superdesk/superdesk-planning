@@ -117,6 +117,7 @@ export const VOCABULARIES_TO_BE_EXCLUDED = new Set([
 
 export function getUnusedProfileFields(
     profile: IEditorProfile,
+    isProfileCoverage?: boolean,
     includeGroupCheck: boolean = true
 ): Array<IProfileFieldEntry> {
     const customVocabularies = planningApi.vocabularies.getCustomVocabularies()
@@ -159,6 +160,31 @@ export function getUnusedProfileFields(
         return isCustomVocabulary && isUnused;
     });
 
+    const unusedVocabularyFields = unusedVocabularies;
+
+    // Add custom text fields only for coverage profiles
+    if (isProfileCoverage) {
+        const profileFieldIds = profileFields.map((x) => x.name);
+        const unusedCustomTextFields = superdeskApi.entities.vocabulary.getAll().toArray()
+            .filter((x) => x.field_type === 'text')
+            .filter((x) => profileFieldIds.includes(x._id) === false);
+
+        const usedCustomTextFields: Array<IProfileFieldEntry> = unusedCustomTextFields.map(({_id}, i) => ({
+            field: {
+                enabled: false,
+                group: undefined,
+                index: i,
+            },
+            name: _id,
+            schema: {
+                type: 'custom_text',
+                required: false,
+            }
+        }));
+
+        unusedVocabularyFields.push(...usedCustomTextFields);
+    }
+
     return orderBy(
         profileFields
             .filter((field) => {
@@ -167,7 +193,7 @@ export function getUnusedProfileFields(
 
                 return isUnused && !isVocabulary;
             })
-            .concat(unusedVocabularies),
+            .concat(unusedVocabularyFields),
         superdeskApi.helpers.nameof<IProfileFieldEntry>('name')
     );
 }

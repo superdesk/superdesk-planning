@@ -129,11 +129,35 @@ export class CoverageFormComponent extends React.Component<IProps, IState> {
 
     onChange(field: string, value: any) {
         const {onChange, index} = this.props;
+        const maybeCustomTextField = superdeskApi.entities.vocabulary.getVocabulary(field);
 
-        onChange(
-            `coverages.${index}.${field}`,
-            value
-        );
+        // Handle update of custom text field
+        if (maybeCustomTextField?.field_type === 'text') {
+            const coveragesWithoutUpdated =
+                this.props.coverages.filter((x) => x.coverage_id !== this.props.value.coverage_id);
+
+            onChange(
+                'coverages',
+                [
+                    ...coveragesWithoutUpdated,
+                    {
+                        ...this.props.value,
+                        fields: [
+                            ...((this.props.value.fields ?? []).filter((x) => x.field != field)),
+                            {
+                                field: field,
+                                value: value,
+                            },
+                        ],
+                    },
+                ],
+            );
+        } else {
+            onChange(
+                `coverages.${index}.${field}`,
+                value
+            );
+        }
     }
 
     onTimeToBeConfirmed() {

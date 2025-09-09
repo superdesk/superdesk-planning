@@ -665,8 +665,11 @@ export interface IPlanningCoverageItem {
     flags: {
         no_content_linking: boolean;
     };
-    _time_to_be_confirmed: boolean;
+
+    fields: Array<{field: string; value: string}>;
+
     scheduled_updates: Array<ICoverageScheduledUpdate>;
+    _time_to_be_confirmed: boolean;
 }
 
 // An Event that is linked with 'primary' has side effects with the Planning and vice-versa
@@ -1092,6 +1095,7 @@ export interface IProfileSchemaTypeDict extends IBaseProfileSchemaType<'dict'> {
 export interface IProfileSchemaTypeDateTime extends IBaseProfileSchemaType<'datetime'> { }
 export interface IProfileSchemaTypeBoolean extends IBaseProfileSchemaType<'boolean'> { }
 export interface IProfileSchemaTypeCV extends IBaseProfileSchemaType<'custom_vocabulary'> { }
+export interface IProfileSchemaTypeCustomText extends IBaseProfileSchemaType<'custom_text'> { }
 
 export interface IProfileSchemaTypeString extends IBaseProfileSchemaType<'string'> {
     field_type: 'single_line' | 'multi_line' | 'editor_3';
@@ -1364,7 +1368,8 @@ export type IProfileSchemaType = IProfileSchemaTypeList
     | IProfileSchemaTypeDict
     | IProfileSchemaTypeDateTime
     | IProfileSchemaTypeString
-    | IProfileSchemaTypeCV;
+    | IProfileSchemaTypeCV
+    | IProfileSchemaTypeCustomText;
 
 export type IFormProfileItem = IEventFormProfile
     | IPlanningFormProfile
