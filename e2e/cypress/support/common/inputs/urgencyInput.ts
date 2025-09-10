@@ -1,21 +1,41 @@
-import {TreeSelectDriver} from './treeSelectDriver';
+import {Input} from './input';
+import {Popup} from '../ui';
 
-export class UrgencyInput {
-    private treeSelectDriver: TreeSelectDriver;
-    private parent: () => Cypress.Chainable<JQuery<HTMLElement>>;
-    private selector: string;
+/**
+ * Wrapper class for Superdesk's UrgencyInput component
+ * @extends Input
+ */
+export class UrgencyInput extends Input {
+    /**
+     * Set the value for this input
+     * First finds a button on this field to show the popup
+     * Waits for the popup then clicks on the appropriate value
+     * @param {string} value - The value to type into the input field
+     */
+    type(value) {
+        cy.log('Common.UrgencyInput.type');
+        const popup = new Popup('[data-test-id="coloured-popup-contents"]');
 
-    constructor(parent: () => Cypress.Chainable<JQuery<HTMLElement>>, selector: string) {
-        this.parent = parent;
-        this.selector = selector;
-        this.treeSelectDriver = new TreeSelectDriver(parent, selector);
+        this.element
+            .find('button')
+            .click();
+        popup.waitTillOpen();
+        popup.element
+            .find('.popup__menu-content')
+            .contains(value)
+            .should('exist')
+            .parent()
+            .should('exist')
+            .click();
+        popup.waitTillClosed();
     }
 
-    type(value: string) {
-        this.treeSelectDriver.setValue(value);
-    }
-
-    expect(value: string) {
-        this.parent().find(this.selector).should('contain.text', value);
+    /**
+     * Assert the value of this input
+     * @param {string} value - The value to expect
+     */
+    expect(value) {
+        cy.log('Common.UrgencyInput.expect');
+        this.element.should('contain.text', value);
     }
 }

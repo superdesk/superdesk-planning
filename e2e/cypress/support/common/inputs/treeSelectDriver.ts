@@ -19,6 +19,10 @@ export class TreeSelectDriver {
                 }
             });
 
+        if (value === '') {
+            return;
+        }
+
         if (values.length > 0) {
             this.parent()
                 .find(this.selector)

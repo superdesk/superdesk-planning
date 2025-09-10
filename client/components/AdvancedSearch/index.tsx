@@ -144,6 +144,9 @@ export class AdvancedSearch extends React.PureComponent<IProps> {
                     multiple: true,
                     defaultValue: [],
                 },
+                urgency: {
+                    valueAsString: false,
+                },
             },
             null,
             this.props.enabledField
