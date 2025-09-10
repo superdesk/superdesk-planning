@@ -8,11 +8,14 @@ export const PriorityComponent = ({assignment, ...props}: IProps) => {
     const priorities = props.fieldsProps.priority.priorities;
 
     return (
-        <PriorityLabel
-            item={{priority: assignment.priority != null ? assignment.priority : undefined}}
-            priorities={priorities}
-            tooltipFlow="right"
-            inline={true}
-        />
+        // wrapping in a div to prevent assignment list view from applying flex shrink styles to inline block
+        <div>
+            <PriorityLabel
+                item={{priority: assignment.priority != null ? assignment.priority : undefined}}
+                priorities={priorities}
+                tooltipFlow="right"
+                inline={false}
+            />
+        </div>
     );
 };
