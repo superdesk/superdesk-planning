@@ -7,7 +7,7 @@ import {TreeSelect} from 'superdesk-ui-framework/react';
 import {ITreeNode} from 'superdesk-ui-framework/react/components/TreeSelect/TreeSelect';
 import {Row} from '../../../UI/Form';
 
-export interface IEditorFieldTreeSelectProps<T = any> extends IEditorFieldProps {
+export interface IEditorFieldTreeSelectProps<T = any, IItem = any> extends IEditorFieldProps {
     getOptions(): Array<ITreeNode<T>>
     getId(item: T): string;
     getLabel(item: T): string;
@@ -16,11 +16,21 @@ export interface IEditorFieldTreeSelectProps<T = any> extends IEditorFieldProps 
     valueAsString?: boolean;
     smallPadding?: boolean;
     sortable?: boolean;
-    filterScheme?(value: Array<ITreeNode<T>>): Array<ITreeNode<T>>;
+    filterScheme?(value: Array<any>): Array<any>;
     optionTemplate?(item: T): React.ComponentType<T> | JSX.Element;
     valueTemplate?(): React.ComponentType<{item: T}>;
-    getValue?(item: T, field: string): Array<T>;
-    onSelectionChange?(field: string, values: Array<string>): void;
+
+    /**
+     * Is meant for use cases where more control is needed
+     * e.g. when values are vocabulary items, but only qcode needs to be stored instead of the entire vocabulary item.
+     */
+    valueAdapter?: {
+        // e.g. getValue: (event) => [event.urgency]
+        getValue(item: IItem, field: string): Array<T>;
+
+        // e.g. prepareValueForStorage: (values) => values[0].qcode
+        prepareValueForStorage(values: Array<T>): any;
+    };
 }
 
 export class EditorFieldTreeSelect<T> extends React.PureComponent<IEditorFieldTreeSelectProps<T>> {
@@ -35,46 +45,53 @@ export class EditorFieldTreeSelect<T> extends React.PureComponent<IEditorFieldTr
     }
 
     onChange(values: Array<any>) {
-        let newValues = this.props.valueAsString ?
-            values.map((item) => this.props.getId(item)) :
-            values;
+        const nextValues = (() => {
+            if (this.props.valueAdapter?.prepareValueForStorage != null) {
+                return this.props.valueAdapter.prepareValueForStorage(values);
+            } else {
+                let result = this.props.valueAsString ?
+                    values.map((item) => this.props.getId(item)) :
+                    values;
 
-        if (this.props.onSelectionChange) {
-            this.props.onSelectionChange(this.props.field, newValues);
-        } else {
-            if (!this.props.allowMultiple) {
-                newValues = newValues[0];
+                if (!this.props.allowMultiple) {
+                    result = result[0];
+                }
+
+                return result;
             }
-            this.props.onChange(this.props.field, newValues);
-        }
+        })();
+
+        this.props.onChange(this.props.field, nextValues);
     }
 
     getViewValue() {
-        let values;
+        let valuesPrepared: Array<any> = (() => {
+            if (this.props.valueAdapter?.getValue != null) {
+                return this.props.valueAdapter.getValue(this.props.item, this.props.field);
+            }
 
-        if (this.props.getValue) {
-            values = this.props.getValue(this.props.item, this.props.field);
-        } else {
-            values = get(this.props.item, this.props.field, this.props.defaultValue);
-        }
+            let values = get(this.props.item, this.props.field, this.props.defaultValue);
 
-        if (values == null) {
-            values = [];
-        } else if (!Array.isArray(values)) {
-            values = [values];
-        }
+            if (values == null) {
+                values = [];
+            } else if (!Array.isArray(values)) {
+                values = [values];
+            }
+
+            return values;
+        })();
 
         let viewValues;
         const options = this.props.getOptions();
 
-        values = this.props.filterScheme ? this.props.filterScheme(values) : values;
+        valuesPrepared = this.props.filterScheme ? this.props.filterScheme(valuesPrepared) : valuesPrepared;
 
         if (this.props.valueAsString) {
             viewValues = options
-                .filter((item) => values.includes(this.props.getId(item.value)))
+                .filter((item) => valuesPrepared.includes(this.props.getId(item.value)))
                 .map((item) => item.value);
         } else {
-            viewValues = values;
+            viewValues = valuesPrepared;
         }
 
         return viewValues;

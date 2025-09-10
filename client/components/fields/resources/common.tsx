@@ -74,15 +74,19 @@ registerEditorField(
         getId: (item: any) => item.qcode,
         getLabel: (item: any) => item.name,
         getOptions: () => [],
-        getValue: (item: any, field: string) => {
-            const value = item[field];
+        valueAdapter: {
+            getValue: (item: any, field: string) => {
+                const value = item[field];
 
-            return (value !== null && value !== undefined && value !== '') ? [value] : [];
-        },
-        onSelectionChange: (field: string, values: Array<string>) => {
-            const newValue = values && values.length > 0 ? values[0] : null;
+                return (value !== null && value !== undefined && value !== '') ? [value] : [];
+            },
+            prepareValueForStorage: (values) => {
+                if (values.length < 1) {
+                    return null;
+                }
 
-            props.onChange(field, newValue);
+                return (values[0] as any)?.qcode;
+            },
         },
         // eslint-disable-next-line react/display-name
         optionTemplate: (item: any) => (
@@ -114,15 +118,19 @@ registerEditorField(
         getId: (item: any) => item.qcode,
         getLabel: (item: any) => item.name,
         getOptions: () => [],
-        getValue: (item: any, field: string) => {
-            const value = item[field];
+        valueAdapter: {
+            getValue: (item: any, field: string) => {
+                const value = item[field];
 
-            return (value !== null && value !== undefined && value !== '') ? [value] : [];
-        },
-        onSelectionChange: (field: string, values: Array<string>) => {
-            const newValue = values && values.length > 0 ? values[0] : null;
+                return (value !== null && value !== undefined && value !== '') ? [value] : [];
+            },
+            prepareValueForStorage: (values) => {
+                if (values.length < 1) {
+                    return null;
+                }
 
-            props.onChange(field, newValue);
+                return (values[0] as any).qcode;
+            }
         },
         // eslint-disable-next-line react/display-name
         optionTemplate: (item: any) => (
