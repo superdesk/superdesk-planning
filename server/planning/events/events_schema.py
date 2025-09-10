@@ -216,23 +216,7 @@ events_schema = {
     "subject": planning_schema["subject"],
     "slugline": metadata_schema["slugline"],
     # Item metadata
-    "location": {
-        "type": "list",
-        "mapping": {
-            "type": "object",
-            "dynamic": False,
-            "properties": {
-                "qcode": not_analyzed,
-                "name": {"type": "string"},
-                "address": {"type": "object", "dynamic": True},
-                "geo": {"type": "string"},
-                "location": {"type": "geo_point"},
-                "translations": {"enabled": False},  # explicitly disable
-                "details": {"type": "string"},
-            },
-        },
-        "nullable": True,
-    },
+    "location": planning_schema["location"],
     "participant": {
         "type": "list",
         "mapping": {"properties": {"qcode": not_analyzed, "name": not_analyzed}},

@@ -2,11 +2,10 @@ import React from 'react';
 import {Label} from 'superdesk-ui-framework/react';
 
 import {superdeskApi} from '../../../../superdeskApi';
-import {ASSIGNMENT_STATE, IAssignmentItem} from '../../../../interfaces';
+import {ASSIGNMENT_STATE} from '../../../../interfaces';
+import {IAssignmentListItemField} from '../../../../components/Assignments/interfaces';
 
-interface IProps {
-    assignment: IAssignmentItem;
-}
+type IProps = IAssignmentListItemField;
 
 export function StateComponent({assignment}: IProps) {
     const {gettext} = superdeskApi.localization;

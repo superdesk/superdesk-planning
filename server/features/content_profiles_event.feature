@@ -164,7 +164,7 @@ Feature: Event Content Profiles
             },
             "location": {
                 "required": false,
-                "type": "string"
+                "type": "list"
             },
             "name": {
                 "required": true,

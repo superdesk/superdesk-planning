@@ -39,6 +39,24 @@ assigned_to_schema = {
     },
 }
 
+location_schema = {
+    "type": "list",
+    "mapping": {
+        "type": "object",
+        "dynamic": False,
+        "properties": {
+            "qcode": not_analyzed,
+            "name": {"type": "string"},
+            "address": {"type": "object", "dynamic": True},
+            "geo": {"type": "string"},
+            "location": {"type": "geo_point"},
+            "translations": {"enabled": False},  # explicitly disable
+            "details": {"type": "string"},
+        },
+    },
+    "nullable": True,
+}
+
 coverage_schema = {
     # Identifiers
     "coverage_id": {"type": "string", "mapping": not_analyzed},
@@ -122,7 +140,61 @@ coverage_schema = {
                     },
                 },
             },
+            "location": location_schema,
         },  # end planning dict schema
+        "mapping": {
+            "type": "object",
+            "dynamic": False,
+            "properties": {
+                "ednote": metadata_schema["ednote"]["mapping"],
+                "g2_content_type": {"type": "keyword"},
+                "coverage_provider": {"type": "keyword"},
+                "contact_info": {"type": "keyword"},
+                "item_class": {"type": "keyword"},
+                "item_count": {"type": "keyword"},
+                "news_coverage_status": {
+                    "type": "object",
+                    "properties": {
+                        "name": {"type": "keyword"},
+                        "qcode": {"type": "keyword"},
+                    },
+                },
+                "scheduled": {"type": "date"},
+                "service": {"properties": {"qcode": {"type": "keyword"}, "name": {"type": "keyword"}}},
+                "news_content_characteristics": {
+                    "properties": {"name": {"type": "keyword"}, "value": {"type": "keyword"}}
+                },
+                "planning_ext_property": {
+                    "properties": {
+                        "qcode": {"type": "keyword"},
+                        "value": {"type": "keyword"},
+                        "name": {"type": "keyword"},
+                    }
+                },
+                "by": {"type": "text"},
+                "credit_line": {"type": "text"},
+                "dateline": {"type": "text"},
+                "description_text": metadata_schema["description_text"]["mapping"],
+                "genre": metadata_schema["genre"]["mapping"],
+                "headline": metadata_schema["headline"]["mapping"],
+                "keyword": {"type": "text"},
+                "language": metadata_schema["language"]["mapping"],
+                "slugline": metadata_schema["slugline"]["mapping"],
+                "subject": metadata_schema["subject"]["mapping"],
+                "internal_note": {"type": "text"},
+                "workflow_status_reason": {"type": "text"},
+                "priority": {"type": "keyword"},
+                "anpa_category": metadata_schema["anpa_category"]["mapping"],
+                "location": location_schema["mapping"],
+                "fields": {
+                    "type": "nested",
+                    "properties": {
+                        "field": not_analyzed,
+                        "value": metadata_schema["body_html"]["mapping"],
+                    },
+                },
+            },
+        },
     },  # end planning
     "news_coverage_status": {
         "type": "dict",
@@ -135,7 +207,7 @@ coverage_schema = {
     },
     "workflow_status": {"type": "string"},
     "add_coverage_to_workflow": {"type": "boolean"},
-    "anpa_category": {"type": "list"},
+    "anpa_category": metadata_schema["anpa_category"],
     "previous_status": {"type": "string"},
     "assigned_to": assigned_to_schema,
     "flags": {
@@ -178,6 +250,8 @@ coverage_schema = {
         },
     },  # end scheduled_updates
 }  # end coverage_schema
+
+coverage_mapping = {k: v["mapping"] for k, v in coverage_schema.items() if v.get("mapping")}
 
 event_type = deepcopy(Resource.rel("events", type="string"))
 event_type["mapping"] = not_analyzed
@@ -301,6 +375,7 @@ planning_schema = {
     "priority": metadata_schema["priority"],
     "urgency": metadata_schema["urgency"],
     "profile": metadata_schema["profile"],
+    "location": location_schema,
     # These next two are for spiking/unspiking and purging of planning/agenda items
     "state": WORKFLOW_STATE_SCHEMA,
     "expiry": {"type": "datetime", "nullable": True},
@@ -319,27 +394,8 @@ planning_schema = {
         },
         "mapping": {
             "type": "nested",
-            "properties": {
-                "coverage_id": not_analyzed,
-                "planning": {
-                    "type": "object",
-                    "properties": {
-                        "slugline": metadata_schema["slugline"]["mapping"],
-                        "multiple_content": {"type": "boolean"},
-                    },
-                },
-                "assigned_to": assigned_to_schema["mapping"],
-                "original_creator": {
-                    "type": "keyword",
-                },
-                "fields": {
-                    "type": "nested",
-                    "properties": {
-                        "field": not_analyzed,
-                        "value": metadata_schema["body_html"]["mapping"],
-                    },
-                },
-            },
+            "dynamic": False,
+            "properties": coverage_mapping,
         },
     },
     # field to sync coverage scheduled information
