@@ -72,12 +72,13 @@ export class EditorFieldCV extends React.PureComponent<ICustomCVFieldProps> {
                     error={showErrors ? errors[this.props.field] : undefined}
                     readOnly={disabled}
                     disabled={disabled}
-                    onChange={(vals) => {
-                        const restOfItems = get(item, storageField ?? 'subject', []).filter((x) => x.scheme !== cv._id);
+                    onChange={(vocabularyItemsNext) => {
+                        const itemsFromOtherVocabularies = get(item, storageField ?? 'subject', [])
+                            .filter((x) => x.scheme !== cv._id);
 
                         onChange(
                             storageField ?? 'subject',
-                            [...restOfItems, ...vals],
+                            [...itemsFromOtherVocabularies, ...vocabularyItemsNext],
                         );
                     }}
                     tabindex={0}
