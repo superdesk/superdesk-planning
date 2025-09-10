@@ -26,6 +26,8 @@ import {getCoverageFields} from '../../../api/editor/item_planning';
 import {coverageProfiles} from '../../../selectors/coverageProfiles';
 
 import '../style.scss';
+import {VOCABULARIES_TO_BE_EXCLUDED} from '../../../utils/contentProfiles';
+import {isCustomVocabulary} from '../../../helpers';
 
 interface IOwnProps {
     field: string;
@@ -395,7 +397,21 @@ export class CoverageFormComponent extends React.Component<IProps, IState> {
             editorType: this.props.editorType,
         };
 
+        const allVocabularies = superdeskApi.entities.vocabulary.getAll();
+        const customCVFields = allVocabularies.toArray().filter((x) =>
+            !VOCABULARIES_TO_BE_EXCLUDED.has(x._id)
+            && isCustomVocabulary(x),
+        )
+            .reduce((prev, curr) => ({
+                ...prev,
+                [curr._id]: {
+                    field: curr._id,
+                    storageField: 'planning.subject',
+                }
+            }), {});
+
         const fieldProps = {
+            ...customCVFields,
             contact_info: {
                 field: 'planning.contact_info',
                 assignmentField: 'assigned_to.contact',
