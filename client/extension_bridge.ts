@@ -27,9 +27,9 @@ import {planningApi} from './superdeskApi';
 
 import {
     IAssignmentItem,
-    IEditorFieldProps,
     IPlanningContentProfile,
     IPlanningCoverageItem,
+    IPlanningItem,
 } from './interfaces';
 import {registerEditorField} from './components/fields/resources/registerEditorFields';
 import {validateCoveragesV2} from './validators/planning';
@@ -41,6 +41,7 @@ import {EditorFieldEventSchedule} from './components/fields/editor/EventSchedule
 import {EditorFieldCV} from './components/fields/editor/CustomCV';
 import {VOCABULARIES_TO_BE_EXCLUDED} from './utils/contentProfiles';
 import {isCustomVocabulary} from './helpers';
+import {ICustomCVFieldProps} from './components/fields/editor/CustomCV.interface';
 import {appConfig} from 'appConfig';
 
 // KEEP IN SYNC WITH client/planning-extension/src/extension_bridge.ts
@@ -73,7 +74,7 @@ interface IExtensionBridge {
             EditorFieldCoverages: React.ComponentType<IPropsEditorFieldCoverages>;
             EditorFieldEventRecurringRules: React.ComponentType<IEditorFieldEventRecurringRulesProps>;
             EditorFieldEventSchedule: React.ComponentType<IEventScheduleFieldProps>;
-            EditorFieldCV: React.ComponentType<IEditorFieldProps>;
+            EditorFieldCV: React.ComponentType<ICustomCVFieldProps>;
         },
     }
     ui: {
