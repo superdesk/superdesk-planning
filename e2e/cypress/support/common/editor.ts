@@ -102,7 +102,7 @@ export class Editor {
         cy.wrap(Object.keys(values)).each(
             (field) => {
                 this.getField(field)
-                    .type(values[field], {force: true});
+                    .type(values[field]);
             }
         );
     }
