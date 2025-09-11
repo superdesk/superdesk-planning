@@ -81,7 +81,7 @@ DEFAULT_COVERAGE_PROFILE = {
             "index": 10,
         },
         "location": {
-            "enabled": True,
+            "enabled": False,
             "index": 11,
         },
         "anpa_category": {"enabled": False},
