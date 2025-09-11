@@ -29,7 +29,7 @@ export interface IEditorFieldTreeSelectProps<T = any, IItem = any> extends IEdit
         getValue(item: IItem, field: string): Array<T>;
 
         // e.g. prepareValueForStorage: (values) => values[0].qcode
-        prepareValueForStorage(values: Array<T>): any;
+        prepareValueForStorage(values: Array<T>, valueAsString: boolean): any;
     };
 }
 
@@ -47,7 +47,7 @@ export class EditorFieldTreeSelect<T> extends React.PureComponent<IEditorFieldTr
     onChange(values: Array<any>) {
         const nextValues = (() => {
             if (this.props.valueAdapter?.prepareValueForStorage != null) {
-                return this.props.valueAdapter.prepareValueForStorage(values);
+                return this.props.valueAdapter.prepareValueForStorage(values, this.props.valueAsString);
             } else {
                 let result = this.props.valueAsString ?
                     values.map((item) => this.props.getId(item)) :

@@ -119,17 +119,17 @@ registerEditorField(
         getLabel: (item: any) => item.name,
         getOptions: () => [],
         valueAdapter: {
-            getValue: (item: any, field: string) => {
+            getValue: (item, field) => {
                 const value = item[field];
 
                 return (value !== null && value !== undefined && value !== '') ? [value] : [];
             },
-            prepareValueForStorage: (values) => {
+            prepareValueForStorage: (values, valueAsString) => {
                 if (values.length < 1) {
                     return null;
                 }
 
-                return (values[0] as any).qcode;
+                return valueAsString ? (values[0] as any).qcode : values[0];
             }
         },
         // eslint-disable-next-line react/display-name
