@@ -454,6 +454,11 @@ export class CoverageFormComponent extends React.Component<IProps, IState> {
                 readOnly: this.props.readOnly || readOnlyFields.ednote,
                 field: 'planning.ednote',
             },
+            location: {
+                readOnly: this.props.readOnly || readOnlyFields.location,
+                field: 'planning.location',
+                storeAsArray: true,
+            },
             keyword: {
                 readOnly: this.props.readOnly || readOnlyFields.keyword,
                 field: 'planning.keyword',

@@ -80,6 +80,10 @@ DEFAULT_COVERAGE_PROFILE = {
             "enabled": False,
             "index": 10,
         },
+        "location": {
+            "enabled": True,
+            "index": 11,
+        },
         "anpa_category": {"enabled": False},
         "subject": {"enabled": False},
         # Fields disabled by default
