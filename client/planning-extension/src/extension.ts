@@ -300,9 +300,9 @@ const extension: IExtension = {
         );
 
         vocabularies.forEach((vocab) => {
-            registerEditorField(
+            extensionBridge.fields.registerEditorField(
                 vocab._id,
-                extensionBridge.editor.fields.EditorFieldCV,
+                extensionBridge.editor.fields.EditorFieldCV as any,
                 () => ({
                     label: vocab.display_name,
                     field: vocab._id,

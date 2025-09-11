@@ -2,12 +2,14 @@ import * as React from 'react';
 
 import {ISubject} from 'superdesk-api';
 import {superdeskApi} from '../../../superdeskApi';
-import {IEditorFieldProps} from '../../../interfaces';
 import {Row} from '../../UI/Form';
 import {getVocabularyItemFieldTranslated} from '../../../utils/vocabularies';
 import {TreeSelect} from 'superdesk-ui-framework/react';
+import {ICustomCVFieldProps} from './CustomCV.interface';
+import {get} from 'lodash';
 
-export class EditorFieldCV extends React.PureComponent<IEditorFieldProps> {
+
+export class EditorFieldCV extends React.PureComponent<ICustomCVFieldProps> {
     render() {
         const {
             showErrors,
@@ -18,7 +20,9 @@ export class EditorFieldCV extends React.PureComponent<IEditorFieldProps> {
             language,
             disabled,
             invalid,
+            storageField,
         } = this.props;
+
         const cv = superdeskApi.entities.vocabulary.getVocabulary(this.props.field);
 
         if (cv.selection_type === 'do not show') {
@@ -40,7 +44,7 @@ export class EditorFieldCV extends React.PureComponent<IEditorFieldProps> {
                     sortable={true}
                     kind="synchronous"
                     allowMultiple={cv.selection_type === 'multi selection'}
-                    value={(item.subject ?? []).filter((x) => x.scheme === cv._id)}
+                    value={get(item, storageField ?? 'subject', []).filter((x) => x.scheme === cv._id)}
                     label={cv.translations?.display_name?.[language] ?? cv.display_name}
                     required={this.props.schema.required}
 
@@ -68,12 +72,13 @@ export class EditorFieldCV extends React.PureComponent<IEditorFieldProps> {
                     error={showErrors ? errors[this.props.field] : undefined}
                     readOnly={disabled}
                     disabled={disabled}
-                    onChange={(vals) => {
-                        const restOfItems = (item.subject ?? []).filter((x) => x.scheme !== cv._id);
+                    onChange={(vocabularyItemsNext) => {
+                        const itemsFromOtherVocabularies = get(item, storageField ?? 'subject', [])
+                            .filter((x) => x.scheme !== cv._id);
 
                         onChange(
-                            'subject',
-                            [...restOfItems, ...vals],
+                            storageField ?? 'subject',
+                            [...itemsFromOtherVocabularies, ...vocabularyItemsNext],
                         );
                     }}
                     tabindex={0}

@@ -26,6 +26,8 @@ import {getCoverageFields} from '../../../api/editor/item_planning';
 import {coverageProfiles} from '../../../selectors/coverageProfiles';
 
 import '../style.scss';
+import {VOCABULARIES_TO_BE_EXCLUDED} from '../../../utils/contentProfiles';
+import {isCustomVocabulary} from '../../../helpers';
 
 interface IOwnProps {
     field: string;
@@ -379,7 +381,7 @@ export class CoverageFormComponent extends React.Component<IProps, IState> {
         }
     }
 
-    onAnpaCategoryChange(_field, nextValue: Array<IVocabularyItem['qcode']>) {
+    onAnpaCategoryChange(_field, nextValue?: Array<IVocabularyItem>) {
         const coveragesWithoutUpdates =
             this.props.coverages.filter((x) => x.coverage_id !== this.props.value.coverage_id);
 
@@ -389,7 +391,7 @@ export class CoverageFormComponent extends React.Component<IProps, IState> {
                 ...coveragesWithoutUpdates,
                 {
                     ...this.props.value,
-                    anpa_category: nextValue,
+                    anpa_category: (nextValue ?? []).map((x) => ({qcode: x.qcode, name: x.name})),
                 },
             ],
         );
@@ -419,7 +421,21 @@ export class CoverageFormComponent extends React.Component<IProps, IState> {
             editorType: this.props.editorType,
         };
 
+        const allVocabularies = superdeskApi.entities.vocabulary.getAll();
+        const customCVFields = allVocabularies.toArray().filter((x) =>
+            !VOCABULARIES_TO_BE_EXCLUDED.has(x._id)
+            && isCustomVocabulary(x),
+        )
+            .reduce((prev, curr) => ({
+                ...prev,
+                [curr._id]: {
+                    field: curr._id,
+                    storageField: 'planning.subject',
+                }
+            }), {});
+
         const fieldProps = {
+            ...customCVFields,
             contact_info: {
                 field: 'planning.contact_info',
                 assignmentField: 'assigned_to.contact',
@@ -427,7 +443,6 @@ export class CoverageFormComponent extends React.Component<IProps, IState> {
             },
             anpa_category: {
                 field: 'anpa_category',
-                valueAsString: true,
                 onChange: this.onAnpaCategoryChange,
             },
             add_coverage_to_workflow: {

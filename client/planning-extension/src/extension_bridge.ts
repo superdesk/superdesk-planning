@@ -16,6 +16,7 @@ import {IEditorFieldEventRecurringRulesProps} from '../../components/fields/edit
 import {IEventScheduleFieldProps} from '../../components/fields/editor/EventSchedule.interface';
 import {IEditorFieldTextProps} from '../../components/fields/editor/base/text.interface';
 import {IEditorFieldTextAreaProps} from '../../components/fields/editor/base/textArea.interface';
+import {ICustomCVFieldProps} from '../../components/fields/editor/CustomCV.interface';
 
 interface IEditorFieldVocabularyProps extends IEditorFieldProps {
     options: Array<any>;
@@ -57,7 +58,7 @@ interface IExtensionBridge {
             EditorFieldCoverages: React.ComponentType<IPropsEditorFieldCoverages>;
             EditorFieldEventRecurringRules: React.ComponentType<IEditorFieldEventRecurringRulesProps>;
             EditorFieldEventSchedule: React.ComponentType<IEventScheduleFieldProps>;
-            EditorFieldCV: React.ComponentType<IEditorFieldProps>;
+            EditorFieldCV: React.ComponentType<ICustomCVFieldProps>;
             EditorFieldText: React.ComponentType<IEditorFieldTextProps>;
             EditorFieldTextArea: React.ComponentType<IEditorFieldTextAreaProps>;
         },

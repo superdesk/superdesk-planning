@@ -31,6 +31,7 @@ import {
     IPlanningContentProfile,
     IPlanningCoverageItem,
     IPlanningItem,
+    IPlanningItem,
 } from './interfaces';
 import {registerEditorField} from './components/fields/resources/registerEditorFields';
 import {validateCoveragesV2} from './validators/planning';
@@ -44,6 +45,7 @@ import {EditorFieldText} from './components/fields/editor/base/text';
 import {EditorFieldTextArea} from './components/fields/editor/base/textArea';
 import {VOCABULARIES_TO_BE_EXCLUDED} from './utils/contentProfiles';
 import {isCustomVocabulary} from './helpers';
+import {ICustomCVFieldProps} from './components/fields/editor/CustomCV.interface';
 import {appConfig} from 'appConfig';
 import {IEditorFieldTextAreaProps} from 'components/fields/editor/base/textArea.interface';
 import {IEditorFieldTextProps} from 'components/fields/editor/base/text.interface';
@@ -78,7 +80,7 @@ interface IExtensionBridge {
             EditorFieldCoverages: React.ComponentType<IPropsEditorFieldCoverages>;
             EditorFieldEventRecurringRules: React.ComponentType<IEditorFieldEventRecurringRulesProps>;
             EditorFieldEventSchedule: React.ComponentType<IEventScheduleFieldProps>;
-            EditorFieldCV: React.ComponentType<IEditorFieldProps>;
+            EditorFieldCV: React.ComponentType<ICustomCVFieldProps>;
             EditorFieldText: React.ComponentType<IEditorFieldTextProps>;
             EditorFieldTextArea: React.ComponentType<IEditorFieldTextAreaProps>;
         },

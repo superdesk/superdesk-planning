@@ -34,6 +34,7 @@ class CoverageSchema(BaseSchema):
     scheduled_updates = schema.ListField()
     priority = schema.IntegerField()
     multiple_content = MultipleContentField(read_only=False, default_value=False)
+    location = schema.ListField()
 
 
 DEFAULT_COVERAGE_PROFILE = {

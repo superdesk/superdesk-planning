@@ -1,11 +1,8 @@
 import React from 'react';
 import {superdeskApi} from '../../../../superdeskApi';
-import {IAssignmentItem} from '../../../../interfaces';
+import {IAssignmentListItemField} from '../../../../components/Assignments/interfaces';
 
-interface IProps {
-    assignment: IAssignmentItem;
-}
-
+type IProps = IAssignmentListItemField;
 export const LanguageComponent = ({assignment}: IProps) => {
     const {gettext} = superdeskApi.localization;
     const language = assignment.planning?.language;
