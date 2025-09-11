@@ -106,7 +106,7 @@ export class FieldEditor extends React.Component<IProps, IState> {
                  */
                 enabled: !([nameof('related_plannings'), 'associated_event'].includes(this.props.item.name))
                     && !this.props.systemRequired
-                    && this.props.profile._id !== 'coverage'
+                    && this.props.profile.name !== 'coverage'
                     && allCoverageProfileIds.includes(this.props.profile._id) === false,
             },
             'schema.required': {enabled: !(this.props.disableRequired || this.props.systemRequired)},
