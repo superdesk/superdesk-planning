@@ -130,6 +130,16 @@ coverage_schema = {
             "priority": metadata_schema["priority"],
             "multiple_content": {"type": "boolean", "default": False},
             "anpa_category": metadata_schema["anpa_category"],
+            "fields": {
+                "type": "list",
+                "schema": {
+                    "type": "dict",
+                    "schema": {
+                        "field": {"type": "string"},
+                        "value": {"type": "string"},
+                    },
+                },
+            },
             "location": location_schema,
         },  # end planning dict schema
         "mapping": {
@@ -176,6 +186,13 @@ coverage_schema = {
                 "priority": {"type": "keyword"},
                 "anpa_category": metadata_schema["anpa_category"]["mapping"],
                 "location": location_schema["mapping"],
+                "fields": {
+                    "type": "nested",
+                    "properties": {
+                        "field": not_analyzed,
+                        "value": metadata_schema["body_html"]["mapping"],
+                    },
+                },
             },
         },
     },  # end planning
