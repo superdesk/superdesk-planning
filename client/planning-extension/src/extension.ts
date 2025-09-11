@@ -6,6 +6,8 @@ import {
     IExtensionActivationResult,
     onPublishMiddlewareResult,
     IAuthoringAction,
+    IVocabularyText,
+    IVocabulary,
 } from 'superdesk-api';
 import {IPlanningAssignmentService} from './interfaces';
 import {getAssignmentService} from './utils';
@@ -26,6 +28,7 @@ import {getContactField} from './authoring-react-fields/contact';
 import {getLocationField} from './authoring-react-fields/location';
 import {getRecurringRulesField} from './authoring-react-fields/recurring-rules/index';
 import {getEventDateField} from './authoring-react-fields/event-dates';
+import {partition} from 'lodash';
 
 function onSpike(superdesk: ISuperdesk, item: IArticle) {
     const {gettext} = superdesk.localization;
@@ -282,11 +285,16 @@ const extension: IExtension = {
             );
         }
 
+        const [customTextFields, restOfVocabularies] = partition(
+            allVocabularies.toArray(),
+            (vocabulary) => vocabulary.field_type === 'text',
+        ) as [Array<IVocabularyText>, Array<IVocabulary>];
+
         // Do not register coverage related CVs as fields, because it overrides current implementation for these fields.
         // Do not register CVs that aren't considered "custom CVs" also,
         // because if some are already registered as specific fields they will be overridden.
         // Definition of a custom CV: client/services/PlanningStoreService.ts:255
-        const vocabularies = allVocabularies.toArray().filter((x) =>
+        const vocabularies = restOfVocabularies.filter((x) =>
             !extensionBridge.ui.utils.VOCABULARIES_TO_BE_EXCLUDED.has(x._id)
             && extensionBridge.ui.utils.isCustomVocabulary(x),
         );
@@ -298,6 +306,24 @@ const extension: IExtension = {
                 () => ({
                     label: vocab.display_name,
                     field: vocab._id,
+                }),
+                undefined,
+                true
+            );
+        });
+
+        customTextFields.forEach((field) => {
+            const isSingleLine = field.field_options?.single ?? false;
+            const TextField = isSingleLine
+                ? extensionBridge.editor.fields.EditorFieldText
+                : extensionBridge.editor.fields.EditorFieldTextArea;
+
+            registerEditorField(
+                field._id,
+                TextField as any,
+                () => ({
+                    label: field.display_name,
+                    field: field._id,
                 }),
                 undefined,
                 true

@@ -1,7 +1,7 @@
 import * as React from 'react';
 import {cloneDeep, isEqual, set} from 'lodash';
 
-import {IIgnoreCancelSaveResponse} from 'superdesk-api';
+import {IIgnoreCancelSaveResponse, IVocabulary} from 'superdesk-api';
 import {
     IEditorProfile,
     IProfileFieldEntry,
@@ -38,6 +38,8 @@ interface IState {
 }
 
 export class FieldTab extends React.Component<IProps, IState> {
+    private customVocabularies: Array<IVocabulary>;
+
     constructor(props) {
         super(props);
 
@@ -52,6 +54,9 @@ export class FieldTab extends React.Component<IProps, IState> {
         this.updateFieldOrder = this.updateFieldOrder.bind(this);
         this.insertField = this.insertField.bind(this);
         this.removeField = this.removeField.bind(this);
+        this.getFieldName = this.getFieldName.bind(this);
+
+        this.customVocabularies = superdeskApi.entities.vocabulary.getAll().toArray();
     }
 
     openEditor(field: IProfileFieldEntry) {
@@ -221,8 +226,40 @@ export class FieldTab extends React.Component<IProps, IState> {
         });
     }
 
+
+    private getFieldName(fieldEntry: IProfileFieldEntry): JSX.Element {
+        const {gettext} = superdeskApi.localization;
+        const fieldType = fieldEntry.schema?.type;
+
+        if (fieldType === 'custom_vocabulary' || fieldType === 'custom_text') {
+            const fieldTypeLabel = fieldType === 'custom_text'
+                ? gettext('(custom text field)')
+                : gettext('(custom vocabulary)');
+
+            return (
+                <>
+                    {this.customVocabularies.find((x) => x._id === fieldEntry.name).display_name}
+                        &nbsp;
+                    <span className="sd-text--italic sd-text--light">
+                        {fieldTypeLabel}
+                    </span>
+                </>
+            );
+        }
+
+        return (
+            <>
+                {getFieldNameTranslated(fieldEntry.name)}
+            </>
+        );
+    }
+
     render() {
-        const unusedFields = getUnusedProfileFields(this.props.profile, this.props.groupFields);
+        const unusedFields = getUnusedProfileFields(
+            this.props.profile,
+            this.props.isProfileCoverage,
+            this.props.groupFields,
+        );
 
         return (
             <div className="sd-column-box--2">
@@ -240,6 +277,8 @@ export class FieldTab extends React.Component<IProps, IState> {
                                 removeField={this.removeField}
                                 onClick={this.openEditor}
                                 selectedField={this.state.selectedField?.name}
+                                getFieldName={this.getFieldName}
+                                customVocabularies={this.customVocabularies}
                             />
                         ) : (
                             getProfileGroupsSorted(this.props.profile).map((group) => (
@@ -257,6 +296,8 @@ export class FieldTab extends React.Component<IProps, IState> {
                                     removeField={this.removeField}
                                     onClick={this.openEditor}
                                     selectedField={this.state.selectedField?.name}
+                                    getFieldName={this.getFieldName}
+                                    customVocabularies={this.customVocabularies}
                                 />
                             ))
                         )}
@@ -283,6 +324,7 @@ export class FieldTab extends React.Component<IProps, IState> {
                         closeEditor={this.closeEditor}
                         saveField={this.saveField}
                         updateField={this.updateField}
+                        getFieldName={this.getFieldName}
                     />
                 )}
             </div>
