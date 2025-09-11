@@ -27,10 +27,8 @@ import {planningApi} from './superdeskApi';
 
 import {
     IAssignmentItem,
-    IEditorFieldProps,
     IPlanningContentProfile,
     IPlanningCoverageItem,
-    IPlanningItem,
     IPlanningItem,
 } from './interfaces';
 import {registerEditorField} from './components/fields/resources/registerEditorFields';
