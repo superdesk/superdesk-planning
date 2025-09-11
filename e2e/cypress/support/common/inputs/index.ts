@@ -3,6 +3,7 @@ export {SelectInput} from './selectInput';
 export {SelectMetaTerms} from './selectMetaTerms';
 export {ToggleInput} from './toggleInput';
 export {UrgencyInput} from './urgencyInput';
+export {UrgencyTreeSelectInput} from './urgencyTreeSelectInput';
 export {UserSelectInput} from './userSelectInput';
 export {RadioInputs} from './radioInputs';
 export {SpikeStateInput} from './spikeStateInput';

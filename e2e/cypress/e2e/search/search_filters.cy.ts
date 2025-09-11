@@ -159,7 +159,7 @@ describe('Search.Filters: creating search filters', () => {
             only_posted: false,
             lock_state: '',
             agendas: [],
-            urgency: 'None',
+            urgency: '',
             g2_content_type: '',
             ad_hoc_planning: false,
             featured: false,
