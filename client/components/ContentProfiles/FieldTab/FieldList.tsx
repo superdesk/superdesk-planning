@@ -3,13 +3,14 @@ import * as React from 'react';
 import {IEditorProfile, IEditorProfileGroup, IProfileFieldEntry} from '../../../interfaces';
 
 import {getProfileGroupNameTranslated} from '../../../utils/contentProfiles';
-import {planningApi, superdeskApi} from '../../../superdeskApi';
+import {superdeskApi} from '../../../superdeskApi';
 
 import {ToggleBox} from 'superdesk-ui-framework/react';
 import {arrayMove, WithSortable} from '@sourcefabric/common';
 import AddFieldsMenu from './AddFieldsMenu';
 import * as List from '../../UI/List';
 import ProfileFieldTemplate from './ListElementTemplate';
+import {IVocabulary} from 'superdesk-api';
 
 interface IProps {
     profile: IEditorProfile;
@@ -23,22 +24,24 @@ interface IProps {
     onClick(item: IProfileFieldEntry): void;
     insertField(item: IProfileFieldEntry, groupId: IEditorProfileGroup['_id'], index: number): void;
     removeField(item: IProfileFieldEntry): void;
+    customVocabularies: Array<IVocabulary>;
+    getFieldName(fieldEntry: IProfileFieldEntry): JSX.Element;
 }
 
 export class FieldList extends React.PureComponent<IProps> {
     renderList() {
         const {gettext} = superdeskApi.localization;
-        const customVocabularies = planningApi.vocabularies.getCustomVocabularies();
 
         return (this.props.fields ?? []).length < 1 ? (
             <div className="planning-profile__empty-list">
                 <AddFieldsMenu
-                    vocabularies={customVocabularies}
+                    vocabularies={this.props.customVocabularies}
                     options={this.props.unusedFields.map((item) => ({
                         value: item,
                         onSelect: () => this.props.insertField(item, this.props.group?._id, 0),
                     }))}
                     buttonLabel={gettext('Add first field')}
+                    getFieldName={this.props.getFieldName}
                 />
             </div>
         ) : (
@@ -48,7 +51,7 @@ export class FieldList extends React.PureComponent<IProps> {
                     getId={(item) => item.name}
                     itemTemplate={(item) => (
                         <ProfileFieldTemplate
-                            vocabularies={customVocabularies}
+                            vocabularies={this.props.customVocabularies}
                             group={this.props.group}
                             selectedField={this.props.selectedField}
                             systemRequiredFields={this.props.systemRequiredFields}
@@ -58,6 +61,7 @@ export class FieldList extends React.PureComponent<IProps> {
                             onClick={this.props.onClick}
                             removeField={this.props.removeField}
                             unusedFields={this.props.unusedFields}
+                            getFieldName={this.props.getFieldName}
                         />
                     )}
                     options={{

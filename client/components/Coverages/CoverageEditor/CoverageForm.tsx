@@ -26,6 +26,8 @@ import {getCoverageFields} from '../../../api/editor/item_planning';
 import {coverageProfiles} from '../../../selectors/coverageProfiles';
 
 import '../style.scss';
+import {VOCABULARIES_TO_BE_EXCLUDED} from '../../../utils/contentProfiles';
+import {isCustomVocabulary} from '../../../helpers';
 
 interface IOwnProps {
     field: string;
@@ -129,11 +131,35 @@ export class CoverageFormComponent extends React.Component<IProps, IState> {
 
     onChange(field: string, value: any) {
         const {onChange, index} = this.props;
+        const maybeCustomTextField = superdeskApi.entities.vocabulary.getVocabulary(field);
 
-        onChange(
-            `coverages.${index}.${field}`,
-            value
-        );
+        // Handle update of custom text field
+        if (maybeCustomTextField?.field_type === 'text') {
+            const coveragesWithoutUpdated =
+                this.props.coverages.filter((x) => x.coverage_id !== this.props.value.coverage_id);
+
+            onChange(
+                'coverages',
+                [
+                    ...coveragesWithoutUpdated,
+                    {
+                        ...this.props.value,
+                        fields: [
+                            ...((this.props.value.fields ?? []).filter((x) => x.field != field)),
+                            {
+                                field: field,
+                                value: value,
+                            },
+                        ],
+                    },
+                ],
+            );
+        } else {
+            onChange(
+                `coverages.${index}.${field}`,
+                value
+            );
+        }
     }
 
     onTimeToBeConfirmed() {
@@ -395,7 +421,21 @@ export class CoverageFormComponent extends React.Component<IProps, IState> {
             editorType: this.props.editorType,
         };
 
+        const allVocabularies = superdeskApi.entities.vocabulary.getAll();
+        const customCVFields = allVocabularies.toArray().filter((x) =>
+            !VOCABULARIES_TO_BE_EXCLUDED.has(x._id)
+            && isCustomVocabulary(x),
+        )
+            .reduce((prev, curr) => ({
+                ...prev,
+                [curr._id]: {
+                    field: curr._id,
+                    storageField: 'planning.subject',
+                }
+            }), {});
+
         const fieldProps = {
+            ...customCVFields,
             contact_info: {
                 field: 'planning.contact_info',
                 assignmentField: 'assigned_to.contact',

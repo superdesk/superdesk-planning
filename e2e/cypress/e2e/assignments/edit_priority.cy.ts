@@ -6,8 +6,6 @@ describe('Planning.Assignment: edit assignment priority', () => {
     const editor = new PlanningEditor();
     const subnav = new SubNavBar();
     const list = new PlanningList();
-    let modal = new Modal();
-    const priorityInput = new UrgencyInput(() => modal.element, '.sd-line-input');
 
     beforeEach(() => {
         setup({fixture_profile: 'planning_prepopulate_data'}, '/#/planning');
@@ -70,6 +68,9 @@ describe('Planning.Assignment: edit assignment priority', () => {
         getMenuItem(list.item(0), 'Edit Priority')
             .should('exist')
             .click();
+
+        const modal = new Modal();
+        const priorityInput = new UrgencyInput(() => modal.element, '.sd-line-input');
 
         modal.waitTillOpen(30000);
         priorityInput.type('High');

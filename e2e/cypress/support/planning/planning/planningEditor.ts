@@ -1,6 +1,6 @@
 import {Editor} from '../../common/editor';
 import {CoverageEditor} from './coverageEditor';
-import {Input, SelectMetaTerms, UrgencyInput, ToggleInput, Popup} from '../../common';
+import {Input, SelectMetaTerms, ToggleInput, Popup, UrgencyTreeSelectInput} from '../../common';
 
 /**
  * Wrapper class around Superdesk's Planning editor component
@@ -26,7 +26,7 @@ export class PlanningEditor extends Editor {
             ednote: new Input(getParent, '[data-test-id=field-ednote] textarea'),
             anpa_category: new SelectMetaTerms(getParent, '[data-test-id=field-anpa_category]'),
             subject: new SelectMetaTerms(getParent, '[data-test-id=field-subject]'),
-            urgency: new UrgencyInput(getParent, '[data-test-id=field-urgency]'),
+            urgency: new UrgencyTreeSelectInput(getParent, '[data-test-id=field-urgency]'),
             flags: {
                 marked_for_not_publication: new ToggleInput(
                     getParent,

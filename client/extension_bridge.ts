@@ -27,9 +27,9 @@ import {planningApi} from './superdeskApi';
 
 import {
     IAssignmentItem,
-    IEditorFieldProps,
     IPlanningContentProfile,
     IPlanningCoverageItem,
+    IPlanningItem,
 } from './interfaces';
 import {registerEditorField} from './components/fields/resources/registerEditorFields';
 import {validateCoveragesV2} from './validators/planning';
@@ -39,9 +39,14 @@ import {EditorFieldEventRecurringRules} from './components/fields/editor/EventRe
 import {IEventScheduleFieldProps} from './components/fields/editor/EventSchedule.interface';
 import {EditorFieldEventSchedule} from './components/fields/editor/EventSchedule';
 import {EditorFieldCV} from './components/fields/editor/CustomCV';
+import {EditorFieldText} from './components/fields/editor/base/text';
+import {EditorFieldTextArea} from './components/fields/editor/base/textArea';
 import {VOCABULARIES_TO_BE_EXCLUDED} from './utils/contentProfiles';
 import {isCustomVocabulary} from './helpers';
+import {ICustomCVFieldProps} from './components/fields/editor/CustomCV.interface';
 import {appConfig} from 'appConfig';
+import {IEditorFieldTextAreaProps} from 'components/fields/editor/base/textArea.interface';
+import {IEditorFieldTextProps} from 'components/fields/editor/base/text.interface';
 
 // KEEP IN SYNC WITH client/planning-extension/src/extension_bridge.ts
 interface IExtensionBridge {
@@ -73,7 +78,9 @@ interface IExtensionBridge {
             EditorFieldCoverages: React.ComponentType<IPropsEditorFieldCoverages>;
             EditorFieldEventRecurringRules: React.ComponentType<IEditorFieldEventRecurringRulesProps>;
             EditorFieldEventSchedule: React.ComponentType<IEventScheduleFieldProps>;
-            EditorFieldCV: React.ComponentType<IEditorFieldProps>;
+            EditorFieldCV: React.ComponentType<ICustomCVFieldProps>;
+            EditorFieldText: React.ComponentType<IEditorFieldTextProps>;
+            EditorFieldTextArea: React.ComponentType<IEditorFieldTextAreaProps>;
         },
     }
     ui: {
@@ -140,6 +147,8 @@ export const extensionBridge: IExtensionBridge = {
             EditorFieldEventRecurringRules: EditorFieldEventRecurringRules,
             EditorFieldEventSchedule: EditorFieldEventSchedule,
             EditorFieldCV: EditorFieldCV,
+            EditorFieldText: EditorFieldText,
+            EditorFieldTextArea: EditorFieldTextArea,
         },
     },
     ui: {

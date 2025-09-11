@@ -287,7 +287,13 @@ Feature: Planning
                     "planning": {
                         "ednote": "test coverage, I want 250 words",
                         "headline": "test headline",
-                        "slugline": "test slugline"
+                        "slugline": "test slugline",
+                        "fields": [
+                            {"value": "<p>test content</p>", "field": "custom"}
+                        ],
+                        "subject": [
+                            {"name": "test", "qcode": "test", "scheme": "test"}
+                        ]
                     }
                 }
             ]
@@ -310,7 +316,13 @@ Feature: Planning
                     "planning": {
                         "ednote": "test coverage, I want 250 words",
                         "headline": "test headline",
-                        "slugline": "test slugline"
+                        "slugline": "test slugline",
+                        "fields": [
+                            {"value": "<p>test content</p>", "field": "custom"}
+                        ],
+                        "subject": [
+                            {"name": "test", "qcode": "test", "scheme": "test"}
+                        ]
                     }
                 }
             ]
@@ -329,7 +341,13 @@ Feature: Planning
                     "planning": {
                         "ednote": "test coverage, I want 250 words",
                         "headline": "test headline",
-                        "slugline": "test slugline"
+                        "slugline": "test slugline",
+                        "fields": [
+                            {"value": "<p>test content</p>", "field": "custom"}
+                        ],
+                        "subject": [
+                            {"name": "test", "qcode": "test", "scheme": "test"}
+                        ]
                     },
                     "assigned_to": {
                         "desk": "Politic Desk",
@@ -355,7 +373,14 @@ Feature: Planning
                     "planning": {
                         "ednote": "test coverage, I want 250 words",
                         "headline": "test headline",
-                        "slugline": "test slugline"
+                        "slugline": "test slugline",
+                        "fields": [
+                            {"value": "<p>test content</p>", "field": "custom"}
+                        ],
+                        "subject": [
+                            {"name": "test", "qcode": "test", "scheme": "test"}
+                        ]
+         
                     },
                     "assigned_to": {
                         "desk": "Politic Desk",
@@ -368,6 +393,22 @@ Feature: Planning
         """
         When we get "assignments/#firstassignment#"
         Then we get OK response
+        """
+        {
+            "_id": "#firstassignment#",
+            "planning": {
+                "ednote": "test coverage, I want 250 words",
+                "headline": "test headline",
+                "slugline": "test slugline",
+                "fields": [
+                    {"value": "<p>test content</p>", "field": "custom"}
+                ],
+                "subject": [
+                    {"name": "test", "qcode": "test", "scheme": "test"}
+                ]
+            }
+        }
+        """
 
 
     @auth

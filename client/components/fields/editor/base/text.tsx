@@ -3,21 +3,11 @@ import {get, uniqueId} from 'lodash';
 import {IRestApiResponse} from 'superdesk-api';
 import {appConfig} from 'appConfig';
 
-import {IEditorFieldProps, IProfileSchemaTypeString} from '../../../../interfaces';
+import {IEditorFieldTextProps} from './text.interface';
 import {superdeskApi} from '../../../../superdeskApi';
 
 import {Input, Autocomplete} from 'superdesk-ui-framework/react';
 import {Row} from '../../../UI/Form';
-
-export interface IEditorFieldTextProps extends IEditorFieldProps {
-    type?: 'text' | 'password' | 'number';
-    maxLength?: number;
-    info?: string;
-    inlineLabel?: boolean;
-    schema?: IProfileSchemaTypeString;
-    noPadding: boolean;
-    language?: string;
-}
 
 interface IState {
     key: string;

@@ -98,7 +98,7 @@ export class Editor {
      * @param {object} values - The key/value pairs to enter into the editor
      */
     type(values) {
-        cy.log('Common.Editor.type');
+        cy.log('Common.Editor.type', values);
         cy.wrap(Object.keys(values)).each(
             (field) => {
                 this.getField(field)

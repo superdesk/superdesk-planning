@@ -9,7 +9,6 @@ import {
 } from '../../../interfaces';
 
 import {superdeskApi, planningApi} from '../../../superdeskApi';
-import {getFieldNameTranslated} from '../../../utils/contentProfiles';
 
 import {Button, ButtonGroup, Checkbox, Alert} from 'superdesk-ui-framework/react';
 import {renderFieldsForPanel} from '../../fields';
@@ -26,6 +25,7 @@ interface IProps {
     closeEditor(): void;
     saveField(): void;
     updateField(field: string, value: string | number | boolean | Array<string>): void;
+    getFieldName(fieldEntry: IProfileFieldEntry): JSX.Element;
 }
 
 interface IState {
@@ -81,7 +81,6 @@ export class FieldEditor extends React.Component<IProps, IState> {
     }
 
     render() {
-        const customVocabularies = planningApi.vocabularies.getCustomVocabularies();
         const {gettext} = superdeskApi.localization;
         const disableMinMax = this.props.disableMinMax || !['string', 'list'].includes(this.props.item.schema?.type);
         const fieldType = this.props.item.schema?.type !== 'string' ?
@@ -106,7 +105,7 @@ export class FieldEditor extends React.Component<IProps, IState> {
                  */
                 enabled: !([nameof('related_plannings'), 'associated_event'].includes(this.props.item.name))
                     && !this.props.systemRequired
-                    && this.props.profile._id !== 'coverage'
+                    && this.props.profile.name !== 'coverage'
                     && allCoverageProfileIds.includes(this.props.profile._id) === false,
             },
             'schema.required': {enabled: !(this.props.disableRequired || this.props.systemRequired)},
@@ -148,24 +147,10 @@ export class FieldEditor extends React.Component<IProps, IState> {
         return (
             <div style={{height: 'auto'}} className="side-panel side-panel--right" data-test-id="content-field--editor">
                 <div className="side-panel__header">
-                    <div className="side-panel__heading">
+                    <div className="side-panel__heading a11y-only">
                         {gettext('Details')}
                     </div>
                     <div className="side-panel__sliding-toolbar">
-                        <span className="sd-text__strong">
-                            {this.props.item.schema?.type === 'custom_vocabulary'
-                                ? (
-                                    <>
-                                        {customVocabularies.find((x) => x._id === this.props.item.name).display_name}
-                                        {' '}
-                                        <span className="sd-text--italic sd-text--light">
-                                            {gettext('(custom vocabulary)')}
-                                        </span>
-                                    </>
-                                )
-                                : getFieldNameTranslated(this.props.item.name)
-                            }
-                        </span>
                         <ButtonGroup align="end">
                             <Button
                                 text={gettext('Cancel')}
