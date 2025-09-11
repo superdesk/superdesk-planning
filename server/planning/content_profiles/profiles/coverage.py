@@ -80,7 +80,9 @@ DEFAULT_COVERAGE_PROFILE = {
             "enabled": False,
             "index": 10,
         },
-        "location": { # PR-TODO: is this a good approach? How do we make it available for existing profiles?
+
+        # PR-TODO: is this a good approach? How do we make it available for existing profiles?
+        "location": {
             "enabled": False,
             "index": 11,
         },
