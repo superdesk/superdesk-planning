@@ -82,10 +82,7 @@ DEFAULT_COVERAGE_PROFILE = {
         },
 
         # PR-TODO: is this a good approach? How do we make it available for existing profiles?
-        "location": {
-            "enabled": False,
-            "index": 11,
-        },
+        "location": {"enabled": False},
         "anpa_category": {"enabled": False},
         "subject": {"enabled": False},
         # Fields disabled by default
