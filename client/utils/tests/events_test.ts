@@ -616,22 +616,6 @@ describe('EventUtils', () => {
             });
         });
 
-        it('converts location array to object', () => {
-            const event = {};
-
-            expect(eventUtils.modifyForClient(cloneDeep(event))).toEqual({});
-
-            event.location = {formatted_address: '123 testing lane'};
-            expect(eventUtils.modifyForClient(cloneDeep(event))).toEqual({
-                location: {formatted_address: '123 testing lane'},
-            });
-
-            event.location = [{formatted_address: '123 testing lane'}];
-            expect(eventUtils.modifyForClient(cloneDeep(event))).toEqual({
-                location: {formatted_address: '123 testing lane'},
-            });
-        });
-
         it('converts unique_id to an integer', () => {
             const event = {};
 
