@@ -5,13 +5,35 @@ import {debounce} from 'lodash';
 
 import './style.scss';
 
+interface ITextAreaProps {
+    field?: string;
+    value?: string;
+    onChange?: (...args: any) => void;
+    autoHeight?: boolean;
+    autoHeightTimeout?: number;
+    nativeOnChange?: boolean;
+    placeholder?: string;
+    readOnly?: boolean;
+    paddingRight60?: boolean;
+    multiLine?: boolean;
+    className?: string;
+    initialFocus?: boolean;
+    actualFieldId?: string;
+    refNode?: (node: HTMLTextAreaElement | null) => void;
+    rows?: number;
+    [key: string]: any;
+}
+
 /**
  * @ngdoc react
  * @name TextArea
  * @description Auto-resizing component to multi-line text input
  */
-export class TextArea extends React.Component {
-    constructor(props) {
+export class TextArea extends React.Component<ITextAreaProps> {
+    dom: { input: HTMLTextAreaElement | null };
+    delayedResize: ((value?: string) => void) | null;
+
+    constructor(props: ITextAreaProps) {
         super(props);
         this.dom = {input: null};
         this.autoResize = this.autoResize.bind(this);
@@ -20,22 +42,22 @@ export class TextArea extends React.Component {
     }
 
     componentDidMount() {
-        this.delayedResize = debounce(this.autoResize, this.props.autoHeightTimeout);
-        if (this.props.autoHeight) {
+        this.delayedResize = debounce(this.autoResize, this.props.autoHeightTimeout || 50);
+        if (this.props.autoHeight ?? true) {
             this.delayedResize();
         }
         if (this.props.initialFocus) {
-            this.dom.input.focus();
+            this.dom.input?.focus();
         }
     }
 
-    componentWillReceiveProps(nextProps) {
-        if (this.props.autoHeight && nextProps.value !== this.props.value) {
-            this.delayedResize(nextProps.value);
+    componentWillReceiveProps(nextProps: ITextAreaProps) {
+        if ((this.props.autoHeight ?? true) && nextProps.value !== this.props.value) {
+            this.delayedResize?.(nextProps.value);
         }
     }
 
-    autoResize(value = null) {
+    autoResize(value: string | null = null) {
         if (this.dom.input) {
             if (value !== null) {
                 this.dom.input.value = value;
@@ -52,20 +74,21 @@ export class TextArea extends React.Component {
         }
     }
 
-    onChange(event) {
-        const {nativeOnChange, onChange, field, autoHeight, multiLine} = this.props;
+    onChange(event: React.ChangeEvent<HTMLTextAreaElement>) {
+        const {nativeOnChange, onChange, field, autoHeight = true, multiLine = true} = this.props;
 
-        if (nativeOnChange) {
+        if (nativeOnChange && typeof onChange === 'function') {
             onChange(event);
-        } else {
+        } else if (onChange && field) {
             onChange(
                 field,
-                multiLine ? event.target.value : event.target.value.replace('\n', '')
+                multiLine ? event.target.value : event.target.value.replace('\n', ''),
+                this.props.actualFieldId,
             );
         }
 
         if (autoHeight) {
-            this.delayedResize();
+            this.delayedResize?.();
         }
     }
 
@@ -73,7 +96,7 @@ export class TextArea extends React.Component {
         const {
             field,
             value,
-            autoHeight,
+            autoHeight = true,
             readOnly,
             placeholder,
             paddingRight60,
@@ -84,7 +107,11 @@ export class TextArea extends React.Component {
             // Remove these variables from the props variable
             // So they are not passed down to the textarea dom node
             // eslint-disable-next-line no-unused-vars
-            onChange, autoHeightTimeout, nativeOnChange, multiLine, initialFocus,
+            onChange,
+            autoHeightTimeout,
+            nativeOnChange,
+            multiLine = true,
+            initialFocus,
 
             ...props
         } = this.props;
@@ -117,31 +144,3 @@ export class TextArea extends React.Component {
         );
     }
 }
-
-TextArea.propTypes = {
-    field: PropTypes.string,
-    value: PropTypes.string,
-    onChange: PropTypes.func,
-    autoHeight: PropTypes.bool,
-    autoHeightTimeout: PropTypes.number,
-    nativeOnChange: PropTypes.bool,
-    placeholder: PropTypes.string,
-    readOnly: PropTypes.bool,
-    paddingRight60: PropTypes.bool,
-    multiLine: PropTypes.bool,
-    className: PropTypes.string,
-    initialFocus: PropTypes.bool,
-    refNode: PropTypes.func,
-    rows: PropTypes.number,
-};
-
-TextArea.defaultProps = {
-    readOnly: false,
-    autoHeight: true,
-    autoHeightTimeout: 50,
-    nativeOnChange: false,
-    paddingRight60: false,
-    multiLine: true,
-    initialFocus: false,
-    rows: 1,
-};

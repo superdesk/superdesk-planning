@@ -6,10 +6,11 @@ import * as selectors from '../selectors';
 import {gettext, getItemInArrayById} from '../utils';
 
 import {getVocabularyItemsForScheme, validateField, validators} from './index';
-import {ICoverageContentProfile, IPlanningCoverageItem} from 'interfaces';
-import {planningApi} from '../superdeskApi';
+import {ICoverageContentProfile, IPlanningCoverageItem, IPlanningItem} from 'interfaces';
+import {planningApi, superdeskApi} from '../superdeskApi';
 import {getCoverageFields} from '../api/editor/item_planning';
 import {vocabularies} from '../api/vocabularies';
+import {Dictionary} from 'superdesk-api';
 
 const validatePlanningScheduleDate = ({getState, field, value, errors, messages, diff, item}) => {
     // Only validate the schedule if it has changed
@@ -97,6 +98,7 @@ export const validateCoverages = ({
         const coverageProfile = getCoverageFields(coverage.planning.g2_content_type).profile;
 
         validateCoverageVocabularyFields(coverageProfile, errors, messages, diff.coverages[index]);
+        validateCoverageCustomTextFields(coverageProfile, errors, messages, diff.coverages[index]);
 
         const isValidSubject = coverageProfile.schema['subject']?.required
             ? !isEmpty((diff.coverages[index].subject ?? []).filter((x) => x.scheme == null))
@@ -172,6 +174,35 @@ export const validateCoverageVocabularyFields = (
         });
 };
 
+export const validateCoverageCustomTextFields = (
+    coverageProfile: ICoverageContentProfile,
+    errors: Dictionary<string, string>,
+    messages: Array<string>,
+    diff: IPlanningCoverageItem,
+): void => {
+    const allVocabularies = superdeskApi.entities.vocabulary.getAll().toArray();
+    const textFieldLabels = new Map(allVocabularies.map((x) => [x._id, x.display_name]));
+
+    Object.keys(coverageProfile.schema).filter((fieldId) => {
+        const hasNoDefinedValidator = !validators['coverage'][fieldId];
+        const isCustomTextField = coverageProfile.schema[fieldId].type === 'custom_text';
+
+        return hasNoDefinedValidator && isCustomTextField;
+    })
+        .forEach((fieldId) => {
+            const isInvalid = coverageProfile.schema[fieldId].required
+                ? ((diff.planning.fields ?? []).find((x) => x.field === fieldId)?.value ?? '').length < 1
+                : false;
+
+            if (isInvalid) {
+                errors[fieldId] = gettext('This field is required');
+                messages.push(gettext('{{ key }} is a required field', {key: textFieldLabels.get(fieldId)}));
+            } else {
+                errors[fieldId] = null;
+            }
+        });
+};
+
 const validateCoverageScheduleDate = ({
     getState,
     field,
@@ -202,7 +233,7 @@ const validateCoverageScheduleDate = ({
     const today = moment();
 
     if (!field.endsWith('_scheduledTime') &&
-            validateSchedule && moment.isMoment(value) && value.isBefore(today, 'day')) {
+        validateSchedule && moment.isMoment(value) && value.isBefore(today, 'day')) {
         set(errors, `${field}.date`, gettext('Date is in the past'));
 
         if (!canCreateInPast) {
@@ -252,7 +283,7 @@ const validateScheduledUpdatesDate = ({
                 'scheduled') : null;
 
             if ((coverageSchedule && schedule <= coverageSchedule) ||
-                    (previousSchedule && schedule <= previousSchedule)) {
+                (previousSchedule && schedule <= previousSchedule)) {
                 errors.scheduled_updates[planningSchedules.length - 1 - index] = {
                     planning: {
                         _scheduledTime: gettext('Should be after the previous scheduled update/coverage'),

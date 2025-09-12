@@ -29,6 +29,7 @@ import {coverageProfiles} from '../../../selectors/coverageProfiles';
 import '../style.scss';
 import {VOCABULARIES_TO_BE_EXCLUDED} from '../../../utils/contentProfiles';
 import {isCustomVocabulary} from '../../../helpers';
+import {notNullOrUndefined} from '@sourcefabric/common';
 
 interface IOwnProps {
     field: string;
@@ -109,6 +110,7 @@ export class CoverageFormComponent extends React.Component<IProps, IState> {
         this.onRemoveXmpFile = this.onRemoveXmpFile.bind(this);
         this.onContentTypeChange = this.onContentTypeChange.bind(this);
         this.toggleAddToWorkflow = this.toggleAddToWorkflow.bind(this);
+        this.onCustomTextFieldChange = this.onCustomTextFieldChange.bind(this);
         this.onAnpaCategoryChange = this.onAnpaCategoryChange.bind(this);
 
         this.dom = {
@@ -133,36 +135,27 @@ export class CoverageFormComponent extends React.Component<IProps, IState> {
 
     onChange(field: string, value: any) {
         const {onChange, index} = this.props;
-        const maybeCustomTextField = superdeskApi.entities.vocabulary.getVocabulary(field);
 
-        // Handle update of custom text field
-        if (maybeCustomTextField?.field_type === 'text') {
-            const coveragesWithoutUpdated =
-                this.props.coverages.filter((x) => x.coverage_id !== this.props.value.coverage_id);
+        onChange(
+            `coverages.${index}.${field}`,
+            value
+        );
+    }
 
+    onCustomTextFieldChange(fieldPath: string, value: string, fieldId: string) {
+        const {onChange, index} = this.props;
+
+        if (this.props.value.planning.fields == null) {
             onChange(
-                'coverages',
-                [
-                    ...coveragesWithoutUpdated,
-                    {
-                        ...this.props.value,
-                        planning: {
-                            ...this.props.value.planning,
-                            fields: [
-                                ...((this.props.value.planning.fields ?? []).filter((x) => x.field != field)),
-                                {
-                                    field: field,
-                                    value: value,
-                                },
-                            ],
-                        }
-                    },
-                ],
+                `coverages.${index}.planning.fields`,
+                [{field: fieldId, value: value}]
             );
         } else {
             onChange(
-                `coverages.${index}.${field}`,
-                value
+                // remove value from change path, because even though fields has items,
+                // we may not yet have this field in the array
+                `coverages.${index}.${fieldPath.replace('.value', '')}`,
+                {field: fieldId, value: value}
             );
         }
     }
@@ -431,12 +424,10 @@ export class CoverageFormComponent extends React.Component<IProps, IState> {
             allVocabularies,
             (vocabulary) => vocabulary?.field_type === 'text'
         );
-
-        const customCVFields = restOfVocabularies
-            .filter((x) =>
-                !VOCABULARIES_TO_BE_EXCLUDED.has(x._id)
-                && isCustomVocabulary(x),
-            )
+        const customCVFields = restOfVocabularies.filter((x) =>
+            !VOCABULARIES_TO_BE_EXCLUDED.has(x._id)
+            && isCustomVocabulary(x),
+        )
             .reduce((prev, curr) => ({
                 ...prev,
                 [curr._id]: {
@@ -445,9 +436,16 @@ export class CoverageFormComponent extends React.Component<IProps, IState> {
                 }
             }), {});
 
+        const coverageProfile =
+            coverageProfiles(planningApi.redux.store.getState()).find((x) => x._id === this.props.value.profile);
         const textFieldConfigs = customTextFields.reduce((prev, curr, i) => ({
             ...prev,
-            [curr._id]: {field: `planning.fields.[${i}].value`}
+            [curr._id]: {
+                field: `planning.fields.[${i}].value`,
+                required: coverageProfile.schema[curr._id].required,
+                actualFieldId: curr._id, // stores the actual field id from the pre-configured field, used for access
+                onChange: (_fieldPath, value, fieldId) => this.onCustomTextFieldChange(_fieldPath, value, fieldId),
+            },
         }), {});
 
         const fieldProps = {

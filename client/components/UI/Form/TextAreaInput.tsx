@@ -27,6 +27,7 @@ export const TextAreaInput = ({
     refNode,
     rows,
     labelIcon,
+    actualFieldId,
     ...props
 }) => {
     const textareaId = uniqueId('textarea-');
@@ -35,6 +36,7 @@ export const TextAreaInput = ({
         <LineInput {...props} readOnly={readOnly}>
             <Label htmlFor={textareaId} text={label} icon={labelIcon} />
             <TextArea
+                actualFieldId={actualFieldId}
                 field={field}
                 value={value}
                 onChange={onChange}
