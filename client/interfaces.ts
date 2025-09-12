@@ -625,6 +625,7 @@ export interface ICoveragePlanningDetails {
     multiple_content?: boolean;
     subject?: Array<{name: string; qcode: string; scheme: string}>;
     anpa_category?: Array<{name: string; qcode: string}>;
+    fields: Array<{field: string; value: string}>;
 }
 
 export interface ICoverageScheduledUpdate {
@@ -667,8 +668,6 @@ export interface IPlanningCoverageItem {
     flags: {
         no_content_linking: boolean;
     };
-
-    fields: Array<{field: string; value: string}>;
 
     scheduled_updates: Array<ICoverageScheduledUpdate>;
     _time_to_be_confirmed: boolean;
