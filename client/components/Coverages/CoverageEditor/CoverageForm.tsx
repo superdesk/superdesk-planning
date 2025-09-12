@@ -1,6 +1,6 @@
 import React from 'react';
 import {connect} from 'react-redux';
-import {get, forEach} from 'lodash';
+import {get, forEach, partition} from 'lodash';
 import moment from 'moment';
 import {appConfig} from 'appConfig';
 import {planningApi, superdeskApi} from '../../../superdeskApi';
@@ -16,6 +16,7 @@ import {
     IKeyword,
     IFile,
     ICoverageType,
+    IPlanningContentProfile,
 } from '../../../interfaces';
 import * as selectors from '../../../selectors';
 import {planningUtils, generateTempId, assignmentUtils} from '../../../utils';
@@ -47,6 +48,7 @@ interface IOwnProps {
     editorType: EDITOR_TYPE;
     language: IVocabularyItem['qcode'];
     coverages: Array<IPlanningCoverageItem>;
+    profile: IPlanningContentProfile;
 
     // Functions
     onChange(field: string, value: any): void;
@@ -144,13 +146,16 @@ export class CoverageFormComponent extends React.Component<IProps, IState> {
                     ...coveragesWithoutUpdated,
                     {
                         ...this.props.value,
-                        fields: [
-                            ...((this.props.value.fields ?? []).filter((x) => x.field != field)),
-                            {
-                                field: field,
-                                value: value,
-                            },
-                        ],
+                        planning: {
+                            ...this.props.value.planning,
+                            fields: [
+                                ...((this.props.value.planning.fields ?? []).filter((x) => x.field != field)),
+                                {
+                                    field: field,
+                                    value: value,
+                                },
+                            ],
+                        }
                     },
                 ],
             );
@@ -421,11 +426,17 @@ export class CoverageFormComponent extends React.Component<IProps, IState> {
             editorType: this.props.editorType,
         };
 
-        const allVocabularies = superdeskApi.entities.vocabulary.getAll();
-        const customCVFields = allVocabularies.toArray().filter((x) =>
-            !VOCABULARIES_TO_BE_EXCLUDED.has(x._id)
-            && isCustomVocabulary(x),
-        )
+        const allVocabularies = superdeskApi.entities.vocabulary.getAll().toArray();
+        const [customTextFields, restOfVocabularies] = partition(
+            allVocabularies,
+            (vocabulary) => vocabulary?.field_type === 'text'
+        );
+
+        const customCVFields = restOfVocabularies
+            .filter((x) =>
+                !VOCABULARIES_TO_BE_EXCLUDED.has(x._id)
+                && isCustomVocabulary(x),
+            )
             .reduce((prev, curr) => ({
                 ...prev,
                 [curr._id]: {
@@ -434,8 +445,14 @@ export class CoverageFormComponent extends React.Component<IProps, IState> {
                 }
             }), {});
 
+        const textFieldConfigs = customTextFields.reduce((prev, curr, i) => ({
+            ...prev,
+            [curr._id]: {field: `planning.fields.[${i}].value`}
+        }), {});
+
         const fieldProps = {
             ...customCVFields,
+            ...textFieldConfigs,
             contact_info: {
                 field: 'planning.contact_info',
                 assignmentField: 'assigned_to.contact',
