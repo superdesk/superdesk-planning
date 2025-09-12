@@ -5,13 +5,11 @@ import {Row} from '../../UI/Form';
 import {IEditorFieldLocationProps} from './Location.interface';
 import {get} from 'lodash';
 import {Input} from 'superdesk-ui-framework/react';
-import {ILocation} from 'interfaces';
 
 /**
  * The component was originally designed to use `ILocation` as value.
- * Later it was changed to `Array<ILocation>`.
- * Storage method was changed, but user interface remains the same - only one location can be added.
- * In addition the main child component `GeoLookupInput` and its children still operate on `ILocation` object.
+ * It was needed later to store it as `Array<ILocation>` - `storeAsArray` prop was added.
+ * Even though it was implemented to make it possible to store value as an array, it only supports a single value.
  */
 export class EditorFieldLocation extends React.PureComponent<IEditorFieldLocationProps> {
     render() {
@@ -19,15 +17,21 @@ export class EditorFieldLocation extends React.PureComponent<IEditorFieldLocatio
         const field = this.props.field ?? 'location';
         const props = this.props;
 
-
         const originalValue = get(props.item, field);
-        const valueSingle =
-            originalValue != null && Array.isArray(originalValue) !== true
-                ? originalValue // fallback in case non-array `ILocation` is received
-                : originalValue?.[0];
+        const valueSingle = props.storeAsArray === true ? originalValue?.[0] : originalValue;
 
-        const onChange = (field, value: ILocation) => {
-            const valueNext: Array<ILocation> = value == null ? [] : [value];
+        const onChange = (field, value) => {
+            const valueNext = (() => {
+                if (props.storeAsArray === true) {
+                    if (value == null) {
+                        return [];
+                    } else {
+                        return [value];
+                    }
+                } else {
+                    return value;
+                }
+            })();
 
             props.onChange(
                 field,
