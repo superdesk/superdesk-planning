@@ -1176,10 +1176,6 @@ function modifyForClient(event: Partial<IEventItem>): Partial<IEventItem> {
         );
     }
 
-    if (get(event, 'location[0]')) {
-        event.location = event.location[0];
-    }
-
     if (get(event, 'unique_id') && typeof event.unique_id === 'string') {
         event.unique_id = parseInt(event.unique_id, 10);
     }
@@ -1194,16 +1190,6 @@ function modifyForClient(event: Partial<IEventItem>): Partial<IEventItem> {
 function modifyEventsForClient(events: Array<IEventItem>): Array<IEventItem> {
     events.forEach(modifyForClient);
     return events;
-}
-
-function modifyLocationForServer(event: IEventItem) {
-    if (!('location' in event) || Array.isArray(event.location)) {
-        return;
-    }
-
-    event.location = event.location ?
-        [event.location] :
-        null;
 }
 
 function removeFieldsStartingWith(updates: {[key: string]: Array<any> | any}, prefix: string) {
@@ -1225,8 +1211,6 @@ function removeFieldsStartingWith(updates: {[key: string]: Array<any> | any}, pr
 }
 
 function modifyForServer(event: IEventItem, removeNullLinks: boolean = false) {
-    modifyLocationForServer(event);
-
     // remove links if it contains only null values
     if (removeNullLinks && get(event, 'links.length', 0) > 0) {
         event.links = event.links.filter(
