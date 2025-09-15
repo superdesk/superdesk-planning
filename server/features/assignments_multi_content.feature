@@ -533,3 +533,35 @@ Feature: Assignment with multiple linked content
         """
         {"lock_action": "__none__"}
         """
+
+    @auth
+    Scenario: Sending to desk keeps assignment in progress
+        When we post to "/assignments/content"
+        """
+        [{"assignment_id": "#ASSIGNMENT_ID#"}]
+        """
+        Then we get OK response
+        Then we store "CONTENT_1_ID" with value "#content._id#" to context
+
+        When we get "/assignments/#ASSIGNMENT_ID#"
+        Then we get existing resource
+        """
+        {"assigned_to": {"state": "in_progress"}}
+        """
+
+        When we post to "desks"
+        """
+        {"name": "Finance"}
+        """
+        Then we get ok response
+
+        When we post to "/archive/#CONTENT_1_ID#/move"
+        """
+        [{"task": {"desk": "#desks._id#", "stage": "#desks.incoming_stage#"}}]
+        """
+
+        When we get "/assignments/#ASSIGNMENT_ID#"
+        Then we get existing resource
+        """
+        {"assigned_to": {"state": "in_progress"}}
+        """

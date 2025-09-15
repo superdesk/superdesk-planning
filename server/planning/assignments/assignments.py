@@ -985,9 +985,11 @@ class AssignmentsService(AsyncBaseService):
                 )
                 updated_assignment.get("assigned_to")["desk"] = assignment_update_data.get("item_desk_id")
                 updated_assignment.get("assigned_to")["assignor_user"] = assignment_update_data.get("item_user_id")
-                updated_assignment.get("assigned_to")["state"] = get_next_assignment_status(
-                    updated_assignment, ASSIGNMENT_WORKFLOW_STATE.SUBMITTED
-                )
+
+                if not assignment_allows_multiple_content_linked(assignment):
+                    updated_assignment.get("assigned_to")["state"] = get_next_assignment_status(
+                        updated_assignment, ASSIGNMENT_WORKFLOW_STATE.SUBMITTED
+                    )
 
                 await self._update_assignment_and_notify(updated_assignment, assignment)
                 await AssignmentsHistoryAsyncService().on_item_updated(
