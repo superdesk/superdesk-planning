@@ -22,7 +22,9 @@ export class AssignmentMultiTextItem extends React.Component<IAssignmentItemProp
     }
 
     render() {
-        if ((this.props.assignment.linked_items?.length ?? 0) <= 1) {
+        const isMultiContent = this.props.assignment.planning.multiple_content === true;
+
+        if ((this.props.assignment.linked_items?.length ?? 0) <= 1 && isMultiContent === false) {
             return (<AssignmentItem {...this.props} />);
         }
 
