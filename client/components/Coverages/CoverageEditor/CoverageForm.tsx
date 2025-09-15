@@ -396,7 +396,10 @@ export class CoverageFormComponent extends React.Component<IProps, IState> {
                 ...coveragesWithoutUpdates,
                 {
                     ...this.props.value,
-                    anpa_category: (nextValue ?? []).map((x) => ({qcode: x.qcode, name: x.name})),
+                    planning: {
+                        ...this.props.value.planning,
+                        anpa_category: (nextValue ?? []).map((x) => ({qcode: x.qcode, name: x.name})),
+                    },
                 },
             ],
         );
@@ -459,7 +462,7 @@ export class CoverageFormComponent extends React.Component<IProps, IState> {
                 label: assignmentUtils.getContactLabel(this.props.value),
             },
             anpa_category: {
-                field: 'anpa_category',
+                field: 'planning.anpa_category',
                 onChange: this.onAnpaCategoryChange,
             },
             add_coverage_to_workflow: {
