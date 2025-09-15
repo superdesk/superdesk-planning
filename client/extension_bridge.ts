@@ -43,7 +43,7 @@ import {VOCABULARIES_TO_BE_EXCLUDED} from './utils/contentProfiles';
 import {isCustomVocabulary} from './helpers';
 import {ICustomCVFieldProps} from './components/fields/editor/CustomCV.interface';
 import {ICustomTextFieldProps} from 'components/fields/editor/CustomText.interface';
-import {EditorFieldCustomText} from 'components/fields/editor/CustomText';
+import {EditorFieldCustomText} from './components/fields/editor/CustomText';
 import {appConfig} from 'appConfig';
 
 // KEEP IN SYNC WITH client/planning-extension/src/extension_bridge.ts
