@@ -656,7 +656,6 @@ export interface IPlanningCoverageItem {
     firstcreated: string;
     versioncreated: string;
     add_coverage_to_workflow: boolean;
-    anpa_category: Array<Omit<IANPACategory, 'subject'>>;
     profile?: string; // coverage profile id
     subject?: Array<IVocabularyItem>;
     planning: ICoveragePlanningDetails;
