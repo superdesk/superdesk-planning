@@ -1,4 +1,4 @@
-import {IEditorFieldProps} from 'interfaces';
+import {IEditorFieldProps} from '../../../interfaces';
 
 export interface ICustomTextFieldProps extends IEditorFieldProps {
     storageField: string;
