@@ -16,32 +16,27 @@ export class LineItems extends React.PureComponent<IProps> {
         const [firstLineStart, firstLineEnd] = partitionLineItems(firstLine);
         const [secondLineStart, secondLineEnd] = partitionLineItems(secondLine);
 
-        const firstLineStyles: React.CSSProperties = {overflow: 'hidden', paddingBlockStart: 'var(--space--1)'};
-        const secondLineStyles: React.CSSProperties = {overflow: 'hidden', paddingBlockEnd: 'var(--space--1)'};
+        const firstLineStyles: React.CSSProperties = {
+            paddingBlockStart: 'var(--space--1)',
+            flexGrow: 1,
+        };
+        const secondLineStyles: React.CSSProperties = {
+            paddingBlockEnd: 'var(--space--1)',
+            flexGrow: 1,
+        };
 
         return (
-            <Spacer v gap="4">
-                {/** overflow: hidden needed for support ellipsis for children */}
-                <Spacer h gap="8" justifyContent="space-between" noWrap noGrow style={firstLineStyles}>
-                    <Spacer h gap="8" justifyContent="start" noWrap noGrow style={{overflow: 'hidden'}}>
-                        {renderFieldsWithProps(firstLineStart)}
-                    </Spacer>
-
-                    {/** overflow: hidden not needed - ellipsis not supported on end */}
-                    <Spacer h gap="8" justifyContent="start" noWrap noGrow>
-                        {renderFieldsWithProps(firstLineEnd)}
-                    </Spacer>
+            <Spacer v gap="4" noWrap alignItems="stretch">
+                <Spacer h gap="8" justifyContent="start" noWrap noGrow style={firstLineStyles}>
+                    {renderFieldsWithProps(firstLineStart)}
+                    <div className="ms-auto" />
+                    {renderFieldsWithProps(firstLineEnd)}
                 </Spacer>
 
-                {/** overflow: hidden needed for support ellipsis for children */}
-                <Spacer h gap="8" justifyContent="space-between" noWrap noGrow style={secondLineStyles}>
-                    <Spacer h gap="8" justifyContent="start" noWrap noGrow style={{overflow: 'hidden'}}>
-                        {renderFieldsWithProps(secondLineStart)}
-                    </Spacer>
-
-                    <Spacer h gap="8" justifyContent="start" noWrap noGrow>
-                        {renderFieldsWithProps(secondLineEnd)}
-                    </Spacer>
+                <Spacer h gap="8" justifyContent="start" noWrap noGrow style={secondLineStyles}>
+                    {renderFieldsWithProps(secondLineStart)}
+                    <div className="ms-auto" />
+                    {renderFieldsWithProps(secondLineEnd)}
                 </Spacer>
             </Spacer>
         );
