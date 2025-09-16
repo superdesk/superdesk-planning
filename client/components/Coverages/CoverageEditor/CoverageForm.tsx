@@ -133,38 +133,11 @@ export class CoverageFormComponent extends React.Component<IProps, IState> {
 
     onChange(field: string, value: any) {
         const {onChange, index} = this.props;
-        const maybeCustomTextField = superdeskApi.entities.vocabulary.getVocabulary(field);
 
-        // Handle update of custom text field
-        if (maybeCustomTextField?.field_type === 'text') {
-            const coveragesWithoutUpdated =
-                this.props.coverages.filter((x) => x.coverage_id !== this.props.value.coverage_id);
-
-            onChange(
-                'coverages',
-                [
-                    ...coveragesWithoutUpdated,
-                    {
-                        ...this.props.value,
-                        planning: {
-                            ...this.props.value.planning,
-                            fields: [
-                                ...((this.props.value.planning.fields ?? []).filter((x) => x.field != field)),
-                                {
-                                    field: field,
-                                    value: value,
-                                },
-                            ],
-                        }
-                    },
-                ],
-            );
-        } else {
-            onChange(
-                `coverages.${index}.${field}`,
-                value
-            );
-        }
+        onChange(
+            `coverages.${index}.${field}`,
+            value
+        );
     }
 
     onTimeToBeConfirmed() {
@@ -430,7 +403,7 @@ export class CoverageFormComponent extends React.Component<IProps, IState> {
         };
 
         const allVocabularies = superdeskApi.entities.vocabulary.getAll().toArray();
-        const [customTextFields, restOfVocabularies] = partition(
+        const [_, restOfVocabularies] = partition(
             allVocabularies,
             (vocabulary) => vocabulary?.field_type === 'text'
         );
@@ -448,10 +421,16 @@ export class CoverageFormComponent extends React.Component<IProps, IState> {
                 }
             }), {});
 
-        const textFieldConfigs = customTextFields.reduce((prev, curr, i) => ({
-            ...prev,
-            [curr._id]: {field: `planning.fields.[${i}].value`}
-        }), {});
+        const textFieldConfigs = Object.keys(profile.schema)
+            .filter((field) => profile.schema[field]?.type === 'custom_text')
+            .reduce((prev, field) => ({
+                ...prev,
+                [field]: {
+                    field: field,
+                    storageField: 'planning.fields',
+                    valueStoredAsArray: true,
+                },
+            }), {});
 
         const fieldProps = {
             ...customCVFields,

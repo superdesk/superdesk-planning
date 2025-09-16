@@ -313,14 +313,9 @@ const extension: IExtension = {
         });
 
         customTextFields.forEach((field) => {
-            const isSingleLine = field.field_options?.single ?? false;
-            const TextField = isSingleLine
-                ? extensionBridge.editor.fields.EditorFieldText
-                : extensionBridge.editor.fields.EditorFieldTextArea;
-
             registerEditorField(
                 field._id,
-                TextField as any,
+                extensionBridge.editor.fields.EditorFieldCustomText as any,
                 () => ({
                     label: field.display_name,
                     field: field._id,
