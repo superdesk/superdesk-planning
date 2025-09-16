@@ -101,14 +101,22 @@ export class EmbeddedCoverageFormComponent extends React.PureComponent<IProps, I
             ? null
             : this.props.desks.find((desk) => desk._id === deskId);
 
+        const coverageLanguage = this.props.coverage.language;
+        const deskLanguage = newDesk?.desk_language;
+
         const updates: Partial<ICoverageDetails> = {
             desk: newDesk,
             filteredUsers: getUsersForDesk(newDesk, this.props.users),
             user: null,
         };
 
-        if ((this.props.coverage.language ?? '').length < 1) {
-            updates.language = newDesk?.desk_language ?? null;
+        const hasDeskLanguage = deskLanguage != null;
+        const noCoverageLanguageSet = coverageLanguage == null;
+        const matchesPreviousDeskLanguage =
+            coverageLanguage === this.props.coverage.desk?.desk_language;
+
+        if (hasDeskLanguage && (noCoverageLanguageSet || matchesPreviousDeskLanguage)) {
+            updates.language = deskLanguage;
         }
 
         this.props.update(updates);
