@@ -103,7 +103,8 @@ export class EmbeddedCoverageFormComponent extends React.PureComponent<IProps, I
         const newDesk = deskId == null || deskId == ''
             ? null
             : this.props.desks.find((desk) => desk._id === deskId);
-        const currentLanguage = this.props.coverage.language;
+
+        const coverageLanguage = this.props.coverage.language;
         const deskLanguage = newDesk?.desk_language;
 
         const updates: Partial<ICoverageDetails> = {
@@ -112,9 +113,12 @@ export class EmbeddedCoverageFormComponent extends React.PureComponent<IProps, I
             user: null,
         };
 
-        if (deskLanguage != null &&
-            (currentLanguage == null ||
-            currentLanguage === this.props.coverage.desk?.desk_language)) {
+        const hasDeskLanguage = deskLanguage != null;
+        const noCoverageLanguageSet = coverageLanguage == null;
+        const matchesPreviousDeskLanguage =
+            coverageLanguage === this.props.coverage.desk?.desk_language;
+
+        if (hasDeskLanguage && (noCoverageLanguageSet || matchesPreviousDeskLanguage)) {
             updates.language = deskLanguage;
         }
 
