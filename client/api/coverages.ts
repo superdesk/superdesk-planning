@@ -12,6 +12,10 @@ function cancelCoverageOrScheduledUpdate<T extends IPlanningCoverageItem | ICove
     nextItem.planning.workflow_status_reason = cancellationReason;
     nextItem.workflow_status = WORKFLOW_STATE.CANCELLED;
 
+    if ('add_coverage_to_workflow' in nextItem) {
+        nextItem.add_coverage_to_workflow = false;
+    }
+
     if (nextItem.assigned_to?.state != null) {
         nextItem.assigned_to.state = WORKFLOW_STATE.CANCELLED;
     }

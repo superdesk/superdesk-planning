@@ -4,7 +4,7 @@ import {get, forEach, partition} from 'lodash';
 import moment from 'moment';
 import {appConfig} from 'appConfig';
 import {planningApi, superdeskApi} from '../../../superdeskApi';
-import {IArticle, IDesk, IVocabularyItem} from 'superdesk-api';
+import {Dictionary, IArticle, IDesk, IVocabularyItem} from 'superdesk-api';
 import {
     EDITOR_TYPE,
     ICoverageScheduledUpdate,
@@ -19,7 +19,7 @@ import {
     IPlanningContentProfile,
 } from '../../../interfaces';
 import * as selectors from '../../../selectors';
-import {planningUtils, generateTempId, assignmentUtils} from '../../../utils';
+import {planningUtils, generateTempId, assignmentUtils, isItemExpired} from '../../../utils';
 import {WORKFLOW_STATE} from '../../../constants';
 import {EditorFieldSelect} from '../../fields/editor/base/select';
 import {renderFieldsForPanel} from '../../fields';
@@ -29,6 +29,7 @@ import {coverageProfiles} from '../../../selectors/coverageProfiles';
 import '../style.scss';
 import {VOCABULARIES_TO_BE_EXCLUDED} from '../../../utils/contentProfiles';
 import {isCustomVocabulary} from '../../../helpers';
+import {isCoverageAssigned, isCoverageDraft} from '../../../utils/planning';
 
 interface IOwnProps {
     field: string;
@@ -312,7 +313,6 @@ export class CoverageFormComponent extends React.Component<IProps, IState> {
 
     toggleAddToWorkflow() {
         const {vocabulary} = superdeskApi.entities;
-        const {gettext} = superdeskApi.localization;
         const coverageStatuses = vocabulary
             .getAll()
             .get('newscoveragestatus').items as Array<IPlanningNewsCoverageStatus>;
@@ -339,22 +339,9 @@ export class CoverageFormComponent extends React.Component<IProps, IState> {
                 ],
             );
         } else {
-            superdeskApi.ui.confirm(gettext('This will also remove coverage\'s assignment'))
-                .then((response) => {
-                    if (response) {
-                        this.props.onChange(
-                            'coverages',
-                            [
-                                ...coveragesWithoutUpdated,
-                                {
-                                    ...this.props.value,
-                                    workflow_status: 'draft',
-                                    assigned_to: {},
-                                    add_coverage_to_workflow: add_coverage_to_workflow,
-                                },
-                            ],
-                        );
-                    }
+            planningApi.coverages.cancelCoverage(this.props.coverages, this.props.value)
+                .then((nextCoverages) => {
+                    this.props.onChange('coverages', nextCoverages);
                 });
         }
     }
@@ -432,7 +419,7 @@ export class CoverageFormComponent extends React.Component<IProps, IState> {
                 },
             }), {});
 
-        const fieldProps = {
+        const fieldProps: Dictionary<keyof IPlanningCoverageItem, any> = {
             ...customCVFields,
             ...textFieldConfigs,
             contact_info: {
@@ -443,15 +430,6 @@ export class CoverageFormComponent extends React.Component<IProps, IState> {
             anpa_category: {
                 field: 'planning.anpa_category',
                 onChange: this.onAnpaCategoryChange,
-            },
-            add_coverage_to_workflow: {
-                onChange: this.toggleAddToWorkflow,
-                planningItem: this.props.item,
-                disabled: !planningUtils.canAddCoverageToWorkflow(
-                    this.props.value,
-                    this.props.diff,
-                    {ignoreAutoAssignConfig: true},
-                ),
             },
             g2_content_type: {
                 readOnly: this.props.readOnly || readOnlyFields.g2_content_type,
@@ -552,6 +530,29 @@ export class CoverageFormComponent extends React.Component<IProps, IState> {
             },
             priority: {field: 'planning.priority'},
         };
+
+        if (appConfig.planning_auto_assign_to_workflow != true) {
+            const shouldDisableToggle = () => {
+                if (this.props.value.add_coverage_to_workflow != true) {
+                    return !(isCoverageDraft(this.props.value)
+                        && isCoverageAssigned(this.props.value)
+                        && !isItemExpired(this.props.diff));
+                } else {
+                    return !planningUtils.canCancelCoverage(this.props.value, this.props.item);
+                }
+            };
+
+            fieldProps.add_coverage_to_workflow = {
+                onChange: this.toggleAddToWorkflow,
+                planningItem: this.props.item,
+
+                /**
+                 * A coverage can be added to workflow if it is in draft state,
+                 * is assigned and the associated planning item is not expired.
+                 */
+                disabled: shouldDisableToggle(),
+            };
+        }
 
         /**
          * `editor.dom.fields` aren't being passed anymore because we no longer have access to it

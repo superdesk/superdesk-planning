@@ -269,7 +269,9 @@ export class FieldTab extends React.Component<IProps, IState> {
                             <FieldList
                                 profile={this.props.profile}
                                 group={undefined}
-                                fields={getGroupFieldsSorted(this.props.profile)}
+                                fields={getGroupFieldsSorted(this.props.profile)
+                                    .filter((field) => field.name !== 'add_coverage_to_workflow')
+                                }
                                 unusedFields={unusedFields}
                                 systemRequiredFields={this.props.systemRequiredFields}
                                 onSortChange={this.updateFieldOrder}
@@ -289,7 +291,9 @@ export class FieldTab extends React.Component<IProps, IState> {
                                     key={group._id}
                                     profile={this.props.profile}
                                     group={group}
-                                    fields={getGroupFieldsSorted(this.props.profile, group._id)}
+                                    fields={getGroupFieldsSorted(this.props.profile, group._id)
+                                        .filter((field) => field.name !== 'add_coverage_to_workflow')
+                                    }
                                     unusedFields={unusedFields}
                                     onSortChange={this.updateFieldOrder}
                                     insertField={this.insertField}
