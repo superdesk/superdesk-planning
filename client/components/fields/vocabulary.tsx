@@ -4,13 +4,9 @@ import {Spacer} from '@sourcefabric/common';
 import {IFieldsProps} from '../../interfaces';
 import {superdeskApi} from '../../superdeskApi';
 import {WithMoreItems} from './with-more-items';
+import {ILineConfigVocabulary} from 'globals';
 
-interface IProps extends IFieldsProps {
-    fieldOptions: {
-        vocabularyId: string;
-        hideVocabularyName?: boolean;
-    };
-}
+type IProps = Omit<IFieldsProps, 'fieldOptions'> & ILineConfigVocabulary;
 
 export const vocabulary: React.ComponentType<IProps> = (props) => {
     const {getVocabularyItemNameTranslated} = superdeskApi.entities.vocabulary;
