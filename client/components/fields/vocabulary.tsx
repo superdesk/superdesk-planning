@@ -26,7 +26,7 @@ export const vocabulary: React.ComponentType<IProps> = (props) => {
     }
 
     return (
-        <Spacer h gap="4" noWrap style={{whiteSpace: 'nowrap'}}>
+        <Spacer h gap="4" noWrap noGrow style={{whiteSpace: 'nowrap'}}>
             {showVocabularyName && <div className="sd-list-item__text-label">{vocabulary.display_name}</div>}
 
             <WithMoreItems
@@ -36,7 +36,7 @@ export const vocabulary: React.ComponentType<IProps> = (props) => {
                         {
                             items.map((item, i) => (
                                 <div key={i}>
-                                    <Tag text={getVocabularyItemNameTranslated(item)} />
+                                    <Tag size="small" text={getVocabularyItemNameTranslated(item)} />
                                 </div>
                             ))
                         }

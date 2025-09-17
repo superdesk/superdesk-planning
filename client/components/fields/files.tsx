@@ -9,7 +9,7 @@ export const files = ({item}) => {
         return null;
     }
 
-    return (<i className="sd-list-item__element-lm-10 icon-attachment" />);
+    return (<i className="icon-attachment" />);
 };
 
 files.propTypes = {
