@@ -166,6 +166,13 @@ export interface ILineConfigAnpaCategory extends ILineConfigStandard {
     };
 }
 
+export interface ILineConfigPriority extends ILineConfigStandard {
+    fieldId: 'priority';
+    fieldOptions: {
+        hideLabel?: boolean;
+    };
+}
+
 export interface ILineConfigVocabulary extends ILineConfigStandard {
     fieldId: 'vocabulary';
     fieldOptions: {
@@ -174,7 +181,7 @@ export interface ILineConfigVocabulary extends ILineConfigStandard {
     };
 }
 
-export type ILineConfig = ILineConfigStandard | ILineConfigVocabulary;
+export type ILineConfig = ILineConfigStandard | ILineConfigAnpaCategory | ILineConfigPriority | ILineConfigVocabulary;
 
 // KEEP IN SYNC WITH client/planning-extension/src/globals.d.ts
 declare module 'superdesk-api' {
