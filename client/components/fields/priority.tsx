@@ -4,8 +4,11 @@ import {superdeskApi} from '../../superdeskApi';
 import {IFieldsProps} from '../../interfaces';
 import {DEFAULT_PRIORITY_COLORS} from '../../components/editor-standalone/field-definitions/priority-field';
 import {getTextColor} from 'superdesk-ui-framework/react';
+import {ILineConfigPriority} from 'globals';
 
-export const priority: FunctionComponent<IFieldsProps> = (props) => {
+type IProps = Omit<IFieldsProps, 'fieldOptions'> & ILineConfigPriority;
+
+export const priority: FunctionComponent<IProps> = (props) => {
     const {gettext} = superdeskApi.localization;
     const {item} = props;
 
@@ -20,10 +23,12 @@ export const priority: FunctionComponent<IFieldsProps> = (props) => {
         : superdeskApi.entities.vocabulary.getVocabularyItemNameTranslated(vocabularyItem);
 
     const backgroundColor = vocabularyItem.color ?? DEFAULT_PRIORITY_COLORS[item.priority];
+    const showFieldLabel = props.fieldOptions?.hideLabel !== true;
 
     return (
         <Spacer h gap="4" justifyContent="start" noWrap style={{whiteSpace: 'nowrap', width: 'auto'}}>
-            <span className="sd-list-item__text-label">{gettext('Priority:')}</span>
+            {showFieldLabel && <span className="sd-list-item__text-label">{gettext('Priority:')}</span>}
+
             <div style={{display: 'flex', alignItems: 'center'}}>
                 <div
                     style={{

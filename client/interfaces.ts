@@ -1728,7 +1728,7 @@ export interface IFieldsProps {
         // field specific props may be passed
         [key: string]: any;
     };
-    fieldOptions: ILineConfig['fieldOptions'];
+    fieldOptions?: ILineConfig['fieldOptions'];
 }
 
 interface IMainStateSearch<T> {
