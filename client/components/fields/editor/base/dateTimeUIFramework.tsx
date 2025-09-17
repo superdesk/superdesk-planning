@@ -3,7 +3,7 @@ import * as React from 'react';
 import {IEditorFieldProps} from '../../../../interfaces';
 import {get} from 'lodash';
 import {DateTimePicker} from 'superdesk-ui-framework/react';
-import {appConfig} from 'appConfig';
+import {appConfig, userInterfaceLanguage} from 'appConfig';
 import {format} from 'date-fns';
 import {superdeskApi} from '../../../../superdeskApi';
 
@@ -62,7 +62,7 @@ export class EditorFieldDateTimeUIFramework extends React.PureComponent<IProps> 
                     dateFormat={appConfig.planning.dateformat}
                     locale={{
                         type: 'full',
-                        payload: superdeskApi.ui.framework.getLocaleForDatePicker(this.props.language),
+                        payload: superdeskApi.ui.framework.getLocaleForDatePicker(userInterfaceLanguage),
                     }}
                     value={
                         value != null
