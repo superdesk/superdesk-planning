@@ -23,12 +23,13 @@ export class AssignmentMultiTextItem extends React.Component<IAssignmentItemProp
 
     render() {
         const isMultiContent = this.props.assignment.planning.multiple_content === true;
+        const linkedItems = this.props.assignment.linked_items ?? [];
 
-        if ((this.props.assignment.linked_items?.length ?? 0) <= 1 && isMultiContent === false) {
+        if (linkedItems.length <= 1 && isMultiContent === false) {
             return (<AssignmentItem {...this.props} />);
         }
 
-        const relatedItems = this.props.assignment.linked_items
+        const relatedItems = linkedItems
             .map((itemLink) => (this.props.archiveItems[itemLink._id]))
             .filter((item) => (item != null));
 
