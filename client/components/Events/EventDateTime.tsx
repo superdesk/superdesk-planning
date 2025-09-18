@@ -8,9 +8,8 @@ import {eventUtils, timeUtils} from '../../utils';
 import {DateTime} from '../UI';
 
 import './style.scss';
-import {Spacer} from 'superdesk-ui-framework/react';
+import {Icon, Spacer, Tooltip} from 'superdesk-ui-framework/react';
 import {isSameDay} from './../../helpers';
-import {SpacerBlock} from '@sourcefabric/common';
 
 interface IProps {
     item: IEventItem;
@@ -97,32 +96,43 @@ export class EventDateTime extends React.PureComponent<IProps> {
                         />
                     </span>
 
-                    {isRemoteTimeZone && (
-                        <span>
-                            <span className="EventDateTime__timezone sd-margin-r--0-5">
-                                {timeUtils.getTimeZoneAbbreviation(remoteStart.format('z'))}
-                            </span>
+                    {
+                        isRemoteTimeZone && (
+                            <Tooltip
+                                content={() => (
+                                    <Spacer h gap="4">
+                                        <span className="EventDateTime__timezone">
+                                            {timeUtils.getTimeZoneAbbreviation(remoteStart.format('z'))}
+                                        </span>
 
-                            <DateTime
-                                withDate={remoteStartWithDate}
-                                withYear={remoteStartWithYear}
-                                date={remoteStart}
-                                withTime={!isFullDay}
-                                {...commonProps}
-                            />
+                                        <DateTime
+                                            withDate={remoteStartWithDate}
+                                            withYear={remoteStartWithYear}
+                                            date={remoteStart}
+                                            withTime={!isFullDay}
+                                            color="inherit"
+                                            {...commonProps}
+                                        />
 
-                            {showDash && <>&ndash;</>}
+                                        {showDash && <>&ndash;</>}
 
-                            <DateTime
-                                withDate={remoteEndWithDate}
-                                withYear={remoteEndWithYear}
-                                date={remoteEnd}
-                                withTime={!isFullDay}
-                                isEndEventDateTime={true}
-                                {...commonProps}
-                            />
-                        </span>
-                    )}
+                                        <DateTime
+                                            withDate={remoteEndWithDate}
+                                            withYear={remoteEndWithYear}
+                                            date={remoteEnd}
+                                            withTime={!isFullDay}
+                                            isEndEventDateTime={true}
+                                            color="inherit"
+                                            {...commonProps}
+                                        />
+                                    </Spacer>
+                                )}
+                            >
+                                <Icon name="globe" />
+                            </Tooltip>
+
+                        )
+                    }
 
                     {isAllDay && (<span>{gettext('All day')}</span>)}
                 </Spacer>
