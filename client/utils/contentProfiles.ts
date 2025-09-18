@@ -142,7 +142,7 @@ export function getUnusedProfileFields(
             }
         }));
 
-    const profileFields = getProfileFields(profile);
+    const profileFields = getProfileFields(profile).filter((field) => field.name !== 'add_coverage_to_workflow');
 
     const usedVocabularies = new Set(
         profileFields

@@ -70,7 +70,7 @@ import {confirmAddingRelatedItems} from './confirmAddingRelatedItems';
 import {getOpenEditorType} from './editor';
 import {coverageProfiles} from '../selectors/coverageProfiles';
 
-const isCoverageAssigned = (coverage: IPlanningCoverageItem) => coverage.assigned_to?.desk != null;
+export const isCoverageAssigned = (coverage: IPlanningCoverageItem) => coverage.assigned_to?.desk != null;
 
 function isCancelPlanWithEventDisabled(): boolean {
     return (planningApi.events.getEditorProfile().schema.related_plannings?.cancel_plan_with_event ?? true) === false;
@@ -359,22 +359,24 @@ function isCoverageCancelled(coverage: IPlanningCoverageItem): boolean {
     return get(coverage, 'workflow_status') === WORKFLOW_STATE.CANCELLED;
 }
 
+/**
+ * A coverage can be cancelled if the associated planning item hasn't expired
+ * and it wasn't already cancelled
+ * and the coverage was already created
+ * and its assigned state is `null` or not `completed`.
+ */
 function canCancelCoverage(
     coverage: IPlanningCoverageItem,
     planning: IPlanningItem,
     field: string = 'coverage_id'
 ): boolean {
-    return (
-        !isItemExpired(planning) &&
-        (
-            !isCoverageCancelled(coverage) &&
-            isExistingItem(coverage, field) &&
-            (
-                !get(coverage, 'assigned_to.state')
-                || get(coverage, 'assigned_to.state') !== ASSIGNMENTS.WORKFLOW_STATE.COMPLETED
-            )
-        )
-    );
+    return !isItemExpired(planning)
+        && !isCoverageCancelled(coverage)
+        && isExistingItem(coverage, field)
+        && (
+            coverage.assigned_to?.state == null
+            || coverage.assigned_to?.state !== 'completed'
+        );
 }
 
 function canAddCoverageToWorkflow(
@@ -1334,7 +1336,7 @@ function getFeaturedPlanningItemsForDate(items: Array<IPlanningItem>, date: mome
     return [];
 }
 
-function isCoverageDraft(coverage: IPlanningCoverageItem | ICoverageScheduledUpdate): boolean {
+export function isCoverageDraft(coverage: IPlanningCoverageItem | ICoverageScheduledUpdate): boolean {
     return get(coverage, 'workflow_status') === WORKFLOW_STATE.DRAFT;
 }
 function isCoverageInWorkflow(coverage: IPlanningCoverageItem): boolean {
