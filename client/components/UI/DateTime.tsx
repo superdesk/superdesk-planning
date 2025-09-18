@@ -81,17 +81,11 @@ function DateTime({
     const displayDate = !isEndEventDateTime ? eventStartDate : eventEndDate;
     const tz = timeUtils.getTimeZoneAbbreviation(date.format('z')) + ' ';
 
-    const style: React.CSSProperties = {color};
-
-    if (color != null) {
-        style.color = color;
-    }
-
     return (
         <time
             className={!padLeft ? 'Datetime' : null}
             title={tz + displayDate}
-            style={style}
+            style={{color}}
             data-test-id={testId}
         >
             {displayDate}
