@@ -30,7 +30,6 @@ import '../style.scss';
 import {VOCABULARIES_TO_BE_EXCLUDED} from '../../../utils/contentProfiles';
 import {isCustomVocabulary} from '../../../helpers';
 import {isCoverageAssigned, isCoverageDraft} from '../../../utils/planning';
-import {getAutoAddToWorkflowConfig} from '../../../config';
 
 interface IOwnProps {
     field: string;
@@ -533,7 +532,7 @@ export class CoverageFormComponent extends React.Component<IProps, IState> {
             priority: {field: 'planning.priority'},
         };
 
-        const isAutoAddToWorkflowOn = getAutoAddToWorkflowConfig();
+        const isAutoAddToWorkflowOn = appConfig.planning_auto_assign_to_workflow;
 
         if (isAutoAddToWorkflowOn === false) {
             const shouldDisableToggle = () => {

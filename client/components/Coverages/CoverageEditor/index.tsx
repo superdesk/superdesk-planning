@@ -28,7 +28,7 @@ import {getRelatedEventIdsForPlanning} from '../../../utils/planning';
 import {planningApi} from '../../../superdeskApi';
 import {planningApis} from '../../../api';
 import * as selectors from '../../../selectors';
-import {getAutoAddToWorkflowConfig} from 'config';
+import {appConfig} from 'superdesk-core/scripts/appConfig';
 
 interface IOwnProps {
     testId?: string;
@@ -254,7 +254,7 @@ export class CoverageEditorComponent extends React.PureComponent<IProps> {
 
                 // Show only if adding coverages to workflow is handled automatically
                 // thus toggle in the editor is hidden
-                && getAutoAddToWorkflowConfig() === true
+                && appConfig.planning_auto_assign_to_workflow === true
             ) {
                 itemActions.push({
                     label: gettext('Cancel coverage'),
