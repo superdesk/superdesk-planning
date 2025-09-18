@@ -61,9 +61,9 @@ export function convertCommonParams(params: ISearchParams): Partial<ISearchAPIPa
     };
 }
 
-function excludeNullParams(args: ISearchAPIParams): ISearchAPIParams {
+export function excludeNullParams<T>(args: T): T {
     // Copy the args so that we don't modify the original
-    const params: ISearchAPIParams = Object.assign({}, args);
+    const params: T = Object.assign({}, args);
 
     Object.keys(params).forEach((field) => {
         if (params[field] == null) {

@@ -22,6 +22,7 @@ const initialState = {
     searchQuery: null,
     selectedDeskId: '',
     assignmentListSingleGroupView: null,
+    searchParams: {},
 
     groupKeys: [
         ASSIGNMENTS.LIST_GROUPS.TODO.id,
@@ -199,6 +200,12 @@ const assignmentReducer = createReducer(initialState, {
         {
             ...state,
             ...payload,
+        }
+    ),
+    [ASSIGNMENTS.ACTIONS.SET_SEARCH_PARAMS]: (state, payload) => (
+        {
+            ...state,
+            searchParams: payload,
         }
     ),
 

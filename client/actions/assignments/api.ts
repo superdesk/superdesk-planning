@@ -1,14 +1,12 @@
-import moment from 'moment-timezone';
 import {get, cloneDeep, has, pick} from 'lodash';
 
 import {IArticle} from 'superdesk-api';
-import {appConfig} from 'appConfig';
-import {IAssignmentItem, ISearchQueryOperator} from '../../interfaces';
+import {IAssignmentItem, ISearchQueryOperator, IAssignmentSearchParams} from '../../interfaces';
 import {planningApi} from '../../superdeskApi';
 
 import * as selectors from '../../selectors';
 import * as actions from '../';
-import {ASSIGNMENTS, ALL_DESKS, SORT_DIRECTION} from '../../constants';
+import {ASSIGNMENTS} from '../../constants';
 import planningUtils from '../../utils/planning';
 import {getErrorMessage, isExistingItem, gettext} from '../../utils';
 import planningActions from '../planning/api';
@@ -20,208 +18,26 @@ const setBaseQuery = ({must = []}) => ({
     payload: {must},
 });
 
-const constructQuery = ({
-    systemTimezone,
-    baseQuery,
-    searchQuery,
-    deskId = null,
-    userId = null,
-    states = [],
-    type = null,
-    priority = null,
-    dateFilter = null,
-    ignoreScheduledUpdates = false,
-}) => {
-    let must = [];
-    let mustNot = [];
-
-    const filters = [{
-        condition: () => deskId && deskId !== ALL_DESKS,
-        do: () => {
-            must.push(
-                {term: {'assigned_to.desk': deskId}}
-            );
-        },
-    }, {
-        condition: () => userId,
-        do: () => {
-            must.push(
-                {term: {'assigned_to.user': userId}}
-            );
-        },
-    }, {
-        condition: () => get(states, 'length', 0) > 0,
-        do: () => {
-            must.push(
-                {terms: {'assigned_to.state': states}}
-            );
-        },
-    }, {
-        condition: () => type,
-        do: () => {
-            must.push(
-                {term: {'planning.g2_content_type': type}}
-            );
-        },
-    }, {
-        condition: () => priority,
-        do: () => {
-            must.push(
-                {term: {priority: priority}}
-            );
-        },
-    }, {
-        condition: () => searchQuery,
-        do: () => {
-            must.push(
-                {query_string: {query: searchQuery}}
-            );
-        },
-    }, {
-        condition: () => dateFilter,
-        do: () => {
-            const timezoneOffset = moment()
-                .tz(systemTimezone || moment.tz.guess())
-                .format('Z');
-
-            switch (dateFilter) {
-            case 'today':
-                must.push({
-                    range: {
-                        'planning.scheduled': {
-                            gte: 'now/d',
-                            lte: 'now/d',
-                            time_zone: timezoneOffset,
-                        },
-                    },
-                });
-                break;
-            case 'current':
-                must.push({
-                    range: {
-                        'planning.scheduled': {
-                            lte: 'now/d',
-                            time_zone: timezoneOffset,
-                        },
-                    },
-                });
-                break;
-            case 'future':
-                must.push({
-                    range: {
-                        'planning.scheduled': {
-                            gt: 'now/d',
-                            time_zone: timezoneOffset,
-                        },
-                    },
-                });
-                break;
-            }
-        },
-    }, {
-        condition: () => ignoreScheduledUpdates,
-        do: () => {
-            mustNot.push({
-                constant_score: {filter: {exists: {field: 'scheduled_update_id'}}},
-            });
-        },
-    }, {
-        condition: () => get(baseQuery, 'must.length', 0) > 0,
-        do: () => {
-            must = must.concat(baseQuery.must);
-        },
-    }];
-
-    filters.forEach((filter) => {
-        if (filter.condition()) {
-            filter.do();
-        }
-    });
-
-    let returnQuery: any = {bool: {must}};
-
-    if (mustNot.length > 0) {
-        returnQuery.bool.must_not = mustNot;
-    }
-
-    return returnQuery;
-};
-
-
 /**
  * Action Dispatcher for query the api for events
  * @return arrow function
  */
-const query = ({
-    searchQuery,
-    orderByField,
-    orderDirection,
-    page = 1,
-    deskId = null,
-    userId = null,
-    states = [],
-    type = null,
-    priority = null,
-    dateFilter = null,
-    size = null,
-    ignoreScheduledUpdates = false,
-    max_results = null,
-    baseQuery = null,
-}) => (
-    (dispatch, getState, {api}) => {
-        const filterByValues = {
-            Created: '_created',
-            Updated: '_updated',
-            Priority: 'priority',
-            Scheduled: 'planning.scheduled',
-        };
-
-        let sort = '[("' + (get(filterByValues, orderByField, 'planning.scheduled')) + '", '
-            + (orderDirection === SORT_DIRECTION.ASCENDING ? 1 : -1) + ')]';
-
+function query(params: IAssignmentSearchParams) {
+    return (dispatch, getState) => {
         const baseElasticQuery = selectors.getBaseAssignmentQuery(getState());
 
-        if (baseQuery) {
+        if (params.query != null) {
             // Combine the elastic queries from the provided baseQuery and the one from the redux store
             for (const field of SEARCH_QUERY_OPERATORS) {
-                if (baseQuery[field]) {
-                    baseElasticQuery[field] = (baseElasticQuery[field] || []).concat(baseQuery[field]);
+                if (params.query[field]) {
+                    baseElasticQuery[field] = (baseElasticQuery[field] || []).concat(params.query[field]);
                 }
             }
         }
 
-        const query = constructQuery({
-            systemTimezone: appConfig.default_timezone,
-            baseQuery: baseElasticQuery,
-            searchQuery: searchQuery,
-            deskId: deskId,
-            userId: userId,
-            states: states,
-            type: type,
-            priority: priority,
-            dateFilter: dateFilter,
-            ignoreScheduledUpdates: ignoreScheduledUpdates,
-        });
-
-        return api('assignments').query({
-            page: page,
-            max_results: max_results,
-            sort: sort,
-            source: JSON.stringify(size !== null ?
-                {query, size} :
-                {query}
-            ),
-        })
-            .then((data) => {
-                if (get(data, '_items')) {
-                    data._items.forEach(planningUtils.modifyCoverageForClient);
-                    return Promise.resolve(data);
-                } else {
-                    return Promise.reject('Failed to retrieve items');
-                }
-            }, (error) => (Promise.reject(error)));
-    }
-);
+        return planningApi.assignments.search(params);
+    };
+}
 
 /**
  * Action Dispatcher that fetches a Assignment Item by ID
@@ -562,7 +378,6 @@ const self = {
     receiveAssignmentHistory,
     unlink,
     setBaseQuery,
-    constructQuery,
 };
 
 export default self;

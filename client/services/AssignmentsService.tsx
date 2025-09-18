@@ -5,6 +5,7 @@ import moment from 'moment';
 
 import {appConfig} from 'appConfig';
 
+import {SORT_FIELD, SORT_ORDER, ASSIGNMENT_STATE} from '../interfaces';
 import {gettext, planningUtils, iteratePromiseCallbacks} from '../utils';
 
 import {WORKSPACE, MODALS, ASSIGNMENTS} from '../constants';
@@ -24,16 +25,6 @@ export class AssignmentsService {
         this.onArchiveRewrite = this.onArchiveRewrite.bind(this);
         this.onUnloadModal = this.onUnloadModal.bind();
         this.onSendFromAuthoring = this.onSendFromAuthoring.bind(this);
-    }
-
-    getAssignmentQuery(slugline, contentType) {
-        return actions.assignments.api.constructQuery({
-            systemTimezone: appConfig.default_timezone,
-            searchQuery: `planning.slugline.phrase:("${slugline}")`,
-            states: ['assigned'],
-            type: contentType,
-            dateFilter: 'today',
-        });
     }
 
     onPublishFromAuthoring(item) {
@@ -213,13 +204,16 @@ export class AssignmentsService {
     }
 
     getBySlugline(slugline, contentType) {
-        return this.api('assignments').query({
-            source: JSON.stringify({
-                query: this.getAssignmentQuery(slugline, contentType),
-                size: 0,
-            }),
+        return planningApi.assignments.search({
+            timeZone: appConfig.default_timezone,
+            slugline: slugline,
+            states: [ASSIGNMENT_STATE.ASSIGNED],
+            contentTypes: [contentType],
+            dateFilter: 'today',
+            maxResults: 0,
             page: 1,
-            sort: '[("planning.scheduled", 1)]',
+            sortField: SORT_FIELD.SCHEDULE,
+            sortOrder: SORT_ORDER.ASCENDING,
         });
     }
 

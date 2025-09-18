@@ -1,13 +1,21 @@
 import {get} from 'lodash';
 import {createSelector} from 'reselect';
 
-import {IEventItem, IPlanningAppState, IPlanningItem} from '../interfaces';
+import {IDesk, IUser} from 'superdesk-api';
+import {
+    IEventItem,
+    IPlanningAppState,
+    IPlanningItem,
+    IAssignmentSearchParams,
+    IAssignmentItem,
+    SORT_ORDER,
+    SORT_FIELD,
+} from '../interfaces';
 import {storedEvents} from './events';
 import {storedPlannings} from './planning';
-import {currentDeskId, currentUserId, currentWorkspace} from './general';
+import {currentUserId} from './general';
 import {getItemsById} from '../utils';
-import {ASSIGNMENTS, SORT_DIRECTION} from '../constants';
-import {IAssignmentItem} from '../interfaces.ts';
+import {ASSIGNMENTS, SORT_DIRECTION, ALL_DESKS} from '../constants';
 
 export const getStoredAssignments = (state) => get(state, 'assignment.assignments', {});
 export const getStoredArchiveItems = (state) => get(state, 'assignment.archive', {});
@@ -174,31 +182,59 @@ export const getCurrentAssignment = createSelector(
     )
 );
 
-export const getAssignmentSearch = createSelector(
-    [getAssignmentListSettings, currentDeskId, currentUserId,
-        currentWorkspace, getAssignmentFilterByType,
-        getAssignmentFilterByPriority],
-    (listSettings, deskId,
-        currentUserId, workspace, filterByType, filterByPriority) => {
-        let searchDeskId = null;
+export const getAssignmentSearchParams = (state) => state.assignment?.searchParams ?? {};
 
-        if (get(listSettings, 'filterBy') === 'Desk') {
-            searchDeskId = get(listSettings, 'selectedDeskId', null);
-        }
-
+export const getAssignmentSearch = createSelector<
+    IPlanningAppState,
+    string,
+    string,
+    SORT_FIELD,
+    SORT_ORDER,
+    boolean,
+    IDesk['_id'] | null,
+    IUser['_id'],
+    string | null,
+    string | null,
+    IAssignmentSearchParams,
+    IAssignmentSearchParams
+>(
+    [
+        getFilterBy,
+        getSearchQuery,
+        getOrderByField,
+        getOrderDirection,
+        getIgnoreScheduledUpdates,
+        getSelectedDeskId,
+        currentUserId,
+        getAssignmentFilterByType,
+        getAssignmentFilterByPriority,
+        getAssignmentSearchParams,
+    ],
+    (
+        filterBy,
+        searchQuery,
+        orderByField,
+        orderDirection,
+        ignoreScheduledUpdates,
+        deskId,
+        userId,
+        filterByType,
+        filterByPriority,
+        params,
+    ) => {
         return {
-            deskId: searchDeskId,
-            userId: (get(listSettings, 'filterBy') === 'User') ? currentUserId : null,
-            searchQuery: get(listSettings, 'searchQuery', ''),
-            orderByField: get(listSettings, 'orderByField', 'Updated'),
-            orderDirection: get(listSettings, 'orderDirection', 'Desc'),
+            deskIds: filterBy === 'Desk' && (deskId?.length ?? 0) > 0 && deskId !== ALL_DESKS ? [deskId] : null,
+            userIds: filterBy === 'User' ? [userId] : null,
+            searchQuery: searchQuery,
+            sortField: orderByField ?? SORT_FIELD.UPDATED,
+            sortOrder: orderDirection ?? 'Desc',
             page: 1,
-            states: null,
-            type: filterByType,
-            priority: filterByPriority,
-            ignoreScheduledUpdates: get(listSettings, 'ignoreScheduledUpdates', false),
-        };
-    }
+            contentTypes: filterByType ? [filterByType] : null,
+            priority: filterByPriority ? filterByPriority : null,
+            ignoreScheduledUpdates: ignoreScheduledUpdates,
+            ...params,
+        } as IAssignmentSearchParams;
+    },
 );
 
 export const getCurrentAssignmentPlanningItem = createSelector(
