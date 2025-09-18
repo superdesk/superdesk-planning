@@ -348,7 +348,12 @@ class CoverageAddAdvancedModalComponent extends React.Component<IProps, IState> 
                                                 inlineLabel
                                                 labelHidden
                                                 value={coverage.status?.qcode}
-                                                onChange={(value) => this.updateCoverage(coverage, {status: value})}
+                                                onChange={(value) => {
+                                                    const statusObj = this.props.newsCoverageStatus
+                                                        .find((s) => s.qcode === value);
+
+                                                    this.updateCoverage(coverage, {status: statusObj});
+                                                }}
                                             >
                                                 <Option />
                                                 {this.props.newsCoverageStatus.map((cov) => (
