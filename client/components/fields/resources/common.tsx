@@ -6,6 +6,7 @@ import {EditorFieldMultilingualText} from '../editor/base/multilingualText';
 import {EditorFieldTreeSelect} from '../editor/base/treeSelect';
 import {EditorFieldEventAttachments} from '../editor/EventAttachments';
 import {DropdownItemTemplate} from '../editor/dropDownTemplate';
+import {EditorFieldUser} from '../editor/User';
 import React from 'react';
 
 registerEditorField(
@@ -149,4 +150,15 @@ registerEditorField(
         getOptions: () => getUrgenciesForTreeSelect(state),
     }),
     false
+);
+
+registerEditorField(
+    'user',
+    EditorFieldUser,
+    () => ({
+        label: superdeskApi.localization.gettext('User'),
+        field: 'user',
+    }),
+    null,
+    true
 );

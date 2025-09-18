@@ -1,19 +1,22 @@
 import React from 'react';
 import moment from 'moment';
 
-import {SEARCH_SPIKE_STATE, IDateRange, ISearchParams, IWorkflowState} from '../../interfaces';
+import {superdeskApi} from '../../superdeskApi';
+import {IDesk} from 'superdesk-api';
+import {SEARCH_SPIKE_STATE, IDateRange, ISearchParams, IAssignmentSearchParams, IWorkflowState} from '../../interfaces';
 
 import {getUserInterfaceLanguageFromCV} from '../../utils/users';
 import {renderGroupedFieldsForPanel} from '../fields';
 
 
 interface IProps {
-    params: ISearchParams;
+    params: ISearchParams | IAssignmentSearchParams;
     onChange<T extends keyof ISearchParams>(field: T, value: ISearchParams[T]): void;
-    onChangeMultiple(updates: ISearchParams): void;
+    onChangeMultiple(updates: ISearchParams | IAssignmentSearchParams): void;
     popupContainer?(): HTMLElement;
     searchProfile: any;
     enabledField: string;
+    filterUsersByDesk?: IDesk['_id'];
 }
 
 const NON_PUBLISHED_STATES: Array<IWorkflowState> = [
@@ -91,6 +94,13 @@ export class AdvancedSearch extends React.PureComponent<IProps> {
     }
 
     render() {
+        const customTextFields = Object.keys(this.props.searchProfile)
+            .filter((field) => superdeskApi.entities.vocabulary.getVocabulary(field)?.field_type === 'text')
+            .reduce((prev, field) => ({
+                ...prev,
+                [field]: {storageField: `customText.${field}`},
+            }), {});
+
         return renderGroupedFieldsForPanel(
             'editor',
             this.props.searchProfile,
@@ -102,6 +112,29 @@ export class AdvancedSearch extends React.PureComponent<IProps> {
                 schema: {},
             },
             {
+                ...customTextFields,
+                user: {
+                    field: 'userIds',
+                    valueStoredAsArray: true,
+                    deskId: this.props.filterUsersByDesk,
+                },
+                content_type: {
+                    field: 'contentType',
+                },
+                multiple_content: {
+                    field: 'multipleContent',
+                },
+                genre: {
+                    clearable: true,
+                },
+                assignment_priority: {
+                    field: 'assignmentPriority',
+                    noTitleInPopup: true,
+                    clearable: true,
+                },
+                anpa_category: {
+                    field: 'anpaCategory',
+                },
                 start_date: {
                     canClear: true,
                     onChange: this.onStartDateTimeChange,
