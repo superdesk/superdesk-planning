@@ -38,6 +38,7 @@ import {vocabulary} from './vocabulary';
 import {ILineConfig} from 'globals';
 import {urgency} from './urgency';
 import {anpa_category} from './anpa_category';
+import {priority} from './priority';
 
 let registeredFields = {};
 
@@ -426,6 +427,7 @@ registerField('state', state);
 registerField('event_datetime', event_datetime);
 registerField('related_events', related_events);
 registerField('urgency', urgency);
+registerField('priority', priority);
 
 
 // Event related fields

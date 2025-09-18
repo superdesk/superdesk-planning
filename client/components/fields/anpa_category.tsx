@@ -4,12 +4,9 @@ import {Spacer} from '@sourcefabric/common';
 import {IFieldsProps} from '../../interfaces';
 import {superdeskApi} from '../../superdeskApi';
 import {WithMoreItems} from './with-more-items';
+import {ILineConfigAnpaCategory} from 'globals';
 
-interface IProps extends IFieldsProps {
-    fieldOptions: {
-        hideLabel?: boolean;
-    };
-}
+type IProps = Omit<IFieldsProps, 'fieldOptions'> & ILineConfigAnpaCategory;
 
 export const anpa_category: React.ComponentType<IProps> = (props) => {
     const {getVocabularyItemNameTranslated} = superdeskApi.entities.vocabulary;
@@ -34,7 +31,7 @@ export const anpa_category: React.ComponentType<IProps> = (props) => {
                         {
                             items.map((item, i) => (
                                 <div key={i}>
-                                    <Tag text={getVocabularyItemNameTranslated(item)} />
+                                    <Tag size="small" text={getVocabularyItemNameTranslated(item)} />
                                 </div>
                             ))
                         }

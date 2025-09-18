@@ -33,10 +33,6 @@ const modifyEventsBeingAdded = (state, payload) => {
             e._startTime = moment(e.dates.start);
             e._endTime = moment(e.dates.end);
         }
-
-        if (e.location && Array.isArray(e.location)) {
-            e.location = e.location[0];
-        }
     });
 
     return _events;

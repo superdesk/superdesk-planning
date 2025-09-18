@@ -1,6 +1,6 @@
 import React from 'react';
 import {connect} from 'react-redux';
-import {get, forEach} from 'lodash';
+import {get, forEach, partition} from 'lodash';
 import moment from 'moment';
 import {appConfig} from 'appConfig';
 import {planningApi, superdeskApi} from '../../../superdeskApi';
@@ -16,6 +16,7 @@ import {
     IKeyword,
     IFile,
     ICoverageType,
+    IPlanningContentProfile,
 } from '../../../interfaces';
 import * as selectors from '../../../selectors';
 import {planningUtils, generateTempId, assignmentUtils} from '../../../utils';
@@ -47,6 +48,7 @@ interface IOwnProps {
     editorType: EDITOR_TYPE;
     language: IVocabularyItem['qcode'];
     coverages: Array<IPlanningCoverageItem>;
+    profile: IPlanningContentProfile;
 
     // Functions
     onChange(field: string, value: any): void;
@@ -131,35 +133,11 @@ export class CoverageFormComponent extends React.Component<IProps, IState> {
 
     onChange(field: string, value: any) {
         const {onChange, index} = this.props;
-        const maybeCustomTextField = superdeskApi.entities.vocabulary.getVocabulary(field);
 
-        // Handle update of custom text field
-        if (maybeCustomTextField?.field_type === 'text') {
-            const coveragesWithoutUpdated =
-                this.props.coverages.filter((x) => x.coverage_id !== this.props.value.coverage_id);
-
-            onChange(
-                'coverages',
-                [
-                    ...coveragesWithoutUpdated,
-                    {
-                        ...this.props.value,
-                        fields: [
-                            ...((this.props.value.fields ?? []).filter((x) => x.field != field)),
-                            {
-                                field: field,
-                                value: value,
-                            },
-                        ],
-                    },
-                ],
-            );
-        } else {
-            onChange(
-                `coverages.${index}.${field}`,
-                value
-            );
-        }
+        onChange(
+            `coverages.${index}.${field}`,
+            value
+        );
     }
 
     onTimeToBeConfirmed() {
@@ -391,7 +369,10 @@ export class CoverageFormComponent extends React.Component<IProps, IState> {
                 ...coveragesWithoutUpdates,
                 {
                     ...this.props.value,
-                    anpa_category: (nextValue ?? []).map((x) => ({qcode: x.qcode, name: x.name})),
+                    planning: {
+                        ...this.props.value.planning,
+                        anpa_category: (nextValue ?? []).map((x) => ({qcode: x.qcode, name: x.name})),
+                    },
                 },
             ],
         );
@@ -421,11 +402,17 @@ export class CoverageFormComponent extends React.Component<IProps, IState> {
             editorType: this.props.editorType,
         };
 
-        const allVocabularies = superdeskApi.entities.vocabulary.getAll();
-        const customCVFields = allVocabularies.toArray().filter((x) =>
-            !VOCABULARIES_TO_BE_EXCLUDED.has(x._id)
-            && isCustomVocabulary(x),
-        )
+        const allVocabularies = superdeskApi.entities.vocabulary.getAll().toArray();
+        const [_, restOfVocabularies] = partition(
+            allVocabularies,
+            (vocabulary) => vocabulary?.field_type === 'text'
+        );
+
+        const customCVFields = restOfVocabularies
+            .filter((x) =>
+                !VOCABULARIES_TO_BE_EXCLUDED.has(x._id)
+                && isCustomVocabulary(x),
+            )
             .reduce((prev, curr) => ({
                 ...prev,
                 [curr._id]: {
@@ -434,15 +421,27 @@ export class CoverageFormComponent extends React.Component<IProps, IState> {
                 }
             }), {});
 
+        const textFieldConfigs = Object.keys(profile.schema)
+            .filter((field) => profile.schema[field]?.type === 'custom_text')
+            .reduce((prev, field) => ({
+                ...prev,
+                [field]: {
+                    field: field,
+                    storageField: 'planning.fields',
+                    valueStoredAsArray: true,
+                },
+            }), {});
+
         const fieldProps = {
             ...customCVFields,
+            ...textFieldConfigs,
             contact_info: {
                 field: 'planning.contact_info',
                 assignmentField: 'assigned_to.contact',
                 label: assignmentUtils.getContactLabel(this.props.value),
             },
             anpa_category: {
-                field: 'anpa_category',
+                field: 'planning.anpa_category',
                 onChange: this.onAnpaCategoryChange,
             },
             add_coverage_to_workflow: {
@@ -493,6 +492,12 @@ export class CoverageFormComponent extends React.Component<IProps, IState> {
             ednote: {
                 readOnly: this.props.readOnly || readOnlyFields.ednote,
                 field: 'planning.ednote',
+            },
+            location: {
+                readOnly: this.props.readOnly || readOnlyFields.location,
+                enableExternalSearch: !(this.props.readOnly || readOnlyFields.location),
+                field: 'planning.location',
+                storeAsArray: true,
             },
             keyword: {
                 readOnly: this.props.readOnly || readOnlyFields.keyword,

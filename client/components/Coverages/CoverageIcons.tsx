@@ -3,7 +3,7 @@ import moment from 'moment-timezone';
 import {getCustomAvatarContent, getUserInitials} from './../../components/UserAvatar';
 import {appConfig} from 'appConfig';
 import {IPlanningCoverageItem, IG2ContentType, IContactItem} from '../../interfaces';
-import {IUser, IDesk} from 'superdesk-api';
+import {IUser, IDesk, Dictionary} from 'superdesk-api';
 import {superdeskApi} from '../../superdeskApi';
 import {
     AvatarGroup,
@@ -17,7 +17,7 @@ import {
 import {IPropsAvatarPlaceholder} from 'superdesk-ui-framework/react/components/avatar/avatar-placeholder';
 import {IPropsAvatar} from 'superdesk-ui-framework/react/components/avatar/avatar';
 import {trimStartExact} from 'superdesk-core/scripts/core/helpers/utils';
-import {getItemWorkflowStateLabel, gettext, planningUtils} from '../../utils';
+import {getItemWorkflowStateLabel, planningUtils} from '../../utils';
 import {getVocabularyItemFieldTranslated} from '../../utils/vocabularies';
 import {getUserInterfaceLanguageFromCV} from '../../utils/users';
 import './coverage-icons.scss';
@@ -241,10 +241,10 @@ export class CoverageIcons extends React.PureComponent<IProps> {
                                             {
                                                 isAvatarPlaceholder(maybeAvatar)
                                                     ? (
-                                                        <AvatarPlaceholder {...maybeAvatar} size="medium" />
+                                                        <AvatarPlaceholder {...maybeAvatar} size="x-small" />
                                                     )
                                                     : (
-                                                        <Avatar {...maybeAvatar} size="medium" />
+                                                        <Avatar {...maybeAvatar} size="x-small" />
                                                     )
                                             }
                                         </div>
@@ -264,7 +264,7 @@ export class CoverageIcons extends React.PureComponent<IProps> {
                         }}
                     >
                         <AvatarGroup
-                            size="small"
+                            size="x-small"
                             items={coverages.map(
                                 (coverage) => getAvatarForCoverage(coverage, users, this.props.contentTypes),
                             )}

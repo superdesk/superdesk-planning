@@ -634,6 +634,7 @@ export interface ICoveragePlanningDetails {
     multiple_content?: boolean;
     subject?: Array<{name: string; qcode: string; scheme: string}>;
     anpa_category?: Array<{name: string; qcode: string}>;
+    fields: Array<{field: string; value: string}>;
 }
 
 export interface ICoverageScheduledUpdate {
@@ -664,7 +665,6 @@ export interface IPlanningCoverageItem {
     firstcreated: string;
     versioncreated: string;
     add_coverage_to_workflow: boolean;
-    anpa_category: Array<Omit<IANPACategory, 'subject'>>;
     profile?: string; // coverage profile id
     subject?: Array<IVocabularyItem>;
     planning: ICoveragePlanningDetails;
@@ -676,8 +676,6 @@ export interface IPlanningCoverageItem {
     flags: {
         no_content_linking: boolean;
     };
-
-    fields: Array<{field: string; value: string}>;
 
     scheduled_updates: Array<ICoverageScheduledUpdate>;
     _time_to_be_confirmed: boolean;
@@ -1800,7 +1798,7 @@ export interface IFieldsProps {
         // field specific props may be passed
         [key: string]: any;
     };
-    fieldOptions: ILineConfig['fieldOptions'];
+    fieldOptions?: ILineConfig['fieldOptions'];
 }
 
 interface IMainStateSearch<T> {

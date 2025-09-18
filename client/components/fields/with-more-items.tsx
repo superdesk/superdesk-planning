@@ -1,5 +1,5 @@
 import React from 'react';
-import {Badge, WithPopover, Card, Button} from 'superdesk-ui-framework/react';
+import {Badge, WithPopover, Card, Button, Tag} from 'superdesk-ui-framework/react';
 import {Spacer} from '@sourcefabric/common';
 import {superdeskApi} from '../../superdeskApi';
 
@@ -95,9 +95,10 @@ export class WithMoreItems<T> extends React.PureComponent<IProps<T>> {
                                         }}
                                         style={{padding: 0}}
                                     >
-                                        <Badge
+                                        <Tag
                                             text={`+${moreItems.length}`}
-                                            type="primary"
+                                            shade="highlight1"
+                                            size="small"
                                         />
                                     </button>
                                 )}

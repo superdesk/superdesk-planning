@@ -115,27 +115,31 @@ class ContactFieldComponent extends React.Component<IContactFieldProps> {
                     className={paddingTop ? 'contact-field--padding-top' : null}
                     data-test-id={this.props.testId}
                 >
-                    <Spacer v gap="8">
-                        <SelectSearchContactsField
-                            field={field}
-                            label={label}
-                            onChange={this.onChange}
-                            value={value}
-                            onAdd={privileges.contacts ? this.showEditModal : undefined}
-                            onAddText={privileges.contacts ? gettext('Add Contact') : null}
-                            onFocus={onFocus}
-                            readOnly={readOnly}
-                            onPopupOpen={onPopupOpen}
-                            onPopupClose={onPopupClose}
-                            noMargin
-                        />
+                    <Spacer v gap="8" noWrap>
+                        <div style={{width: '100%'}}>
+                            <SelectSearchContactsField
+                                field={field}
+                                label={label}
+                                onChange={this.onChange}
+                                value={value}
+                                onAdd={privileges.contacts ? this.showEditModal : undefined}
+                                onAddText={privileges.contacts ? gettext('Add Contact') : null}
+                                onFocus={onFocus}
+                                readOnly={readOnly}
+                                onPopupOpen={onPopupOpen}
+                                onPopupClose={onPopupClose}
+                                noMargin
+                            />
+                        </div>
 
                         {value.length > 0 && (
-                            <ContactsPreviewList
-                                contactIds={value}
-                                onEditContact={privileges.contacts ? this.showEditModal : null}
-                                onRemoveContact={this.removeContact}
-                            />
+                            <div style={{width: '100%'}}>
+                                <ContactsPreviewList
+                                    contactIds={value}
+                                    onEditContact={privileges.contacts ? this.showEditModal : null}
+                                    onRemoveContact={this.removeContact}
+                                />
+                            </div>
                         )}
                     </Spacer>
                 </div>

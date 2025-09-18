@@ -173,6 +173,7 @@ class EventEditorComponent extends React.PureComponent<IProps> {
                     },
                     location: {
                         enableExternalSearch: true,
+                        storeAsArray: true,
                     },
                     name: {
                         label: gettext('Event Name'),
