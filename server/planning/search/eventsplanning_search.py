@@ -32,6 +32,7 @@ from .queries.planning import PLANNING_PARAMS, PLANNING_SEARCH_FILTERS
 from .queries.events import EVENT_PARAMS, EVENT_SEARCH_FILTERS
 from .queries.combined import COMBINED_PARAMS, COMBINED_SEARCH_FILTERS
 from .queries.common import construct_search_query
+from .queries.assignments import ASSIGNMENTS_PARAMS, ASSIGNMENTS_SEARCH_FILTERS
 from .queries.elastic import ElasticQuery, field_exists
 
 
@@ -67,6 +68,8 @@ class EventsPlanningService(AsyncBaseService):
             filters = EVENT_SEARCH_FILTERS
         elif repo == "planning":
             filters = PLANNING_SEARCH_FILTERS
+        elif repo == "assignments":
+            filters = ASSIGNMENTS_SEARCH_FILTERS
         else:
             filters = COMBINED_SEARCH_FILTERS
 
@@ -77,6 +80,8 @@ class EventsPlanningService(AsyncBaseService):
             return EVENT_PARAMS
         elif repo == "planning":
             return PLANNING_PARAMS
+        elif repo == "assignments":
+            return ASSIGNMENTS_PARAMS
         else:
             return COMBINED_PARAMS
 
@@ -136,7 +141,7 @@ class EventsPlanningService(AsyncBaseService):
                 "from": (page - 1) * page_size,
             }
         )
-        req.args["repos"] = "events"
+        req.args["repo"] = "events"
         req.page = page
         req.max_results = page_size
         if params.get("projections"):
@@ -158,11 +163,32 @@ class EventsPlanningService(AsyncBaseService):
                 "from": (page - 1) * page_size,
             }
         )
-        req.args["repos"] = "planning"
+        req.args["repo"] = "planning"
         req.page = page
         req.max_results = page_size
         if params.get("projections"):
             req.args["projections"] = params["projections"]
+        return await get_resource_service("planning_search").get_async(req=req, lookup=None)
+
+    async def _search_assignments(self, request, params, query, search_filter):
+        page = request.page or 1
+        page_size = self._get_page_size(request, search_filter)
+        req = ParsedRequest()
+        req.args = MultiDict()
+        req.args["source"] = json.dumps(
+            {
+                "query": query["query"],
+                "sort": query["sort"] if query.get("sort") else {"planning.scheduled": {"order": "asc"}},
+                "size": page_size,
+                "from": (page - 1) * page_size,
+            }
+        )
+        req.args["repo"] = "assignments"
+        req.page = page
+        req.max_results = page_size
+        if params.get("projections"):
+            req.args["projections"] = params["projections"]
+
         return await get_resource_service("planning_search").get_async(req=req, lookup=None)
 
     async def _get_events_and_planning(self, request, params, query, search_filter):
@@ -214,6 +240,8 @@ class EventsPlanningService(AsyncBaseService):
             return await self._search_events(req, params, query, search_filter)
         elif repo == "planning":
             return await self._search_planning(req, params, query, search_filter)
+        elif repo == "assignments":
+            return await self._search_assignments(req, params, query, search_filter)
         else:
             return await self._get_events_and_planning(req, params, query, search_filter)
 
@@ -335,5 +363,4 @@ class EventsPlanningResource(Resource):
     item_methods = []
     endpoint_name = "events_planning_search"
 
-    schema = deepcopy(planning_schema)
-    schema.update(events_schema)
+    allow_unknown = True

@@ -17,18 +17,19 @@ from typing import Any, Dict
 import superdesk
 from superdesk.core import json, get_current_app, get_app_config
 from superdesk.eve_async.service import AsyncBaseService
+from superdesk.errors import SuperdeskApiError
 from superdesk.resource_fields import ITEMS
 from superdesk.metadata.utils import item_url
 
 from planning.events.events_schema import events_schema
 from planning.planning.planning import planning_schema
-from planning.types import EventResourceModel, PlanningResourceModel
+from planning.types import EventResourceModel, PlanningResourceModel, AssignmentResourceModel
 
 logger = logging.getLogger(__name__)
 
 
 class PlanningSearchService(AsyncBaseService):
-    repos = ["events", "planning"]
+    repos = ["events", "planning", "assignments"]
 
     @property
     def elastic(self):
@@ -50,10 +51,14 @@ class PlanningSearchService(AsyncBaseService):
         repos = args.get("repo")
 
         if repos is None:
-            return self.repos.copy()
+            return ["events", "planning"]
         else:
-            repos = repos.split(",")
-            return [repo for repo in repos if repo in self.repos]
+            repos = [repo for repo in repos.split(",") if repo in self.repos]
+            if len(repos) > 1 and "assignments" in repos:
+                raise SuperdeskApiError.badRequestError(
+                    "Cannot search for Assignments and Event/Planning at the same time"
+                )
+            return repos
 
     def _get_projected_fields(self, req):
         """Get elastic projected fields."""
@@ -80,7 +85,7 @@ class PlanningSearchService(AsyncBaseService):
         date_fields = {}
 
         async for doc in cursor:
-            resource = "events" if doc["type"] == "event" else doc["type"]
+            resource = self._get_item_resource_type(doc)
 
             if not date_fields.get(resource):
                 date_fields[resource] = self._get_date_fields(resource)
@@ -105,6 +110,8 @@ class PlanningSearchService(AsyncBaseService):
             indexes.append(EventResourceModel.get_service().elastic.config.index)
         if "planning" in repos:
             indexes.append(PlanningResourceModel.get_service().elastic.config.index)
+        if "assignments" in repos:
+            indexes.append(AssignmentResourceModel.get_service().elastic.config.index)
         return indexes
 
     def get_projection(self, req) -> list[str] | None:
@@ -149,13 +156,23 @@ class PlanningSearchService(AsyncBaseService):
                     ITEMS: [
                         doc
                         async for doc in cursor
-                        if doc["type"] == resource or (resource == "events" and doc["type"] == "event")
+                        if self._get_item_resource_type(doc) == resource
+                        # if doc["type"] == resource or (resource == "events" and doc["type"] == "event")
                     ]
                 }
                 await getattr(app, "on_fetched_resource").call_async(resource, response)
                 await getattr(app, "on_fetched_resource_%s" % resource).call_async(response)
 
         return cursor
+
+    def _get_item_resource_type(self, item: dict) -> str:
+        resource = item["type"]
+        if resource == "event":
+            resource = "events"
+        elif resource == "assignment":
+            resource = "assignments"
+
+        return resource
 
 
 class PlanningSearchResource(superdesk.Resource):
