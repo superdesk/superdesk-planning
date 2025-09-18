@@ -103,15 +103,15 @@ describe('actions.assignments.ui', () => {
                         states: ['assigned', 'submitted'],
                         page: 1,
                         dateFilter: undefined,
-                        deskId: '',
-                        userId: null,
+                        deskIds: null,
+                        userIds: null,
                         searchQuery: null,
-                        orderByField: 'Scheduled',
-                        orderDirection: 'Asc',
-                        type: null,
+                        sortField: 'Scheduled',
+                        sortOrder: 'Asc',
+                        contentTypes: null,
                         priority: null,
                         ignoreScheduledUpdates: false,
-                        max_results: 100,
+                        maxResults: 100,
                     }]);
 
                     expect(assignmentsApi.receivedAssignments.callCount).toBe(1);

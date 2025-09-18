@@ -525,6 +525,7 @@ export const assignmentInitialState = {
     searchQuery: null,
     selectedDeskId: '',
     assignmentListSingleGroupView: null,
+    searchParams: {},
 
     groupKeys: ['TODO', 'IN_PROGRESS', 'COMPLETED'],
     lists: {
