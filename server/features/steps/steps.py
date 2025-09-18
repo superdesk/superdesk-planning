@@ -500,7 +500,7 @@ async def step_impl_then_get_response_order(context):
     await assert_200(context.response)
     response_data = (await get_json_data(context.response) or {}).get("_items")
     ids = [item["_id"] for item in response_data]
-    expected_order = json.loads(context.text)
+    expected_order = json.loads(apply_placeholders(context, context.text))
 
     assert ids == expected_order, "{} != {}".format(",".join(ids), ",".join(expected_order))
 
