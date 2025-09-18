@@ -74,6 +74,35 @@ export class EventDateTime extends React.PureComponent<IProps> {
 
         const showDash = !((noEndTime || isFullDay) && !multiDay);
 
+        const remoteTimezoneTooltipContent: React.ComponentType = () => (
+            <Spacer h gap="4">
+                <span className="EventDateTime__timezone">
+                    {timeUtils.getTimeZoneAbbreviation(remoteStart.format('z'))}
+                </span>
+
+                <DateTime
+                    withDate={remoteStartWithDate}
+                    withYear={remoteStartWithYear}
+                    date={remoteStart}
+                    withTime={!isFullDay}
+                    color="inherit"
+                    {...commonProps}
+                />
+
+                {showDash && <>&ndash;</>}
+
+                <DateTime
+                    withDate={remoteEndWithDate}
+                    withYear={remoteEndWithYear}
+                    date={remoteEnd}
+                    withTime={!isFullDay}
+                    isEndEventDateTime={true}
+                    color="inherit"
+                    {...commonProps}
+                />
+            </Spacer>
+        );
+
         return (
             <span className="EventDateTime sd-list-item__slugline sd-no-wrap" data-test-id="event-datetime">
                 <Spacer h gap="4" noWrap>
@@ -96,43 +125,11 @@ export class EventDateTime extends React.PureComponent<IProps> {
                         />
                     </span>
 
-                    {
-                        isRemoteTimeZone && (
-                            <Tooltip
-                                content={() => (
-                                    <Spacer h gap="4">
-                                        <span className="EventDateTime__timezone">
-                                            {timeUtils.getTimeZoneAbbreviation(remoteStart.format('z'))}
-                                        </span>
-
-                                        <DateTime
-                                            withDate={remoteStartWithDate}
-                                            withYear={remoteStartWithYear}
-                                            date={remoteStart}
-                                            withTime={!isFullDay}
-                                            color="inherit"
-                                            {...commonProps}
-                                        />
-
-                                        {showDash && <>&ndash;</>}
-
-                                        <DateTime
-                                            withDate={remoteEndWithDate}
-                                            withYear={remoteEndWithYear}
-                                            date={remoteEnd}
-                                            withTime={!isFullDay}
-                                            isEndEventDateTime={true}
-                                            color="inherit"
-                                            {...commonProps}
-                                        />
-                                    </Spacer>
-                                )}
-                            >
-                                <Icon name="globe" />
-                            </Tooltip>
-
-                        )
-                    }
+                    {isRemoteTimeZone && (
+                        <Tooltip content={remoteTimezoneTooltipContent}>
+                            <Icon name="globe" />
+                        </Tooltip>
+                    )}
 
                     {isAllDay && (<span>{gettext('All day')}</span>)}
                 </Spacer>
