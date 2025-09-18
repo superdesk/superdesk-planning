@@ -145,3 +145,13 @@ export const planningFirstLineConfig: Array<ILineConfig> =
 export const getPlanningSecondLineConfig = ({isAgendaEnabled}: {isAgendaEnabled: boolean}): Array<ILineConfig> =>
     (appConfig.planning?.planning_list_item?.secondLine ?? planningSecondLineDefaults)
         .filter(({fieldId}: ILineConfig) => isAgendaEnabled ? true : fieldId !== 'agendas');
+
+/**
+ * Arrives as a string from the backend, if unassigned it's a boolean
+ */
+export const getAutoAddToWorkflowConfig = (): boolean => {
+    const autoAddToWorkflow = appConfig.planning_auto_assign_to_workflow;
+
+    return (typeof autoAddToWorkflow === 'string' && autoAddToWorkflow === 'true')
+        || (typeof autoAddToWorkflow === 'boolean' && appConfig.planning_auto_assign_to_workflow === true);
+};

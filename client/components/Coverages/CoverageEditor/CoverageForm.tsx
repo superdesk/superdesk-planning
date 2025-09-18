@@ -30,6 +30,7 @@ import '../style.scss';
 import {VOCABULARIES_TO_BE_EXCLUDED} from '../../../utils/contentProfiles';
 import {isCustomVocabulary} from '../../../helpers';
 import {isCoverageAssigned, isCoverageDraft} from '../../../utils/planning';
+import {getAutoAddToWorkflowConfig} from '../../../config';
 
 interface IOwnProps {
     field: string;
@@ -532,7 +533,9 @@ export class CoverageFormComponent extends React.Component<IProps, IState> {
             priority: {field: 'planning.priority'},
         };
 
-        if (appConfig.planning_auto_assign_to_workflow != true) {
+        const isAutoAddToWorkflowOn = getAutoAddToWorkflowConfig();
+
+        if (isAutoAddToWorkflowOn === false) {
             const shouldDisableToggle = () => {
                 if (this.props.value.add_coverage_to_workflow != true) {
                     return !(isCoverageDraft(this.props.value)
@@ -560,6 +563,10 @@ export class CoverageFormComponent extends React.Component<IProps, IState> {
          * after decoupling this component from `IEditorAPI`.
          */
         const editorDomFields = {};
+
+        if (isAutoAddToWorkflowOn) {
+            delete searchProfile['add_coverage_to_workflow'];
+        }
 
         return (
             <div className="coverage-editor">
