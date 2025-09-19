@@ -63,7 +63,7 @@ const ActionsSubnavDropdownComponent = (props) => {
 
     if (props.privileges[PRIVILEGES.MANAGE_EXPORT_TEMPLATES]) {
         items.push({
-            label: gettext('Manage Export Templates'),
+            label: gettext('Manage Custom Layouts'),
             action: () => showModalSf(({closeModal}) => (
                 <ManageExportTemplatesModal closeModal={closeModal} />
             )),

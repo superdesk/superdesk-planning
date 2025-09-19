@@ -83,7 +83,14 @@ export class ManageExportTemplatesModal extends React.PureComponent<IProps> {
             );
 
         return (
-            <Modal visible closeOnEscape onHide={this.props.closeModal} size="x-large" contentPadding="none">
+            <Modal
+                visible
+                size="x-large"
+                closeOnEscape
+                contentPadding="none"
+                headerTemplate={gettext('Manage Custom Layouts')}
+                onHide={this.props.closeModal}
+            >
                 <ExportTemplatesView
                     ItemComponent={ExportTemplateItem}
                     getFormConfig={() => this.config}
