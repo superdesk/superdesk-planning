@@ -163,7 +163,7 @@ export class AdvancedSearch extends React.PureComponent<IProps> {
                     clearable: true,
                 },
                 anpa_category: {
-                    field: 'anpaCategory',
+                    field: this.props.type === 'assignments' ? 'anpaCategory' : 'anpa_category',
                 },
                 start_date: {
                     canClear: true,
