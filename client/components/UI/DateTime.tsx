@@ -20,6 +20,7 @@ interface IPropsDateTime {
     noEndTime?: boolean,
     multiDay?: boolean,
     testId?: string,
+    color?: string;
 }
 
 /**
@@ -39,6 +40,7 @@ function DateTime({
     noEndTime,
     multiDay,
     testId,
+    color,
 }: IPropsDateTime) {
     const {gettext} = superdeskApi.localization;
     const dateFormat = appConfig.planning.dateformat;
@@ -80,7 +82,12 @@ function DateTime({
     const tz = timeUtils.getTimeZoneAbbreviation(date.format('z')) + ' ';
 
     return (
-        <time className={!padLeft ? 'Datetime' : null} title={tz + displayDate} data-test-id={testId}>
+        <time
+            className={!padLeft ? 'Datetime' : null}
+            title={tz + displayDate}
+            style={{color}}
+            data-test-id={testId}
+        >
             {displayDate}
         </time>
     );
