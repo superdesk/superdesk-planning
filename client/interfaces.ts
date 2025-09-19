@@ -1628,7 +1628,7 @@ export interface IAssignmentSearchParams {
     contentType?: IG2ContentType;
     priority?: string;
     ignoreScheduledUpdates?: boolean;
-    dateFilter?: 'today' | 'current' | 'future';
+    dateFilter?: IDateRange;
     timeZone?: string;
     startDate?: string;
     endDate?: string;
@@ -1657,7 +1657,7 @@ export interface IAssignmentSearchAPIParams {
     states?: string;
     g2_content_type?: string;
     priority?: string;
-    date_filter?: 'today' | 'current' | 'future';
+    date_filter?: IDateRange;
     start_date?: string;
     end_date?: string;
     time_zone?: string;

@@ -1,8 +1,9 @@
 import React from 'react';
 import {connect} from 'react-redux';
 import {cloneDeep, get, set} from 'lodash';
+import {produce} from 'immer';
 
-import {superdeskApi, planningApi} from '../../superdeskApi';
+import {superdeskApi} from '../../superdeskApi';
 import {Button} from 'superdesk-ui-framework/react';
 import {IDesk} from 'superdesk-api';
 import {IAssignmentSearchParams} from '../../interfaces';
@@ -52,31 +53,31 @@ class AssignmentFilterPanelComponent extends React.Component<IProps, IState> {
     }
 
     onChangeHandler<T extends keyof IAssignmentSearchParams>(field: T, value: IAssignmentSearchParams[T]) {
-        const params = cloneDeep(this.state.params);
-
-        if (Array.isArray(value) && value.length === 0) {
-            set(params, field, null);
-        } else {
-            set(params, field, value);
-        }
-
-        this.setState({params: params});
+        this.setState((prevState) => (
+            produce(prevState, (draft) => {
+                if (Array.isArray(value) && value.length === 0) {
+                    set(draft.params, field, null);
+                } else {
+                    set(draft.params, field, value);
+                }
+            })
+        ));
     }
 
     onChangeMultiple(updates: IAssignmentSearchParams) {
-        const params = cloneDeep(this.state.params);
+        this.setState((prevState) => (
+            produce(prevState, (draft) => {
+                Object.keys(updates).forEach((field) => {
+                    const value = get(updates, field);
 
-        Object.keys(updates).forEach((field) => {
-            const value = get(updates, field);
-
-            if (Array.isArray(value) && value.length === 0) {
-                set(params, field, null);
-            } else {
-                set(params, field, value);
-            }
-        });
-
-        this.setState({params: params});
+                    if (Array.isArray(value) && value.length === 0) {
+                        set(draft.params, field, null);
+                    } else {
+                        set(draft.params, field, value);
+                    }
+                });
+            })
+        ));
     }
 
     search() {
@@ -107,6 +108,7 @@ class AssignmentFilterPanelComponent extends React.Component<IProps, IState> {
                     <ContentBlock>
                         <ContentBlockInner>
                             <AdvancedSearch
+                                type="assignments"
                                 params={this.state.params}
                                 onChange={this.onChangeHandler}
                                 onChangeMultiple={this.onChangeMultiple}
@@ -128,7 +130,7 @@ class AssignmentFilterPanelComponent extends React.Component<IProps, IState> {
                         <Button
                             text={gettext('Search')}
                             onClick={this.search}
-                            style="primary"
+                            type="primary"
                         />
                     </div>
                 </Footer>
