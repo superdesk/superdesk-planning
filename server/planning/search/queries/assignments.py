@@ -52,13 +52,13 @@ def search_desks(params: dict, query: elastic.ElasticQuery) -> None:
 
 
 def search_users(params: dict, query: elastic.ElasticQuery) -> None:
-    desk_ids = common.str_to_array(params.get("user_ids"))
+    user_ids = common.str_to_array(params.get("user_ids"))
 
-    if len(desk_ids):
+    if len(user_ids):
         query.must.append(
             elastic.terms(
                 field="assigned_to.user",
-                values=desk_ids,
+                values=user_ids,
             )
         )
 
