@@ -75,7 +75,8 @@ Feature: Assignment Search
                         }
                     }],
                     "fields": [
-                        {"field": "my_name", "value": "Elephants"}
+                        {"field": "my_name", "value": "Elephants being creative"},
+                        {"field": "my_description", "value": "Can paint cats dancing"}
                     ]
                 },
                 "assigned_to": {
@@ -89,7 +90,11 @@ Feature: Assignment Search
                     "g2_content_type": "photo",
                     "priority": 4,
                     "headline": "Zebras Arrive At Local Zoo",
-                    "slugline": "Donkeys Zebras"
+                    "slugline": "Donkeys Zebras",
+                    "fields": [
+                        {"field": "my_name", "value": "Elephants singing"},
+                        {"field": "my_description", "value": "Can paint cats singing"}
+                    ]
                 },
                 "assigned_to": {
                     "desk": "50ca3437a4f1ec225c378f42",
@@ -501,14 +506,44 @@ Feature: Assignment Search
 
         # Custom Texts
         When we get "/events_planning_search?repo=assignments&custom_text=my_name:Elephants"
+        Then we get list with 2 items
+        """
+        {"_items": [
+            {"_id": "#ASSIGNMENT_1_ID#"},
+            {"_id": "#ASSIGNMENT_2_ID#"}
+        ]}
+        """
+        When we get "/events_planning_search?repo=assignments&custom_text=my_name:Elephants creative"
         Then we get list with 1 items
         """
         {"_items": [
             {"_id": "#ASSIGNMENT_1_ID#"}
         ]}
         """
+        When we get "/events_planning_search?repo=assignments&custom_text=my_name:Elephants,my_description:paint"
+        Then we get list with 2 items
+        """
+        {"_items": [
+            {"_id": "#ASSIGNMENT_1_ID#"},
+            {"_id": "#ASSIGNMENT_2_ID#"}
+        ]}
+        """
+        When we get "/events_planning_search?repo=assignments&custom_text=my_name:Elephants creative,my_description:paint dancing"
+        Then we get list with 1 items
+        """
+        {"_items": [
+            {"_id": "#ASSIGNMENT_1_ID#"}
+        ]}
+        """
+        When we get "/events_planning_search?repo=assignments&custom_text=my_name:Elephants,my_description:paint cats NOT dancing"
+        Then we get list with 1 items
+        """
+        {"_items": [
+            {"_id": "#ASSIGNMENT_2_ID#"}
+        ]}
+        """
 
-    @auth @wip
+    @auth
     Scenario: Search Assignments using query_string
         When we get "/events_planning_search?repo=assignments&search_query=Zoo"
         Then we get list with 2 items
