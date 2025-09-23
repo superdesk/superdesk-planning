@@ -9,6 +9,7 @@ import {
     IVocabulary,
     IVocabularyItem,
     RICH_FORMATTING_OPTION,
+    IElasticBoolQueryParams,
 } from 'superdesk-api';
 import {Dispatch, Store} from 'redux';
 import * as moment from 'moment';
@@ -216,7 +217,14 @@ export enum LOCK_STATE {
 
 export type ISearchSpikeState = 'spiked' | 'draft' | 'both';
 
-export type IDateRange = 'today' | 'tomorrow' | 'this_week' | 'next_week' | 'last24' | 'for_date';
+export type IDateRange = 'today'
+    | 'tomorrow'
+    | 'this_week'
+    | 'next_week'
+    | 'last24'
+    | 'for_date'
+    | 'current'
+    | 'future';
 
 export enum SORT_ORDER {
     ASCENDING = 'ascending',
@@ -226,7 +234,8 @@ export enum SORT_ORDER {
 export enum SORT_FIELD {
     SCHEDULE = 'schedule',
     CREATED = 'created',
-    UPDATED = 'updated'
+    UPDATED = 'updated',
+    PRIORITY = 'priority',
 }
 
 export enum GROUP_LIST_BY {
@@ -1418,7 +1427,7 @@ export interface IFormAutosave {
 }
 
 export interface ISearchParams {
-    ednote: any;
+    ednote?: string;
     // Common Params
     item_ids?: Array<string>;
     name?: string;
@@ -1608,6 +1617,67 @@ export interface ISearchFilter extends IBaseRestApiResponse {
     item_type: FILTER_TYPE;
     params: ISearchParams;
     schedules?: Array<ISearchFilterSchedule>;
+}
+
+export interface IAssignmentSearchParams {
+    query?: IElasticBoolQueryParams;
+    deskIds?: Array<string>;
+    userIds?: Array<string>;
+    searchQuery?: string;
+    states?: Array<ASSIGNMENT_STATE>;
+    contentType?: IG2ContentType;
+    priority?: string;
+    ignoreScheduledUpdates?: boolean;
+    dateFilter?: IDateRange;
+    timeZone?: string;
+    startDate?: string;
+    endDate?: string;
+    multipleContent?: boolean;
+    slugline?: string;
+    customText?: {[field: string]: string};
+    genre?: IVocabularyItem;
+    assignmentPriority?: IVocabularyItem;
+
+    anpaCategory?: Array<IANPACategory>;
+    subject?: Array<ISubject>;
+    language?: string;
+
+    maxResults?: number;
+    page?: number;
+    projections?: Array<string>;
+    sortOrder?: SORT_ORDER;
+    sortField?: SORT_FIELD;
+}
+
+export interface IAssignmentSearchAPIParams {
+    query?: IElasticBoolQueryParams;
+    desk_ids?: string;
+    user_ids?: string;
+    search_query?: string;
+    states?: string;
+    g2_content_type?: string;
+    priority?: string;
+    date_filter?: IDateRange;
+    start_date?: string;
+    end_date?: string;
+    time_zone?: string;
+    ignore_scheduled_updates?: boolean;
+    multiple_content?: boolean;
+    slugline?: string;
+    custom_text?: string;
+    genre?: string;
+    assignment_priority?: string;
+
+    anpa_category?: string;
+    subject?: string;
+    language?: string;
+
+    repo: 'assignments';
+    max_results?: number;
+    page?: number;
+    projections?: Array<string>;
+    sort_order?: SORT_ORDER;
+    sort_field?: SORT_FIELD;
 }
 
 export interface IEditorFieldProps<T = any> {
@@ -2350,6 +2420,7 @@ export interface IPlanningAPI {
     assignments: {
         getById(assignmentId: IAssignmentItem['_id']): Promise<IAssignmentItem>;
         createAndOpenArticleFromTemplate(assignmentId: IAssignmentItem['_id'], templateName: string): Promise<void>;
+        search(params: IAssignmentSearchParams): Promise<IRestApiResponse<IAssignmentItem>>;
     };
     coverages: {
         cancelCoverage(

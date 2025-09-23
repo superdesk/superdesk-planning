@@ -1,96 +1,87 @@
 import React from 'react';
 import {connect} from 'react-redux';
-import {set, get, cloneDeep, isEqual} from 'lodash';
+import {cloneDeep, get, set} from 'lodash';
+import {produce} from 'immer';
 
-import {superdeskApi, planningApi} from '../../superdeskApi';
-import {ISearchParams, PLANNING_VIEW} from '../../interfaces';
+import {superdeskApi} from '../../superdeskApi';
+import {Button} from 'superdesk-ui-framework/react';
+import {IDesk} from 'superdesk-api';
+import {IAssignmentSearchParams} from '../../interfaces';
 
-import {Button} from '../UI';
+import {assignmentSearchProfile} from '../../selectors/forms';
+import {getSelectedDeskId} from '../../selectors';
+import assignments from '../../actions/assignments';
+
 import {Content, Footer, Header, SidePanel, Tools, ContentBlock, ContentBlockInner} from '../UI/SidePanel';
 import {AdvancedSearch} from '../AdvancedSearch';
-import * as selectors from '../../selectors';
-import {currentSearchParams} from '../../selectors/search';
 
 interface IProps {
-    activeFilter: PLANNING_VIEW;
-    currentParams: ISearchParams;
-    isViewFiltered: boolean;
-    searchProfile: any;
-
+    currentParams: IAssignmentSearchParams;
+    filtersOpen: boolean;
     toggleFilterPanel(): void;
-    popupContainer?(): HTMLElement;
+    searchProfile: any;
+    setSearchParams(params: IAssignmentSearchParams): void;
+    currentDeskId?: IDesk['_id'];
 }
 
 interface IState {
-    params: ISearchParams;
+    params: IAssignmentSearchParams;
 }
 
 const mapStateToProps = (state) => ({
-    activeFilter: selectors.main.activeFilter(state),
-    currentParams: currentSearchParams(state),
-    isViewFiltered: selectors.main.isViewFiltered(state),
-    searchProfile: selectors.forms.searchProfile(state),
+    searchProfile: assignmentSearchProfile(state),
+    currentDeskId: getSelectedDeskId(state),
 });
 
-export class SearchPanelComponent extends React.Component<IProps, IState> {
+const mapDispatchToProps = (dispatch) => ({
+    setSearchParams: (params: IAssignmentSearchParams) => dispatch(assignments.ui.setAssignmentSearchParams(params)),
+});
+
+class AssignmentFilterPanelComponent extends React.Component<IProps, IState> {
     constructor(props) {
         super(props);
         this.onChangeHandler = this.onChangeHandler.bind(this);
         this.onChangeMultiple = this.onChangeMultiple.bind(this);
         this.onClear = this.onClear.bind(this);
         this.search = this.search.bind(this);
-        this.state = {params: cloneDeep(this.props.currentParams)};
+        this.state = {params: cloneDeep(this.props.currentParams || {})};
     }
 
     onClear() {
-        if (!this.props.isViewFiltered) {
-            return;
-        }
-
         this.setState({params: {}});
-        planningApi.ui.list.clearSearch();
+        this.props.setSearchParams({});
     }
 
-    componentWillReceiveProps(nextProps) {
-        if (nextProps.activeFilter !== this.props.activeFilter ||
-            !isEqual(nextProps.currentParams, this.props.currentParams)
-        ) {
-            this.setState({
-                params: cloneDeep(nextProps.currentParams),
-            });
-        }
+    onChangeHandler<T extends keyof IAssignmentSearchParams>(field: T, value: IAssignmentSearchParams[T]) {
+        this.setState((prevState) => (
+            produce(prevState, (draft) => {
+                if (Array.isArray(value) && value.length === 0) {
+                    set(draft.params, field, null);
+                } else {
+                    set(draft.params, field, value);
+                }
+            })
+        ));
     }
 
-    onChangeHandler<T extends keyof ISearchParams>(field: T, value: ISearchParams[T]) {
-        const params = cloneDeep(this.state.params);
+    onChangeMultiple(updates: IAssignmentSearchParams) {
+        this.setState((prevState) => (
+            produce(prevState, (draft) => {
+                Object.keys(updates).forEach((field) => {
+                    const value = get(updates, field);
 
-        if (Array.isArray(value) && value.length === 0) {
-            set(params, field, null);
-        } else {
-            set(params, field, value);
-        }
-
-        this.setState({params: params});
-    }
-
-    onChangeMultiple(updates: ISearchParams) {
-        const params = cloneDeep(this.state.params);
-
-        Object.keys(updates).forEach((field) => {
-            const value = get(updates, field);
-
-            if (Array.isArray(value) && value.length === 0) {
-                set(params, field, null);
-            } else {
-                set(params, field, value);
-            }
-        });
-
-        this.setState({params: params});
+                    if (Array.isArray(value) && value.length === 0) {
+                        set(draft.params, field, null);
+                    } else {
+                        set(draft.params, field, value);
+                    }
+                });
+            })
+        ));
     }
 
     search() {
-        planningApi.ui.list.search(this.state.params);
+        this.props.setSearchParams(this.state.params);
     }
 
     render() {
@@ -117,13 +108,13 @@ export class SearchPanelComponent extends React.Component<IProps, IState> {
                     <ContentBlock>
                         <ContentBlockInner>
                             <AdvancedSearch
-                                type="event_planning"
+                                type="assignments"
                                 params={this.state.params}
                                 onChange={this.onChangeHandler}
                                 onChangeMultiple={this.onChangeMultiple}
-                                popupContainer={this.props.popupContainer}
                                 searchProfile={this.props.searchProfile}
-                                enabledField="search_enabled"
+                                enabledField="enabled"
+                                filterUsersByDesk={this.props.currentDeskId}
                             />
                         </ContentBlockInner>
                     </ContentBlock>
@@ -131,15 +122,15 @@ export class SearchPanelComponent extends React.Component<IProps, IState> {
                 <Footer className="side-panel__footer--button-box">
                     <div className="flex-grid flex-grid--boxed-small flex-grid--wrap-items flex-grid--small-2">
                         <Button
-                            disabled={!this.props.isViewFiltered}
+                            disabled={false}
                             text={gettext('Clear')}
-                            hollow={true}
+                            style="hollow"
                             onClick={this.onClear}
                         />
                         <Button
                             text={gettext('Search')}
                             onClick={this.search}
-                            color="primary"
+                            type="primary"
                         />
                     </div>
                 </Footer>
@@ -148,4 +139,4 @@ export class SearchPanelComponent extends React.Component<IProps, IState> {
     }
 }
 
-export const SearchPanel = connect(mapStateToProps)(SearchPanelComponent);
+export const AssignmentFilterPanel = connect(mapStateToProps, mapDispatchToProps)(AssignmentFilterPanelComponent);

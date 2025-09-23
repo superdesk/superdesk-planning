@@ -1582,6 +1582,10 @@ assignments_schema: dict[str, Any] = {
 }
 assignments_schema["planning"]["schema"][TO_BE_CONFIRMED_FIELD] = TO_BE_CONFIRMED_FIELD_SCHEMA
 
+# Make sure ``subject`` field with custom CVs are searchable
+assignments_schema["planning"]["schema"]["subject"] = deepcopy(planning_schema["subject"])
+assignments_schema["planning"]["mapping"]["properties"]["subject"] = deepcopy(planning_schema["subject"]["mapping"])
+
 
 class AssignmentsResource(superdesk.Resource):
     url = "assignments"

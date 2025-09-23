@@ -959,7 +959,7 @@ function modifyForServer(plan: Partial<IPlanningItem>, original?: Partial<IPlann
  * @param {object} coverage - The coverage to modify
  * @return {object} coverage item provided
  */
-export function modifyCoverageForClient(coverage: IPlanningCoverageItem): IPlanningCoverageItem {
+export function modifyCoverageForClient(coverage: IPlanningCoverageItem | IAssignmentItem): IPlanningCoverageItem {
     const modifyGenre = (coverage) => {
         // Convert genre from an Array to an Object
         if (get(coverage, 'planning.genre[0]')) {

@@ -63,6 +63,10 @@ export const planningSearchProfile = createSelector(
     [profiles],
     (p) => get(p, 'advanced_search.editor.planning', {})
 );
+export const assignmentSearchProfile = createSelector(
+    [profiles],
+    (p) => get(p, 'advanced_search.editor.assignments', {})
+);
 
 export const defaultEventDuration = createSelector(
     [eventProfile],

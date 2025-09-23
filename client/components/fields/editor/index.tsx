@@ -51,6 +51,7 @@ import {EditorFieldScheduledUpdates} from './ScheduledUpdates';
 import {EditorFieldAssignedCoverageComponent} from './AssignedCoverage';
 import {EditorFieldEventRelatedPlannings} from './EventRelatedPlannings/EventRelatedPlanningWrapper';
 import {EditorFieldAddCoverageToWorkflow} from './AddCoverageToWorkflow';
+import {EditorFieldAssignmentPriority} from './AssignmentPriority';
 
 /**
  * This is the single source of truth for field definitions, allows for registering
@@ -144,6 +145,7 @@ export const FIELD_TO_EDITOR_COMPONENT = {
     add_coverage_to_workflow: EditorFieldAddCoverageToWorkflow,
     scheduled_updates: EditorFieldScheduledUpdates,
     coverage_assignment_status: EditorFieldAssignedCoverageComponent,
+    assignment_priority: EditorFieldAssignmentPriority,
 };
 
 // Import resource fields so that registration happens after the above

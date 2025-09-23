@@ -7,6 +7,7 @@ import {PageContent} from '../PageContent';
 import {AssignmentList} from './AssignmentList';
 import {AssignmentPreview} from './AssignmentPreview';
 import {AssignmentsSubNav} from './AssignmentsSubNav';
+import {AssignmentFilterPanel} from '../../components/Assignments/AssignmentFilterPanel';
 
 export const FulfilAssignmentUi = ({previewOpen, newsItem}) => (
     <PageContent
@@ -37,6 +38,7 @@ export const FulfilAssignmentUi = ({previewOpen, newsItem}) => (
             hideItemActions: true,
             showFulfilAssignment: true,
         }}
+        FilterPanel={AssignmentFilterPanel}
     />
 );
 

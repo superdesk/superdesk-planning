@@ -122,19 +122,29 @@ def str_to_date(value: Union[datetime, str]):
     return _str_to_date(value)
 
 
-def search_text_field(params: Dict[str, Any], query: elastic.ElasticQuery, field: str):
+def search_text_field(params: Dict[str, Any], query: elastic.ElasticQuery, field: str, search_field: str | None = None):
+    if search_field is None:
+        search_field = field
+
     if not len(params.get(field) or ""):
         return
     elif field in query.multilingual_fields:
         query.must.append(
-            elastic.bool_or([construct_text_query(params, field), construct_multilingual_text_query(params, field)])
+            elastic.bool_or(
+                [construct_text_query(params, field, search_field), construct_multilingual_text_query(params, field)]
+            )
         )
     else:
-        query.must.append(elastic.query_string(text=params[field], field=field, default_operator="AND", lenient=True))
+        query.must.append(
+            elastic.query_string(text=params[field], field=search_field, default_operator="AND", lenient=True)
+        )
 
 
-def construct_text_query(params: Dict[str, Any], field: str):
-    return elastic.query_string(text=params[field], field=field, default_operator="AND", lenient=True)
+def construct_text_query(params: Dict[str, Any], field: str, search_field: str | None = None):
+    if search_field is None:
+        search_field = field
+
+    return elastic.query_string(text=params[field], field=search_field, default_operator="AND", lenient=True)
 
 
 def construct_multilingual_text_query(params: Dict[str, Any], field: str):
@@ -190,14 +200,15 @@ def search_full_text(params: Dict[str, Any], query: elastic.ElasticQuery):
         query.must.append(elastic.query_string(text=params["full_text"], lenient=True, default_operator="AND"))
 
 
-def search_anpa_category(params: Dict[str, Any], query: elastic.ElasticQuery):
+def search_anpa_category(params: Dict[str, Any], query: elastic.ElasticQuery, field_prefix: str | None = None):
     categories = str_to_array(params.get("anpa_category"))
 
     if len(categories):
-        query.must.append(elastic.terms(field="anpa_category.qcode", values=categories))
+        field = f"{field_prefix}.anpa_category.qcode" if field_prefix else "anpa_category.qcode"
+        query.must.append(elastic.terms(field=field, values=categories))
 
 
-def search_subject(params: Dict[str, Any], query: elastic.ElasticQuery):
+def search_subject(params: Dict[str, Any], query: elastic.ElasticQuery, field_prefix: str | None = None):
     subjects = str_to_array(params.get("subject"))
 
     subjects_by_scheme: Dict[str, List[str]] = {}
@@ -205,16 +216,20 @@ def search_subject(params: Dict[str, Any], query: elastic.ElasticQuery):
         scheme, code = subject.split(":", 1) if ":" in subject else ("", subject)
         subjects_by_scheme.setdefault(scheme, []).append(code)
 
+    subject_field = f"{field_prefix}.subject" if field_prefix else "subject"
+    scheme_field = f"{field_prefix}.subject.scheme" if field_prefix else "subject.scheme"
+    qcode_field = f"{field_prefix}.subject.qcode" if field_prefix else "subject.qcode"
+
     for scheme, codes in subjects_by_scheme.items():
         if scheme:
             query.must.append(
                 elastic.nested(
-                    "subject",
+                    subject_field,
                     {
                         "bool": {
                             "must": [
-                                elastic.term(field="subject.scheme", value=scheme),
-                                elastic.terms(field="subject.qcode", values=codes),
+                                elastic.term(field=scheme_field, value=scheme),
+                                elastic.terms(field=qcode_field, values=codes),
                             ]
                         }
                     },
@@ -223,16 +238,16 @@ def search_subject(params: Dict[str, Any], query: elastic.ElasticQuery):
         else:
             query.must.append(
                 elastic.nested(
-                    "subject",
+                    subject_field,
                     {
                         "bool": {
                             "must": [
-                                elastic.terms(field="subject.qcode", values=codes),
+                                elastic.terms(field=qcode_field, values=codes),
                                 {
                                     "bool": {
                                         "should": [
-                                            elastic.term(field="subject.scheme", value=""),
-                                            {"bool": {"must_not": elastic.field_exists("subject.scheme")}},
+                                            elastic.term(field=scheme_field, value=""),
+                                            {"bool": {"must_not": elastic.field_exists(scheme_field)}},
                                         ],
                                     },
                                 },
@@ -255,15 +270,21 @@ def search_place(params: Dict[str, Any], query: elastic.ElasticQuery):
         query.must.append(elastic.terms(field="place.qcode", values=places))
 
 
-def search_language(params: Dict[str, Any], query: elastic.ElasticQuery):
+def search_language(
+    params: Dict[str, Any], query: elastic.ElasticQuery, field_prefix: str | None = None, include_multi: bool = True
+):
     languages = str_to_array(params.get("language"))
 
     if len(languages):
-        query.must.append(
-            elastic.bool_or(
-                [elastic.terms(field="language", values=languages), elastic.terms(field="languages", values=languages)]
+        field = f"{field_prefix}.language" if field_prefix else "language"
+        if not include_multi:
+            query.must.append(elastic.terms(field=field, values=languages))
+        else:
+            query.must.append(
+                elastic.bool_or(
+                    [elastic.terms(field=field, values=languages), elastic.terms(field=f"{field}s", values=languages)]
+                )
             )
-        )
 
 
 async def search_locked(params: Dict[str, Any], query: elastic.ElasticQuery):
@@ -371,21 +392,24 @@ def append_states_query_for_advanced_search(params: Dict[str, Any], query: elast
 
 
 def get_sort_field(params: Dict[str, Any], default: str) -> Optional[str]:
-    field = params.get("sort_field") or default
+    field = (params.get("sort_field") or default).lower()
 
-    if field == "schedule":
+    if field in ["schedule", "scheduled"]:
         return "schedule"
     elif field == "created":
         return "firstcreated"
     elif field == "updated":
         return "versioncreated"
+    elif field == "priority":
+        return "priority"
 
-    # This means the provided sort filter has invalid an invalid value
+    # This means the provided sort filter has an invalid value
     return None
 
 
 def get_sort_order(params: Dict[str, Any], default: str) -> str:
-    return "asc" if (params.get("sort_order") or default) == "ascending" else "desc"
+    sort_order = (params.get("sort_order") or default).lower()
+    return "asc" if sort_order in ["ascending", "asc"] else "desc"
 
 
 def search_date_non_schedule(params: Dict[str, Any], query: elastic.ElasticQuery):

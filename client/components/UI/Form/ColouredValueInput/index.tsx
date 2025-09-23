@@ -14,7 +14,7 @@ interface IProps {
     labelKey?: string; // defaults to 'name'
     valueKey?: string; // defaults to 'qcode'
     field: string;
-    options: Array<any>
+    options: Array<any>;
     readOnly?: boolean;
     required?: boolean;
     labelLeft?: boolean;
@@ -22,8 +22,9 @@ interface IProps {
     noMargin?: boolean;
     iconName: string;
     row?: boolean;
-    noValueString?: string
+    noValueString?: string;
     language?: string;
+    noTitleInPopup?: boolean;
 
     // Input events
     onChange(field: string, value: any): void;
@@ -110,7 +111,7 @@ export class ColouredValueInput extends React.Component<IProps, IState> {
                 placement="bottom-start"
                 component={({closePopup}) => (
                     <ColouredValueDropdown
-                        title={label}
+                        title={this.props.noTitleInPopup === true ? undefined : label}
                         options={options}
                         getClassNamesForOption={this.getIconClasses}
                         onChange={(value) => {

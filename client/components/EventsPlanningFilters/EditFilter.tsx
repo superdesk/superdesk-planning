@@ -237,6 +237,7 @@ export class EditFilter extends React.Component<IEventsPlanningContentPanelProps
                                 }
                             )}
                             <AdvancedSearch
+                                type="event_planning"
                                 params={this.state.filter.params}
                                 onChange={this.onParamChange}
                                 onChangeMultiple={this.onMultiParamChange}

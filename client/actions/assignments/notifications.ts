@@ -56,8 +56,9 @@ const onAssignmentCreated = (_e, data) => (
             )
         );
 
-        if (querySearchSettings.deskId === null || currentDesk &&
-            (currentDesk === data.assigned_desk || currentDesk === data.original_assigned_desk)) {
+        if (querySearchSettings.deskIds == null || querySearchSettings.deskIds.length > 0 &&
+            (currentDesk === data.assigned_desk || currentDesk === data.original_assigned_desk)
+        ) {
             dispatch(assignments.ui.reloadAssignments([data.assignment_state]));
         }
 
@@ -97,7 +98,7 @@ const onAssignmentUpdated = (_e, data) => (
             )
         );
 
-        if (querySearchSettings.deskId === null ||
+        if ((querySearchSettings.deskIds?.length ?? 0) === 0 ||
             currentDesk === data.assigned_desk ||
             currentDesk === data.original_assigned_desk
         ) {

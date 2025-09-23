@@ -97,11 +97,10 @@ const queryAndGetMyAssignments = (filterByState) => (
         let querySearchSettings = cloneDeep(selectors.getAssignmentSearch(getState()));
 
         querySearchSettings.states = filterByState;
+        querySearchSettings.userIds = [selectors.general.currentUserId(getState())];
+        querySearchSettings.maxResults = 0;
 
-        querySearchSettings.deskId = null;
-        querySearchSettings.userId = selectors.general.currentUserId(getState());
-
-        querySearchSettings.size = 0;
+        delete querySearchSettings.deskIds;
 
         return dispatch(assignments.api.query(querySearchSettings))
             .then((data) => {
@@ -209,12 +208,12 @@ const queryAndSetAssignmentListGroups = (groupKey, page = 1) => (
 
         querySearchSettings.page = page;
         querySearchSettings.dateFilter = group.dateFilter;
-        querySearchSettings.orderDirection = assignmentListSelectors.sortOrder(getState());
+        querySearchSettings.sortOrder = assignmentListSelectors.sortOrder(getState());
         if (group.max_results) {
-            querySearchSettings.max_results = group.max_results;
+            querySearchSettings.maxResults = group.max_results;
         }
         if (group.baseQuery != null) {
-            querySearchSettings.baseQuery = group.baseQuery;
+            querySearchSettings.query = group.baseQuery;
         }
 
         return dispatch(assignments.api.query(querySearchSettings))
@@ -331,6 +330,16 @@ const changeListSettings = ({
         ignoreScheduledUpdates,
     },
 });
+
+function setAssignmentSearchParams(params) {
+    return (dispatch) => {
+        dispatch({
+            type: ASSIGNMENTS.ACTIONS.SET_SEARCH_PARAMS,
+            payload: params,
+        });
+        return dispatch(self.reloadAssignments(null, false));
+    };
+}
 
 /**
  * Action dispatcher to load first page of the list of assignments for current list settings.
@@ -904,6 +913,7 @@ const self = {
     queryAndGetMyAssignments,
     queryAndSetAssignmentListGroups,
     changeListSettings,
+    setAssignmentSearchParams,
     reloadAssignments,
     reloadAssignmentList,
     loadMoreAssignments,

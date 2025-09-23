@@ -126,6 +126,9 @@ class PlanningTypesAsyncService(AsyncResourceService[PlanningTypesResourceModel]
             updated_planning_type["editor"]["event"].update((planning_type.get("editor") or {}).get("event"))
             updated_planning_type["editor"]["planning"].update((planning_type.get("editor") or {}).get("planning"))
             updated_planning_type["editor"]["combined"].update((planning_type.get("editor") or {}).get("combined"))
+            updated_planning_type["editor"]["assignments"].update(
+                (planning_type.get("editor") or {}).get("assignments")
+            )
         elif planning_type["name"] in ["event", "planning", "coverage"]:
             for config_type in ["editor", "schema"]:
                 planning_type.setdefault(config_type, {})

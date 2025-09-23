@@ -1,13 +1,17 @@
 import React from 'react';
-import PropTypes from 'prop-types';
 import classNames from 'classnames';
+
+interface IProps {
+    className?: string;
+    children: React.ReactNode;
+}
 
 /**
  * @ngdoc react
  * @name Footer
  * @description Footer Component of a side panel
  */
-export const Footer = ({children, className}) => (
+export const Footer: React.FC<IProps> = ({children, className}) => (
     <div
         className={classNames(
             'side-panel__footer',
@@ -17,12 +21,3 @@ export const Footer = ({children, className}) => (
         {children}
     </div>
 );
-
-Footer.propTypes = {
-    children: PropTypes.node,
-    className: PropTypes.string,
-};
-
-Footer.defaultProps = {
-    className: '',
-};

@@ -186,6 +186,7 @@ coverage_schema = {
                 "priority": {"type": "keyword"},
                 "anpa_category": metadata_schema["anpa_category"]["mapping"],
                 "location": location_schema["mapping"],
+                "multiple_content": {"type": "boolean"},
                 "fields": {
                     "type": "nested",
                     "properties": {
