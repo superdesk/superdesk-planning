@@ -1,10 +1,13 @@
 import React from 'react';
-import {superdeskApi} from '../../superdeskApi';
+import {planningApi, superdeskApi} from '../../superdeskApi';
 import {Modal} from 'superdesk-ui-framework/react';
 import {gettext} from '../../utils';
 import {IFormField, IFormGroup} from 'superdesk-api';
 import {IPlanningExportTemplate} from 'interfaces';
+import {updateTemplates} from '../../actions/exportTemplates';
 import {ExportTemplateItem} from './ExportTemplateItem';
+import {DataProvider} from 'superdesk-core/scripts/core/helpers/data-provider';
+import {prepareSuperdeskQuery} from 'superdesk-core/scripts/core/helpers/universal-query';
 
 interface IProps {
     closeModal: () => void;
@@ -55,6 +58,10 @@ const getFormConfig = (): IFormGroup<IPlanningExportTemplate> => {
                 type: GenericFormFieldType.plainText,
                 field: 'label',
                 label: gettext('Label'),
+
+                // Required because in the export action modal for events and planning we show
+                // templates by label
+                required: true,
             },
             {
                 type: GenericFormFieldType.checkbox,
@@ -72,6 +79,30 @@ export class ManageExportTemplatesModal extends React.PureComponent<IProps> {
         super(props);
 
         this.config = getFormConfig();
+
+        new DataProvider<IPlanningExportTemplate>(
+            () => {
+                const {path, urlParams} = prepareSuperdeskQuery(
+                    'planning_export_templates',
+                    {
+                        filter: {},
+                        page: 1,
+                        max_results: 500,
+                        sort: [{_id: 'asc'}],
+                    },
+                );
+
+                return {
+                    method: 'GET',
+                    endpoint: path,
+                    params: urlParams,
+                };
+            },
+            (response) => {
+                planningApi.redux.store.dispatch(updateTemplates(response._items));
+            },
+            {},
+        );
     }
 
     render() {

@@ -19,6 +19,7 @@ import files from './files';
 import contacts from './contacts';
 import locations from './locations';
 import coveragesReducer from './coverageProfiles';
+import exportTemplates from './exportTemplates';
 
 const returnState = (state) => state || {};
 const returnGenreState = (state) => state ?? [];
@@ -43,6 +44,7 @@ const planningApp = combineReducers({
     featuredPlanning: featuredPlanning,
     files: files,
     contacts: contacts,
+    exportTemplates: exportTemplates,
 
     // The following doesn't require reducers as they are loaded using sdPlanningService
     ingest: returnState,
@@ -55,7 +57,6 @@ const planningApp = combineReducers({
     customVocabularies: returnState,
     userDesks: returnState,
     locations: locations,
-    exportTemplates: returnState,
 });
 
 export default planningApp;

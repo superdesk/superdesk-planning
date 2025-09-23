@@ -41,7 +41,8 @@ const selectEvents = (eventId, all = false, multi = false, name = '') => (
 
         return dispatch({
             type: MULTISELECT.ACTIONS.SELECT_EVENT,
-            payload: {eventId: eventId,
+            payload: {
+                eventId: eventId,
                 name: name,
             },
         });
@@ -89,7 +90,8 @@ const selectPlannings = (planningId, all = false, multi = false, name = '') => (
 
         return dispatch({
             type: MULTISELECT.ACTIONS.SELECT_PLANNING,
-            payload: {planningId: planningId,
+            payload: {
+                planningId: planningId,
                 name: name,
             },
         });
@@ -156,7 +158,7 @@ const downloadEvents = (url, data) => {
     req.responseType = 'blob';
     req.setRequestHeader('Content-Type', 'application/json;charset=UTF-8');
 
-    req.onload = function(event) {
+    req.onload = (event) => {
         var blob = req.response;
         var fileName = '';
 
@@ -294,7 +296,7 @@ const exportAsArticle = (items = [], download) => (
                 items: sortableItems,
                 action: exportArticlesDispatch,
                 desks: [...selectors.general.userDesks(getState()), personalWorkspace],
-                templates: templates.filter((t) => download ? t.download : !t.download),
+                templates: templates,
                 defaultTemplate: templates.find((t) =>
                     (isPlanning && t.name === 'default_planning') || (!isPlanning && t.name === 'default_event')),
                 defaultDesk: defaultDesk,
