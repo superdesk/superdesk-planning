@@ -1,3 +1,4 @@
+import {ExportTemplatesActions} from '../constants/exportTemplates';
 import {IPlanningExportTemplate} from '../interfaces';
 
 export interface IExportTemplatesState {
@@ -10,7 +11,7 @@ const initialState: IExportTemplatesState = {
 
 const exportTemplates = (state = initialState, action) => {
     switch (action.type) {
-    case 'UPDATE_EXPORT_TEMPLATES': {
+    case ExportTemplatesActions.UPDATE_EXPORT_TEMPLATES: {
         return action.payload;
     }
     default:
