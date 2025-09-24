@@ -62,7 +62,7 @@ function onResourceCreatedOrUpdated(_e, data) {
                     const updatedTemplates = (() => {
                         const maybeExistingTemplate = existingTemplates.find((t) => t._id === template._id);
 
-                        if (maybeExistingTemplate === null) { // new template
+                        if (maybeExistingTemplate == null) { // new template
                             return [...existingTemplates, template];
                         } else {
                             return existingTemplates.map((t) => t._id === template._id ? template : t);
