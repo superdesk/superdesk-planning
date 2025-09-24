@@ -105,10 +105,6 @@ class EventEditorComponent extends React.PureComponent<IProps> {
     }
 
     renderHeader() {
-        if (appConfig.planning_event_link_method === 'many_secondary') {
-            return null;
-        }
-
         return !this.props.itemExists ? null : (
             <React.Fragment>
                 <EventEditorHeader item={this.props.item} />
