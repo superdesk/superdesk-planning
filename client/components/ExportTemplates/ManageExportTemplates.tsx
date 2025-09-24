@@ -1,10 +1,11 @@
 import React from 'react';
-import {superdeskApi} from '../../superdeskApi';
+import {planningApi, superdeskApi} from '../../superdeskApi';
 import {Modal} from 'superdesk-ui-framework/react';
 import {gettext} from '../../utils';
 import {IFormField, IFormGroup} from 'superdesk-api';
 import {IPlanningExportTemplate} from 'interfaces';
 import {ExportTemplateItem} from './ExportTemplateItem';
+import {PLANNING_EXPORT_TEMPLATES_RESOURCE} from '../../constants/exportTemplates';
 
 interface IProps {
     closeModal: () => void;
@@ -55,6 +56,10 @@ const getFormConfig = (): IFormGroup<IPlanningExportTemplate> => {
                 type: GenericFormFieldType.plainText,
                 field: 'label',
                 label: gettext('Label'),
+
+                // Required because in the export action modal for events and planning we show
+                // templates by label
+                required: true,
             },
             {
                 type: GenericFormFieldType.checkbox,
@@ -78,7 +83,7 @@ export class ManageExportTemplatesModal extends React.PureComponent<IProps> {
         const ExportTemplatesView = superdeskApi
             .components
             .getGenericHttpEntityListPageComponent<IPlanningExportTemplate, never>(
-                'planning_export_templates',
+                PLANNING_EXPORT_TEMPLATES_RESOURCE,
                 this.config,
             );
 
