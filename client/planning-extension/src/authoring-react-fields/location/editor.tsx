@@ -12,6 +12,7 @@ export class Editor extends React.PureComponent<IProps> {
         return (
             <EditorFieldLocation
                 field="location"
+                storeAsArray
                 enableExternalSearch
                 item={{location: this.props.value}}
                 required={this.props.config.required}

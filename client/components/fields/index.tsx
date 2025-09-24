@@ -326,6 +326,7 @@ const PREVIEW_GROUPS: IPreviewGroups = {
             'description_text',
             'internal_note',
             'place',
+            'location',
             'agendas',
         ],
     }, {
@@ -352,6 +353,7 @@ const PREVIEW_GROUPS: IPreviewGroups = {
             'news_coverage_status',
             'scheduled',
             'flags',
+            'location',
         ],
     }],
     [PREVIEW_PANEL.ASSOCIATED_EVENT]: [{
@@ -378,6 +380,7 @@ const PREVIEW_GROUPS: IPreviewGroups = {
             'keyword',
             'ednote',
             'internal_note',
+            'location',
         ],
     }],
     [PREVIEW_PANEL.SCHEDULED_COVERAGE_UPDATE]: [{

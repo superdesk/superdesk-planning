@@ -515,7 +515,7 @@ export interface IEventItem extends IBaseRestApiResponse {
     }>;
     subject?: Array<ISubject>;
     slugline?: string;
-    location?: IEventLocation;
+    location?: Array<IEventLocation>;
     participant?: Array<{
         qcode?: string;
         name?: string;

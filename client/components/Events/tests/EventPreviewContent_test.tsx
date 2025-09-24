@@ -39,10 +39,10 @@ describe('<EventPreviewContent />', () => {
             name: 'Planned, occurs certainly',
             qcode: 'eocstat:eos5',
         },
-        location: {
+        location: [{
             name: 'location',
             formatted_address: 'address',
-        },
+        }],
         calendars: [{
             name: 'Sport',
             qcode: 'sport',

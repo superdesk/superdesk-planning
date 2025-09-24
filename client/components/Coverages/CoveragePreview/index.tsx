@@ -140,6 +140,7 @@ export class CoveragePreview extends React.PureComponent<IProps> {
                         g2_content_type: {field: 'planning.g2_content_type'},
                         genre: {field: 'planning.genre'},
                         flags: {field: 'planning.flags'},
+                        location: {field: 'planning.location'},
                     }
                 )}
 

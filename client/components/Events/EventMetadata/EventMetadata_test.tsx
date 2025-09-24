@@ -14,10 +14,10 @@ describe('<EventMetadata />', () => {
                 tz: moment.tz.guess(),
             },
             definition_short: 'definition_short 1',
-            location: {
+            location: [{
                 name: 'location1',
                 formatted_address: 'address1',
-            },
+            }],
             name: 'name1',
             occur_status: {
                 name: 'Planned, occurs certainly',
