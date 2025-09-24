@@ -4,10 +4,8 @@ import {Modal} from 'superdesk-ui-framework/react';
 import {gettext} from '../../utils';
 import {IFormField, IFormGroup} from 'superdesk-api';
 import {IPlanningExportTemplate} from 'interfaces';
-import {updateTemplates} from '../../actions/exportTemplates';
 import {ExportTemplateItem} from './ExportTemplateItem';
-import {DataProvider} from 'superdesk-core/scripts/core/helpers/data-provider';
-import {prepareSuperdeskQuery} from 'superdesk-core/scripts/core/helpers/universal-query';
+import {PLANNING_EXPORT_TEMPLATES_RESOURCE} from '../../constants/exportTemplates';
 
 interface IProps {
     closeModal: () => void;
@@ -79,37 +77,13 @@ export class ManageExportTemplatesModal extends React.PureComponent<IProps> {
         super(props);
 
         this.config = getFormConfig();
-
-        new DataProvider<IPlanningExportTemplate>(
-            () => {
-                const {path, urlParams} = prepareSuperdeskQuery(
-                    'planning_export_templates',
-                    {
-                        filter: {},
-                        page: 1,
-                        max_results: 500,
-                        sort: [{_id: 'asc'}],
-                    },
-                );
-
-                return {
-                    method: 'GET',
-                    endpoint: path,
-                    params: urlParams,
-                };
-            },
-            (response) => {
-                planningApi.redux.store.dispatch(updateTemplates(response._items));
-            },
-            {},
-        );
     }
 
     render() {
         const ExportTemplatesView = superdeskApi
             .components
             .getGenericHttpEntityListPageComponent<IPlanningExportTemplate, never>(
-                'planning_export_templates',
+                PLANNING_EXPORT_TEMPLATES_RESOURCE,
                 this.config,
             );
 

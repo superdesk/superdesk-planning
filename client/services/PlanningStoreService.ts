@@ -5,6 +5,7 @@ import * as selectors from '../selectors';
 import * as actions from '../actions';
 import {planningApi} from '../superdeskApi';
 import {isCustomVocabulary} from '../helpers';
+import {PLANNING_EXPORT_TEMPLATES_RESOURCE} from '../constants/exportTemplates';
 
 export class PlanningStoreService {
     constructor(
@@ -186,7 +187,7 @@ export class PlanningStoreService {
             planningApi.contentProfiles.getAll(),
             planningApi.contentProfiles.coverages.getAll(),
             this.desks.fetchCurrentUserDesks(),
-            this.api('planning_export_templates').query({
+            this.api(PLANNING_EXPORT_TEMPLATES_RESOURCE).query({
                 max_results: 200,
                 page: 1,
             }),
