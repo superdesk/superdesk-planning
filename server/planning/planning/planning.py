@@ -420,6 +420,9 @@ class PlanningService(AsyncBaseService):
         if event.get(TO_BE_CONFIRMED_FIELD):
             doc[TO_BE_CONFIRMED_FIELD] = True
 
+        if event.get("location"):
+            doc.setdefault("location", event["location"])
+
         return event
 
     async def _add_planning_to_event_series(
@@ -654,6 +657,7 @@ class PlanningService(AsyncBaseService):
             return
 
         planning_date = original.get("planning_date") or updates.get("planning_date")
+        planning_location = updates.get("location") or original.get("location")
         original_coverage_ids = [
             coverage["coverage_id"] for coverage in original.get("coverages") or [] if coverage.get("coverage_id")
         ]
@@ -673,6 +677,9 @@ class PlanningService(AsyncBaseService):
                 # If none was supplied, fallback to to ``planning.planning_date``
                 coverage.setdefault("planning", {})
                 coverage["planning"].setdefault("scheduled", planning_date)
+
+                if planning_location:
+                    coverage["planning"].setdefault("location", planning_location)
 
                 set_original_creator(coverage)
                 self.set_coverage_active(coverage, updates)
