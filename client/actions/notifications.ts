@@ -96,7 +96,7 @@ self.events = {
     'contacts:update': () => self.onContactsUpdated,
     'resource:updated': () => self.onResourceCreatedOrUpdated,
     'resource:created': () => self.onResourceCreatedOrUpdated,
-    'resource:deleted': () => self.onResourceCreatedOrUpdated,
+    'resource:deleted': () => self.onResourceDeleted,
 };
 
 export default self;
