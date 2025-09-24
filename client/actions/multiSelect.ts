@@ -296,7 +296,10 @@ const exportAsArticle = (items = [], download) => (
                 items: sortableItems,
                 action: exportArticlesDispatch,
                 desks: [...selectors.general.userDesks(getState()), personalWorkspace],
-                templates: templates,
+
+                // If download is `true`, template is meant only for download, otherwise
+                // it can be used for both
+                templates: templates.filter((t) => download ? t.download : !t.download),
                 defaultTemplate: templates.find((t) =>
                     (isPlanning && t.name === 'default_planning') || (!isPlanning && t.name === 'default_event')),
                 defaultDesk: defaultDesk,
