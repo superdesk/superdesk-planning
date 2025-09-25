@@ -12,11 +12,11 @@ export const HeadlineComponent = ({assignment, ...props}: IProps) => {
     const coverageHeadline = assignment.planning?.headline;
 
     if ((archiveItem?.headline ?? '').trim().length > 0) {
-        return <span>{archiveItem.headline}</span>;
+        return <span className="sd-overflow-ellipsis">{archiveItem.headline}</span>;
     }
 
     if ((coverageHeadline ?? '').trim().length > 0) {
-        return <span>{coverageHeadline}</span>;
+        return <span className="sd-overflow-ellipsis">{coverageHeadline}</span>;
     }
 
     return null;

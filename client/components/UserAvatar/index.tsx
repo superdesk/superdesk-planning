@@ -11,7 +11,7 @@ export function getUserInitials(displayName) {
 interface IProps {
     user: IUser | null;
     tooltip?: string;
-    size?: 'small' | 'large'; // defaults to small
+    size?: 'x-small' | 'small' | 'large'; // defaults to small
 }
 
 export function getCustomAvatarContent(user: IUser) {

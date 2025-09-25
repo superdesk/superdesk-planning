@@ -20,8 +20,8 @@ import {ASSIGNMENTS, CLICK_DELAY} from '../../../constants';
 import {editPlanningInNewTab, getAssignmentTypeInfo} from '../../../utils/assignments';
 
 import {Menu} from 'superdesk-ui-framework/react';
-import {UserAvatarWithMargin} from '../../../components/UserAvatar';
-import {Item, Border, Column, Row} from '../../UI/List';
+import {UserAvatar} from '../../../components/UserAvatar';
+import {Item, Border, Column} from '../../UI/List';
 
 import {getComponentForField, getAssignmentsListView, AssignmentViewField} from './fields';
 import {LineItems} from '../../../components/UI/List/LineItems';
@@ -228,7 +228,7 @@ export class AssignmentItem extends React.Component<IAssignmentItemProps, IState
 
         return (
             <Column border={false}>
-                <UserAvatarWithMargin user={user} tooltip={tooltip} />
+                <UserAvatar size="x-small" user={user} tooltip={tooltip} />
             </Column>
         );
     }
