@@ -16,7 +16,7 @@ import * as actions from '../../../actions';
 import {EditorForm} from '../../Editor/EditorForm';
 import {EventEditorHeader} from './EventEditorHeader';
 import {ContentBlock} from '../../UI/SidePanel';
-import {EventScheduleSummary} from '../EventScheduleSummary';
+import {RepeatEventSummary} from '../RepeatEventSummary';
 import {appConfig} from 'appConfig';
 
 interface IProps {
@@ -105,15 +105,20 @@ class EventEditorComponent extends React.PureComponent<IProps> {
     }
 
     renderHeader() {
+        const eventSchedule: IEventItem['dates'] = this.props.item.dates ?? {};
+        const doesRepeat = eventSchedule.recurring_rule !== null;
+
         return !this.props.itemExists ? null : (
             <React.Fragment>
                 <EventEditorHeader item={this.props.item} />
-                <ContentBlock padSmall={true}>
-                    <EventScheduleSummary
-                        event={this.props.item}
-                        noPadding={true}
-                    />
-                </ContentBlock>
+                {doesRepeat && (
+                    <ContentBlock padSmall={true}>
+                        <RepeatEventSummary
+                            schedule={eventSchedule}
+                            noMargin={true}
+                        />
+                    </ContentBlock>
+                )}
             </React.Fragment>
         );
     }
