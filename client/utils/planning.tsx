@@ -1611,6 +1611,10 @@ function defaultCoverageValues(
         newCoverage._time_to_be_confirmed = planningItem._time_to_be_confirmed;
     }
 
+    if (planningItem?.location || eventItem?.location) {
+        newCoverage.planning.location = planningItem?.location ?? eventItem?.location;
+    }
+
     if (planningItem) {
         const getCoverageDueDateStrategy = appConfig.coverage?.getDueDateStrategy || getDefaultCoverageDueDate;
         const coverageTime = getCoverageDueDateStrategy(planningItem as IPlanningItem, eventItem);

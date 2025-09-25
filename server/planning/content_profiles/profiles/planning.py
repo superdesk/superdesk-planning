@@ -138,6 +138,10 @@ DEFAULT_PLANNING_PROFILE = {
             "index": 1,
         },
         "priority": {"enabled": False, "group": "details", "index": 8},
+        "location": {
+            "enabled": False,
+            "group": "details",
+        },
     },
     "schema": dict(PlanningSchema),  # type: ignore
     "groups": {

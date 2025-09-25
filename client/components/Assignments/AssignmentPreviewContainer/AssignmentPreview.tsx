@@ -78,6 +78,7 @@ export class AssignmentPreview extends React.PureComponent<IProps> {
                         keyword: {field: 'coverage.keyword'},
                         ednote: {field: 'coverage.ednote', renderEmpty: true},
                         internal_note: {field: 'coverage.internal_note', renderEmpty: true},
+                        location: {field: 'planning.location'},
                     },
                 )}
 

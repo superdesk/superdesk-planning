@@ -515,7 +515,7 @@ export interface IEventItem extends IBaseRestApiResponse {
     }>;
     subject?: Array<ISubject>;
     slugline?: string;
-    location?: IEventLocation;
+    location?: Array<IEventLocation>;
     participant?: Array<{
         qcode?: string;
         name?: string;
@@ -635,6 +635,7 @@ export interface ICoveragePlanningDetails {
     subject?: Array<{name: string; qcode: string; scheme: string}>;
     anpa_category?: Array<{name: string; qcode: string}>;
     fields: Array<{field: string; value: string}>;
+    location?: Array<IEventLocation>;
 }
 
 export interface ICoverageScheduledUpdate {
@@ -761,6 +762,7 @@ export interface IPlanningItem extends IBaseRestApiResponse {
     reason: string;
     _time_to_be_confirmed: boolean;
     _cancelAllCoverage: boolean;
+    location: Array<IEventLocation>;
 
     // Used when showing Associated Planning item for Events
     _agendas: Array<IAgenda>;

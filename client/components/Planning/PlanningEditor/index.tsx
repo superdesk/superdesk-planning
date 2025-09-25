@@ -363,6 +363,10 @@ class PlanningEditorComponent extends React.Component<IProps, IState> {
                         field: 'related_events',
                         events: fullEvents,
                     },
+                    location: {
+                        enableExternalSearch: true,
+                        storeAsArray: true,
+                    },
                     coverages: {
                         onChange: this.onCoverageChange,
                         addNewsItemToPlanning: this.props.addNewsItemToPlanning,

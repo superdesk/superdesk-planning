@@ -184,6 +184,7 @@ function createFromEvent(event: IEventItem, updates: Partial<IPlanningItem>): Pr
             description_text: event.definition_short,
             ednote: event.ednote,
             language: event.language,
+            location: event.location,
             ...updates,
             related_events: [eventLink],
         }),
