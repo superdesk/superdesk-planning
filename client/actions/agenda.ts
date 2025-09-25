@@ -271,6 +271,10 @@ export function convertEventToPlanningItem(event: IEventItem): Partial<IPlanning
         languages: event.languages || defaultValues.languages,
     };
 
+    if (event.location) {
+        newPlanningItem.location = event.location;
+    }
+
     newPlanningItem = convertStringFields(
         event,
         newPlanningItem,
