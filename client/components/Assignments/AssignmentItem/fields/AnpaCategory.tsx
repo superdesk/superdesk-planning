@@ -34,7 +34,7 @@ export const AnpaCategory: React.ComponentType<IProps> = (props) => {
                         {
                             items.map((item, i) => (
                                 <div key={i}>
-                                    <Tag text={getVocabularyItemNameTranslated(item)} />
+                                    <Tag size="small" text={getVocabularyItemNameTranslated(item)} />
                                 </div>
                             ))
                         }

@@ -31,7 +31,7 @@ export class WithMoreItems<T> extends React.PureComponent<IProps<T>> {
         const moreItems = items.slice(visibleAtOnce);
 
         return (
-            <Spacer h gap="4" noWrap style={{whiteSpace: 'nowrap'}}>
+            <Spacer h gap="4" noWrap justifyContent="start" style={{whiteSpace: 'nowrap'}}>
                 <Template items={visible} />
 
                 {
