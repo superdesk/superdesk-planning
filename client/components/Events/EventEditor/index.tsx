@@ -17,6 +17,7 @@ import {EditorForm} from '../../Editor/EditorForm';
 import {EventEditorHeader} from './EventEditorHeader';
 import {ContentBlock} from '../../UI/SidePanel';
 import {RepeatEventSummary} from '../RepeatEventSummary';
+import {EventScheduleSummary} from '../EventScheduleSummary';
 import {appConfig} from 'appConfig';
 
 interface IProps {
@@ -105,21 +106,37 @@ class EventEditorComponent extends React.PureComponent<IProps> {
     }
 
     renderHeader() {
-        const eventSchedule: IEventItem['dates'] = this.props.item.dates ?? {};
-        const doesRepeat = eventSchedule.recurring_rule !== null;
+        const {item, itemExists} = this.props;
 
-        return !this.props.itemExists ? null : (
-            <React.Fragment>
-                <EventEditorHeader item={this.props.item} />
-                {doesRepeat && (
-                    <ContentBlock padSmall={true}>
-                        <RepeatEventSummary
-                            schedule={eventSchedule}
-                            noMargin={true}
+        if (!itemExists) {
+            return null;
+        }
+
+        const eventSchedule = item.dates ?? {};
+        const doesRepeat = eventSchedule.recurring_rule !== null;
+        const isManySecondary = appConfig.planning_event_link_method === 'many_secondary';
+
+        return (
+            <>
+                <EventEditorHeader item={item} />
+                {isManySecondary ? (
+                    doesRepeat && (
+                        <ContentBlock padSmall>
+                            <RepeatEventSummary
+                                schedule={eventSchedule}
+                                noMargin
+                            />
+                        </ContentBlock>
+                    )
+                ) : (
+                    <ContentBlock padSmall>
+                        <EventScheduleSummary
+                            event={item}
+                            noPadding
                         />
                     </ContentBlock>
                 )}
-            </React.Fragment>
+            </>
         );
     }
 
