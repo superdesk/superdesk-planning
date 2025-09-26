@@ -136,7 +136,8 @@ class ContentProfilesService(AsyncBaseService):
         Returns:
             AsyncListCursor: Cursor containing merged content profiles
         """
-        content_profiles = await (await super().get_async(req, lookup)).to_list()
+        cursor = await super().get_async(req, lookup)
+        content_profiles = await cursor.to_list()
         merged_content_profiles = []
 
         for content_profile in content_profiles:
