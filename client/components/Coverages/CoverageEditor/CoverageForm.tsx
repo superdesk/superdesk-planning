@@ -17,6 +17,7 @@ import {
     IFile,
     ICoverageType,
     IPlanningContentProfile,
+    IProfileSchemaTypeList,
 } from '../../../interfaces';
 import * as selectors from '../../../selectors';
 import {planningUtils, generateTempId, assignmentUtils, isItemExpired} from '../../../utils';
@@ -419,6 +420,9 @@ export class CoverageFormComponent extends React.Component<IProps, IState> {
                 },
             }), {});
 
+        const allProfiles = coverageProfiles(planningApi.redux.store.getState());
+        const coverageProfile = allProfiles.find((x) => x._id === this.props.value.profile);
+
         const fieldProps: Dictionary<keyof IPlanningCoverageItem, any> = {
             ...customCVFields,
             ...textFieldConfigs,
@@ -491,6 +495,11 @@ export class CoverageFormComponent extends React.Component<IProps, IState> {
                 uploadFiles: this.props.uploadFiles,
                 removeFile: this.props.removeFile,
                 files: this.props.files,
+            },
+            multiple_content: {
+                disabled: this.props.readOnly
+                    ?? (coverageProfile.schema['multiple_content'] as IProfileSchemaTypeList).read_only,
+                field: 'multiple_content',
             },
             news_coverage_status: {
                 readOnly: this.props.readOnly || readOnlyFields.newsCoverageStatus,
