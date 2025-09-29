@@ -16,6 +16,7 @@ import * as actions from '../../../actions';
 import {EditorForm} from '../../Editor/EditorForm';
 import {EventEditorHeader} from './EventEditorHeader';
 import {ContentBlock} from '../../UI/SidePanel';
+import {RepeatEventSummary} from '../RepeatEventSummary';
 import {EventScheduleSummary} from '../EventScheduleSummary';
 import {appConfig} from 'appConfig';
 
@@ -105,20 +106,37 @@ class EventEditorComponent extends React.PureComponent<IProps> {
     }
 
     renderHeader() {
-        if (appConfig.planning_event_link_method === 'many_secondary') {
+        const {item, itemExists} = this.props;
+
+        if (!itemExists) {
             return null;
         }
 
-        return !this.props.itemExists ? null : (
-            <React.Fragment>
-                <EventEditorHeader item={this.props.item} />
-                <ContentBlock padSmall={true}>
-                    <EventScheduleSummary
-                        event={this.props.item}
-                        noPadding={true}
-                    />
-                </ContentBlock>
-            </React.Fragment>
+        const eventSchedule = item.dates ?? {};
+        const doesRepeat = eventSchedule.recurring_rule !== null;
+        const isManySecondary = appConfig.planning_event_link_method === 'many_secondary';
+
+        return (
+            <>
+                <EventEditorHeader item={item} />
+                {isManySecondary ? (
+                    doesRepeat && (
+                        <ContentBlock padSmall>
+                            <RepeatEventSummary
+                                schedule={eventSchedule}
+                                noMargin
+                            />
+                        </ContentBlock>
+                    )
+                ) : (
+                    <ContentBlock padSmall>
+                        <EventScheduleSummary
+                            event={item}
+                            noPadding
+                        />
+                    </ContentBlock>
+                )}
+            </>
         );
     }
 
