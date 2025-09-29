@@ -10,12 +10,12 @@
 
 from typing import Dict, Any
 from copy import deepcopy
+from eve.utils import ParsedRequest
 
-from superdesk import Service
 from superdesk.eve_async import AsyncBaseService, AsyncListCursor
 
 from planning.common import planning_link_updates_to_coverage, get_config_event_related_item_search_provider_name
-from .profiles import DEFAULT_PROFILES
+from .profiles import DEFAULT_PROFILES, DEFAULT_COVERAGE_PROFILE
 
 
 class PlanningTypesService(AsyncBaseService):
@@ -121,5 +121,58 @@ class PlanningTypesService(AsyncBaseService):
             planning_type["schema"].pop("no_content_linking", None)
 
 
-class ContentProfilesService(Service):
-    pass
+class ContentProfilesService(AsyncBaseService):
+    async def get_async(self, req: ParsedRequest, lookup: dict[str, Any] | None) -> AsyncListCursor:
+        """Get all content profiles with default fields merged in.
+
+        Retrieves content profiles from the database and merges each one with DEFAULT_COVERAGE_PROFILE
+        to ensure that any new fields added to the default profile become available in existing
+        database entries while preserving customizations.
+
+        Args:
+            req: The request object
+            lookup: Database lookup parameters
+
+        Returns:
+            AsyncListCursor: Cursor containing merged content profiles
+        """
+        cursor = await super().get_async(req, lookup)
+        content_profiles = await cursor.to_list()
+        merged_content_profiles = []
+
+        for content_profile in content_profiles:
+            self.merge_content_profile(content_profile, DEFAULT_COVERAGE_PROFILE)
+            merged_content_profiles.append(content_profile)
+
+        return AsyncListCursor(merged_content_profiles)
+
+    def merge_content_profile(self, db_content_profile: dict[str, Any], default_coverage_profile: dict[str, Any]):
+        """Merge database content profile with default coverage profile to add any new fields.
+
+        This method ensures that database content profiles get any new fields from the default
+        coverage profile while preserving existing customizations. For each field in the default
+        profile's editor and schema sections:
+        - If the field doesn't exist in the database profile, it's added from the default
+        - If the field exists in both, they're merged with database values taking precedence
+
+        Args:
+            content_profile (dict): The content profile from the database to be updated
+            default_coverage_profile (dict): The default coverage profile to merge from
+        """
+        updated_content_profile = deepcopy(default_coverage_profile)
+
+        for config_type in ["editor", "schema"]:
+            db_content_profile.setdefault(config_type, {})
+            for field, options in updated_content_profile[config_type].items():
+                # if this field exists in default but not in database, add it
+                # but make sure new fields are disabled by default
+                if field not in db_content_profile[config_type]:
+                    new_field_options = deepcopy(options)
+                    new_field_options["enabled"] = False
+                    db_content_profile[config_type][field] = new_field_options
+
+                # if field exists in both, merge the options (database take precedence)
+                elif updated_content_profile[config_type][field]:
+                    merged_options = deepcopy(updated_content_profile[config_type][field])
+                    merged_options.update(db_content_profile[config_type][field])
+                    db_content_profile[config_type][field] = merged_options
