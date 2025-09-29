@@ -498,7 +498,7 @@ export class CoverageFormComponent extends React.Component<IProps, IState> {
             },
             multiple_content: {
                 disabled: this.props.readOnly
-                    ?? (coverageProfile?.schema?.['multiple_content'] as IProfileSchemaTypeList).read_only
+                    ?? (coverageProfile?.schema?.['multiple_content'] as IProfileSchemaTypeList)?.read_only
                     ?? false,
                 field: 'multiple_content',
             },
