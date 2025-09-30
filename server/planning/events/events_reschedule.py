@@ -23,6 +23,7 @@ from planning.common import (
     remove_lock_information,
     set_original_creator,
     set_actioned_date_to_event,
+    get_max_recurrent_events,
 )
 from planning.events.events_utils import (
     get_recurring_timeline,
@@ -54,7 +55,7 @@ def set_next_occurrence(updates: dict[str, Any]):
                 **updates["dates"]["recurring_rule"],
             ),
             0,
-            10,
+            get_max_recurrent_events(),
         )
     ]
     time_delta = updates["dates"]["end"] - updates["dates"]["start"]
@@ -186,6 +187,7 @@ async def reschedule_recurring_event(updates: dict[str, Any], original: dict[str
     time_delta = updates["dates"]["end"] - updates["dates"]["start"]
 
     # Generate the dates for the new event series
+    max_events = get_max_recurrent_events()
     new_dates = [
         date
         for date in islice(
@@ -196,7 +198,7 @@ async def reschedule_recurring_event(updates: dict[str, Any], original: dict[str
                 **updated_rule,
             ),
             0,
-            200,
+            max_events,
         )
     ]
 
@@ -211,7 +213,7 @@ async def reschedule_recurring_event(updates: dict[str, Any], original: dict[str
                 **original_rule,
             ),
             0,
-            200,
+            max_events,
         )
     ]
 

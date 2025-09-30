@@ -1,23 +1,16 @@
-from copy import deepcopy
 from typing import Any
-from datetime import date, datetime
 
-from superdesk.utc import local_to_utc, utc_to_local
 from superdesk.resource_fields import ID_FIELD
 from superdesk import get_resource_service
 
 from planning import signals
-from planning.common import (
-    TO_BE_CONFIRMED_FIELD,
-    UPDATE_FUTURE,
-    UPDATE_SINGLE,
-    remove_lock_information,
-)
+from planning.common import UPDATE_SINGLE, remove_lock_information
 from planning.events.events_utils import (
-    get_recurring_timeline,
     get_update_method,
     post_update_event_actions,
     pre_update_event_actions,
+    get_recurring_event_updates_iterator,
+    set_planning_schedule,
 )
 from planning.types import PlanningSchedule
 
@@ -32,64 +25,13 @@ async def update_single_event(updates: dict[str, Any]):
 
 async def update_recurring_events(updates: dict[str, Any], original: dict[str, Any], update_method: str):
     events_service = get_resource_service("events")
-    historic, past, future = await get_recurring_timeline(original)
-
-    # Determine if the selected event is the first one, if so then
-    # act as if we're changing future events
-    if len(historic) == 0 and len(past) == 0:
-        update_method = UPDATE_FUTURE
-
-    if update_method == UPDATE_FUTURE:
-        new_series = [original] + future
-    else:
-        new_series = past + [original] + future
 
     # Release the Lock on the selected Event
     remove_lock_information(updates)
 
-    # Get the timezone from the original Event (as the series was created with that timezone in mind)
-    timezone = original["dates"]["tz"]
-
-    # First find the hour and minute of the start date in local time
-    start_time = utc_to_local(timezone, updates["dates"]["start"]).time()
-
-    # Next convert that to seconds since midnight (which gives us a timedelta instance)
-    delta_since_midnight = datetime.combine(date.min, start_time) - datetime.min
-
-    # And calculate the new duration of the events
-    duration = updates["dates"]["end"] - updates["dates"]["start"]
-
-    for event in new_series:
-        if not event.get(ID_FIELD):
-            continue
-
-        new_updates = {"dates": deepcopy(event["dates"])} if event.get(ID_FIELD) != original.get(ID_FIELD) else updates
-
-        # Calculate midnight in local time for this occurrence
-        if isinstance(event["dates"]["start"], str):
-            event["dates"]["start"] = datetime.fromisoformat(event["dates"]["start"])
-        start_of_day_local = utc_to_local(timezone, event["dates"]["start"]).replace(hour=0, minute=0, second=0)
-
-        # Then convert midnight in local time to UTC
-        start_date_time = local_to_utc(timezone, start_of_day_local)
-
-        # Finally add the delta since midnight
-        start_date_time += delta_since_midnight
-
-        # Set the new start and end times
-        new_updates["dates"]["start"] = start_date_time
-        new_updates["dates"]["end"] = start_date_time + duration
-
-        if event.get(TO_BE_CONFIRMED_FIELD):
-            new_updates[TO_BE_CONFIRMED_FIELD] = False
-
-        # Set '_planning_schedule' on the Event item
-        new_updates["_planning_schedule"] = [PlanningSchedule(scheduled=new_updates["dates"].get("start")).to_dict()]
-
-        if event.get(ID_FIELD) != original.get(ID_FIELD):
-            new_updates["skip_on_update"] = True
-            await events_service.patch_async(event[ID_FIELD], new_updates)
-            await signals.event_time_updated.send(new_updates, {"_id": event[ID_FIELD]})
+    async for event, new_updates in get_recurring_event_updates_iterator(original, updates, update_method):
+        await events_service.patch_async(event[ID_FIELD], new_updates)
+        await signals.event_time_updated.send(new_updates, {"_id": event[ID_FIELD]})
 
 
 async def process_update_time(
@@ -120,6 +62,7 @@ async def process_update_time(
     # Clean updates before persisting change
     updates.pop("update_method", None)
     updates.pop("skip_on_update", None)
+    set_planning_schedule(updates)
 
     # Update the original event in the database
     await events_service.update_async(original[ID_FIELD], updates, original)
