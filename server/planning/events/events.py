@@ -18,7 +18,7 @@ import itertools
 
 from copy import deepcopy
 from typing import Dict, Any, Optional, List
-from datetime import timedelta, datetime, timedelta
+from datetime import datetime, timedelta
 from dateutil import parser
 
 from eve.methods.common import resolve_document_etag
@@ -47,7 +47,7 @@ from superdesk.errors import SuperdeskApiError
 from superdesk.metadata.utils import generate_guid
 from superdesk.metadata.item import GUID_NEWSML
 from superdesk.notification import push_notification
-from superdesk.utc import get_date, utcnow
+from superdesk.utc import get_date, utcnow, utc_to_local
 from superdesk.users.services import current_user_has_privilege
 from superdesk.publish_async.utils import get_next_sequence_number
 from apps.auth import get_user, get_user_id
@@ -92,6 +92,7 @@ from planning.utils import (
 )
 from .events_schema import events_schema
 from .events_sync import sync_event_metadata_with_planning_items
+from .events_utils import get_recurring_event_updates_iterator
 
 logger = logging.getLogger(__name__)
 
@@ -681,6 +682,11 @@ class EventsService(AsyncBaseService):
                 recurrence_id=str(generated_events[0]["recurrence_id"]),
             )
         else:
+            if get_planning_event_link_method() == "many_secondary":
+                set_planning_schedule(updates)
+            else:
+                updates.pop("dates", None)
+
             if original.get("lock_action") == "mark_completed" and updates.get("actioned_date"):
                 await self.mark_event_complete(original, updates, original, None)
 
@@ -697,26 +703,12 @@ class EventsService(AsyncBaseService):
         If the recurring_rule has been removed for this event, process
         it separately, otherwise update the event and/or its recurring rules
         """
-        # This method now only handles updating of Event metadata
-        # So make sure to remove any date information that might be in
-        # the updates
-        updates.pop("dates", None)
 
-        if update_method == UPDATE_FUTURE:
-            historic, past, future = await get_recurring_timeline(original, spiked=False, postponed=True)
-            events = future
-        else:
-            historic, past, future = await get_recurring_timeline(original, spiked=False, postponed=True)
-            events = historic + past + future
-
-        events_post_service = get_resource_service("events_post")
-
-        # First we want to validate that all events can be posted
-        for e in events:
-            if post_required(updates, e):
-                merged = deepcopy(e)
-                merged.update(updates)
-                await events_post_service.validate_item(merged)
+        if get_planning_event_link_method() != "many_secondary":
+            # We only support changing Event schedule(s) through the main endpoint
+            # if ``PLANNING_EVENT_LINK_METHOD`` is set to ``many_secondary``
+            # If this is not the case, then we only update the metadata
+            updates.pop("dates", None)
 
         # If this update is from assignToCalendar action
         # Then we only want to update the calendars of each Event
@@ -729,12 +721,18 @@ class EventsService(AsyncBaseService):
 
         mark_completed = original.get("lock_action") == "mark_completed" and updates.get("actioned_date")
         mark_complete_validated = False
-        for e in events:
-            event_id = e[ID_FIELD]
 
-            new_updates = deepcopy(updates)
-            new_updates["skip_on_update"] = True
-            new_updates[ID_FIELD] = event_id
+        events_post_service = get_resource_service("events_post")
+        updates_to_apply: list[tuple[str, dict]] = []
+        async for event, new_updates in get_recurring_event_updates_iterator(original, updates, update_method):
+            event_id = event[ID_FIELD]
+            new_dates = new_updates.get("dates", None)
+            new_updates.update(updates)
+
+            if new_dates:
+                new_updates["dates"] = new_dates
+            else:
+                new_updates.pop("dates", None)
 
             if only_calendars:
                 # Get the original for this item, and add new calendars to it
@@ -747,14 +745,26 @@ class EventsService(AsyncBaseService):
                     [calendar for calendar in updated_calendars if calendar["qcode"] not in original_qcodes]
                 )
             elif mark_completed:
-                await self.mark_event_complete(original, updates, e, mark_complete_validated)
-                # It is validated if the previous funciton did not raise an error
+                await self.mark_event_complete(original, updates, event, mark_complete_validated)
+                # It is validated if the previous function did not raise an error
                 mark_complete_validated = True
 
             # Remove ``embedded_planning`` before updating this event, as this should only be handled
             # by the event provided to this update request
             new_updates.pop("embedded_planning", None)
-            self.patch(event_id, new_updates)
+
+            # If this item is to be posted, make sure it passes validation
+            # before we proceed with updating all the affected Events
+            if post_required(updates, event):
+                merged = deepcopy(event)
+                merged.update(new_updates)
+                await events_post_service.validate_item(merged)
+
+            updates_to_apply.append((event_id, new_updates))
+
+        # Finally, update the affected Events
+        for event_id, new_updates in updates_to_apply:
+            await self.patch_async(event_id, new_updates)
             app = get_current_app().as_any()
             await app.on_updated_events.call_async(new_updates, {"_id": event_id})
 

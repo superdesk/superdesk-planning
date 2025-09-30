@@ -2,6 +2,7 @@ import arrow
 import re
 from dateutil import parser
 import pytz
+from copy import deepcopy
 
 from datetime import date, datetime
 from dateutil.rrule import rrule, DAILY, WEEKLY, MONTHLY, YEARLY, MO, TU, WE, TH, FR, SA, SU
@@ -15,7 +16,7 @@ from superdesk import get_resource_service, json
 from superdesk.core.types import SortParam, SortListParam
 from superdesk.errors import SuperdeskApiError
 from superdesk.notification import push_notification
-from superdesk.utc import utcnow
+from superdesk.utc import utcnow, utc_to_local, local_to_utc
 from superdesk.resource_fields import ID_FIELD
 from superdesk.metadata.item import GUID_NEWSML
 from superdesk.metadata.utils import generate_guid
@@ -23,7 +24,9 @@ from superdesk.metadata.utils import generate_guid
 from planning.common import (
     TEMP_ID_PREFIX,
     UPDATE_SINGLE,
+    UPDATE_FUTURE,
     WORKFLOW_STATE,
+    TO_BE_CONFIRMED_FIELD,
     get_max_recurrent_events,
     is_valid_event_planning_reason,
     set_ingested_event_state,
@@ -410,3 +413,97 @@ def set_planning_schedule(event: dict[str, Any]):
     """
     if event and event.get("dates") and event["dates"].get("start"):
         event["_planning_schedule"] = [{"scheduled": event["dates"]["start"]}]
+
+
+async def get_recurring_event_updates_iterator(
+    original: dict,
+    updates: dict,
+    update_method: str,
+) -> AsyncGenerator[tuple[dict, dict], None]:
+    """
+    Generate updates for recurring events based on a specified update method.
+
+    This asynchronous generator function determines how a recurring event is
+    updated based on its timeline (historic, past, future occurrences) and an
+    update method provided by the user. This includes the new event schedule, if provided in the updates.
+
+    :param original: The original event data containing details such as dates and timezone.
+    :param updates: The modifications to apply to the recurring events series, including updated dates.
+    :param update_method: Specifies whether updates are applied to all events in the series or limited to future events.
+    :return: An asynchronous generator that yields tuples containing the original event data and the corresponding updated event data.
+    """
+
+    historic, past, future = await get_recurring_timeline(original)
+
+    # Determine if the selected event is the first one, if so then
+    # act as if we're changing future events
+    if len(historic) == 0 and len(past) == 0:
+        update_method = UPDATE_FUTURE
+
+    if update_method == UPDATE_FUTURE:
+        new_series = future
+    else:
+        new_series = historic + past + future
+
+    if "dates" not in updates:
+        # If there are no dates in the updates, there is no need to calculate new schedules
+        # So we provide a simple generator here
+        for event in new_series:
+            if not event.get(ID_FIELD):
+                continue
+
+            yield event, {"skip_on_update": True}
+
+        return
+
+    # Get the timezone from the original Event (as the series was created with that timezone in mind)
+    timezone = original["dates"]["tz"]
+
+    # First get the local date/time for both the original and the updated schedule
+    original_start_local = utc_to_local(timezone, original["dates"]["start"])
+    updated_start_local = utc_to_local(timezone, updates["dates"]["start"])
+
+    # Then calculate the difference between the two dates (ignoring the time values)
+    date_delta = updated_start_local.date() - original_start_local.date()
+
+    # Next convert the updated start time to seconds since midnight (which gives us a timedelta instance)
+    delta_since_midnight = datetime.combine(date.min, updated_start_local.time()) - datetime.min
+
+    # And calculate the new duration of the events
+    duration = updates["dates"]["end"] - updates["dates"]["start"]
+
+    for event in new_series:
+        if not event.get(ID_FIELD):
+            continue
+
+        new_updates = {
+            "dates": deepcopy(event["dates"]),
+            "skip_on_update": True,
+        }
+
+        # Calculate midnight in local time for this occurrence
+        start_of_day_local = utc_to_local(timezone, event["dates"]["start"]).replace(hour=0, minute=0, second=0)
+
+        # Shift the date if needed
+        if date_delta:
+            start_of_day_local += date_delta
+
+        # Then convert midnight in local time to UTC
+        start_date_time = local_to_utc(timezone, start_of_day_local)
+
+        # Finally add the delta since midnight
+        start_date_time += delta_since_midnight
+
+        # Set the new start and end times
+        new_updates["dates"].update(
+            {
+                "start": start_date_time,
+                "end": start_date_time + duration,
+            }
+        )
+        set_planning_schedule(new_updates)
+
+        if event.get(TO_BE_CONFIRMED_FIELD):
+            new_updates[TO_BE_CONFIRMED_FIELD] = False
+
+        yield event, new_updates
