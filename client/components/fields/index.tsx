@@ -354,6 +354,7 @@ const PREVIEW_GROUPS: IPreviewGroups = {
             'scheduled',
             'flags',
             'location',
+            'anpa_category',
         ],
     }],
     [PREVIEW_PANEL.ASSOCIATED_EVENT]: [{

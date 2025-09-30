@@ -141,6 +141,7 @@ export class CoveragePreview extends React.PureComponent<IProps> {
                         genre: {field: 'planning.genre'},
                         flags: {field: 'planning.flags'},
                         location: {field: 'planning.location'},
+                        anpa_category: {field: 'planning.anpa_category'},
                     }
                 )}
 
