@@ -174,5 +174,12 @@
 		"name": "random123"
 	},
 	"slugline": "TEST slugline",
-	"ednote": "TEST editorial note"
+	"ednote": "TEST editorial note",
+	"registration_details": "TEST Registration details",
+	"invitation_details": "TEST Invitation details",
+	"accreditation_info": "TEST Accreditation info",
+	"accreditation_deadline": "2021-03-15T10:00:00+0000",
+	"reference": "2021/00000001",
+	"priority": 3,
+	"language": "en"
 }

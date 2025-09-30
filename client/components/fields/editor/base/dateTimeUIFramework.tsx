@@ -3,8 +3,9 @@ import * as React from 'react';
 import {IEditorFieldProps} from '../../../../interfaces';
 import {get} from 'lodash';
 import {DateTimePicker} from 'superdesk-ui-framework/react';
-import {appConfig} from 'appConfig';
+import {appConfig, userInterfaceLanguage} from 'appConfig';
 import {format} from 'date-fns';
+import {superdeskApi} from '../../../../superdeskApi';
 
 const DATE_ONLY_LENGTH = 10;
 
@@ -59,6 +60,10 @@ export class EditorFieldDateTimeUIFramework extends React.PureComponent<IProps> 
                     error={error}
                     disabled={this.props.disabled}
                     dateFormat={appConfig.planning.dateformat}
+                    locale={{
+                        type: 'full',
+                        payload: superdeskApi.ui.framework.getLocaleForDatePicker(userInterfaceLanguage),
+                    }}
                     value={
                         value != null
                             ? {

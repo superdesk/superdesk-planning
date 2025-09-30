@@ -1,17 +1,6 @@
 var path = require('path');
 var webpack = require('webpack');
 
-const isExternalDependency = (absolutePath) => {
-    if (
-        absolutePath.includes('/node_modules/date-fns/')
-        || absolutePath.includes('/@sourcefabric/date-fns-tz/')
-    ) {
-        return false;
-    }
-
-    return absolutePath.match(/node_modules\/(?!(superdesk-core)\/).*/) != null;
-};
-
 module.exports = {
     entry: [path.join(__dirname, 'index')],
     devtool: 'inline-source-map', // just do inline source maps instead of the default
@@ -37,20 +26,17 @@ module.exports = {
     module: {
         rules: [
             {
-                test: /\.(ts|tsx)?$/,
-                exclude: isExternalDependency,
+                test: /\.(ts|tsx|js|jsx)?$/,
+                include: [
+                    path.join(__dirname, 'client'),
+                    path.join(__dirname, 'index.ts'),
+                    path.join(__dirname, 'node_modules/superdesk-core'),
+                    path.join(__dirname, 'node_modules/superdesk-ui-framework/node_modules/date-fns'),
+                ],
                 loader: 'ts-loader',
                 options: {
-                    transpileOnly: true,
-                },
-            },
-            {
-                test: /\.(js|jsx)?$/,
-                exclude: isExternalDependency,
-                loader: 'ts-loader',
-                options: {
-                    transpileOnly: true,
-                },
+                    transpileOnly: true
+                }
             },
             {
                 test: /\.html$/,

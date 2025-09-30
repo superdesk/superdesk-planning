@@ -68,6 +68,9 @@ class EventJsonFeedParser(FileFeedParser):
         if superdesk_event.get("firstcreated"):
             superdesk_event["firstcreated"] = self.datetime(superdesk_event["firstcreated"])
 
+        if superdesk_event.get("accreditation_deadline"):
+            superdesk_event["accreditation_deadline"] = self.datetime(superdesk_event["accreditation_deadline"])
+
         if superdesk_event.get("subject"):
             subject_code_items = get_subjectcodeitems()
 

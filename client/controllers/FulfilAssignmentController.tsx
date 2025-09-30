@@ -72,12 +72,6 @@ export class FulFilAssignmentController {
             this.item = this.item.archive_item;
         }
 
-        if (!this.item?.slugline) {
-            this.notify.error(this.gettext('[SLUGLINE] is a required field'));
-            this.$scope.resolve();
-            return;
-        }
-
         return sdPlanningStore.initWorkspace(WORKSPACE.AUTHORING, this.loadWorkspace)
             .then(
                 this.render,
