@@ -194,7 +194,7 @@ export const validateCoverageCustomTextFields = (
     })
         .forEach((fieldId) => {
             const isInvalid = coverageProfile.schema[fieldId].required
-                ? isEmpty(diff.planning.fields.find((x) => x.field === fieldId).value)
+                ? isEmpty((diff.planning?.fields ?? []).find((x) => x.field === fieldId)?.value)
                 : false;
 
             if (isInvalid) {
