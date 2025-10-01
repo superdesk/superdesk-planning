@@ -165,11 +165,14 @@ class ContentProfilesService(AsyncBaseService):
             db_content_profile.setdefault(config_type, {})
             for field, options in updated_content_profile[config_type].items():
                 # if this field exists in default but not in database, add it
-                # but make sure new fields are disabled by default
                 if field not in db_content_profile[config_type]:
-                    new_field_options = deepcopy(options)
-                    new_field_options["enabled"] = False
-                    db_content_profile[config_type][field] = new_field_options
+                    if config_type == "editor" and isinstance(options, dict):
+                        # make sure new fields are disabled by default
+                        new_field_options = deepcopy(options)
+                        new_field_options["enabled"] = False
+                        db_content_profile[config_type][field] = new_field_options
+                    else:
+                        db_content_profile[config_type][field] = options
 
                 # if field exists in both, merge the options (database take precedence)
                 elif updated_content_profile[config_type][field]:
