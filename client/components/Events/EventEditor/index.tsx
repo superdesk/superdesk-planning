@@ -113,7 +113,7 @@ class EventEditorComponent extends React.PureComponent<IProps> {
         }
 
         const eventSchedule = item.dates ?? {};
-        const doesRepeat = eventSchedule.recurring_rule !== null;
+        const doesRepeat = eventSchedule.recurring_rule != null;
         const isManySecondary = appConfig.planning_event_link_method === 'many_secondary';
 
         return (
