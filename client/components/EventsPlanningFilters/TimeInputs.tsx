@@ -57,6 +57,7 @@ export class TimeInputs extends React.Component<IProps> {
                                         this.updateHour(index, next);
                                     }}
                                     data-test-id={index === 0 ? 'field-hour' : `field-hour-${index}`}
+                                    canClear={false}
                                 />
                                 <Button
                                     type="default"
