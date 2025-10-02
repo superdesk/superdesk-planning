@@ -277,10 +277,15 @@ function getAssignmentActions(
 
         case ASSIGNMENTS.ITEM_ACTIONS.PREVIEW_ARCHIVE.actionName:
             if (callBacks[callBackName] != null) {
-                if ((assignment.linked_items?.length ?? 0) > 1) {
+                const linkedItems = (assignment.linked_items ?? [])
+                    // FIXME: filtering is a temporary workaround to prevent the entire assignments view from crashing
+                    // proper fix would be to find out why certain items do not get loaded into `archiveItems`
+                    .filter((linkedItem) => archiveItems[linkedItem._id] != null);
+
+                if (linkedItems.length > 1) {
                     actions.push({
                         ...ASSIGNMENTS.ITEM_ACTIONS.PREVIEW_ARCHIVE,
-                        callback: assignment.linked_items.map((linkedItem) => ({
+                        callback: linkedItems.map((linkedItem) => ({
                             label: getArticleNameForOpenCoverageAction(archiveItems[linkedItem._id]),
                             callback: superdeskApi.ui.article.edit.bind(null, linkedItem._id),
                         })),
