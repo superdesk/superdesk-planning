@@ -22,7 +22,7 @@ export const priority: FunctionComponent<IProps> = (props) => {
         ? item.priority.toString()
         : superdeskApi.entities.vocabulary.getVocabularyItemNameTranslated(vocabularyItem);
 
-    const backgroundColor = vocabularyItem.color ?? DEFAULT_PRIORITY_COLORS[item.priority];
+    const backgroundColor = vocabularyItem?.color ?? DEFAULT_PRIORITY_COLORS[item.priority];
     const showFieldLabel = props.fieldOptions?.hideLabel !== true;
 
     return (
