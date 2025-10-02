@@ -227,7 +227,7 @@ const validateCoverageScheduleDate = ({
     errors,
     messages,
 }) => {
-    if (get(profile, 'schema.scheduled.required') && (value as moment.Moment).isValid() === false) {
+    if (profile?.schema?.scheduled?.required && (!moment.isMoment(value) || !value.isValid())) {
         set(errors, 'planning.scheduled.date', gettext('Required'));
         messages.push(gettext('COVERAGE SCHEDULE is required'));
 
@@ -326,12 +326,9 @@ const validateScheduledUpdatesDate = ({
     }
 };
 
-// eslint-disable-next-line consistent-this
-const self = {
+export default {
     validatePlanningScheduleDate,
     validateCoverages,
     validateScheduledUpdatesDate,
     validateCoverageScheduleDate,
 };
-
-export default self;
