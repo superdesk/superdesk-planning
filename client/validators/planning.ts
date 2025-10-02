@@ -6,10 +6,11 @@ import * as selectors from '../selectors';
 import {gettext, getItemInArrayById} from '../utils';
 
 import {getVocabularyItemsForScheme, validateField, validators} from './index';
-import {ICoverageContentProfile, IPlanningCoverageItem} from 'interfaces';
-import {planningApi} from '../superdeskApi';
+import type {ICoverageContentProfile, IPlanningCoverageItem, IPlanningItem} from 'interfaces';
+import {planningApi, superdeskApi} from '../superdeskApi';
 import {getCoverageFields} from '../api/editor/item_planning';
 import {vocabularies} from '../api/vocabularies';
+import type {Dictionary} from 'superdesk-api';
 
 const validatePlanningScheduleDate = ({getState, field, value, errors, messages, diff, item}) => {
     // Only validate the schedule if it has changed
@@ -97,6 +98,7 @@ export const validateCoverages = ({
         const coverageProfile = getCoverageFields(coverage.planning.g2_content_type).profile;
 
         validateCoverageVocabularyFields(coverageProfile, errors, messages, diff.coverages[index]);
+        validateCoverageCustomTextFields(coverageProfile, errors, messages, diff.coverages[index]);
 
         const isValidSubject = coverageProfile.schema['subject']?.required
             ? !isEmpty((diff.coverages[index].subject ?? []).filter((x) => x.scheme == null))
@@ -172,6 +174,51 @@ export const validateCoverageVocabularyFields = (
         });
 };
 
+/**
+ * Takes configured custom text fields and reads coverage fields from profile schema.
+ * Reads the latest coverage data that's in sync with the editor UI, checks each field
+ * that is custom text if it's required and empty. If there's an error it's pushed to errors object,
+ * later used for generating UI alerts.
+ */
+export const validateCoverageCustomTextFields = (
+    coverageProfile: ICoverageContentProfile,
+    errors: Dictionary<string, string>,
+    messages: Array<string>,
+    diff: IPlanningCoverageItem,
+): void => {
+    const customTextFieldLabels = new Map(
+        superdeskApi.entities.vocabulary.getAll().toArray()
+            .filter((x) => x.field_type === 'text')
+            .map((x) => [x._id, x.display_name])
+    );
+
+    Object.keys(coverageProfile.schema).filter((fieldId) => {
+        const hasNoDefinedValidator = !validators['coverage'][fieldId];
+        const isCustomTextField = coverageProfile.schema[fieldId].type === 'custom_text';
+
+        return hasNoDefinedValidator && isCustomTextField;
+    })
+        .forEach((fieldId) => {
+            const isInvalid = coverageProfile.schema[fieldId].required
+                ? isEmpty((diff.planning?.fields ?? []).find((x) => x.field === fieldId)?.value)
+                : false;
+
+            if (isInvalid) {
+                errors[fieldId] = gettext('This field is required');
+
+                messages.push(
+                    gettext(
+                        '{{ key }} is a required field',
+                        {key: customTextFieldLabels.get(fieldId) ?? fieldId},
+                    ),
+                );
+            } else {
+                errors[fieldId] = null;
+            }
+        });
+};
+
+
 const validateCoverageScheduleDate = ({
     getState,
     field,
@@ -202,7 +249,7 @@ const validateCoverageScheduleDate = ({
     const today = moment();
 
     if (!field.endsWith('_scheduledTime') &&
-            validateSchedule && moment.isMoment(value) && value.isBefore(today, 'day')) {
+        validateSchedule && moment.isMoment(value) && value.isBefore(today, 'day')) {
         set(errors, `${field}.date`, gettext('Date is in the past'));
 
         if (!canCreateInPast) {
@@ -252,7 +299,7 @@ const validateScheduledUpdatesDate = ({
                 'scheduled') : null;
 
             if ((coverageSchedule && schedule <= coverageSchedule) ||
-                    (previousSchedule && schedule <= previousSchedule)) {
+                (previousSchedule && schedule <= previousSchedule)) {
                 errors.scheduled_updates[planningSchedules.length - 1 - index] = {
                     planning: {
                         _scheduledTime: gettext('Should be after the previous scheduled update/coverage'),
