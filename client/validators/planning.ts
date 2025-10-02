@@ -6,11 +6,11 @@ import * as selectors from '../selectors';
 import {gettext, getItemInArrayById} from '../utils';
 
 import {getVocabularyItemsForScheme, validateField, validators} from './index';
-import {ICoverageContentProfile, IPlanningCoverageItem, IPlanningItem} from 'interfaces';
+import type {ICoverageContentProfile, IPlanningCoverageItem, IPlanningItem} from 'interfaces';
 import {planningApi, superdeskApi} from '../superdeskApi';
 import {getCoverageFields} from '../api/editor/item_planning';
 import {vocabularies} from '../api/vocabularies';
-import {Dictionary} from 'superdesk-api';
+import type {Dictionary} from 'superdesk-api';
 
 const validatePlanningScheduleDate = ({getState, field, value, errors, messages, diff, item}) => {
     // Only validate the schedule if it has changed
@@ -174,6 +174,12 @@ export const validateCoverageVocabularyFields = (
         });
 };
 
+/**
+ * Takes configured custom text fields and reads coverage fields from profile schema.
+ * Reads the latest coverage data that's in sync with the editor UI, checks each field
+ * that is custom text if it's required and empty. If there's an error it's pushed to errors object,
+ * later used for generating UI alerts.
+ */
 export const validateCoverageCustomTextFields = (
     coverageProfile: ICoverageContentProfile,
     errors: Dictionary<string, string>,
