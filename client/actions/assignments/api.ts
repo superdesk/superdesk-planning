@@ -250,6 +250,13 @@ const loadArchiveItems = (assignments: Array<any>) => (
 
     criteria.repo = 'archive,archived,published';
 
+    // TODO: we need to load them all or change the way it's used
+    if (criteria.source != null) {
+        criteria.source.size = 500;
+    } else {
+        criteria.max_results = 500;
+    }
+
     return api.query('search', criteria)
         .then((data) => {
             const items = data._items;
