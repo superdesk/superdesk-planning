@@ -75,7 +75,9 @@ describe('planningValidators', () => {
             field: 'coverages[0].planning.scheduled',
             value: planningDiff.coverages[0].planning.scheduled,
             errors: errors,
-            messages: errorMessages});
+            profile: {},
+            messages: errorMessages
+        });
         expect(errorMessages).toEqual(['COVERAGE SCHEDULED DATE cannot be in the past']);
         expect(errors).toEqual({
             coverages: [{
@@ -88,6 +90,33 @@ describe('planningValidators', () => {
         });
     });
 
+    it('fails if coverage schedule is required but value is invalid', () => {
+        const profile = {
+            schema: {
+                scheduled: {
+                    required: true
+                }
+            }
+        };
+
+        planningValidators.validateCoverageScheduleDate({
+            getState: getState,
+            field: 'coverages[0].planning.scheduled',
+            value: 'invalid_date',
+            profile: profile,
+            errors: errors,
+            messages: errorMessages
+        });
+        expect(errorMessages).toEqual(['COVERAGE SCHEDULE is required']);
+        expect(errors).toEqual({
+            planning: {
+                scheduled: {
+                    date: 'Required',
+                },
+            },
+        });
+    });
+
     it('Fails if scheduled updates are not ahead of each other in the sequential order', () => {
         const planningDiff = cloneDeep(planning);
 
@@ -97,6 +126,7 @@ describe('planningValidators', () => {
             getState: getState,
             field: 'planningDiff.coverages[0].scheduled_updates',
             value: planningDiff.coverages[0].scheduled_updates,
+            profile: {},
             errors: errors,
             messages: errorMessages,
             diff: planningDiff,
@@ -124,6 +154,7 @@ describe('planningValidators', () => {
             getState: getState,
             field: 'planningDiff.coverages[0].scheduled_updates',
             value: planningDiff.coverages[0].scheduled_updates,
+            profile: {},
             errors: errors,
             messages: errorMessages,
             diff: planningDiff,
