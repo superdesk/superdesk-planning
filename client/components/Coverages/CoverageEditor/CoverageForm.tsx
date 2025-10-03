@@ -500,7 +500,7 @@ export class CoverageFormComponent extends React.Component<IProps, IState> {
                 disabled: this.props.readOnly
                     ?? (coverageProfile?.schema?.['multiple_content'] as IProfileSchemaTypeList)?.read_only
                     ?? false,
-                field: 'multiple_content',
+                field: 'planning.multiple_content',
                 defaultValue: (coverageProfile?.schema?.['multiple_content'] as IProfileSchemaTypeList)?.default_value,
             },
             news_coverage_status: {
