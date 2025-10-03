@@ -36,11 +36,7 @@ export class EditorFieldCV extends React.PureComponent<ICustomCVFieldProps> {
                 testId={testId?.length ? testId : cv._id}
             >
                 <TreeSelect
-                    selectBranchWithChildren={
-                        cv.disable_entire_category_selection == null
-                            ? true
-                            : cv.disable_entire_category_selection
-                    }
+                    selectBranchWithChildren={cv.disable_entire_category_selection !== true}
                     sortable={true}
                     kind="synchronous"
                     allowMultiple={cv.selection_type === 'multi selection'}
