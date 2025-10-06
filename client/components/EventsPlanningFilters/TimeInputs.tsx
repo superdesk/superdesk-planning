@@ -1,6 +1,8 @@
 import React from 'react';
 import {superdeskApi} from '../../superdeskApi';
 import {Button, Spacer, TimePicker} from 'superdesk-ui-framework/react';
+import {isEqual, uniq} from 'lodash';
+import {arraySpinForward} from '@sourcefabric/common';
 
 interface IProps {
     hours: Array<string>;
@@ -19,7 +21,12 @@ export class TimeInputs extends React.Component<IProps> {
     addHour() {
         const used = new Set(this.props.hours);
         const allHours = Array.from({length: 24}, (_, i) => `${i.toString().padStart(2, '0')}:00`);
-        const nextAvailableHour = allHours.find((h) => !used.has(h)) || '00:00';
+
+        const lastInList = this.props.hours.length > 0 ? this.props.hours[this.props.hours.length - 1] : '03:00';
+        const lastInListIndex = allHours.indexOf(lastInList);
+
+        const availableHoursSorted = arraySpinForward(allHours, lastInListIndex);
+        const nextAvailableHour = availableHoursSorted.find((h) => !used.has(h)) ?? '00:00';
 
         this.props.onChange([...this.props.hours, nextAvailableHour]);
     }
@@ -55,6 +62,15 @@ export class TimeInputs extends React.Component<IProps> {
                                     value={time}
                                     onChange={(next) => {
                                         this.updateHour(index, next);
+                                    }}
+                                    onBlur={() => {
+                                        const withoutDuplicates = uniq(this.props.hours);
+                                        const sorted = withoutDuplicates.sort((a, b) => a.localeCompare(b));
+
+                                        // clean up values if needed - remove duplicates and sort
+                                        if (!isEqual(sorted, this.props.hours)) {
+                                            this.props.onChange(sorted);
+                                        }
                                     }}
                                     data-test-id={index === 0 ? 'field-hour' : `field-hour-${index}`}
                                     canClear={false}
