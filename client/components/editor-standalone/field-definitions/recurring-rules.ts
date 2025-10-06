@@ -2,6 +2,7 @@ import {IAuthoringFieldV2, ICommonFieldConfig} from 'superdesk-api';
 import {IFieldDefinition} from './interfaces';
 import {cloneDeep} from 'lodash';
 import moment, {Moment} from 'moment';
+import {IEventItem} from 'globals';
 
 export const getRecurringRulesField = (): IFieldDefinition => {
     return {

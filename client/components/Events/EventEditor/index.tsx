@@ -112,30 +112,15 @@ class EventEditorComponent extends React.PureComponent<IProps> {
             return null;
         }
 
-        const eventSchedule = item.dates ?? {};
-        const doesRepeat = eventSchedule.recurring_rule != null;
-        const isManySecondary = appConfig.planning_event_link_method === 'many_secondary';
-
         return (
             <>
                 <EventEditorHeader item={item} />
-                {isManySecondary ? (
-                    doesRepeat && (
-                        <ContentBlock padSmall>
-                            <RepeatEventSummary
-                                schedule={eventSchedule}
-                                noMargin
-                            />
-                        </ContentBlock>
-                    )
-                ) : (
-                    <ContentBlock padSmall>
-                        <EventScheduleSummary
-                            event={item}
-                            noPadding
-                        />
-                    </ContentBlock>
-                )}
+                <ContentBlock padSmall>
+                    <EventScheduleSummary
+                        event={item}
+                        noPadding
+                    />
+                </ContentBlock>
             </>
         );
     }
@@ -169,7 +154,7 @@ class EventEditorComponent extends React.PureComponent<IProps> {
                     recurring_rules: {
                         field: 'dates.recurring_rule',
                         defaultValue: {},
-                        enabled: !this.props.itemExists,
+                        originalItem: this.props.original,
                     },
                     dates: {
                         required: true,
