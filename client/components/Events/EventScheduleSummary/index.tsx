@@ -122,16 +122,6 @@ export const EventScheduleSummary = ({
                     dataTestId="field-dates_timezone"
                 />
             )}
-
-            {doesRepeat && (
-                <Row noPadding={noPadding} dataTestId="field-dates_repeat">
-                    <RepeatEventSummary
-                        schedule={eventSchedule}
-                        noMargin={noPadding}
-                        forUpdating={forUpdating}
-                    />
-                </Row>
-            )}
         </React.Fragment>
     );
 };

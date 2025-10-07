@@ -37,6 +37,7 @@ export class Editor extends React.PureComponent<IProps> {
                             recurring_rule: this.props.value,
                         }
                     }}
+                    originalItem={this.props.item}
                 />
             </Container>
         );
