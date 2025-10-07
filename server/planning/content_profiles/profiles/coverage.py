@@ -40,10 +40,6 @@ class CoverageSchema(BaseSchema):
 DEFAULT_COVERAGE_PROFILE = {
     "name": "coverage",
     "editor": {
-        "add_coverage_to_workflow": {
-            "enabled": True,
-            "index": 1,
-        },
         "g2_content_type": {
             "enabled": True,
             "index": 2,
