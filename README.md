@@ -18,6 +18,7 @@ It allows to ingest and manage events, to create planning within agenda, and to 
     * [Planning](#planning-config)
     * [Assignments](#assignments-config)
     * [Authoring](#authoring-config)
+    * [Search Filters](#search-filters-config)
 * [Slack Integration](#slack-integration)
 * [Celery Tasks](#celery-tasks)
     * [Expire Items](#celery-tasks-expire-items)
@@ -232,6 +233,174 @@ Below sections include the config options that can be defined in settings.py.
     * When duplicating content that is linked to an Assignment with multiple content enabled,
     * this setting determines whether the newly created duplicate item retains the Assignment link (if true)
     * or removes the assignment_id from the duplicate item (if false).
+
+### Search Filters Config
+
+The search filters in the Planning module can be configured using the `planning_types` resource, using a document
+with an `_id` of `advanced_search`.
+
+Managing this config is currently not available from the front-end, but instead can be managed using the 
+`data/planning_types.json` file in the application github repo.
+
+Extract of an example `data/planning_types.json` file:
+```json
+{
+    "_id": "advanced_search",
+    "name": "advanced_search",
+    "init_version": 1,
+    "schema": {},
+    "editor": {
+        "event": {
+            "full_text": {
+                "enabled": true,
+                "index": 1,
+                "group": "common",
+                "search_enabled": false,
+                "filter_enabled": true
+            }
+        },
+        "planning": {
+            "slugline": {
+                "enabled": true,
+                "index": 1,
+                "group": "common",
+                "search_enabled": true,
+                "filter_enabled": true
+            }
+        },
+        "combined": {
+            "anpa_category": {
+                "enabled": true,
+                "index": 2,
+                "group": "vocabularies",
+                "search_enabled": true,
+                "filter_enabled": true
+            }
+        },
+        "assignments": {
+            "user": {
+                "enabled": true,
+                "index": 8,
+                "group": "planning"
+            }
+        }
+    }
+}
+```
+
+#### Field Attributes
+Each field defined in the config have the following attributes:
+* `enabled`
+* `index` - The position of this field in the filters panel
+* `group` - The group to place this field with, can be one of:
+  * `"no_group"` _(Will be placed at the top of the filters panel, without a group box)_
+  * `"common"`
+  * `"vocabularies"`
+  * `"states"`
+  * `"dates"`
+  * `"events"`
+  * `"planning"`
+  * `"details"`
+* `search_enabled` - If enabled, this field will be available in the `Advanced filters` panel
+* `filter_enabled` - If enabled, this field will be available in the `Events & Planning Filters` modal
+
+> [!NOTE]
+> The group name must be one of the provided options above, custom group names are not supported.
+> This is so that we can provide translations for these group names in the front-end for different user
+> languages.
+
+> [!NOTE]
+> `"search_enabled"` and `"filter_enabled"` attributes are not supported for the Assignment filter config.
+
+#### Available Filter Fields:
+The following table outlines the available fields, and for which filter panel they're supported in.
+
+| Field                             | Events  | Planning | Combined | Assignments |
+|-----------------------------------|:-------:|:--------:|:--------:|:-----------:|
+| full_text                         | &check; | &check;  | &check;  |             |
+| name                              | &check; | &check;  | &check;  |             |
+| slugline                          | &check; | &check;  | &check;  |   &check;   |
+| langauge                          | &check; | &check;  | &check;  |   &check;   |
+| anpa_category                     | &check; | &check;  | &check;  |   &check;   |
+| place                             | &check; | &check;  | &check;  |             |
+| subject                           | &check; | &check;  | &check;  |   &check;   |
+| state                             | &check; | &check;  | &check;  |             |
+| posted                            | &check; | &check;  | &check;  |             |
+| spike_state                       | &check; | &check;  | &check;  |             |
+| include_killed                    | &check; | &check;  | &check;  |             |
+| lock_state                        | &check; | &check;  | &check;  |             |
+| source                            | &check; | &check;  | &check;  |             |
+| start_date                        | &check; | &check;  | &check;  |             |
+| end_date                          | &check; | &check;  | &check;  |             |
+| date_filter                       | &check; | &check;  | &check;  |             |
+| calendars                         | &check; |          | &check;  |             |
+| no_calendar_assigned              | &check; |          |          |             |
+| reference                         | &check; |          | &check;  |             |
+| location                          | &check; |          |          |             |
+| exclude_rescheduled_and_cancelled |         | &check;  |          |             |
+| agendas                           |         | &check;  | &check;  |             |
+| no_agenda_assigned                |         | &check;  |          |             |
+| no_coverage                       |         | &check;  |          |             |
+| g2_content_type                   |         | &check;  |          |             |
+| urgency                           |         | &check;  |          |             |
+| coverage_assignment_status        |         | &check;  |          |             |
+| ad_hoc_planning                   |         | &check;  |          |             |
+| featured                          |         | &check;  |          |             |
+| include_scheduled_updates         |         | &check;  |          |             |
+| user                              |         |          |          |   &check;   |
+| content_type                      |         |          |          |   &check;   |
+| assignment_priority               |         |          |          |   &check;   |
+| multiple_content                  |         |          |          |   &check;   |
+| priority                          |         |          |          |   &check;   |
+| genre                             |         |          |          |   &check;   |
+
+#### Custom Vocabulary & Custom Text Filters
+
+Custom vocabulary and custom text fields can be added to the filter panels.
+This can be achieved by using the `_id` of the vocabulary you would like to add.
+
+Example: Add a custom vocabulary with `_id` of `topics` to the Events filter panel
+```json
+{
+    "_id": "advanced_search",
+    "name": "advanced_search",
+    "init_version": 1,
+    "schema": {},
+    "editor": {
+        "event": {
+            "topics": {
+                "enabled": true,
+                "index": 1,
+                "group": "common",
+                "search_enabled": true,
+                "filter_enabled": true
+            }
+        }
+    }
+}
+```
+
+Example: Add a custom text field with `_id` of `sttregistrationinfo` to Assignments filter panel
+```json
+{
+    "_id": "advanced_search",
+    "name": "advanced_search",
+    "init_version": 1,
+    "schema": {},
+    "editor": {
+        "assignments": {
+            "sttregistrationinfo": {
+                "enabled": true,
+                "index": 1,
+                "group": "common"
+            }
+        }
+    }
+}
+```
+
+> [!NOTE]
+> Custom text field filters is currently only supported in the Assignments filters panel. 
 
 ### Development tools config
 
