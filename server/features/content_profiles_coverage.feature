@@ -8,41 +8,37 @@ Feature: Coverage Content Profiles
     {"_items": [{
         "name": "coverage",
         "editor": {
-            "add_coverage_to_workflow": {
+            "g2_content_type": {
                 "enabled": true,
                 "index": 1
             },
-            "g2_content_type": {
+            "genre": {
                 "enabled": true,
                 "index": 2
             },
-            "genre": {
+            "slugline": {
                 "enabled": true,
                 "index": 3
             },
-            "slugline": {
+            "ednote": {
                 "enabled": true,
                 "index": 4
             },
-            "ednote": {
+            "internal_note": {
                 "enabled": true,
                 "index": 5
             },
-            "internal_note": {
+            "news_coverage_status": {
                 "enabled": true,
                 "index": 6
             },
-            "news_coverage_status": {
+            "scheduled": {
                 "enabled": true,
                 "index": 7
             },
-            "scheduled": {
-                "enabled": true,
-                "index": 8
-            },
             "scheduled_updates": {
                 "enabled": true,
-                "index": 9
+                "index": 8
             },
             "contact_info": {"enabled": false},
             "language": {"enabled": false},

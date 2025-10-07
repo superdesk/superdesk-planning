@@ -42,39 +42,39 @@ DEFAULT_COVERAGE_PROFILE = {
     "editor": {
         "g2_content_type": {
             "enabled": True,
-            "index": 2,
+            "index": 1,
         },
         "genre": {
             "enabled": True,
-            "index": 3,
+            "index": 2,
         },
         "slugline": {
             "enabled": True,
-            "index": 4,
+            "index": 3,
         },
         "ednote": {
             "enabled": True,
-            "index": 5,
+            "index": 4,
         },
         "internal_note": {
             "enabled": True,
-            "index": 6,
+            "index": 5,
         },
         "news_coverage_status": {
             "enabled": True,
-            "index": 7,
+            "index": 6,
         },
         "scheduled": {
             "enabled": True,
-            "index": 8,
+            "index": 7,
         },
         "scheduled_updates": {
             "enabled": True,
-            "index": 9,
+            "index": 8,
         },
         "multiple_content": {
             "enabled": False,
-            "index": 10,
+            "index": 9,
         },
         "location": {"enabled": False},
         "anpa_category": {"enabled": False},
