@@ -2,7 +2,7 @@ from datetime import datetime
 from typing import Any, Annotated
 from pydantic import Field
 
-from planning.types.base import BasePlanningModel
+from planning.types.base import BasePlanningModelWithObjectId
 
 from superdesk.utc import utcnow
 from superdesk.core.resources import fields, dataclass
@@ -34,7 +34,7 @@ class Address:
     address_type: str | None = Field(alias="type", default=None)
 
 
-class LocationResourceModel(BasePlanningModel):
+class LocationResourceModel(BasePlanningModelWithObjectId):
     guid: Annotated[
         fields.Keyword,
         validate_iunique_value_async("locations", "guid"),
