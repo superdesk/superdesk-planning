@@ -193,11 +193,11 @@ Feature: Search Feature
     Scenario: Search events and planning using calendars and agenda
         Given "agenda"
         """
-            [
-                {"name": "sports", "_id": "sports", "is_enabled": true},
-                {"name": "finance", "_id": "finance", "is_enabled": true},
-                {"name": "entertainment", "_id": "entertainment", "is_enabled": true}
-            ]
+        [
+            {"name": "sports", "_id": "68e5df45ac0f6c8b678c17b1", "is_enabled": true},
+            {"name": "finance", "_id": "68e5df45ac0f6c8b678c17b2", "is_enabled": true},
+            {"name": "entertainment", "_id": "68e5df45ac0f6c8b678c17b3", "is_enabled": true}
+        ]
         """
         And "events"
             """
@@ -268,7 +268,7 @@ Feature: Search Feature
                 "headline": "test headline",
                 "slugline": "slug123",
                 "planning_date": "2016-01-02T12:00:00+0000",
-                "agendas": ["sports"]
+                "agendas": ["68e5df45ac0f6c8b678c17b1"]
             },
             {
                 "guid": "planning_2",
@@ -277,7 +277,7 @@ Feature: Search Feature
                 "slugline": "slug123",
                 "related_events": [{"_id": "event_123", "link_type": "primary"}],
                 "planning_date": "2016-01-02T13:00:00+0000",
-                "agendas": ["sports"]
+                "agendas": ["68e5df45ac0f6c8b678c17b1"]
             },
             {
                 "guid": "planning_3",
@@ -286,7 +286,7 @@ Feature: Search Feature
                 "slugline": "slug456",
                 "related_events": [{"_id": "event_456", "link_type": "primary"}],
                 "planning_date": "2016-01-02T14:00:00+0000",
-                "agendas": ["finance"]
+                "agendas": ["68e5df45ac0f6c8b678c17b2"]
             },
             {
                 "guid": "planning_4",
@@ -295,7 +295,7 @@ Feature: Search Feature
                 "slugline": "slug456",
                 "related_events": [{"_id": "event_456", "link_type": "primary"}],
                 "planning_date": "2016-01-02T14:00:00+0000",
-                "agendas": ["entertainment"]
+                "agendas": ["68e5df45ac0f6c8b678c17b3"]
             },
             {
                 "guid": "planning_5",
@@ -304,7 +304,7 @@ Feature: Search Feature
                 "slugline": "slug456",
                 "related_events": [{"_id": "event_786", "link_type": "primary"}],
                 "planning_date": "2016-01-02T14:00:00+0000",
-                "agendas": ["sports", "finance"]
+                "agendas": ["68e5df45ac0f6c8b678c17b1", "68e5df45ac0f6c8b678c17b2"]
             },
             {
                 "guid": "planning_6",
@@ -312,7 +312,7 @@ Feature: Search Feature
                 "headline": "test headline",
                 "slugline": "slug456",
                 "planning_date": "2016-01-02T14:00:00+0000",
-                "agendas": ["entertainment"]
+                "agendas": ["68e5df45ac0f6c8b678c17b3"]
             }
         ]
         """
@@ -343,7 +343,7 @@ Feature: Search Feature
             ]
         }
         """
-        When we get "/events_planning_search?agendas=sports&calendars=sports&start_date=2016-01-02T00:00:00%2B0000"
+        When we get "/events_planning_search?agendas=68e5df45ac0f6c8b678c17b1&calendars=sports&start_date=2016-01-02T00:00:00%2B0000"
         Then we get list with 5 items
         """
         {
@@ -356,7 +356,7 @@ Feature: Search Feature
             ]
         }
         """
-        When we get "/events_planning_search?agendas=sports&calendars=sports,finance&start_date=2016-01-02T00:00:00%2B0000"
+        When we get "/events_planning_search?agendas=68e5df45ac0f6c8b678c17b1&calendars=sports,finance&start_date=2016-01-02T00:00:00%2B0000"
         Then we get list with 5 items
         """
         {
@@ -369,7 +369,7 @@ Feature: Search Feature
             ]
         }
         """
-        When we get "/events_planning_search?agendas=sports,finance&calendars=sports,finance&start_date=2016-01-02T00:00:00%2B0000"
+        When we get "/events_planning_search?agendas=68e5df45ac0f6c8b678c17b1,68e5df45ac0f6c8b678c17b2&calendars=sports,finance&start_date=2016-01-02T00:00:00%2B0000"
         Then we get list with 6 items
         """
         {
@@ -383,7 +383,7 @@ Feature: Search Feature
             ]
         }
         """
-        When we get "/events_planning_search?agendas=entertainment&start_date=2016-01-02T00:00:00%2B0000"
+        When we get "/events_planning_search?agendas=68e5df45ac0f6c8b678c17b3&start_date=2016-01-02T00:00:00%2B0000"
         Then we get list with 2 items
         """
         {
@@ -393,7 +393,7 @@ Feature: Search Feature
             ]
         }
         """
-        When we get "/events_planning_search?agendas=sports&start_date=2016-01-02T00:00:00%2B0000"
+        When we get "/events_planning_search?agendas=68e5df45ac0f6c8b678c17b1&start_date=2016-01-02T00:00:00%2B0000"
         Then we get list with 3 items
         """
         {
