@@ -1,15 +1,37 @@
 import React from 'react';
-import PropTypes from 'prop-types';
 import {LineInput, Label, Select} from './';
 import {get, uniqueId} from 'lodash';
 import {getVocabularyItemFieldTranslated} from '../../../utils/vocabularies';
+
+interface IProps {
+    field?: string;
+    id?: string;
+    label?: string;
+    value?: string | {};
+    onChange(field: any, value: any): void;
+    placeholder?: string;
+    required?: boolean;
+    invalid?: boolean;
+    readOnly?: boolean;
+    boxed?: boolean;
+    noMargin?: boolean;
+    options: Array<any>;
+    keyField?: string;
+    labelField?: string;
+    clearable?: boolean;
+    autoFocus?: boolean;
+    refNode?: any;
+    onFocus?(): void;
+    valueAsString?: boolean;
+    language?: string;
+}
 
 /**
  * @ngdoc react
  * @name SelectInput
  * @description Component to select a list from dropdown with field label
  */
-export const SelectInput = ({
+export const SelectInput: React.FunctionComponent<IProps> = ({
     id,
     field,
     label,
@@ -79,42 +101,6 @@ export const SelectInput = ({
             />
         </LineInput>
     );
-};
-
-SelectInput.propTypes = {
-    field: PropTypes.string,
-    id: PropTypes.string,
-    label: PropTypes.string,
-    value: PropTypes.oneOfType([
-        PropTypes.string,
-        PropTypes.object,
-    ]),
-    onChange: PropTypes.func.isRequired,
-    placeholder: PropTypes.string,
-
-    required: PropTypes.bool,
-    invalid: PropTypes.bool,
-    readOnly: PropTypes.bool,
-    boxed: PropTypes.bool,
-    noMargin: PropTypes.bool,
-
-    options: PropTypes.arrayOf(PropTypes.shape({
-        key: PropTypes.string,
-        label: PropTypes.string,
-        value: PropTypes.oneOfType([
-            PropTypes.string,
-            PropTypes.object,
-            PropTypes.number,
-        ]),
-    })).isRequired,
-    keyField: PropTypes.string,
-    labelField: PropTypes.string,
-    clearable: PropTypes.bool,
-    autoFocus: PropTypes.bool,
-    refNode: PropTypes.func,
-    onFocus: PropTypes.func,
-    valueAsString: PropTypes.bool,
-    language: PropTypes.string,
 };
 
 SelectInput.defaultProps = {
