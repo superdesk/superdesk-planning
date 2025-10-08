@@ -56,8 +56,8 @@ class ExportScheduledFilters:
 
         now_local = utc_to_local(default_timezone, now_utc)
 
-        # Set now to the beginning of the hour (in local time)
-        now_local = now_local.replace(minute=0, second=0, microsecond=0)
+        # Round to the start of the current minute (ignore seconds)
+        now_local = now_local.replace(second=0, microsecond=0)
 
         logger.info(f"Starting to export scheduled filters: {now_utc}")
         await self.process_filters(await self.get_filters_with_schedules(), now_local, now_utc)
@@ -104,10 +104,13 @@ class ExportScheduledFilters:
         return await filters.to_list_raw()
 
     def should_export(self, schedule, now_local):
+        # Work at minute-level precision
+        now_local_minute = now_local.replace(second=0, microsecond=0)
+
         last_sent = None
         if schedule.get("_last_sent"):
             last_sent = utc_to_local(get_app_config("DEFAULT_TIMEZONE"), schedule["_last_sent"]).replace(
-                minute=0, second=0, microsecond=0
+                second=0, microsecond=0
             )
 
         schedule_hour = schedule.get("hour", -1)
@@ -125,7 +128,7 @@ class ExportScheduledFilters:
         if schedule_week_days and week_day not in schedule_week_days:
             return False
 
-        now_hour_str = now_local.strftime("%H:%M")
+        now_hour_str = now_local_minute.strftime("%H:%M")
 
         # If schedule has 'hours' array, check if current hour is in it
         if "hours" in schedule and schedule["hours"]:
@@ -135,7 +138,7 @@ class ExportScheduledFilters:
             return False
 
         # This export has not been run on this hour
-        if last_sent is not None and now_local <= last_sent:
+        if last_sent is not None and now_local_minute <= last_sent:
             return False
 
         return True

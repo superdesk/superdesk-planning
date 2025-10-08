@@ -8,8 +8,8 @@
 # AUTHORS and LICENSE files distributed with this source code, or
 # at https://www.sourcefabric.org/superdesk/license
 
-from datetime import datetime
-from dateutil.rrule import rrule, HOURLY
+from datetime import datetime, timedelta
+from dateutil.rrule import rrule, HOURLY, MINUTELY
 import pytz
 
 from superdesk.core import get_app_config
@@ -42,7 +42,11 @@ class ExportScheduledFiltersTestCase(TestCase):
 
     def _test(self, report, start, end, expected_hits):
         count = 0
-        for now in rrule(HOURLY, dtstart=to_naive(start), until=to_naive(end)):
+        freq = HOURLY
+        hours_list = report.get("hours") or []
+        if any(":" in h and h.split(":")[1] != "00" for h in hours_list):
+            freq = MINUTELY
+        for now in rrule(freq, dtstart=to_naive(start), until=to_naive(end)):
             local_tz = pytz.timezone(get_app_config("DEFAULT_TIMEZONE"))
             now_local = local_tz.localize(now)
 
@@ -273,4 +277,24 @@ class ExportScheduledFiltersTestCase(TestCase):
                 to_local("2018-06-05T08"),
                 to_local("2018-06-05T16"),
             ],
+        )
+
+    def test_send_report_minutes_precision(self):
+        # Export should run at specific minutes
+        report = {
+            "frequency": "daily",
+            "hours": ["08:15", "12:30", "16:45"],
+        }
+
+        expected_hits = [
+            to_local("2018-06-30T08") + timedelta(minutes=15),
+            to_local("2018-06-30T12") + timedelta(minutes=30),
+            to_local("2018-06-30T16") + timedelta(minutes=45),
+        ]
+
+        self._test(
+            report=report,
+            start="2018-06-30T00",
+            end="2018-06-30T23",
+            expected_hits=expected_hits,
         )
