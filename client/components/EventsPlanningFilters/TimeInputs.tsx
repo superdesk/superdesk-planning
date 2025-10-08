@@ -22,7 +22,7 @@ export class TimeInputs extends React.Component<IProps> {
         const used = new Set(this.props.hours);
         const allHours = Array.from({length: 24}, (_, i) => `${i.toString().padStart(2, '0')}:00`);
 
-        const lastInList = this.props.hours.length > 0 ? this.props.hours[this.props.hours.length - 1] : '03:00';
+        const lastInList = this.props.hours.length > 0 ? this.props.hours[this.props.hours.length - 1] : '00:00';
         const lastInListIndex = allHours.indexOf(lastInList);
 
         const availableHoursSorted = arraySpinForward(allHours, lastInListIndex);
