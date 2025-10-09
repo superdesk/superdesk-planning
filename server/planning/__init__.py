@@ -314,7 +314,7 @@ def init_scheduled_exports_task(app):
     if not app.config["CELERY_BEAT_SCHEDULE"].get("planning:export_scheduled_filters"):
         app.config["CELERY_BEAT_SCHEDULE"]["planning:export_scheduled_filters"] = {
             "task": "planning.export_scheduled_filters",
-            "schedule": crontab(minute=0),
+            "schedule": crontab(minute="*"),
         }
 
 
