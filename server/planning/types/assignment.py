@@ -6,7 +6,7 @@ from superdesk.utc import utcnow
 from superdesk.core.resources import fields, dataclass
 from superdesk.core.resources.validators import validate_data_relation_async
 
-from .base import BasePlanningModel
+from .base import BasePlanningModelWithObjectId
 from .common import LockFieldsMixin, AssignmentCoverage
 from .enums import AssignmentPublishedState, AssignmentWorkflowState
 
@@ -32,9 +32,7 @@ class AssignedTo:
     coverage_provider: CoverageProvider | None = None
 
 
-class AssignmentResourceModel(BasePlanningModel, LockFieldsMixin):
-    id: Annotated[fields.ObjectId, Field(alias="_id", default_factory=fields.ObjectId)]
-
+class AssignmentResourceModel(BasePlanningModelWithObjectId, LockFieldsMixin):
     firstcreated: datetime = Field(default_factory=utcnow)
     versioncreated: datetime = Field(default_factory=utcnow)
 
