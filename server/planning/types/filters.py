@@ -5,7 +5,7 @@ from datetime import datetime
 from superdesk.core.resources import fields, Dataclass
 from superdesk.core.resources.validators import validate_data_relation_async, validate_iunique_value_async
 
-from .base import BasePlanningModel
+from .base import BasePlanningModelWithObjectId
 from .enums import LockState, SpikedState, SearchItemType, SearchScheduleFrequency, SearchWeekDay, SearchDateRange
 
 
@@ -86,7 +86,7 @@ class FilterParams(Dataclass):
     coverage_assignment_status: str | None = None
 
 
-class EventPlanningFilter(BasePlanningModel):
+class EventPlanningFilter(BasePlanningModelWithObjectId):
     name: Annotated[str, validate_iunique_value_async("events_planning_filters", "name")]
     item_type: SearchItemType = Field(default=SearchItemType.COMBINED)
     params: FilterParams = Field(default_factory=FilterParams)
