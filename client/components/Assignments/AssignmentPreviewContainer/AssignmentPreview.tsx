@@ -4,6 +4,7 @@ import {get} from 'lodash';
 import {superdeskApi} from '../../../superdeskApi';
 import {
     IAssignmentItem,
+    ICoverageContentProfile,
     ICoverageFormProfile,
     ICoveragePlanningDetails,
     IFile,
@@ -26,6 +27,11 @@ interface IProps {
     planningItem: IPlanningItem;
     files: Array<IFile>;
     createLink(file: IFile): string;
+
+    /**
+     * The coverage profile used when creating the assignment
+     */
+    assignmentCoverageProfile: ICoverageContentProfile;
 }
 
 export class AssignmentPreview extends React.PureComponent<IProps> {
@@ -35,6 +41,7 @@ export class AssignmentPreview extends React.PureComponent<IProps> {
             assignment,
             coverageFormProfile,
             planningFormProfile,
+            assignmentCoverageProfile,
             planningItem,
             files,
             createLink,
@@ -80,6 +87,11 @@ export class AssignmentPreview extends React.PureComponent<IProps> {
                         internal_note: {field: 'coverage.internal_note', renderEmpty: true},
                         location: {field: 'planning.location'},
                     },
+                    undefined,
+                    undefined,
+                    'enabled',
+                    {},
+                    assignmentCoverageProfile?.schema
                 )}
 
                 <Row

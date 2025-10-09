@@ -6,6 +6,7 @@ import {IDesk, IUser, IArticle} from 'superdesk-api';
 import {
     IAssignmentItem,
     IAssignmentPriority,
+    ICoverageContentProfile,
     IEventItem, IFile,
     IFormProfiles,
     IG2ContentType,
@@ -54,6 +55,8 @@ interface IStateProps {
     contentTypes: Array<IG2ContentType>;
     files: Array<IFile>;
     archiveItems: {[itemId: string]: IArticle};
+
+    assignmentCoverageProfile: ICoverageContentProfile;
 }
 
 interface IDispatchProps {
@@ -137,6 +140,7 @@ class AssignmentPreviewContainerComponent extends React.Component<IProps> {
             planningItem,
             priorities,
             formProfile,
+            assignmentCoverageProfile,
             hideAvatar,
             currentWorkspace,
             contentTypes,
@@ -193,6 +197,7 @@ class AssignmentPreviewContainerComponent extends React.Component<IProps> {
                         assignment={assignment}
                         coverageFormProfile={formProfile.coverage}
                         planningFormProfile={formProfile.planning}
+                        assignmentCoverageProfile={assignmentCoverageProfile}
                         planningItem={planningItem}
                         createLink={getFileDownloadURL}
                         files={files}
@@ -274,6 +279,8 @@ const mapStateToProps = (state) => ({
     contentTypes: selectors.general.contentTypes(state),
     files: selectors.general.files(state),
     archiveItems: selectors.getStoredArchiveItems(state),
+
+    assignmentCoverageProfile: selectors.getCurrentAssignmentCoverageProfile(state),
 });
 
 const mapDispatchToProps = (dispatch) => ({

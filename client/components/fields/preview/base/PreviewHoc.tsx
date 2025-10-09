@@ -63,7 +63,7 @@ export function previewHoc<S = {}>(
                     light={true}
                     {...props}
                     {...this.props}
-                    schema={this.props.schema?.[field]}
+                    schema={this.props.schema}
                     translations={translations}
                 />
             );

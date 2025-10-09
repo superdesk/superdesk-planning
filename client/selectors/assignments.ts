@@ -14,6 +14,7 @@ import {
 import {storedEvents} from './events';
 import {storedPlannings} from './planning';
 import {currentUserId} from './general';
+import {coverageProfiles} from './coverageProfiles';
 import {getItemsById} from '../utils';
 import {ASSIGNMENTS, SORT_DIRECTION, ALL_DESKS} from '../constants';
 
@@ -244,6 +245,29 @@ export const getCurrentAssignmentPlanningItem = createSelector(
             get(plannings, assignment.planning_item) :
             null
     )
+);
+
+/**
+ * Returns the coverage profile that was used when creating the assignment.
+ * This profile would include any user modifications to the schema not just
+ * the default values
+ */
+export const getCurrentAssignmentCoverageProfile = createSelector(
+    [getCurrentAssignment, getCurrentAssignmentPlanningItem, coverageProfiles],
+    (assignment, planningItem, profiles) => {
+        if (!assignment || !planningItem || !profiles.length) {
+            return null;
+        }
+
+        const coverageItem = planningItem.coverages?.find(
+            (coverage) => coverage.coverage_id === assignment.coverage_item
+        );
+
+        if (!coverageItem?.profile)
+            return null;
+
+        return profiles.find((profile) => profile._id === coverageItem.profile) || null;
+    }
 );
 
 export const getRelatedEventsForCurrentAssignment = createSelector<
