@@ -68,11 +68,13 @@ export class EditorFieldAssociatedEventComponent extends React.PureComponent<IAs
     }
 
     private lockRelatedItemsOnFrontEnd() {
-        planningApi.locks.softLockItem({
-            type: 'planning',
-            item: this.props.item,
-            event_ids: this.props.events.map((x) => x._id)
-        });
+        if (this.props.disabled !== true) {
+            planningApi.locks.softLockItem({
+                type: 'planning',
+                item: this.props.item,
+                event_ids: this.props.events.map((x) => x._id)
+            });
+        }
     }
 
     componentDidUpdate(prevProps: Readonly<IAssociatedEventFieldProps>): void {

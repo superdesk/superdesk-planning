@@ -25,11 +25,13 @@ export class EditorFieldEventRelatedPlanningsComponent extends React.PureCompone
     }
 
     private softLockPlannings() {
-        planningApi.locks.softLockItem({
-            type: 'event',
-            item: this.props.item,
-            plan_ids: this.props.item.associated_plannings.map((x) => x._id),
-        });
+        if (this.props.disabled !== true) {
+            planningApi.locks.softLockItem({
+                type: 'event',
+                item: this.props.item,
+                plan_ids: this.props.item.associated_plannings.map((x) => x._id),
+            });
+        }
     }
 
     componentDidMount(): void {
