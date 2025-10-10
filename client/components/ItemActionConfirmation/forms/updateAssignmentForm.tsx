@@ -19,6 +19,7 @@ import {Row, TextInput, ColouredValueInput} from '../../UI/Form';
 import {AbsoluteDate} from '../..';
 
 import '../style.scss';
+import {assignmentFieldsConfig} from '../../Coverages/assignmentFieldsConfig';
 
 export class UpdateAssignmentComponent extends React.Component {
     constructor(props) {
@@ -109,21 +110,25 @@ export class UpdateAssignmentComponent extends React.Component {
                     />
                 </Row>
 
-                <Row noPadding={!canEditDesk}>
-                    <ColouredValueInput
-                        field="priority"
-                        label={gettext('Priority')}
-                        value={priority}
-                        onChange={this.onChange}
-                        options={this.props.priorities}
-                        iconName="priority-label"
-                        noMargin={true}
-                        noValueString="-"
-                        language={getUserInterfaceLanguageFromCV()}
-                        clearable={true}
-                        {...infoProps}
-                    />
-                </Row>
+                {
+                    assignmentFieldsConfig.assignmentPriority && (
+                        <Row noPadding={!canEditDesk}>
+                            <ColouredValueInput
+                                field="priority"
+                                label={gettext('Priority')}
+                                value={priority}
+                                onChange={this.onChange}
+                                options={this.props.priorities}
+                                iconName="priority-label"
+                                noMargin={true}
+                                noValueString="-"
+                                language={getUserInterfaceLanguageFromCV()}
+                                clearable={true}
+                                {...infoProps}
+                            />
+                        </Row>
+                    )
+                }
 
                 {!canEditDesk && (
                     <Row>

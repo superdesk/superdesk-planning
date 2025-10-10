@@ -8,6 +8,7 @@ import {appConfig} from 'appConfig';
 import {Row as PreviewRow} from '../../UI/Preview';
 import {getCreator, getItemInArrayById, gettext} from '../../../utils';
 import {StateLabel} from '../../index';
+import {assignmentFieldsConfig} from '../assignmentFieldsConfig';
 
 export const CoveragePreviewTopBar = ({
     item,
@@ -34,21 +35,22 @@ export const CoveragePreviewTopBar = ({
     const deskAssignor = getItemInArrayById(users, assignor_desk);
     const userAssignor = getItemInArrayById(users, assignor_user);
     const assignmentPriority = get(coverage, 'assigned_to.priority');
-    let coverageTopBar = (<PreviewRow><label>Unassigned</label></PreviewRow>);
+    let coverageTopBar = (<PreviewRow><label>{gettext('Unassigned')}</label></PreviewRow>);
 
     if (deskAssigned || userAssigned) {
         coverageTopBar = (
             <div>
                 <div className="TimeAndAuthor">
-                    { deskAssigned && (
+                    {deskAssigned && (
                         <div>
                             {gettext('Desk')}:&nbsp;
                             <span className="TimeAndAuthor__author">{deskAssigned.name.toUpperCase()}</span>
                             {' (' + moment(assigned_date_desk).format(timeFormat + ' ' + dateFormat) + ', ' +
                             get(deskAssignor, 'display_name', '').toUpperCase() + ')'}
                         </div>
-                    ) }
-                    { userAssigned && (
+                    )}
+
+                    {userAssigned && (
                         <div>
                             {gettext('Assignee')}&nbsp;
                             <span className="TimeAndAuthor__author">
@@ -56,12 +58,22 @@ export const CoveragePreviewTopBar = ({
                             {' (' + moment(assigned_date_user).format(timeFormat + ' ' + dateFormat) + ', ' +
                             get(userAssignor, 'display_name', '').toUpperCase() + ')'}
                         </div>
-                    ) }
-                    { coverageProvider && <span> {gettext('Coverage Provider: ') + coverageProvider.name} </span>}
+                    )}
+
+                    {(assignmentFieldsConfig.coverageProvider && coverageProvider) && (
+                        <span> {gettext('Coverage Provider: ') + coverageProvider.name} </span>
+                    )}
                 </div>
                 <PreviewRow>
-                    <span className={'line-input priority-label priority-label--' + assignmentPriority}>
-                        {assignmentPriority}</span>
+                    {
+                        assignmentFieldsConfig.assignmentPriority && (
+                            <span className={'line-input priority-label priority-label--' + assignmentPriority}>
+                                {assignmentPriority}
+                            </span>
+                        )
+                    }
+
+
                     <StateLabel
                         item={coverage.assigned_to}
                         verbose={true}
