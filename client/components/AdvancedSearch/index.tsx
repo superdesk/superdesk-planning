@@ -164,6 +164,7 @@ export class AdvancedSearch extends React.PureComponent<IProps> {
                 },
                 anpa_category: {
                     field: this.props.type === 'assignments' ? 'anpaCategory' : 'anpa_category',
+                    singleSelect: false,
                 },
                 start_date: {
                     canClear: true,

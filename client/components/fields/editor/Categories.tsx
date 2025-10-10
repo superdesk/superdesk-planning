@@ -25,7 +25,7 @@ export class EditorFieldCategoriesComponent extends React.PureComponent<IProps> 
                 field={this.props.field ?? 'anpa_category'}
                 label={vocabulary.display_name ?? gettext('ANPA Category')}
                 options={this.props.categories}
-                singleSelect={vocabulary.selection_type !== 'multi selection'}
+                singleSelect={this.props.singleSelect ?? (vocabulary.selection_type !== 'multi selection')}
             />
         );
     }
