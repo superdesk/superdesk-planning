@@ -1,4 +1,5 @@
 import React, {Fragment} from 'react';
+import {format} from 'date-fns';
 import {superdeskApi} from '../../superdeskApi';
 import {DatePicker, SubNav, Tooltip, NavButton, ButtonGroup} from 'superdesk-ui-framework/react';
 import {StretchBar, Spacer} from '../UI/SubNav';
@@ -114,7 +115,7 @@ export const FiltersBar = ({
                     if (val == null) {
                         changeDayField(null);
                     } else {
-                        changeDayField(val.toString());
+                        changeDayField(format(val, 'yyyy-MM-dd'));
                     }
                 }}
                 dateFormat={appConfig.view.dateformat}
