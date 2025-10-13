@@ -574,8 +574,14 @@ export class CoverageFormComponent extends React.Component<IProps, IState> {
          */
         const editorDomFields = {};
 
-        if (isAutoAddToWorkflowOn) {
-            delete searchProfile['add_coverage_to_workflow'];
+        /**
+         * If auto add to workflow is off, show the field, and make sure it's always first in the editor
+         */
+        if (!isAutoAddToWorkflowOn) {
+            searchProfile['add_coverage_to_workflow'] = {
+                enabled: true,
+                index: -1,
+            };
         }
 
         return (

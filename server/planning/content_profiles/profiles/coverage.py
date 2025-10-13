@@ -40,45 +40,41 @@ class CoverageSchema(BaseSchema):
 DEFAULT_COVERAGE_PROFILE = {
     "name": "coverage",
     "editor": {
-        "add_coverage_to_workflow": {
+        "g2_content_type": {
             "enabled": True,
             "index": 1,
         },
-        "g2_content_type": {
+        "genre": {
             "enabled": True,
             "index": 2,
         },
-        "genre": {
+        "slugline": {
             "enabled": True,
             "index": 3,
         },
-        "slugline": {
+        "ednote": {
             "enabled": True,
             "index": 4,
         },
-        "ednote": {
+        "internal_note": {
             "enabled": True,
             "index": 5,
         },
-        "internal_note": {
+        "news_coverage_status": {
             "enabled": True,
             "index": 6,
         },
-        "news_coverage_status": {
+        "scheduled": {
             "enabled": True,
             "index": 7,
         },
-        "scheduled": {
+        "scheduled_updates": {
             "enabled": True,
             "index": 8,
         },
-        "scheduled_updates": {
-            "enabled": True,
-            "index": 9,
-        },
         "multiple_content": {
             "enabled": False,
-            "index": 10,
+            "index": 9,
         },
         "location": {"enabled": False},
         "anpa_category": {"enabled": False},
