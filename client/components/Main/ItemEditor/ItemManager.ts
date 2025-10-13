@@ -357,7 +357,12 @@ export class ItemManager {
                 .then((original: IEventOrPlanningItem) => {
                     initialValues = cloneDeep(original);
 
-                    return planningApi.locks.lockItem(original, 'edit');
+                    if (original.lock_action == null) {
+                        // Only lock the item if it's not already locked
+                        return planningApi.locks.lockItem(original, 'edit');
+                    } else {
+                        return original;
+                    }
                 });
         } else {
             // Fetch the latest item from the API to view in read-only mode
