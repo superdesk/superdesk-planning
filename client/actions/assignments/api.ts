@@ -360,10 +360,11 @@ function unlink(assignment: IAssignmentItem, itemId: IArticle['_id']) {
         })
             .then(() => {
                 notify.success(gettext('Assignment reverted.'));
-                return planningApi.locks.unlockItem(assignment);
             }, (error) => {
                 notify.error(get(error, 'data._message') || gettext('Could not unlock the assignment.'));
-                throw error;
+            })
+            .finally(() => {
+                return planningApi.locks.unlockItem(assignment);
             })
     );
 }
