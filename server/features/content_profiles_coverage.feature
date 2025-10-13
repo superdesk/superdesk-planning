@@ -141,10 +141,10 @@ Feature: Coverage Content Profiles
         }
     }]
     """
-    When we get "/planning_types"
+    When we get "/planning_types/coverage"
     Then we get existing resource
     """
-    {"_items": [{
+    {
         "name": "coverage",
         "editor": {
             "language": {
@@ -152,16 +152,14 @@ Feature: Coverage Content Profiles
                 "index": 1
             },
             "g2_content_type": {
-                "enabled": true,
-                "index": 2
+                "enabled": true
             },
             "headline": {
                 "enabled": true,
                 "index": 3
             },
             "slugline": {
-                "enabled": false,
-                "index": 4
+                "enabled": false
             }
         },
         "schema": {
@@ -174,7 +172,7 @@ Feature: Coverage Content Profiles
                 "required": true
             }
         }
-    }]}
+    }
     """
 
     @auth
