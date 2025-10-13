@@ -170,14 +170,10 @@ export class CoverageProfilesModal extends React.Component<IProps, IState> {
     updateFields(fields: Array<IProfileFieldEntry>) {
         const profileCloned = cloneDeep(this.state.profile);
 
-        // Make sure `add_to_workflow is always first so
-        // it renders first in the editor
-        profileCloned.editor.add_coverage_to_workflow.index = 0;
-
         fields.forEach((item, index) => {
             profileCloned.editor[item.name] = {...item.field};
             profileCloned.schema[item.name] = {...item.schema};
-            profileCloned.editor[item.name].index = index + 1;
+            profileCloned.editor[item.name].index = index;
         });
 
         this.setState({
