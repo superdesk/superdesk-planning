@@ -18,7 +18,7 @@ export interface IBasePreviewProps {
     style?: 'normal' | 'strong' | 'light' | 'italic' | 'serif' | 'slugline'; // defaults to normal
     convertNewlineToBreak?: boolean;
     expandable?: boolean;
-    schema?: IProfileSchemaType;
+    schema?: {[key: string]: IProfileSchemaType};
 }
 
 export interface IPreviewHocOptions<S = {}> {
@@ -56,6 +56,8 @@ export function previewHoc<S = {}>(
             }
 
             const props = options.props == undefined ? {} : options.props();
+            const {schema} = this.props;
+            const fieldSchema = schema?.[field] || schema?.[fieldName];
 
             return (
                 <Component
@@ -63,7 +65,7 @@ export function previewHoc<S = {}>(
                     light={true}
                     {...props}
                     {...this.props}
-                    schema={this.props.schema}
+                    schema={fieldSchema}
                     translations={translations}
                 />
             );

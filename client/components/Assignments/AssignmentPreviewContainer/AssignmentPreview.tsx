@@ -73,6 +73,7 @@ export class AssignmentPreview extends React.PureComponent<IProps> {
                             planning: planningItem,
                         },
                         language: planning.language,
+                        schema: assignmentCoverageProfile?.schema,
                     },
                     {
                         contact_info: {field: 'coverage'},
@@ -86,12 +87,7 @@ export class AssignmentPreview extends React.PureComponent<IProps> {
                         ednote: {field: 'coverage.ednote', renderEmpty: true},
                         internal_note: {field: 'coverage.internal_note', renderEmpty: true},
                         location: {field: 'planning.location'},
-                    },
-                    undefined,
-                    undefined,
-                    'enabled',
-                    {},
-                    assignmentCoverageProfile?.schema
+                    }
                 )}
 
                 <Row
