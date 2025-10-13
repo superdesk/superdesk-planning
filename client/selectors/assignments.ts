@@ -255,7 +255,7 @@ export const getCurrentAssignmentPlanningItem = createSelector(
 export const getCurrentAssignmentCoverageProfile = createSelector(
     [getCurrentAssignment, getCurrentAssignmentPlanningItem, coverageProfiles],
     (assignment, planningItem, profiles) => {
-        if (!assignment || !planningItem || !profiles.length) {
+        if (assignment == null || planningItem == null || profiles.length === 0) {
             return null;
         }
 
@@ -263,10 +263,10 @@ export const getCurrentAssignmentCoverageProfile = createSelector(
             (coverage) => coverage.coverage_id === assignment.coverage_item
         );
 
-        if (!coverageItem?.profile)
+        if (coverageItem?.profile == null)
             return null;
 
-        return profiles.find((profile) => profile._id === coverageItem.profile) || null;
+        return profiles.find((profile) => profile._id === coverageItem.profile) ?? null;
     }
 );
 
