@@ -17,6 +17,7 @@ from superdesk.utc import local_to_utc
 
 from planning.tests import TestCase
 from planning.commands.export_scheduled_filters import ExportScheduledFilters
+from planning.search.eventsplanning_filters_service import EventsPlanningFiltersAsyncService
 
 
 def to_naive(date_str):
@@ -298,3 +299,28 @@ class ExportScheduledFiltersTestCase(TestCase):
             end="2018-06-30T23",
             expected_hits=expected_hits,
         )
+
+    def test_set_schedule_daily_preserves_hours(self):
+        svc = EventsPlanningFiltersAsyncService()
+        updates = {
+            "schedules": [
+                {
+                    "frequency": "daily",
+                    "hours": ["14:30", "08:05"],
+                    "hour": 14,
+                    "day": 10,
+                    "week_days": ["Monday"],
+                    "desk": "desk1",
+                }
+            ]
+        }
+
+        svc.set_schedule(updates)
+        schedule = updates["schedules"][0]
+
+        self.assertEqual(schedule["frequency"], "daily")
+        self.assertIn("hours", schedule)
+        self.assertListEqual(schedule["hours"], ["14:30", "08:05"])
+        self.assertEqual(schedule.get("day"), -1)
+        self.assertEqual(schedule.get("week_days"), [])
+        self.assertEqual(schedule.get("hour"), 14)
