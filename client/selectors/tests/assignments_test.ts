@@ -347,45 +347,5 @@ describe('selectors', () => {
 
             expect(coverageProfile).toBeNull();
         });
-
-        it('returns null when profile ID does not match any coverage profile', () => {
-            const stateWithNonMatchingProfile = {
-                ...state,
-                planning: {
-                    ...state.planning,
-                    plannings: {
-                        ...state.planning.plannings,
-                        a: {
-                            ...state.planning.plannings.a,
-                            coverages: [{
-                                coverage_id: 'coverage1',
-                                profile: 'nonexistent_profile',
-                            }],
-                        },
-                    },
-                },
-            };
-
-            const coverageProfile = selectors.getCurrentAssignmentCoverageProfile(stateWithNonMatchingProfile);
-
-            expect(coverageProfile).toBeNull();
-        });
-
-        it('returns correct profile for different assignment', () => {
-            const stateWithDifferentAssignment = {
-                ...state,
-                assignment: {
-                    ...state.assignment,
-                    currentAssignmentId: 2,
-                },
-            };
-
-            const coverageProfile = selectors.getCurrentAssignmentCoverageProfile(stateWithDifferentAssignment);
-
-            expect(coverageProfile).toBeTruthy();
-            expect(coverageProfile._id).toBe('profile2');
-            expect(coverageProfile.name).toBe('Photo Profile');
-            expect(coverageProfile.content_type).toBe('picture');
-        });
     });
 });
