@@ -1,3 +1,5 @@
+/* eslint-disable react/prop-types */
+
 import React from 'react';
 import {LineInput, Label, Select} from './';
 import {get, uniqueId} from 'lodash';
