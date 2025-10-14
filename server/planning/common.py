@@ -688,23 +688,43 @@ def get_next_assignment_status(assignment, next_state):
 
 
 def get_first_paragraph_text(input_string):
+    # handle empty/None inputs
+    if not input_string:
+        return ""
     try:
         elem = parse_html(input_string, content="html")
-    except ValueError as e:
+    except Exception as e:
         logger.warning(e)
-    else:
-        # all non-empty paragraphs: ignores <p><br></p> sections
-        return get_text_from_elem(elem) or get_text_from_elem(elem, tag=None)
+        return ""
+    if elem is None:
+        return ""
+
+    # all non-empty paragraphs: ignores <p><br></p> sections
+    text = get_text_from_elem(elem)
+    if text:
+        return text
+
+    # Fallback to any text fragment if no <p> found
+    return get_text_from_elem(elem, tag=None) or ""
 
 
 def get_text_from_elem(elem, tag=".//p"):
+    # Ensure element is valid
+    if elem is None:
+        return None
+
+    # When tag is None, return first available text fragment
     if not tag:
         for t in elem.itertext():
-            return t  # Return first text item
+            if t:
+                return t  # Return first non-empty text item
+        return None
 
     for p in elem.iterfind(tag):
         if p.text:
             return p.text
+
+    return None
 
 
 def get_delivery_publish_time(updates, original=None):
