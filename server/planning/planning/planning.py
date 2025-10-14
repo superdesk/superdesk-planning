@@ -674,6 +674,10 @@ class PlanningService(AsyncBaseService):
                 coverage.setdefault("planning", {})
                 coverage["planning"].setdefault("scheduled", planning_date)
 
+                # Inherit anpa category from planning item if not explicitly set/missing in coverage profile
+                if not coverage["planning"].get("anpa_category"):
+                    coverage["planning"]["anpa_category"] = updates.get("anpa_category", [])
+
                 set_original_creator(coverage)
                 self.set_coverage_active(coverage, updates)
                 await self.set_slugline_from_xmp(coverage, None)
@@ -759,6 +763,11 @@ class PlanningService(AsyncBaseService):
             # If none was supplied, fallback to ``original.planning.scheduled``
             coverage.setdefault("planning", {})
             coverage["planning"].setdefault("scheduled", (original_coverage.get("planning") or {}).get("scheduled"))
+
+            # Inherit anpa category from planning item if not explicitly set/missing in coverage profile
+            if not coverage["planning"].get("anpa_category"):
+                coverage["planning"]["anpa_category"] = updates.get("anpa_category", [])
+
             self.set_coverage_active(coverage, updates)
             await self.set_slugline_from_xmp(coverage, original_coverage)
             if self.coverage_changed(coverage, original_coverage):
