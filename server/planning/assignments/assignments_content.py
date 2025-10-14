@@ -95,11 +95,9 @@ async def get_item_from_assignment(assignment, template=None):
                 await merge_subject(item, planning)
                 merge_list("place", item, planning)
 
-                # Inherit anpa_category from coverage first, then fallback to planning item
-                coverage = await get_coverage_for_assignment(assignment) or {}
-                coverage_anpa_category = (coverage.get("planning") or {}).get("anpa_category")
-                if coverage_anpa_category:
-                    item["anpa_category"] = deepcopy(coverage_anpa_category)
+                anpa_category = planning_data.get("anpa_category")
+                if anpa_category:
+                    item["anpa_category"] = deepcopy(anpa_category)
                 else:
                     merge_list("anpa_category", item, planning)
 
