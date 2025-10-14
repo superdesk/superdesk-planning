@@ -516,8 +516,13 @@ function revert(item: IAssignmentItem) {
         planningApi.locks.lockItem(item, 'revert')
             .then((lockedItem) => {
                 const contentTypes = selectors.general.contentTypes(getState());
+                const itemIds = item.item_ids ?? [];
 
-                if (!assignmentUtils.isTextAssignment(item, contentTypes) || item.planning?.multiple_content) {
+                if (
+                    !assignmentUtils.isTextAssignment(item, contentTypes)
+                    || item.planning?.multiple_content
+                    || itemIds.length === 0
+                ) {
                     return dispatch(assignments.api.revert(lockedItem))
                         .then((updatedItem) => {
                             notify.success(gettext('The assignment has been reverted.'));
@@ -528,12 +533,12 @@ function revert(item: IAssignmentItem) {
                         });
                 }
 
-                lockedItem.item_ids = get(item, 'item_ids', []);
+                lockedItem.item_ids = itemIds;
                 dispatch(showModal({
                     modalType: MODALS.CONFIRMATION,
                     modalProps: {
                         body: gettext('This will unlink the text item associated with the assignment. Are you sure ?'),
-                        action: () => dispatch(assignments.api.unlink(lockedItem)),
+                        action: () => dispatch(assignments.api.unlink(lockedItem, itemIds[0])),
                         onCancel: () => planningApi.locks.unlockItem(lockedItem),
                         autoClose: true,
                     },
