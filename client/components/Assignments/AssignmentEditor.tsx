@@ -18,6 +18,7 @@ import {ContactsPreviewList, SelectSearchContactsField} from '../Contacts';
 import {superdeskApi} from '../../superdeskApi';
 import {IDesk, IUser} from 'superdesk-api';
 import {IAssignmentPriority} from 'interfaces';
+import {assignmentFieldsConfig} from '../Coverages/assignmentFieldsConfig';
 
 interface IProps {
     value: any;
@@ -277,6 +278,10 @@ export class AssignmentEditorComponent extends React.Component<IProps, IState> {
         } = this.props;
         const {SelectUser} = superdeskApi.components;
 
+        const showAssignmentPriority: boolean =
+            assignmentFieldsConfig.assignmentPriority
+            && showPriority; // will be ignored if field itself is disabled
+
         return (
             <div className={className}>
                 {showDesk && (
@@ -296,24 +301,10 @@ export class AssignmentEditorComponent extends React.Component<IProps, IState> {
                             message={get(this.state, 'errors.desk')}
                             invalid={!!get(this.state, 'errors.desk')}
                             autoFocus
+                            noMargin
                         />
                     </Row>
                 )}
-
-                <Row noPadding={showDesk}>
-                    <SelectInput
-                        field={this.FIELDS.PROVIDER}
-                        label={gettext('Coverage Provider')}
-                        value={get(value, this.FIELDS.PROVIDER) ?? null}
-                        onChange={(_field, val) => {
-                            this.onProviderChange(val);
-                        }}
-                        options={coverageProviders}
-                        labelField="name"
-                        keyField="qcode"
-                        clearable={true}
-                    />
-                </Row>
 
                 {this.state.contactType && this.state.contactType.assignable ? (
                     <Row>
@@ -333,7 +324,7 @@ export class AssignmentEditorComponent extends React.Component<IProps, IState> {
                         />
                     </Row>
                 ) : (
-                    <Row style={{padding: '2rem 0', margin: '0 0 1.8em 0'}}>
+                    <Row>
                         <div data-test-id={this.FIELDS.USER}>
                             <SelectUser
                                 disabled={disableUserSelection}
@@ -350,7 +341,27 @@ export class AssignmentEditorComponent extends React.Component<IProps, IState> {
                     </Row>
                 )}
 
-                {showPriority && (
+                {
+                    assignmentFieldsConfig.coverageProvider && (
+                        <Row>
+                            <SelectInput
+                                field={this.FIELDS.PROVIDER}
+                                label={gettext('Coverage Provider')}
+                                value={get(value, this.FIELDS.PROVIDER) ?? null}
+                                onChange={(_field, val) => {
+                                    this.onProviderChange(val);
+                                }}
+                                options={coverageProviders}
+                                labelField="name"
+                                keyField="qcode"
+                                clearable={true}
+                                noMargin
+                            />
+                        </Row>
+                    )
+                }
+
+                {showAssignmentPriority && (
                     <Row>
                         <ColouredValueInput
                             field={this.FIELDS.PRIORITY}

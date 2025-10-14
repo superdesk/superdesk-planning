@@ -21,6 +21,7 @@ import {getUserInterfaceLanguageFromCV} from './users';
 import {getVocabularyItemFieldTranslated} from './vocabularies';
 import {editPlanningParam} from '../constants/assignments';
 import {superdeskApi} from '../superdeskApi';
+import {assignmentFieldsConfig} from '../components/Coverages/assignmentFieldsConfig';
 
 const isNotLockRestricted = (assignment, session, lockedItems) => (
     !get(assignment, 'lock_user') ||
@@ -201,11 +202,14 @@ function getAssignmentActions(
             break;
 
         case ASSIGNMENTS.ITEM_ACTIONS.EDIT_PRIORITY.actionName:
-            callBacks[callBackName] &&
+            if (assignmentFieldsConfig.assignmentPriority) {
+                callBacks[callBackName] &&
                 actions.push({
                     ...ASSIGNMENTS.ITEM_ACTIONS.EDIT_PRIORITY,
                     callback: callBacks[callBackName].bind(null, assignment),
                 });
+            }
+
             break;
 
         case ASSIGNMENTS.ITEM_ACTIONS.COMPLETE.actionName:

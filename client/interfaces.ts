@@ -270,6 +270,10 @@ export type IPlace = {
     rel: string;
 };
 
+/**
+ * FIXME: in newer versions IPlanningConfig was removed and instead ISuperdeskGlobalConfig extended.
+ * Keep this in mind when handling the future merge.
+ */
 export interface IPlanningConfig extends ISuperdeskGlobalConfig {
     event_templates_enabled?: boolean;
     long_event_duration_threshold?: number;
@@ -300,6 +304,13 @@ export interface IPlanningConfig extends ISuperdeskGlobalConfig {
 
     coverage?: {
         getDueDateStrategy?(planningItem: IPlanningItem, eventItem?: IEventItem): moment.Moment | null;
+
+        assignments?: {
+            fields?: {
+                coverageProvider?: boolean;
+                assignmentPriority?: boolean;
+            };
+        };
     };
 }
 
