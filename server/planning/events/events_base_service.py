@@ -25,7 +25,6 @@ from planning.common import (
     WORKFLOW_STATE,
     get_max_recurrent_events,
     update_post_item,
-    set_ingested_event_state,
     is_valid_event_planning_reason,
 )
 from planning.item_lock import LOCK_USER, LOCK_SESSION, LOCK_ACTION
@@ -53,7 +52,6 @@ class EventsBaseService(BaseService):
         user_id = get_user_id()
         if user_id:
             updates["version_creator"] = user_id
-            set_ingested_event_state(updates, original)
 
         # If `skip_on_update` is provided in the updates
         # Then return here so no further processing is performed on this event.
