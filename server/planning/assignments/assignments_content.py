@@ -95,8 +95,7 @@ async def get_item_from_assignment(assignment, template=None):
                 await merge_subject(item, planning)
                 merge_list("place", item, planning)
 
-                anpa_category = planning_data.get("anpa_category")
-                if anpa_category:
+                if anpa_category := planning_data.get("anpa_category"):
                     item["anpa_category"] = deepcopy(anpa_category)
                 else:
                     merge_list("anpa_category", item, planning)

@@ -674,9 +674,7 @@ class PlanningService(AsyncBaseService):
                 coverage.setdefault("planning", {})
                 coverage["planning"].setdefault("scheduled", planning_date)
 
-                # Inherit anpa category from planning item if not explicitly set/missing in coverage profile
-                if not coverage["planning"].get("anpa_category"):
-                    coverage["planning"]["anpa_category"] = updates.get("anpa_category", [])
+                self.inherit_anpa_category(coverage, updates)
 
                 set_original_creator(coverage)
                 self.set_coverage_active(coverage, updates)
@@ -764,9 +762,7 @@ class PlanningService(AsyncBaseService):
             coverage.setdefault("planning", {})
             coverage["planning"].setdefault("scheduled", (original_coverage.get("planning") or {}).get("scheduled"))
 
-            # Inherit anpa category from planning item if not explicitly set/missing in coverage profile
-            if not coverage["planning"].get("anpa_category"):
-                coverage["planning"]["anpa_category"] = updates.get("anpa_category", [])
+            self.inherit_anpa_category(coverage, updates)
 
             self.set_coverage_active(coverage, updates)
             await self.set_slugline_from_xmp(coverage, original_coverage)
@@ -1783,6 +1779,10 @@ class PlanningService(AsyncBaseService):
                 continue
             yield plan
 
+    def inherit_anpa_category(self, coverage, updates):
+        # Inherit anpa category from planning item if not explicitly set/missing in coverage profile
+        if not coverage["planning"].get("anpa_category"):
+            coverage["planning"]["anpa_category"] = updates.get("anpa_category", [])
 
 class PlanningResource(Resource):
     """Resource for planning data model
