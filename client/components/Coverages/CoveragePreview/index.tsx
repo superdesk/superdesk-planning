@@ -130,6 +130,7 @@ export class CoveragePreview extends React.PureComponent<IProps> {
                         item: coverage,
                         language: coverage.planning.language ?? getUserInterfaceLanguageFromCV(),
                         renderEmpty: true,
+                        schema: formProfile?.schema,
                     },
                     {
                         language: {field: 'planning.language', enabled: false},
