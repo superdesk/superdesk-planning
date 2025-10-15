@@ -100,4 +100,6 @@ export function updateConfigAfterLoad() {
     }
 }
 
+export const externalContacts: null | {editUrl: string; createUrl: string;} = appConfig.planning?.externalContacts;
+
 export const planningConfig = appConfig as IPlanningConfig;
