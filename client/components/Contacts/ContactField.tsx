@@ -8,6 +8,7 @@ import * as selectors from '../../selectors';
 import * as actions from '../../actions';
 
 import {ContactEditor, SelectSearchContactsField, ContactsPreviewList} from './index';
+import {contactsConfig} from '../../config';
 
 interface IBaseProps {
     field: string;
@@ -64,17 +65,27 @@ export class ContactFieldComponent extends React.Component<IProps, IState> {
         };
 
         this.onChange = this.onChange.bind(this);
-        this.showEditModal = this.showEditModal.bind(this);
+        this.onContactEdit = this.onContactEdit.bind(this);
         this.closeEditModal = this.closeEditModal.bind(this);
         this.removeContact = this.removeContact.bind(this);
         this.onContactSaved = this.onContactSaved.bind(this);
     }
 
-    showEditModal(contact) {
-        this.setState({
-            showEditModal: true,
-            editContact: contact || {public: false, is_active: true},
-        });
+    onContactEdit(contact?: IContactItem) {
+        if (contactsConfig != null) {
+            const url = contact?._id != null
+                ? `${contactsConfig.editUrl}/${contact._id}`
+                : contactsConfig.createUrl;
+
+            window.open(url, '_blank');
+        } else {
+            const fullContact = contact ?? ({public: false, is_active: true}) as IContactItem;
+
+            this.setState({
+                showEditModal: true,
+                editContact: fullContact,
+            });
+        }
     }
 
     closeEditModal() {
@@ -160,7 +171,7 @@ export class ContactFieldComponent extends React.Component<IProps, IState> {
                     label={label}
                     onChange={this.onChange}
                     value={value}
-                    onAdd={privileges.contacts ? this.showEditModal : null}
+                    onAdd={privileges.contacts ? this.onContactEdit : null}
                     onAddText={privileges.contacts ? gettext('Add Contact') : null}
                     onFocus={onFocus}
                     readOnly={readOnly}
@@ -170,7 +181,7 @@ export class ContactFieldComponent extends React.Component<IProps, IState> {
 
                 <ContactsPreviewList
                     contactIds={value}
-                    onEditContact={privileges.contacts ? this.showEditModal : null}
+                    onEditContact={privileges.contacts ? this.onContactEdit : null}
                     onRemoveContact={this.removeContact}
                     scrollInView={true}
                     scrollIntoViewOptions={{block: 'center'}}
