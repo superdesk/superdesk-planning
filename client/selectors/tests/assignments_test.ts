@@ -14,6 +14,8 @@ describe('selectors', () => {
                         desk: 'desk1',
                         user: 'user1',
                     },
+                    coverage_item: 'coverage1',
+                    planning_item: 'a',
                 },
                 2: {
                     _id: 2,
@@ -23,6 +25,8 @@ describe('selectors', () => {
                         assigned_date: '2017-07-28T13:16:36+0000',
                         desk: 'desk2',
                     },
+                    coverage_item: 'coverage2',
+                    planning_item: 'b',
                 },
             },
             assignmentsInTodoList: [1, 2],
@@ -70,13 +74,27 @@ describe('selectors', () => {
                         link_type: 'primary',
                     }],
                     agendas: ['1', '2'],
+                    coverages: [{
+                        coverage_id: 'coverage1',
+                        profile: 'profile1',
+                    }],
                 },
                 b: {
                     name: 'name b',
                     state: 'draft',
                     agendas: ['1', '2'],
+                    coverages: [{
+                        coverage_id: 'coverage2',
+                        profile: 'profile2',
+                    }],
                 },
-                c: {name: 'plan c'},
+                c: {
+                    name: 'plan c',
+                    coverages: [{
+                        coverage_id: 'coverage3',
+                        // No profile - this should test null case
+                    }],
+                },
                 d: {
                     name: 'plan d',
                     state: 'spiked',
@@ -106,6 +124,25 @@ describe('selectors', () => {
                 is_enabled: false,
             }],
             currentAgendaId: '1',
+        },
+        coverageProfiles: {
+            profiles: [
+                {
+                    _id: 'profile1',
+                    name: 'Text Profile',
+                    content_type: 'text',
+                },
+                {
+                    _id: 'profile2',
+                    name: 'Photo Profile',
+                    content_type: 'picture',
+                },
+                {
+                    _id: 'profile3',
+                    name: 'Video Profile',
+                    content_type: 'video',
+                },
+            ],
         },
         session: {identity: {_id: 'user1'}},
     };
@@ -175,6 +212,8 @@ describe('selectors', () => {
                 desk: 'desk1',
                 user: 'user1',
             },
+            coverage_item: 'coverage1',
+            planning_item: 'a',
         });
     });
 
@@ -228,6 +267,85 @@ describe('selectors', () => {
             filterByPriority: null,
             selectedDeskId: '',
             ignoreScheduledUpdates: false,
+        });
+    });
+
+    describe('getCurrentAssignmentCoverageProfile', () => {
+        it('returns coverage profile when assignment, planning item and profile exist', () => {
+            const coverageProfile = selectors.getCurrentAssignmentCoverageProfile(state);
+
+            expect(coverageProfile).toBeTruthy();
+            expect(coverageProfile._id).toBe('profile1');
+            expect(coverageProfile.name).toBe('Text Profile');
+            expect(coverageProfile.content_type).toBe('text');
+        });
+
+        it('returns null when no current assignment', () => {
+            const stateWithoutCurrentAssignment = {
+                ...state,
+                assignment: {
+                    ...state.assignment,
+                    currentAssignmentId: null,
+                },
+            };
+
+            const coverageProfile = selectors.getCurrentAssignmentCoverageProfile(stateWithoutCurrentAssignment);
+
+            expect(coverageProfile).toBeNull();
+        });
+
+        it('returns null when planning item does not exist', () => {
+            const stateWithoutPlanningItem = {
+                ...state,
+                assignment: {
+                    ...state.assignment,
+                    assignments: {
+                        ...state.assignment.assignments,
+                        1: {
+                            ...state.assignment.assignments[1],
+                            planning_item: 'nonexistent',
+                        },
+                    },
+                },
+            };
+
+            const coverageProfile = selectors.getCurrentAssignmentCoverageProfile(stateWithoutPlanningItem);
+
+            expect(coverageProfile).toBeNull();
+        });
+
+        it('returns null when coverage item has no profile', () => {
+            const stateWithoutProfile = {
+                ...state,
+                assignment: {
+                    ...state.assignment,
+                    assignments: {
+                        ...state.assignment.assignments,
+                        1: {
+                            ...state.assignment.assignments[1],
+                            coverage_item: 'coverage3',
+                            planning_item: 'c',
+                        },
+                    },
+                },
+            };
+
+            const coverageProfile = selectors.getCurrentAssignmentCoverageProfile(stateWithoutProfile);
+
+            expect(coverageProfile).toBeNull();
+        });
+
+        it('returns null when coverage profiles array is empty', () => {
+            const stateWithoutProfiles = {
+                ...state,
+                coverageProfiles: {
+                    profiles: [],
+                },
+            };
+
+            const coverageProfile = selectors.getCurrentAssignmentCoverageProfile(stateWithoutProfiles);
+
+            expect(coverageProfile).toBeNull();
         });
     });
 });
