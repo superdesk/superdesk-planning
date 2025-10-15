@@ -9,6 +9,7 @@ import {
     IEditorAPI,
     IEditorBookmark,
     IEditorFormGroup,
+    IEventItem,
     IPlanningCoverageItem,
     IPlanningItem,
     IPlanningRelatedEventLink,
@@ -26,6 +27,7 @@ import {CoveragesBookmark, AddCoverageBookmark} from '../../components/Editor/bo
 import {AssociatedEventItem} from '../../components/fields/editor/AssociatedEventItem';
 import {coverageProfiles, oldProfile} from '../../selectors/coverageProfiles';
 import {isTemporaryId} from '../../utils';
+import {appConfig} from 'superdesk-core/scripts/appConfig';
 
 export function getCoverageFields(
     type: ICoverageType,
@@ -34,7 +36,12 @@ export function getCoverageFields(
     const allProfiles = coverageProfiles(storeState);
     const newProfile = allProfiles.find((x) => x.content_type === type);
     const profile = newProfile ? newProfile : omit(oldProfile(storeState), '_id') as ICoverageContentProfile;
-    const fields = getGroupFieldsSorted(profile).filter((item) => item.field.enabled);
+    const autoAddToWorkflow = appConfig.planning_auto_assign_to_workflow;
+
+    const fields = getGroupFieldsSorted(profile).filter((item) =>
+        item.field.enabled
+            && autoAddToWorkflow ? item.name != 'add_coverage_to_workflow' : true
+    );
     const searchProfile: ISearchProfile = {};
 
     fields.forEach(
