@@ -80,7 +80,7 @@ function getProfile(contentType: string): IPlanningContentProfile {
 }
 
 function getLanguageSchema(profile: IPlanningContentProfile): IProfileSchemaTypeString {
-    if (profile.editor.language?.enabled === true && profile.schema.language != null) {
+    if (profile?.editor?.language?.enabled === true && profile?.schema?.language != null) {
         return profile.schema.language as IProfileSchemaTypeString;
     }
 
