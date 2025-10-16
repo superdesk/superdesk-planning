@@ -18,6 +18,7 @@ from superdesk.users.services import current_user_has_privilege
 from superdesk.utc import utcnow
 from superdesk.lock import lock, unlock
 from superdesk import get_resource_service, get_resource_privileges
+from superdesk.flask import request
 from apps.common.components.base_component import BaseComponent
 from apps.item_lock.components.item_lock import LOCK_USER, LOCK_SESSION, LOCK_ACTION, LOCK_TIME
 
@@ -97,6 +98,7 @@ class LockService(BaseComponent):
                     event_ids=get_related_event_ids_for_planning(item),
                     recurrence_id=item.get("recurrence_id") or None,
                     type=item.get("type"),
+                    clientId=request.args.get("clientId") if request else None,
                 )
             else:
                 raise SuperdeskApiError.forbiddenError(message=error_message)
@@ -153,6 +155,7 @@ class LockService(BaseComponent):
             event_ids=get_related_event_ids_for_planning(item),
             recurrence_id=item.get("recurrence_id") or None,
             type=item.get("type"),
+            clientId=request.args.get("clientId") if request else None,
         )
 
         return item

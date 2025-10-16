@@ -153,6 +153,7 @@ describe('planningApi.locks', () => {
                     expect(superdeskApi.dataApi.create.args[0]).toEqual([
                         'events/e1/lock',
                         {lock_action: 'edit'},
+                        {clientId: 'abcd123'},
                     ]);
 
                     // Lock is added to the store
@@ -205,6 +206,7 @@ describe('planningApi.locks', () => {
                     expect(superdeskApi.dataApi.create.args[0]).toEqual([
                         'planning/p1/lock',
                         {lock_action: 'cancel'},
+                        {clientId: 'abcd123'},
                     ]);
 
                     // Lock is added to the store
@@ -260,6 +262,7 @@ describe('planningApi.locks', () => {
                     expect(superdeskApi.dataApi.create.args[0]).toEqual([
                         'assignments/as1/lock',
                         {lock_action: 'reassign'},
+                        {clientId: 'abcd123'},
                     ]);
 
                     // Lock is added to the store
