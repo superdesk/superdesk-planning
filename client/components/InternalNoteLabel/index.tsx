@@ -1,7 +1,7 @@
 import React from 'react';
 import {get} from 'lodash';
 import classNames from 'classnames';
-import {Popover} from 'superdesk-ui-framework/react';
+import {Text, Tooltip} from 'superdesk-ui-framework/react';
 import {gettext, getItemWorkflowStateLabel} from '../../utils';
 
 import './style.scss';
@@ -31,11 +31,18 @@ export const InternalNoteLabel: React.FC<IInternalNoteLabelProps> = ({
     marginLeft = false,
     showHeaderText = true,
 }) => {
-    const internalNote = get(item, `${prefix}${noteField}`);
+    const internalNoteRaw = get(item, `${prefix}${noteField}`);
 
-    if ((internalNote ?? '').length < 1) {
+    if ((internalNoteRaw ?? '').length < 1) {
         return null;
     }
+
+    // Strip out any existing HTML tags and convert \n to <br> tags for HTML rendering
+    const internalNoteHtml = internalNoteRaw
+        .replace(/<[^>]*>/g, '')
+        .split('\n')
+        .map((line) => line)
+        .join('<br>');
 
     const iconColor = stateField ? get(getItemWorkflowStateLabel(item, stateField), 'iconType') : 'red';
 
@@ -58,21 +65,31 @@ export const InternalNoteLabel: React.FC<IInternalNoteLabelProps> = ({
         return (
             <div className={className}>
                 {icon}
-                {showText && internalNote}
+                {showText && <span dangerouslySetInnerHTML={{__html: internalNoteHtml}} />}
             </div>
         );
     }
 
     return (
         <>
-            <Popover
+            <Tooltip
                 placement="auto"
-                triggerSelector="#internal-note-icon"
-                title={showHeaderText ? gettext('Internal Note:') : ''}
+                content={() => (
+                    <div
+                        style={{
+                            boxShadow: 'var(--sd-shadow--z3)',
+                            padding: 'var(--space--1-5)',
+                            fontSize: 'var(--text-size-small)',
+                            lineHeight: 1.4
+                        }}
+                    >
+                        {showHeaderText && <Text weight="strong">{gettext('Internal Note:')}</Text>}
+                        <div dangerouslySetInnerHTML={{__html: internalNoteHtml}} />
+                    </div>
+                )}
             >
-                {internalNote}
-            </Popover>
-            {icon}
+                {icon}
+            </Tooltip>
         </>
     );
 };
