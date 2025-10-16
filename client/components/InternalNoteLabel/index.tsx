@@ -75,7 +75,14 @@ export const InternalNoteLabel: React.FC<IInternalNoteLabelProps> = ({
             <Tooltip
                 placement="auto"
                 content={() => (
-                    <div>
+                    <div
+                        style={{
+                            boxShadow: 'var(--sd-shadow--z3)',
+                            padding: 'var(--space--1-5)',
+                            fontSize: 'var(--text-size-small)',
+                            lineHeight: 1.4
+                        }}
+                    >
                         {showHeaderText && <Text weight="strong">{gettext('Internal Note:')}</Text>}
                         <div dangerouslySetInnerHTML={{__html: internalNoteHtml}} />
                     </div>
