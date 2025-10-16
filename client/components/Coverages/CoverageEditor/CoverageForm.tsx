@@ -545,13 +545,9 @@ export class CoverageFormComponent extends React.Component<IProps, IState> {
 
         const isAutoAddToWorkflowOn = appConfig.planning_auto_assign_to_workflow;
         const shouldDisableToggle = () => {
-            if (isAutoAddToWorkflowOn != true) {
-                return !(isCoverageDraft(this.props.value)
-                    && isCoverageAssigned(this.props.value)
-                    && !isItemExpired(this.props.diff));
-            } else {
-                return !planningUtils.canCancelCoverage(this.props.value, this.props.item);
-            }
+            const {value, diff} = this.props;
+
+            return !(isCoverageDraft(value) && isCoverageAssigned(value) && !isItemExpired(diff));
         };
 
         fieldProps.add_coverage_to_workflow = {
