@@ -35,3 +35,11 @@ export const partitionLineItems = (items: Array<ILineConfig>) => partition(items
         return superdeskApi.helpers.assertNever(position);
     }
 });
+
+// Strip out any existing HTML tags and convert \n to <br> tags for HTML rendering
+export const cleanHtmlAndReplacePlaneNewLine = (text: string): string => {
+    return text.replace(/<[^>]*>/g, '')
+        .split('\n')
+        .map((line) => line)
+        .join('<br>');
+};

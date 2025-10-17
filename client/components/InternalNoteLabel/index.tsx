@@ -3,6 +3,7 @@ import {get} from 'lodash';
 import classNames from 'classnames';
 import {Text, Tooltip} from 'superdesk-ui-framework/react';
 import {gettext, getItemWorkflowStateLabel} from '../../utils';
+import {cleanHtmlAndReplacePlaneNewLine} from 'helpers';
 
 import './style.scss';
 
@@ -37,12 +38,7 @@ export const InternalNoteLabel: React.FC<IInternalNoteLabelProps> = ({
         return null;
     }
 
-    // Strip out any existing HTML tags and convert \n to <br> tags for HTML rendering
-    const internalNoteHtml = internalNoteRaw
-        .replace(/<[^>]*>/g, '')
-        .split('\n')
-        .map((line) => line)
-        .join('<br>');
+    const internalNoteHtml = cleanHtmlAndReplacePlaneNewLine(internalNoteRaw);
 
     const iconColor = stateField ? get(getItemWorkflowStateLabel(item, stateField), 'iconType') : 'red';
 
@@ -65,7 +61,7 @@ export const InternalNoteLabel: React.FC<IInternalNoteLabelProps> = ({
         return (
             <div className={className}>
                 {icon}
-                {showText && <span dangerouslySetInnerHTML={{__html: internalNoteHtml}} />}
+                {showText && internalNoteRaw}
             </div>
         );
     }
