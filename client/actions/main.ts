@@ -1237,18 +1237,30 @@ const openFromURLOrRedux = (action) => (
         }
 
         if (item.id && item.type) {
+            const isNewItem = isTemporaryId(item.id);
+
             // Make sure the item is loaded into the redux store
             // before loading the preview or editor
-            return dispatch(self.fetchById(item.id, item.type))
-                .then((loadedItem) => {
-                    if (action === MAIN.EDIT) {
-                        dispatch(self.openForEdit(loadedItem));
-                    } else if (action === MAIN.PREVIEW) {
-                        dispatch(self.openPreview(loadedItem));
-                    }
+            if (isNewItem && action === MAIN.EDIT) {
+                const baseItem = {
+                    _id: item.id,
+                    type: item.type,
+                };
 
-                    return Promise.resolve(loadedItem);
-                });
+                dispatch(self.openForEdit(baseItem));
+                return Promise.resolve(baseItem);
+            } else if (!isNewItem) {
+                return dispatch(self.fetchById(item.id, item.type))
+                    .then((loadedItem) => {
+                        if (action === MAIN.EDIT) {
+                            dispatch(self.openForEdit(loadedItem));
+                        } else if (action === MAIN.PREVIEW) {
+                            dispatch(self.openPreview(loadedItem));
+                        }
+
+                        return Promise.resolve(loadedItem);
+                    });
+            }
         }
 
         // Remove the item from the URL
