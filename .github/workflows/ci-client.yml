@@ -15,7 +15,7 @@ jobs:
         with:
           node-version: ${{ matrix.node-version }}
           cache: npm
-      - run: npm install # needed to support multiple node versions
+      - run: npm ci # needed to support multiple node versions
       - run: npm run test
       - run: npm run lint
 
