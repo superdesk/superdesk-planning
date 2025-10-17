@@ -1,2 +1,4 @@
-node_modules
-client/planning-extension/dist
+node_modules/
+client/planning-extension/dist/
+**/*.mjs
+**/node_modules/**
