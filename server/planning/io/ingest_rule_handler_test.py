@@ -9,7 +9,7 @@
 # at https://www.sourcefabric.org/superdesk/license
 
 from bson import ObjectId
-from datetime import datetime
+from datetime import datetime, timedelta
 from superdesk import get_resource_service
 from superdesk.metadata.item import ITEM_TYPE, CONTENT_TYPE
 from .ingest_rule_handler import PlanningRoutingRuleHandler
@@ -240,3 +240,23 @@ class IngestRuleHandlerTestCase(TestCase):
         original = events_service.find_one(req=None, _id=event["_id"])
         assert original["pubstatus"] == "usable"
         assert original["state"] == "scheduled"
+
+    def test_autopost_draft_event(self):
+        event = self.event_items[0].copy()
+        event["versioncreated"] = datetime.now() - timedelta(minutes=10)
+        events_service = get_resource_service("events")
+        events_service.post([event])
+
+        original = events_service.find_one(req=None, _id=event["_id"])
+        assert original["pubstatus"] == "usable"
+        assert original["state"] == "draft"
+
+        event.pop("state")
+        event["name"] = "updated name"
+        event["pubstatus"] = "usable"
+        event["versioncreated"] = datetime.now()
+        events_service.patch_in_mongo(event["_id"], event, original)
+
+        original = events_service.find_one(req=None, _id=event["_id"])
+        assert original["pubstatus"] == "usable"
+        assert original["state"] == "ingested"
