@@ -53,6 +53,11 @@ class EventsPlanningFiltersAsyncService(BasePlanningAsyncService[EventPlanningFi
             return
 
         for schedule in updates["schedules"]:
+            if "article_template" in schedule and schedule["article_template"] == "":
+                schedule["article_template"] = None
+            if "template" in schedule and schedule["template"] == "":
+                schedule["template"] = None
+
             hour = schedule.get("hour", -1)
             day = schedule.get("day", -1)
             week_days = schedule.get("week_days") or []
