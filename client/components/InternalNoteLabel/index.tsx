@@ -3,7 +3,7 @@ import {get} from 'lodash';
 import classNames from 'classnames';
 import {Text, Tooltip} from 'superdesk-ui-framework/react';
 import {gettext, getItemWorkflowStateLabel} from '../../utils';
-import {cleanHtmlAndReplacePlaneNewLine} from 'helpers';
+import {stripHtmlTags} from 'superdesk-core/scripts/core/utils';
 
 import './style.scss';
 
@@ -38,8 +38,6 @@ export const InternalNoteLabel: React.FC<IInternalNoteLabelProps> = ({
         return null;
     }
 
-    const internalNoteHtml = cleanHtmlAndReplacePlaneNewLine(internalNoteRaw);
-
     const iconColor = stateField ? get(getItemWorkflowStateLabel(item, stateField), 'iconType') : 'red';
 
     const icon = (
@@ -66,26 +64,27 @@ export const InternalNoteLabel: React.FC<IInternalNoteLabelProps> = ({
         );
     }
 
+    const contentParsed = stripHtmlTags(internalNoteRaw).split('\n')
+        .map((x, i) => <p key={i}>{x}</p>);
+
     return (
-        <>
-            <Tooltip
-                placement="auto"
-                content={() => (
-                    <div
-                        style={{
-                            boxShadow: 'var(--sd-shadow--z3)',
-                            padding: 'var(--space--1-5)',
-                            fontSize: 'var(--text-size-small)',
-                            lineHeight: 1.4
-                        }}
-                    >
-                        {showHeaderText && <Text weight="strong">{gettext('Internal Note:')}</Text>}
-                        <div dangerouslySetInnerHTML={{__html: internalNoteHtml}} />
-                    </div>
-                )}
-            >
-                {icon}
-            </Tooltip>
-        </>
+        <Tooltip
+            placement="auto"
+            content={() => (
+                <div
+                    style={{
+                        boxShadow: 'var(--sd-shadow--z3)',
+                        padding: 'var(--space--1-5)',
+                        fontSize: 'var(--text-size-small)',
+                        lineHeight: 1.4
+                    }}
+                >
+                    {showHeaderText && <Text weight="strong">{gettext('Internal Note:')}</Text>}
+                    {contentParsed}
+                </div>
+            )}
+        >
+            {icon}
+        </Tooltip>
     );
 };
