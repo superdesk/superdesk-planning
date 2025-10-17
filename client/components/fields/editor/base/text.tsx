@@ -1,5 +1,5 @@
 import * as React from 'react';
-import {debounce, get, uniqueId} from 'lodash';
+import {debounce, get, isEqual, uniqueId} from 'lodash';
 import {IRestApiResponse} from 'superdesk-api';
 import {appConfig} from 'appConfig';
 
@@ -78,6 +78,14 @@ export class EditorFieldText extends React.Component<IEditorFieldTextProps, ISta
             this.fetchSuggestions('slugline', this.props.language).then((suggestions) => {
                 this.setState({suggestions});
             });
+        }
+    }
+
+    componentDidUpdate = (prevProps: Readonly<IEditorFieldTextProps>): void => {
+        // Make sure to reset user modification state when item changes
+        // so that late-arriving prop values can populate the field again
+        if (!isEqual(prevProps.item, this.props.item)) {
+            this.setState({userHasModified: false});
         }
     }
 
