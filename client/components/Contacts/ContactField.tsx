@@ -8,7 +8,7 @@ import * as selectors from '../../selectors';
 import * as actions from '../../actions';
 
 import {ContactEditor, SelectSearchContactsField, ContactsPreviewList} from './index';
-import {externalContacts} from '../../config';
+import {planningConfig} from '../../config';
 
 interface IBaseProps {
     field: string;
@@ -72,10 +72,12 @@ export class ContactFieldComponent extends React.Component<IProps, IState> {
     }
 
     onContactEdit(contact?: IContactItem) {
-        if (externalContacts != null) {
+        const maybeConfig = planningConfig.external_contacts;
+
+        if (maybeConfig != null) {
             const url = contact?._id != null
-                ? `${externalContacts.editUrl}/${contact._id}`
-                : externalContacts.createUrl;
+                ? `${maybeConfig.edit_url}/${contact._id}`
+                : maybeConfig.create_url;
 
             window.open(url, '_blank');
         } else {
