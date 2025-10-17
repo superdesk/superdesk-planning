@@ -2229,6 +2229,7 @@ export interface IWebsocketMessageData {
         lock_session?: IEventOrPlanningItem['lock_session'];
         recurrence_id?: IEventItem['recurrence_id'];
         type: IEventOrPlanningItem['type'] | IAssignmentItem['type'];
+        clientId?: string;
     };
     ITEM_LOCKED: {
         item: IEventOrPlanningItem['_id'];
@@ -2241,6 +2242,7 @@ export interface IWebsocketMessageData {
         lock_time: IEventOrPlanningItem['lock_time'];
         recurrence_id?: IEventOrPlanningItem['recurrence_id'];
         type: IEventOrPlanningItem['type'] | IAssignmentItem['type'];
+        clientId?: string;
     };
 
     PLANNING_CREATED: {

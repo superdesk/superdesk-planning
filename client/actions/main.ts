@@ -1237,23 +1237,28 @@ const openFromURLOrRedux = (action) => (
         }
 
         if (item.id && item.type) {
-            const baseItem = {
-                _id: item.id,
-                type: item.type,
-            };
+            const isNewItem = isTemporaryId(item.id);
 
-            if (action === MAIN.EDIT) {
+            // Make sure the item is loaded into the redux store
+            // before loading the preview or editor
+            if (isNewItem && action === MAIN.EDIT) {
+                const baseItem = {
+                    _id: item.id,
+                    type: item.type,
+                };
+
                 dispatch(self.openForEdit(baseItem));
-
                 return Promise.resolve(baseItem);
-            } else if (action === MAIN.PREVIEW) {
-                // Make sure the item is loaded into the redux store
-                // and store the entire item in the forms initialValues
+            } else if (!isNewItem) {
                 return dispatch(self.fetchById(item.id, item.type))
                     .then((loadedItem) => {
-                        dispatch(self.openPreview(loadedItem || baseItem));
+                        if (action === MAIN.EDIT) {
+                            dispatch(self.openForEdit(loadedItem));
+                        } else if (action === MAIN.PREVIEW) {
+                            dispatch(self.openPreview(loadedItem));
+                        }
 
-                        return Promise.resolve(loadedItem || baseItem);
+                        return Promise.resolve(loadedItem);
                     });
             }
         }

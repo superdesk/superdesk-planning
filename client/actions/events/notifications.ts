@@ -1,6 +1,6 @@
 import {get} from 'lodash';
 
-import {planningApi} from '../../superdeskApi';
+import {planningApi, superdeskApi} from '../../superdeskApi';
 import {IWebsocketMessageData, ITEM_TYPE} from '../../interfaces';
 import * as selectors from '../../selectors';
 import {WORKFLOW_STATE, EVENTS, LOCKS} from '../../constants';
@@ -33,7 +33,7 @@ const onEventCreated = (_e, data) => (
  */
 function onEventUnlocked(_e: {}, data: IWebsocketMessageData['ITEM_UNLOCKED']) {
     return (dispatch, getState) => {
-        if (data?.item != null) {
+        if (data?.item != null && data.clientId !== superdeskApi.session.getUniqueClientId()) {
             const state = getState();
             const events = selectors.events.storedEvents(state);
             let eventInStore = get(events, data.item, {});
@@ -71,7 +71,7 @@ function onEventUnlocked(_e: {}, data: IWebsocketMessageData['ITEM_UNLOCKED']) {
 
 const onEventLocked = (_e, data) => (
     (dispatch, getState) => {
-        if (data && data.item) {
+        if (data && data.item && data?.clientId !== superdeskApi.session.getUniqueClientId()) {
             planningApi.locks.setItemAsLocked(data);
 
             const sessionId = selectors.general.session(getState()).sessionId;
