@@ -19,6 +19,9 @@ Object.assign(superdeskApi, {
         findOne: sinon.stub().returns(Promise.resolve({})),
         create: sinon.stub().callsFake((resource, item) => Promise.resolve({...item}))
     },
+    session: {
+        getUniqueClientId: () => 'abcd123',
+    },
     browser: {
         location: {
             urlParams: {

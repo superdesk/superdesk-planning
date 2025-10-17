@@ -51,7 +51,7 @@ describe('Planning: item locks', () => {
         modal.waitTillClosed();
     }
 
-    function testCancelActionFromEditPanel(actionLabel, ignoreCancelSavedShown = false) {
+    function testCancelActionFromEditPanel(actionLabel) {
         // Open the Event for editing, and make sure the form is not disabled
         list.item(0).dblclick();
         editor.waitTillOpen();
@@ -90,13 +90,6 @@ describe('Planning: item locks', () => {
             .should('exist')
             .click()
 
-        // TODO[BUG]: This should not be happening
-        if (ignoreCancelSavedShown) {
-            modal.waitTillOpen();
-            modal.getFooterButton('Ignore')
-                .should('exist')
-                .click();
-        }
         editor.waitTillClosed();
         list.item(0)
             .find('.sd-list-item__border--locked')
@@ -165,7 +158,7 @@ describe('Planning: item locks', () => {
         it('cancel action', () => {
             testCancelActionFromModal('Cancel');
             testUnlockedFromModal('Cancel', 'events', 'event1');
-            testCancelActionFromEditPanel('Cancel', true);
+            testCancelActionFromEditPanel('Cancel');
             testUnlockedFromEditPanel('Cancel', 'events', 'event1');
         });
 
@@ -173,29 +166,28 @@ describe('Planning: item locks', () => {
             testCancelActionFromModal('Spike');
             testUnlockedFromModal('Spike', 'events', 'event1');
 
-            // TODO: Fix cancel action modal from editor, not returning to Edit state
-            testCancelActionFromEditPanel('Cancel', true);
+            testCancelActionFromEditPanel('Cancel');
             testUnlockedFromEditPanel('Cancel', 'events', 'event1');
         });
 
         it('update time action', () => {
             testCancelActionFromModal('Update time');
             testUnlockedFromModal('Update time', 'events', 'event1');
-            testCancelActionFromEditPanel('Update time', true);
+            testCancelActionFromEditPanel('Update time');
             testUnlockedFromEditPanel('Update time', 'events', 'event1');
         });
 
         it('mark as postponed action', () => {
             testCancelActionFromModal('Mark as Postponed');
             testUnlockedFromModal('Mark as Postponed', 'events', 'event1');
-            testCancelActionFromEditPanel('Mark as Postponed', true);
+            testCancelActionFromEditPanel('Mark as Postponed');
             testUnlockedFromEditPanel('Mark as Postponed', 'events', 'event1');
         });
 
         it('reschedule action', () => {
             testCancelActionFromModal('Reschedule');
             testUnlockedFromModal('Reschedule', 'events', 'event1');
-            testCancelActionFromEditPanel('Reschedule', true);
+            testCancelActionFromEditPanel('Reschedule');
             testUnlockedFromEditPanel('Reschedule', 'events', 'event1');
         });
 

@@ -2,7 +2,7 @@ import {get, cloneDeep} from 'lodash';
 
 import {IWebsocketMessageData} from '../../interfaces';
 
-import {planningApi} from '../../superdeskApi';
+import {planningApi, superdeskApi} from '../../superdeskApi';
 import {ASSIGNMENTS, WORKSPACE, MODALS} from '../../constants';
 import {lockUtils, assignmentUtils, gettext, isExistingItem} from '../../utils';
 
@@ -199,7 +199,7 @@ const _updatePlannigRelatedToAssignment = (data) => (
 
 function onAssignmentLocked(_e, data: IWebsocketMessageData['ITEM_LOCKED']) {
     return (dispatch) => {
-        if (get(data, 'item')) {
+        if (get(data, 'item') && data.clientId !== superdeskApi.session.getUniqueClientId()) {
             planningApi.locks.setItemAsLocked(data);
             return dispatch(assignments.api.fetchAssignmentById(data.item, false))
                 .then((assignmentInStore) => {
@@ -235,7 +235,7 @@ function onAssignmentLocked(_e, data: IWebsocketMessageData['ITEM_LOCKED']) {
  */
 function onAssignmentUnlocked(_e, data: IWebsocketMessageData['ITEM_UNLOCKED']) {
     return (dispatch, getState) => {
-        if (get(data, 'item')) {
+        if (get(data, 'item') && data.clientId !== superdeskApi.session.getUniqueClientId()) {
             planningApi.locks.setItemAsUnlocked(data);
             return dispatch(assignments.api.fetchAssignmentById(data.item, false))
                 .then((assignmentInStore) => {

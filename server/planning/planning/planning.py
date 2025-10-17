@@ -674,6 +674,8 @@ class PlanningService(AsyncBaseService):
                 coverage.setdefault("planning", {})
                 coverage["planning"].setdefault("scheduled", planning_date)
 
+                self.inherit_planning_metadata(coverage, updates)
+
                 set_original_creator(coverage)
                 self.set_coverage_active(coverage, updates)
                 await self.set_slugline_from_xmp(coverage, None)
@@ -759,6 +761,9 @@ class PlanningService(AsyncBaseService):
             # If none was supplied, fallback to ``original.planning.scheduled``
             coverage.setdefault("planning", {})
             coverage["planning"].setdefault("scheduled", (original_coverage.get("planning") or {}).get("scheduled"))
+
+            self.inherit_planning_metadata(coverage, updates)
+
             self.set_coverage_active(coverage, updates)
             await self.set_slugline_from_xmp(coverage, original_coverage)
             if self.coverage_changed(coverage, original_coverage):
@@ -1773,6 +1778,16 @@ class PlanningService(AsyncBaseService):
             elif update_method == UPDATE_FUTURE and plan["planning_date"] < selected_start:
                 continue
             yield plan
+
+    def inherit_planning_metadata(self, coverage, updates):
+        """
+        Inherit planning metadata fields to coverage if not explicitly set in coverage profile.
+        The fields inherited are those overlapping metadata fields from the planning schema and coverage schema
+        """
+        fields_to_inherit = ["anpa_category", "subject", "genre", "priority", "location"]
+        for field in fields_to_inherit:
+            if updates.get(field):
+                coverage["planning"].setdefault(field, updates[field])
 
 
 class PlanningResource(Resource):

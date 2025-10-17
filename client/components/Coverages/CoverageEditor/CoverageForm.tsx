@@ -544,29 +544,22 @@ export class CoverageFormComponent extends React.Component<IProps, IState> {
         };
 
         const isAutoAddToWorkflowOn = appConfig.planning_auto_assign_to_workflow;
+        const shouldDisableToggle = () => {
+            const {value, diff} = this.props;
 
-        if (isAutoAddToWorkflowOn === false) {
-            const shouldDisableToggle = () => {
-                if (this.props.value.add_coverage_to_workflow != true) {
-                    return !(isCoverageDraft(this.props.value)
-                        && isCoverageAssigned(this.props.value)
-                        && !isItemExpired(this.props.diff));
-                } else {
-                    return !planningUtils.canCancelCoverage(this.props.value, this.props.item);
-                }
-            };
+            return !(isCoverageDraft(value) && isCoverageAssigned(value) && !isItemExpired(diff));
+        };
 
-            fieldProps.add_coverage_to_workflow = {
-                onChange: this.toggleAddToWorkflow,
-                planningItem: this.props.item,
+        fieldProps.add_coverage_to_workflow = {
+            onChange: this.toggleAddToWorkflow,
+            planningItem: this.props.item,
 
-                /**
-                 * A coverage can be added to workflow if it is in draft state,
-                 * is assigned and the associated planning item is not expired.
-                 */
-                disabled: shouldDisableToggle(),
-            };
-        }
+            /**
+             * A coverage can be added to workflow if it is in draft state,
+             * is assigned and the associated planning item is not expired.
+             */
+            disabled: shouldDisableToggle(),
+        };
 
         /**
          * `editor.dom.fields` aren't being passed anymore because we no longer have access to it

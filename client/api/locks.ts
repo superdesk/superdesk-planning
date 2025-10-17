@@ -166,7 +166,11 @@ function lockItem<T extends IAssignmentOrPlanningItem>(item: T, action?: string)
     }
 
     // @ts-ignore
-    return superdeskApi.dataApi.create<T>(endpoint, {lock_action: lockAction})
+    return superdeskApi.dataApi.create<T>(
+        endpoint,
+        {lock_action: lockAction},
+        {clientId: superdeskApi.session.getUniqueClientId()}
+    )
         .then((lockedItem) => {
             // On lock, file object in the item is lost, so replace it from original item
             if (lockedItem.type !== 'assignment' && item.type !== 'assignment') {
@@ -288,7 +292,7 @@ function unlockItem<T extends IAssignmentOrPlanningItem>(
     let lockedItemId: string;
 
     if (item.type === 'event' && item.recurrence_id === currentLock.item_id) {
-        lockedItemId = item._id;
+        lockedItemId = item.recurrence_id;
     } else if (item.type === 'planning' && item.recurrence_id === currentLock.item_id) {
         const relatedEventIds = getRelatedEventIdsForPlanning(item, 'primary');
 
@@ -304,7 +308,7 @@ function unlockItem<T extends IAssignmentOrPlanningItem>(
     const resource = getLockResourceName(currentLock.item_type);
     const endpoint = `${resource}/${lockedItemId}/unlock`;
 
-    return superdeskApi.dataApi.create<T>(endpoint, {})
+    return superdeskApi.dataApi.create<T>(endpoint, {}, {clientId: superdeskApi.session.getUniqueClientId()})
         .then((unlockedItem) => {
             if (unlockedItem.type === 'event') {
                 eventUtils.modifyForClient(unlockedItem);

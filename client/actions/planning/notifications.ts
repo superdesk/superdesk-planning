@@ -1,7 +1,7 @@
 import {get} from 'lodash';
 
 import {IWebsocketMessageData, ITEM_TYPE, IPlanningAppState} from '../../interfaces';
-import {planningApi} from '../../superdeskApi';
+import {planningApi, superdeskApi} from '../../superdeskApi';
 
 import {gettext, lockUtils} from '../../utils';
 import {PLANNING, MODALS, WORKFLOW_STATE, WORKSPACE} from '../../constants';
@@ -105,7 +105,7 @@ const onPlanningUpdated = (_e: {}, data: IWebsocketMessageData['PLANNING_UPDATED
 
 const onPlanningLocked = (e: {}, data: IWebsocketMessageData['ITEM_LOCKED']) => (
     (dispatch, getState) => {
-        if (data.item != null) {
+        if (data.item != null && data.clientId !== superdeskApi.session.getUniqueClientId()) {
             planningApi.locks.setItemAsLocked(data);
 
             const sessionId = selectors.general.session(getState()).sessionId;
@@ -151,7 +151,7 @@ const onPlanningLocked = (e: {}, data: IWebsocketMessageData['ITEM_LOCKED']) => 
  */
 function onPlanningUnlocked(_e: {}, data: IWebsocketMessageData['ITEM_UNLOCKED']) {
     return (dispatch, getState) => {
-        if (data?.item != null) {
+        if (data?.item != null && data.clientId !== superdeskApi.session.getUniqueClientId()) {
             const state = getState();
             let planningItem = selectors.planning.storedPlannings(state)[data.item];
             const isCurrentlyLocked = lockUtils.isItemLocked(planningItem, selectors.locks.getLockedItems(state));
