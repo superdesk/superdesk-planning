@@ -12,7 +12,7 @@
     "ts_lint": "tsc -p . --noEmit && tslint -c tslint.json './**/*.{ts,tsx}' && eslint --parser=@typescript-eslint/parser --ext .js --ext .jsx --ext .ts --ext .tsx scripts spec tasks *.js",
     "fix": "eslint client --ext=jsx --ext=js --ext=tsx --ext=ts --ext=spec --fix",
     "hint": "eslint client --ext=jsx --ext=js --ext=tsx --ext=ts --ext=spec",
-    "lint": "eslint client --ext=jsx --ext=js --ext=tsx --ext=ts --ext=spec --quiet --ignore-pattern 'node_modules/**' --ignore-pattern '**/*.mjs'",
+    "lint": "eslint client --ext=jsx --ext=js --ext=tsx --ext=ts --ext=spec --quiet",
     "test": "karma start karma.conf.js --log-level debug --display-error-details --single-run",
     "karma": "karma start karma.conf.js",
     "debug_unit_test": "karma start karma.conf.js --browsers=Chrome"
