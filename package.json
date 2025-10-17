@@ -87,5 +87,8 @@
     "redux-thunk": "^2.3.0",
     "superdesk-ui-framework": "*",
     "typescript": "*"
+  },
+  "overrides": {
+    "get-intrinsic": "1.2.4"
   }
 }
