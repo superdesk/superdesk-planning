@@ -141,7 +141,10 @@ class AssignmentsService(AsyncBaseService):
         :param assignment_ids:
         :return:
         """
-        query = {"query": {"filtered": {"filter": {"terms": {"assignment_id": assignment_ids}}}}}
+        query = {
+            "query": {"bool": {"must": [{"terms": {"assignment_id": assignment_ids}}]}},
+            "size": get_app_config("ASSIGNMENTS_LINKED_ITEMS_SIZE", 500),
+        }
 
         req = ParsedRequest()
         repos = "archive,published,archived"
@@ -153,14 +156,11 @@ class AssignmentsService(AsyncBaseService):
 
         query = {
             "query": {
-                "filtered": {
-                    "filter": {
-                        "bool": {
-                            "must": {"term": {"assignment_id": str(assignment[ID_FIELD])}},
-                        }
-                    }
-                }
-            }
+                "bool": {
+                    "must": {"term": {"assignment_id": str(assignment[ID_FIELD])}},
+                },
+            },
+            "size": get_app_config("ASSIGNMENTS_LINKED_ITEMS_SIZE", 500),
         }
 
         req = ParsedRequest()
