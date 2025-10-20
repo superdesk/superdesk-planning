@@ -657,12 +657,11 @@ class EventsService(AsyncBaseService):
             merged.update(updates)
             await get_resource_service("events_post").validate_item(merged)
 
-        # Determine if we're to convert this single event to a recurring
-        #  of events
-        if (
-            original.get(LOCK_ACTION) == "convert_recurring"
-            and updates.get("dates", {}).get("recurring_rule", None) is not None
-        ):
+        # Determine if we're to convert this single event to a recurring of events, either through
+        # conversion from recurring form or from within the event editor
+        if (original.get(LOCK_ACTION) == "convert_recurring" or original.get(LOCK_ACTION) == "edit") and updates.get(
+            "dates", {}
+        ).get("recurring_rule", None) is not None:
             generated_events = await self._convert_to_recurring_event(updates, original)
 
             # if the original event was "posted" then post all the generated events
