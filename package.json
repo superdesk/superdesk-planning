@@ -1,6 +1,6 @@
 {
   "name": "superdesk-planning",
-  "version": "3.0.0-beta.1",
+  "version": "3.0.0-beta.2",
   "license": "AGPL-3.0",
   "description": "",
   "repository": {
@@ -88,5 +88,8 @@
     "redux-thunk": "^2.3.0",
     "superdesk-ui-framework": "*",
     "typescript": "*"
+  },
+  "overrides": {
+    "get-intrinsic": "1.2.4"
   }
 }

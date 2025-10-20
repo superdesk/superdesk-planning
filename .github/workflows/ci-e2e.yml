@@ -28,8 +28,13 @@ jobs:
           cache-dependency-path: 'server/requirements.txt'
       - name: Setup Environment
         run: ./scripts/ci-install.sh
-      - name: Install Planning Client
+      - name: Install Planning Client (Node 14)
+        if: matrix.node-version == '14'
         run: npm ci
+        working-directory: ./
+      - name: Install Planning Client (Node 22)
+        if: matrix.node-version == '22'
+        run: npm install
         working-directory: ./
       - name: Install E2E Client
         run: npm install
