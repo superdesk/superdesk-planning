@@ -23,6 +23,25 @@ const contentTypes = [
     },
 ];
 
+const COVERAGE_PROFILE_MULTIPLE_CONTENT_TRUE = {
+    name: 'coverage',
+    editor: {
+        multiple_content: {
+            enabled: true,
+            index: 1,
+        },
+    },
+    schema: {
+        multiple_content: {
+            type: 'boolean',
+            required: false,
+            default_value: true,
+            read_only: false
+        },
+    },
+    content_type: 'text',
+};
+
 describe('PlanningUtils', () => {
     let session;
     let locks;
@@ -460,6 +479,33 @@ describe('PlanningUtils', () => {
                     priority: ASSIGNMENTS.DEFAULT_PRIORITY,
                 },
             });
+        });
+
+        it('coverage multiple content is derived from profile default value', () => {
+            const newsItem = {
+                slugline: 'slug',
+                ednote: 'edit my note',
+                type: 'text',
+                state: 'scheduled',
+                versioncreated: '2017-10-15T14:01:11',
+                version_creator: 'ident2',
+                task: {
+                    desk: 'desk2',
+                    user: 'ident2',
+                },
+                firstpublished: '2017-10-15T16:00:00',
+                schedule_settings: {utc_publish_schedule: '2017-10-15T20:00:00'},
+            };
+
+            const coverage = planningUtils.createCoverageFromNewsItem(
+                newsItem,
+                newsCoverageStatus,
+                desk,
+                contentTypes,
+                () => COVERAGE_PROFILE_MULTIPLE_CONTENT_TRUE,
+            );
+
+            expect(coverage.planning.multiple_content).toEqual(true);
         });
 
         it('coverage time is derived from news item\'s schedule time if item is scheduled for publishing', () => {
