@@ -21,7 +21,7 @@ from quart_babel import lazy_gettext
 
 import superdesk
 from superdesk.eve_async.service import AsyncBaseService
-from superdesk.core import json, get_current_app, get_app_config
+from superdesk.core import json, get_current_app, get_app_config, get_config
 from superdesk.resource_fields import ID_FIELD, ITEMS, ETAG, VERSION
 from superdesk.flask import request
 from superdesk import get_resource_service
@@ -141,7 +141,10 @@ class AssignmentsService(AsyncBaseService):
         :param assignment_ids:
         :return:
         """
-        query = {"query": {"filtered": {"filter": {"terms": {"assignment_id": assignment_ids}}}}}
+        query = {
+            "query": {"bool": {"must": [{"terms": {"assignment_id": assignment_ids}}]}},
+            "size": get_config(int, "ASSIGNMENTS_LINKED_ITEMS_SIZE", 500),
+        }
 
         req = ParsedRequest()
         repos = "archive,published,archived"
@@ -153,14 +156,11 @@ class AssignmentsService(AsyncBaseService):
 
         query = {
             "query": {
-                "filtered": {
-                    "filter": {
-                        "bool": {
-                            "must": {"term": {"assignment_id": str(assignment[ID_FIELD])}},
-                        }
-                    }
-                }
-            }
+                "bool": {
+                    "must": {"term": {"assignment_id": str(assignment[ID_FIELD])}},
+                },
+            },
+            "size": get_config(int, "ASSIGNMENTS_LINKED_ITEMS_SIZE", 500),
         }
 
         req = ParsedRequest()

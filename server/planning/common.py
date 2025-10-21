@@ -20,7 +20,7 @@ from datetime import timedelta, datetime
 from werkzeug.datastructures import MultiDict
 from quart_babel import gettext
 
-from superdesk.core import get_app_config, get_current_app
+from superdesk.core import get_app_config, get_current_app, get_config
 from superdesk.resource_fields import ID_FIELD, VERSION
 from superdesk.resource import not_analyzed, build_custom_hateoas
 from superdesk.publish_async.commands import publish_item
@@ -545,9 +545,9 @@ async def get_archive_items_for_assignment(assignment_id, descending_rewrite_seq
     must_not = [{"term": {"state": "spiked"}}]
     must = [{"term": {"assignment_id": str(assignment_id)}}, {"term": {"type": "text"}}]
 
-    query: dict = {"query": {"filtered": {"filter": {"bool": {"must": must, "must_not": must_not}}}}}
+    query: dict = {"query": {"bool": {"must": must, "must_not": must_not}}}
     query["sort"] = [{"rewrite_sequence": "desc" if descending_rewrite_seq else "asc"}]
-    query["size"] = 200
+    query["size"] = get_config(int, "ASSIGNMENTS_LINKED_ITEMS_SIZE", 500)
 
     req.args["source"] = json.dumps(query)
     req.args["repo"] = "archive,published,archived"
