@@ -271,6 +271,7 @@ class AssignmentGroupListComponent extends React.Component<IProps, IState> {
             changeAssignmentListSingleGroupView,
             orderDirection,
             isLoading,
+            totalCount,
         } = this.props;
         const listStyle = setMaxHeight ? {maxHeight: this.getListMaxHeight() + 'px'} : {};
         const headingId = `heading--${this.props.groupKey}`;
@@ -301,9 +302,9 @@ class AssignmentGroupListComponent extends React.Component<IProps, IState> {
                             <div className="sd-list-header__number sd-flex-grow">
                                 <span className="a11y-only">{gettext(
                                     'Number of Assignments: ',
-                                    {count: (filteredAssignments?.length ?? 0)}
+                                    {count: (totalCount ?? 0)}
                                 )}</span>
-                                <span className="badge">{(filteredAssignments?.length ?? 0)}</span>
+                                <span className="badge">{(totalCount ?? 0)}</span>
                             </div>
                         )}
 
@@ -369,6 +370,7 @@ const mapStateToProps = (state, ownProps) => {
         contacts: selectors.general.contactsById(state),
         isLoading: assignmentDataSelector.isLoading(state),
         archiveItems: selectors.getStoredArchiveItems(state),
+        totalCount: assignmentDataSelector.countSelector(state),
     };
 };
 
