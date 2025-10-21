@@ -39,18 +39,22 @@ export class EditorFieldEventRelatedPlanningsComponent extends React.PureCompone
     }
 
     componentDidUpdate(prevProps: Readonly<IRelatedPlanningProps>): void {
-        const prevPlanIds = prevProps.item.associated_plannings.map((x) => x._id);
-        const currentPlanIds = this.props.item.associated_plannings.map((x) => x._id);
+        if (this.props.disabled !== true) {
+            const prevPlanIds = prevProps.item.associated_plannings.map((x) => x._id);
+            const currentPlanIds = this.props.item.associated_plannings.map((x) => x._id);
 
-        if (isEqual(prevPlanIds, currentPlanIds) === false) {
-            this.softLockPlannings();
+            if (isEqual(prevPlanIds, currentPlanIds) === false) {
+                this.softLockPlannings();
+            }
         }
     }
 
     componentWillUnmount(): void {
-        this.props.item.associated_plannings
-            .filter((x) => x._temporary != null)
-            .forEach((x) => planningApi.locks.unlockEmbeddedItem(x as IPlanningItem));
+        if (this.props.disabled !== true) {
+            this.props.item.associated_plannings
+                .filter((x) => x._temporary != null)
+                .forEach((x) => planningApi.locks.unlockEmbeddedItem(x as IPlanningItem));
+        }
     }
 
     render() {
