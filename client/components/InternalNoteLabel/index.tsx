@@ -1,8 +1,9 @@
 import React from 'react';
 import {get} from 'lodash';
 import classNames from 'classnames';
-import {Popover} from 'superdesk-ui-framework/react';
+import {Text, Tooltip} from 'superdesk-ui-framework/react';
 import {gettext, getItemWorkflowStateLabel} from '../../utils';
+import {stripHtmlTags} from 'superdesk-core/scripts/core/utils';
 
 import './style.scss';
 
@@ -31,9 +32,9 @@ export const InternalNoteLabel: React.FC<IInternalNoteLabelProps> = ({
     marginLeft = false,
     showHeaderText = true,
 }) => {
-    const internalNote = get(item, `${prefix}${noteField}`);
+    const internalNoteRaw = get(item, `${prefix}${noteField}`);
 
-    if ((internalNote ?? '').length < 1) {
+    if ((internalNoteRaw ?? '').length < 1) {
         return null;
     }
 
@@ -58,21 +59,32 @@ export const InternalNoteLabel: React.FC<IInternalNoteLabelProps> = ({
         return (
             <div className={className}>
                 {icon}
-                {showText && internalNote}
+                {showText && internalNoteRaw}
             </div>
         );
     }
 
+    const contentParsed = stripHtmlTags(internalNoteRaw).split('\n')
+        .map((x, i) => <p key={i}>{x}</p>);
+
     return (
-        <>
-            <Popover
-                placement="auto"
-                triggerSelector="#internal-note-icon"
-                title={showHeaderText ? gettext('Internal Note:') : ''}
-            >
-                {internalNote}
-            </Popover>
+        <Tooltip
+            placement="auto"
+            content={() => (
+                <div
+                    style={{
+                        boxShadow: 'var(--sd-shadow--z3)',
+                        padding: 'var(--space--1-5)',
+                        fontSize: 'var(--text-size-small)',
+                        lineHeight: 1.4
+                    }}
+                >
+                    {showHeaderText && <Text weight="strong">{gettext('Internal Note:')}</Text>}
+                    {contentParsed}
+                </div>
+            )}
+        >
             {icon}
-        </>
+        </Tooltip>
     );
 };
