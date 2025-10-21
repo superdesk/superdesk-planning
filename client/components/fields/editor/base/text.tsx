@@ -84,7 +84,7 @@ export class EditorFieldText extends React.Component<IEditorFieldTextProps, ISta
     componentDidUpdate = (prevProps: Readonly<IEditorFieldTextProps>): void => {
         // Make sure to reset user modification state when item changes
         // so that late-arriving prop values can populate the field again
-        if (!isEqual(prevProps.item, this.props.item)) {
+        if (prevProps?.item?._id !== this.props.item?._id) {
             this.setState({userHasModified: false});
         }
     }
