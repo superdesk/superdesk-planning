@@ -12,6 +12,7 @@ import {
     IPlanningRelatedEventLink,
     IPlanningNewsCoverageStatus,
     ICoverageScheduledUpdate,
+    ICoverageType,
 } from '../interfaces';
 import {appConfig} from 'appConfig';
 
@@ -194,12 +195,13 @@ function createFromEvent(event: IEventItem, updates: Partial<IPlanningItem>): Pr
 function setDefaultValues(
     item: DeepPartial<IPlanningItem>,
     event?: IEventItem,
-    g2contentType?: IG2ContentType['qcode']
+    g2contentType?: ICoverageType
 ) {
     const state = planningApi.redux.store.getState();
     const newsCoverageStatus = selectors.general.newsCoverageStatus(state);
     const defaultDesk = selectors.general.defaultDesk(state);
     const preferredCoverageDesks = selectors.general.preferredCoverageDesks(state)?.desks ?? {};
+    const coverageProfile = selectors.coverageProfiles.getCoverageProfileByContentType(state, g2contentType);
 
     return planningUtils.defaultCoverageValues(
         newsCoverageStatus,
@@ -207,7 +209,8 @@ function setDefaultValues(
         event,
         g2contentType,
         defaultDesk,
-        preferredCoverageDesks
+        preferredCoverageDesks,
+        coverageProfile
     );
 }
 

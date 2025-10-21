@@ -346,7 +346,12 @@ describe('PlanningUtils', () => {
             };
 
             const coverage = planningUtils.createCoverageFromNewsItem(
-                newsItem, newsCoverageStatus, desk, user, contentTypes);
+                newsItem,
+                newsCoverageStatus,
+                desk,
+                contentTypes,
+                () => undefined,
+            );
 
             expect(omit(coverage, ['coverage_id', 'planning._scheduledTime'])).toEqual({
                 planning: {
@@ -385,7 +390,12 @@ describe('PlanningUtils', () => {
             };
 
             const coverage = planningUtils.createCoverageFromNewsItem(
-                newsItem, newsCoverageStatus, desk, user, contentTypes);
+                newsItem,
+                newsCoverageStatus,
+                desk,
+                contentTypes,
+                () => undefined,
+            );
 
             expect(omit(coverage, ['coverage_id', 'planning._scheduledTime'])).toEqual({
                 planning: {
@@ -424,7 +434,12 @@ describe('PlanningUtils', () => {
             };
 
             const coverage = planningUtils.createCoverageFromNewsItem(
-                newsItem, newsCoverageStatus, desk, user, contentTypes);
+                newsItem,
+                newsCoverageStatus,
+                desk,
+                contentTypes,
+                () => undefined,
+            );
 
             expect(omit(coverage, ['coverage_id', 'planning._scheduledTime'])).toEqual({
                 planning: {
@@ -464,7 +479,12 @@ describe('PlanningUtils', () => {
             };
 
             const coverage = planningUtils.createCoverageFromNewsItem(
-                newsItem, newsCoverageStatus, desk, user, contentTypes);
+                newsItem,
+                newsCoverageStatus,
+                desk,
+                contentTypes,
+                () => undefined,
+            );
 
             expect(omit(coverage, ['coverage_id', 'planning._scheduledTime'])).toEqual({
                 planning: {
@@ -1021,10 +1041,12 @@ describe('PlanningUtils', () => {
         it('set coverage time for adhock planning', () => {
             const newsCoverageStatus = [{qcode: 'ncostat:int'}];
             let planned = moment('2119-03-15T09:00:00+11:00');
-            const plan = {slugline: 'Test',
+            const plan = {
+                slugline: 'Test',
                 internal_note: 'Internal Note',
                 ednote: 'Ed note',
-                planning_date: planned};
+                planning_date: planned
+            };
 
             let coverage = planningUtils.defaultCoverageValues(newsCoverageStatus, plan, null);
 

@@ -919,6 +919,7 @@ export class ItemManager {
             g2ContentType,
             this.props.defaultDesk,
             preferredCoverageDesks,
+            selectors.coverageProfiles.getCoverageProfileByContentType(state, g2ContentType),
         );
 
         this.editor.onChangeHandler(

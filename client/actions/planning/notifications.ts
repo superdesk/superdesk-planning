@@ -1,6 +1,6 @@
 import {get} from 'lodash';
 
-import {IWebsocketMessageData, ITEM_TYPE, IPlanningAppState} from '../../interfaces';
+import {IWebsocketMessageData, ITEM_TYPE, IPlanningAppState, IPlanningItem} from '../../interfaces';
 import {planningApi, superdeskApi} from '../../superdeskApi';
 
 import {gettext, lockUtils} from '../../utils';

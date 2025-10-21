@@ -24,7 +24,7 @@ import {
     IItemAction,
     ICoverageType,
     IAssignmentItem,
-    IProfileSchemaTypeList,
+    ICoverageContentProfile,
 } from '../interfaces';
 
 import {stripHtmlRaw} from 'superdesk-core/scripts/apps/authoring/authoring/helpers';
@@ -1000,15 +1000,15 @@ function createNewPlanningFromNewsItem(
     addNewsItemToPlanning: IArticle,
     newsCoverageStatus: Array<IPlanningNewsCoverageStatus>,
     desk: IDesk['_id'],
-    user: IUser['_id'],
-    contentTypes: Array<IG2ContentType>
+    contentTypes: Array<IG2ContentType>,
+    getCoverageProfile: (contentType) => null | ICoverageContentProfile,
 ) {
     const newCoverage = self.createCoverageFromNewsItem(
         addNewsItemToPlanning,
         newsCoverageStatus,
         desk,
-        user,
-        contentTypes
+        contentTypes,
+        getCoverageProfile,
     );
     const {contentProfiles} = planningApi;
     let newPlanning: Partial<IPlanningItem> = {
@@ -1046,17 +1046,24 @@ function createCoverageFromNewsItem(
     addNewsItemToPlanning: IArticle,
     newsCoverageStatus: Array<IPlanningNewsCoverageStatus>,
     desk: IDesk['_id'],
-    user: IUser['_id'],
-    contentTypes: Array<IG2ContentType>
+    contentTypes: Array<IG2ContentType>,
+    getCoverageProfile: (contentType: ICoverageType) => null | ICoverageContentProfile,
 ): Partial<IPlanningCoverageItem> {
-    let newCoverage = self.defaultCoverageValues(newsCoverageStatus);
-
-    newCoverage.workflow_status = COVERAGES.WORKFLOW_STATE.ACTIVE;
-
-    // Add fields from news item to the coverage
     const contentType = contentTypes.find(
         (ctype) => get(ctype, 'content item type') === addNewsItemToPlanning.type
     );
+
+    let newCoverage = self.defaultCoverageValues(
+        newsCoverageStatus,
+        null,
+        null,
+        null,
+        null,
+        null,
+        getCoverageProfile(contentType.qcode as ICoverageType),
+    );
+
+    newCoverage.workflow_status = COVERAGES.WORKFLOW_STATE.ACTIVE;
 
     const contentTypeQcode = (contentType?.qcode ?? PLANNING.G2_CONTENT_TYPE.TEXT) as ICoverageType;
 
@@ -1068,15 +1075,6 @@ function createCoverageFromNewsItem(
         scheduled: moment().add(1, 'hour')
             .startOf('hour'),
     };
-
-    const allCoverageProfiles = coverageProfiles(planningApi.redux.store.getState());
-    const coverageProfile = allCoverageProfiles.find((x) => x.content_type === contentTypeQcode);
-    const multipleContentDefaultValue = (coverageProfile?.schema?.['multiple_content'] as IProfileSchemaTypeList)
-        ?.default_value;
-
-    if (multipleContentDefaultValue != null) {
-        newCoverage.planning.multiple_content = multipleContentDefaultValue;
-    }
 
     if (addNewsItemToPlanning.priority != null) {
         newCoverage.planning.priority = addNewsItemToPlanning.priority;
@@ -1569,15 +1567,14 @@ function defaultCoverageValues(
     g2contentType?: ICoverageType,
     defaultDesk?: IDesk,
     preferredCoverageDesks?: {[key: string]: IDesk['_id']},
+    coverageProfile?: ICoverageContentProfile,
 ): DeepPartial<IPlanningCoverageItem> {
     const {contentProfiles} = planningApi;
-    const allProfiles = coverageProfiles(planningApi.redux.store.getState());
-    const coverageProfile = allProfiles.find((x) => x.content_type === g2contentType)
-        ?? contentProfiles.get('coverage');
-    const defaultValues = (contentProfiles.getDefaultValues(coverageProfile)) as DeepPartial<IPlanningCoverageItem>;
+    const profile = coverageProfile ?? contentProfiles.get('coverage');
+    const defaultValues = contentProfiles.getDefaultValues(profile) as DeepPartial<IPlanningCoverageItem>;
 
     // if new profile hasn't been created for the type don't set to anything, backend also accepts objectid only
-    const profileId = allProfiles.find((x) => x.content_type === g2contentType)?._id ?? undefined;
+    const profileId = profile._id ?? undefined;
 
     let newCoverage: DeepPartial<IPlanningCoverageItem> = {
         coverage_id: generateTempId(),
@@ -1895,7 +1892,8 @@ function showXMPFileUIControl(item: IAssignmentItem | IPlanningCoverageItem): bo
 function duplicateCoverage(
     item: DeepPartial<IPlanningItem>,
     coverage: DeepPartial<IPlanningCoverageItem>,
-    duplicateAs?: IG2ContentType['qcode'],
+    getCoverageProfile: (coverageType?: ICoverageType) => undefined | ICoverageContentProfile,
+    duplicateAs?: ICoverageType,
     event?: IEventItem, // TAG: MULTIPLE_PRIMARY_EVENTS
 ): DeepPartial<IPlanningItem['coverages']> {
     const coveragePlanning: Partial<IPlanningItem> = {
@@ -1909,14 +1907,16 @@ function duplicateCoverage(
     const newsCoverageStatus = selectors.general.newsCoverageStatus(state);
     const defaultDesk = selectors.general.defaultDesk(state);
     const preferredCoverageDesks = get(selectors.general.preferredCoverageDesks(state), 'desks');
+    const coverageType = duplicateAs ?? coverage.planning?.g2_content_type;
 
     let newCoverage = defaultCoverageValues(
         [newsCoverageStatus.find((s) => s.qcode === 'ncostat:int')],
         coveragePlanning,
         event,
-        duplicateAs || coverage.planning?.g2_content_type,
+        coverageType,
         defaultDesk,
-        preferredCoverageDesks
+        preferredCoverageDesks,
+        getCoverageProfile(coverageType),
     );
 
     newCoverage.coverage_id = newCoverage.coverage_id + '-duplicate';

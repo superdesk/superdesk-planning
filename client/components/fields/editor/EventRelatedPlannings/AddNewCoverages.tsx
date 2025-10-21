@@ -9,9 +9,11 @@ import {
     IPlanningItem,
     IPlanningNewsCoverageStatus,
     IPlanningContentProfile,
-    ISearchProfile
+    ISearchProfile,
+    ICoverageType,
+    ICoverageContentProfile
 } from '../../../../interfaces';
-import {IDesk, IUser} from 'superdesk-api';
+import {Dictionary, IDesk, IUser} from 'superdesk-api';
 
 import * as selectors from '../../../../selectors';
 import {planningUtils, generateTempId} from '../../../../utils';
@@ -30,8 +32,9 @@ interface IProps {
     newsCoverageStatus: Array<IPlanningNewsCoverageStatus>;
     desks: Array<IDesk>;
     users: Array<IUser>;
-    updatePlanningItem(updates: DeepPartial<IPlanningItem>): void;
     initiallyExpanded?: boolean;
+    updatePlanningItem(updates: DeepPartial<IPlanningItem>): void;
+    getCoverageProfile(coverageType?: ICoverageType): ICoverageContentProfile | undefined;
 }
 
 interface IState {
@@ -48,6 +51,8 @@ const mapStateToProps = (state) => ({
     newsCoverageStatus: selectors.general.newsCoverageStatus(state),
     desks: selectors.general.desks(state),
     users: selectors.general.users(state),
+    getCoverageProfile: (contentType?: ICoverageType) =>
+        selectors.coverageProfiles.getCoverageProfileByContentType(state, contentType),
 });
 
 class AddNewCoveragesComponent extends React.Component<IProps, IState> {
@@ -180,7 +185,10 @@ class AddNewCoveragesComponent extends React.Component<IProps, IState> {
                     this.props.newsCoverageStatus,
                     this.props.item,
                     this.props.event,
-                    coverage.type.qcode
+                    coverage.type.qcode,
+                    null,
+                    null,
+                    this.props.getCoverageProfile(coverage.type.qcode),
                 );
 
                 newCoverage.assigned_to = {
