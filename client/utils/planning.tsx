@@ -24,6 +24,7 @@ import {
     IItemAction,
     ICoverageType,
     IAssignmentItem,
+    IProfileSchemaTypeList,
 } from '../interfaces';
 
 import {stripHtmlRaw} from 'superdesk-core/scripts/apps/authoring/authoring/helpers';
@@ -1057,14 +1058,25 @@ function createCoverageFromNewsItem(
         (ctype) => get(ctype, 'content item type') === addNewsItemToPlanning.type
     );
 
+    const contentTypeQcode = (contentType?.qcode ?? PLANNING.G2_CONTENT_TYPE.TEXT) as ICoverageType;
+
     newCoverage.planning = {
         ...newCoverage.planning,
-        g2_content_type: get(contentType, 'qcode', PLANNING.G2_CONTENT_TYPE.TEXT),
+        g2_content_type: contentTypeQcode,
         slugline: get(addNewsItemToPlanning, 'slugline', ''),
         ednote: get(addNewsItemToPlanning, 'ednote', ''),
         scheduled: moment().add(1, 'hour')
             .startOf('hour'),
     };
+
+    const allCoverageProfiles = coverageProfiles(planningApi.redux.store.getState());
+    const coverageProfile = allCoverageProfiles.find((x) => x.content_type === contentTypeQcode);
+    const multipleContentDefaultValue = (coverageProfile?.schema?.['multiple_content'] as IProfileSchemaTypeList)
+        ?.default_value;
+
+    if (multipleContentDefaultValue != null) {
+        newCoverage.planning.multiple_content = multipleContentDefaultValue;
+    }
 
     if (addNewsItemToPlanning.priority != null) {
         newCoverage.planning.priority = addNewsItemToPlanning.priority;
