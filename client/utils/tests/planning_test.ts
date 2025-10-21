@@ -535,7 +535,12 @@ describe('PlanningUtils', () => {
             };
 
             const plan = planningUtils.createNewPlanningFromNewsItem(
-                newsItem, newsCoverageStatus, desk, user, contentTypes);
+                newsItem,
+                newsCoverageStatus,
+                desk,
+                contentTypes,
+                () => undefined,
+            );
 
             expect(plan).toEqual(jasmine.objectContaining({
                 type: 'planning',
@@ -590,7 +595,12 @@ describe('PlanningUtils', () => {
             };
 
             const plan = planningUtils.createNewPlanningFromNewsItem(
-                newsItem, newsCoverageStatus, desk, user, contentTypes);
+                newsItem,
+                newsCoverageStatus,
+                desk,
+                contentTypes,
+                () => undefined,
+            );
 
             expect(plan).toEqual(jasmine.objectContaining({
                 type: 'planning',
