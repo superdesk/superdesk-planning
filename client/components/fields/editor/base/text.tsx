@@ -1,5 +1,5 @@
 import * as React from 'react';
-import {debounce, get, isEqual, uniqueId} from 'lodash';
+import {debounce, get, uniqueId} from 'lodash';
 import {IRestApiResponse} from 'superdesk-api';
 import {appConfig} from 'appConfig';
 
