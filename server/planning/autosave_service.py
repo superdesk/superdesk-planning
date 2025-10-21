@@ -1,8 +1,15 @@
+import logging
+
+from bson import ObjectId
+
 from superdesk import get_resource_service
 from superdesk.core.resources import AsyncResourceService
 from superdesk.errors import SuperdeskApiError
 
 from planning.types import EventAutosaveResourceModel, PlanningAutosaveResourceModel
+
+
+logger = logging.getLogger(__name__)
 
 
 class AutosaveAsyncService(AsyncResourceService):
@@ -35,3 +42,19 @@ class AutosaveAsyncService(AsyncResourceService):
 
         if not doc.lock_session:
             raise SuperdeskApiError.badRequestError(message="Autosave failed, User Session not supplied")
+
+
+async def on_item_unlocked(resource: str, item: dict, user_id: ObjectId) -> None:
+    # raise Exception("on_item_unlocked not implemented")
+    if resource == "events":
+        autosave_service = EventAutosaveResourceModel.get_service()
+    elif resource == "planning":
+        autosave_service = PlanningAutosaveResourceModel.get_service()
+    else:
+        return
+
+    try:
+        # Delete any autosave items associated with this item
+        await autosave_service.delete_many(lookup={"_id": item["_id"]})
+    except Exception as err:
+        logger.exception(f"Failed to delete autosave item(s) ({err})")

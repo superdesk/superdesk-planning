@@ -9,6 +9,7 @@
 # at https://www.sourcefabric.org/superdesk/license
 
 import blinker
+from bson import ObjectId
 
 from superdesk.core import AsyncSignal
 
@@ -16,6 +17,7 @@ __all__ = [
     "planning_created",
     "planning_ingested",
     "events_update",
+    "item_unlocked",
 ]
 
 signals = blinker.Namespace()
@@ -79,3 +81,7 @@ assignments_updated = AsyncSignal[dict, dict]("assignments:updated")
 
 #: Signal for when an Assignment is deleted
 assignments_deleted = AsyncSignal[dict]("assignments:delete")
+
+
+#: Signal for when an item has been unlocked
+item_unlocked = AsyncSignal[str, dict, ObjectId]("item:unlocked")
