@@ -1,12 +1,14 @@
 import React from 'react';
 import {connect} from 'react-redux';
-import {get, cloneDeep, isEqual} from 'lodash';
+import {get} from 'lodash';
 
-import {getUsersForDesk, getDesksForUser, gettext} from '../../utils';
+import {IDesk, IUser, IVocabularyItem, IContact} from 'superdesk-api';
+import {IAssignmentPriority, IAssignmentItem, ICoverageProvider, IContactType, IPlanningCoverageItem} from 'interfaces';
+
+import {getDesksForUser} from '../../utils';
 import {getUserInterfaceLanguageFromCV} from '../../utils/users';
-import {validateItem} from '../../validators';
-import {ASSIGNMENTS, ITEM_TYPE} from '../../constants';
-import {getContactTypes} from '../../selectors/vocabs';
+import * as selectors from '../../selectors';
+// import {getContactTypes} from '../../selectors/vocabs';
 
 import {
     Label,
@@ -17,16 +19,20 @@ import {
 import {ContactsPreviewList} from '../Contacts/ContactsPreviewList';
 import {SelectSearchContactsField} from '../Contacts/SelectSearchContactsField';
 import {superdeskApi} from '../../superdeskApi';
-import {IDesk, IUser} from 'superdesk-api';
-import {IAssignmentPriority} from 'interfaces';
+import {isAssignmentDeskValid} from '../../validators/assignments';
 
-interface IProps {
-    value: any;
-    onChange?: (...args: any) => any;
-    users: Array<IUser>;
-    desks?: Array<IDesk>;
-    coverageProviders?: Array<any>;
+interface IReduxStateProps {
+    contactTypes: Array<IContactType>
+
     priorities?: Array<IAssignmentPriority>;
+    desks?: Array<IDesk>;
+    users: Array<IUser>;
+    coverageProviders?: Array<ICoverageProvider>;
+}
+
+interface IOwnProps {
+    value: IAssignmentItem | IPlanningCoverageItem;
+    onChange(diff: {[field: string]: string | ICoverageProvider | null}): void;
     priorityPrefix?: string;
     disableDeskSelection?: boolean;
     disableUserSelection?: boolean;
@@ -34,31 +40,20 @@ interface IProps {
     showDesk?: boolean;
     showPriority?: boolean;
     className?: string;
-    onValidate?: (diff: any, errors: any) => void;
-    setValid?: (valid: boolean) => void;
-    contactTypes?: Array<any>;
 }
 
-interface IState {
-    userId: string;
-    user: IUser;
-    deskId: string;
-    desk: IDesk;
-    filteredUsers: Array<IUser>;
-    filteredDesks: Array<IDesk>;
-    priorityQcode: string;
-    priority: any;
-    errors: any;
-    providerQcode: string | null;
-    contactType: {qcode?: string; assignable?: string; name?: string} | null;
-    contactId: string;
-    contact?: any | null;
-}
+type IProps = IOwnProps & IReduxStateProps;
 
-export class AssignmentEditorComponent extends React.Component<IProps, IState> {
-    FIELDS: {[key: string]: string};
+export class AssignmentEditorComponent extends React.PureComponent<IProps> {
+    FIELDS: {
+        USER: string;
+        DESK: string;
+        PRIORITY: string;
+        PROVIDER: string;
+        CONTACT: string;
+    };
 
-    constructor(props) {
+    constructor(props: IProps) {
         super(props);
 
         this.FIELDS = {
@@ -69,199 +64,77 @@ export class AssignmentEditorComponent extends React.Component<IProps, IState> {
             CONTACT: 'assigned_to.contact',
         };
 
-        const userId = get(props.value, this.FIELDS.USER);
-        const user = props.users.find((x) => x._id === userId);
-
-        const deskId = get(props.value, this.FIELDS.DESK);
-        const desk = props.desks.find((x) => x._id === deskId);
-
-        const filteredUsers = getUsersForDesk(desk, props.users);
-        const filteredDesks = getDesksForUser(user, props.desks);
-
-        const priorityQcode = get(props.value, this.FIELDS.PRIORITY);
-        const priority = props.priorities.find((x) => x.qcode === priorityQcode);
-
-        const contactId = get(props.value, this.FIELDS.CONTACT);
-        const errors = {};
-
-        this.state = {
-            userId: userId,
-            user: user,
-            deskId: deskId,
-            desk: desk,
-            filteredUsers: filteredUsers,
-            filteredDesks: filteredDesks,
-            priorityQcode: priorityQcode,
-            priority: priority,
-            errors: errors,
-            providerQcode: null,
-            contactType: null,
-            contactId: contactId,
-        };
-
-        this.onChange = this.onChange.bind(this);
         this.onUserChange = this.onUserChange.bind(this);
         this.onDeskChange = this.onDeskChange.bind(this);
         this.onPriorityChange = this.onPriorityChange.bind(this);
         this.onProviderChange = this.onProviderChange.bind(this);
         this.onContactChange = this.onContactChange.bind(this);
         this.removeContact = this.removeContact.bind(this);
+
+        this.getFilteredDesks = this.getFilteredDesks.bind(this);
+        this.getContactType = this.getContactType.bind(this);
     }
 
-    componentWillMount() {
-        // Force field validation
-        this.onChange(null, null);
-        if (!this.state.priorityQcode) {
-            this.onPriorityChange(
-                this.props.priorities.find((x) => x.qcode === ASSIGNMENTS.DEFAULT_PRIORITY),
-            );
-        }
-
-        if (this.props.value[this.FIELDS.PROVIDER]) {
-            this.setContactTypeAndId(
-                this.props.value[`${this.FIELDS.PROVIDER}.contact_type`],
-            );
-        }
+    getFilteredDesks(userId?: IUser['_id']): Array<IDesk> {
+        return getDesksForUser(
+            this.props.users.find((user) => user._id === userId),
+            this.props.desks
+        );
     }
 
-    componentWillReceiveProps(nextProps) {
-        const userId = get(nextProps.value, this.FIELDS.USER);
-        const deskId = get(nextProps.value, this.FIELDS.DESK);
-        const priorityQcode = get(nextProps.value, this.FIELDS.PRIORITY);
+    getContactType(providerQcode: ICoverageProvider['qcode']): IContactType | null {
+        const provider = this.props.coverageProviders.find(
+            (x) => x.qcode === providerQcode
+        );
 
-        if (userId !== this.state.userId) {
-            this.onUserChange(nextProps.users.find((x) => x._id === userId));
-        }
-
-        if (deskId !== this.state.deskId) {
-            this.onDeskChange(nextProps.desks.find((x) => x._id === deskId));
-        }
-
-        if (priorityQcode && priorityQcode !== this.state.priorityQcode) {
-            this.onPriorityChange(nextProps.priorities.find((x) => x.qcode === priorityQcode));
-        }
+        return provider == null ? null : this.props.contactTypes.find(
+            (contactType) => contactType.qcode === provider.contact_type
+        );
     }
 
-    componentDidUpdate(_prevProps, prevState) {
-        const currentContactType = this.state.contactType ?? {};
-        const prevContactType = prevState.contactType ?? {};
-
-        if (currentContactType.qcode !== prevContactType.qcode) {
-            if (currentContactType.assignable) {
-                this.onChange(this.FIELDS.USER, null);
-            } else {
-                this.onChange(this.FIELDS.CONTACT, null);
-            }
-        }
+    onUserChange(value?: IUser) {
+        this.props.onChange({[this.FIELDS.USER]: value?._id});
     }
 
-    onChange(field, value, state: Partial<IState> = {}) {
-        const errors = cloneDeep(this.state.errors);
-        const combinedState = {
-            ...this.state,
-            ...state,
-        };
-
-        const newState = cloneDeep<IState>(state as IState);
-
-        this.props.onValidate(combinedState, errors);
-        newState.errors = errors;
-        this.setState(newState);
-
-        // If a field name is provided, then call onChange so
-        // the parent can update the field's value
-        if (field !== null) {
-            this.props.onChange(field, value || null);
-        }
-
-        // If there are no errors, then tell our parent the Assignment is valid
-        // otherwise, tell the parent the Assignment is invalid
-        this.props.setValid(isEqual(errors, {}));
-    }
-
-    onUserChange(value) {
-        const userId = value?._id;
-
-        if (userId !== this.state.userId) {
-            this.onChange(this.FIELDS.USER, userId, {
-                userId: userId,
-                user: value,
-                filteredDesks: getDesksForUser(value, this.props.desks),
-            });
-        }
-    }
-
-    onContactChange(contact) {
-        const contactId = contact?._id;
-
-        if (contactId !== this.state.contactId) {
-            this.onChange(
-                this.FIELDS.CONTACT,
-                contactId,
-                {contactId: contactId}
-            );
-        }
+    onContactChange(contact: IContact) {
+        this.props.onChange({[this.FIELDS.CONTACT]: contact?._id});
     }
 
     removeContact() {
-        this.onChange(this.FIELDS.CONTACT, null, {
-            contactId: null,
-            contact: null,
-        });
+        this.props.onChange({[this.FIELDS.CONTACT]: null});
     }
 
-    onDeskChange(value) {
-        const deskId = value?._id;
-
-        if (deskId !== this.state.deskId) {
-            this.onChange(this.FIELDS.DESK, deskId, {
-                deskId: deskId,
-                desk: value,
-                filteredUsers: getUsersForDesk(value, this.props.users),
-            });
-        }
+    onDeskChange(value?: IDesk) {
+        this.props.onChange({[this.FIELDS.DESK]: value?._id});
     }
 
-    onPriorityChange(value) {
-        const priorityQcode = value?.qcode;
-
-        if (priorityQcode !== this.state.priorityQcode) {
-            this.onChange(this.FIELDS.PRIORITY, priorityQcode, {
-                priorityQcode: priorityQcode,
-                priority: value,
-            });
-        }
+    onPriorityChange(value: IVocabularyItem) {
+        this.props.onChange({[this.FIELDS.PRIORITY]: value?.qcode});
     }
 
-    setContactTypeAndId(contactTypeQcode) {
-        if (!contactTypeQcode) {
-            this.setState({
-                contactType: null,
-                contactId: null,
-            });
+    onProviderChange(provider?: ICoverageProvider) {
+        if (provider?.qcode === get(this.props.value, this.FIELDS.PROVIDER)) {
             return;
         }
 
-        let contactId = this.state.contactId;
-        const contactType = this.props.contactTypes.find((x) => x.qcode === contactTypeQcode) ?? null;
+        const diff: {[field: string]: string | ICoverageProvider | null} = {[this.FIELDS.PROVIDER]: provider};
 
-        if (this.state.contactType && contactTypeQcode !== this.state.contactType.qcode) {
-            contactId = null;
+        if (provider == null || provider.qcode == null) {
+            diff[this.FIELDS.CONTACT] = null;
+        } else {
+            const oldContactType = this.getContactType(get(this.props.value, this.FIELDS.PROVIDER));
+            const newContactType = this.getContactType(provider.qcode);
+
+            if (oldContactType?.qcode !== newContactType?.qcode) {
+                if (newContactType?.assignable === true) {
+                    diff[this.FIELDS.USER] = null;
+                } else {
+                    diff[this.FIELDS.CONTACT] = null;
+                }
+            }
         }
 
-        this.setState({
-            contactType,
-            contactId,
-        });
-    }
-
-    onProviderChange(value) {
-        const providerQcode = value.qcode;
-
-        if (providerQcode !== this.state.providerQcode) {
-            this.setContactTypeAndId(value.contact_type);
-            this.onChange(this.FIELDS.PROVIDER, value);
-        }
+        this.props.onChange(diff);
     }
 
     render() {
@@ -276,7 +149,22 @@ export class AssignmentEditorComponent extends React.Component<IProps, IState> {
             showPriority = true,
             className,
         } = this.props;
+        const {gettext} = superdeskApi.localization;
         const {SelectUser} = superdeskApi.components;
+
+        const userId = value.assigned_to?.user ?? null;
+
+        const filteredDesks = this.getFilteredDesks(userId);
+        const deskId = value.assigned_to?.desk ?? null;
+        const isDeskValid = isAssignmentDeskValid(deskId);
+        const desk = filteredDesks.find((desk) => desk._id === deskId);
+
+        const priorityQcode = get(value, this.FIELDS.PRIORITY);
+        const priority = priorities.find((x) => x.qcode === priorityQcode);
+
+        const provider = get(value, this.FIELDS.PROVIDER);
+        const contactType = this.getContactType(provider?.qcode);
+        const contactId = get(value, this.FIELDS.CONTACT);
 
         return (
             <div className={className}>
@@ -285,17 +173,17 @@ export class AssignmentEditorComponent extends React.Component<IProps, IState> {
                         <SelectInput
                             field={this.FIELDS.DESK}
                             label={gettext('Desk')}
-                            value={this.state.desk}
+                            value={desk}
                             onChange={(_field, val) => {
                                 this.onDeskChange(val);
                             }}
-                            options={this.state.filteredDesks}
+                            options={filteredDesks}
                             labelField="name"
                             keyField="_id"
                             clearable={true}
                             readOnly={disableDeskSelection}
-                            message={get(this.state, 'errors.desk')}
-                            invalid={!!get(this.state, 'errors.desk')}
+                            message={isDeskValid ? null : gettext('This field is required')}
+                            invalid={!isDeskValid}
                             autoFocus
                         />
                     </Row>
@@ -305,7 +193,7 @@ export class AssignmentEditorComponent extends React.Component<IProps, IState> {
                     <SelectInput
                         field={this.FIELDS.PROVIDER}
                         label={gettext('Coverage Provider')}
-                        value={get(value, this.FIELDS.PROVIDER) ?? null}
+                        value={provider}
                         onChange={(_field, val) => {
                             this.onProviderChange(val);
                         }}
@@ -316,19 +204,19 @@ export class AssignmentEditorComponent extends React.Component<IProps, IState> {
                     />
                 </Row>
 
-                {this.state.contactType && this.state.contactType.assignable ? (
+                {contactType?.assignable === true ? (
                     <Row>
                         <Label text={gettext('Assigned Provider')} />
-                        {this.state.contactId && (
+                        {contactId == null ? null : (
                             <ContactsPreviewList
-                                contactIds={[this.state.contactId]}
+                                contactIds={[this.props.value.assigned_to?.contact]}
                                 onRemoveContact={this.removeContact}
                             />
                         )}
                         <SelectSearchContactsField
-                            value={this.state.contactId ? [this.state.contactId] : []}
+                            value={contactId == null ? [contactId] : []}
                             onChange={this.onContactChange}
-                            contactType={this.state.contactType.qcode}
+                            contactType={contactType.qcode}
                             minLengthPopup={0}
                             placeholder={gettext('Search provider contacts')}
                         />
@@ -338,8 +226,8 @@ export class AssignmentEditorComponent extends React.Component<IProps, IState> {
                         <div data-test-id={this.FIELDS.USER}>
                             <SelectUser
                                 disabled={disableUserSelection}
-                                deskId={this.props.value.assigned_to?.desk ?? null}
-                                selectedUserId={this.state.userId}
+                                deskId={deskId}
+                                selectedUserId={userId}
                                 onSelect={(user) => {
                                     this.onUserChange(user);
                                 }}
@@ -356,7 +244,7 @@ export class AssignmentEditorComponent extends React.Component<IProps, IState> {
                         <ColouredValueInput
                             field={this.FIELDS.PRIORITY}
                             label={gettext('Assignment Priority')}
-                            value={this.state.priority}
+                            value={priority}
                             onChange={(_field, val) => {
                                 this.onPriorityChange(val);
                             }}
@@ -375,18 +263,13 @@ export class AssignmentEditorComponent extends React.Component<IProps, IState> {
 }
 
 const mapStateToProps = (state) => ({
-    contactTypes: getContactTypes(state),
+    contactTypes: selectors.vocabs.getContactTypes(state),
+    priorities: selectors.getAssignmentPriorities(state),
+    desks: selectors.general.desks(state),
+    users: selectors.general.users(state),
+    coverageProviders: selectors.vocabs.coverageProviders(state),
 });
 
-const mapDispatchToProps = (dispatch) => ({
-    onValidate: (diff, errors) => dispatch(validateItem({
-        profileName: ITEM_TYPE.ASSIGNMENT,
-        diff: diff,
-        errors: errors,
-    })),
-});
-
-export const AssignmentEditor = connect(
-    mapStateToProps,
-    mapDispatchToProps
+export const AssignmentEditor = connect<IReduxStateProps, {}, IOwnProps>(
+    mapStateToProps
 )(AssignmentEditorComponent);

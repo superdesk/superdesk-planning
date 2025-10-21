@@ -1,62 +1,60 @@
 import React from 'react';
-import {connect} from 'react-redux';
 import {cloneDeep, set} from 'lodash';
 
-import {gettext} from '../../utils';
-
-import * as selectors from '../../selectors';
+import {ICoverageProvider, IPlanningCoverageItem} from 'interfaces';
 
 import {Modal} from '../';
 import {Button} from '../UI';
 import {AssignmentEditor} from './AssignmentEditor';
-import {planningApi} from '../../superdeskApi';
+import {planningApi, superdeskApi} from '../../superdeskApi';
 import * as actions from '../../actions';
-import {IDesk, IUser} from 'superdesk-api';
-import {ICoverageProvider} from 'interfaces';
+import {isAssignmentDeskValid} from '../../validators/assignments';
 
 interface IProps {
     handleHide: () => void;
     modalProps: {
-        field?: string;
-        value?: any;
-        onChange: (...args: any) => any;
+        field: string;
+        value: IPlanningCoverageItem;
+        onChange(field: string, value: IPlanningCoverageItem): void;
         priorityPrefix?: string;
         disableDeskSelection?: boolean;
         disableUserSelection?: boolean;
-        setCoverageDefaultDesk?: (...args: any) => void;
     };
-    users?: Array<IUser>;
-    desks?: Array<IDesk>;
-    coverageProviders?: Array<ICoverageProvider>;
-    priorities?: Array<any>;
 }
 
 interface IState {
-    valid?: boolean;
-    submitting?: boolean;
-    diff?: any;
+    valid: boolean;
+    submitting: boolean;
+    diff: IPlanningCoverageItem;
 }
 
-export class EditCoverageAssignmentModalComponent extends React.Component<IProps, IState> {
-    constructor(props) {
+export class EditCoverageAssignmentModal extends React.Component<IProps, IState> {
+    constructor(props: IProps) {
         super(props);
 
         this.state = {
             submitting: false,
-            diff: cloneDeep(props.modalProps.value) ?? {},
-            valid: true,
+            diff: cloneDeep(props.modalProps.value),
+            valid: isAssignmentDeskValid(props.modalProps.value.assigned_to?.desk),
         };
 
         this.onSubmit = this.onSubmit.bind(this);
         this.onChange = this.onChange.bind(this);
-        this.setValid = this.setValid.bind(this);
     }
 
-    onChange(field, value) {
-        const diffCopy = cloneDeep(this.state.diff);
+    onChange(updates: {[field: string]: string | ICoverageProvider | null}) {
+        this.setState((prevState) => {
+            const diff = cloneDeep(prevState.diff);
 
-        set(diffCopy, field, value);
-        this.setState({diff: diffCopy});
+            for (const [field, value] of Object.entries(updates)) {
+                set(diff, field, value);
+            }
+
+            return {
+                diff: diff,
+                valid: isAssignmentDeskValid(diff.assigned_to?.desk),
+            };
+        });
     }
 
     onSubmit() {
@@ -69,12 +67,9 @@ export class EditCoverageAssignmentModalComponent extends React.Component<IProps
         });
     }
 
-    setValid(valid) {
-        this.setState({valid});
-    }
-
     render() {
-        const {handleHide, users, desks, coverageProviders, priorities} = this.props;
+        const {gettext} = superdeskApi.localization;
+        const {handleHide} = this.props;
         const {priorityPrefix = '', disableDeskSelection, disableUserSelection} = this.props.modalProps;
         const {valid, submitting, diff} = this.state;
 
@@ -98,14 +93,9 @@ export class EditCoverageAssignmentModalComponent extends React.Component<IProps
                         <AssignmentEditor
                             value={diff}
                             onChange={this.onChange}
-                            users={users}
-                            desks={desks}
-                            coverageProviders={coverageProviders}
-                            priorities={priorities}
                             priorityPrefix={priorityPrefix}
                             disableDeskSelection={disableDeskSelection}
                             disableUserSelection={disableUserSelection}
-                            setValid={this.setValid}
                         />
                     </div>
                 </Modal.Body>
@@ -127,15 +117,3 @@ export class EditCoverageAssignmentModalComponent extends React.Component<IProps
         );
     }
 }
-
-const mapStateToProps = (state) => ({
-    users: selectors.general.users(state),
-    desks: selectors.general.desks(state),
-    coverageProviders: selectors.vocabs.coverageProviders(state),
-    priorities: selectors.getAssignmentPriorities(state),
-});
-
-export const EditCoverageAssignmentModal = connect(
-    mapStateToProps,
-    null
-)(EditCoverageAssignmentModalComponent);

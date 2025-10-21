@@ -86,6 +86,11 @@ export interface ILocator {
 export interface ICoverageProvider {
     qcode: string;
     name: string;
+    contact_type?: string;
+}
+
+export interface IContactType extends IVocabularyItem {
+    assignable?: boolean;
 }
 
 export interface IIngestProvider {
@@ -152,6 +157,7 @@ export type IPlanningAssignedTo = {
     contact: IContactItem['_id'];
     user: IUser['_id'];
     desk: IDesk['_id'];
+    priority: number;
     coverage_provider: {
         qcode: string;
         name: string;
