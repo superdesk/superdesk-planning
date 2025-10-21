@@ -172,7 +172,7 @@ export function renderFieldsForPanel(
         }
 
         if (newField.component == null) {
-            console.error(`Component for field ${fieldName} not registered`);
+            console.warn(`Component for field ${fieldName} not registered`);
         } else if (
             profile[fieldName].enabled &&
             profile[fieldName][enabledField] &&
