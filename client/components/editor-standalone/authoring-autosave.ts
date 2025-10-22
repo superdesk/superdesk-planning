@@ -76,7 +76,7 @@ export class AutoSaveHttp<T extends IBaseRestApiResponse & IEventOrPlanningItem>
             });
         }
 
-        result.then((res) => {
+        this.autosavePromise = result.then((res) => {
             this.autosavePromise = null;
 
             const result = this.modifyForClient(res);
