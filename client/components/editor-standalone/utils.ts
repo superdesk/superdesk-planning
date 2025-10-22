@@ -1,10 +1,9 @@
-import {IEventOrPlanningItem, IProfileSchemaType, IProfileSchemaTypeString} from 'interfaces';
+import {IEventOrPlanningItem, IPlanningItem, IProfileSchemaType, IProfileSchemaTypeString} from 'interfaces';
 import {isEqual, omit} from 'lodash';
-import {isMoment} from 'moment';
 import {IBaseRestApiResponse} from 'superdesk-api';
 
 export function omitFields<T extends IBaseRestApiResponse>(
-    item: Partial<T>,
+    item: Partial<T> | T,
     omitId: boolean = false, // useful when patching
 ): Partial<T> {
     const baseApiFields = [

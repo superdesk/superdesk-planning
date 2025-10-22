@@ -4,8 +4,9 @@ import * as selectors from '../../selectors';
 import {throttle, DebouncedFunc} from 'lodash';
 import {planningApi, superdeskApi} from '../../superdeskApi';
 import {omitFields} from './utils';
+import {IEventOrPlanningItem} from '../../interfaces';
 
-export class AutoSaveHttp<T extends IBaseRestApiResponse> implements IAuthoringAutoSave<T> {
+export class AutoSaveHttp<T extends IBaseRestApiResponse & IEventOrPlanningItem> implements IAuthoringAutoSave<T> {
     private autoSaveThrottled: DebouncedFunc<typeof this.autosave>;
 
     private autosavePromise: Promise<void> | null;
@@ -31,52 +32,51 @@ export class AutoSaveHttp<T extends IBaseRestApiResponse> implements IAuthoringA
         const {httpRequestJsonLocal} = superdeskApi;
 
         const item: T = this.modifyForServer(getItem());
+        let result: Promise<T>;
 
-        const autosaveRequest = (() => {
-            if (previousAutosavedItem != null) {
-                const {
+        if (previousAutosavedItem != null) {
+            const {
+                lock_action,
+                lock_user,
+                lock_session,
+                lock_time,
+            } = previousAutosavedItem;
+
+            result = httpRequestJsonLocal<T>({
+                method: 'PATCH',
+                path: `/${this.resource}/${item._id}`,
+                payload: {
+                    ...omitFields(item, true),
                     lock_action,
                     lock_user,
                     lock_session,
                     lock_time,
-                } = previousAutosavedItem;
+                },
+                headers: {
+                    'If-Match': previousAutosavedItem._etag,
+                },
+            });
+        } else {
+            const {getState} = planningApi.redux.store;
 
-                return httpRequestJsonLocal<T>({
-                    method: 'PATCH',
-                    path: `/${this.resource}/${item._id}`,
-                    payload: {
-                        ...omitFields(item, true),
-                        lock_action,
-                        lock_user,
-                        lock_session,
-                        lock_time,
-                    },
-                    headers: {
-                        'If-Match': previousAutosavedItem._etag,
-                    },
-                });
-            } else {
-                const {getState} = planningApi.redux.store;
+            const lockInfo = {
+                lock_action: 'edit',
+                lock_user: selectors.general.currentUserId(getState()),
+                lock_session: selectors.general.sessionId(getState()),
+                lock_time: moment(),
+            };
 
-                const lockInfo = {
-                    lock_action: 'edit',
-                    lock_user: selectors.general.currentUserId(getState()),
-                    lock_session: selectors.general.sessionId(getState()),
-                    lock_time: moment(),
-                };
+            result = httpRequestJsonLocal<T>({
+                method: 'POST',
+                path: `/${this.resource}`,
+                payload: omitFields({
+                    ...item,
+                    ...lockInfo,
+                }),
+            });
+        }
 
-                return httpRequestJsonLocal<T>({
-                    method: 'POST',
-                    path: `/${this.resource}`,
-                    payload: omitFields({
-                        ...item,
-                        ...lockInfo,
-                    }),
-                });
-            }
-        })();
-
-        this.autosavePromise = autosaveRequest.then((res) => {
+        result.then((res) => {
             this.autosavePromise = null;
 
             const result = this.modifyForClient(res);
@@ -91,11 +91,7 @@ export class AutoSaveHttp<T extends IBaseRestApiResponse> implements IAuthoringA
         return httpRequestJsonLocal<T>({
             method: 'GET',
             path: `/${this.resource}/${id}`,
-        }).then((res) => {
-            const result = this.modifyForClient(res);
-
-            return result;
-        });
+        }).then(this.modifyForClient);
     }
 
     public delete(id: T['_id'], etag: T['_etag']) {

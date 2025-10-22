@@ -9,7 +9,6 @@ import {
     IEditorProps,
     IEditorState,
     IEventOrPlanningItem,
-    IPlanningRelatedEventLink
 } from '../../../interfaces';
 import {planningApi} from '../../../superdeskApi';
 import {ITEM_TYPE, POST_STATE, UI, WORKFLOW_STATE, WORKSPACE, EVENTS} from '../../../constants';
@@ -30,6 +29,7 @@ import {AutoSave} from './AutoSave';
 import {EditorGroup} from '../../Editor/EditorGroup';
 import * as selectors from '../../../selectors';
 import {handleEmbeddedItems} from '../../../components/editor-standalone/save-handling';
+import {IPlanningItem} from 'globals';
 
 
 export class ItemManager {
@@ -219,13 +219,13 @@ export class ItemManager {
                 );
 
                 switch (this.props.itemAction) {
-                case 'create':
-                    return this.createNew(this.props);
-                case 'edit':
-                    return this.loadItem(this.props);
-                case 'read':
-                default:
-                    return this.loadReadOnlyItem(this.props);
+                    case 'create':
+                        return this.createNew(this.props);
+                    case 'edit':
+                        return this.loadItem(this.props);
+                    case 'read':
+                    default:
+                        return this.loadReadOnlyItem(this.props);
                 }
             });
     }
@@ -680,15 +680,16 @@ export class ItemManager {
         /**
          * Calls internal save of each embedded item - the one of the storage adapter, then returns the saved items.
          */
-        const promise = handleEmbeddedItems(this.props.editorType, 'SAVE', this.props.itemType)
-            .then((res) =>
-                Promise.all([
-                    Promise.resolve(res),
-                    !updateStates ? Promise.resolve({}) : this.setState({submitting: true, submitFailed: false})
-                ])
-            );
+        const saveEmbeddedItemsChanges = handleEmbeddedItems(this.props.editorType, 'SAVE', this.props.itemType)
+            .then((res) => {
+                if (updateStates) {
+                    this.setState({submitting: true, submitFailed: false});
+                }
 
-        return promise.then(() => {
+                return res;
+            });
+
+        return saveEmbeddedItemsChanges.then((updatedEmbeddedItems) => {
             if (this.props.addNewsItemToPlanning) {
                 return this._saveFromAuthoring({post, unpost});
             }
@@ -713,6 +714,8 @@ export class ItemManager {
 
             if (updates.type === 'event') {
                 updates.update_method = updateMethod;
+
+                updates.associated_plannings = updatedEmbeddedItems as Array<IPlanningItem>;
 
                 if (Object.keys(planningUpdateMethods).length > 0) {
                     updates.associated_plannings?.forEach((planningItem) => {
