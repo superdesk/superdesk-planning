@@ -1057,7 +1057,7 @@ function createCoverageFromNewsItem(
         newsCoverageStatus,
         null,
         null,
-        null,
+        contentType.qcode as ICoverageType,
         null,
         null,
         getCoverageProfile(contentType.qcode as ICoverageType),
