@@ -116,7 +116,7 @@ export class EditFilter extends React.Component<IEventsPlanningContentPanelProps
                 newValue = null;
             }
         } else if (Array.isArray(value) && value.length === 0) {
-            newValue = null;
+            newValue = [];
         }
 
         this.onFilterChange(`params.${field}`, newValue);
@@ -129,7 +129,7 @@ export class EditFilter extends React.Component<IEventsPlanningContentPanelProps
             const value = get(updates, field);
 
             if (Array.isArray(value) && value.length === 0) {
-                set(filter.params, field, null);
+                set(filter.params, field, []);
             } else {
                 set(filter.params, field, value);
             }
