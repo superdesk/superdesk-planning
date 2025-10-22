@@ -15,7 +15,12 @@ jobs:
         with:
           node-version: ${{ matrix.node-version }}
           cache: npm
-      - run: npm install # needed to support multiple node versions
+      - name: Install Planning Client (Node 14)
+        if: matrix.node-version == '14'
+        run: npm ci
+      - name: Install Planning Client (Node 22)
+        if: matrix.node-version == '22'
+        run: npm install
       - run: npm run test
       - run: npm run lint
 
