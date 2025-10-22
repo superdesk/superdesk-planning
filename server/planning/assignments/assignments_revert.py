@@ -57,8 +57,15 @@ class AssignmentsRevertService(AsyncBaseService):
             raise SuperdeskApiError.forbiddenError("Cannot revert an assignment which is not yet confirmed.")
 
         updates["assigned_to"] = deepcopy(original).get("assigned_to")
-        updates["assigned_to"]["state"] = updates["assigned_to"].get("revert_state", ASSIGNMENT_WORKFLOW_STATE.ASSIGNED)
         updates["assigned_to"]["revert_state"] = None
+
+        if await get_resource_service("delivery").count_async({"assignment_id": original["_id"]}) > 0:
+            # If there is content linked to this Assignment, then we should change the state to ``In Progress``
+            updated_state = ASSIGNMENT_WORKFLOW_STATE.IN_PROGRESS
+        else:
+            # Otherwise we use the previously known state, or ``Assigned`` if it was never confirmed
+            updated_state = updates["assigned_to"].get("revert_state") or ASSIGNMENT_WORKFLOW_STATE.ASSIGNED
+        updates["assigned_to"]["state"] = updated_state
 
         remove_lock_information(updates)
 
