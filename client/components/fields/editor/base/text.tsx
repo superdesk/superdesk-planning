@@ -24,6 +24,7 @@ interface IState {
     key: string;
     value: string;
     suggestions: string[];
+    userHasModified: boolean;
 }
 
 export class EditorFieldText extends React.Component<IEditorFieldTextProps, IState> {
@@ -45,7 +46,29 @@ export class EditorFieldText extends React.Component<IEditorFieldTextProps, ISta
             key: uniqueId(),
             suggestions: [],
             value: get(props.item, props.field, props.defaultValue || ''),
+            userHasModified: false,
         };
+    }
+
+    /**
+     * Handles scenarios when the field has been initially rendered with empty value
+     * and then the prop value arrives later (like with 'add-to-planning').
+     * It only updates the state if user hasn't started typing to preserve user input
+     * while allowing late-loading data to populate empty fields.
+     */
+    static getDerivedStateFromProps(nextProps: IEditorFieldTextProps, prevState: IState): Partial<IState> | null {
+        const nextValue = get(nextProps.item, nextProps.field, nextProps.defaultValue || '');
+
+        // Only update if:
+        // 1. The prop value is different from current state value, AND
+        // 2. The user hasn't manually modified the field
+        if (nextValue !== prevState.value && !prevState.userHasModified) {
+            return {
+                value: nextValue
+            };
+        }
+
+        return null;
     }
 
     componentDidMount(): void {
@@ -58,8 +81,16 @@ export class EditorFieldText extends React.Component<IEditorFieldTextProps, ISta
         }
     }
 
+    componentDidUpdate = (prevProps: Readonly<IEditorFieldTextProps>): void => {
+        // Make sure to reset user modification state when item changes
+        // so that late-arriving prop values can populate the field again
+        if (prevProps?.item?._id !== this.props.item?._id) {
+            this.setState({userHasModified: false});
+        }
+    }
+
     onChange(value: string) {
-        this.setState({value}, () => {
+        this.setState({value: value, userHasModified: true}, () => {
             this.propsOnChange(this.state.value);
         });
     }
