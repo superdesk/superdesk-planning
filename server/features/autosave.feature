@@ -189,3 +189,85 @@ Feature: Events Autosave
             "_message": "Autosave failed, User not supplied"
         }
         """
+
+    @auth
+    Scenario: Event autosave is removed on event unlock
+        Given we have sessions "/sessions"
+        Given "events"
+        """
+        [{
+            "_id": "event1",
+            "guid": "event1",
+            "name": "TestEvent",
+            "dates": {
+                "start": "2029-11-21T12:00:00.000Z",
+                "end": "2029-11-21T14:00:00.000Z",
+                "tz": "Australia/Sydney"
+            },
+            "state": "draft",
+            "lock_user": "#CONTEXT_USER_ID#",
+            "lock_session": "#SESSION_ID#",
+            "lock_action": "edit",
+            "lock_time": "#DATE#"
+        }]
+        """
+        When we post to "event_autosave"
+        """
+        {
+            "_id": "event1",
+            "slugline": "Test Event",
+            "lock_user": "#CONTEXT_USER_ID#",
+            "lock_session": "#SESSION_ID#",
+            "lock_action": "edit",
+            "lock_time": "#DATE#"
+        }
+        """
+        Then we get OK response
+        When we get "/event_autosave/#event_autosave._id#"
+        Then we get OK response
+        When we post to "/events/#events._id#/unlock"
+        """
+        {}
+        """
+        Then we get OK response
+        When we get "/event_autosave/#event_autosave._id#"
+        Then we get error 404
+
+    @auth
+    Scenario: Planning autosave is removed on planning unlock
+        Given we have sessions "/sessions"
+        Given "planning"
+        """
+        [{
+            "_id": "plan1",
+            "guid": "plan1",
+            "name": "TestPlan",
+            "planning_date": "2029-11-21T12:00:00.000Z",
+            "state": "draft",
+            "lock_user": "#CONTEXT_USER_ID#",
+            "lock_session": "#SESSION_ID#",
+            "lock_action": "edit",
+            "lock_time": "#DATE#"
+        }]
+        """
+        When we post to "planning_autosave"
+        """
+        {
+            "_id": "plan1",
+            "slugline": "Test Plan",
+            "lock_user": "#CONTEXT_USER_ID#",
+            "lock_session": "#SESSION_ID#",
+            "lock_action": "edit",
+            "lock_time": "#DATE#"
+        }
+        """
+        Then we get OK response
+        When we get "/planning_autosave/#planning_autosave._id#"
+        Then we get OK response
+        When we post to "/planning/#planning._id#/unlock"
+        """
+        {}
+        """
+        Then we get OK response
+        When we get "/planning_autosave/#planning_autosave._id#"
+        Then we get error 404

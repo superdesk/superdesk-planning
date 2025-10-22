@@ -358,22 +358,6 @@ describe('components.Main.ItemManager', () => {
                 });
         });
 
-        it('calls editor.autoSave.remove on action revert to read', () => {
-            updateProps({
-                itemId: 'e1',
-                itemType: 'event',
-                itemAction: 'read',
-            });
-
-            manager.componentDidUpdate({
-                itemId: 'e1',
-                itemType: 'event',
-                itemAction: 'edit',
-            });
-
-            expect(editor.autoSave.remove.callCount).toBe(1);
-        });
-
         it('calls onItemChanged', () => {
             updateProps({
                 itemId: 'e1',

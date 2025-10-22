@@ -182,9 +182,7 @@ export class ItemManager {
             if (!this.props.inModalView) {
                 this.clearForm();
             }
-        } else if (actionChanged) {
-            this.onItemActionChanged(prevProps);
-        } else if (idChanged) {
+        } else if (actionChanged || idChanged) {
             this.onItemIDChanged();
         } else if (!this.state.loading &&
             !isTemporaryId(currentId) &&
@@ -193,16 +191,6 @@ export class ItemManager {
         ) {
             this.onItemChanged(this.props);
         }
-    }
-
-    onItemActionChanged(prevProps: IEditorProps) {
-        let promise = Promise.resolve();
-
-        if (prevProps.itemAction && this.props.itemAction === 'read') {
-            promise = this.autoSave.remove();
-        }
-
-        return promise.then(() => this.onItemIDChanged());
     }
 
     onItemIDChanged() {

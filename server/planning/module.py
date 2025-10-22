@@ -9,6 +9,8 @@ from superdesk.publish_async.signals import on_get_available_filter_params
 from apps.item_lock.components.item_lock import LOCK_SESSION, LOCK_USER
 
 from planning.types import AgendasResourceModel
+from planning.signals import item_unlocked
+from planning.autosave_service import on_item_unlocked
 from planning.agendas_async import agendas_resource_config
 from planning.content_api import (
     content_api_event_resource_config,
@@ -73,6 +75,7 @@ def init_planning(app: SuperdeskAsyncApp):
     wsgi_app = app.wsgi.as_any()
     wsgi_app.on_session_end += cleanup_on_session_end
     on_get_available_filter_params.connect(add_agenda_to_filter_params)
+    item_unlocked.connect(on_item_unlocked)
 
     # register listeners for events planning filters signals
     connect_signals_listeners()

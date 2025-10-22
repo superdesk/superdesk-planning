@@ -23,6 +23,7 @@ from apps.common.components.base_component import BaseComponent
 from apps.item_lock.components.item_lock import LOCK_USER, LOCK_SESSION, LOCK_ACTION, LOCK_TIME
 
 from planning.utils import get_related_event_ids_for_planning, get_first_related_event_id_for_planning
+from planning.signals import item_unlocked
 
 
 logger = logging.getLogger(__name__)
@@ -143,8 +144,9 @@ class LockService(BaseComponent):
         item = await item_service.find_one_async(req=None, _id=item_id)
 
         # following line executes handlers attached to function:
-        # on_unlocked_'resource' - ex. on_unlocked_planning, on_unlocked_event
+        # on_unlocked_'resource' - ex. on_unlocked_planning, on_unlocked_events
         await getattr(self.app, "on_unlocked_%s" % resource).call_async(item, user_id)
+        await item_unlocked.send(resource, item, user_id)
 
         push_notification(
             resource + ":unlock",
