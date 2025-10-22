@@ -1,5 +1,5 @@
 import * as actions from '../actions';
-import {currentItem, currentItemType, planningProfile} from '../selectors/forms';
+import {currentItem, currentItemType} from '../selectors/forms';
 import React from 'react';
 import ReactDOM from 'react-dom';
 import {Provider} from 'react-redux';
@@ -7,9 +7,9 @@ import {ModalsContainer} from '../components';
 import {planning} from '../actions';
 import {registerNotifications, getErrorMessage, isExistingItem} from '../utils';
 import {WORKSPACE, MODALS, PLANNING} from '../constants';
-import {IArticle, IContentProfile} from 'superdesk-api';
+import {IArticle} from 'superdesk-api';
 import {authoringReactViewEnabled} from 'appConfig';
-import {planningApi, superdeskApi} from '../superdeskApi';
+import {planningApi} from '../superdeskApi';
 import {PLANNING_VIEW} from '../interfaces';
 
 const ADD_TO_PLANNING_LOCK = PLANNING.ITEM_ACTIONS.ADD_TO_PLANNING.lock_action;
@@ -217,16 +217,12 @@ export class AddToPlanningController {
     }
 
     getArchiveItemAndProfile(): Promise<{
-        newsItem: IArticle,
-        contentProfile: IContentProfile
+        newsItem: IArticle
     }> {
         return this.api.find('archive', this.item._id)
             .then((newsItem: IArticle) => {
-                const contentProfile = superdeskApi.entities.contentProfile.get(newsItem.profile);
-
                 return {
-                    newsItem,
-                    contentProfile
+                    newsItem
                 };
             }, (error) => {
                 this.notify.error(
@@ -241,7 +237,6 @@ export class AddToPlanningController {
         return this.getArchiveItemAndProfile()
             .then(({newsItem}) => {
                 const errMessages = [];
-                const profile = planningProfile(this.store.getState());
 
                 if (newsItem.assignment_id) {
                     errMessages.push(this.gettext('Item already linked to a Planning item'));
