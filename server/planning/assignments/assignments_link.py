@@ -66,7 +66,8 @@ class AssignmentsLinkService(AsyncBaseService):
         deliveries = []
         published_updated_items = []
         updates = {"assigned_to": deepcopy(assignment.get("assigned_to"))}
-        need_complete = None
+        need_complete = False
+        multiple_content_enabled = assignment_allows_multiple_content_linked(assignment)
         for item in related_items:
             if not item.get("assignment_id") or (item["_id"] == actioned_item.get("_id") and doc.get("force")):
                 # Update the delivery for the item if one exists
@@ -102,7 +103,8 @@ class AssignmentsLinkService(AsyncBaseService):
                 items.append(item)
 
                 if (
-                    item.get(ITEM_STATE) in [CONTENT_STATE.PUBLISHED, CONTENT_STATE.CORRECTED]
+                    not multiple_content_enabled
+                    and item.get(ITEM_STATE) in [CONTENT_STATE.PUBLISHED, CONTENT_STATE.CORRECTED]
                     and not assignment.get("scheduled_update_id")
                     and assignment["assigned_to"]["state"] != ASSIGNMENT_WORKFLOW_STATE.COMPLETED
                 ):
@@ -120,6 +122,7 @@ class AssignmentsLinkService(AsyncBaseService):
             doc.pop("reassign", None),
             already_completed,
             need_complete,
+            multiple_content_enabled,
         )
         actioned_item["assignment_id"] = assignment[ID_FIELD]
         doc.update(actioned_item)
@@ -218,6 +221,7 @@ class AssignmentsLinkService(AsyncBaseService):
         reassign,
         already_completed,
         need_complete,
+        multiple_content_enabled,
     ):
         # Update assignments, assignment history and publish planning
         # set the state to in progress if no item in the updates chain has ever been published
@@ -227,14 +231,17 @@ class AssignmentsLinkService(AsyncBaseService):
         elif not already_completed:
             new_state = (
                 ASSIGNMENT_WORKFLOW_STATE.COMPLETED
-                if actioned_item.get(ITEM_STATE) in [CONTENT_STATE.PUBLISHED, CONTENT_STATE.CORRECTED]
+                if (
+                    not multiple_content_enabled
+                    and actioned_item.get(ITEM_STATE) in [CONTENT_STATE.PUBLISHED, CONTENT_STATE.CORRECTED]
+                )
                 else ASSIGNMENT_WORKFLOW_STATE.IN_PROGRESS
             )
             updates["assigned_to"]["state"] = get_next_assignment_status(updates, new_state)
             updated = True
 
         # on fulfiling the assignment the user is assigned the assignment, for add to planning it is not
-        if reassign:
+        if reassign and not multiple_content_enabled:
             user = get_user()
             if user and str(user.get(ID_FIELD)) != (assignment.get("assigned_to") or {}).get("user"):
                 updates["assigned_to"]["user"] = str(user.get(ID_FIELD))
