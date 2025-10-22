@@ -219,13 +219,13 @@ export class ItemManager {
                 );
 
                 switch (this.props.itemAction) {
-                    case 'create':
-                        return this.createNew(this.props);
-                    case 'edit':
-                        return this.loadItem(this.props);
-                    case 'read':
-                    default:
-                        return this.loadReadOnlyItem(this.props);
+                case 'create':
+                    return this.createNew(this.props);
+                case 'edit':
+                    return this.loadItem(this.props);
+                case 'read':
+                default:
+                    return this.loadReadOnlyItem(this.props);
                 }
             });
     }
