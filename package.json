@@ -13,7 +13,7 @@
     "fix": "eslint client --ext=jsx --ext=js --ext=tsx --ext=ts --ext=spec --fix",
     "hint": "eslint client --ext=jsx --ext=js --ext=tsx --ext=ts --ext=spec",
     "lint": "eslint client --ext=jsx --ext=js --ext=tsx --ext=ts --ext=spec --quiet",
-    "test": "karma start karma.conf.js --log-level debug --display-error-details --single-run",
+    "test": "KARMA_REPORTER=$npm_config_reporter TEST_FILE_PATTERN=$npm_config_file karma start karma.conf.js --log-level error --display-error-details --single-run",
     "karma": "karma start karma.conf.js",
     "debug_unit_tests": "karma start karma.conf.js --browsers=Chrome"
   },
