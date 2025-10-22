@@ -2406,7 +2406,6 @@ export interface IPlanningAPI {
                 item: DeepPartial<IPlanningItem>,
                 event?: IEventItem,
                 g2contentType?: IG2ContentType['qcode'],
-                coverageProfile?: ICoverageContentProfile,
             ): DeepPartial<IPlanningCoverageItem>;
             addCoverageToWorkflow(
                 coverages: Array<IPlanningCoverageItem>,

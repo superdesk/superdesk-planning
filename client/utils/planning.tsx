@@ -1574,7 +1574,7 @@ function defaultCoverageValues(
     const defaultValues = contentProfiles.getDefaultValues(profile) as DeepPartial<IPlanningCoverageItem>;
 
     // if new profile hasn't been created for the type don't set to anything, backend also accepts objectid only
-    const profileId = profile._id ?? undefined;
+    const profileId = profile._id === 'coverage' || profile._id == null ? undefined : profile._id;
 
     let newCoverage: DeepPartial<IPlanningCoverageItem> = {
         coverage_id: generateTempId(),

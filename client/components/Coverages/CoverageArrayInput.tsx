@@ -185,13 +185,14 @@ class CoverageArrayInputComponent extends React.Component<IProps, IState> {
             onItemClose: this.onCoverageClose,
         };
 
-        const createCoverage = planningUtils.defaultCoverageValues.bind(
+        const createCoverage = (coverageType: ICoverageType) => planningUtils.defaultCoverageValues(
             newsCoverageStatus,
             item,
             event,
+            coverageType,
             null,
             null,
-            this.props.getCoverageProfile(),
+            this.props.getCoverageProfile(coverageType),
         );
 
         const {desks, users, coverageAddAdvancedMode} = this.props;
@@ -225,7 +226,7 @@ class CoverageArrayInputComponent extends React.Component<IProps, IState> {
                     editorType,
                 }}
                 element={CoverageEditor}
-                defaultElement={createCoverage}
+                createCoverage={createCoverage}
                 readOnly={readOnly}
                 maxCount={maxCoverageCount}
                 addOnly={addOnly}

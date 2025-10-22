@@ -8,8 +8,10 @@ import './style.scss';
 import {superdeskApi} from '../../../../superdeskApi';
 import {
     EDITOR_TYPE,
+    ICoverageType,
     IG2ContentType,
     IInputArrayHocModeOptions,
+    IPlanningCoverageItem,
     IPlanningNewsCoverageStatus,
 } from 'interfaces';
 import {IDesk} from 'superdesk-api';
@@ -26,7 +28,7 @@ interface IProps {
     addOnly: boolean;
     originalCount: number;
     element: React.ComponentClass<any>;
-    defaultElement: any;
+    createCoverage: (coverageType: ICoverageType) => DeepPartial<IPlanningCoverageItem>;
     readOnly: boolean;
     message: any;
     invalid: boolean;
@@ -66,13 +68,12 @@ export class InputArray extends React.PureComponent<IProps> {
         this.remove = this.remove.bind(this);
     }
 
-    onAdd(...args) {
-        let currentValue = this.props.value ?? [];
-        const newElement = typeof this.props.defaultElement === 'function' ?
-            this.props.defaultElement(...args) :
-            this.props.defaultElement;
+    onAdd(coverageType: ICoverageType) {
+        const currentValue = this.props.value ?? [];
 
-        this.props.onChange(this.props.field, [...currentValue, newElement]);
+        const newItem = this.props.createCoverage(coverageType);
+
+        this.props.onChange(this.props.field, [...currentValue, newItem]);
     }
 
     remove(index: number) {
@@ -128,7 +129,6 @@ export class InputArray extends React.PureComponent<IProps> {
             addOnly,
             originalCount,
             element,
-            defaultElement = {},
             readOnly,
             message,
             invalid,
