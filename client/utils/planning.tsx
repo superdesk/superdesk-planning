@@ -1691,13 +1691,15 @@ function setDefaultAssignment(
     g2contentType: IG2ContentType['qcode'],
     defaultDesk: IDesk
 ) {
+    coverage.assigned_to = {};
+
     if (get(preferredCoverageDesks, g2contentType)) {
-        coverage.assigned_to = {desk: preferredCoverageDesks[g2contentType]};
+        coverage.assigned_to.desk = preferredCoverageDesks[g2contentType];
     } else if (g2contentType === 'text' && defaultDesk) {
-        coverage.assigned_to = {desk: defaultDesk._id};
-    } else {
-        delete coverage.assigned_to;
+        coverage.assigned_to.desk = defaultDesk._id;
     }
+
+    coverage.assigned_to.priority = ASSIGNMENTS.DEFAULT_PRIORITY;
 }
 
 function modifyPlanningsBeingAdded(

@@ -1,46 +1,34 @@
 import React from 'react';
 import {mount} from 'enzyme';
-import {Provider} from 'react-redux';
 import sinon from 'sinon';
+import {set, cloneDeep} from 'lodash';
 
-import {getTestActionStore} from '../../utils/testUtils';
-import {createTestStore} from '../../utils';
+import {assignments, desks} from '../../utils/testData';
 
-import {AssignmentEditor} from './';
+import {AssignmentEditorComponent} from './AssignmentEditor';
 
 describe('<AssignmentEditor />', () => {
-    let store;
-    let astore;
-    let data;
     let assignment;
-    const onChange = sinon.spy(() => (Promise.resolve()));
-    const setValid = sinon.spy(() => true);
-    const desks = [{_id: 'desk1', name: 'desk1'}];
-
-    beforeEach(() => {
-        astore = getTestActionStore();
-        data = astore.data;
-        assignment = data.assignments[0];
+    const onChange = sinon.spy((updates) => {
+        for (const [field, value] of Object.entries(updates)) {
+            set(assignment, field, value);
+        }
     });
 
-    const initStore = () => {
-        astore.init();
-        store = createTestStore({initialState: astore.initialState});
-        return store;
-    };
+    beforeEach(() => {
+        assignment = cloneDeep(assignments[0]);
+    });
 
     const getWrapper = () => mount(
-        <Provider store={initStore()}>
-            <AssignmentEditor
-                value={assignment}
-                onChange={onChange}
-                setValid={setValid}
-                desks={desks}
-                users={[]}
-                coverageProviders={[]}
-                priorities={[]}
-            />
-        </Provider>
+        <AssignmentEditorComponent
+            value={assignment}
+            onChange={onChange}
+            desks={cloneDeep(desks)}
+            users={[]}
+            coverageProviders={[]}
+            priorities={[]}
+            contactTypes={[]}
+        />
     );
 
     it('shows validation errors', () => {
@@ -52,6 +40,7 @@ describe('<AssignmentEditor />', () => {
         const deskSelectInput = deskFieldBeforeError.find('select');
 
         deskSelectInput.simulate('change', {target: ''});
+        wrapper.setProps({value: {...assignment}});
         const deskFieldAfterError = wrapper.find('.form__row').first();
 
         expect(deskFieldAfterError.find('.sd-line-input__message').length).toBe(1);
