@@ -214,7 +214,7 @@ export class AssignmentEditorComponent extends React.PureComponent<IProps> {
                             />
                         )}
                         <SelectSearchContactsField
-                            value={contactId == null ? [contactId] : []}
+                            value={contactId == null ? [] : [contactId]}
                             onChange={this.onContactChange}
                             contactType={contactType.qcode}
                             minLengthPopup={0}
