@@ -29,7 +29,7 @@ import {AutoSave} from './AutoSave';
 import {EditorGroup} from '../../Editor/EditorGroup';
 import * as selectors from '../../../selectors';
 import {handleEmbeddedItems} from '../../../components/editor-standalone/save-handling';
-import {IPlanningItem} from 'globals';
+import {IPlanningItem} from '../../../interfaces';
 
 
 export class ItemManager {
