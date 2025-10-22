@@ -49,7 +49,7 @@ export class EditorFieldSelect extends React.PureComponent<IProps> {
 
     onChange(newValue: string) {
         if (this.props.valueAsString) {
-            this.props.onChange(this.props.field, newValue);
+            this.props.onChange(this.props.field, newValue || null);
         } else {
             this.props.onChange(this.props.field, this.props.options.find(
                 (option) => option[this.props.keyField ?? 'qcode'] === newValue
