@@ -2,8 +2,8 @@ import React from 'react';
 import {connect} from 'react-redux';
 import {get, set, isEqual, cloneDeep} from 'lodash';
 
-import {IDesk} from 'superdesk-api';
-import {IAssignmentItem, IAssignmentPriority, ICoverageProvider} from '../../../interfaces';
+import type {IDesk} from 'superdesk-api';
+import type {IAssignmentItem, IAssignmentPriority, ICoverageProvider} from '../../../interfaces';
 import {superdeskApi} from '../../../superdeskApi';
 
 import * as actions from '../../../actions';
@@ -56,12 +56,9 @@ export class UpdateAssignmentComponent extends React.Component<IProps, IState> {
         };
 
         this.dom = {popupContainer: null};
-        this.onChange = this.onChange.bind(this);
-        this.submit = this.submit.bind(this);
-        this.getPopupContainer = this.getPopupContainer.bind(this);
     }
 
-    onChange(updates: {[field: string]: string | ICoverageProvider | null}) {
+    onChange = (updates: {[field: string]: string | ICoverageProvider | null}) => {
         this.setState((prevState) => {
             const diff = cloneDeep(prevState.diff);
 
@@ -82,14 +79,14 @@ export class UpdateAssignmentComponent extends React.Component<IProps, IState> {
         });
     }
 
-    submit() {
+    submit = () => {
         return this.props.onSubmit(
             this.props.original,
             this.state.diff
         );
     }
 
-    getPopupContainer() {
+    getPopupContainer = () => {
         return this.dom.popupContainer;
     }
 

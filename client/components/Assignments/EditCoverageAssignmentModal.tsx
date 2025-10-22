@@ -1,7 +1,7 @@
 import React from 'react';
 import {cloneDeep, set} from 'lodash';
 
-import {ICoverageProvider, IPlanningCoverageItem} from 'interfaces';
+import type {ICoverageProvider, IPlanningCoverageItem} from 'interfaces';
 
 import {Modal} from '../';
 import {Button} from '../UI';
@@ -37,12 +37,9 @@ export class EditCoverageAssignmentModal extends React.Component<IProps, IState>
             diff: cloneDeep(props.modalProps.value),
             valid: isAssignmentDeskValid(props.modalProps.value.assigned_to?.desk),
         };
-
-        this.onSubmit = this.onSubmit.bind(this);
-        this.onChange = this.onChange.bind(this);
     }
 
-    onChange(updates: {[field: string]: string | ICoverageProvider | null}) {
+    onChange = (updates: {[field: string]: string | ICoverageProvider | null}) => {
         this.setState((prevState) => {
             const diff = cloneDeep(prevState.diff);
 
@@ -57,7 +54,7 @@ export class EditCoverageAssignmentModal extends React.Component<IProps, IState>
         });
     }
 
-    onSubmit() {
+    onSubmit = () => {
         this.setState({submitting: true}, () => {
             this.props.modalProps.onChange(this.props.modalProps.field, this.state.diff);
 

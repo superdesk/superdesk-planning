@@ -2,13 +2,18 @@ import React from 'react';
 import {connect} from 'react-redux';
 import {get} from 'lodash';
 
-import {IDesk, IUser, IVocabularyItem, IContact} from 'superdesk-api';
-import {IAssignmentPriority, IAssignmentItem, ICoverageProvider, IContactType, IPlanningCoverageItem} from 'interfaces';
+import type {IDesk, IUser, IVocabularyItem, IContact} from 'superdesk-api';
+import type {
+    IAssignmentPriority,
+    IAssignmentItem,
+    ICoverageProvider,
+    IContactType,
+    IPlanningCoverageItem,
+} from 'interfaces';
 
 import {getDesksForUser} from '../../utils';
 import {getUserInterfaceLanguageFromCV} from '../../utils/users';
 import * as selectors from '../../selectors';
-// import {getContactTypes} from '../../selectors/vocabs';
 
 import {
     Label,
@@ -63,26 +68,16 @@ export class AssignmentEditorComponent extends React.PureComponent<IProps> {
             PROVIDER: 'assigned_to.coverage_provider',
             CONTACT: 'assigned_to.contact',
         };
-
-        this.onUserChange = this.onUserChange.bind(this);
-        this.onDeskChange = this.onDeskChange.bind(this);
-        this.onPriorityChange = this.onPriorityChange.bind(this);
-        this.onProviderChange = this.onProviderChange.bind(this);
-        this.onContactChange = this.onContactChange.bind(this);
-        this.removeContact = this.removeContact.bind(this);
-
-        this.getFilteredDesks = this.getFilteredDesks.bind(this);
-        this.getContactType = this.getContactType.bind(this);
     }
 
-    getFilteredDesks(userId?: IUser['_id']): Array<IDesk> {
+    getFilteredDesks = (userId?: IUser['_id']): Array<IDesk> => {
         return getDesksForUser(
             this.props.users.find((user) => user._id === userId),
             this.props.desks
         );
     }
 
-    getContactType(providerQcode: ICoverageProvider['qcode']): IContactType | null {
+    getContactType = (providerQcode: ICoverageProvider['qcode']): IContactType | null => {
         const provider = this.props.coverageProviders.find(
             (x) => x.qcode === providerQcode
         );
@@ -92,27 +87,27 @@ export class AssignmentEditorComponent extends React.PureComponent<IProps> {
         );
     }
 
-    onUserChange(value?: IUser) {
+    onUserChange = (value?: IUser) => {
         this.props.onChange({[this.FIELDS.USER]: value?._id});
     }
 
-    onContactChange(contact: IContact) {
+    onContactChange = (contact: IContact) => {
         this.props.onChange({[this.FIELDS.CONTACT]: contact?._id});
     }
 
-    removeContact() {
+    removeContact = () => {
         this.props.onChange({[this.FIELDS.CONTACT]: null});
     }
 
-    onDeskChange(value?: IDesk) {
+    onDeskChange = (value?: IDesk) => {
         this.props.onChange({[this.FIELDS.DESK]: value?._id});
     }
 
-    onPriorityChange(value: IVocabularyItem) {
+    onPriorityChange = (value: IVocabularyItem) => {
         this.props.onChange({[this.FIELDS.PRIORITY]: value?.qcode});
     }
 
-    onProviderChange(provider?: ICoverageProvider) {
+    onProviderChange = (provider?: ICoverageProvider) => {
         if (provider?.qcode === get(this.props.value, this.FIELDS.PROVIDER)) {
             return;
         }
