@@ -15,6 +15,11 @@ Feature: Assignment with multiple linked content
             "members": [{"user": "#CONTEXT_USER_ID#"}],
             "default_content_template": "#content_templates._id#",
             "default_content_profile": "#content_types._id#"
+        }, {
+            "name": "Finance Desk",
+            "members": [{"user": "#CONTEXT_USER_ID#"}],
+            "default_content_template": "#content_templates._id#",
+            "default_content_profile": "#content_types._id#"
         }]
         """
         When we post to "planning"
@@ -564,4 +569,83 @@ Feature: Assignment with multiple linked content
         Then we get existing resource
         """
         {"assigned_to": {"state": "in_progress"}}
+        """
+
+    @auth
+    Scenario: Linking a published article to assignment does not complete it
+        When we configure content for publishing
+        When we post to "/archive"
+        """
+        [{
+            "type": "text",
+            "headline": "test headline 1",
+            "slugline": "test slugline",
+            "state": "in_progress",
+            "task": {"desk": "#desks._id#", "stage": "#desks.incoming_stage#"}
+        }]
+        """
+        Then we get OK response
+        And we store "CONTENT_1_ID" with value "#archive._id#" to context
+        When we publish "#CONTENT_1_ID#" with "publish" type and "published" state
+        Then we get OK response
+        When we post to "assignments/link"
+        """
+        [{
+            "assignment_id": "#ASSIGNMENT_ID#",
+            "item_id": "#CONTENT_1_ID#",
+            "reassign": true
+        }]
+        """
+        Then we get OK response
+        When we get "/archive/#CONTENT_1_ID#"
+        Then we get existing resource
+        """
+        {"_id": "#CONTENT_1_ID#", "assignment_id": "#ASSIGNMENT_ID#"}
+        """
+        When we get "/assignments/#ASSIGNMENT_ID#"
+        Then we get existing resource
+        """
+        {"assigned_to": {"state": "in_progress"}}
+        """
+
+    @auth
+    Scenario: Updating article to different desk does not re-assign the assignment
+        When we configure content for publishing
+        When we post to "/assignments/content"
+        """
+        [{"assignment_id": "#ASSIGNMENT_ID#"}]
+        """
+        Then we get OK response
+        And we store "CONTENT_1_ID" with value "#content._id#" to context
+        When we patch "/archive/#CONTENT_1_ID#"
+        """
+        {"headline": "test content 1"}
+        """
+        Then we get OK response
+        When we publish "#CONTENT_1_ID#" with "publish" type and "published" state
+        Then we get OK response
+        When we get "/assignments/#ASSIGNMENT_ID#"
+        Then we get existing resource
+        """
+        {"assigned_to": {"state": "in_progress", "desk": "#desks_1._id#"}}
+        """
+        When we rewrite "#CONTENT_1_ID#"
+        """
+        {"desk_id": "#desks_0._id#"}
+        """
+        Then we get OK response
+        When we get "/assignments/#ASSIGNMENT_ID#"
+        Then we get existing resource
+        """
+        {"assigned_to": {"state": "in_progress", "desk": "#desks_1._id#"}}
+        """
+        When we get "/archive/#CONTENT_1_ID#"
+        Then we get existing resource
+        """
+        {"task": {"desk": "#desks_1._id#"}}
+        """
+        When we get "/archive/#REWRITE_ID#"
+        Then we get existing resource
+        """
+        {"task": {"desk": "#desks_0._id#"}}
         """
