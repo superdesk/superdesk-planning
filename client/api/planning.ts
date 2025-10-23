@@ -201,7 +201,8 @@ function setDefaultValues(
     const newsCoverageStatus = selectors.general.newsCoverageStatus(state);
     const defaultDesk = selectors.general.defaultDesk(state);
     const preferredCoverageDesks = selectors.general.preferredCoverageDesks(state)?.desks ?? {};
-    const coverageProfile = selectors.coverageProfiles.getCoverageProfileByContentType(state, g2contentType);
+    const coverageProfilesMap = selectors.coverageProfiles.getCoverageProfilesMap(state);
+    const coverageProfile = g2contentType ? coverageProfilesMap[g2contentType] : undefined;
 
     return planningUtils.defaultCoverageValues(
         newsCoverageStatus,

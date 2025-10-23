@@ -6,6 +6,7 @@ import {appConfig} from 'appConfig';
 import {
     EDITOR_TYPE,
     IAgenda,
+    ICoverageContentProfile,
     IEventItem,
     IFile,
     IFormItemManager,
@@ -49,8 +50,7 @@ interface IProps {
     showAllLanguages: boolean;
     language: IVocabularyItem['qcode'];
 
-    getCoverageProfile: (coverageType: ICoverageType) =>
-        ReturnType<typeof selectors.coverageProfiles.getCoverageProfileByContentType>,
+    coverageProfilesMap: Record<ICoverageType, ICoverageContentProfile>;
 
     // State
     newsCoverageStatus: Array<IPlanningNewsCoverageStatus>;
@@ -84,8 +84,7 @@ interface IState {
 }
 
 const mapStateToProps = (state) => ({
-    getCoverageProfile: (coverageType: ICoverageType) =>
-        selectors.coverageProfiles.getCoverageProfileByContentType(state, coverageType),
+    coverageProfilesMap: selectors.coverageProfiles.getCoverageProfilesMap(state),
     events: selectors.events.storedEvents(state),
     newsCoverageStatus: selectors.general.newsCoverageStatus(state),
     currentAgenda: selectors.planning.currentAgenda(state),
@@ -224,7 +223,7 @@ class PlanningEditorComponent extends React.Component<IProps, IState> {
                 this.props.newsCoverageStatus,
                 this.props.desk,
                 this.props.contentTypes,
-                this.props.getCoverageProfile,
+                this.props.coverageProfilesMap,
             );
 
             this.fillCurrentAgenda(updatedPlanning);
@@ -237,7 +236,7 @@ class PlanningEditorComponent extends React.Component<IProps, IState> {
                     this.props.newsCoverageStatus,
                     this.props.desk,
                     this.props.contentTypes,
-                    this.props.getCoverageProfile,
+                    this.props.coverageProfilesMap,
                 )
             );
         }

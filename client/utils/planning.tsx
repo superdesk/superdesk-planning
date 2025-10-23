@@ -2,7 +2,7 @@ import moment from 'moment-timezone';
 import {get, set, uniq, sortBy, isEmpty, cloneDeep, isArray, flatten} from 'lodash';
 
 import {appConfig} from 'appConfig';
-import {IDesk, IArticle, IUser} from 'superdesk-api';
+import {IDesk, IArticle} from 'superdesk-api';
 import {superdeskApi, planningApi} from '../superdeskApi';
 import {
     IPlanningItem,
@@ -1001,14 +1001,14 @@ function createNewPlanningFromNewsItem(
     newsCoverageStatus: Array<IPlanningNewsCoverageStatus>,
     desk: IDesk['_id'],
     contentTypes: Array<IG2ContentType>,
-    getCoverageProfile: (contentType) => null | ICoverageContentProfile,
+    coverageProfilesMap: Record<ICoverageType, ICoverageContentProfile>,
 ) {
     const newCoverage = self.createCoverageFromNewsItem(
         addNewsItemToPlanning,
         newsCoverageStatus,
         desk,
         contentTypes,
-        getCoverageProfile,
+        coverageProfilesMap,
     );
     const {contentProfiles} = planningApi;
     let newPlanning: Partial<IPlanningItem> = {
@@ -1047,7 +1047,7 @@ function createCoverageFromNewsItem(
     newsCoverageStatus: Array<IPlanningNewsCoverageStatus>,
     desk: IDesk['_id'],
     contentTypes: Array<IG2ContentType>,
-    getCoverageProfile: (contentType: ICoverageType) => null | ICoverageContentProfile,
+    coverageProfilesMap: Record<ICoverageType, ICoverageContentProfile>,
 ): Partial<IPlanningCoverageItem> {
     const contentType = contentTypes.find(
         (ctype) => get(ctype, 'content item type') === addNewsItemToPlanning.type
@@ -1060,7 +1060,7 @@ function createCoverageFromNewsItem(
         contentType.qcode as ICoverageType,
         null,
         null,
-        getCoverageProfile(contentType.qcode as ICoverageType),
+        coverageProfilesMap[contentType.qcode],
     );
 
     newCoverage.workflow_status = COVERAGES.WORKFLOW_STATE.ACTIVE;
@@ -1892,7 +1892,7 @@ function showXMPFileUIControl(item: IAssignmentItem | IPlanningCoverageItem): bo
 function duplicateCoverage(
     item: DeepPartial<IPlanningItem>,
     coverage: DeepPartial<IPlanningCoverageItem>,
-    getCoverageProfile: (coverageType?: ICoverageType) => undefined | ICoverageContentProfile,
+    coverageProfilesMap: Record<ICoverageType, ICoverageContentProfile>,
     duplicateAs?: ICoverageType,
     event?: IEventItem, // TAG: MULTIPLE_PRIMARY_EVENTS
 ): DeepPartial<IPlanningItem['coverages']> {
@@ -1916,7 +1916,7 @@ function duplicateCoverage(
         coverageType,
         defaultDesk,
         preferredCoverageDesks,
-        getCoverageProfile(coverageType),
+        coverageType != null ? coverageProfilesMap[coverageType] : undefined,
     );
 
     newCoverage.coverage_id = newCoverage.coverage_id + '-duplicate';

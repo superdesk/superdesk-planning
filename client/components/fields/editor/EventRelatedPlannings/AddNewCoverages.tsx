@@ -34,7 +34,7 @@ interface IProps {
     users: Array<IUser>;
     initiallyExpanded?: boolean;
     updatePlanningItem(updates: DeepPartial<IPlanningItem>): void;
-    getCoverageProfile(coverageType?: ICoverageType): ICoverageContentProfile | undefined;
+    coverageProfilesMap: Record<ICoverageType, ICoverageContentProfile>;
 }
 
 interface IState {
@@ -51,8 +51,7 @@ const mapStateToProps = (state) => ({
     newsCoverageStatus: selectors.general.newsCoverageStatus(state),
     desks: selectors.general.desks(state),
     users: selectors.general.users(state),
-    getCoverageProfile: (contentType?: ICoverageType) =>
-        selectors.coverageProfiles.getCoverageProfileByContentType(state, contentType),
+    coverageProfilesMap: selectors.coverageProfiles.getCoverageProfilesMap(state),
 });
 
 class AddNewCoveragesComponent extends React.Component<IProps, IState> {
@@ -185,10 +184,10 @@ class AddNewCoveragesComponent extends React.Component<IProps, IState> {
                     this.props.newsCoverageStatus,
                     this.props.item,
                     this.props.event,
-                    coverage.type.qcode,
+                    coverage.type.qcode as ICoverageType,
                     null,
                     null,
-                    this.props.getCoverageProfile(coverage.type.qcode),
+                    this.props.coverageProfilesMap[coverage.type.qcode],
                 );
 
                 newCoverage.assigned_to = {

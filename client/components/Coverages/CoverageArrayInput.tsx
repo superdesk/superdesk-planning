@@ -5,6 +5,7 @@ import {isEmpty} from 'lodash';
 import {
     EDITOR_TYPE,
     IAssignmentPriority,
+    ICoverageContentProfile,
     ICoverageProvider,
     ICoverageType,
     IEventItem,
@@ -66,8 +67,7 @@ interface IReduxStateProps {
     newsCoverageStatus: Array<IPlanningNewsCoverageStatus>;
     coverageAddAdvancedMode: boolean;
     defaultDesk: IDesk;
-    getCoverageProfile: (coverageType?: ICoverageType) =>
-        ReturnType<typeof selectors.coverageProfiles.getCoverageProfileByContentType>;
+    coverageProfilesMap: Record<string, ICoverageContentProfile>;
 }
 
 interface IReduxDispatchProps {
@@ -81,8 +81,7 @@ interface IState {
 }
 
 const mapStateToProps = (state): IReduxStateProps => ({
-    getCoverageProfile: (contentType: ICoverageType) =>
-        selectors.coverageProfiles.getCoverageProfileByContentType(state, contentType),
+    coverageProfilesMap: selectors.coverageProfiles.getCoverageProfilesMap(state),
     users: selectors.general.users(state),
     desks: selectors.general.desks(state),
     genres: state.genres,
@@ -192,7 +191,7 @@ class CoverageArrayInputComponent extends React.Component<IProps, IState> {
             coverageType,
             null,
             null,
-            this.props.getCoverageProfile(coverageType),
+            this.props.coverageProfilesMap[coverageType],
         );
 
         const {desks, users, coverageAddAdvancedMode} = this.props;
