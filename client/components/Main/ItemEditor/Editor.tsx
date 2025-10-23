@@ -108,48 +108,51 @@ export class EditorComponent extends React.Component<IEditorProps, IEditorState>
         // Use a callback to `this.setState` so we get the state value at the exact point when updating.
         // This allows consecutive updates to the state, while allowing React to batch these updates.
         // Otherwise only the last call to onChangeHandler will be applied to state per React batch update
-        this.setState<'diff'>((prevState: Readonly<IEditorState>) => {
-            // If field (name) is passed, it will replace that field
-            // Else, entire object will be replaced
-            const diff = field ? Object.assign({}, prevState.diff) : cloneDeep(value);
-            const newState: Pick<IEditorState, 'diff' | 'dirty'> = {
-                diff: diff,
-                dirty: prevState.dirty
-            };
+        return new Promise((resolve) => {
+            this.setState<'diff'>((prevState: Readonly<IEditorState>) => {
+                // If field (name) is passed, it will replace that field
+                // Else, entire object will be replaced
+                const diff = field ? Object.assign({}, prevState.diff) : cloneDeep(value);
+                const newState: Pick<IEditorState, 'diff' | 'dirty'> = {
+                    diff: diff,
+                    dirty: prevState.dirty
+                };
 
-            if (field) {
-                updateFormValues(diff, field, value);
-            }
+                if (field) {
+                    updateFormValues(diff, field, value);
+                }
 
-            if (field && typeof field === 'object') {
-                Object.keys(field).forEach((subField) => {
-                    this.editorApi.events.beforeFormUpdates(newState, subField, diff[subField]);
-                });
-            } else {
-                this.editorApi.events.beforeFormUpdates(newState, field, value);
-            }
+                if (field && typeof field === 'object') {
+                    Object.keys(field).forEach((subField) => {
+                        this.editorApi.events.beforeFormUpdates(newState, subField, diff[subField]);
+                    });
+                } else {
+                    this.editorApi.events.beforeFormUpdates(newState, field, value);
+                }
 
-            this.itemManager.validate(this.props, newState, this.state);
+                this.itemManager.validate(this.props, newState, this.state);
 
-            if (updateDirtyFlag) {
-                newState.dirty = this.isDirty(
-                    this.state.initialValues,
-                    diff
-                );
-            }
+                if (updateDirtyFlag) {
+                    newState.dirty = this.isDirty(
+                        this.state.initialValues,
+                        diff
+                    );
+                }
 
-            if (this.props.onChange) {
-                this.props.onChange(diff);
-            }
+                if (this.props.onChange) {
+                    this.props.onChange(diff);
+                }
 
-            return newState;
-        }, () => {
-            if (saveAutosave) {
-                this.autoSave.saveAutosave(this.props, this.state.diff);
-            }
+                return newState;
+            }, resolve);
+        })
+            .then(() => {
+                if (saveAutosave) {
+                    this.autoSave.saveAutosave(this.props, this.state.diff);
+                }
 
-            this.props.saveDiffToStore(this.state.diff);
-        });
+                this.props.saveDiffToStore(this.state.diff);
+            });
     }
 
     isDirty(initialValues, diff) {
