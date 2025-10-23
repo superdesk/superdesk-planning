@@ -239,7 +239,7 @@ Below sections include the config options that can be defined in settings.py.
 The search filters in the Planning module can be configured using the `planning_types` resource, using a document
 with an `_id` of `advanced_search`.
 
-Managing this config is currently not available from the front-end, but instead can be managed using the 
+Managing this config is currently not available from the front-end, but instead can be managed using the
 `data/planning_types.json` file in the application github repo.
 
 Extract of an example `data/planning_types.json` file:
@@ -400,7 +400,7 @@ Example: Add a custom text field with `_id` of `sttregistrationinfo` to Assignme
 ```
 
 > [!NOTE]
-> Custom text field filters is currently only supported in the Assignments filters panel. 
+> Custom text field filters is currently only supported in the Assignments filters panel.
 
 ### Development tools config
 
@@ -506,7 +506,6 @@ To run the same tests that is used in Travis, run the following:
 ```
 cd superdesk-planning
 make test
-cd ..
 ```
 
 Or you can run them individually as below.
@@ -516,21 +515,37 @@ Code Style
 ```
 cd superdesk-planning
 npm run hint
-cd ..
 ```
 
 Unit Tests
 ```
 cd superdesk-planning
-npm run unit_test
+npm test
+```
+
+Run tests with verbose output
+```
+cd superdesk-planning
+npm test --reporter=verbose
+```
+
+Run tests for specific files
+```
+cd superdesk-planning
+npm test --file=AddToPlanningController
 cd ..
 ```
 
-Coverage Report
+Combine options (verbose + specific file)
 ```
 cd superdesk-planning
-npm run coveralls
-cd ..
+npm test --reporter=verbose --file=AddToPlanningController
+```
+
+Debug tests in Chrome browser
+```
+cd superdesk-planning
+npm run debug_unit_tests
 ```
 
 ### Tests: Server
