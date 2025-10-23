@@ -369,7 +369,7 @@ describe('PlanningUtils', () => {
                 newsCoverageStatus,
                 desk,
                 contentTypes,
-                () => undefined,
+                {},
             );
 
             expect(omit(coverage, ['coverage_id', 'planning._scheduledTime'])).toEqual({
@@ -413,7 +413,7 @@ describe('PlanningUtils', () => {
                 newsCoverageStatus,
                 desk,
                 contentTypes,
-                () => undefined,
+                {},
             );
 
             expect(omit(coverage, ['coverage_id', 'planning._scheduledTime'])).toEqual({
@@ -502,7 +502,7 @@ describe('PlanningUtils', () => {
                 newsCoverageStatus,
                 desk,
                 contentTypes,
-                () => COVERAGE_PROFILE_MULTIPLE_CONTENT_TRUE,
+                {text: COVERAGE_PROFILE_MULTIPLE_CONTENT_TRUE},
             );
 
             expect(coverage.planning.multiple_content).toEqual(true);
@@ -529,7 +529,7 @@ describe('PlanningUtils', () => {
                 newsCoverageStatus,
                 desk,
                 contentTypes,
-                () => undefined,
+                {},
             );
 
             expect(omit(coverage, ['coverage_id', 'planning._scheduledTime'])).toEqual({
