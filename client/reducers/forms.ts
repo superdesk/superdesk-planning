@@ -5,8 +5,11 @@ import {IPlanningContentProfile} from '../interfaces';
 import {AUTOSAVE, ITEM_TYPE, MAIN, FORMS} from '../constants';
 import {createReducer} from './createReducer';
 import {eventUtils, getItemId, getItemType, planningUtils} from '../utils';
-import {cloneDeep, get, set} from 'lodash';
+import {get, set} from 'lodash';
 import {EDITOR_TYPE, IEditorFormState, IFormState} from '../interfaces';
+import {produce, setAutoFreeze} from 'immer';
+
+setAutoFreeze(false);
 
 const initialState: IFormState = {
     profiles: {},
@@ -47,75 +50,71 @@ function updateEditor(
     modal: boolean,
     updates: DeepPartial<IFormState>['editors']['panel']
 ): IFormState {
-    const newState = cloneDeep(state);
-
-    if (modal) {
-        newState.editors[EDITOR_TYPE.POPUP] = {
-            ...newState.editors[EDITOR_TYPE.POPUP],
-            ...updates,
-        };
-    } else {
-        newState.editors[EDITOR_TYPE.INLINE] = {
-            ...newState.editors[EDITOR_TYPE.INLINE],
-            ...updates,
-        };
-    }
+    const newState = produce(state, (draft) => {
+        if (modal) {
+            Object.assign(draft.editors[EDITOR_TYPE.POPUP], updates);
+        } else {
+            Object.assign(draft.editors[EDITOR_TYPE.INLINE], updates);
+        }
+    });
 
     return newState;
 }
 
 function updateFormGroups(action: string, state: IFormState, payload: any): IFormState {
-    const newState = cloneDeep(state);
-    const editor: IEditorFormState = newState.editors[payload.editor];
+    const newState = produce(state, (draft) => {
+        const editor: IEditorFormState = draft.editors[payload.editor];
 
-    switch (action) {
-    case MAIN.ACTIONS.FORMS_GROUP_SET:
-        editor.groups = payload.groups;
-        break;
-    case MAIN.ACTIONS.FORMS_GROUP_CLEAR:
-        editor.groups = {};
-        break;
-    case MAIN.ACTIONS.FORMS_GROUP_DELETE:
-        delete editor.groups[payload.groupId];
-        break;
-    case MAIN.ACTIONS.FORMS_GROUP_UPDATE:
-        editor.groups[payload.group.id] = {
-            ...editor.groups[payload.group.id],
-            ...payload.updates,
-        };
-        break;
-    }
+        switch (action) {
+        case MAIN.ACTIONS.FORMS_GROUP_SET:
+            editor.groups = payload.groups;
+            break;
+        case MAIN.ACTIONS.FORMS_GROUP_CLEAR:
+            editor.groups = {};
+            break;
+        case MAIN.ACTIONS.FORMS_GROUP_DELETE:
+            delete editor.groups[payload.groupId];
+            break;
+        case MAIN.ACTIONS.FORMS_GROUP_UPDATE:
+            editor.groups[payload.group.id] = {
+                ...editor.groups[payload.group.id],
+                ...payload.updates,
+            };
+            break;
+        }
+    });
 
     return newState;
 }
 
 function updateFormBookmarks(action: string, state: IFormState, payload: any): IFormState {
-    const newState = cloneDeep(state);
-    const editor: IEditorFormState = newState.editors[payload.editor];
+    const newState = produce(state, (draft) => {
+        const editor: IEditorFormState = draft.editors[payload.editor];
 
-    switch (action) {
-    case MAIN.ACTIONS.FORMS_BOOKMARKS_SET:
-        editor.bookmarks = payload.bookmarks;
-        break;
-    case MAIN.ACTIONS.FORMS_BOOKMARKS_CLEAR:
-        editor.bookmarks = {};
-        editor.activeBookmarkId = null;
-        break;
-    case MAIN.ACTIONS.FORMS_BOOKMARKS_DELETE:
-        delete editor.bookmarks[payload.bookmarkId];
-
-        if (payload.bookmarkId === editor.activeBookmarkId) {
+        switch (action) {
+        case MAIN.ACTIONS.FORMS_BOOKMARKS_SET:
+            editor.bookmarks = payload.bookmarks;
+            break;
+        case MAIN.ACTIONS.FORMS_BOOKMARKS_CLEAR:
+            editor.bookmarks = {};
             editor.activeBookmarkId = null;
-        }
+            break;
+        case MAIN.ACTIONS.FORMS_BOOKMARKS_DELETE:
+            delete editor.bookmarks[payload.bookmarkId];
 
-        break;
-    case MAIN.ACTIONS.FORMS_BOOKMARKS_UPDATE:
-        editor.bookmarks[payload.bookmark.id] = {
-            ...editor.bookmarks[payload.bookmark.id],
-            ...payload.updates,
-        };
-        break;
-    }
+            if (payload.bookmarkId === editor.activeBookmarkId) {
+                editor.activeBookmarkId = null;
+            }
+
+            break;
+        case MAIN.ACTIONS.FORMS_BOOKMARKS_UPDATE:
+            editor.bookmarks[payload.bookmark.id] = {
+                ...editor.bookmarks[payload.bookmark.id],
+                ...payload.updates,
+            };
+            break;
+        }
+    });
 
     return newState;
 }
@@ -125,11 +124,12 @@ function setPopupForm(state: IFormState, payload: {
     component: React.ComponentClass,
     props: any,
 }): IFormState {
-    const newState = cloneDeep(state);
-    const editor: IEditorFormState = newState.editors[payload.editor];
+    const newState = produce(state, (draft) => {
+        const editor: IEditorFormState = draft.editors[payload.editor];
 
-    editor.popupFormComponent = payload.component;
-    editor.popupFormProps = payload.props;
+        editor.popupFormComponent = payload.component;
+        editor.popupFormProps = payload.props;
+    });
 
     return newState;
 }
@@ -167,16 +167,17 @@ const formsReducer = createReducer(initialState, {
     ),
 
     [AUTOSAVE.ACTIONS.RECEIVE]: (state, payload) => {
-        const newState = cloneDeep(state);
-        const itemId = getItemId(payload);
-        const itemType = getItemType(payload);
-        const itemPath = `autosaves.${itemType}["${itemId}"]`;
+        const newState = produce(state, (draft) => {
+            const itemId = getItemId(payload);
+            const itemType = getItemType(payload);
+            const itemPath = `autosaves.${itemType}["${itemId}"]`;
 
-        if (itemType === ITEM_TYPE.EVENT) {
-            set(newState, itemPath, eventUtils.modifyForClient(payload, true));
-        } else if (itemType === ITEM_TYPE.PLANNING) {
-            set(newState, itemPath, planningUtils.modifyForClient(payload));
-        }
+            if (itemType === ITEM_TYPE.EVENT) {
+                set(draft, itemPath, eventUtils.modifyForClient(payload, true));
+            } else if (itemType === ITEM_TYPE.PLANNING) {
+                set(draft, itemPath, planningUtils.modifyForClient(payload));
+            }
+        });
 
         return newState;
     },
@@ -189,31 +190,33 @@ const formsReducer = createReducer(initialState, {
             return state;
         }
 
-        const newState = cloneDeep(state);
-        const autosaves = get(newState, `autosaves.${itemType}`);
+        const newState = produce(state, (draft) => {
+            const autosaves = get(draft, `autosaves.${itemType}`);
 
-        if (autosaves[itemId]) {
-            delete autosaves[itemId];
-        }
+            if (autosaves[itemId]) {
+                delete autosaves[itemId];
+            }
+        });
 
         return newState;
     },
 
     [AUTOSAVE.ACTIONS.RECEIVE_ALL]: (state, payload) => {
-        const newState = cloneDeep(state);
-        const items = {};
+        const newState = produce(state, (draft) => {
+            const items = {};
 
-        if (payload.itemType === ITEM_TYPE.EVENT) {
-            payload.autosaves.forEach((item) => {
-                items[getItemId(item)] = eventUtils.modifyForClient(item, true);
-            });
-        } else if (payload.itemType === ITEM_TYPE.PLANNING) {
-            payload.autosaves.forEach((item) => {
-                items[getItemId(item)] = planningUtils.modifyForClient(item);
-            });
-        }
+            if (payload.itemType === ITEM_TYPE.EVENT) {
+                payload.autosaves.forEach((item) => {
+                    items[getItemId(item)] = eventUtils.modifyForClient(item, true);
+                });
+            } else if (payload.itemType === ITEM_TYPE.PLANNING) {
+                payload.autosaves.forEach((item) => {
+                    items[getItemId(item)] = planningUtils.modifyForClient(item);
+                });
+            }
 
-        set(newState, `autosaves.${payload.itemType}`, items);
+            set(draft, `autosaves.${payload.itemType}`, items);
+        });
 
         return newState;
     },
@@ -243,9 +246,9 @@ const formsReducer = createReducer(initialState, {
     [MAIN.ACTIONS.FORMS_BOOKMARKS_CLEAR]: updateFormBookmarks.bind(null, MAIN.ACTIONS.FORMS_BOOKMARKS_CLEAR),
 
     [MAIN.ACTIONS.FORMS_BOOKMARKS_SET_ACTIVE_ID]: (state, payload) => {
-        const newState = cloneDeep(state);
-
-        newState.editors[payload.editor].activeBookmarkId = payload.bookmarkId;
+        const newState = produce(state, (draft) => {
+            draft.editors[payload.editor].activeBookmarkId = payload.bookmarkId;
+        });
 
         return newState;
     },
