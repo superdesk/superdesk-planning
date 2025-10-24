@@ -14,7 +14,7 @@ import re
 import time
 from flask import current_app as app
 from collections import namedtuple
-from datetime import timedelta, datetime
+from datetime import timedelta, datetime, timezone
 from superdesk.resource import not_analyzed, build_custom_hateoas
 from superdesk import get_resource_service, logger
 from superdesk.metadata.item import ITEM_TYPE, CONTENT_STATE
@@ -831,7 +831,14 @@ def is_new_version(new_item: Dict[str, Any], old_item: Dict[str, Any]) -> bool:
 
     # ``versioncreated`` can be updated by users,
     # so test last time the Event was updated
-    return get_ingested_datetime(new_item) > get_ingested_datetime(old_item)
+    return get_naive_utc(get_ingested_datetime(new_item)) > get_naive_utc(get_ingested_datetime(old_item))
+
+
+def get_naive_utc(dt: datetime) -> datetime:
+    """Return a naive UTC datetime from an aware datetime"""
+    if dt.tzinfo:
+        return dt.astimezone(tz=timezone.utc).replace(tzinfo=None)
+    return dt
 
 
 def update_ingest_on_patch(updates: Dict[str, Any], original: Dict[str, Any]):
