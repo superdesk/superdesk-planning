@@ -596,7 +596,7 @@ export const templates = {templates: []};
 
 export const form = {};
 
-export const plannings = [
+export const plannings: Array<IPlanningItem> = [
     {
         _id: 'p1',
         type: 'planning',

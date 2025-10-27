@@ -10,6 +10,7 @@ import {restoreSinonStub, waitFor} from '../../../../utils/testUtils';
 import * as testData from '../../../../utils/testData';
 import {ItemManager} from '../ItemManager';
 import {EDITOR_TYPE} from 'interfaces';
+import * as saveHandling from '../../../../components/editor-standalone/save-handling';
 
 describe('components.Main.ItemManager', () => {
     let editor;
@@ -1151,6 +1152,8 @@ describe('components.Main.ItemManager', () => {
                 diff: item,
             });
 
+            sinon.stub(saveHandling, 'handleEmbeddedItems').returns(Promise.resolve([testData.plannings[1]]));
+
             manager._save()
                 .then(() => {
                     expect(main.save.callCount).toBe(1);
@@ -1183,7 +1186,10 @@ describe('components.Main.ItemManager', () => {
 
                     done();
                 })
-                .catch(done.fail);
+                .catch(done.fail)
+                .finally(() => {
+                    restoreSinonStub(saveHandling.handleEmbeddedItems);
+                });
         });
 
         it('sets submitting to false if main.save fails', (done) => {

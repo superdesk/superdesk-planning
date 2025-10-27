@@ -41,7 +41,7 @@ const getEmbeddedItemsExposed = <T extends IPlanningItem | IEventItem | void>(
  * Will stop on first error.
  * User will be prompted about the issue in the UI and is expected to try again.
  */
-export const handleEmbeddedItems = async<T extends IEventItem | IPlanningItem>(
+export const handleEmbeddedItems = <T extends IEventItem | IPlanningItem>(
     editorType: EDITOR_TYPE,
     action: IEmbeddedPlanningsActionType,
     itemType: ItemType,
@@ -61,7 +61,7 @@ export const handleEmbeddedItems = async<T extends IEventItem | IPlanningItem>(
         if (action === 'SAVE') {
             updatedItems.push(exposed.save());
         } else if (action === 'DISCARD') {
-            await exposed.discardUnsavedChanges();
+            exposed.discardUnsavedChanges();
             updatedItems.push(Promise.resolve(latestItem));
         } else {
             updatedItems.push(exposed.handleUnsavedChanges());

@@ -29,6 +29,7 @@ import {AutoSave} from './AutoSave';
 import {EditorGroup} from '../../Editor/EditorGroup';
 import * as selectors from '../../../selectors';
 import {handleEmbeddedItems} from '../../../components/editor-standalone/save-handling';
+import {IPlanningItem} from '../../../interfaces';
 
 
 export class ItemManager {
@@ -667,15 +668,16 @@ export class ItemManager {
         /**
          * Calls internal save of each embedded item - the one of the storage adapter, then returns the saved items.
          */
-        const promise = handleEmbeddedItems(this.props.editorType, 'SAVE', this.props.itemType)
-            .then((res) =>
-                Promise.all([
-                    Promise.resolve(res),
-                    !updateStates ? Promise.resolve({}) : this.setState({submitting: true, submitFailed: false})
-                ])
-            );
+        const saveEmbeddedItemsChanges = handleEmbeddedItems(this.props.editorType, 'SAVE', this.props.itemType)
+            .then((res) => {
+                if (updateStates) {
+                    this.setState({submitting: true, submitFailed: false});
+                }
 
-        return promise.then(() => {
+                return res;
+            });
+
+        return saveEmbeddedItemsChanges.then((updatedEmbeddedItems) => {
             if (this.props.addNewsItemToPlanning) {
                 return this._saveFromAuthoring({post, unpost});
             }
@@ -700,6 +702,8 @@ export class ItemManager {
 
             if (updates.type === 'event') {
                 updates.update_method = updateMethod;
+
+                updates.associated_plannings = updatedEmbeddedItems as Array<IPlanningItem>;
 
                 if (Object.keys(planningUpdateMethods).length > 0) {
                     updates.associated_plannings?.forEach((planningItem) => {
