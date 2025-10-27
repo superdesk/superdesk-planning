@@ -1,10 +1,10 @@
+import type {IAuthoringAutoSave, IBaseRestApiResponse} from 'superdesk-api';
+import type {IEventOrPlanningItem} from '../../interfaces';
 import moment from 'moment';
-import {IAuthoringAutoSave, IBaseRestApiResponse} from 'superdesk-api';
 import * as selectors from '../../selectors';
 import {throttle, DebouncedFunc} from 'lodash';
 import {planningApi, superdeskApi} from '../../superdeskApi';
 import {omitFields} from './utils';
-import {IEventOrPlanningItem} from '../../interfaces';
 
 export class AutoSaveHttp<T extends IBaseRestApiResponse & IEventOrPlanningItem> implements IAuthoringAutoSave<T> {
     private autoSaveThrottled: DebouncedFunc<typeof this.autosave>;

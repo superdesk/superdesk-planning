@@ -1,6 +1,6 @@
-import {IEventOrPlanningItem, IPlanningItem, IProfileSchemaType, IProfileSchemaTypeString} from 'interfaces';
+import type {IEventOrPlanningItem, IPlanningItem, IProfileSchemaType, IProfileSchemaTypeString} from 'interfaces';
+import type {IBaseRestApiResponse} from 'superdesk-api';
 import {isEqual, omit} from 'lodash';
-import {IBaseRestApiResponse} from 'superdesk-api';
 
 export function omitFields<T extends IBaseRestApiResponse>(
     item: Partial<T> | T,

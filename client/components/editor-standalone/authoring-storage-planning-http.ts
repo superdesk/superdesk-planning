@@ -36,7 +36,7 @@ export const authoringStoragePlanningItemHttp: IAuthoringStorage<IPlanningItem> 
         const patchData = omitFields(
             generatePatch(
                 planningUtils.modifyForServer(original),
-                planningUtils.modifyForServer(current, original),
+                planningUtils.modifyForServer(current),
             ),
         );
 
