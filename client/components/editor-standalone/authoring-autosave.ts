@@ -91,7 +91,7 @@ export class AutoSaveHttp<T extends IBaseRestApiResponse & IEventOrPlanningItem>
         return httpRequestJsonLocal<T>({
             method: 'GET',
             path: `/${this.resource}/${id}`,
-        }).then(this.modifyForClient);
+        }).then((res) => this.modifyForClient(res));
     }
 
     public delete(id: T['_id'], etag: T['_etag']) {

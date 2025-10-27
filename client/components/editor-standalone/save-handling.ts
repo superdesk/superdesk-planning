@@ -41,12 +41,12 @@ const getEmbeddedItemsExposed = <T extends IPlanningItem | IEventItem | void>(
  * Will stop on first error.
  * User will be prompted about the issue in the UI and is expected to try again.
  */
-export const handleEmbeddedItems = async<T extends IEventItem | IPlanningItem>(
+export const handleEmbeddedItems = <T extends IEventItem | IPlanningItem>(
     editorType: EDITOR_TYPE,
     action: IEmbeddedPlanningsActionType,
     itemType: ItemType,
 ): Promise<Array<T>> => {
-    const updatedItems: Array<T> = [];
+    const updatedItems: Array<Promise<T>> = [];
     const itemsExposed = getEmbeddedItemsExposed<T>(editorType, itemType);
 
     for (const exposed of itemsExposed) {
@@ -54,21 +54,21 @@ export const handleEmbeddedItems = async<T extends IEventItem | IPlanningItem>(
         const areAllChangesSaved = !exposed.hasUnsavedChanges();
 
         if (areAllChangesSaved) {
-            updatedItems.push(latestItem);
+            updatedItems.push(Promise.resolve(latestItem));
             continue;
         }
 
         if (action === 'SAVE') {
-            updatedItems.push(await exposed.save());
+            updatedItems.push(exposed.save());
         } else if (action === 'DISCARD') {
-            await exposed.discardUnsavedChanges();
-            updatedItems.push(latestItem);
+            exposed.discardUnsavedChanges();
+            updatedItems.push(Promise.resolve(latestItem));
         } else {
-            updatedItems.push(await exposed.handleUnsavedChanges());
+            updatedItems.push(exposed.handleUnsavedChanges());
         }
     }
 
-    return updatedItems;
+    return Promise.all(updatedItems);
 };
 
 export const embeddedItemHasUnsavedChanges = (itemType: ItemType) => {
