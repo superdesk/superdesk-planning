@@ -23,6 +23,25 @@ const contentTypes = [
     },
 ];
 
+const COVERAGE_PROFILE_MULTIPLE_CONTENT_TRUE = {
+    name: 'coverage',
+    editor: {
+        multiple_content: {
+            enabled: true,
+            index: 1,
+        },
+    },
+    schema: {
+        multiple_content: {
+            type: 'boolean',
+            required: false,
+            default_value: true,
+            read_only: false
+        },
+    },
+    content_type: 'text',
+};
+
 describe('PlanningUtils', () => {
     let session;
     let locks;
@@ -346,7 +365,12 @@ describe('PlanningUtils', () => {
             };
 
             const coverage = planningUtils.createCoverageFromNewsItem(
-                newsItem, newsCoverageStatus, desk, user, contentTypes);
+                newsItem,
+                newsCoverageStatus,
+                desk,
+                contentTypes,
+                {},
+            );
 
             expect(omit(coverage, ['coverage_id', 'planning._scheduledTime'])).toEqual({
                 planning: {
@@ -385,7 +409,12 @@ describe('PlanningUtils', () => {
             };
 
             const coverage = planningUtils.createCoverageFromNewsItem(
-                newsItem, newsCoverageStatus, desk, user, contentTypes);
+                newsItem,
+                newsCoverageStatus,
+                desk,
+                contentTypes,
+                {},
+            );
 
             expect(omit(coverage, ['coverage_id', 'planning._scheduledTime'])).toEqual({
                 planning: {
@@ -424,7 +453,12 @@ describe('PlanningUtils', () => {
             };
 
             const coverage = planningUtils.createCoverageFromNewsItem(
-                newsItem, newsCoverageStatus, desk, user, contentTypes);
+                newsItem,
+                newsCoverageStatus,
+                desk,
+                contentTypes,
+                () => undefined,
+            );
 
             expect(omit(coverage, ['coverage_id', 'planning._scheduledTime'])).toEqual({
                 planning: {
@@ -447,6 +481,33 @@ describe('PlanningUtils', () => {
             });
         });
 
+        it('coverage multiple content is derived from profile default value', () => {
+            const newsItem = {
+                slugline: 'slug',
+                ednote: 'edit my note',
+                type: 'text',
+                state: 'scheduled',
+                versioncreated: '2017-10-15T14:01:11',
+                version_creator: 'ident2',
+                task: {
+                    desk: 'desk2',
+                    user: 'ident2',
+                },
+                firstpublished: '2017-10-15T16:00:00',
+                schedule_settings: {utc_publish_schedule: '2017-10-15T20:00:00'},
+            };
+
+            const coverage = planningUtils.createCoverageFromNewsItem(
+                newsItem,
+                newsCoverageStatus,
+                desk,
+                contentTypes,
+                {text: COVERAGE_PROFILE_MULTIPLE_CONTENT_TRUE},
+            );
+
+            expect(coverage.planning.multiple_content).toEqual(true);
+        });
+
         it('coverage time is derived from news item\'s schedule time if item is scheduled for publishing', () => {
             const newsItem = {
                 slugline: 'slug',
@@ -464,7 +525,12 @@ describe('PlanningUtils', () => {
             };
 
             const coverage = planningUtils.createCoverageFromNewsItem(
-                newsItem, newsCoverageStatus, desk, user, contentTypes);
+                newsItem,
+                newsCoverageStatus,
+                desk,
+                contentTypes,
+                {},
+            );
 
             expect(omit(coverage, ['coverage_id', 'planning._scheduledTime'])).toEqual({
                 planning: {
@@ -515,7 +581,12 @@ describe('PlanningUtils', () => {
             };
 
             const plan = planningUtils.createNewPlanningFromNewsItem(
-                newsItem, newsCoverageStatus, desk, user, contentTypes);
+                newsItem,
+                newsCoverageStatus,
+                desk,
+                contentTypes,
+                () => undefined,
+            );
 
             expect(plan).toEqual(jasmine.objectContaining({
                 type: 'planning',
@@ -570,7 +641,12 @@ describe('PlanningUtils', () => {
             };
 
             const plan = planningUtils.createNewPlanningFromNewsItem(
-                newsItem, newsCoverageStatus, desk, user, contentTypes);
+                newsItem,
+                newsCoverageStatus,
+                desk,
+                contentTypes,
+                () => undefined,
+            );
 
             expect(plan).toEqual(jasmine.objectContaining({
                 type: 'planning',
@@ -1021,10 +1097,12 @@ describe('PlanningUtils', () => {
         it('set coverage time for adhock planning', () => {
             const newsCoverageStatus = [{qcode: 'ncostat:int'}];
             let planned = moment('2119-03-15T09:00:00+11:00');
-            const plan = {slugline: 'Test',
+            const plan = {
+                slugline: 'Test',
                 internal_note: 'Internal Note',
                 ednote: 'Ed note',
-                planning_date: planned};
+                planning_date: planned
+            };
 
             let coverage = planningUtils.defaultCoverageValues(newsCoverageStatus, plan, null);
 

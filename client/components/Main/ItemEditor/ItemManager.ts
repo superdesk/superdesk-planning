@@ -1,6 +1,6 @@
 import * as React from 'react';
 import {Dispatch} from 'redux';
-import {cloneDeep, get, isEqual, omit, set} from 'lodash';
+import {cloneDeep, get, isEqual, set} from 'lodash';
 
 import {appConfig} from 'appConfig';
 import {
@@ -9,7 +9,6 @@ import {
     IEditorProps,
     IEditorState,
     IEventOrPlanningItem,
-    IPlanningRelatedEventLink
 } from '../../../interfaces';
 import {planningApi} from '../../../superdeskApi';
 import {ITEM_TYPE, POST_STATE, UI, WORKFLOW_STATE, WORKSPACE, EVENTS} from '../../../constants';
@@ -899,6 +898,7 @@ export class ItemManager {
     addCoverage(g2ContentType) {
         const state = planningApi.redux.store.getState();
         const preferredCoverageDesks = selectors.general.preferredCoverageDesks(state)?.desks ?? {};
+        const coverageProfilesMap = selectors.coverageProfiles.getCoverageProfilesMap(state);
 
         const newCoverage = planningUtils.defaultCoverageValues(
             this.props.newsCoverageStatus,
@@ -907,6 +907,7 @@ export class ItemManager {
             g2ContentType,
             this.props.defaultDesk,
             preferredCoverageDesks,
+            coverageProfilesMap[g2ContentType],
         );
 
         this.editor.onChangeHandler(

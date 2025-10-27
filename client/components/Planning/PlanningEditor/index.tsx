@@ -6,6 +6,7 @@ import {appConfig} from 'appConfig';
 import {
     EDITOR_TYPE,
     IAgenda,
+    ICoverageContentProfile,
     IEventItem,
     IFile,
     IFormItemManager,
@@ -15,13 +16,14 @@ import {
     IPlanningItem,
     IPlanningNewsCoverageStatus,
     ILockedItems,
+    ICoverageType,
 } from '../../../interfaces';
 import {IArticle, IDesk, IUser, IVocabularyItem} from 'superdesk-api';
 import {planningApi} from '../../../superdeskApi';
 
 import * as actions from '../../../actions';
 import * as selectors from '../../../selectors';
-import {planningUtils, eventUtils, lockUtils, isTemporaryId} from '../../../utils';
+import {planningUtils, eventUtils, lockUtils} from '../../../utils';
 
 import {EditorForm} from '../../Editor/EditorForm';
 import {PlanningEditorHeader} from './PlanningEditorHeader';
@@ -47,6 +49,8 @@ interface IProps {
     editorType: EDITOR_TYPE;
     showAllLanguages: boolean;
     language: IVocabularyItem['qcode'];
+
+    coverageProfilesMap: Record<ICoverageType, ICoverageContentProfile>;
 
     // State
     newsCoverageStatus: Array<IPlanningNewsCoverageStatus>;
@@ -80,6 +84,7 @@ interface IState {
 }
 
 const mapStateToProps = (state) => ({
+    coverageProfilesMap: selectors.coverageProfiles.getCoverageProfilesMap(state),
     events: selectors.events.storedEvents(state),
     newsCoverageStatus: selectors.general.newsCoverageStatus(state),
     currentAgenda: selectors.planning.currentAgenda(state),
@@ -217,8 +222,8 @@ class PlanningEditorComponent extends React.Component<IProps, IState> {
                 this.props.addNewsItemToPlanning,
                 this.props.newsCoverageStatus,
                 this.props.desk,
-                this.props.addNewsItemToPlanning?.version_creator,
-                this.props.contentTypes
+                this.props.contentTypes,
+                this.props.coverageProfilesMap,
             );
 
             this.fillCurrentAgenda(updatedPlanning);
@@ -230,8 +235,8 @@ class PlanningEditorComponent extends React.Component<IProps, IState> {
                     this.props.addNewsItemToPlanning,
                     this.props.newsCoverageStatus,
                     this.props.desk,
-                    this.props.user,
-                    this.props.contentTypes
+                    this.props.contentTypes,
+                    this.props.coverageProfilesMap,
                 )
             );
         }

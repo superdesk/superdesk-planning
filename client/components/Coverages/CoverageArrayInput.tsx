@@ -5,7 +5,11 @@ import {isEmpty} from 'lodash';
 import {
     EDITOR_TYPE,
     IAssignmentPriority,
-    ICoverageProvider, IEventItem, IFile,
+    ICoverageContentProfile,
+    ICoverageProvider,
+    ICoverageType,
+    IEventItem,
+    IFile,
     IG2ContentType,
     IGenre,
     IInputArrayHocModeOptions,
@@ -63,6 +67,7 @@ interface IReduxStateProps {
     newsCoverageStatus: Array<IPlanningNewsCoverageStatus>;
     coverageAddAdvancedMode: boolean;
     defaultDesk: IDesk;
+    coverageProfilesMap: Record<string, ICoverageContentProfile>;
 }
 
 interface IReduxDispatchProps {
@@ -76,6 +81,7 @@ interface IState {
 }
 
 const mapStateToProps = (state): IReduxStateProps => ({
+    coverageProfilesMap: selectors.coverageProfiles.getCoverageProfilesMap(state),
     users: selectors.general.users(state),
     desks: selectors.general.desks(state),
     genres: state.genres,
@@ -178,11 +184,14 @@ class CoverageArrayInputComponent extends React.Component<IProps, IState> {
             onItemClose: this.onCoverageClose,
         };
 
-        const createCoverage = planningUtils.defaultCoverageValues.bind(
-            null,
+        const createCoverage = (coverageType: ICoverageType) => planningUtils.defaultCoverageValues(
             newsCoverageStatus,
             item,
-            event
+            event,
+            coverageType,
+            null,
+            null,
+            this.props.coverageProfilesMap[coverageType],
         );
 
         const {desks, users, coverageAddAdvancedMode} = this.props;
@@ -216,7 +225,7 @@ class CoverageArrayInputComponent extends React.Component<IProps, IState> {
                     editorType,
                 }}
                 element={CoverageEditor}
-                defaultElement={createCoverage}
+                createCoverage={createCoverage}
                 readOnly={readOnly}
                 maxCount={maxCoverageCount}
                 addOnly={addOnly}
