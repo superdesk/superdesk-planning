@@ -843,7 +843,14 @@ def is_new_version(new_item: Dict[str, Any], old_item: Dict[str, Any]) -> bool:
 
     # ``versioncreated`` can be updated by users,
     # so test last time the Event was updated
-    return get_ingested_datetime(new_item) > get_ingested_datetime(old_item)
+    return get_naive_utc(get_ingested_datetime(new_item)) > get_naive_utc(get_ingested_datetime(old_item))
+
+
+def get_naive_utc(dt: datetime) -> datetime:
+    """Return a naive UTC datetime from an aware datetime"""
+    if dt.tzinfo:
+        return dt.astimezone(tz=timezone.utc).replace(tzinfo=None)
+    return dt
 
 
 def update_ingest_on_patch(updates: Dict[str, Any], original: Dict[str, Any]):
