@@ -510,20 +510,6 @@ def unique_items_in_order(input_list: list) -> list:
     return unique_list
 
 
-def set_ingested_event_state(updates, original):
-    """Set the ingested event state to draft"""
-    if not updates.get("version_creator"):
-        return
-
-    # don't change status to draft when event was duplicated
-    if (
-        original.get(ITEM_STATE) == WORKFLOW_STATE.INGESTED
-        and not updates.get("duplicate_to")
-        and not updates.get(ITEM_STATE)
-    ):
-        updates[ITEM_STATE] = WORKFLOW_STATE.DRAFT
-
-
 def set_actioned_date_to_event(updates, original):
     # If event lasts more than a day, set actioned_date
     if type(updates) is dict and ((original["dates"]["end"] - original["dates"]["start"]).total_seconds() / 60) >= (
@@ -871,7 +857,8 @@ def update_ingest_on_patch(updates: Dict[str, Any], original: Dict[str, Any]):
     elif original.get("pubstatus") == updates.get("ingest_pubstatus"):
         # The local version has been published
         # and no change to ``pubstatus`` on ingested item
-        updates.pop("state")
+        if original.get("state") not in {WORKFLOW_STATE.DRAFT}:  # item was manually edited after ingesting
+            updates.pop("state")
 
 
 def get_coverage_from_planning(planning_item: Planning, coverage_id: str) -> Optional[Coverage]:

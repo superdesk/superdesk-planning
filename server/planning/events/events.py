@@ -78,7 +78,6 @@ from planning.common import (
     POST_STATE,
     get_event_max_multi_day_duration,
     set_original_creator,
-    set_ingested_event_state,
     LOCK_ACTION,
     sanitize_input_data,
     set_ingest_version_datetime,
@@ -579,7 +578,6 @@ class EventsService(AsyncBaseService):
 
         if user_id:
             updates["version_creator"] = user_id
-            set_ingested_event_state(updates, original)
 
         lock_user = original.get("lock_user", None)
         str_user_id = str(user.get(ID_FIELD)) if user_id else None

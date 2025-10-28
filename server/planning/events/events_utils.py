@@ -26,7 +26,6 @@ from planning.common import (
     WORKFLOW_STATE,
     get_max_recurrent_events,
     is_valid_event_planning_reason,
-    set_ingested_event_state,
     update_post_item,
 )
 from planning.types import EventResourceModel, UpdateMethods
@@ -264,7 +263,6 @@ async def pre_update_event_actions(
     user_id = get_user_id()
     if user_id:
         updates["version_creator"] = user_id
-        set_ingested_event_state(updates, original)
 
     # Perform additional validation for event action
     await validate_event_action(updates, original, ACTION, require_lock)

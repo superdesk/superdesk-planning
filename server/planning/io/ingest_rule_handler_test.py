@@ -9,7 +9,7 @@
 # at https://www.sourcefabric.org/superdesk/license
 
 from bson import ObjectId
-from datetime import datetime
+from datetime import datetime, timedelta
 
 from superdesk import get_resource_service
 from superdesk.metadata.item import ITEM_TYPE, CONTENT_TYPE
@@ -250,3 +250,23 @@ class IngestRuleHandlerTestCase(TestCase):
         original = await events_service.find_one_async(req=None, _id=event["_id"])
         assert original["pubstatus"] == "usable"
         assert original["state"] == "scheduled"
+
+    async def test_autopost_draft_event(self):
+        event = self.event_items[0].copy()
+        event["versioncreated"] = datetime.now() - timedelta(minutes=10)
+        events_service = get_resource_service("events")
+        await events_service.post_async([event])
+
+        original = await events_service.find_one_async(req=None, _id=event["_id"])
+        assert original["pubstatus"] == "usable"
+        assert original["state"] == "draft"
+
+        event.pop("state")
+        event["name"] = "updated name"
+        event["pubstatus"] = "usable"
+        event["versioncreated"] = datetime.now()
+        await events_service.patch_in_mongo(event["_id"], event, original)
+
+        original = await events_service.find_one_async(req=None, _id=event["_id"])
+        assert original["pubstatus"] == "usable"
+        assert original["state"] == "ingested"

@@ -179,6 +179,11 @@ declare module 'superdesk-api' {
         start_of_week?: number;
         planning_default_view: PLANNING_VIEW;
 
+        external_contacts?: {
+            create_url: string;
+            edit_url: string;
+        }
+
         planning?: {
             dateformat?: string;
             timeformat?: string;
@@ -191,6 +196,13 @@ declare module 'superdesk-api' {
 
         coverage?: {
             getDueDateStrategy?(planningItem: IPlanningItem, eventItem?: IEventItem): moment.Moment | null;
+
+            assignments?: {
+                fields?: {
+                    coverageProvider?: boolean;
+                    assignmentPriority?: boolean;
+                };
+            };
         };
     }
 }

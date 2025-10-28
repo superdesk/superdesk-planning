@@ -20,6 +20,7 @@ import {UserAvatar} from '../../../components/UserAvatar';
 import {TO_BE_CONFIRMED_FIELD} from '../../../constants';
 import {IconButton, Label, Spacer, Tooltip} from 'superdesk-ui-framework/react';
 import {superdeskApi} from '../../../superdeskApi';
+import {assignmentFieldsConfig} from '../../Coverages/assignmentFieldsConfig';
 
 export const AssignmentPreviewHeader = ({
     assignment,
@@ -127,7 +128,7 @@ export const AssignmentPreviewHeader = ({
                             )}
                         </span>
 
-                        {coverageProvider && (
+                        {(assignmentFieldsConfig.coverageProvider && coverageProvider) && (
                             <Spacer h gap="4" justifyContent="start" noWrap>
                                 <span className="sd-list-item__normal">
                                     {gettext('Coverage Provider:')}
@@ -160,12 +161,16 @@ export const AssignmentPreviewHeader = ({
                                         coverageIcon)}
                                 />
                             </Tooltip>
-                            <PriorityLabel
-                                item={assignment}
-                                priorities={priorities}
-                                tooltipFlow="right"
-                                inline={true}
-                            />
+
+                            {assignmentFieldsConfig.assignmentPriority && (
+                                <PriorityLabel
+                                    item={assignment}
+                                    priorities={priorities}
+                                    tooltipFlow="right"
+                                    inline={true}
+                                />
+                            )}
+
                             <StateLabel
                                 item={assignedTo}
                                 inline={true}
