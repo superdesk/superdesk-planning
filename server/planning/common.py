@@ -16,7 +16,7 @@ import json
 from bson import ObjectId
 from collections import namedtuple
 from eve.utils import ParsedRequest
-from datetime import timedelta, datetime
+from datetime import timedelta, datetime, timezone
 from werkzeug.datastructures import MultiDict
 from quart_babel import gettext
 
