@@ -182,7 +182,7 @@ declare module 'superdesk-api' {
         external_contacts?: {
             create_url: string;
             edit_url: string;
-        }
+        };
 
         planning?: {
             dateformat?: string;

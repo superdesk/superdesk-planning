@@ -1,6 +1,7 @@
 import React from 'react';
 import {connect} from 'react-redux';
 
+import {appConfig} from 'appConfig';
 import {superdeskApi} from '../../superdeskApi';
 import {IContactItem, IPrivileges} from '../../interfaces';
 
@@ -8,7 +9,6 @@ import * as selectors from '../../selectors';
 import * as actions from '../../actions';
 
 import {ContactEditor, SelectSearchContactsField, ContactsPreviewList} from './index';
-import {planningConfig} from '../../config';
 
 interface IBaseProps {
     field: string;
@@ -72,7 +72,7 @@ export class ContactFieldComponent extends React.Component<IProps, IState> {
     }
 
     onContactEdit(contact?: IContactItem) {
-        const maybeConfig = planningConfig.external_contacts;
+        const maybeConfig = appConfig.external_contacts;
 
         if (maybeConfig != null) {
             const url = contact?._id != null
