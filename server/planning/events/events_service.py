@@ -352,6 +352,7 @@ class EventsAsyncService(BasePlanningAsyncService[EventResourceModel]):
                 etag=updates["_etag"],
                 recurrence_id=original.recurrence_id or None,
                 from_ingest=from_ingest,
+                type=original.get("type"),
             )
 
         await self.delete_event_files(updates, original.files)

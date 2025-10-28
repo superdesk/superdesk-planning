@@ -627,6 +627,7 @@ class EventsService(AsyncBaseService):
                 etag=updates["_etag"],
                 recurrence_id=original.get("recurrence_id") or None,
                 from_ingest=from_ingest,
+                type=original.get("type"),
             )
 
         await self.delete_event_files(updates, original)
