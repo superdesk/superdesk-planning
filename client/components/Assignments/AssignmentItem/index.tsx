@@ -162,7 +162,7 @@ export class AssignmentItem extends React.Component<IAssignmentItemProps, IState
                     firstLine={listViewConfig.firstLine}
                     secondLine={listViewConfig.secondLine}
                     renderFieldsWithProps={(fields) => {
-                        return fields.map((field) => {
+                        return fields.map((field, index) => {
                             const FieldComponent = getComponentForField(field.fieldId as AssignmentViewField);
 
                             const fieldsProps = {
@@ -179,10 +179,16 @@ export class AssignmentItem extends React.Component<IAssignmentItemProps, IState
 
                             return (
                                 <FieldComponent
+
+                                    /**
+                                     * Use index as a key since field.fieldId is not strictly unique,
+                                     * and we won't be sorting fields
+                                     */
+                                    key={index}
+
                                     assignment={this.props.assignment}
                                     fieldsProps={fieldsProps}
                                     fieldOptions={field.fieldOptions}
-                                    key={field.fieldId}
                                 />
                             );
                         });

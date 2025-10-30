@@ -12,6 +12,11 @@ import * as actions from '../../actions';
 import {ASSIGNMENTS, MODALS, WORKSPACE, ALL_DESKS} from '../../constants';
 import {getErrorMessage, assignmentUtils, gettext} from '../../utils';
 
+const COMPLETED_AND_IN_PROGRESS = [
+    ASSIGNMENTS.WORKFLOW_STATE.IN_PROGRESS,
+    ASSIGNMENTS.WORKFLOW_STATE.COMPLETED,
+];
+
 /**
  * Action dispatcher to load the list of assignments for current list settings.
  * @param {String} filterBy - the filter by desk or user ('Desk', 'User')
@@ -45,7 +50,7 @@ const loadAssignments = ({
     );
 
     return dispatch(
-        self.reloadAssignments(null, false)
+        self.reloadAssignments(null)
     );
 };
 
@@ -55,7 +60,7 @@ const loadAssignments = ({
  * @param {Array<String>} groupKeys - Array of keys for the list groups to show
  */
 const loadFulfillModal = (item, groupKeys) => (
-    (dispatch, getState, {desks}) => {
+    (dispatch) => {
         dispatch(self.setListGroups(groupKeys));
 
         const searchQuery = get(item, 'slugline') ?
@@ -147,7 +152,7 @@ const reloadAssignmentList = (list, resetPage = true) => (
             ));
         }
 
-        return dispatch(self.queryAndSetAssignmentListGroups(list));
+        return dispatch(self.queryAndSetAssignmentListGroups(list, resetPage));
     }
 );
 
@@ -161,42 +166,47 @@ const updatePreviewItemOnRouteUpdate = () => (
                 get(selectors.getStoredAssignments(getState()), urlItem);
 
             if (!assignment) {
-                // Fetch it from backend
                 return dispatch(assignments.api.fetchAssignmentById(urlItem, false, false))
                     .then((item) => {
-                        if (item) {
-                            // Preview only if user is a member of that assignment's desk
-                            const currentUserId = selectors.general.currentUserId(getState());
-                            const user = desks.deskMembers[item.assigned_to.desk].find(
-                                (u) => u._id === currentUserId);
-
-                            if (user) {
-                            // For previewing, add it to the store even though it might be from another
-                                dispatch(assignments.api.receivedAssignments([item]));
-                                return dispatch(self.preview(item));
-                            } else {
-                                notify.error('Insufficient privileges to view the assignment');
-                                $location.search('assignment', null);
-                                return dispatch(self.closePreview());
-                            }
+                        if (!item) {
+                            return;
                         }
-                    },
-                    () => {
+
+                        // Preview only if user is a member of that assignment's desk
+                        const currentUserId = selectors.general.currentUserId(getState());
+                        const user = desks.deskMembers[item.assigned_to.desk].find(
+                            (u) => u._id === currentUserId);
+
+                        if (!user) {
+                            notify.error('Insufficient privileges to view the assignment');
+                            $location.search('assignment', null);
+                            return dispatch(self.closePreview());
+                        }
+
+                        // For previewing, add it to the store even though it might be from another
+                        dispatch(assignments.api.receivedAssignments([item]));
+
+                        return dispatch(self.preview(item));
+                    })
+                    .catch(() => {
                         notify.error('Assignment does not exist');
+
                         return dispatch(self.closePreview());
                     });
-            } else {
-                return dispatch(self.preview(assignment));
             }
-        } else {
-            return Promise.resolve();
+
+            return dispatch(self.preview(assignment));
         }
+
+        return Promise.resolve();
     }
 );
 
-const queryAndSetAssignmentListGroups = (groupKey, page = 1) => (
+const queryAndSetAssignmentListGroups = (groupKey, reloadList = false, page = 1) => (
     (dispatch, getState) => {
-        dispatch(assignments.ui.setLoading(groupKey, true));
+        if (reloadList) {
+            dispatch(assignments.ui.setLoading(groupKey, true));
+        }
 
         let querySearchSettings = cloneDeep(selectors.getAssignmentSearch(getState()));
         const assignmentListSelectors = selectors.getAssignmentGroupSelectors[groupKey];
@@ -236,7 +246,9 @@ const queryAndSetAssignmentListGroups = (groupKey, page = 1) => (
                 return Promise.resolve(data._items);
             })
             .finally(() => {
-                dispatch(assignments.ui.setLoading(groupKey, false));
+                if (reloadList) {
+                    dispatch(assignments.ui.setLoading(groupKey, false));
+                }
             });
     }
 );
@@ -260,7 +272,7 @@ const loadMoreAssignments = (groupKey) => (
         const page = lastLoadedPageForListGroup + 1 || 1;
 
         dispatch(self.changeLastAssignmentLoadedPage(listGroup, page));
-        return dispatch(self.queryAndSetAssignmentListGroups(groupKey, page));
+        return dispatch(self.queryAndSetAssignmentListGroups(groupKey, true, page));
     }
 );
 
@@ -337,7 +349,8 @@ function setAssignmentSearchParams(params) {
             type: ASSIGNMENTS.ACTIONS.SET_SEARCH_PARAMS,
             payload: params,
         });
-        return dispatch(self.reloadAssignments(null, false));
+
+        return dispatch(self.reloadAssignments(null, true));
     };
 }
 
@@ -385,7 +398,7 @@ const preview = (
     initialTab?: 'ASSIGNMENT' | 'CONTENT' | 'HISTORY',
     archiveItem?: IArticle,
 ) => (
-    (dispatch, getState, {$timeout, $location}) => (
+    (dispatch, _getState, {$timeout, $location}) => (
         dispatch(assignments.api.loadPlanningAndEvent(assignment))
             .then(() => {
                 $timeout(() => $location.search('assignment', get(assignment, '_id', null)));
@@ -406,7 +419,7 @@ const preview = (
  * @return object
  */
 const closePreview = () => (
-    (dispatch, getState, {$timeout, $location}) => {
+    (dispatch, _getState, {$timeout, $location}) => {
         $timeout(() => $location.search('assignment', null));
         return dispatch({type: ASSIGNMENTS.ACTIONS.CLOSE_PREVIEW_ASSIGNMENT});
     }
@@ -494,7 +507,7 @@ const onFulFilAssignment = (assignment) => (
 );
 
 function complete(item: IAssignmentItem) {
-    return (dispatch, getState, {notify}) => (
+    return (dispatch, _getState, {notify}) => (
         planningApi.locks.lockItem(item, 'complete')
             .then((lockedItem) => {
                 dispatch(assignments.api.complete(lockedItem))
@@ -556,7 +569,7 @@ function revert(item: IAssignmentItem) {
  * @param {object} item
  */
 const onAuthoringMenuClick = (action, type, item) => (
-    (dispatch, getState, {superdesk}) => {
+    (_dispatch, _getState, {superdesk}) => {
         superdesk.intent(action, type, {item: item})
             .then(
                 () => Promise.resolve(item),
@@ -572,16 +585,19 @@ const onAuthoringMenuClick = (action, type, item) => (
  * @param {object} assignment - The Assignment to view content for
  */
 const openArchivePreview = (assignment) => (
-    (dispatch, getState, {authoringWorkspace, notify}) => (
-        assignmentUtils.assignmentHasContent(assignment) ?
-            dispatch(assignments.api.loadArchiveItem(assignment))
-                .then((item) => {
-                    dispatch(self.closePreview());
-                    authoringWorkspace.view(item);
-                    return Promise.resolve(item);
-                }, (error) => Promise.reject(error)) :
-            Promise.resolve()
-    )
+    (dispatch, _getState, {authoringWorkspace}) => {
+        if (!assignmentUtils.assignmentHasContent(assignment)) {
+            return Promise.resolve();
+        }
+
+        return dispatch(assignments.api.loadArchiveItem(assignment))
+            .then((item) => {
+                dispatch(self.closePreview());
+                authoringWorkspace.view(item);
+                return Promise.resolve(item);
+            })
+            .catch((error) => Promise.reject(error));
+    }
 );
 
 /**
@@ -590,13 +606,13 @@ const openArchivePreview = (assignment) => (
  * @param {object} item - The Archive item to preview
  */
 const onArchivePreviewImageClick = (item) => (
-    (dispatch, getState, {superdesk}) => (
+    (_dispatch, _getState, {superdesk}) => (
         superdesk.intent('preview', 'item', item)
     )
 );
 
 const canLinkItem = (item) => (
-    (dispatch, getState, {lock, authoring, archiveService}) => (
+    (_dispatch, _getState, {lock, authoring, archiveService}) => (
         Promise.resolve(
             !item.assignment_id &&
             (!lock.isLocked(item) || lock.isLockedInCurrentSession(item)) &&
@@ -606,11 +622,11 @@ const canLinkItem = (item) => (
 );
 
 function validateStartWorkingOnScheduledUpdate(assignment: IAssignmentItem) {
-    return (dispatch, getState, {notify}) => (
+    return (_dispatch, _getState, {notify}) => (
         // Validate the coverage to see if all preceeding scheduled_updates / coverage
         // is linked to an item
-        planningApi.planning.getById(assignment.planning_item, false).then(
-            (plannings) => {
+        planningApi.planning.getById(assignment.planning_item, false)
+            .then((plannings) => {
                 const planning = get(plannings, '[0]');
 
                 if (!planning) {
@@ -621,7 +637,7 @@ function validateStartWorkingOnScheduledUpdate(assignment: IAssignmentItem) {
                 const coverage = get(planning, 'coverages', []).find((c) =>
                     c.coverage_id === assignment.coverage_item);
 
-                if (![ASSIGNMENTS.WORKFLOW_STATE.IN_PROGRESS, ASSIGNMENTS.WORKFLOW_STATE.COMPLETED].includes(
+                if (!COMPLETED_AND_IN_PROGRESS.includes(
                     get(coverage, 'assigned_to.state'))) {
                     notify.error(gettext('Parent coverage not linked to a news item yet.'));
                     return Promise.reject();
@@ -637,16 +653,17 @@ function validateStartWorkingOnScheduledUpdate(assignment: IAssignmentItem) {
                     return Promise.reject();
                 }) - 1;
 
-                if (previousScheduledUpdateIndex >= 0 && ![ASSIGNMENTS.WORKFLOW_STATE.IN_PROGRESS,
-                    ASSIGNMENTS.WORKFLOW_STATE.COMPLETED].includes(get(
-                    coverage, `scheduled_updates[${previousScheduledUpdateIndex}].assigned_to.state`))) {
+                if (previousScheduledUpdateIndex >= 0
+                    && !COMPLETED_AND_IN_PROGRESS.includes(
+                        get(coverage, `scheduled_updates[${previousScheduledUpdateIndex}].assigned_to.state`)
+                    )
+                ) {
                     notify.error(gettext('Previous scheduled update is not linked to a news item yet.'));
                     return Promise.reject();
                 }
 
                 return Promise.resolve();
-            }
-        )
+            })
     );
 }
 
@@ -659,7 +676,7 @@ function startWorking(assignment: IAssignmentItem) {
         }
 
         promise.then(() =>
-            (planningApi.locks.lockItem(assignment, 'start_working')
+            planningApi.locks.lockItem(assignment, 'start_working')
                 .then((lockedAssignment) => {
                     const defaultTemplateId = assignmentUtils
                         .getCurrentSelectedDesk(desks, getState())?.default_content_template ?? null;
@@ -707,9 +724,9 @@ function startWorking(assignment: IAssignmentItem) {
                             },
                         }));
                     });
-                }, (error) => Promise.reject(error))
-            ), (error) => Promise.resolve()
-        );
+                })
+                .catch((error) => Promise.reject(error))
+        ).catch(() => Promise.resolve());
     };
 }
 

@@ -10,7 +10,6 @@ import * as selectors from '../../selectors';
 import assignments from './index';
 import main from '../main';
 import {hideModal, showModal} from '../index';
-import * as actions from '../../actions';
 import planningApis from '../planning/api';
 
 const _notifyAssignmentEdited = (assignmentId) => (
@@ -59,7 +58,7 @@ const onAssignmentCreated = (_e, data) => (
         if (querySearchSettings.deskIds == null || querySearchSettings.deskIds.length > 0 &&
             (currentDesk === data.assigned_desk || currentDesk === data.original_assigned_desk)
         ) {
-            dispatch(assignments.ui.reloadAssignments([data.assignment_state]));
+            dispatch(assignments.ui.reloadAssignments([data.assignment_state], false));
         }
 
         return Promise.resolve();
@@ -103,7 +102,7 @@ const onAssignmentUpdated = (_e, data) => (
             currentDesk === data.original_assigned_desk
         ) {
             dispatch(assignments.api.fetchAssignmentHistory({_id: data.item}));
-            dispatch(assignments.ui.reloadAssignments([data.assignment_state]));
+            dispatch(assignments.ui.reloadAssignments([data.assignment_state], false));
 
             dispatch(assignments.api.fetchAssignmentById(data.item))
                 .then((assignmentInStore) => {
@@ -122,18 +121,20 @@ const onAssignmentUpdated = (_e, data) => (
 
                         if (newGroups[0] !== originalGroups[0]) {
                             dispatch(assignments.ui.reloadAssignments(
-                                [assignmentInStore.assigned_to.state])
-                            );
+                                [assignmentInStore.assigned_to.state],
+                                false,
+                            ));
                         }
                     }
                 });
 
             if (data.assignment_state === ASSIGNMENTS.WORKFLOW_STATE.CANCELLED ||
-                 data.assignment_state === ASSIGNMENTS.WORKFLOW_STATE.IN_PROGRESS) {
+                data.assignment_state === ASSIGNMENTS.WORKFLOW_STATE.IN_PROGRESS) {
                 // If we are in authoring workspace (fulfilment) and assignment is previewed,
                 // close it
-                if (selectors.general.currentWorkspace(getState()) === WORKSPACE.AUTHORING &&
-                        selectors.getCurrentAssignmentId(getState()) === data.item) {
+                if (selectors.general.currentWorkspace(getState()) === WORKSPACE.AUTHORING
+                    && selectors.getCurrentAssignmentId(getState()) === data.item
+                ) {
                     dispatch(assignments.ui.closePreview());
                 }
             }
@@ -201,6 +202,7 @@ function onAssignmentLocked(_e, data: IWebsocketMessageData['ITEM_LOCKED']) {
     return (dispatch) => {
         if (get(data, 'item') && data.clientId !== superdeskApi.session.getUniqueClientId()) {
             planningApi.locks.setItemAsLocked(data);
+
             return dispatch(assignments.api.fetchAssignmentById(data.item, false))
                 .then((assignmentInStore) => {
                     let item = {
@@ -260,8 +262,8 @@ function onAssignmentUnlocked(_e, data: IWebsocketMessageData['ITEM_UNLOCKED']) 
 
                     // If this is the planning item currently being edited, show popup notification
                     if (itemLock !== null &&
-                    data.lock_session !== sessionId &&
-                    itemLock.session === sessionId
+                        data.lock_session !== sessionId &&
+                        itemLock.session === sessionId
                     ) {
                         const user = selectors.general.users(getState()).find((u) => u._id === data.user);
 
@@ -271,7 +273,7 @@ function onAssignmentUnlocked(_e, data: IWebsocketMessageData['ITEM_UNLOCKED']) 
                             modalProps: {
                                 title: 'Item Unlocked',
                                 body: 'The assignment item you were editing was unlocked by "' +
-                                user.display_name + '"',
+                                    user.display_name + '"',
                             },
                         }));
                     }
@@ -322,19 +324,22 @@ const onAssignmentRemoved = (_e, data) => (
 );
 
 const onAssignmentDeleteFailed = (_e, data) => (
-    (dispatch, getState, {notify}) => {
+    (_dispatch, getState, {notify}) => {
         const currentUserId = selectors.general.currentUserId(getState());
         const sessionId = selectors.general.sessionId(getState());
 
-        if (get(data, 'items.length', 0) > 0 &&
-                get(data, 'user') === currentUserId &&
-                get(data, 'session') === sessionId) {
-            const msg = data.items.map((i) => gettext('There is a {{ type }} assignment \'{{ slugline }}\' {{ state }}',
+        if ((data.items?.length ?? 0) > 0 &&
+            data.user === currentUserId &&
+            data.session === sessionId
+        ) {
+            const msg = data.items.map((i) => gettext(
+                'There is a {{ type }} assignment \'{{ slugline }}\' {{ state }}',
                 {
                     state: get(i, 'state'),
                     type: get(i, 'type'),
                     slugline: get(i, 'slugline'),
-                })).join('\n');
+                }
+            )).join('\n');
 
             notify.warning(msg);
         }
