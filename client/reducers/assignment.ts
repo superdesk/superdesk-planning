@@ -1,4 +1,4 @@
-import {uniq, keyBy, get, filter} from 'lodash';
+import {uniq, keyBy} from 'lodash';
 import {produce} from 'immer';
 import {ASSIGNMENTS, RESET_STORE, INIT_STORE, SORT_DIRECTION} from '../constants';
 import moment from 'moment';
@@ -70,11 +70,10 @@ const initialState = {
 };
 
 const modifyAssignmentBeingAdded = (payload) => {
-    // payload must be an array. If not, we transform
     const assignments = Array.isArray(payload) ? payload : [payload];
 
     assignments.forEach((assignment) => {
-        if (get(assignment, 'planning.scheduled')) {
+        if (assignment.planning?.scheduled) {
             assignment.planning.scheduled = moment(assignment.planning.scheduled);
         }
     });
@@ -124,11 +123,7 @@ const filterList = (state, listId, assignmentId) => {
         return;
     }
 
-    state.lists[listId].assignmentIds = filter(
-        state.lists[listId].assignmentIds,
-        (aid) => aid !== assignmentId
-    );
-
+    state.lists[listId].assignmentIds = state.lists[listId].assignmentIds.filter((id) => id != assignmentId);
     state.lists[listId].total = state.lists[listId].total - 1;
 };
 
@@ -137,19 +132,15 @@ const assignmentReducer = createReducer(initialState, {
 
     [INIT_STORE]: () => (initialState),
 
-    [ASSIGNMENTS.ACTIONS.RECEIVED_ASSIGNMENTS]: (state, payload) => {
+    [ASSIGNMENTS.ACTIONS.RECEIVED_ASSIGNMENTS]: produce((state, payload) => {
         const receivedAssignments = modifyAssignmentBeingAdded(payload);
 
-        return produce(state, (draftState) => {
-            Object.assign(draftState.assignments, receivedAssignments);
+        Object.assign(state.assignments, receivedAssignments);
 
-            return draftState;
-        });
-    },
+        return state;
+    }),
 
-    [ASSIGNMENTS.ACTIONS.SET_LIST_ITEMS]: (state, payload) => (
-        setList(state, payload)
-    ),
+    [ASSIGNMENTS.ACTIONS.SET_LIST_ITEMS]: setList,
 
     [ASSIGNMENTS.ACTIONS.MY_ASSIGNMENTS_TOTAL]: produce((state, payload) => {
         state.myAssignmentsTotal = payload;
@@ -167,17 +158,11 @@ const assignmentReducer = createReducer(initialState, {
         return state;
     }),
 
-    [ASSIGNMENTS.ACTIONS.SET_LIST_PAGE]: (state, payload) => (
-        setLastPage(state, payload)
-    ),
+    [ASSIGNMENTS.ACTIONS.SET_LIST_PAGE]: setLastPage,
 
-    [ASSIGNMENTS.ACTIONS.SET_GROUP_SORT_ORDER]: (state, payload) => (
-        setListSortOrder(state, payload)
-    ),
+    [ASSIGNMENTS.ACTIONS.SET_GROUP_SORT_ORDER]: setListSortOrder,
 
-    [ASSIGNMENTS.ACTIONS.SET_LOADING]: (state, payload) => (
-        setGroupLoading(state, payload)
-    ),
+    [ASSIGNMENTS.ACTIONS.SET_LOADING]: setGroupLoading,
 
     [ASSIGNMENTS.ACTIONS.SET_SORT_FIELD]: produce((state, payload) => {
         state.orderByField = payload;
@@ -252,7 +237,7 @@ const assignmentReducer = createReducer(initialState, {
         return state;
     }),
 
-    [ASSIGNMENTS.ACTIONS.RECEIVED_ARCHIVE]: (state, payload) => {
+    [ASSIGNMENTS.ACTIONS.RECEIVED_ARCHIVE]: produce((state, payload) => {
         // Store Archive items by their ID
         const newItems = (Array.isArray(payload) ? payload : [payload])
             .reduce((archiveItems, item) => {
@@ -261,25 +246,23 @@ const assignmentReducer = createReducer(initialState, {
                 return archiveItems;
             }, {});
 
-        return produce(state, (draftState) => {
-            Object.assign(draftState.archive, newItems);
+        Object.assign(state.archive, newItems);
 
-            return draftState;
-        });
-    },
+        return state;
+    }),
 
     [ASSIGNMENTS.ACTIONS.REMOVE_ASSIGNMENT]: produce((state, payload) => {
         // Remove the assignment from the stored list of assignments
-        (payload.assignments ?? []).forEach((a) => {
-            if (!(a in state.assignments)) {
+        (payload.assignments ?? []).forEach((itemId) => {
+            if (!(itemId in state.assignments)) {
                 return;
             }
 
-            delete state.assignments[a];
+            delete state.assignments[itemId];
 
             // If this assignment is being viewed,
             // then close the preview and de-select the assignment
-            if (state.currentAssignmentId === a) {
+            if (state.currentAssignmentId === itemId) {
                 state.previewOpened = false;
                 state.currentAssignmentId = null;
                 state.initialTab = null;
@@ -287,12 +270,12 @@ const assignmentReducer = createReducer(initialState, {
             }
 
             // Remove this assignment from any list groups
-            filterList(state, ASSIGNMENTS.LIST_GROUPS.IN_PROGRESS.id, a);
-            filterList(state, ASSIGNMENTS.LIST_GROUPS.TODO.id, a);
-            filterList(state, ASSIGNMENTS.LIST_GROUPS.COMPLETED.id, a);
-            filterList(state, ASSIGNMENTS.LIST_GROUPS.CURRENT.id, a);
-            filterList(state, ASSIGNMENTS.LIST_GROUPS.TODAY.id, a);
-            filterList(state, ASSIGNMENTS.LIST_GROUPS.FUTURE.id, a);
+            filterList(state, ASSIGNMENTS.LIST_GROUPS.IN_PROGRESS.id, itemId);
+            filterList(state, ASSIGNMENTS.LIST_GROUPS.TODO.id, itemId);
+            filterList(state, ASSIGNMENTS.LIST_GROUPS.COMPLETED.id, itemId);
+            filterList(state, ASSIGNMENTS.LIST_GROUPS.CURRENT.id, itemId);
+            filterList(state, ASSIGNMENTS.LIST_GROUPS.TODAY.id, itemId);
+            filterList(state, ASSIGNMENTS.LIST_GROUPS.FUTURE.id, itemId);
         });
 
         return state;

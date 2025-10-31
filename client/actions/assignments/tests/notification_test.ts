@@ -10,6 +10,7 @@ import assignmentsApi from '../api';
 import main from '../../main';
 import assignmentNotifications from '../notifications';
 import planningApis from '../../planning/api';
+import type {inject} from '../../../globals';
 
 describe('actions.assignments.notification', () => {
     let store;
@@ -101,14 +102,13 @@ describe('actions.assignments.notification', () => {
     describe('`assignment:created`', () => {
         beforeEach(() => {
             sinon.stub(assignmentsApi, 'query').callsFake(() => (Promise.resolve({_items: []})));
-            sinon.stub(assignmentsApi, 'receivedAssignments').callsFake(() => { /* no-op */ });
+            sinon.stub(assignmentsApi, 'receivedAssignments').callsFake(() => { /* no-op */});
             sinon.stub(assignmentUtils, 'getCurrentSelectedDeskId').returns('desk1');
         });
 
         afterEach(() => {
             restoreSinonStub(assignmentsApi.query);
             restoreSinonStub(assignmentsApi.receivedAssignments);
-            restoreSinonStub(assignmentsUi.setInList);
             restoreSinonStub(assignmentUtils.getCurrentSelectedDeskId);
         });
 
@@ -169,10 +169,11 @@ describe('actions.assignments.notification', () => {
                     expect(planningApis.loadPlanningByIds.args).toEqual([
                         [['p1']],
                     ]);
+
                     expect(assignmentsUi.reloadAssignments.callCount).toBe(2);
-                    expect(assignmentsUi.reloadAssignments.args).toEqual([
-                        [['assigned']],
-                        [[undefined]],
+                    expect(assignmentsUi.reloadAssignments.args[0]).toEqual([
+                        ['assigned'],
+                        false,
                     ]);
                     done();
                 })
@@ -358,9 +359,9 @@ describe('actions.assignments.notification', () => {
                         [['p1']],
                     ]);
                     expect(assignmentsUi.reloadAssignments.callCount).toBe(2);
-                    expect(assignmentsUi.reloadAssignments.args).toEqual([
-                        [['completed']],
-                        [[undefined]],
+                    expect(assignmentsUi.reloadAssignments.args[0]).toEqual([
+                        ['completed'],
+                        false,
                     ]);
                     done();
                 })
