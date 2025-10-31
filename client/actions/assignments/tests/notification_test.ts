@@ -11,6 +11,7 @@ import main from '../../main';
 import assignmentNotifications from '../notifications';
 import planningApis from '../../planning/api';
 import type {inject} from '../../../globals';
+import {noop} from 'lodash';
 
 describe('actions.assignments.notification', () => {
     let store;
@@ -102,7 +103,7 @@ describe('actions.assignments.notification', () => {
     describe('`assignment:created`', () => {
         beforeEach(() => {
             sinon.stub(assignmentsApi, 'query').callsFake(() => (Promise.resolve({_items: []})));
-            sinon.stub(assignmentsApi, 'receivedAssignments').callsFake(() => { /* no-op */});
+            sinon.stub(assignmentsApi, 'receivedAssignments').callsFake(noop);
             sinon.stub(assignmentUtils, 'getCurrentSelectedDeskId').returns('desk1');
         });
 

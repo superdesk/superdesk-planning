@@ -6,6 +6,7 @@ import assignmentsApi from '../api';
 import {getTestActionStore, restoreSinonStub} from '../../../utils/testUtils';
 import * as testData from '../../../utils/testData';
 import {ASSIGNMENTS, ALL_DESKS} from '../../../constants';
+import {noop} from 'lodash';
 
 describe('actions.assignments.ui', () => {
     let store;
@@ -62,7 +63,7 @@ describe('actions.assignments.ui', () => {
             restoreSinonStub(assignmentsApi.link);
             sinon.stub(assignmentsApi, 'link').callsFake(() => (Promise.reject(errorMessage)));
             store.test(done, assignmentsUi.onFulFilAssignment({_id: 'as1'}))
-                .then(() => { /* no-op */}, (error) => {
+                .then(noop, (error) => {
                     expect(assignmentsApi.link.callCount).toBe(1);
                     expect(assignmentsApi.link.args[0]).toEqual([{_id: 'as1'}, {_id: 'item1'}, true]);
                     expect(error).toEqual(errorMessage);
@@ -344,7 +345,7 @@ describe('actions.assignments.ui', () => {
             sinon.stub(assignmentsApi, 'loadArchiveItem').returns(Promise.reject(errorMessage));
             data.assignments[0].item_ids = ['item1'];
             return store.test(done, assignmentsUi.openArchivePreview(data.assignments[0]))
-                .then(() => { /* no-op */}, (error) => {
+                .then(noop, (error) => {
                     expect(error).toEqual(errorMessage);
 
                     expect(assignmentsApi.loadArchiveItem.callCount).toBe(1);
