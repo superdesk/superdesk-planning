@@ -35,6 +35,7 @@ assigned_to_schema = {
             "assignment_id": not_analyzed,
             "state": not_analyzed,
             "contact": not_analyzed,
+            "user": not_analyzed,
         },
     },
 }
