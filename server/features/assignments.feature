@@ -2414,3 +2414,172 @@ Feature: Assignments
             }
         }
         """
+
+    @auth
+    @planning_cvs
+    Scenario: Coverage assignee details copied to Assignment
+        When we post to "planning"
+        """
+        [{
+            "slugline": "test slugline",
+            "planning_date": "2042-06-30",
+            "coverages": [{
+                "planning": {
+                    "slugline": "test-cov-1",
+                    "g2_content_type": "text"
+                },
+                "assigned_to": {
+                    "desk": "#desks._id#",
+                    "user": "#CONTEXT_USER_ID#",
+                    "priority": 1
+                },
+                "news_coverage_status": {"qcode": "ncostat:int"},
+                "workflow_status": "assigned"
+            }, {
+                "planning": {
+                    "slugline": "test-cov-2",
+                    "g2_content_type": "text"
+                },
+                "assigned_to": {
+                    "desk": "#desks._id#",
+                    "priority": 3,
+                    "coverage_provider": {
+                        "qcode": "stringer",
+                        "name": "Stringer"
+                    }
+                },
+                "news_coverage_status": {"qcode": "ncostat:int"},
+                "workflow_status": "assigned"
+            }]
+        }]
+        """
+        Then we get OK response
+        And we store coverage id in "COVERAGE_1_ID" from coverage 0
+        And we store coverage id in "COVERAGE_2_ID" from coverage 1
+        And we store assignment id in "ASSIGNMENT_1_ID" from coverage 0
+        And we store assignment id in "ASSIGNMENT_2_ID" from coverage 1
+        When we get "/assignments"
+        Then we get list with 2 items
+        """
+        {"_items": [
+            {
+                "_id": "#ASSIGNMENT_1_ID#",
+                "priority": 1,
+                "assigned_to": {
+                    "desk": "#desks._id#",
+                    "user": "#CONTEXT_USER_ID#",
+                    "coverage_provider": "__no_value__"
+                }
+            },
+            {
+                "_id": "#ASSIGNMENT_2_ID#",
+                "priority": 3,
+                "assigned_to": {
+                    "desk": "#desks._id#",
+                    "user": null,
+                    "coverage_provider": {
+                        "qcode": "stringer",
+                        "name": "Stringer"
+                    }
+                }
+            }
+        ]}
+        """
+        When we patch "/planning/#planning._id#"
+        """
+        {"coverages": [{
+            "coverage_id": "#COVERAGE_1_ID#",
+            "planning": {
+                "slugline": "test-cov-1",
+                "g2_content_type": "text"
+            },
+            "assigned_to": {
+                "assignment_id": "#ASSIGNMENT_1_ID#",
+                "desk": "#desks._id#",
+                "user": null,
+                "coverage_provider": {
+                    "qcode": "stringer",
+                    "name": "Stringer"
+                },
+                "priority": 3
+            },
+            "news_coverage_status": {"qcode": "ncostat:int"},
+            "workflow_status": "assigned"
+        }, {
+            "coverage_id": "#COVERAGE_2_ID#",
+            "planning": {
+                "slugline": "test-cov-2",
+                "g2_content_type": "text"
+            },
+            "assigned_to": {
+                "assignment_id": "#ASSIGNMENT_2_ID#",
+                "desk": "#desks._id#",
+                "user": "#CONTEXT_USER_ID#",
+                "priority": 2
+            },
+            "news_coverage_status": {"qcode": "ncostat:int"},
+            "workflow_status": "assigned"
+        }]}
+        """
+        Then we get OK response
+        When we get "/planning/#planning._id#"
+        Then we get existing resource
+        """
+        {"coverages": [{
+            "coverage_id": "#COVERAGE_1_ID#",
+            "planning": {
+                "slugline": "test-cov-1",
+                "g2_content_type": "text"
+            },
+            "assigned_to": {
+                "assignment_id": "#ASSIGNMENT_1_ID#",
+                "desk": "#desks._id#",
+                "user": null,
+                "coverage_provider": {
+                    "qcode": "stringer",
+                    "name": "Stringer"
+                },
+                "priority": 3
+            },
+            "news_coverage_status": {"qcode": "ncostat:int"},
+            "workflow_status": "assigned"
+        }, {
+            "coverage_id": "#COVERAGE_2_ID#",
+            "planning": {
+                "slugline": "test-cov-2",
+                "g2_content_type": "text"
+            },
+            "assigned_to": {
+                "assignment_id": "#ASSIGNMENT_2_ID#",
+                "desk": "#desks._id#",
+                "user": "#CONTEXT_USER_ID#",
+                "priority": 2
+            },
+            "news_coverage_status": {"qcode": "ncostat:int"},
+            "workflow_status": "assigned"
+        }]}
+        """
+        When we get "/assignments"
+        Then we get list with 2 items
+        """
+        {"_items": [{
+            "_id": "#ASSIGNMENT_1_ID#",
+            "priority": 3,
+            "assigned_to": {
+                "desk": "#desks._id#",
+                "user": null,
+                "coverage_provider": {
+                    "qcode": "stringer",
+                    "name": "Stringer"
+                }
+            }
+        },
+        {
+            "_id": "#ASSIGNMENT_2_ID#",
+            "priority": 2,
+            "assigned_to": {
+                "desk": "#desks._id#",
+                "user": "#CONTEXT_USER_ID#"
+            }
+        }]}
+        """

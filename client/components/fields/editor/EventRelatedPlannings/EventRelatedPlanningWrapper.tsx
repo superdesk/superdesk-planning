@@ -1,6 +1,13 @@
 import React from 'react';
 import {EditorFieldEventRelatedPlanningsComponent} from './EventRelatedPlannings';
-import {IEditorFieldProps, ILockedItems, IProfileSchemaTypeList, ISearchProfile} from 'interfaces';
+import {
+    IEditorFieldProps,
+    IEventItem,
+    ILockedItems,
+    IPlanningItem,
+    IProfileSchemaTypeList,
+    ISearchProfile,
+} from 'interfaces';
 import * as selectors from '../../../../selectors';
 import {connect} from 'react-redux';
 

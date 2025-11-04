@@ -14,6 +14,7 @@ export const authoringStoragePlanningItemHttp: IAuthoringStorage<IPlanningItem> 
         (item) => planningUtils.modifyForClient(item) as IPlanningItem,
         1000,
     ),
+
     getEntity: (id) => {
         const {httpRequestJsonLocal} = superdeskApi;
 
@@ -32,26 +33,30 @@ export const authoringStoragePlanningItemHttp: IAuthoringStorage<IPlanningItem> 
     saveEntity: (current, original) => {
         const {httpRequestJsonLocal} = superdeskApi;
         const {generatePatch} = superdeskApi.utilities;
+        const patchData = omitFields(
+            generatePatch(
+                planningUtils.modifyForServer(original),
+                planningUtils.modifyForServer(current),
+            ),
+        );
 
         return httpRequestJsonLocal<IPlanningItem>({
             method: 'PATCH',
             path: `/planning/${original._id}`,
-            payload: omitFields(
-                generatePatch(
-                    planningUtils.modifyForServer(original),
-                    planningUtils.modifyForServer(current, original),
-                ),
-            ),
+            payload: patchData,
             headers: {
                 'If-Match': original._etag,
             },
         }).then(planningUtils.modifyForClient);
     },
+
     getContentProfile: (item) => {
         return Promise.resolve(getProfile('planning', item.language));
     },
+
     closeAuthoring: (_current, _original, _hasUnsavedChanges, _cancelAutosave, _doClose) => {
-        return Promise.resolve();
+        return Promise.resolve({cancelled: false});
     },
+
     getUserPreferences: () => ng.get('preferencesService').get()
 };

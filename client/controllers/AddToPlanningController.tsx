@@ -1,25 +1,16 @@
 import * as actions from '../actions';
-import {currentItem, currentItemType, planningProfile} from '../selectors/forms';
+import {currentItem, currentItemType} from '../selectors/forms';
 import React from 'react';
 import ReactDOM from 'react-dom';
 import {Provider} from 'react-redux';
 import {ModalsContainer} from '../components';
 import {planning} from '../actions';
-import {isEmpty, isNumber, noop} from 'lodash';
 import {registerNotifications, getErrorMessage, isExistingItem} from '../utils';
 import {WORKSPACE, MODALS, PLANNING} from '../constants';
-import {GET_LABEL_MAP} from 'superdesk-core/scripts/apps/workspace/content/constants';
-import {IArticle, IContentProfile} from 'superdesk-api';
+import {IArticle} from 'superdesk-api';
 import {authoringReactViewEnabled} from 'appConfig';
-import {planningApi, superdeskApi} from '../superdeskApi';
+import {planningApi} from '../superdeskApi';
 import {PLANNING_VIEW} from '../interfaces';
-
-const DEFAULT_PLANNING_SCHEMA = {
-    anpa_category: {required: true},
-    subject: {required: true},
-    slugline: {required: true},
-    urgency: {required: true},
-};
 
 const ADD_TO_PLANNING_LOCK = PLANNING.ITEM_ACTIONS.ADD_TO_PLANNING.lock_action;
 
@@ -226,16 +217,12 @@ export class AddToPlanningController {
     }
 
     getArchiveItemAndProfile(): Promise<{
-        newsItem: IArticle,
-        contentProfile: IContentProfile
+        newsItem: IArticle
     }> {
         return this.api.find('archive', this.item._id)
             .then((newsItem: IArticle) => {
-                const contentProfile = superdeskApi.entities.contentProfile.get(newsItem.profile);
-
                 return {
-                    newsItem,
-                    contentProfile
+                    newsItem
                 };
             }, (error) => {
                 this.notify.error(
@@ -248,28 +235,12 @@ export class AddToPlanningController {
 
     loadArchiveItem() {
         return this.getArchiveItemAndProfile()
-            .then(({newsItem, contentProfile}) => {
+            .then(({newsItem}) => {
                 const errMessages = [];
-                const profile = planningProfile(this.store.getState());
-                const planningSchema = profile.schema || DEFAULT_PLANNING_SCHEMA;
-                const requiredError = (field) => this.gettext('[{{ field }}] is a required field')
-                    .replace('{{ field }}', field);
-                const labels = GET_LABEL_MAP();
 
                 if (newsItem.assignment_id) {
                     errMessages.push(this.gettext('Item already linked to a Planning item'));
                 }
-
-                Object.keys(planningSchema)
-                    .filter((field) => (
-                        contentProfile.schema?.[field] != null &&
-                        planningSchema[field]?.required === true &&
-                        isEmpty(newsItem[field]) &&
-                        !isNumber(newsItem[field])
-                    ))
-                    .forEach((field) => {
-                        errMessages.push(requiredError(labels[field] || field));
-                    });
 
                 if (errMessages.length) {
                     errMessages.forEach((err) => {

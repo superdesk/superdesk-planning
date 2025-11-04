@@ -3,7 +3,7 @@ import {IAuthoringAutoSave, IAuthoringStorage} from 'superdesk-api';
 import {getProfile} from './profile';
 import {autosave} from '../../api/autosave';
 import {superdeskApi} from '../../superdeskApi';
-import {IEventOrPlanningItem} from 'interfaces';
+import {IEventOrPlanningItem} from '../../interfaces';
 
 export function getAuthoringStorageInMemory<T extends IEventOrPlanningItem>(
     profile: 'event' | 'planning',
@@ -90,7 +90,7 @@ export function getAuthoringStorageInMemory<T extends IEventOrPlanningItem>(
         },
 
         closeAuthoring: (_current, original, hasUnsavedChanges, _cancelAutosave, doClose) => {
-            return Promise.resolve();
+            return Promise.resolve({cancelled: false});
         },
 
         getUserPreferences: () => ng.get('preferencesService').get()

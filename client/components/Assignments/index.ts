@@ -1,4 +1,3 @@
-export {AssignmentPopup} from './AssignmentPopup';
 export {AssignmentEditor} from './AssignmentEditor';
 export {SubNavBar} from './SubNavBar';
 export {FiltersBar} from './FiltersBar';

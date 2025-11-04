@@ -11,6 +11,7 @@ import * as featuredPlanning from './featuredPlanning';
 import * as locations from './locations';
 import * as editors from './editors';
 import * as workspace from './workspace';
+import * as coverageProfiles from './coverageProfiles';
 
 export * from './assignments';
 
@@ -28,4 +29,5 @@ export {
     locations,
     editors,
     workspace,
+    coverageProfiles,
 };

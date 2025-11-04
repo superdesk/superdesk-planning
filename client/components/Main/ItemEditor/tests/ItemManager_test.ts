@@ -6,10 +6,12 @@ import {planningApi} from '../../../../superdeskApi';
 import {main} from '../../../../actions';
 import {EVENTS} from '../../../../constants';
 import {getItemInArrayById, itemsEqual, timeUtils, updateFormValues, removeAutosaveFields} from '../../../../utils';
+import {convertEventDatesForTimezone} from '../../../../utils/events';
 import {restoreSinonStub, waitFor} from '../../../../utils/testUtils';
 import * as testData from '../../../../utils/testData';
 import {ItemManager} from '../ItemManager';
 import {EDITOR_TYPE} from 'interfaces';
+import * as saveHandling from '../../../../components/editor-standalone/save-handling';
 
 describe('components.Main.ItemManager', () => {
     let editor;
@@ -525,11 +527,13 @@ describe('components.Main.ItemManager', () => {
                         editor.props,
                         testData.events[0],
                     ]);
+                    const expectedDiff = cloneDeep(testData.events[0]);
 
+                    convertEventDatesForTimezone(expectedDiff);
                     expectState({
                         initialValues: testData.events[0],
                         diff: {
-                            ...testData.events[0],
+                            ...expectedDiff,
                             associated_plannings: [testData.plannings[1]],
                         },
                         dirty: false,
@@ -1151,6 +1155,8 @@ describe('components.Main.ItemManager', () => {
                 diff: item,
             });
 
+            sinon.stub(saveHandling, 'handleEmbeddedItems').returns(Promise.resolve([testData.plannings[1]]));
+
             manager._save()
                 .then(() => {
                     expect(main.save.callCount).toBe(1);
@@ -1183,7 +1189,10 @@ describe('components.Main.ItemManager', () => {
 
                     done();
                 })
-                .catch(done.fail);
+                .catch(done.fail)
+                .finally(() => {
+                    restoreSinonStub(saveHandling.handleEmbeddedItems);
+                });
         });
 
         it('sets submitting to false if main.save fails', (done) => {
@@ -1259,7 +1268,7 @@ describe('components.Main.ItemManager', () => {
                             _etag: 'e789',
                             state: 'scheduled',
                             pubstatus: 'usable',
-                        })
+                        }, true, true)
                     );
                     expect(editor.autoSave.flushAutosave.callCount).toBe(2);
 
@@ -1327,7 +1336,7 @@ describe('components.Main.ItemManager', () => {
                             _etag: 'e789',
                             state: 'killed',
                             pubstatus: 'cancelled',
-                        })
+                        }, true, true)
                     );
                     expect(editor.autoSave.flushAutosave.callCount).toBe(2);
 

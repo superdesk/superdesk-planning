@@ -44,7 +44,7 @@ export class EditorFieldPlanningDateTime extends React.PureComponent<IProps> {
     }
 
     formatValue(value: moment.Moment) : moment.MomentInput {
-        return this.allDay ? value.format('YYYY-MM-DD') : value;
+        return this.allDay ? moment.utc(value.format('YYYY-MM-DD')) : value;
     }
 
     render() {

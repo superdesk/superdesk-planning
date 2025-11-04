@@ -235,6 +235,7 @@ class PlanningAsyncService(BasePlanningAsyncService[PlanningResourceModel]):
                 event_ids=get_related_event_ids_for_planning(doc, "primary"),  # Event IDs for primary events,
                 recurrence_id=original.get("recurrence_id") or None,
                 from_ingest=False,
+                type=original.get("type"),
                 # from_ingest=from_ingest, # TODO-ASYNC: adjust when we know how to tackle this
             )
 

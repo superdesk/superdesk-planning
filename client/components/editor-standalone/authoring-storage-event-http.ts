@@ -4,7 +4,8 @@ import {superdeskApi} from '../../superdeskApi';
 import {getProfile} from './profile';
 import {omitFields} from './utils';
 import {AutoSaveHttp} from './authoring-autosave';
-import {eventUtils, getErrorMessage, gettext, notifyError} from '../../utils';
+import {eventUtils, getErrorMessage, gettext} from '../../utils';
+import {IEventItem} from '../../interfaces';
 
 export const authoringStorageEventItemHttp: IAuthoringStorage<IEventItem> = {
     autosave: new AutoSaveHttp<IEventItem>(
@@ -52,11 +53,14 @@ export const authoringStorageEventItemHttp: IAuthoringStorage<IEventItem> = {
             return original;
         });
     },
+
     getContentProfile: (item) => {
         return Promise.resolve(getProfile('event', item.language));
     },
+
     closeAuthoring: (_current, original, hasUnsavedChanges, _cancelAutosave, doClose) => {
-        return Promise.resolve();
+        return Promise.resolve({cancelled: false});
     },
+
     getUserPreferences: () => ng.get('preferencesService').get()
 };

@@ -1146,6 +1146,32 @@ function normalizeSortDate(event: IEventItem) {
     return localStart.toISOString();
 }
 
+export function convertEventDatesForTimezone(event: IEventItem | Partial<IEventItem>, tz?: string) {
+    const timezone_string = tz ?? timeUtils.localTimeZone();
+
+    if (event.dates?.start != null) {
+        if (event.dates.all_day === true) {
+            // All day Events do not have a timezone attached
+            event.dates.start = moment.utc(event.dates.start);
+            event._startTime = null;
+        } else {
+            event.dates.start = timeUtils.getDateInRemoteTimeZone(event.dates.start, timezone_string);
+            event._startTime = timeUtils.getDateInRemoteTimeZone(event.dates.start, timezone_string);
+        }
+    }
+
+    if (event.dates?.end != null) {
+        if (event.dates.all_day === true || event.dates.no_end_time === true) {
+            // All day Events do not have a timezone attached
+            event.dates.end = moment.utc(event.dates.end);
+            event._endTime = null;
+        } else {
+            event.dates.end = timeUtils.getDateInRemoteTimeZone(event.dates.end, timezone_string);
+            event._endTime = timeUtils.getDateInRemoteTimeZone(event.dates.end, timezone_string);
+        }
+    }
+}
+
 function modifyForClient(event: IEventItem): IEventItem; // overload
 
 // eslint-disable-next-line no-redeclare
@@ -1157,11 +1183,7 @@ function modifyForClient(event: Partial<IEventItem>): Partial<IEventItem> {
         delete event._status;
     }
 
-    if (event.dates?.start != null) {
-        event.dates.start = timeUtils.getDateInRemoteTimeZone(event.dates.start, timeUtils.localTimeZone());
-        event._startTime = event.dates.all_day ? null
-            : timeUtils.getDateInRemoteTimeZone(event.dates.start, timeUtils.localTimeZone());
-    }
+    convertEventDatesForTimezone(event);
 
     if (event.dates?.end != null) {
         event.dates.end = timeUtils.getDateInRemoteTimeZone(event.dates.end, timeUtils.localTimeZone());

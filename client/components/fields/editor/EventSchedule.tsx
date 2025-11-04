@@ -68,7 +68,6 @@ export class EditorFieldEventSchedule extends React.PureComponent<IEventSchedule
 
     changeStartTime(value?: moment.Moment) {
         const startDate = this.props.item?.dates?.start;
-        const endDate = this.props.item?.dates?.end;
 
         if (!value) {
             const changes = {
@@ -83,7 +82,6 @@ export class EditorFieldEventSchedule extends React.PureComponent<IEventSchedule
             this.props.onChange(changes);
             return;
         }
-
         const newStartDate = !startDate ? value : combineDateTime(startDate, value, this.props.item.dates?.tz);
         const changes = {
             'dates.start': newStartDate,
@@ -127,6 +125,8 @@ export class EditorFieldEventSchedule extends React.PureComponent<IEventSchedule
     }
 
     changeEndTime(value?: moment.Moment) {
+        const endDate = this.props.item?.dates?.end;
+
         if (!value) {
             const changes = {
                 _endTime: null,
@@ -141,10 +141,7 @@ export class EditorFieldEventSchedule extends React.PureComponent<IEventSchedule
             return;
         }
 
-        const endDate = this.props.item?.dates?.end != null ?
-            moment(this.props.item.dates.end) :
-            null;
-        const newEndDate = endDate ? combineDateTime(endDate, value, this.props.item.dates?.tz) : value;
+        const newEndDate = !endDate ? value : combineDateTime(endDate, value, this.props.item.dates?.tz);
 
         const changes = {
             _endTime: newEndDate,

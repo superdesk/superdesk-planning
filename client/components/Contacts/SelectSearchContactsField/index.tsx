@@ -8,7 +8,7 @@ interface IProps {
     value: Array<string>;
     label?: string;
     readOnly?: boolean;
-    onChange: (field: string, value: any) => void;
+    onChange: (contact: IContact) => void;
     required?: boolean;
     onAdd?: (...args: any) => void;
     onAddText?: string;

@@ -53,7 +53,7 @@ const mapStateToProps = (state) => ({
 });
 
 class CoverageFormHeaderComponent extends React.PureComponent<IProps> {
-    constructor(props) {
+    constructor(props: IProps) {
         super(props);
 
         this.showAssignmentModal = this.showAssignmentModal.bind(this);
@@ -67,8 +67,14 @@ class CoverageFormHeaderComponent extends React.PureComponent<IProps> {
             field: this.props.field,
             value: this.props.value,
             onChange: this.props.onChange,
-            disableDeskSelection: !!this.props.addNewsItemToPlanning,
-            disableUserSelection: !!this.props.addNewsItemToPlanning,
+            disableDeskSelection: this.props.addNewsItemToPlanning != null || (
+                this.props.value.assigned_to?.state != null
+                && ![
+                    ASSIGNMENTS.WORKFLOW_STATE.ASSIGNED,
+                    ASSIGNMENTS.WORKFLOW_STATE.SUBMITTED,
+                ].includes(this.props.value.assigned_to.state)
+            ),
+            disableUserSelection: this.props.addNewsItemToPlanning != null,
             priorityPrefix: 'assigned_to.',
         });
     }
@@ -111,15 +117,78 @@ class CoverageFormHeaderComponent extends React.PureComponent<IProps> {
         }
     }
 
+    renderAssignmentFunctionButtons() {
+        const {
+            value,
+            addNewsItemToPlanning,
+            readOnly,
+            lockedItems,
+        } = this.props;
+
+        if (addNewsItemToPlanning != null
+            || (value as ICoverageScheduledUpdate).scheduled_update_id != null
+            || readOnly === true
+        ) {
+            return null;
+        }
+
+        const assignmentState = value.assigned_to?.state;
+        const isAssignmentLocked = lockedItems?.assignment
+            && value.assigned_to?.assignment_id in lockedItems.assignment;
+        const buttonsDisabled = [
+            ASSIGNMENTS.WORKFLOW_STATE.COMPLETED,
+            ASSIGNMENTS.WORKFLOW_STATE.CANCELLED,
+        ].includes(assignmentState) || isAssignmentLocked;
+
+        let reassignTooltip: string | null = null;
+        let removeTooltip: string | null = null;
+
+        if (assignmentState === ASSIGNMENTS.WORKFLOW_STATE.COMPLETED) {
+            reassignTooltip = gettext('Assignment has been completed, unable to reassign');
+            removeTooltip = gettext('Assignment has been completed, unable to remove');
+        } else if (assignmentState === ASSIGNMENTS.WORKFLOW_STATE.CANCELLED) {
+            reassignTooltip = gettext('Assignment has been cancelled, unable to reassign');
+            removeTooltip = gettext('Assignment has been cancelled, unable to remove');
+        } else if (isAssignmentLocked) {
+            reassignTooltip = gettext('Assignment is locked, unable to reassign');
+            removeTooltip = gettext('Assignment is locked, unable to remove');
+        }
+
+        return (
+            <Column>
+                <ListRow>
+                    <Button
+                        text={gettext('Reassign')}
+                        onClick={this.showAssignmentModal}
+                        style="hollow"
+                        size="small"
+                        expand
+                        disabled={buttonsDisabled}
+                        tooltip={reassignTooltip}
+                    />
+                </ListRow>
+                <ListRow>
+                    <Button
+                        text={gettext('Remove')}
+                        onClick={this.removeAssignment}
+                        style="hollow"
+                        size="small"
+                        expand
+                        disabled={buttonsDisabled}
+                        tooltip={removeTooltip}
+                    />
+                </ListRow>
+            </Column>
+        );
+    }
+
     render() {
         const {
             field,
             value,
             users,
             desks,
-            addNewsItemToPlanning,
             readOnly,
-            lockedItems,
         } = this.props;
 
         const userAssigned = getCreator(value, 'assigned_to.user', users);
@@ -127,11 +196,6 @@ class CoverageFormHeaderComponent extends React.PureComponent<IProps> {
         const coverageProvider = value.assigned_to?.coverage_provider;
         const assignmentState = value.assigned_to?.state;
         const cancelled = value.workflow_status === ASSIGNMENTS.WORKFLOW_STATE.CANCELLED;
-
-        const isAssignmentLocked = lockedItems?.assignment
-            && value.assigned_to?.assignment_id in lockedItems.assignment;
-        const itemIsScheduledUpdate = (value as ICoverageScheduledUpdate).scheduled_update_id;
-        const canEditAssignment = addNewsItemToPlanning == null && !isAssignmentLocked && !itemIsScheduledUpdate;
 
         if (!deskAssigned && !userAssigned && !coverageProvider) {
             return (
@@ -222,28 +286,7 @@ class CoverageFormHeaderComponent extends React.PureComponent<IProps> {
                         </ListRow>
                     )}
                 </Column>
-                {canEditAssignment && !readOnly && (
-                    <Column>
-                        <ListRow>
-                            <Button
-                                text={gettext('Reassign')}
-                                onClick={this.showAssignmentModal}
-                                style="hollow"
-                                size="small"
-                                expand
-                            />
-                        </ListRow>
-                        <ListRow>
-                            <Button
-                                text={gettext('Remove')}
-                                onClick={this.removeAssignment}
-                                style="hollow"
-                                size="small"
-                                expand
-                            />
-                        </ListRow>
-                    </Column>
-                )}
+                {this.renderAssignmentFunctionButtons()}
             </Item>
         );
     }

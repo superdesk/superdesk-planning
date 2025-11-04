@@ -131,10 +131,12 @@ export class RelatedPlanningItem extends React.PureComponent<IProps> {
                                     'planning',
                                     item as IPlanningItem,
                                     (item) => {
-                                        // Remove fields responsible for creating a link, so that item can be
-                                        // standalone until user decides to link it through main editor "Save"
+                                        /**
+                                         * When adding a new embedded planning, this save call will come from
+                                         * ItemManager via handleEmbeddedItems in save-handling.ts
+                                         */
                                         const fieldsToOmit = [
-                                            '_temporary', 'related_events', '_created', '_etag', '_links', '_updated',
+                                            '_temporary', '_created', '_etag', '_links', '_updated',
                                         ] satisfies Array<keyof IPlanningItem>;
                                         const itemClean = omit(
                                             modifyForServer(item, true),

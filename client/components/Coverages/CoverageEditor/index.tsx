@@ -6,6 +6,7 @@ import {
     EDITOR_TYPE,
     IAssignmentPriority,
     ICoverageProvider,
+    ICoverageType,
     IEventItem,
     IG2ContentType,
     IPlanningAppState,
@@ -82,7 +83,7 @@ function duplicateCoverage({
 }: {
     planning: IPlanningItem;
     coverage: IPlanningCoverageItem;
-    duplicateAs?: IG2ContentType['qcode'];
+    duplicateAs?: ICoverageType;
 }): Array<DeepPartial<IPlanningCoverageItem>> {
     const state: IPlanningAppState = planningApi.redux.store.getState();
 
@@ -93,11 +94,14 @@ function duplicateCoverage({
         ? undefined
         : state.events.events[relatedEventId];
 
+    const coverageProfilesMap = selectors.coverageProfiles.getCoverageProfilesMap(state);
+
     const coverages = planningUtils.duplicateCoverage(
         planning,
         coverage,
+        coverageProfilesMap,
         duplicateAs,
-        relatedEvent
+        relatedEvent,
     );
 
     return coverages;

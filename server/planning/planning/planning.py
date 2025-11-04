@@ -542,6 +542,7 @@ class PlanningService(AsyncBaseService):
                 event_ids=get_related_event_ids_for_planning(doc, "primary"),  # Event IDs for primary events,
                 recurrence_id=original.get("recurrence_id") or None,
                 from_ingest=from_ingest,
+                type=original.get("type"),
             )
 
         posted = await update_post_item(updates, original)
@@ -1070,19 +1071,20 @@ class PlanningService(AsyncBaseService):
                 if TO_BE_CONFIRMED_FIELD in doc:
                     assignment["planning"][TO_BE_CONFIRMED_FIELD] = doc[TO_BE_CONFIRMED_FIELD]
 
+            def _update_assignment_assigned_to():
+                user = get_user()
+                assignment["priority"] = assigned_to.pop("priority", original_assignment.get("priority"))
+                assignment["assigned_to"] = assigned_to
+                if original_assignment.get("assigned_to", {}).get("desk") != assigned_to.get("desk"):
+                    assigned_to["assigned_date_desk"] = utcnow()
+                    assigned_to["assignor_desk"] = user.get(ID_FIELD)
+                if assigned_to.get("user") and original.get("assigned_to", {}).get("user") != assigned_to.get("user"):
+                    assigned_to["assigned_date_user"] = utcnow()
+                    assigned_to["assignor_user"] = user.get(ID_FIELD)
+
             if original_assignment.get("assigned_to").get("state") == ASSIGNMENT_WORKFLOW_STATE.DRAFT:
                 if self.is_coverage_assignment_modified(updates, original_assignment):
-                    user = get_user()
-                    assignment["priority"] = assigned_to.pop("priority", original_assignment.get("priority"))
-                    assignment["assigned_to"] = assigned_to
-                    if original_assignment.get("assigned_to", {}).get("desk") != assigned_to.get("desk"):
-                        assigned_to["assigned_date_desk"] = utcnow()
-                        assigned_to["assignor_desk"] = user.get(ID_FIELD)
-                    if assigned_to.get("user") and original.get("assigned_to", {}).get("user") != assigned_to.get(
-                        "user"
-                    ):
-                        assigned_to["assigned_date_user"] = utcnow()
-                        assigned_to["assignor_user"] = user.get(ID_FIELD)
+                    _update_assignment_assigned_to()
 
             # If we made a coverage 'active' - change assignment status to active
             if original.get("workflow_status") == WORKFLOW_STATE.DRAFT and not is_coverage_draft:
@@ -1102,7 +1104,7 @@ class PlanningService(AsyncBaseService):
                 updates, original_assignment
             ):
                 assigned_to["state"] = ASSIGNMENT_WORKFLOW_STATE.ASSIGNED
-                assignment["assigned_to"] = assigned_to
+                _update_assignment_assigned_to()
 
             # If there has been a change in the planning internal note then notify the assigned users/desk
             if planning_updates.get("internal_note") and planning_original.get("internal_note") != planning_updates.get(
@@ -1126,6 +1128,7 @@ class PlanningService(AsyncBaseService):
                 or "assigned_to" in assignment
                 or "description_text" in assignment
                 or "name" in assignment
+                or "priority" in assignment
             ):
                 await assignment_service.system_update_async(
                     ObjectId(assigned_to.get("assignment_id")),
@@ -1316,7 +1319,7 @@ class PlanningService(AsyncBaseService):
 
     def is_coverage_assignment_modified(self, updates, original):
         if (updates or {}).get("assigned_to"):
-            keys = ["desk", "user", "state", "coverage_provider"]
+            keys = ["desk", "user", "state", "coverage_provider", "contact"]
             for key in keys:
                 if key in updates.get("assigned_to") and updates["assigned_to"][key] != (
                     original.get("assigned_to") or {}
