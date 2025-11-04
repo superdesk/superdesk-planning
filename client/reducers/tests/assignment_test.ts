@@ -405,7 +405,7 @@ describe('assignment', () => {
                 // Checks to see if IN_PROGRESS list is set back to empty
                 let result = assignment(initialState, {
                     type: 'RECEIVED_ASSIGNMENTS',
-                    payload: [assignments[0]],
+                    payload: [cloneDeep(assignments)[0]],
                 });
 
                 result = assignment(result, {
@@ -428,7 +428,7 @@ describe('assignment', () => {
                 // Checks to see if TO_DO list is set back to empty
                 result = assignment(initialState, {
                     type: 'RECEIVED_ASSIGNMENTS',
-                    payload: [assignments[0]],
+                    payload: [cloneDeep(assignments)[0]],
                 });
 
                 result = assignment(result, {
@@ -451,7 +451,7 @@ describe('assignment', () => {
                 // Checks to see if COMPLETED list is set back to empty
                 result = assignment(initialState, {
                     type: 'RECEIVED_ASSIGNMENTS',
-                    payload: [assignments[0]],
+                    payload: [cloneDeep(assignments)[0]],
                 });
 
                 result = assignment(result, {
@@ -475,7 +475,7 @@ describe('assignment', () => {
             it('REMOVE_ASSIGNMENT closes the preview', () => {
                 let result = assignment(initialState, {
                     type: 'RECEIVED_ASSIGNMENTS',
-                    payload: [assignments[0]],
+                    payload: [cloneDeep(assignments)[0]],
                 });
 
                 result = assignment(result, {
@@ -505,7 +505,7 @@ describe('assignment', () => {
             it('REMOVE_ASSIGNMENT doesnt close the preview if not viewing', () => {
                 let result = assignment(initialState, {
                     type: 'RECEIVED_ASSIGNMENTS',
-                    payload: [assignments[0]],
+                    payload: [cloneDeep(assignments)[0]],
                 });
 
                 result = assignment(result, {

@@ -6,6 +6,7 @@ import assignmentsApi from '../api';
 import {getTestActionStore, restoreSinonStub} from '../../../utils/testUtils';
 import * as testData from '../../../utils/testData';
 import {ASSIGNMENTS, ALL_DESKS} from '../../../constants';
+import {noop} from 'lodash';
 
 describe('actions.assignments.ui', () => {
     let store;
@@ -62,7 +63,7 @@ describe('actions.assignments.ui', () => {
             restoreSinonStub(assignmentsApi.link);
             sinon.stub(assignmentsApi, 'link').callsFake(() => (Promise.reject(errorMessage)));
             store.test(done, assignmentsUi.onFulFilAssignment({_id: 'as1'}))
-                .then(() => { /* no-op */ }, (error) => {
+                .then(noop, (error) => {
                     expect(assignmentsApi.link.callCount).toBe(1);
                     expect(assignmentsApi.link.args[0]).toEqual([{_id: 'as1'}, {_id: 'item1'}, true]);
                     expect(error).toEqual(errorMessage);
@@ -140,7 +141,7 @@ describe('actions.assignments.ui', () => {
         });
 
         it('adds to the list items if the query is for the first page', (done) => {
-            store.test(done, assignmentsUi.queryAndSetAssignmentListGroups('COMPLETED', 2))
+            store.test(done, assignmentsUi.queryAndSetAssignmentListGroups('COMPLETED', false, 2))
                 .then(() => {
                     expect(assignmentsUi.setAssignmentListGroup.callCount).toBe(0);
 
@@ -180,6 +181,7 @@ describe('actions.assignments.ui', () => {
             expect(assignmentsUi.queryAndSetAssignmentListGroups.callCount).toBe(1);
             expect(assignmentsUi.queryAndSetAssignmentListGroups.args[0]).toEqual([
                 'IN_PROGRESS',
+                true,
                 1,
             ]);
         });
@@ -197,6 +199,7 @@ describe('actions.assignments.ui', () => {
             expect(assignmentsUi.queryAndSetAssignmentListGroups.callCount).toBe(1);
             expect(assignmentsUi.queryAndSetAssignmentListGroups.args[0]).toEqual([
                 'TODO',
+                true,
                 2,
             ]);
         });
@@ -228,8 +231,8 @@ describe('actions.assignments.ui', () => {
                     // Updates the lists
                     expect(assignmentsUi.queryAndSetAssignmentListGroups.callCount).toBe(2);
                     expect(assignmentsUi.queryAndSetAssignmentListGroups.args).toEqual([
-                        ['TODAY'],
-                        ['CURRENT'],
+                        ['TODAY', true],
+                        ['CURRENT', true],
                     ]);
 
                     done();
@@ -251,7 +254,7 @@ describe('actions.assignments.ui', () => {
                     // Updates the lists
                     expect(assignmentsUi.queryAndSetAssignmentListGroups.callCount).toBe(1);
                     expect(assignmentsUi.queryAndSetAssignmentListGroups.args).toEqual([
-                        ['TODO'],
+                        ['TODO', true],
                     ]);
 
                     done();
@@ -274,8 +277,8 @@ describe('actions.assignments.ui', () => {
                     // Updates the lists
                     expect(assignmentsUi.queryAndSetAssignmentListGroups.callCount).toBe(2);
                     expect(assignmentsUi.queryAndSetAssignmentListGroups.args).toEqual([
-                        ['TODAY'],
-                        ['CURRENT'],
+                        ['TODAY', true],
+                        ['CURRENT', true],
                     ]);
 
                     done();
@@ -342,7 +345,7 @@ describe('actions.assignments.ui', () => {
             sinon.stub(assignmentsApi, 'loadArchiveItem').returns(Promise.reject(errorMessage));
             data.assignments[0].item_ids = ['item1'];
             return store.test(done, assignmentsUi.openArchivePreview(data.assignments[0]))
-                .then(() => { /* no-op */ }, (error) => {
+                .then(noop, (error) => {
                     expect(error).toEqual(errorMessage);
 
                     expect(assignmentsApi.loadArchiveItem.callCount).toBe(1);
