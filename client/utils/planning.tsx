@@ -896,6 +896,13 @@ function getPlanningActionsForUiFrameworkMenu(data: IGetPlanningActionArgs): Arr
     return toUIFrameworkInterface(planningUtils.getPlanningActions(data));
 }
 
+export function convertPlanningDatesForTimezone(plan: IPlanningItem | Partial<IPlanningItem>) {
+    if (plan.planning_date != null) {
+        // All day Planning items do not have a timezone attached
+        plan.planning_date = plan.all_day === true ? moment.utc(plan.planning_date) : moment(plan.planning_date);
+    }
+}
+
 export function modifyForClient<T extends IPlanningItem | Partial<IPlanningItem>>(plan: T): T {
     sanitizeItemFields(plan);
 
@@ -904,9 +911,7 @@ export function modifyForClient<T extends IPlanningItem | Partial<IPlanningItem>
         delete plan._status;
     }
 
-    if (get(plan, 'planning_date')) {
-        plan.planning_date = moment(plan.planning_date);
-    }
+    convertPlanningDatesForTimezone(plan);
 
     const defaults = {
         'flags.marked_for_not_publication': false,

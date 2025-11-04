@@ -6,6 +6,7 @@ import {planningApi} from '../../../../superdeskApi';
 import {main} from '../../../../actions';
 import {EVENTS} from '../../../../constants';
 import {getItemInArrayById, itemsEqual, timeUtils, updateFormValues, removeAutosaveFields} from '../../../../utils';
+import {convertEventDatesForTimezone} from '../../../../utils/events';
 import {restoreSinonStub, waitFor} from '../../../../utils/testUtils';
 import * as testData from '../../../../utils/testData';
 import {ItemManager} from '../ItemManager';
@@ -526,11 +527,13 @@ describe('components.Main.ItemManager', () => {
                         editor.props,
                         testData.events[0],
                     ]);
+                    const expectedDiff = cloneDeep(testData.events[0]);
 
+                    convertEventDatesForTimezone(expectedDiff);
                     expectState({
                         initialValues: testData.events[0],
                         diff: {
-                            ...testData.events[0],
+                            ...expectedDiff,
                             associated_plannings: [testData.plannings[1]],
                         },
                         dirty: false,
@@ -1265,7 +1268,7 @@ describe('components.Main.ItemManager', () => {
                             _etag: 'e789',
                             state: 'scheduled',
                             pubstatus: 'usable',
-                        })
+                        }, true, true)
                     );
                     expect(editor.autoSave.flushAutosave.callCount).toBe(2);
 
@@ -1333,7 +1336,7 @@ describe('components.Main.ItemManager', () => {
                             _etag: 'e789',
                             state: 'killed',
                             pubstatus: 'cancelled',
-                        })
+                        }, true, true)
                     );
                     expect(editor.autoSave.flushAutosave.callCount).toBe(2);
 
