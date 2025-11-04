@@ -128,12 +128,15 @@ const onAssignmentUpdated = (_e, data) => (
                     }
                 });
 
+            const state = getState();
+
             if (data.assignment_state === ASSIGNMENTS.WORKFLOW_STATE.CANCELLED ||
-                data.assignment_state === ASSIGNMENTS.WORKFLOW_STATE.IN_PROGRESS) {
+                data.assignment_state === ASSIGNMENTS.WORKFLOW_STATE.IN_PROGRESS
+            ) {
                 // If we are in authoring workspace (fulfilment) and assignment is previewed,
                 // close it
-                if (selectors.general.currentWorkspace(getState()) === WORKSPACE.AUTHORING
-                    && selectors.getCurrentAssignmentId(getState()) === data.item
+                if (selectors.general.currentWorkspace(state) === WORKSPACE.AUTHORING
+                    && selectors.getCurrentAssignmentId(state) === data.item
                 ) {
                     dispatch(assignments.ui.closePreview());
                 }

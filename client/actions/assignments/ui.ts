@@ -178,7 +178,7 @@ const updatePreviewItemOnRouteUpdate = () => (
                             (u) => u._id === currentUserId);
 
                         if (!user) {
-                            notify.error('Insufficient privileges to view the assignment');
+                            notify.error(gettext('Insufficient privileges to view the assignment'));
                             $location.search('assignment', null);
                             return dispatch(self.closePreview());
                         }
@@ -189,7 +189,7 @@ const updatePreviewItemOnRouteUpdate = () => (
                         return dispatch(self.preview(item));
                     })
                     .catch(() => {
-                        notify.error('Assignment does not exist');
+                        notify.error(gettext('Assignment does not exist'));
 
                         return dispatch(self.closePreview());
                     });
