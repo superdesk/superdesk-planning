@@ -637,19 +637,19 @@ Feature: Search Feature
         ]
         """
         Given "planning"
-            """
-            [
-                {
-                    "guid": "event_123",
-                    "name": "event",
-                    "planning_date": "2035-07-31T00:00:00+0000",
-                    "coverages": [
-                        {"assigned_to": {
-                            "user": "#users._id#"
-                        }}
-                    ]
-                }
-            ]
-            """
+        """
+        [
+            {
+                "guid": "event_123",
+                "name": "event",
+                "planning_date": "2035-07-31T00:00:00+0000",
+                "coverages": [
+                    {"assigned_to": {
+                        "user": "#users._id#"
+                    }}
+                ]
+            }
+        ]
+        """
         When we get "/events_planning_search?repo=planning&coverage_user_id=#users._id#"
         Then we get list with 1 items
