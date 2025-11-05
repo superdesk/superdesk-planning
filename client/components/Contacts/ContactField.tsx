@@ -119,20 +119,26 @@ export class ContactFieldComponent extends React.Component<IProps, IState> {
     }
 
     onChange(savedContact: Partial<IContactItem>) {
+        // Format the contact ID to match BelgaContactsProxy
+        const formatContactId = (id: string) =>
+            id?.startsWith('urn:belga:contact:') ? id : `urn:belga:contact:${id}`;
+
+        const formattedId = formatContactId(savedContact._id);
+
         // Update the redux store
         this.props.addContact(savedContact);
 
         if (this.props.singleValue === true) {
-            if (this.props.value !== savedContact._id) {
-                this.props.onChange(this.props.field, savedContact._id);
+            if (this.props.value !== formattedId) {
+                this.props.onChange(this.props.field, formattedId);
             }
-        } else if (!(this.props.value ?? []).find((contactId) => contactId === savedContact._id)) {
+        } else if (!(this.props.value ?? []).find((contactId) => contactId === formattedId)) {
             // Append the value if the id is not in the list already
             this.props.onChange(
                 this.props.field,
                 [
                     ...this.props.value,
-                    savedContact._id,
+                    formattedId,
                 ]
             );
         }

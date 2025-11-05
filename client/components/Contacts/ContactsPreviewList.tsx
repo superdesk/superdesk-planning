@@ -55,14 +55,23 @@ class ContactsPreviewListComponent extends React.Component<IProps, IState> {
     }
 
     fetchContactsRequired() {
-        return (
-            !this.state.fetchingContacts &&
-            difference(
-                this.props.contactIds || [],
-                Object.keys(this.props.contacts || {})
-            ).length > 0
-        ) || !isEqual(this.state.fetchingIds, this.props.contactIds);
+        const {contactIds, contacts} = this.props;
+        const {fetchingContacts, fetchingIds} = this.state;
+
+        if (fetchingContacts) {
+            return false;
+        }
+
+        // If IDs changed in value or length, check if new IDs need fetching
+        const newIds = contactIds.filter((id) => !(id in contacts));
+
+        if (newIds.length > 0 && !isEqual(fetchingIds.sort(), contactIds.sort())) {
+            return true;
+        }
+
+        return false;
     }
+
 
     fetchContacts() {
         this.setState({
@@ -102,34 +111,36 @@ class ContactsPreviewListComponent extends React.Component<IProps, IState> {
     }
 
     render() {
-        // eslint-disable-next-line no-unused-vars
         const {
             contactIds,
-            fetchContacts,
+            contacts,
             onEditContact,
             onRemoveContact,
-            contacts,
-            scrollInView,
             ...props
         } = this.props;
 
+        const normalizeId = (id: string) => id?.replace('urn:belga:contact:', '');
+
         return (
             <div className="contacts-list__holder">
-                {(contactIds || []).map((contactId) => (contacts[contactId] == null ? null : (
-                    <ContactMetaData
-                        key={contactId}
-                        contact={contacts[contactId]}
-                        {...props}
-                        onEditContact={onEditContact != null ?
-                            onEditContact.bind(null, contacts[contactId] || {}) :
-                            null
-                        }
-                        onRemoveContact={onRemoveContact != null ?
-                            onRemoveContact.bind(null, contacts[contactId] || {}) :
-                            null
-                        }
-                    />
-                )))}
+                {(contactIds || []).map((contactId) => {
+                    const normalizedId = normalizeId(contactId);
+                    const contact = contacts[contactId] || contacts[normalizedId];
+
+                    if (!contact) {
+                        return null;
+                    }
+
+                    return (
+                        <ContactMetaData
+                            key={contactId}
+                            contact={contact}
+                            {...props}
+                            onEditContact={onEditContact?.bind(null, contact)}
+                            onRemoveContact={onRemoveContact?.bind(null, contact)}
+                        />
+                    );
+                })}
             </div>
         );
     }
