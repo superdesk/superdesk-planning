@@ -1331,7 +1331,7 @@ class PlanningService(AsyncBaseService):
                 slugline=planning_item.get("slugline", ""),
             )
 
-        assigned_to = assignment_item.get("assigned_to")
+        assigned_to = assignment_item.get("assigned_to") or {}
         await PlanningNotifications().notify_assignment(
             coverage_status=coverage_item.get("workflow_status"),
             target_desk=assigned_to.get("desk") if assigned_to.get("user") is None else None,
