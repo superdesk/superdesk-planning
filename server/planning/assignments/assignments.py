@@ -1276,12 +1276,16 @@ class AssignmentsService(AsyncBaseService):
         planning_service = get_resource_service("planning")
         planning_item = await planning_service.find_one_async(req=None, _id=doc.get("planning_item"))
 
-        # Make sure the Assignment is locked by this user and session unless when removing
-        # assignments during spiking/unposting planning items
-        if not is_locked_in_this_session(doc) and planning_item.get("state") not in [
-            WORKFLOW_STATE.KILLED,
-            WORKFLOW_STATE.SPIKED,
-        ]:
+        if not planning_item:
+            raise SuperdeskApiError.badRequestError(message="Failed to find Planning item.")
+
+        # Make sure either the Assignment or Planning item is locked by this user and session
+        assignment_linked_to_coverage = any(
+            True
+            for coverage in planning_item.get("coverages") or []
+            if str((coverage.get("assigned_to") or {}).get("assignment_id")) == str(doc["_id"])
+        )
+        if assignment_linked_to_coverage and not is_locked_in_this_session(doc):
             raise SuperdeskApiError.forbiddenError(message="Lock is not obtained on the Assignment item")
 
         # Make sure the content linked to assignment (if) is also not locked
@@ -1334,7 +1338,7 @@ class AssignmentsService(AsyncBaseService):
             # Now delete all deliveries for that assignment
             await delivery_service.delete_action_async(lookup={"assignment_id": ObjectId(assignment_id)})
 
-    async def on_deleted_async(self, doc):
+    async def on_deleted_async(self, doc, update_planning: bool = True):
         deleted_assignments = [doc.get(ID_FIELD)]
         planning_service = get_resource_service("planning")
         await self.archive_delete_assignment(doc)
@@ -1352,7 +1356,10 @@ class AssignmentsService(AsyncBaseService):
                     marked_for_delete = True
 
         # Remove assignment information from coverage
-        updated_planning = await planning_service.remove_assignment(doc)
+        if update_planning:
+            updated_planning = await planning_service.remove_assignment(doc)
+        else:
+            updated_planning = doc
 
         # Finally send a notification to connected clients that the Assignment
         # has been removed

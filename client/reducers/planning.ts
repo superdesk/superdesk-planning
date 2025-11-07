@@ -205,8 +205,7 @@ const planningReducer = createReducer(initialState, {
 
     [ASSIGNMENTS.ACTIONS.REMOVE_ASSIGNMENT]: (state, payload) => {
         // If the planning is not loaded, disregard this action
-        if (!(payload.planning in state.plannings) ||
-            get(state.plannings[payload.planning], 'lock_action') !== ASSIGNMENTS.ITEM_ACTIONS.REMOVE.lock_action) {
+        if (!(payload.planning in state.plannings)) {
             return state;
         }
 
