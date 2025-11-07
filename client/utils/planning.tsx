@@ -1265,10 +1265,12 @@ function getPlanningByDate(
         if (timezone) {
             groupDate.tz(timezone);
         }
+
         return groupDate;
     };
 
     plansInList.forEach((plan) => {
+
         let dates = {};
         let groupDate = null;
         const planningDate = getPlanningDate(plan);
@@ -1301,7 +1303,7 @@ function getPlanningByDate(
 
         if (isEmpty(dates)) {
             groupDate = getGroupDate(planningDate);
-            if (isDateInRange(groupDate, startDate, endDate)) {
+            if (isDateInRange(groupDate, startDate, endDate, plan.all_day)) {
                 dates[groupDate.format('YYYY-MM-DD')] = groupDate;
             }
         }
