@@ -518,6 +518,73 @@ Feature: Planning Search
         ]}
         """
 
+        # All day
+        Given empty "planning"
+        When we post to "/planning"
+        """
+        [{
+            "guid": "planning_all_day",
+            "slugline": "slug123",
+            "name": "name123",
+            "planning_date": "2025-11-06T00:00:00+0000",
+            "all_day": true
+        }, {
+            "guid": "planning_with_time",
+            "slugline": "slug123",
+            "name": "name123",
+            "planning_date": "2025-11-06T00:00:00+0000"
+        },
+        {
+            "guid": "planning_with_coverage",
+            "slugline": "slug123",
+            "name": "name123",
+            "planning_date": "2025-11-06T00:00:00+0000",
+            "coverages": [
+                {
+                    "coverage_id": "c1",
+                    "planning": {"scheduled": "2025-11-06T08:00:00+0000"}
+                }
+            ]
+        },
+        {
+            "guid": "scheduled_updated",
+            "slugline": "slug123",
+            "name": "name123",
+            "all_day": true,
+            "planning_date": "2025-11-01T00:00:00+0000",
+            "coverages": [
+                {
+                    "coverage_id": "c1",
+                    "planning": {
+                        "scheduled": "2025-11-01T00:00:00+0000"
+                    },
+                    "scheduled_updates": [
+                        {
+                            "coverage_id": "c2",
+                            "planning": {
+                                "scheduled": "2025-11-06T08:00:00+0000"
+                            }
+                        }
+                    ]
+                }
+            ]
+        }]
+        """
+        When we get "/events_planning_search?repo=planning&only_future=false&start_date=2025-11-06T05:00:00%2B0000&time_zone=Europe/Prague"
+        Then we get list with 2 item
+        """
+        {"_items": [{"guid": "planning_all_day"}, {"guid": "planning_with_coverage"}]}
+        """
+        # include scheduled
+        When we get "/events_planning_search?repo=planning&only_future=false&start_date=2025-11-06T05:00:00%2B0000&time_zone=Europe/Prague&include_scheduled_updates=1"
+        Then we get list with 3 items
+        """
+        {"_items": [{"guid": "planning_all_day"}, {"guid": "scheduled_updated"}]}
+        """
+        # default params
+        When we get "/events_planning_search?repo=planning&time_zone=Europe/Prague"
+        Then we get list with 0 items
+
     @auth
     Scenario: Search planning by coverage dates
         Given empty "planning"
