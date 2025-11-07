@@ -1270,7 +1270,6 @@ function getPlanningByDate(
     };
 
     plansInList.forEach((plan) => {
-
         let dates = {};
         let groupDate = null;
         const planningDate = getPlanningDate(plan);
