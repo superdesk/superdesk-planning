@@ -508,7 +508,46 @@ class PlanningService(AsyncBaseService):
 
         return len(changed_ids) > 0
 
+    async def _process_removed_assignments(self, updates: dict, original: dict) -> None:
+        assignment_service = get_resource_service("assignments")
+        planning_item = deepcopy(original)
+        planning_item.update(deepcopy(updates))
+        updated_coverages = {coverage.get("coverage_id"): coverage for coverage in updates.get("coverages") or []}
+
+        for original_coverage in original.get("coverages") or []:
+            updated_coverage = updated_coverages.get(original_coverage.get("coverage_id")) or {}
+            assignment_id = (original_coverage.get("assigned_to") or {}).get("assignment_id")
+
+            if not assignment_id or (updated_coverage.get("assigned_to") or {}).get("assignment_id"):
+                # Either no Assignment is currently linked, or the updated Coverage is still linked
+                continue
+
+            if original_coverage.get("workflow_status") not in [WORKFLOW_STATE.CANCELLED, WORKFLOW_STATE.DRAFT]:
+                # This Assignment is in workflow, so we need the Assignment service's side-effects
+                cursor = await assignment_service.find_async(
+                    where={"coverage_item": original_coverage.get("coverage_id")}
+                )
+                async for assignment in cursor:
+                    await assignment_service.delete_async(lookup={"_id": assignment_id})
+                    await assignment_service.on_deleted_async(assignment, update_planning=False)
+                    await self.send_remove_assignment_notifications(planning_item, original_coverage, assignment)
+            else:
+                # Otherwise just directly delete the Assignment
+                await assignment_service.delete_async(lookup={"coverage_item": original_coverage.get("coverage_id")})
+
+            assignment = {
+                "planning_item": original.get(ID_FIELD),
+                "coverage_item": updated_coverage.get("coverage_id"),
+            }
+
+            scheduled_update = updated_coverage.get("scheduled_update") or original_coverage.get("scheduled_update")
+            if scheduled_update:
+                assignment["scheduled_update_id"] = scheduled_update
+
+            await AssignmentsHistoryAsyncService().on_item_deleted(assignment)
+
     async def on_updated_async(self, updates, original, from_ingest=False):
+        await self._process_removed_assignments(updates, original)
         added, removed = self._get_added_removed_agendas(updates, original)
         item_id = str(original[ID_FIELD])
         session_id = get_auth().get(ID_FIELD)
@@ -1028,16 +1067,8 @@ class PlanningService(AsyncBaseService):
                     WORKFLOW_STATE.DRAFT,
                 ]:
                     raise SuperdeskApiError.badRequestError("Coverage not in correct state to remove assignment.")
-                # Removing assignment
-                await assignment_service.delete_async(lookup={"_id": assigned_to.get("assignment_id")})
-                assignment = {
-                    "planning_item": planning_original.get(ID_FIELD),
-                    "coverage_item": doc.get("coverage_id"),
-                }
-                if doc.get("scheduled_update"):
-                    assignment["scheduled_update_id"] = doc.get("scheduled_update_id")
 
-                await AssignmentsHistoryAsyncService().on_item_deleted(assignment)
+                # Return now, we will process the assignment after the DB is updated
                 return
 
             # update the assignment using the coverage details
@@ -1268,28 +1299,11 @@ class PlanningService(AsyncBaseService):
             # Assignment was already removed (unposting a planning item scenario)
             return planning_item
 
+        await self.send_remove_assignment_notifications(planning_item, coverage_item, assignment_item)
         for s in coverage_item.get("scheduled_updates"):
-            assigned_to = s.get("assigned_to")
-            await PlanningNotifications().notify_assignment(
-                coverage_status=s.get("workflow_status"),
-                target_desk=assigned_to.get("desk") if assigned_to.get("user") is None else None,
-                target_user=assigned_to.get("user"),
-                message="assignment_removed_msg",
-                coverage_type=get_coverage_type_name(coverage_item.get("planning", {}).get("g2_content_type", "")),
-                slugline=planning_item.get("slugline", ""),
-            )
             del s["assigned_to"]
             s["workflow_status"] = WORKFLOW_STATE.DRAFT
 
-        assigned_to = assignment_item.get("assigned_to")
-        await PlanningNotifications().notify_assignment(
-            coverage_status=coverage_item.get("workflow_status"),
-            target_desk=assigned_to.get("desk") if assigned_to.get("user") is None else None,
-            target_user=assigned_to.get("user"),
-            message="assignment_removed_msg",
-            coverage_type=get_coverage_type_name(coverage_item.get("planning", {}).get("g2_content_type", "")),
-            slugline=planning_item.get("slugline", ""),
-        )
         del coverage_item["assigned_to"]
         coverage_item["workflow_status"] = WORKFLOW_STATE.DRAFT
 
@@ -1302,6 +1316,30 @@ class PlanningService(AsyncBaseService):
         updated_planning["related_events"] = get_related_event_links_for_planning(planning_item)
 
         return updated_planning
+
+    async def send_remove_assignment_notifications(
+        self, planning_item: dict, coverage_item: dict, assignment_item: dict
+    ) -> None:
+        for s in coverage_item.get("scheduled_updates") or []:
+            assigned_to = s.get("assigned_to")
+            await PlanningNotifications().notify_assignment(
+                coverage_status=s.get("workflow_status"),
+                target_desk=assigned_to.get("desk") if assigned_to.get("user") is None else None,
+                target_user=assigned_to.get("user"),
+                message="assignment_removed_msg",
+                coverage_type=get_coverage_type_name(coverage_item.get("planning", {}).get("g2_content_type", "")),
+                slugline=planning_item.get("slugline", ""),
+            )
+
+        assigned_to = assignment_item.get("assigned_to")
+        await PlanningNotifications().notify_assignment(
+            coverage_status=coverage_item.get("workflow_status"),
+            target_desk=assigned_to.get("desk") if assigned_to.get("user") is None else None,
+            target_user=assigned_to.get("user"),
+            message="assignment_removed_msg",
+            coverage_type=get_coverage_type_name(coverage_item.get("planning", {}).get("g2_content_type", "")),
+            slugline=planning_item.get("slugline", ""),
+        )
 
     def is_coverage_planning_modified(self, updates, original):
         for key in updates.get("planning").keys():
