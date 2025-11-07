@@ -8,18 +8,14 @@
 # AUTHORS and LICENSE files distributed with this source code, or
 # at https://www.sourcefabric.org/superdesk/license
 
-
-import pytz
-import logging
-
 from typing import Dict, Any, Optional, List, Callable, Union, Awaitable
 from inspect import isawaitable
+import logging
 from datetime import datetime
 
 from eve.utils import str_to_date as _str_to_date, date_to_str
 
 from superdesk import get_resource_service
-from superdesk.core import get_config
 from superdesk.errors import SuperdeskApiError
 from superdesk.default_settings import strtobool as _strtobool
 from superdesk.users.services import current_user_has_privilege
@@ -642,7 +638,3 @@ COMMON_PARAMS = [
     "ednote",
     "internal_note",
 ]
-
-
-def local_now(time_zone: Optional[str] = None) -> datetime:
-    return datetime.now().astimezone(pytz.timezone(time_zone or get_config(str, "DEFAULT_TIMEZONE")))
