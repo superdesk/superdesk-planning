@@ -173,46 +173,28 @@ def search_date(params: Dict[str, Any], query: elastic.ElasticQuery):
         if date_filter:
             base_query.date_range = date_filter
             base_query.date = start_date
-
             query_range = elastic.date_range(base_query)
         else:
             base_query.gte = start_date
             base_query.lte = end_date
-
             query_range = elastic.date_range(base_query)
 
-            if not query_range["range"][field_name].get("gte") and not not query_range["range"][field_name].get("lte"):
-                query_range["range"][field_name]["gte"] = "now/d"
-
-        planning_schedule = {
-            "nested": {
-                "path": "_planning_schedule",
-                "query": {"bool": {"filter": query_range}},
-            }
-        }
-
         if strtobool(params.get("include_scheduled_updates", False)):
-            updates_range = {"range": {"_updates_schedule.scheduled": deepcopy(query_range["range"][field_name])}}
-
+            base_query.field = "_updates_schedule.scheduled"
+            updates_range = elastic.date_range(base_query)
             query.filter.append(
-                elastic.bool_or(
-                    [
-                        planning_schedule,
-                        {
-                            "nested": {
-                                "path": "_updates_schedule",
-                                "query": {"bool": {"filter": updates_range}},
-                            }
-                        },
-                    ]
-                )
+                {
+                    "bool": {
+                        "should": [
+                            query_range,
+                            updates_range,
+                        ]
+                    }
+                }
             )
-
-            query.extra["sort_filter"] = elastic.date_range(
-                elastic.ElasticRangeParams(field=field_name, gte="now/d", time_zone=time_zone)
-            )
+            query.extra["sort_filter"] = query_range
         else:
-            query.filter.append(planning_schedule)
+            query.filter.append(query_range)
             query.extra["sort_filter"] = query_range
 
 
@@ -230,14 +212,7 @@ def search_date_default(params: Dict[str, Any], query: elastic.ElasticQuery):
             )
         )
 
-        query.filter.append(
-            {
-                "nested": {
-                    "path": "_planning_schedule",
-                    "query": {"bool": {"filter": query_range}},
-                }
-            }
-        )
+        query.filter.append(query_range)
 
 
 def search_dates(params: Dict[str, Any], query: elastic.ElasticQuery):

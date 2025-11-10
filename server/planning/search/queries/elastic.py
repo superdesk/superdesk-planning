@@ -199,7 +199,7 @@ def field_range(query: ElasticRangeParams):
     if query.time_zone:
         params["time_zone"] = query.time_zone
 
-    if query.field in ("dates.start", "dates.end"):
+    if query.field in ("dates.start", "dates.end", "_planning_schedule.scheduled", "_updates_schedule.scheduled"):
         # handle also all day events
         # there we get value which is in utc,
         # so we first convert it to local timezone
@@ -237,7 +237,7 @@ def field_range(query: ElasticRangeParams):
                     ],
                 },
             }
-        else:
+        elif query.field == "dates.end":
             return {
                 "bool": {
                     "should": [
@@ -266,6 +266,80 @@ def field_range(query: ElasticRangeParams):
                         },
                     ],
                 },
+            }
+        elif query.field == "_planning_schedule.scheduled":
+            return {
+                "bool": {
+                    "should": [
+                        {
+                            "bool": {
+                                "must_not": [{"term": {"all_day": True}}],
+                                "must": [
+                                    {
+                                        "nested": {
+                                            "path": "_planning_schedule",
+                                            "query": {"bool": {"must": {"range": {query.field: params}}}},
+                                        }
+                                    }
+                                ],
+                            }
+                        },
+                        {
+                            "bool": {
+                                "must": [
+                                    {"term": {"all_day": True}},
+                                    {
+                                        "nested": {
+                                            "path": "_planning_schedule",
+                                            "query": {
+                                                "bool": {
+                                                    # Currently, only Planning items can be date-only
+                                                    # So split the search query for Planning and Coverages separately
+                                                    "should": [
+                                                        {
+                                                            # Match Planning date using UTC date params
+                                                            "bool": {
+                                                                "must_not": {
+                                                                    "exists": {
+                                                                        "field": "_planning_schedule.coverage_id"
+                                                                    }
+                                                                },
+                                                                "must": {
+                                                                    "range": {
+                                                                        "_planning_schedule.scheduled": local_params
+                                                                    }
+                                                                },
+                                                            }
+                                                        },
+                                                        {
+                                                            # Match coverage dates using local date params
+                                                            "bool": {
+                                                                "must": [
+                                                                    {
+                                                                        "exists": {
+                                                                            "field": "_planning_schedule.coverage_id"
+                                                                        }
+                                                                    },
+                                                                    {"range": {"_planning_schedule.scheduled": params}},
+                                                                ]
+                                                            }
+                                                        },
+                                                    ],
+                                                    "minimum_should_match": 1,
+                                                }
+                                            },
+                                        }
+                                    },
+                                ]
+                            }
+                        },
+                    ],
+                    "minimum_should_match": 1,
+                }
+            }
+        elif query.field == "_updates_schedule.scheduled":
+            return {
+                "nested": {"path": "_updates_schedule", "query": {"bool": {"must": {"range": {query.field: params}}}}}
             }
 
     return {"range": {query.field: params}}

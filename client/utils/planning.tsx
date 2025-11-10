@@ -1265,6 +1265,7 @@ function getPlanningByDate(
         if (timezone) {
             groupDate.tz(timezone);
         }
+
         return groupDate;
     };
 
@@ -1301,7 +1302,7 @@ function getPlanningByDate(
 
         if (isEmpty(dates)) {
             groupDate = getGroupDate(planningDate);
-            if (isDateInRange(groupDate, startDate, endDate)) {
+            if (isDateInRange(groupDate, startDate, endDate, plan.all_day)) {
                 dates[groupDate.format('YYYY-MM-DD')] = groupDate;
             }
         }

@@ -666,9 +666,13 @@ export const onEventCapture = (event) => {
     }
 };
 
-export const isDateInRange = (inputDate, startDate, endDate) => {
+export const isDateInRange = (inputDate, startDate, endDate, allDay = false) => {
     if (!inputDate) {
         return false;
+    }
+
+    if (allDay) {
+        return moment.utc(inputDate).isBetween(startDate, endDate, 'day', '[)');
     }
 
     if (startDate && moment(inputDate).isBefore(startDate, 'millisecond') ||
