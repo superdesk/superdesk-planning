@@ -1395,7 +1395,7 @@ Feature: Events
         """
         {
             "coverages": [{
-                "workflow_status": "draft",
+                "workflow_status": "assigned",
                 "planning": {
                     "ednote": "test coverage, I want 250 words",
                     "slugline": "test slugline",

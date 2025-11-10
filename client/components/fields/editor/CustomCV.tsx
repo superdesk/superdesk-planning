@@ -40,7 +40,7 @@ export class EditorFieldCV extends React.PureComponent<ICustomCVFieldProps> {
                     sortable={true}
                     kind="synchronous"
                     allowMultiple={cv.selection_type === 'multi selection'}
-                    value={get(item, storageField ?? 'subject', []).filter((x) => x.scheme === cv._id)}
+                    value={(get(item, storageField ?? 'subject') ?? []).filter((x) => x.scheme === cv._id)}
                     label={cv.translations?.display_name?.[language] ?? cv.display_name}
                     required={this.props.schema.required}
 
@@ -69,7 +69,7 @@ export class EditorFieldCV extends React.PureComponent<ICustomCVFieldProps> {
                     readOnly={disabled}
                     disabled={disabled}
                     onChange={(vocabularyItemsNext) => {
-                        const itemsFromOtherVocabularies = get(item, storageField ?? 'subject', [])
+                        const itemsFromOtherVocabularies = (get(item, storageField ?? 'subject') ?? [])
                             .filter((x) => x.scheme !== cv._id);
 
                         onChange(
