@@ -64,6 +64,7 @@ export class CoverageFormHeaderComponent extends React.PureComponent<IProps> {
             disableDeskSelection: this.props.addNewsItemToPlanning != null || (
                 this.props.value.assigned_to?.state != null
                 && ![
+                    ASSIGNMENTS.WORKFLOW_STATE.DRAFT,
                     ASSIGNMENTS.WORKFLOW_STATE.ASSIGNED,
                     ASSIGNMENTS.WORKFLOW_STATE.SUBMITTED,
                 ].includes(this.props.value.assigned_to.state)

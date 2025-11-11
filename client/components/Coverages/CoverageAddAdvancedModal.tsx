@@ -288,6 +288,7 @@ export class CoverageAddAdvancedModal extends React.Component<IProps, IState> {
                                                         }
                                                     >
                                                         <SelectUser
+                                                            key={`${coverage.desk?._id}-${index}`}
                                                             deskId={coverage.desk?._id ?? undefined}
                                                             selectedUserId = {coverage.user?._id}
                                                             onSelect={(user) => {
