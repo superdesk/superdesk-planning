@@ -449,7 +449,10 @@ const updateEventTime = (original, updates) => (
             original,
             {
                 update_method: get(updates, 'update_method.value', EVENTS.UPDATE_METHODS[0].value),
-                dates: updates.dates,
+                dates: {
+                    ...updates.dates,
+                    no_end_time: false,
+                },
                 [TO_BE_CONFIRMED_FIELD]: false,
             }
         );

@@ -973,7 +973,8 @@ function getEventActions(
 
     let actions = [];
     const isExpired = isItemExpired(item);
-    let alllowedCallBacks = [
+
+    let allowedCallBacks = [
         EVENTS.ITEM_ACTIONS.PREVIEW.actionName,
         EVENTS.ITEM_ACTIONS.EDIT_EVENT.actionName,
         EVENTS.ITEM_ACTIONS.EDIT_EVENT_MODAL.actionName,
@@ -982,7 +983,6 @@ function getEventActions(
         EVENTS.ITEM_ACTIONS.CANCEL_EVENT.actionName,
         EVENTS.ITEM_ACTIONS.SPIKE.actionName,
         EVENTS.ITEM_ACTIONS.UNSPIKE.actionName,
-        EVENTS.ITEM_ACTIONS.UPDATE_TIME.actionName,
         EVENTS.ITEM_ACTIONS.POSTPONE_EVENT.actionName,
         EVENTS.ITEM_ACTIONS.RESCHEDULE_EVENT.actionName,
         EVENTS.ITEM_ACTIONS.UPDATE_REPETITIONS.actionName,
@@ -990,19 +990,23 @@ function getEventActions(
         EVENTS.ITEM_ACTIONS.MARK_AS_COMPLETED.actionName,
     ];
 
+    if (appConfig.planning_event_link_method !== 'many_secondary') {
+        allowedCallBacks.push(EVENTS.ITEM_ACTIONS.UPDATE_TIME.actionName);
+    }
+
     if (appConfig.event_templates_enabled === true) {
-        alllowedCallBacks.push(EVENTS.ITEM_ACTIONS.SAVE_AS_TEMPLATE.actionName);
+        allowedCallBacks.push(EVENTS.ITEM_ACTIONS.SAVE_AS_TEMPLATE.actionName);
     }
 
     if (isExpired && !privileges[PRIVILEGES.EDIT_EXPIRED]) {
-        alllowedCallBacks = [EVENTS.ITEM_ACTIONS.DUPLICATE.actionName];
+        allowedCallBacks = [EVENTS.ITEM_ACTIONS.DUPLICATE.actionName];
     }
 
     if (isItemSpiked(item)) {
-        alllowedCallBacks = [EVENTS.ITEM_ACTIONS.UNSPIKE.actionName];
+        allowedCallBacks = [EVENTS.ITEM_ACTIONS.UNSPIKE.actionName];
     }
 
-    alllowedCallBacks.forEach((callbackName) => {
+    allowedCallBacks.forEach((callbackName) => {
         const action = find(EVENTS.ITEM_ACTIONS, (action) => action.actionName === callbackName);
 
         if (callBacks[action.actionName]) {
