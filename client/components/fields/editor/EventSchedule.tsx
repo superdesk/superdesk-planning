@@ -170,10 +170,15 @@ export class EditorFieldEventSchedule extends React.PureComponent<IEventSchedule
                 moment(fieldValue);
         };
 
-        addChange('dates.start', dates.start);
-        addChange('_startTime', _startTime);
-        addChange('dates.end', dates.end);
-        addChange('_endTime', _endTime);
+        if (dates.start != null && dates.all_day !== true) {
+            addChange('dates.start', dates.start);
+            addChange('_startTime', _startTime);
+        }
+
+        if (dates.end != null && dates.no_end_time !== true && dates.all_day !== true) {
+            addChange('dates.end', dates.end);
+            addChange('_endTime', _endTime);
+        }
 
         this.props.onChange(changes);
     }
