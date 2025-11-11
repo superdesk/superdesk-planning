@@ -33,6 +33,7 @@ export const ASSIGNMENTS = {
         SET_LOADING: 'SET_LOADING',
     },
     WORKFLOW_STATE: {
+        DRAFT: 'draft',
         ASSIGNED: 'assigned',
         IN_PROGRESS: 'in_progress',
         COMPLETED: 'completed',
