@@ -452,6 +452,7 @@ const updateEventTime = (original, updates) => (
                 dates: {
                     ...updates.dates,
                     no_end_time: false,
+                    all_day: false,
                 },
                 [TO_BE_CONFIRMED_FIELD]: false,
             }
