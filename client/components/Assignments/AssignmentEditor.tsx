@@ -327,6 +327,7 @@ export class AssignmentEditorComponent extends React.Component<IProps, IState> {
                     <Row>
                         <div data-test-id={this.FIELDS.USER}>
                             <SelectUser
+                                key={this.props.value.assigned_to?.desk ?? null}
                                 disabled={disableUserSelection}
                                 deskId={this.props.value.assigned_to?.desk ?? null}
                                 selectedUserId={this.state.userId}

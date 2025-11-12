@@ -1049,14 +1049,14 @@ def setRecurringMode(event):
 
 
 def overwrite_event_expiry_date(event):
-    if "expiry" in event:
-        expiry_minutes = get_app_config("PLANNING_EXPIRY_MINUTES", None)
+    expiry_minutes = get_app_config("PLANNING_EXPIRY_MINUTES", None)
+    if "expiry" in event and expiry_minutes is not None:
         end = event.get("dates", {}).get("end")
         if isinstance(end, str):
             end = parser.isoparse(end)
 
         if end:
-            event["expiry"] = end + timedelta(minutes=expiry_minutes or 0)
+            event["expiry"] = end + timedelta(minutes=expiry_minutes)
 
 
 def generate_recurring_events(event, recurrence_id=None):
