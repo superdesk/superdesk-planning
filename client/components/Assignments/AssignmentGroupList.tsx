@@ -90,20 +90,20 @@ class AssignmentGroupListComponent extends React.Component<IProps, IState> {
         }
     }
 
-    handleScroll(event: React.UIEvent) {
-        if (this.state.isNextPageLoading) {
+    handleScroll(event: React.UIEvent<HTMLUListElement>) {
+        if (this.state.isNextPageLoading || this.props.isLoading) {
             return;
         }
 
-        const node = event.target;
+        const node = event.target as HTMLUListElement;
         const {totalCount, assignments, loadMoreAssignments, groupKey} = this.props;
 
         if (node && totalCount > get(assignments, 'length', 0)) {
             if (node.scrollTop + node.offsetHeight + 200 >= node.scrollHeight) {
-                this.setState({isNextPageLoading: true});
-
-                loadMoreAssignments(groupKey)
-                    .finally(() => this.setState({isNextPageLoading: false}));
+                this.setState({isNextPageLoading: true}, () => {
+                    loadMoreAssignments(groupKey)
+                        .finally(() => this.setState({isNextPageLoading: false}));
+                });
             }
         }
     }
