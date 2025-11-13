@@ -13,7 +13,7 @@ import {assignmentUtils} from '../../utils';
 import {AssignmentMultiTextItem} from './AssignmentItem/AssignmentMultiTextItem';
 import {Header, Group} from '../UI/List';
 import {OrderDirectionIcon} from '../OrderBar';
-import {ListItemLoader} from 'superdesk-ui-framework/react/components/ListItemLoader';
+import {ListItemLoader, LoadMoreIndicator} from 'superdesk-ui-framework/react';
 import moment from 'moment';
 
 const focusElement = throttle((element: HTMLElement) => {
@@ -207,7 +207,7 @@ class AssignmentGroupListComponent extends React.Component<IProps, IState> {
         }
     }
 
-    rowRenderer(index) {
+    rowRenderer(assignment) {
         const {
             users,
             session,
@@ -219,7 +219,6 @@ class AssignmentGroupListComponent extends React.Component<IProps, IState> {
             archiveItems,
         } = this.props;
 
-        const assignment = this.props.assignments[index];
         const assignedUser = users.find((user) => get(assignment, 'assigned_to.user') === user._id);
         const isCurrentUser = assignedUser && assignedUser._id === session.identity._id;
         const onDoubleClick = assignmentUtils.assignmentHasContent(assignment) ?
@@ -333,15 +332,25 @@ class AssignmentGroupListComponent extends React.Component<IProps, IState> {
                     refNode={(assignmentsList) => this.dom.list = assignmentsList}
                     tabIndex={-1}
                 >
-                    {isLoading === true && (
-                        <ListItemLoader />
+                    {/* only show this loader when no items exist yet */}
+                    {isLoading === true && (filteredAssignments?.length ?? 0) === 0 && <ListItemLoader />}
+
+                    {filteredAssignments?.length > 0 && (
+                        <>
+                            {filteredAssignments.map((assignment) => this.rowRenderer(assignment))}
+
+                            <LoadMoreIndicator
+                                loading={this.state.isNextPageLoading}
+                                currentCount={filteredAssignments.length}
+                                totalCount={totalCount}
+                                loadingText={gettext('Loading more...')}
+                            />
+                        </>
                     )}
-                    {isLoading !== true && (
-                        (filteredAssignments?.length ?? 0) > 0 ? (
-                            filteredAssignments.map((_assignment, index) => this.rowRenderer(index))
-                        ) : (
-                            <li className="sd-list-item-group__empty-msg">{groupEmptyMessage}</li>
-                        )
+
+                    {/* only when not loading and no items */}
+                    {!isLoading && (filteredAssignments?.length ?? 0) === 0 && (
+                        <li className="sd-list-item-group__empty-msg">{groupEmptyMessage}</li>
                     )}
                 </Group>
             </div>
