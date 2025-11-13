@@ -38,8 +38,8 @@ export class ActionMenu {
      */
     open() {
         cy.log('Common.UI.ActionMenu.open');
-        this.menuButton.click();
-        // this.menuButton.click({force: true});
+        // force click in case of `pointer-events: none`
+        this.menuButton.click({force: true});
         this.popup.waitTillOpen();
         return this;
     }
