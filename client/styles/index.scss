@@ -122,3 +122,7 @@
         word-break: break-word;
     }
 }
+
+[class="icon-dots-vertical"], [class="icon-pencil"] {
+    pointer-events: unset !important;
+}
