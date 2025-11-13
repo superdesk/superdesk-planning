@@ -37,7 +37,6 @@ interface IProps {
     hideItemActions?: boolean;
     privileges?: any;
     startWorking?: () => any;
-    totalCount?: number;
     changeAssignmentListSingleGroupView?: (groupKey: string) => any;
     assignmentListSingleGroupView?: string;
     preview?: () => any;
@@ -58,6 +57,16 @@ interface IProps {
     isLoading?: boolean;
     dayField?: string;
     archiveItems: {[itemId: string]: IArticle};
+
+    /**
+     * Total number of assignments in the current group as reported by the server
+     */
+    totalCount?: number;
+
+    /**
+     * The actual count of assignments that have been fetched from the server for the current group
+     */
+    groupAssignmentsFetchedCount: number;
 }
 
 interface IState {
@@ -96,9 +105,9 @@ class AssignmentGroupListComponent extends React.Component<IProps, IState> {
         }
 
         const node = event.target as HTMLUListElement;
-        const {totalCount, assignments, loadMoreAssignments, groupKey} = this.props;
+        const {totalCount, groupAssignmentsFetchedCount, loadMoreAssignments, groupKey} = this.props;
 
-        if (node && totalCount > get(assignments, 'length', 0)) {
+        if (node && totalCount > groupAssignmentsFetchedCount) {
             if (node.scrollTop + node.offsetHeight + 200 >= node.scrollHeight) {
                 this.setState({isNextPageLoading: true}, () => {
                     loadMoreAssignments(groupKey)
@@ -380,6 +389,7 @@ const mapStateToProps = (state, ownProps) => {
         isLoading: assignmentDataSelector.isLoading(state),
         archiveItems: selectors.getStoredArchiveItems(state),
         totalCount: assignmentDataSelector.countSelector(state),
+        groupAssignmentsFetchedCount: assignmentDataSelector.assignmentIds(state).length,
     };
 };
 
