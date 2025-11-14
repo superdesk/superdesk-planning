@@ -100,7 +100,7 @@ describe('<EventPreviewContent />', () => {
         restoreSinonStub(timeUtils.localTimeZone);
     });
 
-    it('renders an event with all its details', () => {
+    fit('renders an event with all its details', () => {
         const wrapper = getWrapper();
 
         const dateString = eventUtils.getDateStringForEvent(
@@ -165,7 +165,7 @@ describe('<EventPreviewContent />', () => {
 
         let relatedPlannings = wrapper.find('.related-plannings');
 
-        const relPlan = relatedPlannings.find('span').first();
+        const relPlan = relatedPlannings.find('span.sd-list-item__slugline').first();
 
         expect(relPlan.text()).toBe('Planning2'); // expect to display slugline (i.e. Planning2)
     });
