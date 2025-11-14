@@ -1,5 +1,5 @@
 import * as React from 'react';
-import {OverlayTrigger, Tooltip} from 'react-bootstrap';
+import {Tooltip} from 'superdesk-ui-framework/react';
 import classNames from 'classnames';
 
 import {EDITOR_TYPE, IBookmarkProps, IEditorBookmarkGroup} from '../../../interfaces';
@@ -29,13 +29,9 @@ export class FormGroupBookmark extends React.PureComponent<IProps> {
 
     renderForPanel() {
         return (
-            <OverlayTrigger
+            <Tooltip
+                content={this.props.bookmark.tooltip}
                 placement="right"
-                overlay={(
-                    <Tooltip id={this.props.bookmark.id}>
-                        {this.props.bookmark.tooltip}
-                    </Tooltip>
-                )}
             >
                 <button
                     data-test-id={`editor--bookmarks__${this.props.bookmark.id}`}
@@ -51,7 +47,7 @@ export class FormGroupBookmark extends React.PureComponent<IProps> {
                 >
                     <Icon name={this.props.bookmark.icon} />
                 </button>
-            </OverlayTrigger>
+            </Tooltip>
         );
     }
 
