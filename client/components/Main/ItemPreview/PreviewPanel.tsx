@@ -181,6 +181,7 @@ export class PreviewPanelComponent extends React.Component<IPreviewPanelProps, I
                 className="content"
                 shadowRight={true}
                 bg00={true}
+                style={{insetBlockStart: 0}}
             >
                 <Header darkBlue={isEvent} darker={!isEvent}>
                     <Tools tools={this.tools} />
