@@ -41,10 +41,7 @@ class PublishQueuePreviewComponent extends React.Component<IProps, IState> {
     loadItem() {
         this.setState({loading: true}, () => {
             this.props.fetchQueueItemAndPreview(this.props.item)
-                .finally(() => {
-                    setTimeout(() => this.setState({loading: false}), 250);
-                });
-                // .finally(() => this.setState({loading: false}));
+                .finally(() => this.setState({loading: false}));
         });
     }
 

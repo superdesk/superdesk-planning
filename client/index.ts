@@ -113,7 +113,9 @@ export default angular.module('superdesk-planning', [])
                         scope.$watch('selected.preview', (newValue) => {
                             store.dispatch(actions.main.onQueueItemChange(newValue));
                         });
-                        setTimeout(() => resolve(store), 500);
+
+                        // Use a timeout as resolving the promise straight away causes the app to crash
+                        setTimeout(() => resolve(store));
                     });
                 });
 
