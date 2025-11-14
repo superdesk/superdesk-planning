@@ -100,7 +100,7 @@ describe('<EventPreviewContent />', () => {
         restoreSinonStub(timeUtils.localTimeZone);
     });
 
-    fit('renders an event with all its details', () => {
+    it('renders an event with all its details', () => {
         const wrapper = getWrapper();
 
         const dateString = eventUtils.getDateStringForEvent(
