@@ -17,6 +17,7 @@ import {currentUserId} from './general';
 import {coverageProfiles} from './coverageProfiles';
 import {getItemsById} from '../utils';
 import {ASSIGNMENTS, SORT_DIRECTION, ALL_DESKS} from '../constants';
+import moment from 'moment';
 
 export const getStoredAssignments = (state) => get(state, 'assignment.assignments', {});
 export const getStoredArchiveItems = (state) => get(state, 'assignment.archive', {});
@@ -45,12 +46,10 @@ const filterBySelectedDay = (
 ) => {
     if (selectedDate == null) return assignments;
 
-    const targetDay = new Date(selectedDate).toDateString();
-
     return assignments.filter((assignment) => {
         const scheduled = assignment?.planning?.scheduled;
 
-        return scheduled != null && new Date(scheduled).toDateString() === targetDay;
+        return scheduled != null && moment(scheduled).isSame(selectedDate, 'day');
     });
 };
 
