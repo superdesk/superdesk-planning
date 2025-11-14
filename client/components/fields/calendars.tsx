@@ -53,7 +53,7 @@ class CalendarsComponent extends React.PureComponent<IProps> {
                 {<span className="sd-list-item__text-strong sd-list-item--element-rm-10">
                     {calendars.length > 0 ? (
                         <Tooltip
-                            content={
+                            content={() => (
                                 <>
                                     {calendars.map((calendar) => (
                                         <div key={calendar.qcode}>
@@ -61,7 +61,7 @@ class CalendarsComponent extends React.PureComponent<IProps> {
                                         </div>
                                     ))}
                                 </>
-                            }
+                            )}
                             placement="left"
                         >
                             <span>

@@ -14,7 +14,7 @@ export const Location = ({name, address, multiLine, details}) => {
     // eslint-disable-next-line react/no-multi-comp
     const renderSingleline = () => (
         <Tooltip
-            content={
+            content={() => (
                 <>
                     {name && <div className="sd-line-input__label">{name}</div>}
                     {address && (
@@ -23,7 +23,7 @@ export const Location = ({name, address, multiLine, details}) => {
                         </div>
                     )}
                 </>
-            }
+            )}
         >
             <span className="sd-list-item__location">
                 {name || address}
