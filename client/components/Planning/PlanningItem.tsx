@@ -2,8 +2,7 @@ import React from 'react';
 import {connect} from 'react-redux';
 import {get, isEqual} from 'lodash';
 import moment from 'moment';
-import {OverlayTrigger, Tooltip} from 'react-bootstrap';
-import {Menu} from 'superdesk-ui-framework/react';
+import {Menu, Tooltip} from 'superdesk-ui-framework/react';
 
 import {superdeskApi} from '../../superdeskApi';
 import {
@@ -314,13 +313,9 @@ class PlanningItemComponent extends React.Component<IProps, IState> {
                 )}
                 {showAddCoverage && !isItemLocked && (
                     <Column border={false}>
-                        <OverlayTrigger
+                        <Tooltip
+                            content={gettext('Add as coverage')}
                             placement="left"
-                            overlay={(
-                                <Tooltip id={getItemId(item)}>
-                                    {gettext('Add as coverage')}
-                                </Tooltip>
-                            )}
                         >
                             <NavButton
                                 className="dropdown sd-create-btn"
@@ -330,7 +325,7 @@ class PlanningItemComponent extends React.Component<IProps, IState> {
                             >
                                 <span className="circle" />
                             </NavButton>
-                        </OverlayTrigger>
+                        </Tooltip>
                     </Column>
                 )}
                 {this.renderItemActions()}
