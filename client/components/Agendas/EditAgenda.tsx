@@ -1,12 +1,34 @@
 import React from 'react';
-import PropTypes from 'prop-types';
 import {get} from 'lodash';
 import {SlideInPanel, Form, Toggle} from '../UI';
 import {gettext} from '../../utils/gettext';
 import {Button} from 'superdesk-ui-framework';
+import {IAgenda} from '../../interfaces';
 
-export class EditAgenda extends React.Component {
-    constructor(props) {
+interface IEditAgendaProps {
+    agenda: IAgenda | null;
+    onClose(): void;
+    onSave(agenda: IAgenda): Promise<any>;
+    openOnSaveModal(props: {
+        title: string;
+        body: string;
+        okText: string;
+        action(): void;
+        autoClose: boolean;
+    }): void;
+}
+
+interface IEditAgendaState {
+    pristine: boolean;
+    submitting: boolean;
+    agendaEnabled: boolean;
+    agendaName: string;
+    message: string;
+    invalid: boolean;
+}
+
+export class EditAgenda extends React.Component<IEditAgendaProps, IEditAgendaState> {
+    constructor(props: IEditAgendaProps) {
         super(props);
         this.state = {
             pristine: true,
@@ -20,9 +42,10 @@ export class EditAgenda extends React.Component {
         this.onChange = this.onChange.bind(this);
         this.onEnableChange = this.onEnableChange.bind(this);
         this.saveAgenda = this.saveAgenda.bind(this);
+        this.onSave = this.onSave.bind(this);
     }
 
-    componentWillMount() {
+    componentWillMount(): void {
         const {agenda} = this.props;
 
         if (agenda) {
@@ -33,7 +56,7 @@ export class EditAgenda extends React.Component {
         }
     }
 
-    isPristine(newName, newEnabled) {
+    isPristine(newName: string, newEnabled: boolean): boolean {
         if (!this.props.agenda)
             return !(this.state.agendaName || newName);
 
@@ -41,7 +64,7 @@ export class EditAgenda extends React.Component {
             get(this.props, 'agenda.is_enabled') === newEnabled;
     }
 
-    onChange(field, value) {
+    onChange(field: string, value: string): void {
         let newName = value.replace(/^\s+/, '');
 
         this.setState({
@@ -51,8 +74,8 @@ export class EditAgenda extends React.Component {
         this.setInvalid(newName);
     }
 
-    onEnableChange(event) {
-        const newEnabled = get(event, 'target.value');
+    onEnableChange(event: React.ChangeEvent<HTMLInputElement>): void {
+        const newEnabled = event.target.checked;
 
         this.setState({
             pristine: this.isPristine(this.state.agendaName, newEnabled),
@@ -60,7 +83,7 @@ export class EditAgenda extends React.Component {
         });
     }
 
-    onSave() {
+    onSave(): void {
         if (get(this.props, 'agenda.is_enabled') === true &&
             get(this.state, 'agendaEnabled') === false && get(this.props, 'agenda.plannings.length', 0) > 0) {
             this.props.openOnSaveModal({
@@ -76,9 +99,9 @@ export class EditAgenda extends React.Component {
         }
     }
 
-    saveAgenda() {
+    saveAgenda(): void {
         if (this.state.agendaName) {
-            const agenda = {
+            const agenda: Partial<IAgenda> = {
                 name: this.state.agendaName,
                 is_enabled: this.state.agendaEnabled,
             };
@@ -86,12 +109,12 @@ export class EditAgenda extends React.Component {
             this.props.onSave({
                 ...this.props.agenda,
                 ...agenda,
-            })
+            } as IAgenda)
                 .then(() => this.props.onClose());
         }
     }
 
-    setInvalid(value) {
+    setInvalid(value: string): void {
         if (!this.state.pristine) {
             if (value.length < 1) {
                 this.setState({message: gettext('Must contain at least one character'), invalid: true});
@@ -101,7 +124,7 @@ export class EditAgenda extends React.Component {
         }
     }
 
-    render() {
+    render(): React.ReactNode {
         const tools = [
             <Button
                 key={1}
@@ -110,7 +133,7 @@ export class EditAgenda extends React.Component {
             />,
             <Button
                 key={2}
-                onClick={this.onSave.bind(this)}
+                onClick={this.onSave}
                 disabled={this.state.pristine || this.state.agendaName == null || this.state.invalid}
                 text={gettext('Save')}
                 type="primary"
@@ -135,7 +158,6 @@ export class EditAgenda extends React.Component {
                             autoFocus={true}
                         />
                     </Form.Row>
-
                     <Form.Row>
                         <Form.Label text={gettext('Enabled')} />
                         <Toggle
@@ -148,10 +170,3 @@ export class EditAgenda extends React.Component {
         );
     }
 }
-
-EditAgenda.propTypes = {
-    agenda: PropTypes.object,
-    onClose: PropTypes.func.isRequired,
-    onSave: PropTypes.func.isRequired,
-    openOnSaveModal: PropTypes.func.isRequired,
-};

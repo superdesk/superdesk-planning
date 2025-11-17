@@ -1,6 +1,5 @@
 import React from 'react';
-import PropTypes from 'prop-types';
-import {connect} from 'react-redux';
+import {connect, ConnectedProps} from 'react-redux';
 import {isEqual} from 'lodash';
 import {Modal} from '../index';
 import {gettext} from '../../utils';
@@ -10,12 +9,25 @@ import {ColumnBox} from '../UI';
 import * as selectors from '../../selectors';
 import * as actions from '../../actions';
 import {AgendaList, EditAgenda} from './index';
+import {IAgenda, IPlanningAppState} from '../../interfaces';
+
+interface IManageAgendasModalOwnProps {
+    handleHide(): void;
+}
+
+interface IManageAgendasModalState {
+    editorOpen: boolean;
+    selectedAgenda: IAgenda | null;
+}
 
 /**
 * Modal for managing and editing agendas
 */
-export class ManageAgendasComponent extends React.Component {
-    constructor(props) {
+export class ManageAgendasComponent extends React.Component<
+    IManageAgendasModalOwnProps & ConnectedProps<typeof connector>,
+    IManageAgendasModalState
+> {
+    constructor(props: IManageAgendasModalOwnProps & ConnectedProps<typeof connector>) {
         super(props);
         this.state = {
             editorOpen: false,
@@ -24,32 +36,32 @@ export class ManageAgendasComponent extends React.Component {
         this.handleKeydown = this.handleKeydown.bind(this);
     }
 
-    componentDidMount() {
+    componentDidMount(): void {
         document.addEventListener('keydown', this.handleKeydown);
     }
 
-    componentWillUnmount() {
+    componentWillUnmount(): void {
         document.removeEventListener('keydown', this.handleKeydown);
     }
 
-    handleKeydown(event) {
+    handleKeydown(event: KeyboardEvent): void {
         if (event.keyCode === KEYCODES.ESCAPE) {
             event.preventDefault();
             this.props.handleHide();
         }
     }
 
-    componentWillReceiveProps(nextProps) {
+    componentWillReceiveProps(nextProps: IManageAgendasModalOwnProps & ConnectedProps<typeof connector>): void {
         if (this.state.selectedAgenda) {
-            const nextPropsAgenda = nextProps.enabledAgendas.find((a) => a._id === this.state.selectedAgenda._id);
+            const nextPropsAgenda = nextProps.enabledAgendas.find((a) => a._id === this.state.selectedAgenda!._id);
 
             if (!isEqual(this.state.selectedAgenda, nextPropsAgenda)) {
-                this.setState({selectedAgenda: nextPropsAgenda});
+                this.setState({selectedAgenda: nextPropsAgenda ?? null});
             }
         }
     }
 
-    toggleEditorOpen() {
+    toggleEditorOpen(): void {
         if (this.state.editorOpen) {
             // Closing - set selected Agenda to null
             this.setState({
@@ -61,14 +73,14 @@ export class ManageAgendasComponent extends React.Component {
         }
     }
 
-    editAgenda(agenda) {
+    editAgenda(agenda: IAgenda): void {
         this.setState({
             selectedAgenda: agenda,
             editorOpen: true,
         });
     }
 
-    render() {
+    render(): React.ReactNode {
         const {handleHide, privileges, enabledAgendas, disabledAgendas, deleteAgenda} = this.props;
 
         return (
@@ -132,17 +144,7 @@ export class ManageAgendasComponent extends React.Component {
     }
 }
 
-ManageAgendasComponent.propTypes = {
-    handleHide: PropTypes.func,
-    enabledAgendas: PropTypes.array,
-    disabledAgendas: PropTypes.array,
-    privileges: PropTypes.object.isRequired,
-    deleteAgenda: PropTypes.func,
-    createOrUpdateAgenda: PropTypes.func,
-    openOnSaveModal: PropTypes.func,
-};
-
-const mapStateToProps = (state) => (
+const mapStateToProps = (state: IPlanningAppState) => (
     {
         enabledAgendas: selectors.general.enabledAgendas(state),
         disabledAgendas: selectors.general.disabledAgendas(state),
@@ -150,8 +152,8 @@ const mapStateToProps = (state) => (
     }
 );
 
-const mapDispatchToProps = (dispatch) => ({
-    deleteAgenda: (agenda) => dispatch(actions.showModal({
+const mapDispatchToProps = (dispatch: any) => ({
+    deleteAgenda: (agenda: IAgenda) => dispatch(actions.showModal({
         modalType: MODALS.CONFIRMATION,
         modalProps: {
             body: `Do you want to delete "${agenda.name}" agenda ?`,
@@ -159,11 +161,10 @@ const mapDispatchToProps = (dispatch) => ({
             autoClose: true,
         },
     })),
-    createOrUpdateAgenda: (agenda) => dispatch(actions.createOrUpdateAgenda(agenda)),
-    openOnSaveModal: (props) => dispatch(actions.main.openConfirmationModal(props)),
+    createOrUpdateAgenda: (agenda: IAgenda) => dispatch(actions.createOrUpdateAgenda(agenda)),
+    openOnSaveModal: (props: any) => dispatch(actions.main.openConfirmationModal(props)),
 });
 
-export const ManageAgendasModal = connect(
-    mapStateToProps,
-    mapDispatchToProps
-)(ManageAgendasComponent);
+const connector = connect(mapStateToProps, mapDispatchToProps);
+
+export const ManageAgendasModal = connector(ManageAgendasComponent);
