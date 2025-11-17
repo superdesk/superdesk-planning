@@ -17,7 +17,7 @@ logger = logging.getLogger(__name__)
 
 class EventHistoryRecord(TypedDict):
     event_id: str
-    user_id: str
+    user_id: str | None
     operation: str
     update: dict[str, Any]
 
@@ -88,7 +88,7 @@ class EventsHistoryAsyncService(HistoryAsyncService[EventsHistoryResourceModel])
         return [
             {
                 "event_id": record["event_id"],
-                "user_id": record["user_id"],
+                "user_id": record.get("user_id"),
                 "operation": record["operation"],
                 "update": record["update"],
             }
