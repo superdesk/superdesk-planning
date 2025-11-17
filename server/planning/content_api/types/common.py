@@ -32,7 +32,7 @@ class BaseContentAPIDataclass(Dataclass):
 
 class ContactPhoneNumber(BaseContentAPIDataclass):
     number: str
-    usage: str
+    usage: str | None = None
 
 
 class ContactLocationEntity(BaseContentAPIDataclass):
