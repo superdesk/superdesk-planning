@@ -672,7 +672,13 @@ export const isDateInRange = (inputDate, startDate, endDate, allDay = false) => 
     }
 
     if (allDay) {
-        return moment.utc(inputDate).isBetween(startDate, endDate, 'day', '[)');
+        if (startDate && inputDate.isBefore(startDate, 'day') ||
+            endDate && inputDate.isSameOrAfter(endDate, 'day')
+        ) {
+            return false;
+        }
+
+        return true;
     }
 
     if (startDate && moment(inputDate).isBefore(startDate, 'millisecond') ||
