@@ -220,6 +220,7 @@ export class AssignmentEditorComponent extends React.PureComponent<IProps> {
                     <Row style={{padding: '2rem 0', margin: '0 0 1.8em 0'}}>
                         <div data-test-id={this.FIELDS.USER}>
                             <SelectUser
+                                key={this.props.value.assigned_to?.desk ?? null}
                                 disabled={disableUserSelection}
                                 deskId={deskId}
                                 selectedUserId={userId}

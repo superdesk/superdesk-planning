@@ -1,7 +1,6 @@
 import React from 'react';
 import moment from 'moment';
 import {get, debounce, Cancelable} from 'lodash';
-import {OverlayTrigger, Tooltip} from 'react-bootstrap';
 
 import {superdeskApi} from '../../../superdeskApi';
 import {IUser, IDesk, IArticle} from 'superdesk-api';
@@ -19,7 +18,7 @@ import {assignmentUtils, planningUtils} from '../../../utils';
 import {ASSIGNMENTS, CLICK_DELAY} from '../../../constants';
 import {editPlanningInNewTab, getAssignmentTypeInfo} from '../../../utils/assignments';
 
-import {Menu} from 'superdesk-ui-framework/react';
+import {Menu, Tooltip} from 'superdesk-ui-framework/react';
 import {UserAvatar} from '../../../components/UserAvatar';
 import {Item, Border, Column} from '../../UI/List';
 
@@ -143,12 +142,12 @@ export class AssignmentItem extends React.Component<IAssignmentItemProps, IState
         return (
             <Column>
                 <span className="a11y-only">{tooltip}</span>
-                <OverlayTrigger
+                <Tooltip
+                    content={tooltip}
                     placement="right"
-                    overlay={<Tooltip id="content_type">{tooltip}</Tooltip>}
                 >
                     <i className={className} />
-                </OverlayTrigger>
+                </Tooltip>
             </Column>
         );
     }

@@ -1,7 +1,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import {values} from 'lodash';
-import {OverlayTrigger, Tooltip} from 'react-bootstrap';
+import {Tooltip} from 'superdesk-ui-framework/react';
 import classNames from 'classnames';
 
 import {ICON_COLORS} from './constants';
@@ -58,13 +58,9 @@ const IconMix = ({icon, subIcon, big, doubleSize, className, tooltip, color}) =>
     }
 
     return tooltip ? (
-        <OverlayTrigger
-            overlay={
-                <Tooltip id="icon_list_item">{tooltip}</Tooltip>
-            }
-        >
+        <Tooltip content={tooltip}>
             {iconElement}
-        </OverlayTrigger>
+        </Tooltip>
     ) :
         iconElement;
 };

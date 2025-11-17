@@ -13,8 +13,7 @@ import {assignmentUtils} from '../../utils';
 import {AssignmentMultiTextItem} from './AssignmentItem/AssignmentMultiTextItem';
 import {Header, Group} from '../UI/List';
 import {OrderDirectionIcon} from '../OrderBar';
-import {ListItemLoader} from 'superdesk-ui-framework/react/components/ListItemLoader';
-import moment from 'moment';
+import {ListItemLoader, LoadMoreIndicator} from 'superdesk-ui-framework/react';
 
 const focusElement = throttle((element: HTMLElement) => {
     element.focus();
@@ -37,7 +36,6 @@ interface IProps {
     hideItemActions?: boolean;
     privileges?: any;
     startWorking?: () => any;
-    totalCount?: number;
     changeAssignmentListSingleGroupView?: (groupKey: string) => any;
     assignmentListSingleGroupView?: string;
     preview?: () => any;
@@ -58,6 +56,16 @@ interface IProps {
     isLoading?: boolean;
     dayField?: string;
     archiveItems: {[itemId: string]: IArticle};
+
+    /**
+     * Total number of assignments in the current group as reported by the server
+     */
+    totalCount?: number;
+
+    /**
+     * The actual count of assignments that have been fetched from the server for the current group
+     */
+    groupAssignmentsFetchedCount: number;
 }
 
 interface IState {
@@ -90,20 +98,20 @@ class AssignmentGroupListComponent extends React.Component<IProps, IState> {
         }
     }
 
-    handleScroll(event: React.UIEvent) {
-        if (this.state.isNextPageLoading) {
+    handleScroll(event: React.UIEvent<HTMLUListElement>) {
+        if (this.state.isNextPageLoading || this.props.isLoading) {
             return;
         }
 
-        const node = event.target;
-        const {totalCount, assignments, loadMoreAssignments, groupKey} = this.props;
+        const node = event.target as HTMLUListElement;
+        const {totalCount, groupAssignmentsFetchedCount, loadMoreAssignments, groupKey} = this.props;
 
-        if (node && totalCount > get(assignments, 'length', 0)) {
+        if (node && totalCount > groupAssignmentsFetchedCount) {
             if (node.scrollTop + node.offsetHeight + 200 >= node.scrollHeight) {
-                this.setState({isNextPageLoading: true});
-
-                loadMoreAssignments(groupKey)
-                    .finally(() => this.setState({isNextPageLoading: false}));
+                this.setState({isNextPageLoading: true}, () => {
+                    loadMoreAssignments(groupKey)
+                        .finally(() => this.setState({isNextPageLoading: false}));
+                });
             }
         }
     }
@@ -207,7 +215,7 @@ class AssignmentGroupListComponent extends React.Component<IProps, IState> {
         }
     }
 
-    rowRenderer(index) {
+    rowRenderer(assignment) {
         const {
             users,
             session,
@@ -219,7 +227,6 @@ class AssignmentGroupListComponent extends React.Component<IProps, IState> {
             archiveItems,
         } = this.props;
 
-        const assignment = this.props.assignments[index];
         const assignedUser = users.find((user) => get(assignment, 'assigned_to.user') === user._id);
         const isCurrentUser = assignedUser && assignedUser._id === session.identity._id;
         const onDoubleClick = assignmentUtils.assignmentHasContent(assignment) ?
@@ -275,11 +282,7 @@ class AssignmentGroupListComponent extends React.Component<IProps, IState> {
         } = this.props;
         const listStyle = setMaxHeight ? {maxHeight: this.getListMaxHeight() + 'px'} : {};
         const headingId = `heading--${this.props.groupKey}`;
-        const filteredAssignments = this.props.dayField == null
-            ? assignments
-            : assignments.filter((assignment) =>
-                moment(assignment.planning.scheduled).isSameOrAfter(moment(this.props.dayField)),
-            );
+        const assignmentsCount = assignments?.length ?? 0;
 
         return (
             <div data-test-id="assignment-group__list">
@@ -302,9 +305,9 @@ class AssignmentGroupListComponent extends React.Component<IProps, IState> {
                             <div className="sd-list-header__number sd-flex-grow">
                                 <span className="a11y-only">{gettext(
                                     'Number of Assignments: ',
-                                    {count: (totalCount ?? 0)}
+                                    {count: (assignmentsCount)}
                                 )}</span>
-                                <span className="badge">{(totalCount ?? 0)}</span>
+                                <span className="badge">{(assignmentsCount)}</span>
                             </div>
                         )}
 
@@ -333,15 +336,25 @@ class AssignmentGroupListComponent extends React.Component<IProps, IState> {
                     refNode={(assignmentsList) => this.dom.list = assignmentsList}
                     tabIndex={-1}
                 >
-                    {isLoading === true && (
-                        <ListItemLoader />
+                    {/* only show this loader when no items exist yet */}
+                    {isLoading === true && (assignmentsCount) === 0 && <ListItemLoader />}
+
+                    {assignmentsCount > 0 && (
+                        <>
+                            {assignments.map((assignment) => this.rowRenderer(assignment))}
+
+                            <LoadMoreIndicator
+                                loading={this.state.isNextPageLoading}
+                                currentCount={assignmentsCount}
+                                totalCount={totalCount}
+                                loadingText={gettext('Loading more...')}
+                            />
+                        </>
                     )}
-                    {isLoading !== true && (
-                        (filteredAssignments?.length ?? 0) > 0 ? (
-                            filteredAssignments.map((_assignment, index) => this.rowRenderer(index))
-                        ) : (
-                            <li className="sd-list-item-group__empty-msg">{groupEmptyMessage}</li>
-                        )
+
+                    {/* only when not loading and no items */}
+                    {!isLoading && (assignmentsCount) === 0 && (
+                        <li className="sd-list-item-group__empty-msg">{groupEmptyMessage}</li>
                     )}
                 </Group>
             </div>
@@ -371,6 +384,7 @@ const mapStateToProps = (state, ownProps) => {
         isLoading: assignmentDataSelector.isLoading(state),
         archiveItems: selectors.getStoredArchiveItems(state),
         totalCount: assignmentDataSelector.countSelector(state),
+        groupAssignmentsFetchedCount: assignmentDataSelector.assignmentIds(state).length,
     };
 };
 

@@ -2,11 +2,11 @@ Feature: Planning Search
     Background: Initial setup
         Given "agenda"
         """
-            [
-                {"name": "sports", "_id": "sports", "is_enabled": true},
-                {"name": "finance", "_id": "finance", "is_enabled": true},
-                {"name": "entertainment", "_id": "entertainment", "is_enabled": true}
-            ]
+        [
+            {"name": "sports", "_id": "68e5df45ac0f6c8b678c17b1", "is_enabled": true},
+            {"name": "finance", "_id": "68e5df45ac0f6c8b678c17b2", "is_enabled": true},
+            {"name": "entertainment", "_id": "68e5df45ac0f6c8b678c17b3", "is_enabled": true}
+        ]
         """
         And "events"
             """
@@ -316,7 +316,7 @@ Feature: Planning Search
 
     @auth
     Scenario: Search by planning specific parameters
-        When we get "/events_planning_search?repo=planning&only_future=false&agendas=sports,finance"
+        When we get "/events_planning_search?repo=planning&only_future=false&agendas=68e5df45ac0f6c8b678c17b1,68e5df45ac0f6c8b678c17b2"
         Then we get list with 3 items
         """
         {"_items": [

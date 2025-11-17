@@ -1,5 +1,5 @@
 import * as React from 'react';
-import {OverlayTrigger, Tooltip} from 'react-bootstrap';
+import {Tooltip} from 'superdesk-ui-framework/react';
 import classNames from 'classnames';
 
 import {EDITOR_TYPE, IBookmarkProps} from '../../../interfaces';
@@ -26,13 +26,9 @@ export class AddPlanningBookmark extends React.PureComponent<IBookmarkProps> {
         const {gettext} = superdeskApi.localization;
 
         return (
-            <OverlayTrigger
+            <Tooltip
+                content={gettext('Add Planning Item')}
                 placement="right"
-                overlay={(
-                    <Tooltip id="add_planning_item">
-                        {gettext('Add Planning Item')}
-                    </Tooltip>
-                )}
             >
                 <button
                     data-test-id={`editor--bookmarks__${this.props.bookmark.id}`}
@@ -48,7 +44,7 @@ export class AddPlanningBookmark extends React.PureComponent<IBookmarkProps> {
                 >
                     <Icon name="plus-large" />
                 </button>
-            </OverlayTrigger>
+            </Tooltip>
         );
     }
 }
