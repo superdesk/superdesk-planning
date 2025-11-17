@@ -8,6 +8,7 @@ interface IProps {
     transparent?: boolean;
     bg00?: boolean;
     className?: string;
+    style?: React.CSSProperties;
     testId?: string;
 }
 
@@ -23,6 +24,7 @@ export const SidePanel: React.FC<IProps> = ({
     transparent = false,
     bg00 = false,
     className = '',
+    style,
     testId,
 }) => (
     <div
@@ -37,6 +39,7 @@ export const SidePanel: React.FC<IProps> = ({
             className
         )}
         data-test-id={testId}
+        style={style}
     >
         {children}
     </div>
