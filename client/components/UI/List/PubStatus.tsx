@@ -1,6 +1,6 @@
 import React from 'react';
-import {OverlayTrigger, Tooltip} from 'react-bootstrap';
 import PropTypes from 'prop-types';
+import {Tooltip} from 'superdesk-ui-framework/react';
 
 import {TOOLTIPS} from '../../../constants';
 
@@ -43,12 +43,9 @@ export const PubStatus = ({item, isPublic}) => {
     return (
         <Column>
             {title && (
-                <OverlayTrigger
-                    placement="right"
-                    overlay={<Tooltip id="badge_pub_status">{title}</Tooltip>}
-                >
+                <Tooltip content={title} placement="right">
                     {badge}
-                </OverlayTrigger>
+                </Tooltip>
             )}
             {!title && (badge)}
         </Column>

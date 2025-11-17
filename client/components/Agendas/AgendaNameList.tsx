@@ -3,7 +3,7 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import {get, sortBy} from 'lodash';
 import {gettext} from '../../utils';
-import {OverlayTrigger, Tooltip} from 'react-bootstrap';
+import {Tooltip} from 'superdesk-ui-framework/react';
 
 export const AgendaNameList = ({agendas}) => {
     let tooltipElem = (agendas || []).map((a) =>
@@ -13,14 +13,7 @@ export const AgendaNameList = ({agendas}) => {
         <span>
             {get(agendas, 'length', 0) === 0 ? gettext('No Agenda Assigned.') :
                 (
-                    <OverlayTrigger
-                        placement="left"
-                        overlay={(
-                            <Tooltip id="agenda_tooltip" className="tooltip--text-left">
-                                {tooltipElem}
-                            </Tooltip>
-                        )}
-                    >
+                    <Tooltip content={tooltipElem} placement="left">
                         <span>
                             {sortBy(agendas.filter((a) => a), [(a) => get(a, 'name', '').toLowerCase()])
                                 .map((a, index, arr) => (
@@ -30,8 +23,9 @@ export const AgendaNameList = ({agendas}) => {
                                     >
                                         {a.name}{index === arr.length - 1 ? '' : ', '}
                                     </span>
-                                ))}</span>
-                    </OverlayTrigger>
+                                ))}
+                        </span>
+                    </Tooltip>
                 )
             }
         </span>

@@ -3,8 +3,7 @@
 import React from 'react';
 import {connect} from 'react-redux';
 import {get} from 'lodash';
-import {Spacer} from 'superdesk-ui-framework/react';
-import {OverlayTrigger, Tooltip} from 'react-bootstrap';
+import {Spacer, Tooltip} from 'superdesk-ui-framework/react';
 import {ICalendar, IFieldsProps, IPlanningAppState} from '../../interfaces';
 import {superdeskApi} from '../../superdeskApi';
 import {getVocabularyItemFieldTranslated} from '../../utils/vocabularies';
@@ -53,20 +52,17 @@ class CalendarsComponent extends React.PureComponent<IProps> {
                 <span className="sd-list-item__text-label">{gettext('Calendar:')}</span>
                 {<span className="sd-list-item__text-strong sd-list-item--element-rm-10">
                     {calendars.length > 0 ? (
-                        <OverlayTrigger
-                            placement="left"
-                            overlay={(
-                                <Tooltip
-                                    id="location_tooltip"
-                                    className="tooltip--text-left"
-                                >
+                        <Tooltip
+                            content={() => (
+                                <>
                                     {calendars.map((calendar) => (
                                         <div key={calendar.qcode}>
                                             {calendar.tooltip}
                                         </div>
                                     ))}
-                                </Tooltip>
+                                </>
                             )}
+                            placement="left"
                         >
                             <span>
                                 {calendars.map((calendar, index, array) => (
@@ -78,7 +74,7 @@ class CalendarsComponent extends React.PureComponent<IProps> {
                                     </span>
                                 ))}
                             </span>
-                        </OverlayTrigger>
+                        </Tooltip>
                     ) : (
                         <span>
                             {gettext('No calendars assigned')}

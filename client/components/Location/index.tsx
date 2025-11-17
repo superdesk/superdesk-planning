@@ -1,6 +1,6 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import {OverlayTrigger, Tooltip} from 'react-bootstrap';
+import {Tooltip} from 'superdesk-ui-framework/react';
 
 import {appConfig} from 'appConfig';
 
@@ -13,22 +13,22 @@ export const Location = ({name, address, multiLine, details}) => {
 
     // eslint-disable-next-line react/no-multi-comp
     const renderSingleline = () => (
-        <OverlayTrigger
-            overlay={(
-                <Tooltip id="location_tooltip" className="tooltip--text-left">
+        <Tooltip
+            content={() => (
+                <>
                     {name && <div className="sd-line-input__label">{name}</div>}
                     {address && (
                         <div className="sd-line-input__input--address">
                             {address}
                         </div>
                     )}
-                </Tooltip>
+                </>
             )}
         >
             <span className="sd-list-item__location">
                 {name || address}
             </span>
-        </OverlayTrigger>
+        </Tooltip>
     );
 
     // eslint-disable-next-line react/no-multi-comp

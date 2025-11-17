@@ -1,5 +1,5 @@
 import * as React from 'react';
-import {OverlayTrigger, Tooltip} from 'react-bootstrap';
+import {Tooltip} from 'superdesk-ui-framework/react';
 import classNames from 'classnames';
 
 import {EDITOR_TYPE, IBookmarkProps, IEventItem, IPlanningItem} from '../../../interfaces';
@@ -50,16 +50,12 @@ export class AssociatedPlanningsBookmark extends React.Component<IProps, IState>
         const {gettext} = superdeskApi.localization;
 
         return this.props.item.associated_plannings.map((plan, index) => (
-            <OverlayTrigger
+            <Tooltip
                 key={plan._id}
+                content={gettext('Planning: {{ name }}', {
+                    name: plan.slugline || plan.headline || plan.name,
+                })}
                 placement="right"
-                overlay={(
-                    <Tooltip id="associated_plannings">
-                        {gettext('Planning: {{ name }}', {
-                            name: plan.slugline || plan.headline || plan.name,
-                        })}
-                    </Tooltip>
-                )}
             >
                 <button
                     data-test-id={`editor--bookmarks__planning-${index}`}
@@ -77,7 +73,7 @@ export class AssociatedPlanningsBookmark extends React.Component<IProps, IState>
                 >
                     <Icon name="calendar" />
                 </button>
-            </OverlayTrigger>
+            </Tooltip>
         ));
     }
 

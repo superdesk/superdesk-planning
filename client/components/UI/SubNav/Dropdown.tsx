@@ -1,7 +1,7 @@
 import React from 'react';
-import {OverlayTrigger, Tooltip} from 'react-bootstrap';
 import classNames from 'classnames';
 import {defer, get, groupBy} from 'lodash';
+import {Tooltip} from 'superdesk-ui-framework/react';
 
 import {Menu, Label, Divider, Dropdown as DropMenu} from '../Dropdown';
 import {gettext} from '../utils';
@@ -197,16 +197,9 @@ export class Dropdown extends React.Component<IProps, IState> {
                 className={this.props.className}
             >
                 {this.props.tooltip ? (
-                    <OverlayTrigger
-                        placement="left"
-                        overlay={(
-                            <Tooltip id="create_new_btn">
-                                {this.props.tooltip}
-                            </Tooltip>
-                        )}
-                    >
-                        <span>{this.renderButtonDropMenu()}</span>
-                    </OverlayTrigger>
+                    <Tooltip content={this.props.tooltip} placement="left">
+                        {this.renderButtonDropMenu()}
+                    </Tooltip>
                 ) :
                     this.renderButtonDropMenu()
                 }
