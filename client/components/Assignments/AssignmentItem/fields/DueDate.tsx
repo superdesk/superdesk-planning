@@ -20,11 +20,10 @@ export const DueDateComponent = ({assignment}: IProps) => {
 
     return (
         <span
-            title={gettext('Due Date')}
             className={classNames('assignment--due-date', 'label-icon', {'label-icon--warning': isOverdue})}
         >
-            {assignedToProvider && <i className="icon-ingest" />}
-            <i className="icon-time" />
+            {assignedToProvider && <i className="icon-ingest" title={gettext('Assigned to provider')} />}
+            <i className="icon-time" title={gettext('Due Date')} />
             {planningSchedule ? (
                 <AbsoluteDate
                     date={moment(planningSchedule).format()}
