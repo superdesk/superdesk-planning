@@ -192,10 +192,10 @@ def search_date(params: Dict[str, Any], query: elastic.ElasticQuery):
                     }
                 }
             )
-            query.extra["sort_filter"] = query_range
+            # query.extra["sort_filter"] = query_range
         else:
             query.filter.append(query_range)
-            query.extra["sort_filter"] = query_range
+            # query.extra["sort_filter"] = query_range
 
 
 def search_date_default(params: Dict[str, Any], query: elastic.ElasticQuery):
@@ -234,6 +234,7 @@ def set_search_sort(params: Dict[str, Any], query: elastic.ElasticQuery):
             {
                 "_planning_schedule.scheduled": {
                     "order": order,
+                    "mode": "min",
                     "nested": {
                         "path": "_planning_schedule",
                         "filter": query.extra.get("sort_filter", None),
