@@ -452,3 +452,32 @@ class JsonPlanningTestCase(TestCase):
         self.assertIsNone((await self.format(item)).get("event_item"))
         item.pop("related_events")
         self.assertIsNone((await self.format(item)).get("event_item"))
+
+    async def test_exclude_asignee_fields(self):
+        item = deepcopy(self.item)
+        desk_id = ObjectId()
+        user_id = ObjectId()
+
+        item["coverages"][0]["assigned_to"].update(
+            desk=desk_id,
+            user=user_id,
+        )
+
+        async with self.app.app_context():
+            self.app.data.insert(
+                "desks",
+                [{"_id": desk_id, "name": "sports", "email": "sports@example.com"}],
+            )
+            self.app.data.insert("users", [{"_id": user_id, "display_name": "John Doe", "email": "john@example.com"}])
+
+        output_item = await self.format(item)
+        coverage = output_item["coverages"][0]
+        assert "assigned_user" in coverage
+        assert "assigned_desk" in coverage
+
+        with mock.patch.dict(self.app.config, {"PLANNING_JSON_EXCLUDE_ASSIGNEE_FIELDS": ["desk"]}):
+            output_item = await self.format(item)
+
+        coverage = output_item["coverages"][0]
+        assert "assigned_user" in coverage
+        assert "assigned_desk" not in coverage

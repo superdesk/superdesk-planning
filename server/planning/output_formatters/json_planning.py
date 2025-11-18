@@ -196,9 +196,10 @@ class JsonPlanningFormatter(BaseJsonFormatter):
         return deliveries, assignment.get("assigned_to").get("state")
 
     async def _expand_coverage_contacts(self, coverage):
+        ASIGNEE_FIELDS = get_config(list[str], "PLANNING_JSON_EXCLUDE_ASSIGNEE_FIELDS", [])
         EXTENDED_INFO = get_config(bool, "PLANNING_JSON_ASSIGNED_INFO_EXTENDED", False)
 
-        if (coverage.get("assigned_to") or {}).get("contact"):
+        if "contact" not in ASIGNEE_FIELDS and (coverage.get("assigned_to") or {}).get("contact"):
             expanded_contacts = await expand_contact_info([coverage["assigned_to"]["contact"]])
             if expanded_contacts:
                 coverage["coverage_provider_contact_info"] = {
@@ -206,7 +207,7 @@ class JsonPlanningFormatter(BaseJsonFormatter):
                     "last_name": expanded_contacts[0]["last_name"],
                 }
 
-        if (coverage.get("assigned_to") or {}).get("user"):
+        if "user" not in ASIGNEE_FIELDS and (coverage.get("assigned_to") or {}).get("user"):
             user = get_resource_service("users").find_one(req=None, _id=coverage["assigned_to"]["user"])
             if user and not user.get("private"):
                 coverage["assigned_user"] = {
@@ -220,7 +221,7 @@ class JsonPlanningFormatter(BaseJsonFormatter):
                         email=user.get("email"),
                     )
 
-        if (coverage.get("assigned_to") or {}).get("desk"):
+        if "desk" not in ASIGNEE_FIELDS and (coverage.get("assigned_to") or {}).get("desk"):
             desk = get_resource_service("desks").find_one(req=None, _id=coverage["assigned_to"]["desk"])
             if desk:
                 coverage["assigned_desk"] = {
