@@ -414,7 +414,7 @@ Feature: ContentAPI Planning docs
             },
             "ContactPhoneNumber": {
                 "type": "object",
-                "required": ["number", "usage"],
+                "required": ["number"],
                 "properties": {
                     "number": {"type": "string"},
                     "usage": {"type": "string"}
