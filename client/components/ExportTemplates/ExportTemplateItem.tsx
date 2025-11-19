@@ -8,11 +8,13 @@ import {getNameField} from './ManageExportTemplates';
 
 export class ExportTemplateItem extends React.PureComponent<IPropsGenericFormItemComponent<IPlanningExportTemplate>> {
     render() {
-        const {item, page} = this.props;
+        const {item, page, inEditMode, inPreviewMode} = this.props;
 
         return (
             <ListItem
                 onClick={() => page.openPreview(item._id)}
+                onDoubleClick={() => page.startEditing(item._id)}
+                className={inEditMode || inPreviewMode ? 'sd-list-item--selected' : ''}
                 data-test-id="export-template-item"
             >
                 <ListItemColumn ellipsisAndGrow noBorder>

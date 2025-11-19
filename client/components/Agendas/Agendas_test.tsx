@@ -4,7 +4,8 @@ import {Provider} from 'react-redux';
 import {getTestActionStore} from '../../utils/testUtils';
 import {createTestStore} from '../../utils';
 import {List} from '../UI/';
-import {ManageAgendasModal} from './index';
+import {ManageAgendasModal} from './ManageAgendasModal';
+import {noop} from 'lodash';
 
 describe('ManageAgendas', () => {
     describe('<ManageAgendasModal />', () => {
@@ -23,9 +24,11 @@ describe('ManageAgendas', () => {
                         $location: services.$location,
                     },
                 });
-                wrapper = mount(<Provider store={store}>
-                    <ManageAgendasModal />
-                </Provider>);
+                wrapper = mount(
+                    <Provider store={store}>
+                        <ManageAgendasModal handleHide={noop} />
+                    </Provider>
+                );
             }
 
             const dialog = wrapper

@@ -51,6 +51,25 @@ export class EditFilter extends React.Component<IEventsPlanningContentPanelProps
         this.popupContainer = React.createRef();
     }
 
+    componentDidUpdate(prevProps: IEventsPlanningContentPanelProps) {
+        if (prevProps.filter?._id !== this.props.filter?._id) {
+            const filter = this.props.filter != null ?
+                cloneDeep(this.props.filter) :
+                eventPlanningUtils.defaultFilterValues();
+
+            // eslint-disable-next-line react/no-did-update-set-state
+            this.setState({
+                pristine: true,
+                filter: filter,
+                invalid: false,
+                errors: {},
+                profile: this.getProfile(filter.item_type),
+            }, () => {
+                this.props.onPristineChange?.(true);
+            });
+        }
+    }
+
     getProfile(itemType: FILTER_TYPE = FILTER_TYPE.COMBINED) {
         switch (itemType) {
         case FILTER_TYPE.EVENTS:
@@ -102,6 +121,8 @@ export class EditFilter extends React.Component<IEventsPlanningContentPanelProps
             pristine: pristine,
             invalid: invalid,
             errors: errors,
+        }, () => {
+            this.props.onPristineChange?.(pristine);
         });
     }
 
@@ -147,6 +168,8 @@ export class EditFilter extends React.Component<IEventsPlanningContentPanelProps
             pristine,
             invalid,
             errors,
+        }, () => {
+            this.props.onPristineChange?.(pristine);
         });
     }
 

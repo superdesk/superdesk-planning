@@ -4,10 +4,11 @@ import {createSelector} from 'reselect';
 import {IAgenda, IG2ContentType, IPlanningAppState, ISession} from '../interfaces';
 import {getEnabledAgendas, getDisabledAgendas, getItemInArrayById} from '../utils';
 import {ITEM_TYPE, COVERAGES, ASSIGNMENTS} from '../constants/index';
+import {Dictionary} from 'superdesk-api';
 
 export const currentWorkspace = (state) => get(state, 'workspace.currentWorkspace', null);
 export const ingestProviders = (state) => get(state, 'ingest.providers');
-export const privileges = (state) => get(state, 'privileges');
+export const privileges = (state): Dictionary<string, number> => get(state, 'privileges');
 export const users = (state) => get(state, 'users', []);
 export const keywords = (state) => get(state, 'vocabularies.keywords', []);
 export const newsCoverageStatus = (state) => get(state, 'vocabularies.newscoveragestatus', []);

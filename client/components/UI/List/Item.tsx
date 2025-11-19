@@ -17,6 +17,7 @@ interface IProps {
     flexRow?: boolean;
 
     onClick?(event: React.MouseEvent<HTMLLIElement>): void;
+    onDoubleClick?(event: React.MouseEvent<HTMLLIElement>): void;
     onMouseEnter?(): void;
     onMouseLeave?(): void;
     onMouseDown?(event: React.MouseEvent<HTMLLIElement>): void;
@@ -36,6 +37,7 @@ export class Item extends React.PureComponent<IProps> {
             activated,
             className,
             onClick,
+            onDoubleClick,
             margin,
             disabled,
             onMouseEnter,
@@ -73,7 +75,7 @@ export class Item extends React.PureComponent<IProps> {
                         'sd-list-item--no-bg': noBg,
                         'sd-list-item--no-hover': noHover,
                         'sd-list-item--margin': margin,
-                        'sd-list-item--activated': activated,
+                        'sd-list-item--selected': activated,
                         [`sd-shadow--z${shadow}`]: shadow,
                         'sd-list-item--disabled': disabled,
                         'sd-list-item--draggable': draggable,
@@ -81,6 +83,7 @@ export class Item extends React.PureComponent<IProps> {
                 )}
                 style={styles}
                 onClick={onClick}
+                onDoubleClick={onDoubleClick}
                 onMouseDown={onMouseDown}
                 onMouseUp={onMouseUp}
                 onMouseEnter={onMouseEnter}
