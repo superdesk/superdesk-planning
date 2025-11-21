@@ -267,7 +267,7 @@ export class ManageFiltersComponent extends React.Component<IProps, IState> {
                                 <Button
                                     text={gettext('Go Back')}
                                     onClick={this.onCancelSwitch}
-                                    type="default"
+                                    type="tertiary"
                                 />
                                 <Button
                                     text={gettext('Don\'t Save')}
