@@ -45,7 +45,8 @@ describe('Planning.Events: event cancel action', () => {
     }
 
     function cancelEventFromListView(listItem) {
-        getMenuItem(listItem, 'Cancel').click();
+        getMenuItem(listItem, 'Cancel')
+            .click();
 
         modal.waitTillOpen(30000);
         modal.element

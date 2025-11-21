@@ -16,7 +16,7 @@ interface IEventTemplate extends IBaseRestApiResponse {
 }
 
 const getItemComponent = (nameField: IFormField<IEventTemplate>) =>
-    class ItemComponent extends React.PureComponent<IPropsGenericFormItemComponent<any>> {
+    class ItemComponent extends React.PureComponent<IPropsGenericFormItemComponent<IEventTemplate>> {
         render(): React.ReactNode {
             const {item, page, inEditMode, inPreviewMode} = this.props;
             const {ListItem, ListItemColumn} = superdeskApi.components;
@@ -41,7 +41,7 @@ const getItemComponent = (nameField: IFormField<IEventTemplate>) =>
                             />
                             <IconButton
                                 icon="trash"
-                                onClick={() => page.deleteItem(item._id)}
+                                onClick={() => page.deleteItem(item)}
                                 ariaValue={superdeskApi.localization.gettext('')}
                                 size="small"
                             />

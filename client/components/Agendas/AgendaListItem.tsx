@@ -6,7 +6,7 @@ import {ListItem, ListItemColumn, ListItemActionsMenu} from 'superdesk-core/scri
 import {getFormFieldPreviewComponent} from 'superdesk-core/scripts/core/ui/components/generic-form/form-field';
 import {gettext} from '../../utils';
 import {getNameField} from './ManageAgendasModal';
-import {IconButton, Label} from 'superdesk-ui-framework';
+import {IconButton, Label} from 'superdesk-ui-framework/react';
 import {superdeskApi} from '../../superdeskApi';
 
 export class AgendaListItem extends React.PureComponent<IPropsGenericFormItemComponent<IAgendaEntity>> {
