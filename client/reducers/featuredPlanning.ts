@@ -71,11 +71,13 @@ function updateListIds(prevState: IFeaturedPlanningState): IFeaturedPlanningStat
         }
     });
 
-    const dirty = (removePlanningIds?.length ?? 0) > 0 || (
-        !existingItem &&
-        selectedPlanningIds?.length &&
-        !isReadOnly
-    );
+    const dirty =
+        (removePlanningIds ?? []).length > 0 ||
+        (
+            !existingItem
+            && selectedPlanningIds.length != null
+            && !isReadOnly
+        );
 
     return {
         ...prevState,
