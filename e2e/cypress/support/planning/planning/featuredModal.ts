@@ -44,13 +44,14 @@ export class FeaturedModal extends Modal {
     expectListEntries(lists: IExpectListEntries) {
         Object.keys(lists).forEach((name: keyof IExpectListEntries) => {
             const expectLength = lists[name]?.length;
+
             if (expectLength) {
                 lists[name].forEach((slugline, index) => {
                     this.getList(name)
                         .should('exist')
                         .find('li')
                         .eq(index)
-                        .contains(slugline)
+                        .contains(slugline);
                 });
             } else if (expectLength === 0) {
                 this.getList(name)
@@ -68,7 +69,7 @@ export class FeaturedModal extends Modal {
         this.getList(listName)
             .find('li')
             .eq(index)
-            .should('have.class', 'sd-list-item--activated');
+            .should('have.class', 'sd-list-item--selected');
     }
 
     getList(name: keyof IExpectListEntries) {
