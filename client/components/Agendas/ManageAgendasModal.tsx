@@ -7,6 +7,7 @@ import {AgendaListItem} from './AgendaListItem';
 import {PRIVILEGES} from '../../constants';
 import {connect, ConnectedProps} from 'react-redux';
 import * as selectors from '../../selectors';
+import {hasPrivilege} from '../../constants/privileges';
 
 export const getNameField = (): IFormField<IAgenda> => {
     const {GenericFormFieldType} = superdeskApi.forms;
@@ -85,7 +86,7 @@ class ManageAgendasModalComponent extends React.PureComponent<IProps> {
                     defaultSortOption={{field: 'is_enabled', direction: 'descending'}}
                     hideItemsCount
                     disallowCreatingNewItem={
-                        this.props.privileges[PRIVILEGES.AGENDA_MANAGEMENT] != 1 ? true : undefined
+                        hasPrivilege(this.props.privileges, PRIVILEGES.AGENDA_MANAGEMENT) ? true : undefined
                     }
                 />
             </Modal>
