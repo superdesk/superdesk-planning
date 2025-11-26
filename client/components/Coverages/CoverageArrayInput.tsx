@@ -33,7 +33,7 @@ interface IOwnProps {
     addButtonText?: string; // defaults to 'Add a coverage'
     item: IPlanningItem;
     value: Array<IPlanningCoverageItem>;
-    readOnly: boolean;
+    disabled: boolean;
     addNewsItemToPlanning?: IArticle;
     useLocalNavigation?: boolean;
     navigation?: any;
@@ -116,7 +116,7 @@ class CoverageArrayInputComponent extends React.Component<IProps, IState> {
         const prevCount = prevProps.value?.length ?? 0;
 
         if (currentCount > prevCount &&
-            (!this.props.readOnly || this.props.addNewsItemToPlanning != null) &&
+            (!this.props.disabled || this.props.addNewsItemToPlanning != null) &&
             currentCount - prevCount === 1
         ) {
             const coverageId = this.props.value[this.props.value.length - 1].coverage_id;
@@ -164,7 +164,7 @@ class CoverageArrayInputComponent extends React.Component<IProps, IState> {
             maxCoverageCount = 0,
             addOnly,
             originalCount,
-            readOnly,
+            disabled,
             message,
             popupContainer,
             onPopupOpen,
@@ -223,10 +223,11 @@ class CoverageArrayInputComponent extends React.Component<IProps, IState> {
                     coverageAddAdvancedMode,
                     language,
                     editorType,
+                    disabled,
                 }}
                 element={CoverageEditor}
                 createCoverage={createCoverage}
-                readOnly={readOnly}
+                disabled={disabled}
                 maxCount={maxCoverageCount}
                 addOnly={addOnly}
                 originalCount={originalCount}

@@ -19,7 +19,7 @@ export class AddPlanningBookmark extends React.PureComponent<IBookmarkProps> {
     }
 
     render() {
-        if (this.props.readOnly || this.props.editorType === EDITOR_TYPE.POPUP) {
+        if (this.props.disabled || this.props.editorType === EDITOR_TYPE.POPUP) {
             return null;
         }
 

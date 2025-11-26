@@ -49,7 +49,7 @@ interface IOwnProps {
     contentTypes: Array<IG2ContentType>;
     coverageProviders: Array<ICoverageProvider>;
     priorities: Array<IAssignmentPriority>;
-    readOnly: boolean;
+    disabled: boolean;
     message: any;
     diff: any; // planning item
     formProfile: any;
@@ -186,7 +186,7 @@ export class CoverageEditorComponent extends React.PureComponent<IProps> {
             contentTypes,
             newsCoverageStatus,
             coverageProviders,
-            readOnly,
+            disabled,
             message,
             invalid,
             addNewsItemToPlanning,
@@ -209,7 +209,7 @@ export class CoverageEditorComponent extends React.PureComponent<IProps> {
         // `this.props.field` can be 'coverages[0]'
         const fieldOfArray = 'coverages';
 
-        if (!readOnly && !addNewsItemToPlanning) {
+        if (!disabled && !addNewsItemToPlanning) {
             const language = value.planning?.language ?? getUserInterfaceLanguageFromCV();
 
             itemActions = [
@@ -320,7 +320,7 @@ export class CoverageEditorComponent extends React.PureComponent<IProps> {
                 onChange={onChange}
                 users={users}
                 desks={desks}
-                readOnly={readOnly}
+                disabled={disabled}
                 addNewsItemToPlanning={addNewsItemToPlanning}
                 {...props}
             />
@@ -333,7 +333,7 @@ export class CoverageEditorComponent extends React.PureComponent<IProps> {
                 diff={diff}
                 index={index}
                 onChange={onChange}
-                readOnly={readOnly}
+                disabled={disabled}
                 message={message}
                 item={diff}
                 hasAssignment={planningUtils.isCoverageAssigned(value)}

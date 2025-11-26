@@ -20,7 +20,7 @@ import * as selectors from '../../../selectors';
 import {Avatar, AvatarPlaceholder, Icon} from 'superdesk-ui-framework/react';
 import {Row} from '../../UI/Form';
 import * as List from '../../UI/List';
-import {CoverageEditor, CoverageItem} from '../../Coverages';
+import {CoverageItem} from '../../Coverages';
 import {getAvatarForCoverage, isAvatarPlaceholder} from '../../Coverages/CoverageIcons';
 
 
