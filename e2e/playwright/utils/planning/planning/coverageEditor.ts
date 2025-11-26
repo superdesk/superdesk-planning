@@ -1,0 +1,135 @@
+import type {Locator} from '@playwright/test';
+
+import {Editor} from '../../common/editor';
+import {Input, SelectInput, ActionMenu, ToggleInput} from '../../common';
+import {PlanningEditor} from './planningEditor';
+
+/**
+ * Wrapper class around Superdesk's Coverage editor component
+ * @extends Editor
+ */
+export class CoverageEditor extends Editor {
+    fields: {[key: string]: any};
+    parentEditor: PlanningEditor;
+    index: number;
+
+    /**
+     * Creates an instance of the Editor instance.
+     * @param {PlanningEditor} parentEditor - The parent editor to this coverage
+     * @param {number} index - The index of this coverage inside the planning item
+     */
+    constructor(parentEditor: PlanningEditor, index: number) {
+        super(parentEditor.page, '', '');
+
+        this.parentEditor = parentEditor;
+        this.index = index;
+
+        const getParent = () => this.element;
+
+        this.fields = {
+            add_coverage_to_workflow: new ToggleInput(
+                parentEditor.page,
+                getParent,
+                '[data-test-id="field-add_coverage_to_workflow"]',
+            ),
+            content_type: new SelectInput(
+                parentEditor.page,
+                getParent,
+                '[data-test-id="field-g2_content_type"] select',
+            ),
+            genre: new SelectInput(parentEditor.page, getParent, '[data-test-id="field-genre"] select'),
+            slugline: new Input(parentEditor.page, getParent, '[data-test-id="field-slugline"] input'),
+            ednote: new Input(parentEditor.page, getParent, '[data-test-id="field-ednote"] textarea'),
+            internal_note: new Input(parentEditor.page, getParent, '[data-test-id="field-internal_note"] textarea'),
+            news_coverage_status: new SelectInput(
+                parentEditor.page,
+                getParent,
+                '[data-test-id="field-news_coverage_status"] select',
+            ),
+            scheduled: {
+                date: new Input(parentEditor.page, getParent, 'input[name="planning.scheduled.date"]'),
+                time: new Input(parentEditor.page, getParent, 'input[name="planning.scheduled"]'),
+            },
+        };
+    }
+
+    /**
+     * Returns the dom node for the collapse box component for this coverage
+     * @returns {Cypress.Chainable<JQuery<HTMLElement>>}
+     */
+    get element(): Locator {
+        return this.parentEditor.element
+            .locator(`[data-test-id="field-coverages[${this.index}]"]`);
+    }
+
+    /**
+     * Waits until the coverage array components are mounted and visible
+     * @param {number} timeout - The number of ms to wait for coverages to be visible
+     */
+    async waitTillVisible() {
+        this.parentEditor.element
+            .locator('[data-test-id="field-coverages"]')
+            .waitFor({state: 'visible'});
+    }
+
+    /**
+     * Returns the dom node for the REASSIGN button
+     * @returns {Cypress.Chainable<JQuery<HTMLElement>>}
+     */
+    get reassignButton(): Locator {
+        return this.element.locator('Reassign');
+    }
+
+    /**
+     * Returns the dom node for the REMOVE button
+     * @returns {Cypress.Chainable<JQuery<HTMLElement>>}
+     */
+    get removeButton(): Locator {
+        return this.element.locator('Remove');
+    }
+
+    /**
+     * Returns the dom node for the EDIT button for the assignment
+     * @returns {Cypress.Chainable<JQuery<HTMLElement>>}
+     */
+    get editAssignmentButton(): Locator {
+        return this.element.locator('#editAssignment');
+    }
+
+    /**
+     * Returns the dom node for the assign button for the assignment
+     * @returns {Cypress.Chainable<JQuery<HTMLElement>>}
+     */
+    get submitAssignmentButton(): Locator {
+        return this.element.locator('#submitAssignment');
+    }
+
+    /**
+     * Returns the ActionMenu instance for this coverage
+     * @returns {ActionMenu}
+     */
+    get actionMenu(): ActionMenu {
+        return new ActionMenu(
+            this.page,
+            () => this.element,
+        );
+    }
+
+    /**
+     * Opens up the action menu, and click on the specific action
+     * @param {string} label - The action to execute on this coverage
+     */
+    async clickAction(label: string): Promise<void> {
+        const menu = this.actionMenu;
+
+        await menu.open();
+        await menu.getAction(label).click();
+    }
+
+    async toggleAddToWorkflow(): Promise<void> {
+        await this.element
+            .locator('[data-test-id="field-add_coverage_to_workflow"]')
+            .getByRole('checkbox')
+            .click();
+    }
+}
