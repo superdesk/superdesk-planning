@@ -1,1 +1,1 @@
-/// <reference path='/home/marklark/dev/sourcefabric/instances/async/superdesk-planning/e2e/node_modules/superdesk-core/scripts/core/superdesk-api.d.ts' />
+/// <reference path='../../../../node_modules/superdesk-core/scripts/core/superdesk-api.d.ts' />
