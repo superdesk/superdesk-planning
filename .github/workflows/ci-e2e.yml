@@ -10,12 +10,15 @@ jobs:
       matrix:
         python-version: ['3.10']
         node-version: ['14', '22']
-        e2e: ['a', 'b']
+        e2e: ['playwright', 'cypress-a', 'cypress-b']
     env:
       INSTALL_NODE_MODULES: false
       RUN_SERVICES: true
       E2E: true
       TZ: Australia/Sydney
+    defaults:
+      run:
+        working-directory: ./e2e
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -28,31 +31,46 @@ jobs:
           cache-dependency-path: 'server/requirements.txt'
       - name: Setup Environment
         run: ./scripts/ci-install.sh
+        working-directory: ./
       - name: Install Planning Client
         run: npm ci
         working-directory: ./
       - name: Install E2E Client
         run: npm install
-        working-directory: ./e2e
       - name: Build Client
-        working-directory: ./e2e
         run: npm run build
       - name: Start Services
         run: ./scripts/ci-start-services.sh
+        working-directory: ./
+      - name: Start web server
+        run: npm run start-client-server
+
+      # playwright start
+      - name: Install Playwright Browsers
+        if: matrix.e2e == 'playwright'
+        run: npx playwright install --with-deps
+      - name: Run Playwright tests
+        if: matrix.e2e == 'playwright'
+        run: npx playwright test
+      - uses: actions/upload-artifact@v4
+        if: ${{ matrix.e2e == 'playwright' && failure() }}
+        with:
+          name: playwright-report-${{ matrix.node-version }}-${{ matrix.e2e }}
+          path: e2e/test-results
+      # playwright end
+
       - name: E2E Suite A
-        if: matrix.e2e == 'a'
-        working-directory: ./e2e
+        if: matrix.e2e == 'cypress-a'
         run: npm run cypress-ci -- --spec "cypress/e2e/events/*.cy.ts"
         env:
           CYPRESS_SCREENSHOTS_FOLDER: /tmp/cypress
       - name: E2E Suite B
-        if: matrix.e2e == 'b'
-        working-directory: ./e2e
+        if: matrix.e2e == 'cypress-b'
         run: npm run cypress-ci -- --spec "cypress/e2e/!(events)/*.cy.ts|cypress/e2e/workqueue.cy.ts"
         env:
           CYPRESS_SCREENSHOTS_FOLDER: /tmp/cypress
       - name: Upload screenshots
-        if: ${{ failure() }}
+        if: ${{ matrix.e2e != 'playwright' && failure() }}
         uses: actions/upload-artifact@v4
         with:
           name: screenshots-e2e-${{ matrix.e2e }}-node-${{ matrix.node-version }}
