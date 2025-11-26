@@ -5,10 +5,7 @@ export function createReducer<T = any>(initialState: T, reducerMap: {[key: strin
         if (reducer) {
             return reducer(state, action.payload);
         } else {
-            return {
-                ...initialState,
-                ...state,
-            };
+            return action != null ? state : {...initialState};
         }
     };
 }
