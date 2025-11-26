@@ -125,7 +125,7 @@ test.describe('Planning.Events: edit metadata', () => {
         ).toContainText('Scheduled');
     });
 
-    test('SDESK-5982: Post updates the initial values', async ({page}) => {
+    test('Post updates the initial values', async ({page}) => {
         await setupPlanningPublishing(page.request);
         // Enter minimum Event metadata
         await editor.expectItemType();
@@ -179,7 +179,7 @@ test.describe('Planing.Events: edit existing events', () => {
         await waitForPageLoad.planning(page);
     });
 
-    test('SDESK-6972: Edit events with no timezone', async () => {
+    test('Edit events with no timezone', async () => {
         // Test if we can edit an Event without a timezone value
         await list.item(0).dblclick();
         await editor.waitTillOpen();

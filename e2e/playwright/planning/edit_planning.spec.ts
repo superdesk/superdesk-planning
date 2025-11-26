@@ -145,7 +145,7 @@ test.describe('Planning.Planning: edit metadata', () => {
         await expect(editor.postButton).toBeVisible();
     });
 
-    test('SDESK-5982: Post updates the initial values', async () => {
+    test('Post updates the initial values', async () => {
         // Enter minimum Planning metadata
         await editor.expectItemType();
         await editor.type({

@@ -85,7 +85,7 @@ export async function setup(page: Page, profile: string, url: string) {
  * @return {Promise<void>} A promise that resolves when the workspace has been successfully changed.
  */
 export async function changeWorkspace(page: Page, name: string): Promise<void> {
-    await page.locator('[data-test-id=workspace-navigation]')
-        .locator(`[data-test-id=${name}]`)
+    await page.getByTestId('workspace-navigation')
+        .getByTestId(name)
         .click();
 }

@@ -26,6 +26,9 @@ export default defineConfig({
         trace: 'retain-on-failure',
 
         screenshot: 'only-on-failure',
+
+        /* our custom test id attribute */
+        testIdAttribute: 'data-test-id',
     },
 
     expect: {

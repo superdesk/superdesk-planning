@@ -135,10 +135,10 @@ export class Editor {
     }
 
     async clickBookmark(bookmarkId: string): Promise<void> {
-        await this.element.locator(`[data-test-id="editor--bookmarks__${bookmarkId}"]`).click();
+        await this.element.getByTestId(`editor--bookmarks__${bookmarkId}`).click();
     }
 
     getFormGroup(groupId: string): Locator {
-        return this.element.locator(`[data-test-id="editor--group__${groupId}"]`);
+        return this.element.getByTestId(`editor--group__${groupId}`);
     }
 }

@@ -3,7 +3,7 @@ import {Input} from './input';
 
 export class LinkInput extends Input {
     get addButton(): Locator {
-        return this.parent.locator('[data-test-id="event-links__add-new-button"]');
+        return this.parent.getByTestId('event-links__add-new-button');
     }
 
     get inputs(): Locator {
