@@ -6,10 +6,26 @@ import {Row} from '../../UI/Form';
 import {getVocabularyItemFieldTranslated} from '../../../utils/vocabularies';
 import {TreeSelect} from 'superdesk-ui-framework/react';
 import {ICustomCVFieldProps} from './CustomCV.interface';
-import {get} from 'lodash';
+import {get, isEqual, omit} from 'lodash';
 
+export class EditorFieldCV extends React.Component<ICustomCVFieldProps> {
+    shouldComponentUpdate(nextProps: Readonly<ICustomCVFieldProps>): boolean {
+        const cv = superdeskApi.entities.vocabulary.getVocabulary(this.props.field);
 
-export class EditorFieldCV extends React.PureComponent<ICustomCVFieldProps> {
+        const prevValue = (get(this.props.item, this.props.storageField ?? 'subject') ?? [])
+            .filter((x) => x.scheme === cv._id);
+        const nextValue = (get(nextProps.item, nextProps.storageField ?? 'subject') ?? [])
+            .filter((x) => x.scheme === cv._id);
+
+        const valueChanged = !isEqual(prevValue, nextValue);
+
+        const prevPropsFiltered = omit(this.props, 'onChange', 'popupContainer', 'item');
+        const nextPropsFiltered = omit(nextProps, 'onChange', 'popupContainer', 'item');
+        const otherPropsChanged = !isEqual(prevPropsFiltered, nextPropsFiltered);
+
+        return valueChanged || otherPropsChanged;
+    }
+
     render() {
         const {
             showErrors,
@@ -58,6 +74,7 @@ export class EditorFieldCV extends React.PureComponent<ICustomCVFieldProps> {
                             ({parent}) => parent?.toString(),
                         ).result
                     }
+
                     getLabel={(item) => getVocabularyItemFieldTranslated(
                         item,
                         'name',
