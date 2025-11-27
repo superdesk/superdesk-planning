@@ -194,6 +194,7 @@ export class ScheduledUpdate extends React.PureComponent<IProps> {
             />
         ) : (
             <CoverageFormHeader
+                coverages={[]}
                 field={fieldName}
                 value={value}
                 onChange={onChange}
@@ -244,7 +245,7 @@ export class ScheduledUpdate extends React.PureComponent<IProps> {
                 coverageIndex={coverageIndex}
                 newsCoverageStatus={newsCoverageStatus}
                 genres={genres}
-                readOnly={disabled}
+                disabled={disabled}
                 hasAssignment={planningUtils.isCoverageAssigned(value)}
                 addNewsItemToPlanning={addNewsItemToPlanning}
                 onFieldFocus={onFocus}

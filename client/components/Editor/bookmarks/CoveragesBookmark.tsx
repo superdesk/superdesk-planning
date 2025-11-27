@@ -22,7 +22,7 @@ import {Row} from '../../UI/Form';
 import * as List from '../../UI/List';
 import {CoverageItem} from '../../Coverages';
 import {getAvatarForCoverage, isAvatarPlaceholder} from '../../Coverages/CoverageIcons';
-
+import {CoverageEditorComponent} from 'components/Coverages/CoverageEditor';
 
 interface IProps extends IBookmarkProps {
     users: Array<IUser>;
@@ -55,7 +55,7 @@ class CoveragesBookmarkComponent extends React.Component<IProps, IState> {
         this.toggleCoverages = this.toggleCoverages.bind(this);
     }
 
-    getCoverageEditorInstance(coverageId: IPlanningCoverageItem['coverage_id']): CoverageEditor | undefined {
+    getCoverageEditorInstance(coverageId: IPlanningCoverageItem['coverage_id']): CoverageEditorComponent | undefined {
         return this.editorApi.dom.fields[`coverage_${coverageId}`]?.current;
     }
 
