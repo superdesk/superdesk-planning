@@ -1,4 +1,4 @@
-import {uniq, keyBy, get, cloneDeep, filter} from 'lodash';
+import {uniq, keyBy, get, cloneDeep, filter, initial} from 'lodash';
 import {ASSIGNMENTS, RESET_STORE, INIT_STORE, SORT_DIRECTION} from '../constants';
 import moment from 'moment';
 import {createReducer} from './createReducer';
@@ -133,9 +133,9 @@ const filterList = (state, listId, assignmentId) => {
 };
 
 const assignmentReducer = createReducer(initialState, {
-    [RESET_STORE]: () => (null),
+    [RESET_STORE]: () => ({...initialState}),
 
-    [INIT_STORE]: () => (initialState),
+    [INIT_STORE]: () => ({...initialState}),
 
     [ASSIGNMENTS.ACTIONS.RECEIVED_ASSIGNMENTS]: (state, payload) => {
         let receivedAssignments = modifyAssignmentBeingAdded(payload);

@@ -31,9 +31,9 @@ const addOrReplaceFilters = (filters, filter) => {
 };
 
 const eventsPlanningReducer = createReducer<IEventsPlanningState>(initialState, {
-    [RESET_STORE]: () => (null),
+    [RESET_STORE]: () => ({...initialState}),
 
-    [INIT_STORE]: () => (initialState),
+    [INIT_STORE]: () => ({...initialState}),
 
     [EVENTS_PLANNING.ACTIONS.SET_EVENTS_PLANNING_LIST]: (state, payload) => (
         {

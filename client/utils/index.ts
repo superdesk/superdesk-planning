@@ -237,11 +237,15 @@ export const createStore = (params = {}, app = planningApp) => {
     }
 
     // return the store
-    return _createStore(
+    const _store = _createStore(
         app,
         initialState,
         _compose(applyMiddleware(...middlewares))
     );
+
+    _store.dispatch({type: '_INIT_STORE_'});
+
+    return _store;
 };
 
 /**

@@ -4,8 +4,8 @@ export function createReducer<T = any>(initialState: T, reducerMap: {[key: strin
 
         if (reducer) {
             return reducer(state, action.payload);
-        } else if (action?.type === '@@INIT') {
-            // workaround to handle createStore with subset of initial state
+        } else if (action.type === '_INIT_STORE_') {
+            // workaround to handle createStore with only subset of initial state
             return {...initialState, ...state};
         } else {
             return action != null && state != null ? state : {...initialState, ...state};
