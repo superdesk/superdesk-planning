@@ -85,10 +85,12 @@ const eventsPlanningReducer = createReducer<IEventsPlanningState>(initialState, 
             draft.currentFilter = payload === EVENTS_PLANNING.FILTER.ALL_EVENTS_PLANNING ? null : payload;
         }),
 
-    [MAIN.ACTIONS.CLEAR_SEARCH]: (state, payload: keyof IMainState['search']) =>
-        payload !== 'COMBINED' ? state : produce(state, (draft) => {
-            draft.currentFilter = null;
-        }),
+    [MAIN.ACTIONS.CLEAR_SEARCH]: (state, payload: keyof IMainState['search']) => (
+        payload !== 'COMBINED' ? state : {
+            ...state,
+            currentFilter: null,
+        }
+    ),
 });
 
 export default eventsPlanningReducer;
