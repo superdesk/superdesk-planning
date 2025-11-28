@@ -186,7 +186,7 @@ export class CoveragePreview extends React.PureComponent<IProps> {
                                 desks={desks}
                                 newsCoverageStatus={newsCoverageStatus}
                                 forPreview
-                                readOnly
+                                disabled
                             />
                         ))}
                     </PreviewRow>

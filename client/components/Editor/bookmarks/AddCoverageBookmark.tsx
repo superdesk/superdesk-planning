@@ -104,7 +104,7 @@ export class AddCoverageBookmark extends React.PureComponent<IProps> {
     }
 
     render() {
-        if (this.props.readOnly) {
+        if (this.props.disabled) {
             return null;
         }
 
