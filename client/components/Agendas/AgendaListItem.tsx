@@ -9,25 +9,25 @@ import {getNameField} from './ManageAgendasModal';
 import {IconButton, Label} from 'superdesk-ui-framework/react';
 import {superdeskApi} from '../../superdeskApi';
 
-export class AgendaListItem extends React.PureComponent<IPropsGenericFormItemComponent<IAgendaEntity>> {
-    handleClick = () => {
-        this.props.page.openPreview(this.props.item._id);
-    }
+export const AgendaListItem = React.memo<IPropsGenericFormItemComponent<IAgendaEntity>>((props) => {
+    const {item, page} = props;
+    const borderState = item.is_enabled || item.is_enabled == null ? 'active' : 'idle';
 
-    handleDoubleClick = () => {
-        this.props.page.startEditing(this.props.item._id);
-    }
+    const handleClick = () => {
+        page.openPreview(item._id);
+    };
 
-    render() {
-        const {item, page, inEditMode, inPreviewMode} = this.props;
-        const borderState = item.is_enabled || item.is_enabled == null ? 'active' : 'idle';
+    const handleDoubleClick = (event: React.MouseEvent) => {
+        event.preventDefault();
+        page.startEditing(item._id);
+    };
 
-        return (
+    return (
+        <div onDoubleClick={handleDoubleClick}>
             <ListItem
-                onClick={this.handleClick}
-                onDoubleClick={this.handleDoubleClick}
+                onClick={handleClick}
                 data-test-id="agenda-item"
-                className={inEditMode || inPreviewMode ? 'sd-list-item--selected' : ''}
+                className={props.inEditMode || props.inPreviewMode ? 'sd-list-item--selected' : ''}
             >
                 <div className={`sd-list-item__border sd-list-item__border--${borderState}`} />
                 <ListItemColumn ellipsisAndGrow={!!(item.is_enabled === true || item.is_enabled == null)} noBorder>
@@ -72,6 +72,8 @@ export class AgendaListItem extends React.PureComponent<IPropsGenericFormItemCom
                     </div>
                 </ListItemActionsMenu>
             </ListItem>
-        );
-    }
-}
+        </div>
+    );
+});
+
+AgendaListItem.displayName = 'AgendaListItem';
