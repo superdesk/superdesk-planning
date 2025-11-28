@@ -10,6 +10,7 @@ interface IProps {
     className?: string;
     buttonClass?: string;
     language?: string;
+    disabled?: boolean;
 
     onChange(field: string, value: Array<DeepPartial<IPlanningCoverageItem>>): void;
     createCoverage(qcode: IG2ContentType['qcode']): DeepPartial<IPlanningCoverageItem>;
@@ -45,6 +46,7 @@ export class CoverageAddButton extends React.Component<IProps> {
                 target="icon-plus-large"
                 button={({toggleMenu}) => (
                     <Button
+                        disabled={this.props.disabled}
                         data-test-id="create-button"
                         type="primary"
                         icon="plus-large"

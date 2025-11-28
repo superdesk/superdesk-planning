@@ -2176,7 +2176,7 @@ export interface IBookmarkProps {
     editorType: EDITOR_TYPE;
     index: number;
     item?: DeepPartial<IEventOrPlanningItem>;
-    readOnly: boolean;
+    disabled: boolean;
 }
 
 export interface IEditorBookmarkCustom extends IEditorBookmarkBase {

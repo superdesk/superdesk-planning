@@ -40,7 +40,7 @@ interface IProps {
     newsCoverageStatus: Array<IPlanningNewsCoverageStatus>;
     coverageProviders: Array<ICoverageProvider>;
     priorities: Array<IAssignmentPriority>;
-    readOnly: boolean;
+    disabled: boolean;
     addNewsItemToPlanning?: IArticle;
     openCoverageIds: Array<IPlanningCoverageItem['coverage_id']>;
     autoAssignToWorkflow: boolean;
@@ -98,7 +98,7 @@ export class ScheduledUpdate extends React.PureComponent<IProps> {
             onChange,
             coverageProviders,
             priorities,
-            readOnly,
+            disabled,
             addNewsItemToPlanning,
             popupContainer,
             onPopupOpen,
@@ -120,7 +120,7 @@ export class ScheduledUpdate extends React.PureComponent<IProps> {
         // Coverage item actions
         let itemActions = [];
 
-        if (!readOnly && !addNewsItemToPlanning) {
+        if (!disabled && !addNewsItemToPlanning) {
             // To be done in the next iteration
             if (planningUtils.canCancelCoverage(value, planning, 'scheduled_update_id')) {
                 itemActions.push({
@@ -178,7 +178,7 @@ export class ScheduledUpdate extends React.PureComponent<IProps> {
                 index={index}
                 coverage={value}
                 itemActionComponent={itemActionComponent}
-                readOnly={readOnly}
+                readOnly={disabled}
                 isPreview={forPreview}
                 workflowStateReasonPrefix={`coverages[${coverageIndex}].scheduled_updates[${index}]`}
             />
@@ -194,12 +194,13 @@ export class ScheduledUpdate extends React.PureComponent<IProps> {
             />
         ) : (
             <CoverageFormHeader
+                coverages={[]}
                 field={fieldName}
                 value={value}
                 onChange={onChange}
                 users={users}
                 desks={desks}
-                readOnly={readOnly}
+                disabled={disabled}
                 addNewsItemToPlanning={addNewsItemToPlanning}
             />
         );
@@ -244,7 +245,7 @@ export class ScheduledUpdate extends React.PureComponent<IProps> {
                 coverageIndex={coverageIndex}
                 newsCoverageStatus={newsCoverageStatus}
                 genres={genres}
-                readOnly={readOnly}
+                disabled={disabled}
                 hasAssignment={planningUtils.isCoverageAssigned(value)}
                 addNewsItemToPlanning={addNewsItemToPlanning}
                 onFieldFocus={onFocus}

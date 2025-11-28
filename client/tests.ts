@@ -26,6 +26,16 @@ beforeEach(() => {
     moment.tz.setDefault('Australia/Sydney');
 });
 
-var testsContext = require.context('client', true, /_test.[j|t]sx?$/);
+var testsContext = require.context('.', true, /_test\.[jt]sx?$/);
 
-testsContext.keys().forEach(testsContext);
+if (process.env.TEST_FILE_PATTERN) {
+    // Allow running specific test files via TEST_FILE_PATTERN env variable
+    // Usage: npm run test:file --file=AddToPlanningController
+    const testPattern = new RegExp(process.env.TEST_FILE_PATTERN + '_test\\.[jt]sx?$');
+
+    testsContext.keys()
+        .filter((path) => testPattern.test(path))
+        .forEach(testsContext);
+} else {
+    testsContext.keys().forEach(testsContext);
+}

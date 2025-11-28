@@ -35,7 +35,7 @@ import {isCoverageAssigned, isCoverageDraft} from '../../../utils/planning';
 interface IOwnProps {
     field: string;
     value: IPlanningCoverageItem;
-    readOnly: boolean;
+    disabled: boolean;
     message: string | {[key: string]: any};
     item: IPlanningItem;
     diff: Partial<IPlanningItem>;
@@ -375,7 +375,7 @@ export class CoverageFormComponent extends React.Component<IProps, IState> {
         const hideXmpFileInput = this.props.value.planning?.xmp_file != null;
         const readOnlyFields = planningUtils.getCoverageReadOnlyFields(
             this.props.value,
-            this.props.readOnly,
+            this.props.disabled,
             this.props.newsCoverageStatus,
             this.props.addNewsItemToPlanning
         );
@@ -384,8 +384,8 @@ export class CoverageFormComponent extends React.Component<IProps, IState> {
             language: this.props.value.planning?.language ?? this.props.language,
             onChange: this.onChange,
             errors: this.props.errors,
-            readOnly: this.props.readOnly,
-            disabled: this.props.readOnly,
+            readOnly: this.props.disabled,
+            disabled: this.props.disabled,
             profile: profile,
             editorType: this.props.editorType,
         };
@@ -436,7 +436,7 @@ export class CoverageFormComponent extends React.Component<IProps, IState> {
                 onChange: this.onAnpaCategoryChange,
             },
             g2_content_type: {
-                readOnly: this.props.readOnly || readOnlyFields.g2_content_type,
+                readOnly: this.props.disabled || readOnlyFields.g2_content_type,
                 field: 'planning.g2_content_type',
                 onChange: this.onContentTypeChange,
                 clearable: false,
@@ -448,7 +448,7 @@ export class CoverageFormComponent extends React.Component<IProps, IState> {
                 clearable: false,
             },
             xmp_file: {
-                readOnly: this.props.readOnly || readOnlyFields.xmp_file,
+                readOnly: this.props.disabled || readOnlyFields.xmp_file,
                 field: 'planning.xmp_file',
                 enabled: showXmpFileInput,
                 hideInput: hideXmpFileInput,
@@ -458,57 +458,57 @@ export class CoverageFormComponent extends React.Component<IProps, IState> {
                 onRemoveFile: this.onRemoveXmpFile,
             },
             genre: {
-                readOnly: this.props.readOnly || readOnlyFields.genre,
+                readOnly: this.props.disabled || readOnlyFields.genre,
                 field: 'planning.genre',
                 defaultValue: contentTypeQcode === 'text' ? defaultGenre : null,
                 clearable: true,
             },
             slugline: {
-                readOnly: this.props.readOnly || readOnlyFields.slugline,
+                readOnly: this.props.disabled || readOnlyFields.slugline,
                 field: 'planning.slugline',
             },
             headline: {
-                readOnly: this.props.readOnly || readOnlyFields.headline,
+                readOnly: this.props.disabled || readOnlyFields.headline,
                 field: 'planning.headline',
             },
             ednote: {
-                readOnly: this.props.readOnly || readOnlyFields.ednote,
+                readOnly: this.props.disabled || readOnlyFields.ednote,
                 field: 'planning.ednote',
             },
             location: {
-                readOnly: this.props.readOnly || readOnlyFields.location,
-                enableExternalSearch: !(this.props.readOnly || readOnlyFields.location),
+                readOnly: this.props.disabled || readOnlyFields.location,
+                enableExternalSearch: !(this.props.disabled || readOnlyFields.location),
                 field: 'planning.location',
                 storeAsArray: true,
             },
             keyword: {
-                readOnly: this.props.readOnly || readOnlyFields.keyword,
+                readOnly: this.props.disabled || readOnlyFields.keyword,
                 field: 'planning.keyword',
             },
             internal_note: {
-                readOnly: this.props.readOnly || readOnlyFields.internal_note,
+                readOnly: this.props.disabled || readOnlyFields.internal_note,
                 field: 'planning.internal_note',
             },
             files: {
-                readOnly: this.props.readOnly || readOnlyFields.files,
+                readOnly: this.props.disabled || readOnlyFields.files,
                 field: 'planning.files',
                 uploadFiles: this.props.uploadFiles,
                 removeFile: this.props.removeFile,
                 files: this.props.files,
             },
             multiple_content: {
-                disabled: this.props.readOnly
+                disabled: this.props.disabled
                     ?? (coverageProfile?.schema?.['multiple_content'] as IProfileSchemaTypeList)?.read_only
                     ?? false,
                 field: 'planning.multiple_content',
                 defaultValue: (coverageProfile?.schema?.['multiple_content'] as IProfileSchemaTypeList)?.default_value,
             },
             news_coverage_status: {
-                readOnly: this.props.readOnly || readOnlyFields.newsCoverageStatus,
+                readOnly: this.props.disabled || readOnlyFields.newsCoverageStatus,
                 field: 'news_coverage_status',
             },
             scheduled: {
-                readOnly: this.props.readOnly || readOnlyFields.scheduled,
+                readOnly: this.props.disabled || readOnlyFields.scheduled,
                 field: 'planning.scheduled',
                 timeField: 'planning.scheduled',
                 toBeConfirmed: this.props.value?._time_to_be_confirmed,
@@ -517,7 +517,7 @@ export class CoverageFormComponent extends React.Component<IProps, IState> {
                 canClearTime: false,
             },
             no_content_linking: {
-                readOnly: this.props.readOnly || readOnlyFields.flags,
+                readOnly: this.props.disabled || readOnlyFields.flags,
                 field: 'flags.no_content_linking',
             },
             scheduled_updates: {
@@ -547,7 +547,8 @@ export class CoverageFormComponent extends React.Component<IProps, IState> {
         const shouldDisableToggle = () => {
             const {value, diff} = this.props;
 
-            return !(isCoverageDraft(value) && isCoverageAssigned(value) && !isItemExpired(diff));
+            return this.props.disabled
+                || !(isCoverageDraft(value) && isCoverageAssigned(value) && !isItemExpired(diff));
         };
 
         fieldProps.add_coverage_to_workflow = {

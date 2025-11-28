@@ -24,7 +24,6 @@ import {planningApis} from '../../../api';
 
 interface IProps extends IEditorFieldProps {
     index: number;
-    readOnly?: boolean;
     newsCoverageStatus: Array<IPlanningNewsCoverageStatus>;
     contentTypes: Array<IG2ContentType>;
     genres: Array<IGenre>;
@@ -76,7 +75,7 @@ class EditorFieldScheduledUpdatesComponent extends React.PureComponent<IProps> {
                         coverageIndex={this.props.index}
                         index={index}
                         newsCoverageStatus={this.props.newsCoverageStatus}
-                        readOnly={this.props.readOnly}
+                        disabled={this.props.disabled}
                         contentTypes={this.props.contentTypes}
                         onRemove={this.props.onRemoveScheduledUpdate.bind(null, index)}
                         onScheduleChanged={this.props.onScheduleChanged}
@@ -94,6 +93,7 @@ class EditorFieldScheduledUpdatesComponent extends React.PureComponent<IProps> {
                 ))}
                 {!this.props.canCreateScheduledUpdate ? null : (
                     <Button
+                        disabled={this.props.disabled}
                         type="primary"
                         text={gettext('Schedule an update')}
                         onClick={this.props.onAddScheduledUpdate}

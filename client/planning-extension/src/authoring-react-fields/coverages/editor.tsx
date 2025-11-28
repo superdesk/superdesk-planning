@@ -34,7 +34,7 @@ export class Editor extends React.PureComponent<IProps> {
             >
                 {(changedValue, onChange) => (
                     <EditorFieldCoverages
-                        readOnly={false}
+                        disabled={this.props.readOnly}
                         field="coverages"
                         item={{
                             ...this.props.item,

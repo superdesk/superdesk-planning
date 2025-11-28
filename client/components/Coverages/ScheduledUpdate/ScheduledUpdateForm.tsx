@@ -18,7 +18,7 @@ interface IProps {
     value: any;
     onChange: (field: string, value: any) => void;
     newsCoverageStatus: Array<any>;
-    readOnly: boolean;
+    disabled: boolean;
     item?: any;
     diff: any;
     formProfile?: any;
@@ -66,7 +66,7 @@ export class ScheduledUpdateForm extends React.Component<IProps> {
             index,
             onChange,
             newsCoverageStatus,
-            readOnly,
+            disabled,
             item,
             diff,
             formProfile,
@@ -93,7 +93,7 @@ export class ScheduledUpdateForm extends React.Component<IProps> {
 
         const roFields = planningUtils.getCoverageReadOnlyFields(
             value,
-            readOnly,
+            disabled,
             newsCoverageStatus,
             addNewsItemToPlanning
         );
@@ -121,7 +121,7 @@ export class ScheduledUpdateForm extends React.Component<IProps> {
                     onPopupOpen={onPopupOpen}
                     onPopupClose={onPopupClose}
                     singleValue={true}
-                    readOnly={readOnly}
+                    readOnly={disabled}
                 />
 
                 <Field

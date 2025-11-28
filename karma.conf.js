@@ -4,9 +4,24 @@ var webpackConfig = require('./webpack.config.js')
 
 module.exports = function(config) {
     // in karma, entry is read from files prop
-    webpackConfig.entry = {}
+    webpackConfig.entry = {};
     webpackConfig.devtool = 'eval';
     webpackConfig.mode = 'development';
+
+    // Pass test file pattern to webpack via environment variable
+    if (process.env.TEST_FILE_PATTERN) {
+        webpackConfig.plugins = webpackConfig.plugins || [];
+        webpackConfig.plugins.push(
+            new (require('webpack')).DefinePlugin({
+                'process.env.TEST_FILE_PATTERN': JSON.stringify(process.env.TEST_FILE_PATTERN),
+            })
+        );
+    }
+
+    // Allow choosing reporter via KARMA_REPORTER env variable
+    // Options: 'dots' (default), 'verbose', 'progress'
+    const reporter = process.env.KARMA_REPORTER || 'dots';
+
     config.set({
 
         // base path that will be used to resolve all patterns (eg. files, exclude)
@@ -27,9 +42,11 @@ module.exports = function(config) {
             'tests.ts': ['webpack', 'sourcemap'],
         },
         // test results reporter to use
-        // possible values: 'dots', 'progress'
+        // possible values: 'dots', 'progress', 'verbose'
         // available reporters: https://npmjs.org/browse/keyword/karma-reporter
-        reporters: ['dots'],
+        // 'verbose' shows detailed test info including file paths
+        // Can be set via KARMA_REPORTER env variable
+        reporters: [reporter],
         // web server port
         port: 9876,
         // enable / disable colors in the output (reporters and logs)

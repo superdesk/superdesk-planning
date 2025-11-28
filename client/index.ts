@@ -105,15 +105,22 @@ export default angular.module('superdesk-planning', [])
 
             ng.register($injector);
 
-            const callback = (extension, scope) => (
-                sdPlanningStore.initWorkspace(WORKSPACE.AUTHORING, (store) => {
-                    store.dispatch(actions.fetchAgendas());
-                    extension.props.store = store;
-                    scope.$watch('selected.preview', (newValue) => {
-                        extension.props.store.dispatch(actions.main.onQueueItemChange(newValue));
+            const callback = (extension, scope) => {
+                extension.props.storePromise = new Promise((resolve) => {
+                    sdPlanningStore.initWorkspace(WORKSPACE.AUTHORING, (store) => {
+                        store.dispatch(actions.fetchAgendas());
+                        actions.main.onQueueItemChange(scope.selected?.preview);
+                        scope.$watch('selected.preview', (newValue) => {
+                            store.dispatch(actions.main.onQueueItemChange(newValue));
+                        });
+
+                        // Use a timeout as resolving the promise straight away causes the app to crash
+                        setTimeout(() => resolve(store));
                     });
-                })
-            );
+                });
+
+                return Promise.resolve();
+            };
 
             ng.waitForServicesToBeAvailable()
                 .then(() => {

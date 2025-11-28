@@ -8,7 +8,7 @@ wooper==0.4.4
 requests
 requests-mock==1.12.1
 icalendar>=4.0.3,<5.1
-coverage==7.5.3
+coverage==7.10.7
 deepdiff
 coveralls
 mock
@@ -17,7 +17,7 @@ responses
 pytest
 pytest-asyncio==1.0.0
 pytest-env
-black~=23.0
+black~=25.11
 behave==1.2.6
 aioresponses
 
