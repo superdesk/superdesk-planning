@@ -12,7 +12,7 @@ describe('assignment', () => {
 
     beforeEach(() => {
         initialState = cloneDeep(testData.assignmentInitialState);
-        state = assignment({}, {type: null});
+        state = assignment(initialState, {type: null});
         assignments = cloneDeep(testData.assignments);
     });
 

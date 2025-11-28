@@ -48,9 +48,9 @@ function addLock(state: ILockedItems, data: IWebsocketMessageData['ITEM_LOCKED']
 }
 
 export default createReducer(initialLockState, {
-    [RESET_STORE]: () => null,
+    [RESET_STORE]: () => ({...initialLockState}),
 
-    [INIT_STORE]: () => initialLockState,
+    [INIT_STORE]: () => ({...initialLockState}),
 
     [LOCKS.ACTIONS.RECEIVE]: (state: ILockedItems, payload: ILockedItems) => (
         {
