@@ -69,6 +69,7 @@ export const SPIKED_STATE = {
 
 export const RESET_STORE = 'RESET_STORE';
 export const INIT_STORE = 'INIT_STORE';
+export const INITIAL_STATE = '_INITIAL_STATE';
 export const FORM_NAMES = {
     PlanningForm: 'planning',
     EventForm: 'event',
