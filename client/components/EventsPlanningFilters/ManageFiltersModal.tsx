@@ -75,17 +75,6 @@ export class ManageFiltersComponent extends React.Component<IProps, IState> {
             isPristine: true,
             pendingFilter: null,
         };
-
-        this.editFilter = this.editFilter.bind(this);
-        this.editFilterWithConfirmation = this.editFilterWithConfirmation.bind(this);
-        this.previewFilter = this.previewFilter.bind(this);
-        this.editFilterSchedule = this.editFilterSchedule.bind(this);
-        this.closeEditor = this.closeEditor.bind(this);
-        this.handleKeydown = this.handleKeydown.bind(this);
-        this.onPristineChange = this.onPristineChange.bind(this);
-        this.onDontSave = this.onDontSave.bind(this);
-        this.onSaveAndSwitch = this.onSaveAndSwitch.bind(this);
-        this.onCancelSwitch = this.onCancelSwitch.bind(this);
     }
 
     componentDidMount() {
@@ -96,14 +85,14 @@ export class ManageFiltersComponent extends React.Component<IProps, IState> {
         document.removeEventListener('keydown', this.handleKeydown);
     }
 
-    handleKeydown(event) {
+    handleKeydown = (event) => {
         if (event.keyCode === KEYCODES.ESCAPE) {
             event.preventDefault();
             this.props.handleHide();
         }
     }
 
-    editFilter(filter: Partial<ISearchFilter> = null) {
+    editFilter = (filter: Partial<ISearchFilter> = null) => {
         this.setState({
             selectedFilter: filter,
             contentPanelState: 'edit',
@@ -112,7 +101,7 @@ export class ManageFiltersComponent extends React.Component<IProps, IState> {
         });
     }
 
-    editFilterWithConfirmation(filter: Partial<ISearchFilter> = null) {
+    editFilterWithConfirmation = (filter: Partial<ISearchFilter> = null) => {
         if (this.state.contentPanelState === 'edit' && !this.state.isPristine) {
             this.setState({pendingFilter: filter});
         } else {
@@ -120,13 +109,13 @@ export class ManageFiltersComponent extends React.Component<IProps, IState> {
         }
     }
 
-    onDontSave() {
+    onDontSave = () => {
         const {pendingFilter} = this.state;
 
         this.editFilter(pendingFilter);
     }
 
-    onSaveAndSwitch() {
+    onSaveAndSwitch = () => {
         const {createOrUpdate} = this.props;
         const {pendingFilter} = this.state;
         const filter = this.state.selectedFilter;
@@ -139,25 +128,25 @@ export class ManageFiltersComponent extends React.Component<IProps, IState> {
         });
     }
 
-    onCancelSwitch() {
+    onCancelSwitch = () => {
         this.setState({pendingFilter: null});
     }
 
-    previewFilter(filter: ISearchFilter) {
+    previewFilter = (filter: ISearchFilter) => {
         this.setState({
             selectedFilter: filter,
             contentPanelState: 'preview',
         });
     }
 
-    editFilterSchedule(filter: ISearchFilter) {
+    editFilterSchedule = (filter: ISearchFilter) => {
         this.setState({
             selectedFilter: filter,
             contentPanelState: 'schedule',
         });
     }
 
-    closeEditor() {
+    closeEditor = () => {
         this.setState({
             selectedFilter: null,
             contentPanelState: null,
@@ -165,11 +154,11 @@ export class ManageFiltersComponent extends React.Component<IProps, IState> {
         });
     }
 
-    onPristineChange(pristine: boolean) {
+    onPristineChange = (pristine: boolean) => {
         this.setState({isPristine: pristine});
     }
 
-    getContentPanelComponent(): React.ComponentType<IEventsPlanningContentPanelProps> | null {
+    getContentPanelComponent = (): React.ComponentType<IEventsPlanningContentPanelProps> | null => {
         switch (this.state.contentPanelState) {
         case 'edit':
             return EditFilter;
@@ -242,6 +231,7 @@ export class ManageFiltersComponent extends React.Component<IProps, IState> {
                                 <div />
                             ) : (
                                 <ContentPanel
+                                    key={this.state.selectedFilter?._id ?? 'new'}
                                     filter={this.state.selectedFilter}
                                     onClose={this.closeEditor}
                                     onSave={createOrUpdate}

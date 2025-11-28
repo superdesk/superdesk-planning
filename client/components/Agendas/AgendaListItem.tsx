@@ -10,14 +10,22 @@ import {IconButton, Label} from 'superdesk-ui-framework/react';
 import {superdeskApi} from '../../superdeskApi';
 
 export class AgendaListItem extends React.PureComponent<IPropsGenericFormItemComponent<IAgendaEntity>> {
+    handleClick = () => {
+        this.props.page.openPreview(this.props.item._id);
+    }
+
+    handleDoubleClick = () => {
+        this.props.page.startEditing(this.props.item._id);
+    }
+
     render() {
         const {item, page, inEditMode, inPreviewMode} = this.props;
         const borderState = item.is_enabled || item.is_enabled == null ? 'active' : 'idle';
 
         return (
             <ListItem
-                onClick={() => page.openPreview(item._id)}
-                onDoubleClick={() => page.startEditing(item._id)}
+                onClick={this.handleClick}
+                onDoubleClick={this.handleDoubleClick}
                 data-test-id="agenda-item"
                 className={inEditMode || inPreviewMode ? 'sd-list-item--selected' : ''}
             >
