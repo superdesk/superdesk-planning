@@ -94,6 +94,7 @@ export class SearchFilters extends Modal {
             .find('.side-panel__header')
             .should('exist')
             .find('.icon-pencil')
+            .parent()
             .should('exist')
             .click();
     }

@@ -35,6 +35,7 @@ import {
     QUEUE_ITEM_PREFIX,
     FEATURED_PLANNING,
     TO_BE_CONFIRMED_FIELD,
+    INITIAL_STATE,
 } from '../constants';
 import * as testData from './testData';
 import {default as lockUtils} from './locks';
@@ -239,11 +240,15 @@ export const createStore = (params = {}, app = planningApp) => {
     }
 
     // return the store
-    return _createStore(
+    const _store = _createStore(
         app,
         initialState,
         _compose(applyMiddleware(...middlewares))
     );
+
+    _store.dispatch({type: INITIAL_STATE});
+
+    return _store;
 };
 
 /**

@@ -266,8 +266,8 @@ function moveItemToUnselected(prevState: IFeaturedPlanningState, itemId: IPlanni
 }
 
 const featuredPlanningReducer = createReducer(initialState, {
-    [RESET_STORE]: () => null,
-    [INIT_STORE]: () => cloneDeep(initialState),
+    [RESET_STORE]: () => ({...initialState}),
+    [INIT_STORE]: () => ({...initialState}),
 
     // Locks
     [FEATURED_PLANNING.ACTIONS.SET_LOCK_USER]: (state, payload) => ({

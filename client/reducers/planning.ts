@@ -25,9 +25,9 @@ let plannings;
 let plan;
 
 const planningReducer = createReducer(initialState, {
-    [RESET_STORE]: () => (initialState),
+    [RESET_STORE]: () => ({...initialState}),
 
-    [INIT_STORE]: () => (initialState),
+    [INIT_STORE]: () => ({...initialState}),
 
     [PLANNING.ACTIONS.SET_LIST]: (state, payload) => (
         {
