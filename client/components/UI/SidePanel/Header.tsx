@@ -9,7 +9,13 @@ interface IProps {
     'data-test-id'?: string;
 }
 
-export const Header: React.FC<IProps> = ({children, className, darkBlue = false, darker = false, 'data-test-id': testId}) => (
+export const Header: React.FC<IProps> = ({
+    children,
+    className,
+    darkBlue = false,
+    darker = false,
+    'data-test-id': testId
+}) => (
     <div
         data-test-id={testId}
         className={classNames(
