@@ -47,7 +47,7 @@ jobs:
 
       # playwright start
       - name: Install Playwright Browsers
-        run: npx playwright install --with-deps
+        run: npx playwright install --with-deps chromium
       - name: E2E Suite A
         if: matrix.e2e == 'a'
         run: npm run playwright -- --grep events
