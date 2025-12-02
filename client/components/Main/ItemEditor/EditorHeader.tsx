@@ -464,6 +464,7 @@ export class EditorHeader extends React.Component<IProps> {
                 className="subnav"
                 darkBlue={states.isEvent}
                 darker={!states.isEvent}
+                data-test-id="editor-header"
             >
                 {this.renderIcon(states)}
                 {this.renderButtons(states)}

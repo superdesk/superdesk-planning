@@ -112,7 +112,7 @@ export class UpdateAssignmentComponent extends React.Component<IProps, IState> {
         };
 
         return (
-            <div className="update-assignment">
+            <div data-test-id="update-assignment-form" className="update-assignment">
                 <Row noPadding={true}>
                     <TextInput
                         label={gettext('Slugline:')}
