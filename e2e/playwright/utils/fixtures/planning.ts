@@ -61,17 +61,18 @@ export const TEST_PLANNINGS = {
     },
 };
 
-function getPlanningForDate(dateString: string, metadata: {[key: string]: any}) {
+function getPlanningForDate(dateString: string, metadata: {[key: string]: any}, timeString: string = TIME_STRINGS[1]) {
     return {
         ...BASE_PLANNING,
-        planning_date: dateString + TIME_STRINGS[1],
+        // planning_date: dateString + TIME_STRINGS[1],
+        planning_date: dateString + timeString,
         ...metadata,
     };
 }
 
 export const createPlanningFor = {
-    today: (metadata: {[key: string]: any} = {}) => getPlanningForDate(getDateStringFor.today(), metadata),
-    tomorrow: (metadata: {[key: string]: any} = {}) => getPlanningForDate(getDateStringFor.tomorrow(), metadata),
-    yesterday: (metadata: {[key: string]: any} = {}) => getPlanningForDate(getDateStringFor.yesterday(), metadata),
-    next_week: (metadata: {[key: string]: any} = {}) => getPlanningForDate(getDateStringFor.next_week(), metadata),
+    today: (metadata: {[key: string]: any} = {}, timeString: string = TIME_STRINGS[1]) => getPlanningForDate(getDateStringFor.today(), metadata, timeString),
+    tomorrow: (metadata: {[key: string]: any} = {}, timeString: string = TIME_STRINGS[1]) => getPlanningForDate(getDateStringFor.tomorrow(), metadata, timeString),
+    yesterday: (metadata: {[key: string]: any} = {}, timeString: string = TIME_STRINGS[1]) => getPlanningForDate(getDateStringFor.yesterday(), metadata, timeString),
+    next_week: (metadata: {[key: string]: any} = {}, timeString: string = TIME_STRINGS[1]) => getPlanningForDate(getDateStringFor.next_week(), metadata, timeString),
 };

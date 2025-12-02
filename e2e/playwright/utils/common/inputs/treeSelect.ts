@@ -22,10 +22,10 @@ export class TreeSelect extends Input {
         if (this.allowMultiple) {
             for (const val of values) {
                 await this.addButton.click();
-                await this.page.keyboard.type(val);
                 await this.page
-                    .locator('[data-test-id="tree-select-popover"] ul li')
-                    .first()
+                    .getByTestId('tree-select-popover')
+                    .getByTestId('options')
+                    .getByRole('treeitem', {name: val, exact: true})
                     .click();
             }
         } else {
@@ -34,7 +34,8 @@ export class TreeSelect extends Input {
             await this.addButton.click();
             await this.page.keyboard.type(val);
             await this.page
-                .locator('[data-test-id="tree-select-popover"] ul li')
+                .getByTestId('tree-select-popover')
+                .locator('ul li')
                 .first()
                 .click();
         }
@@ -48,9 +49,9 @@ export class TreeSelect extends Input {
 
     async expectValidData(valid: boolean = true): Promise<void> {
         if (valid) {
-            expect(this.parent.locator(`${this.selector} .sd-input--invalid`)).toBeVisible();
+            expect(this.parent.locator(`${this.selector} .sd-input--invalid`)).not.toBeAttached();
         } else {
-            expect(this.parent.locator(`${this.selector} .sd-input--invalid`)).not.toBeVisible();
+            expect(this.parent.locator(`${this.selector} .sd-input--invalid`)).toBeVisible();
         }
     }
 

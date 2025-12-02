@@ -119,29 +119,35 @@ export const TEST_EVENTS = {
     },
 };
 
-function getEventForDate(dateString: string, metadata: {[key: string]: any} = {}, timezone: string | null = TIMEZONE) {
+function getEventForDate(
+    dateString: string,
+    metadata: {[key: string]: any} = {},
+    timezone: string | null = TIMEZONE,
+    startTime: string = TIME_STRINGS[0],
+    endTime: string = TIME_STRINGS[1]
+) {
     return {
         ...BASE_EVENT,
         ...metadata,
         dates: {
-            start: dateString + TIME_STRINGS[0],
-            end: dateString + TIME_STRINGS[1],
+            start: dateString + startTime,
+            end: dateString + endTime,
             tz: timezone,
         },
     };
 }
 
 export const createEventFor = {
-    today: (metadata: {[key: string]: any} = {},  timezone: string | null = TIMEZONE) => (
-        getEventForDate(getDateStringFor.today(), metadata, timezone)
+    today: (metadata: {[key: string]: any} = {},  timezone: string | null = TIMEZONE, startTime: string = TIME_STRINGS[0], endTime: string = TIME_STRINGS[1]) => (
+        getEventForDate(getDateStringFor.today(), metadata, timezone, startTime, endTime)
     ),
-    tomorrow: (metadata: {[key: string]: any} = {}, timezone: string | null = TIMEZONE) => (
-        getEventForDate(getDateStringFor.tomorrow(), metadata, timezone)
+    tomorrow: (metadata: {[key: string]: any} = {}, timezone: string | null = TIMEZONE, startTime: string = TIME_STRINGS[0], endTime: string = TIME_STRINGS[1]) => (
+        getEventForDate(getDateStringFor.tomorrow(), metadata, timezone, startTime, endTime)
     ),
-    yesterday: (metadata: {[key: string]: any} = {}, timezone: string | null = TIMEZONE) => (
-        getEventForDate(getDateStringFor.yesterday(), metadata, timezone)
+    yesterday: (metadata: {[key: string]: any} = {}, timezone: string | null = TIMEZONE, startTime: string = TIME_STRINGS[0], endTime: string = TIME_STRINGS[1]) => (
+        getEventForDate(getDateStringFor.yesterday(), metadata, timezone, startTime, endTime)
     ),
-    next_week: (metadata: {[key: string]: any} = {}, timezone: string | null = TIMEZONE) => (
-        getEventForDate(getDateStringFor.next_week(), metadata, timezone)
+    next_week: (metadata: {[key: string]: any} = {}, timezone: string | null = TIMEZONE, startTime: string = TIME_STRINGS[0], endTime: string = TIME_STRINGS[1]) => (
+        getEventForDate(getDateStringFor.next_week(), metadata, timezone, startTime, endTime)
     ),
 };

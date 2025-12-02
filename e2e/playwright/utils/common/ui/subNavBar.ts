@@ -33,14 +33,16 @@ export class SubNavBar {
     async createEvent(): Promise<void> {
         await this.plusBtn.click();
         await this.createMenu
-            .locator('#create_event')
+            .getByRole('button', {name: 'Event', exact: true})
+            // .locator('#create_event')
             .click();
     }
 
     async createPlanning(): Promise<void> {
         await this.plusBtn.click();
         await this.createMenu
-            .locator('#create_planning')
+            .getByRole('button', {name: 'Planning Item', exact: true})
+            // .locator('#create_planning')
             .click();
     }
 }

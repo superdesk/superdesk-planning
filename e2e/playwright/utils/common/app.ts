@@ -59,9 +59,11 @@ export async function forceUnlockItem(request: APIRequestContext, itemType: stri
  * @return {Promise<void>} A promise that resolves when the login process is complete.
  */
 export async function login(page: Page): Promise<void> {
-    await page.locator('#login-username').fill('admin');
-    await page.locator('#login-password').fill('admin');
-    await page.locator('#login-btn').click();
+    const loginPage = page.getByTestId('login-page');
+
+    await loginPage.getByTestId('username').fill('admin');
+    await loginPage.getByTestId('password').fill('admin');
+    await loginPage.getByTestId('submit').click();
 }
 
 /**

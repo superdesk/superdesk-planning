@@ -11,7 +11,7 @@ export class UiFrameworkModal extends Popup {
     }
 
     getFooterButton(label: string): Locator {
-        return this.footer.getByRole('button', {name: label});
+        return this.footer.getByRole('button', {name: label, exact: true});
     }
 
     async shouldContainTitle(title: string): Promise<void> {

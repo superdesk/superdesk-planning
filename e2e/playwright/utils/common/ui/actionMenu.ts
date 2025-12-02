@@ -32,19 +32,21 @@ export class ActionMenu {
 }
 
 export async function getMenuItem(
+    page: Page,
     parent: Locator,
     ...actions: Array<any>
 ): Promise<Locator> {
+    await parent.waitFor({state: 'visible'});
     await parent.hover();
-    await parent.locator('[data-test-id="menu-button"]').click();
-    await parent.locator('[data-test-id="menu"]').waitFor({state: 'visible'});
+    await parent.getByTestId('menu-button').click();
+    await page.getByTestId('menu').waitFor({state: 'visible'});
 
     let item: Locator | null = null;
 
     for (let i = 0; i < actions.length; i++) {
         const isLast = i === actions.length - 1;
 
-        item = parent.locator(`[data-test-id="menu"] [role="menuitem"]:contains("${actions[i]}")`);
+        item = page.getByTestId('menu').getByRole('menuitem', {name: actions[i]});
 
         if (!isLast) {
             await item.hover();

@@ -13,8 +13,8 @@ export class RadioInputs extends Input {
 
     async type(value: string | Array<string>): Promise<void> {
         const enterValue = async (singleValue: string) => {
-            await this.page
-                .locator(`${this.selector}_${this.buttonSelector}}`)
+            await this.element
+                .locator(this.buttonSelector)
                 .getByText(singleValue)
                 .click();
         };

@@ -21,7 +21,7 @@ export class PlanningList {
     }
 
     nestedItems(): Locator {
-        return this.panel.locator('[data-test-id="has-nested-items"]');
+        return this.panel.getByTestId('has-nested-items');
     }
 
     nestedItem(index: number): Locator {
@@ -29,7 +29,9 @@ export class PlanningList {
     }
 
     nestedPlanningItems(index: number): Locator {
-        return this.nestedItem(index).locator('>> .sd-list-item');
+        return this.nestedItem(index)
+            .getByTestId('nested-items')
+            .locator('.sd-list-item');
     }
 
     nestedPlanningItem(itemIndex: number, planIndex: number): Locator {
@@ -42,7 +44,7 @@ export class PlanningList {
 
     async clickAction(index: number, label: string) {
         await this.item(index).click();
-        await (await getMenuItem(this.item(index), label)).click();
+        await (await getMenuItem(this.page, this.item(index), label)).click();
     }
 
     async expectEmpty(): Promise<void> {
@@ -59,16 +61,16 @@ export class PlanningList {
 
     async toggleAssociatedPlanning(index: number): Promise<void> {
         await this.nestedItem(index)
-            .locator('[data-test-id="toggle-related-plannings"]')
+            .getByTestId('toggle-related-plannings')
             .click();
     }
 
     async setDateInterval(interval: 'Day' | 'Week' | 'Month') {
-        await this.page.locator('[data-test-id=planning-list-panel]')
-            .locator('[data-test-id=interval-dropdown-toggle]')
+        await this.page.getByTestId('planning-list-panel')
+            .getByTestId('interval-dropdown-toggle')
             .click();
 
-        await this.page.locator('[data-test-id=dropdown-overlay]')
+        await this.page.getByTestId('dropdown-overlay')
             .locator('li')
             .getByText(interval)
             .click();

@@ -9,6 +9,9 @@ export {UiFrameworkModal} from './uiFrameworkModal';
 
 export const waitForPageLoad = {
     planning: async (page: Page) => {
+        await page.getByTestId('planning-list-panel').waitFor({state: 'visible'});
+    },
+    contacts: async (page: Page) => {
         await page.locator('.icon-plus-large').waitFor({state: 'visible'});
     },
 };

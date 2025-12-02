@@ -44,8 +44,7 @@ export class PlanningEditor extends Editor {
      * @returns {Cypress.Chainable<JQuery<HTMLElement>>}
      */
     get coveragesContainer(): Locator {
-        // return this.element.find('.coverages__array');
-        return this.element.locator('[data-test-id="field-coverages"]');
+        return this.element.getByTestId('field-coverages');
     }
 
     /**
@@ -53,7 +52,7 @@ export class PlanningEditor extends Editor {
      * @returns {Cypress.Chainable<JQuery<HTMLElement>>}
      */
     get addCoverageButton(): Locator {
-        return this.coveragesContainer.locator('[data-test-id="create-button"]');
+        return this.coveragesContainer.getByTestId('create-button');
     }
 
     /**

@@ -114,14 +114,11 @@ test.describe('Planning.Planning: edit metadata', () => {
         await editor.waitForAutosave();
         await editor.createButton.click();
         await editor.waitLoadingComplete();
+        await expect(editor.postButton).toBeVisible();
 
         await editor.openAllToggleBoxes();
         await editor.type({description_text: 'Desc. Text'});
         await editor.expect({description_text: 'Desc. Text'});
-        await editor.waitForAutosave();
-        await editor.waitTillOpen();
-        await expect(editor.postButton).toBeVisible();
-
         await editor.type({
             'flags.marked_for_not_publication': true,
             description_text: 'Desc. Text',
