@@ -97,7 +97,6 @@ test.describe('Planning.Events: duplicate event', () => {
             'dates.start.time': '02:00',
             'dates.end.time': '03:00',
         });
-        await editor.waitForAutosave();
         await editor.closeButton.click();
         await modal.waitTillOpen(30000);
         await modal.getFooterButton('Create').click();

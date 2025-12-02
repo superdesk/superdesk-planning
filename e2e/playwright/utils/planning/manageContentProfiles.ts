@@ -29,6 +29,9 @@ export class ManageContentProfiles extends Modal {
             .locator('.btn--icon-only-circle')
             .nth(index)
             .click();
+        await this.page.getByTestId('tree-menu-popover')
+            .getByRole('tree')
+            .waitFor({state: 'visible'});
     }
 
     actionMenu(): ActionMenu {
