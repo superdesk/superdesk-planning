@@ -71,9 +71,9 @@ test.describe('Planning.Assignment: remove assignment', () => {
         await list.item(0).click();
         await (await getMenuItem(page, list.item(0), 'Remove Assignment')).click();
 
-        await modal.waitTillOpen(30000);
+        await modal.waitTillOpen();
         await modal.element.locator('.btn--primary').click();
-        await modal.waitTillClosed(30000);
+        await modal.waitTillClosed();
         await list.expectItemCount(0);
 
         await changeWorkspace(page, 'Planning');

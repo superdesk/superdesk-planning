@@ -65,7 +65,7 @@ test.describe('Planning.Planning: cancel planning item', () => {
 
         await (await getMenuItem(page, list.item(0), 'Cancel Planning')).click();
 
-        await modal.waitTillOpen(30000);
+        await modal.waitTillOpen();
 
         // Make sure the item is locked at this point in time
         await expect(

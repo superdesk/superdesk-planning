@@ -74,10 +74,10 @@ test.describe('Planning.Assignment: edit assignment priority', () => {
         const modal = new Modal(page);
         const priorityInput = new UrgencyInput(page, () => modal.element, '.sd-line-input');
 
-        await modal.waitTillOpen(30000);
+        await modal.waitTillOpen();
         await priorityInput.type('High');
         await modal.element.locator('.btn--primary').click();
-        await modal.waitTillClosed(30000);
+        await modal.waitTillClosed();
 
         await expect(list.item(0).locator('.priority-label--1')).toBeVisible();
     });

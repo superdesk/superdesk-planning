@@ -44,7 +44,7 @@ test.describe('Planning.Events: event cancel action', () => {
     async function cancelEvent() {
         await menu.open();
         await menu.getAction('Cancel').click();
-        await modal.waitTillOpen(30000);
+        await modal.waitTillOpen();
         await modal.element.getByRole('textbox', {name: 'reason'}).fill(reason)
         await modal.getFooterButton('Cancel Event').click();
     }
@@ -52,7 +52,7 @@ test.describe('Planning.Events: event cancel action', () => {
     async function cancelEventFromListView(page: Page, listItem: Locator) {
         await (await getMenuItem(page, listItem, 'Cancel')).click();
 
-        await modal.waitTillOpen(30000);
+        await modal.waitTillOpen();
         await modal.element.getByRole('textbox', {name: 'reason'}).fill(reason);
         await modal.getFooterButton('Cancel Event').click();
     }
@@ -78,7 +78,7 @@ test.describe('Planning.Events: event cancel action', () => {
 
         // 1.b Open the 'Cancel Event' modal, then close it
         await (await getMenuItem(page, list.item(0), 'Cancel')).click();
-        await modal.waitTillOpen(30000);
+        await modal.waitTillOpen();
         await modal.getFooterButton('Cancel').click();
         await modal.waitTillClosed();
 

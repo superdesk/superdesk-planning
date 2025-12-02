@@ -59,12 +59,12 @@ test.describe('Planning.Events: event templates', () => {
         await editor.actionMenu
             .getAction('Save event as a template')
             .click();
-        await uiFrameworkModal.waitTillOpen(30000);
+        await uiFrameworkModal.waitTillOpen();
         await uiFrameworkModal.element
             .getByRole('textbox')
             .fill('Example');
         await uiFrameworkModal.getFooterButton('Submit').click();
-        await uiFrameworkModal.waitTillClosed(30000);
+        await uiFrameworkModal.waitTillClosed();
 
         // Wait for the Editor to re-render
         // otherwise the close button may re-render during attempts to click it
@@ -77,7 +77,7 @@ test.describe('Planning.Events: event templates', () => {
         await subnav.menu.getByText('Manage event templates').click();
 
         // Make sure our new template is there
-        await modal.waitTillOpen(30000);
+        await modal.waitTillOpen();
         await expect(
             modal.element.getByTestId('list-page--items').locator('.sd-list-item')
         ).toHaveCount(1);

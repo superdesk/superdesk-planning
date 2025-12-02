@@ -22,7 +22,7 @@ export class SearchFilters extends Modal {
         await this.subnav.menu
             .getByText('Manage Event & Planning Filters')
             .click();
-        await this.waitTillOpen(30000);
+        await this.waitTillOpen();
     }
 
     get addNewFilterButton(): Locator {

@@ -64,7 +64,6 @@ export class CoverageEditor extends Editor {
 
     /**
      * Waits until the coverage array components are mounted and visible
-     * @param {number} timeout - The number of ms to wait for coverages to be visible
      */
     async waitTillVisible() {
         await this.parentEditor.element

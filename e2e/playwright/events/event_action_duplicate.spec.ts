@@ -72,7 +72,7 @@ test.describe('Planning.Events: duplicate event', () => {
         await editor.type({slugline: 'Duplicate2'});
         await editor.waitForAutosave();
         await editor.closeButton.click();
-        await modal.waitTillOpen(30000);
+        await modal.waitTillOpen();
         await modal.getFooterButton('Ignore').click();
         await editor.waitTillClosed();
 
@@ -98,7 +98,7 @@ test.describe('Planning.Events: duplicate event', () => {
             'dates.end.time': '03:00',
         });
         await editor.closeButton.click();
-        await modal.waitTillOpen(30000);
+        await modal.waitTillOpen();
         await modal.getFooterButton('Create').click();
         await editor.waitTillClosed();
     });

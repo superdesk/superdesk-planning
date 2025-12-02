@@ -52,7 +52,7 @@ test.describe('Planning.Featured', () => {
             .click();
 
         // Wait for the Modal to open
-        await modal.waitTillOpen(30000);
+        await modal.waitTillOpen();
         await modal.waitTillLoadingFinished();
         await modal.shouldContainTitle('Featured Stories');
     }
@@ -106,14 +106,14 @@ test.describe('Planning.Featured', () => {
         await modal.footerButton('Cancel').click();
         await modal.shouldContainTitle('Save Changes?');
         await modal.getFooterButton('Ignore').click();
-        await modal.waitTillClosed(30000);
+        await modal.waitTillClosed();
 
         // 4. Attempt to open -> close the Modal again, this time saving the changes
         await openFeaturedStoriesModal();
         await modal.footerButton('Cancel').click();
         await modal.shouldContainTitle('Save Changes?');
         await modal.footerButton('Save').click();
-        await modal.waitTillClosed(30000);
+        await modal.waitTillClosed();
 
         // 5. Post the Planning item
         await postPlanningItem('Today_Featured_1');

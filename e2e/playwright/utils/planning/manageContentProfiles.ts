@@ -10,7 +10,7 @@ export class ManageContentProfiles extends Modal {
             .getByText(`Manage ${contentType} profile`)
             .click();
 
-        await this.waitTillOpen(30000);
+        await this.waitTillOpen();
     }
 
     async selectTab(index: number): Promise<void> {

@@ -107,13 +107,13 @@ test.describe('Planning.Workqueue', () => {
 
         // Attempt to close from the workqueue, and cancel
         await workqueue.closeItem(0);
-        await modal.waitTillOpen(30000);
+        await modal.waitTillOpen();
         await modal.getFooterButton('Cancel').click();
         await modal.waitTillClosed();
 
         // Attempt to close from the workqueue, and Go-To
         await workqueue.closeItem(0);
-        await modal.waitTillOpen(30000);
+        await modal.waitTillOpen();
         await modal.getFooterButton('Go-To').click();
         await modal.waitTillClosed();
         await editor.waitTillOpen();
@@ -125,7 +125,7 @@ test.describe('Planning.Workqueue', () => {
 
         // Attempt to close from the workqueue, and ignore
         await workqueue.closeItem(0);
-        await modal.waitTillOpen(30000);
+        await modal.waitTillOpen();
         await modal.getFooterButton('Ignore').click();
         await modal.waitTillClosed();
 
@@ -158,7 +158,7 @@ test.describe('Planning.Workqueue', () => {
 
         // Attempt to close the item from the workqueue
         await workqueue.closeItem(0);
-        await modal.waitTillOpen(30000);
+        await modal.waitTillOpen();
         await modal.getFooterButton('Go-To').click();
         await modal.waitTillClosed();
 

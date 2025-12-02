@@ -73,12 +73,12 @@ test.describe('Planning.Assignment: reassign assignment', () => {
         await list.item(0).click();
         await (await getMenuItem(page, list.item(0), 'Reassign')).click();
 
-        await modal.waitTillOpen(30000);
+        await modal.waitTillOpen();
         await assignmentEditor.type({
             user: 'first name last name',
         });
         await modal.element.locator('.btn--primary').click();
-        await modal.waitTillClosed(30000);
+        await modal.waitTillClosed();
 
         await expect(preview.topTools).toContainText('first name last name');
     });
