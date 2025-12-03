@@ -101,7 +101,7 @@ async def before_scenario_async(context, scenario):
     if "planning_cvs" in scenario.tags:
         async with context.app.app_context():
             cmd = AppPopulateCommand()
-            filename = path.join(path.abspath(path.dirname("features/steps/fixtures/")), "vocabularies.json")
+            filename = path.join(path.dirname(__file__), "steps", "fixtures", "vocabularies.json")
             await cmd.run(filename)
 
 
