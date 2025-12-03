@@ -1,8 +1,9 @@
-import {uniq, keyBy, get, cloneDeep, filter, initial} from 'lodash';
+import {uniq, keyBy, get, filter} from 'lodash';
 import {ASSIGNMENTS, RESET_STORE, INIT_STORE, SORT_DIRECTION} from '../constants';
 import moment from 'moment';
 import {createReducer} from './createReducer';
 import {getItemId} from '../utils';
+import {produce} from 'immer';
 
 const initialState = {
     archive: {},
@@ -150,7 +151,9 @@ const assignmentReducer = createReducer(initialState, {
     },
 
     [ASSIGNMENTS.ACTIONS.SET_LIST_ITEMS]: (state, payload) => (
-        setList(cloneDeep(state), payload)
+        produce(state, (draft) => {
+            setList(draft, payload);
+        })
     ),
 
     [ASSIGNMENTS.ACTIONS.MY_ASSIGNMENTS_TOTAL]: (state, payload) => (
@@ -161,7 +164,9 @@ const assignmentReducer = createReducer(initialState, {
     ),
 
     [ASSIGNMENTS.ACTIONS.ADD_LIST_ITEMS]: (state, payload) => (
-        addToList(cloneDeep(state), payload)
+        produce(state, (draft) => {
+            addToList(draft, payload);
+        })
     ),
 
     [ASSIGNMENTS.ACTIONS.CHANGE_LIST_VIEW_MODE]: (state, payload) => (
@@ -172,11 +177,15 @@ const assignmentReducer = createReducer(initialState, {
     ),
 
     [ASSIGNMENTS.ACTIONS.SET_LIST_PAGE]: (state, payload) => (
-        setLastPage(cloneDeep(state), payload)
+        produce(state, (draft) => {
+            setLastPage(draft, payload);
+        })
     ),
 
     [ASSIGNMENTS.ACTIONS.SET_GROUP_SORT_ORDER]: (state, payload) => (
-        setListSortOrder(cloneDeep(state), payload)
+        produce(state, (draft) => {
+            setListSortOrder(draft, payload);
+        })
     ),
 
     [ASSIGNMENTS.ACTIONS.SET_LOADING]: (state, payload) => (
@@ -220,37 +229,29 @@ const assignmentReducer = createReducer(initialState, {
     [ASSIGNMENTS.ACTIONS.LOCK_ASSIGNMENT]: (state, payload) => {
         if (!(payload.assignment._id in state.assignments)) return state;
 
-        let assignments = cloneDeep(state.assignments);
-        let assignment = assignments[payload.assignment._id];
+        return produce(state, (draft) => {
+            let assignment = draft.assignments[payload.assignment._id];
 
-        assignment.lock_action = payload.assignment.lock_action;
-        assignment.lock_user = payload.assignment.lock_user;
-        assignment.lock_time = payload.assignment.lock_time;
-        assignment.lock_session = payload.assignment.lock_session;
-        assignment._etag = payload.assignment._etag;
-
-        return {
-            ...state,
-            assignments,
-        };
+            assignment.lock_action = payload.assignment.lock_action;
+            assignment.lock_user = payload.assignment.lock_user;
+            assignment.lock_time = payload.assignment.lock_time;
+            assignment.lock_session = payload.assignment.lock_session;
+            assignment._etag = payload.assignment._etag;
+        });
     },
 
     [ASSIGNMENTS.ACTIONS.UNLOCK_ASSIGNMENT]: (state, payload) => {
         if (!(payload.assignment._id in state.assignments)) return state;
 
-        let assignments = cloneDeep(state.assignments);
-        let assignment = assignments[payload.assignment._id];
+        return produce(state, (draft) => {
+            let assignment = draft.assignments[payload.assignment._id];
 
-        delete assignment.lock_action;
-        delete assignment.lock_user;
-        delete assignment.lock_time;
-        delete assignment.lock_session;
-        assignment._etag = payload.assignment._etag;
-
-        return {
-            ...state,
-            assignments,
-        };
+            delete assignment.lock_action;
+            delete assignment.lock_user;
+            delete assignment.lock_time;
+            delete assignment.lock_session;
+            assignment._etag = payload.assignment._etag;
+        });
     },
 
     [ASSIGNMENTS.ACTIONS.RECEIVED_ARCHIVE]: (state, payload) => {
@@ -275,32 +276,30 @@ const assignmentReducer = createReducer(initialState, {
         };
     },
 
-    [ASSIGNMENTS.ACTIONS.REMOVE_ASSIGNMENT]: (oldState, payload) => {
-        const state = cloneDeep(oldState);
+    [ASSIGNMENTS.ACTIONS.REMOVE_ASSIGNMENT]: (oldState, payload) => (
+        produce(oldState, (draft) => {
+            // Remove the assignment from the stored list of assignments
+            (get(payload, 'assignments') || []).forEach((a) => {
+                if (a in draft.assignments) {
+                    delete draft.assignments[a];
+                    // If this assignment is being viewed,
+                    // then close the preview and de-select the assignment
+                    if (draft.currentAssignmentId === a) {
+                        draft.previewOpened = false;
+                        draft.currentAssignmentId = null;
+                    }
 
-        // Remove the assignment from the stored list of assignments
-        (get(payload, 'assignments') || []).forEach((a) => {
-            if (a in state.assignments) {
-                delete state.assignments[a];
-                // If this assignment is being viewed,
-                // then close the preview and de-select the assignment
-                if (state.currentAssignmentId === a) {
-                    state.previewOpened = false;
-                    state.currentAssignmentId = null;
+                    // Remove this assignment from any list groups
+                    filterList(draft, ASSIGNMENTS.LIST_GROUPS.IN_PROGRESS.id, a);
+                    filterList(draft, ASSIGNMENTS.LIST_GROUPS.TODO.id, a);
+                    filterList(draft, ASSIGNMENTS.LIST_GROUPS.COMPLETED.id, a);
+                    filterList(draft, ASSIGNMENTS.LIST_GROUPS.CURRENT.id, a);
+                    filterList(draft, ASSIGNMENTS.LIST_GROUPS.TODAY.id, a);
+                    filterList(draft, ASSIGNMENTS.LIST_GROUPS.FUTURE.id, a);
                 }
-
-                // Remove this assignment from any list groups
-                filterList(state, ASSIGNMENTS.LIST_GROUPS.IN_PROGRESS.id, a);
-                filterList(state, ASSIGNMENTS.LIST_GROUPS.TODO.id, a);
-                filterList(state, ASSIGNMENTS.LIST_GROUPS.COMPLETED.id, a);
-                filterList(state, ASSIGNMENTS.LIST_GROUPS.CURRENT.id, a);
-                filterList(state, ASSIGNMENTS.LIST_GROUPS.TODAY.id, a);
-                filterList(state, ASSIGNMENTS.LIST_GROUPS.FUTURE.id, a);
-            }
-        });
-
-        return state;
-    },
+            });
+        })
+    ),
 
     [ASSIGNMENTS.ACTIONS.RECEIVE_ASSIGNMENT_HISTORY]: (state, payload) => ({
         ...state,
