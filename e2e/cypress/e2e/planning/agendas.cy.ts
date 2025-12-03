@@ -128,13 +128,10 @@ describe('Planning: manage agendas', () => {
             .contains('Cancel')
             .click();
 
-        cy.get('[data-test-id="modal-confirm"]')
+        cy.get('.p-dialog-footer')
             .find('button')
-            .contains('Cancel')
+            .contains('Don\'t save')
             .click();
-
-        cy.get('[data-test-id="modal-confirm"]')
-            .should('not.exist');
 
         modal.getFooterButton('Close')
             .click();
