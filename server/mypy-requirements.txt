@@ -4,4 +4,4 @@ types-mock
 types-python-dateutil
 types-pytz
 typing-extensions
-types-requests==2.32.4.20250611
+types-requests==2.32.4.20250913
