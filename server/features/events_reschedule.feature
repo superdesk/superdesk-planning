@@ -411,8 +411,8 @@ Feature: Events Reschedule
         [{
             "name": "Friday Club",
             "dates": {
-                "start": "2025-11-20T12:00:00.000Z",
-                "end": "2025-11-20T14:00:00.000Z",
+                "start": "2035-11-20T12:00:00.000Z",
+                "end": "2035-11-20T14:00:00.000Z",
                 "tz": "Australia/Sydney",
                 "recurring_rule": {
                     "frequency": "WEEKLY",
@@ -435,8 +435,8 @@ Feature: Events Reschedule
             {
                 "name": "Friday Club",
                 "dates": {
-                    "start": "2025-11-21T12:00:00+0000",
-                    "end": "2025-11-21T14:00:00+0000",
+                    "start": "2035-11-23T12:00:00+0000",
+                    "end": "2035-11-23T14:00:00+0000",
                     "tz": "Australia/Sydney",
                     "recurring_rule": {
                         "frequency": "WEEKLY",
@@ -449,8 +449,8 @@ Feature: Events Reschedule
             }, {
                 "name": "Friday Club",
                 "dates": {
-                    "start": "2025-11-28T12:00:00+0000",
-                    "end": "2025-11-28T14:00:00+0000",
+                    "start": "2035-11-30T12:00:00+0000",
+                    "end": "2035-11-30T14:00:00+0000",
                     "tz": "Australia/Sydney",
                     "recurring_rule": {
                         "frequency": "WEEKLY",
@@ -463,8 +463,8 @@ Feature: Events Reschedule
             }, {
                 "name": "Friday Club",
                 "dates": {
-                    "start": "2025-12-05T12:00:00+0000",
-                    "end": "2025-12-05T14:00:00+0000",
+                    "start": "2035-12-07T12:00:00+0000",
+                    "end": "2035-12-07T14:00:00+0000",
                     "tz": "Australia/Sydney",
                     "recurring_rule": {
                         "frequency": "WEEKLY",
@@ -487,8 +487,8 @@ Feature: Events Reschedule
         {
             "reason": "Extending number of occurrences",
             "dates": {
-                "start": "2025-11-21T12:00:00.000Z",
-                "end": "2025-11-21T14:00:00.000Z",
+                "start": "2035-11-23T12:00:00.000Z",
+                "end": "2035-11-23T14:00:00.000Z",
                 "tz": "Australia/Sydney",
                 "recurring_rule": {
                     "frequency": "WEEKLY",
@@ -509,8 +509,8 @@ Feature: Events Reschedule
             {
                 "name": "Friday Club",
                 "dates": {
-                    "start": "2025-11-21T12:00:00+0000",
-                    "end": "2025-11-21T14:00:00+0000",
+                    "start": "2035-11-23T12:00:00+0000",
+                    "end": "2035-11-23T14:00:00+0000",
                     "tz": "Australia/Sydney",
                     "recurring_rule": {
                         "frequency": "WEEKLY",
@@ -523,8 +523,8 @@ Feature: Events Reschedule
             }, {
                 "name": "Friday Club",
                 "dates": {
-                    "start": "2025-11-28T12:00:00+0000",
-                    "end": "2025-11-28T14:00:00+0000",
+                    "start": "2035-11-30T12:00:00+0000",
+                    "end": "2035-11-30T14:00:00+0000",
                     "tz": "Australia/Sydney",
                     "recurring_rule": {
                         "frequency": "WEEKLY",
@@ -537,8 +537,8 @@ Feature: Events Reschedule
             }, {
                 "name": "Friday Club",
                 "dates": {
-                    "start": "2025-12-05T12:00:00+0000",
-                    "end": "2025-12-05T14:00:00+0000",
+                    "start": "2035-12-07T12:00:00+0000",
+                    "end": "2035-12-07T14:00:00+0000",
                     "tz": "Australia/Sydney",
                     "recurring_rule": {
                         "frequency": "WEEKLY",
@@ -551,8 +551,8 @@ Feature: Events Reschedule
             }, {
                 "name": "Friday Club",
                 "dates": {
-                    "start": "2025-12-12T12:00:00+0000",
-                    "end": "2025-12-12T14:00:00+0000",
+                    "start": "2035-12-14T12:00:00+0000",
+                    "end": "2035-12-14T14:00:00+0000",
                     "tz": "Australia/Sydney",
                     "recurring_rule": {
                         "frequency": "WEEKLY",
@@ -574,8 +574,8 @@ Feature: Events Reschedule
             {"operation": "create", "event_id": "#EVENT3._id#"},
             {"operation": "reschedule", "event_id": "#EVENT1._id#", "update": {
                 "dates": {
-                    "start": "2025-11-21T12:00:00+0000",
-                    "end": "2025-11-21T14:00:00+0000",
+                    "start": "2035-11-23T12:00:00+0000",
+                    "end": "2035-11-23T14:00:00+0000",
                     "tz": "Australia/Sydney",
                     "recurring_rule": {
                         "frequency": "WEEKLY",
@@ -588,8 +588,8 @@ Feature: Events Reschedule
             }},
             {"operation": "reschedule", "event_id": "#EVENT2._id#", "update": {
                 "dates": {
-                    "start": "2025-11-28T12:00:00+0000",
-                    "end": "2025-11-28T14:00:00+0000",
+                    "start": "2035-11-30T12:00:00+0000",
+                    "end": "2035-11-30T14:00:00+0000",
                     "tz": "Australia/Sydney",
                     "recurring_rule": {
                         "frequency": "WEEKLY",
@@ -602,8 +602,8 @@ Feature: Events Reschedule
             }},
             {"operation": "reschedule", "event_id": "#EVENT3._id#", "update": {
                 "dates": {
-                    "start": "2025-12-05T12:00:00+0000",
-                    "end": "2025-12-05T14:00:00+0000",
+                    "start": "2035-12-07T12:00:00+0000",
+                    "end": "2035-12-07T14:00:00+0000",
                     "tz": "Australia/Sydney",
                     "recurring_rule": {
                         "frequency": "WEEKLY",
@@ -616,8 +616,8 @@ Feature: Events Reschedule
             }},
             {"operation": "create", "event_id": "__any_value__", "update": {
                 "dates": {
-                    "start": "2025-12-12T12:00:00+0000",
-                    "end": "2025-12-12T14:00:00+0000",
+                    "start": "2035-12-14T12:00:00+0000",
+                    "end": "2035-12-14T14:00:00+0000",
                     "tz": "Australia/Sydney",
                     "recurring_rule": {
                         "frequency": "WEEKLY",
@@ -792,8 +792,8 @@ Feature: Events Reschedule
         [{
             "name": "Friday Club",
             "dates": {
-                "start": "2025-11-21T12:00:00.000Z",
-                "end": "2025-11-21T14:00:00.000Z",
+                "start": "2035-11-21T12:00:00.000Z",
+                "end": "2035-11-21T14:00:00.000Z",
                 "tz": "Australia/Sydney",
                 "recurring_rule": {
                     "frequency": "WEEKLY",
@@ -815,8 +815,8 @@ Feature: Events Reschedule
         """
         {
             "dates": {
-                "start": "2025-11-21T12:00:00.000Z",
-                "end": "2025-11-21T18:00:00.000Z",
+                "start": "2035-11-23T12:00:00.000Z",
+                "end": "2035-11-23T18:00:00.000Z",
                 "tz": "Australia/Sydney",
                 "recurring_rule": {
                     "frequency": "WEEKLY",
@@ -837,8 +837,8 @@ Feature: Events Reschedule
             {
                 "name": "Friday Club",
                 "dates": {
-                    "start": "2025-11-21T12:00:00+0000",
-                    "end": "2025-11-21T18:00:00+0000",
+                    "start": "2035-11-23T12:00:00+0000",
+                    "end": "2035-11-23T18:00:00+0000",
                     "tz": "Australia/Sydney",
                     "recurring_rule": {
                         "frequency": "WEEKLY",
@@ -851,8 +851,8 @@ Feature: Events Reschedule
             }, {
                 "name": "Friday Club",
                 "dates": {
-                    "start": "2025-11-28T12:00:00+0000",
-                    "end": "2025-11-28T18:00:00+0000",
+                    "start": "2035-11-30T12:00:00+0000",
+                    "end": "2035-11-30T18:00:00+0000",
                     "tz": "Australia/Sydney",
                     "recurring_rule": {
                         "frequency": "WEEKLY",
@@ -865,8 +865,8 @@ Feature: Events Reschedule
             }, {
                 "name": "Friday Club",
                 "dates": {
-                    "start": "2025-12-05T12:00:00+0000",
-                    "end": "2025-12-05T18:00:00+0000",
+                    "start": "2035-12-07T12:00:00+0000",
+                    "end": "2035-12-07T18:00:00+0000",
                     "tz": "Australia/Sydney",
                     "recurring_rule": {
                         "frequency": "WEEKLY",
@@ -888,8 +888,8 @@ Feature: Events Reschedule
         [{
             "name": "Friday Club",
             "dates": {
-                "start": "2025-11-21T12:00:00.000Z",
-                "end": "2025-11-21T14:00:00.000Z",
+                "start": "2035-11-23T12:00:00.000Z",
+                "end": "2035-11-23T14:00:00.000Z",
                 "tz": "Australia/Sydney",
                 "recurring_rule": {
                     "frequency": "WEEKLY",
@@ -919,20 +919,20 @@ Feature: Events Reschedule
                         "internal_note": "test coverage, 250 words",
                         "headline": "test headline",
                         "slugline": "test slugline",
-                        "scheduled": "2025-11-21T14:00:00.000Z",
+                        "scheduled": "2035-11-23T14:00:00.000Z",
                         "g2_content_type": "text"
                     },
                     "news_coverage_status": {"qcode": "ncostat:int"},
                     "workflow_status" : "draft"
                 }],
-                "planning_date": "2025-01-02"
+                "planning_date": "2035-01-04"
             },
             {
                 "guid": "plan2",
                 "slugline": "Weekly Meetings",
                 "headline": "Friday Club",
                 "related_events": [{"_id": "#EVENT3._id#", "link_type": "primary"}],
-                "planning_date": "2025-01-02"
+                "planning_date": "2035-01-04"
             }
         ]
         """
@@ -1024,7 +1024,7 @@ Feature: Events Reschedule
                         "workflow_status_reason": "Postponed this event!",
                         "headline": "test headline",
                         "slugline": "test slugline",
-                        "scheduled": "2025-11-21T14:00:00+00:00",
+                        "scheduled": "2035-11-23T14:00:00+00:00",
                         "g2_content_type": "text"
                     },
                     "news_coverage_status": { "qcode": "ncostat:int" }
@@ -1047,8 +1047,8 @@ Feature: Events Reschedule
         {
             "reason": "Event back on at original date and time",
             "dates": {
-                "start": "2025-11-21T12:00:00.000Z",
-                "end": "2025-11-21T14:00:00.000Z",
+                "start": "2035-11-23T12:00:00.000Z",
+                "end": "2035-11-23T14:00:00.000Z",
                 "tz": "Australia/Sydney",
                 "recurring_rule": {
                     "frequency": "WEEKLY",
@@ -1069,8 +1069,8 @@ Feature: Events Reschedule
             {
                 "name": "Friday Club",
                 "dates": {
-                    "start": "2025-11-21T12:00:00+0000",
-                    "end": "2025-11-21T14:00:00+0000",
+                    "start": "2035-11-23T12:00:00+0000",
+                    "end": "2035-11-23T14:00:00+0000",
                     "tz": "Australia/Sydney",
                     "recurring_rule": {
                         "frequency": "WEEKLY",
@@ -1086,8 +1086,8 @@ Feature: Events Reschedule
             {
                 "name": "Friday Club",
                 "dates": {
-                    "start": "2025-11-28T12:00:00+0000",
-                    "end": "2025-11-28T14:00:00+0000",
+                    "start": "2035-11-30T12:00:00+0000",
+                    "end": "2035-11-30T14:00:00+0000",
                     "tz": "Australia/Sydney",
                     "recurring_rule": {
                         "frequency": "WEEKLY",
@@ -1103,8 +1103,8 @@ Feature: Events Reschedule
             {
                 "name": "Friday Club",
                 "dates": {
-                    "start": "2025-12-05T12:00:00+0000",
-                    "end": "2025-12-05T14:00:00+0000",
+                    "start": "2035-12-07T12:00:00+0000",
+                    "end": "2035-12-07T14:00:00+0000",
                     "tz": "Australia/Sydney",
                     "recurring_rule": {
                         "frequency": "WEEKLY",
@@ -1120,8 +1120,8 @@ Feature: Events Reschedule
             {
                 "name": "Friday Club",
                 "dates": {
-                    "start": "2025-12-12T12:00:00+0000",
-                    "end": "2025-12-12T14:00:00+0000",
+                    "start": "2035-12-14T12:00:00+0000",
+                    "end": "2035-12-14T14:00:00+0000",
                     "tz": "Australia/Sydney",
                     "recurring_rule": {
                         "frequency": "WEEKLY",
@@ -1151,7 +1151,7 @@ Feature: Events Reschedule
                         "workflow_status_reason": "Event back on at original date and time",
                         "headline": "test headline",
                         "slugline": "test slugline",
-                        "scheduled": "2025-11-21T14:00:00+0000",
+                        "scheduled": "2035-11-23T14:00:00+0000",
                         "g2_content_type": "text"
                     },
                     "news_coverage_status": { "qcode": "ncostat:int" }
