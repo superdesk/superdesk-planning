@@ -1,10 +1,11 @@
-import {cloneDeep, get, uniq, sortBy} from 'lodash';
+import {get, uniq, sortBy} from 'lodash';
 
 import {IEventsPlanningState, IMainState, ISearchFilter} from '../interfaces';
 import {EVENTS_PLANNING, INIT_STORE, RESET_STORE, MAIN} from '../constants';
 
 import {createReducer} from './createReducer';
 import {getItemId} from '../utils';
+import {produce} from 'immer';
 
 const initialState: IEventsPlanningState = {
     eventsAndPlanningInList: [],
@@ -42,13 +43,12 @@ const eventsPlanningReducer = createReducer<IEventsPlanningState>(initialState, 
         }
     ),
     [EVENTS_PLANNING.ACTIONS.ADD_EVENTS_PLANNING_LIST]: (state, payload) => (
-        {
-            ...state,
-            eventsAndPlanningInList: uniq([
-                ...cloneDeep(state.eventsAndPlanningInList || []),
+        produce(state, (draft) => {
+            draft.eventsAndPlanningInList = uniq([
+                ...draft.eventsAndPlanningInList || [],
                 ...(payload || []).map((e) => e._id),
-            ]),
-        }
+            ]);
+        })
     ),
     [EVENTS_PLANNING.ACTIONS.CLEAR_EVENTS_PLANNING_LIST]: (state, payload) => (
         {
