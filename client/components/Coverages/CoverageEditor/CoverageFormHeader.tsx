@@ -18,7 +18,7 @@ interface IOwnProps {
     value: IPlanningCoverageItem | ICoverageScheduledUpdate;
     users: Array<IUser>;
     desks: Array<IDesk>;
-    readOnly?: boolean;
+    disabled?: boolean;
     addNewsItemToPlanning?: IArticle;
     onChange(field: string, value: any): void;
     onFocus?(): void;
@@ -122,13 +122,13 @@ class CoverageFormHeaderComponent extends React.PureComponent<IProps> {
         const {
             value,
             addNewsItemToPlanning,
-            readOnly,
+            disabled,
             lockedItems,
         } = this.props;
 
         if (addNewsItemToPlanning != null
             || (value as ICoverageScheduledUpdate).scheduled_update_id != null
-            || readOnly === true
+            || disabled === true
         ) {
             return null;
         }
@@ -189,7 +189,7 @@ class CoverageFormHeaderComponent extends React.PureComponent<IProps> {
             value,
             users,
             desks,
-            readOnly,
+            disabled,
         } = this.props;
 
         const userAssigned = getCreator(value, 'assigned_to.user', users);
@@ -216,7 +216,7 @@ class CoverageFormHeaderComponent extends React.PureComponent<IProps> {
                                 </span>
                             </span>
                         </ListRow>
-                        {!cancelled && !readOnly && (
+                        {!cancelled && !disabled && (
                             <ListRow>
                                 <Button
                                     id="editAssignment"

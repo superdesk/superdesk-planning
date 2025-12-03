@@ -378,6 +378,7 @@ class PlanningEditorComponent extends React.Component<IProps, IState> {
                         useLocalNavigation: !this.props.inModalView,
                         navigation: this.props.navigation,
                         maxCoverageCount: maxCoverageCount,
+                        disabled: this.props.readOnly,
                         addOnly: this.props.addNewsItemToPlanning != null,
                         originalCount: this.props.item?.coverages?.length ?? 0,
                         message: this.props.message,

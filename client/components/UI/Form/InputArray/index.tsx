@@ -29,7 +29,7 @@ interface IProps {
     originalCount: number;
     element: React.ComponentClass<any>;
     createCoverage: (coverageType: ICoverageType) => DeepPartial<IPlanningCoverageItem>;
-    readOnly: boolean;
+    disabled: boolean;
     message: any;
     invalid: boolean;
     buttonWithLabel: boolean;
@@ -129,7 +129,7 @@ export class InputArray extends React.PureComponent<IProps> {
             addOnly,
             originalCount,
             element,
-            readOnly,
+            disabled,
             message,
             invalid,
             buttonWithLabel,
@@ -140,8 +140,8 @@ export class InputArray extends React.PureComponent<IProps> {
         } = this.props;
 
         const Component = element;
-        const showAddButton = (maxCount ? value.length < maxCount : true) && !readOnly;
-        const isIndexReadOnly = (index) => (addOnly && index === originalCount) ? false : readOnly;
+        const showAddButton = (maxCount ? value.length < maxCount : true) && !disabled;
+        const isIndexReadOnly = (index) => (addOnly && index === originalCount) ? false : disabled;
         const addButton = this.renderButton();
 
         const hasLabel = (label ?? '').length > 0;
@@ -165,7 +165,7 @@ export class InputArray extends React.PureComponent<IProps> {
                 onChange={onChange}
                 value={val}
                 remove={() => this.remove(index)}
-                readOnly={isIndexReadOnly(index)}
+                disabled={isIndexReadOnly(index)}
                 message={get(message, `[${index}]`)}
                 invalid={!!get(message, `[${index}]`)}
             />
