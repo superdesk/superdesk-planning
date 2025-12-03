@@ -5,8 +5,7 @@ import {EventEditor} from '../../support/planning';
 describe('Planning.Events: event templates', () => {
     const editor = new EventEditor();
     const subnav = new SubNavBar();
-    const modal = new Modal();
-    const uiFrameworkModal = new UiFrameworkModal();
+    const modal = new UiFrameworkModal();
 
     const event = {
         'dates.start.date': '12/12/2045',
@@ -56,13 +55,13 @@ describe('Planning.Events: event templates', () => {
         editor.actionMenu
             .getAction('Save event as a template')
             .click();
-        uiFrameworkModal.waitTillOpen(30000);
-        uiFrameworkModal.element
+        modal.waitTillOpen(30000);
+        modal.element
             .find('textarea')
             .type('Example');
-        uiFrameworkModal.getFooterButton('Submit')
+        modal.getFooterButton('Submit')
             .click();
-        uiFrameworkModal.waitTillClosed(30000);
+        modal.waitTillClosed(30000);
 
         // Wait for the Editor to re-render
         // otherwise the close button may re-render during attempts to click it
@@ -131,7 +130,7 @@ describe('Planning.Events: event templates', () => {
             .find('[data-test-id=list-page--items]')
             .find('.sd-list-item')
             .find('.icon-pencil')
-            .click();
+            .click({force: true});
 
         modal.element
             .find('[data-test-id=gform-input--template_name]')

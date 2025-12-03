@@ -18,6 +18,7 @@ interface IProps {
     previewFilter(filter: ISearchFilter): void;
     editFilterSchedule(filter: ISearchFilter): void;
     deleteFilterSchedule(filter: ISearchFilter): void;
+    activeFilterId?: ISearchFilter['_id'];
 
     filters: Array<ISearchFilter>;
     calendars: Array<ICalendar>;
@@ -52,6 +53,7 @@ export class FiltersListComponent extends React.PureComponent<IProps> {
                 ) : (
                     filters.map((filter) => (
                         <FilterItem
+                            activeFilterId={this.props.activeFilterId}
                             filter={filter}
                             privileges={privileges}
                             editFilter={editFilter}

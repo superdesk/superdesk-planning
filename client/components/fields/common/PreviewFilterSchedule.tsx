@@ -7,7 +7,7 @@ import {superdeskApi} from '../../../superdeskApi';
 import {IDesk} from 'superdesk-api';
 import {getDesksById} from '../../../selectors/general';
 import {getSearchFilterScheduleText} from '../../../utils/filters';
-import {IconButton, IconLabel} from 'superdesk-ui-framework/react';
+import {IconButton, IconLabel, Spacer} from 'superdesk-ui-framework/react';
 
 interface IProps extends IListFieldProps {
     desks: {[key: string]: IDesk};
@@ -36,31 +36,45 @@ export class PreviewFieldFilterScheduleComponent extends React.PureComponent<IPr
                 <IconLabel
                     icon="time"
                     text={(
-                        <React.Fragment>
+                        <Spacer
+                            h
+                            gap="8"
+                            justifyContent="center"
+                            alignItems="center"
+                            noWrap
+                        >
                             {gettext('Scheduled export: {{ description }}', {description: scheduleText})}
-                            <span className="sd-margin-l--1">
-                                {this.props.editSchedule == null ? null : (
+                            <Spacer
+                                h
+                                noWrap
+                                gap="4"
+                                alignItems="center"
+                                justifyContent="center"
+                            >
+                                {this.props.editSchedule && (
                                     <IconButton
                                         icon="pencil"
-                                        ariaValue={gettext('Edit schedule')}
+                                        size="small"
+                                        ariaValue={gettext('Edit')}
                                         onClick={(event) => {
                                             event.stopPropagation();
                                             this.props.editSchedule(this.props.item);
                                         }}
                                     />
                                 )}
-                                {this.props.deleteSchedule == null ? null : (
+                                {this.props.deleteSchedule && (
                                     <IconButton
                                         icon="trash"
-                                        ariaValue={gettext('Delete schedule')}
+                                        size="small"
+                                        ariaValue={gettext('Edit')}
                                         onClick={(event) => {
                                             event.stopPropagation();
                                             this.props.deleteSchedule(this.props.item);
                                         }}
                                     />
                                 )}
-                            </span>
-                        </React.Fragment>
+                            </Spacer>
+                        </Spacer>
                     )}
                     type="success"
                     style="translucent"

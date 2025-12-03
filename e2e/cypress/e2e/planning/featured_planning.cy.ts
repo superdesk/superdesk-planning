@@ -56,16 +56,17 @@ describe('Planning.Featured', () => {
         editor.waitLoadingComplete();
         editor.postButton
             .should('exist')
-            .click()
+            .click();
         editor.waitForAutosave();
         editor.closeButton
             .should('exist')
-            .click()
+            .click();
         editor.waitTillClosed();
     }
 
     function addPlanningToFeaturedStories(slugline: string) {
-        list.items().contains(slugline).click();
+        list.items().contains(slugline)
+            .click();
 
         preview.element
             .contains(slugline)
@@ -74,7 +75,8 @@ describe('Planning.Featured', () => {
     }
 
     function removePlanningFromFeaturedStories(slugline: string) {
-        list.items().contains(slugline).click();
+        list.items().contains(slugline)
+            .click();
 
         preview.element
             .contains(slugline)
@@ -88,7 +90,7 @@ describe('Planning.Featured', () => {
         // 1. Open the Modal with a new FeaturedStory
         // Because this is a new FeaturedStory list, we should have unsaved changes
         // So make sure all 3 footer buttons exist
-        modal.expectFooterButtons(['Cancel', 'Save', 'Post']);
+        modal.expectFooterButtons(['Close', 'Save', 'Post']);
         modal.expectListEntries({
             available: [],
             selected: ['Today_Featured_1'],
@@ -96,7 +98,7 @@ describe('Planning.Featured', () => {
         });
 
         // 2. Attempt to close the Modal, then cancel
-        modal.footerButton('Cancel')
+        modal.footerButton('Close')
             .should('exist')
             .click();
         modal.shouldContainTitle('Save Changes?');
@@ -107,7 +109,7 @@ describe('Planning.Featured', () => {
         modal.shouldContainTitle('Featured Stories');
 
         // 3. Attempt to close the Modal again, ignoring unsaved changes
-        modal.footerButton('Cancel')
+        modal.footerButton('Close')
             .should('exist')
             .click();
         modal.shouldContainTitle('Save Changes?');
@@ -119,7 +121,7 @@ describe('Planning.Featured', () => {
 
         // 4. Attempt to open -> close the Modal again, this time saving the changes
         openFeaturedStoriesModal();
-        modal.footerButton('Cancel')
+        modal.footerButton('Close')
             .should('exist')
             .click();
         modal.shouldContainTitle('Save Changes?');
@@ -159,14 +161,14 @@ describe('Planning.Featured', () => {
 
         // 9. Move the new item to the Selected list, and update the FeaturedStory
         modal.addItemToSelected(0);
-        modal.expectFooterButtons(['Cancel', 'Update', 'Save']);
+        modal.expectFooterButtons(['Close', 'Update', 'Save']);
         modal.expectListEntries({
             available: [],
             selected: ['Today_Featured_2', 'Today_Featured_1'],
             removed: null,
         });
         // Make sure this item is highlighted after moving it
-        modal.expectListItemHighlighted('selected', 0)
+        modal.expectListItemHighlighted('selected', 0);
         // Update the FeaturedStory, then close the modal
         modal.footerButton('Update')
             .should('exist')
@@ -180,7 +182,7 @@ describe('Planning.Featured', () => {
         // 10. Remove an item from FeaturedStories, and make sure it's auto-removed
         removePlanningFromFeaturedStories('Today_Featured_1');
         openFeaturedStoriesModal();
-        modal.expectFooterButtons(['Cancel', 'Update', 'Save']);
+        modal.expectFooterButtons(['Close', 'Update', 'Save']);
         modal.expectListEntries({
             available: [],
             selected: ['Today_Featured_2'],
@@ -217,7 +219,7 @@ describe('Planning.Featured', () => {
 
         // Add the item, making sure dirty changes are registered
         modal.addItemToSelected(0);
-        modal.expectFooterButtons(['Cancel', 'Update', 'Save']);
+        modal.expectFooterButtons(['Close', 'Update', 'Save']);
         modal.expectListEntries({
             available: [],
             selected: ['Today_Featured_3', 'Today_Featured_2'],
