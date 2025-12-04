@@ -113,7 +113,7 @@ Feature: Assignments Delete
                 "assignments": ["#assignmentId#"],
                 "planning": "#planning._id#",
                 "coverage": "#coverageId#",
-                "planning_etag": "__any_value__"
+                "planning_etag": null
             }
         }]
         """
