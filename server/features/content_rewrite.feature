@@ -903,7 +903,6 @@ Feature: Rewrite content
         }
         """
 
-    @wip
     @auth
     @vocabularies
     @link_updates
