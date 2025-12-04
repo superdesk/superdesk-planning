@@ -112,6 +112,10 @@ class FileProvidersTestCase(TestCase):
     def test_ignores_ftp_transmitter(self):
         self.assertDictEqual(get_event_planning_files_for_transmission(FTPPublishService.NAME, self.event_item), {})
 
+    def test_handle_unprocessed_files(self):
+        planning_item = {"type": "planning", "files": ["fileid"]}
+        self.assertEqual({}, get_event_planning_files_for_transmission(HTTPPushService.NAME, planning_item))
+
     @mock.patch(
         "superdesk.publish.transmitters.http_push.get_current_app", return_value=MockApp(TestEventMedia(b"bin"))
     )
