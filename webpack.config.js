@@ -59,14 +59,12 @@ module.exports = {
             {
                 test: /\.css$/,
                 use: [
-                    'style-loader',
                     'css-loader',
                 ],
             },
             {
                 test: /\.scss$/,
                 use: [
-                    'style-loader',
                     'css-loader',
                     'sass-loader',
                 ],
@@ -88,7 +86,7 @@ module.exports = {
     plugins: [
         new webpack.DefinePlugin({
             gettext: 'function gettext(msg) { return msg; }',
-            __SUPERDESK_CONFIG__: JSON.stringify({view: {}}),
+            __SUPERDESK_CONFIG__: JSON.stringify({ view: {} }),
         }),
     ],
 };

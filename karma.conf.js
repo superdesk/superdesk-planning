@@ -1,8 +1,8 @@
 // Karma configuration
 // Generated on Mon Sep 26 2016 12:33:25 GMT+0200 (CEST)
-var webpackConfig = require('./webpack.config.js')
+const webpackConfig = require('./webpack.config.js');
 
-module.exports = function(config) {
+module.exports = (config) => {
     // in karma, entry is read from files prop
     webpackConfig.entry = {};
     webpackConfig.devtool = 'eval';
