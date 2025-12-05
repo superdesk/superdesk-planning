@@ -1,13 +1,12 @@
 import {test, expect} from '@playwright/test';
 
-import {setup, login, waitForPageLoad, Modal, SubNavBar, UiFrameworkModal} from '../utils/common';
+import {setup, login, waitForPageLoad, SubNavBar, UiFrameworkModal} from '../utils/common';
 import {EventEditor} from '../utils/planning';
 
 test.describe('Planning.Events: event templates', () => {
     let editor: EventEditor;
     let subnav: SubNavBar;
-    let modal: Modal;
-    let uiFrameworkModal: UiFrameworkModal;
+    let modal: UiFrameworkModal;
 
     const event = {
         'dates.start.date': '12/12/2045',
@@ -35,8 +34,7 @@ test.describe('Planning.Events: event templates', () => {
     test.beforeEach(async ({page}) => {
         editor = new EventEditor(page);
         subnav = new SubNavBar(page);
-        modal = new Modal(page);
-        uiFrameworkModal = new UiFrameworkModal(page);
+        modal = new UiFrameworkModal(page);
 
         await setup(page, 'planning_prepopulate_data', '/#/planning');
         await login(page);
@@ -59,12 +57,12 @@ test.describe('Planning.Events: event templates', () => {
         await editor.actionMenu
             .getAction('Save event as a template')
             .click();
-        await uiFrameworkModal.waitTillOpen();
-        await uiFrameworkModal.element
+        await modal.waitTillOpen();
+        await modal.element
             .getByRole('textbox')
             .fill('Example');
-        await uiFrameworkModal.getFooterButton('Submit').click();
-        await uiFrameworkModal.waitTillClosed();
+        await modal.getFooterButton('Submit').click();
+        await modal.waitTillClosed();
 
         // Wait for the Editor to re-render
         // otherwise the close button may re-render during attempts to click it
@@ -128,6 +126,11 @@ test.describe('Planning.Events: event templates', () => {
         await page.keyboard.press('Enter');
 
         // Open our filter and make sure the template_name is correct
+        await modal.element
+            .getByTestId('list-page--items')
+            .locator('.sd-list-item')
+            .hover();
+
         await modal.element
             .getByTestId('list-page--items')
             .locator('.sd-list-item')

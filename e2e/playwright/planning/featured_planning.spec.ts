@@ -89,7 +89,7 @@ test.describe('Planning.Featured', () => {
         // 1. Open the Modal with a new FeaturedStory
         // Because this is a new FeaturedStory list, we should have unsaved changes
         // So make sure all 3 footer buttons exist
-        await modal.expectFooterButtons(['Cancel', 'Save', 'Post']);
+        await modal.expectFooterButtons(['Close', 'Save', 'Post']);
         await modal.expectListEntries({
             available: [],
             selected: ['Today_Featured_1'],
@@ -97,20 +97,20 @@ test.describe('Planning.Featured', () => {
         });
 
         // 2. Attempt to close the Modal, then cancel
-        await modal.footerButton('Cancel').click();
+        await modal.footerButton('Close').click();
         await modal.shouldContainTitle('Save Changes?');
         await modal.getFooterButton('Cancel').click();
         await modal.shouldContainTitle('Featured Stories');
 
         // 3. Attempt to close the Modal again, ignoring unsaved changes
-        await modal.footerButton('Cancel').click();
+        await modal.footerButton('Close').click();
         await modal.shouldContainTitle('Save Changes?');
         await modal.getFooterButton('Ignore').click();
         await modal.waitTillClosed();
 
         // 4. Attempt to open -> close the Modal again, this time saving the changes
         await openFeaturedStoriesModal();
-        await modal.footerButton('Cancel').click();
+        await modal.footerButton('Close').click();
         await modal.shouldContainTitle('Save Changes?');
         await modal.footerButton('Save').click();
         await modal.waitTillClosed();
@@ -142,7 +142,7 @@ test.describe('Planning.Featured', () => {
 
         // 9. Move the new item to the Selected list, and update the FeaturedStory
         await modal.addItemToSelected(0);
-        await modal.expectFooterButtons(['Cancel', 'Update', 'Save']);
+        await modal.expectFooterButtons(['Close', 'Update', 'Save']);
         await modal.expectListEntries({
             available: [],
             selected: ['Today_Featured_2', 'Today_Featured_1'],
@@ -159,7 +159,7 @@ test.describe('Planning.Featured', () => {
         // 10. Remove an item from FeaturedStories, and make sure it's auto-removed
         await removePlanningFromFeaturedStories('Today_Featured_1');
         await openFeaturedStoriesModal();
-        await modal.expectFooterButtons(['Cancel', 'Update', 'Save']);
+        await modal.expectFooterButtons(['Close', 'Update', 'Save']);
         await modal.expectListEntries({
             available: [],
             selected: ['Today_Featured_2'],
@@ -192,7 +192,7 @@ test.describe('Planning.Featured', () => {
 
         // Add the item, making sure dirty changes are registered
         await modal.addItemToSelected(0);
-        await modal.expectFooterButtons(['Cancel', 'Update', 'Save']);
+        await modal.expectFooterButtons(['Close', 'Update', 'Save']);
         await modal.expectListEntries({
             available: [],
             selected: ['Today_Featured_3', 'Today_Featured_2'],

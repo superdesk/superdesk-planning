@@ -63,7 +63,7 @@ export class FeaturedModal extends Modal {
             this.getList(listName)
                 .locator('li')
                 .nth(index)
-        ).toHaveClass(/sd-list-item--activated/);
+        ).toHaveClass(/sd-list-item--selected/);
     }
 
     getList(name: keyof IExpectListEntries): Locator {

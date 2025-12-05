@@ -127,7 +127,11 @@ export class Editor {
 
     async waitLoadingComplete(): Promise<void> {
         await this.element.locator('.sd-loader').waitFor({state: 'detached'});
-        await expect(this.page.getByTestId('editor-header').getByRole('button').first()).toBeEnabled();
+        // Wait for any text input to be visible
+        await this.element
+            .getByRole('textbox')
+            .first()
+            .waitFor({state: 'visible'});
     }
 
     async openAllToggleBoxes() {

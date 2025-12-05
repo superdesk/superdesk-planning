@@ -1,5 +1,3 @@
-import {Dictionary} from 'superdesk-api';
-
 export const PRIVILEGES = {
     ARCHIVE: 'archive',
     AGENDA_MANAGEMENT: 'planning_agenda_management',
@@ -23,11 +21,4 @@ export const PRIVILEGES = {
     GLOBAL_FILTERS: 'planning_global_filters',
     MANAGE_CONTENT_PROFILES: 'planning_manage_content_profiles',
     MANAGE_EXPORT_TEMPLATES: 'planning_manage_export_templates',
-} as const;
-
-export const hasPrivilege = (
-    privileges: Dictionary<string, number>,
-    privilege: typeof PRIVILEGES[keyof typeof PRIVILEGES],
-): boolean => {
-    return privileges[privilege] == 1;
 };
