@@ -86,7 +86,7 @@ export class EditCoverageAssignmentModal extends React.Component<IProps, IState>
                     )}
                 </Modal.Header>
                 <Modal.Body>
-                    <div className="update-assignment">
+                    <div data-test-id="update-assignment-form" className="update-assignment">
                         <AssignmentEditor
                             value={diff}
                             onChange={this.onChange}

@@ -3,7 +3,7 @@ import {Input} from './input';
 
 export class NewCheckboxInput extends Input {
     get button(): Locator {
-        return this.element.locator('.sd-check-new__input');
+        return this.element.getByRole('checkbox');
     }
 
     async type(_value: any): Promise<void> {

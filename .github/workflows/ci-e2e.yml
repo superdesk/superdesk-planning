@@ -10,7 +10,7 @@ jobs:
       matrix:
         python-version: ['3.10']
         node-version: ['14', '22']
-        e2e: ['playwright', 'cypress-a', 'cypress-b']
+        e2e: ['a', 'b']
     env:
       INSTALL_NODE_MODULES: false
       RUN_SERVICES: true
@@ -47,31 +47,16 @@ jobs:
 
       # playwright start
       - name: Install Playwright Browsers
-        if: matrix.e2e == 'playwright'
-        run: npx playwright install --with-deps
-      - name: Run Playwright tests
-        if: matrix.e2e == 'playwright'
-        run: npx playwright test
+        run: npx playwright install --with-deps chromium
+      - name: E2E Suite A
+        if: matrix.e2e == 'a'
+        run: npm run playwright -- --grep events
+      - name: E2E Suite B
+        if: matrix.e2e == 'b'
+        run: npm run playwright -- --grep-invert events
       - uses: actions/upload-artifact@v4
-        if: ${{ matrix.e2e == 'playwright' && failure() }}
+        if: ${{ failure() }}
         with:
           name: playwright-report-${{ matrix.node-version }}-${{ matrix.e2e }}
           path: e2e/test-results
       # playwright end
-
-      - name: E2E Suite A
-        if: matrix.e2e == 'cypress-a'
-        run: npm run cypress-ci -- --spec "cypress/e2e/events/*.cy.ts"
-        env:
-          CYPRESS_SCREENSHOTS_FOLDER: /tmp/cypress
-      - name: E2E Suite B
-        if: matrix.e2e == 'cypress-b'
-        run: npm run cypress-ci -- --spec "cypress/e2e/!(events)/*.cy.ts|cypress/e2e/workqueue.cy.ts"
-        env:
-          CYPRESS_SCREENSHOTS_FOLDER: /tmp/cypress
-      - name: Upload screenshots
-        if: ${{ matrix.e2e != 'playwright' && failure() }}
-        uses: actions/upload-artifact@v4
-        with:
-          name: screenshots-e2e-${{ matrix.e2e }}-node-${{ matrix.node-version }}
-          path: /tmp/cypress/**/*.png

@@ -25,7 +25,7 @@ export class AssignmentEditor extends Modal {
      * @returns {Cypress.Chainable<JQuery<HTMLElement>>}
      */
     get form(): Locator {
-        return this.element.locator('.update-assignment');
+        return this.element.getByTestId('form-update-assignment');
     }
 
     /**

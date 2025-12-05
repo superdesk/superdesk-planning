@@ -104,14 +104,14 @@ test.describe('Planning.Events: edit metadata', () => {
 
         // Test cancelling the Post modal
         await editor.postButton.click();
-        await modal.waitTillOpen(30000);
+        await modal.waitTillOpen();
         await modal.getFooterButton('Cancel')
             .click();
         await modal.waitTillClosed();
 
         // Test posting the series
         await editor.postButton.click();
-        await modal.waitTillOpen(30000);
+        await modal.waitTillOpen();
         await modal.getFooterButton('Post')
             .click();
         await modal.waitTillClosed();

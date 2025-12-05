@@ -13,11 +13,11 @@ export class Popup {
         return this.page.locator(this.selector);
     }
 
-    async waitTillOpen(timeout: number = 4000): Promise<void> {
-        await this.element.waitFor({state: 'attached', timeout: timeout});
+    async waitTillOpen(): Promise<void> {
+        await this.element.waitFor({state: 'attached'});
     }
 
-    async waitTillClosed(timeout: number = 4000): Promise<void> {
-        await this.element.waitFor({state: 'detached', timeout: timeout});
+    async waitTillClosed(): Promise<void> {
+        await this.element.waitFor({state: 'detached'});
     }
 }

@@ -23,31 +23,31 @@ export class Editor {
     }
 
     get createButton(): Locator {
-        return this.element.locator('#create');
+        return this.element.getByRole('button', {name: 'Create', exact: true});
     }
 
     get saveButton(): Locator {
-        return this.element.locator('#save');
+        return this.element.getByRole('button', {name: 'Save', exact: true});
     }
 
     get postButton(): Locator {
-        return this.element.locator('#post');
+        return this.element.getByRole('button', {name: /Save & Post|Post/, exact: true});
     }
 
     get unpostButton(): Locator {
-        return this.element.locator('#unpost');
+        return this.element.getByRole('button', {name: /Save & Unpost|Unpost/, exact: true});
     }
 
     get closeButton(): Locator {
-        return this.element.locator('#close');
+        return this.element.getByRole('button', {name: /Cancel|Close/, exact: true});
     }
 
     get minimiseButton(): Locator {
-        return this.element.locator('button[aria-label="Minimise"]');
+        return this.element.getByRole('button', {name: 'Minimise', exact: true});
     }
 
     get editButton(): Locator {
-        return this.element.getByRole('button', {name: 'Edit'});
+        return this.element.getByRole('button', {name: 'Edit', exact: true});
     }
 
     get actionMenu(): ActionMenu {
@@ -126,8 +126,13 @@ export class Editor {
     }
 
     async waitLoadingComplete(): Promise<void> {
+        await this.page.waitForTimeout(500);
         await this.element.locator('.sd-loader').waitFor({state: 'detached'});
-        await this.element.locator('.side-panel__content-tab-nav').waitFor({state: 'visible'});
+        // Wait for any text input to be visible
+        await this.element
+            .getByRole('textbox')
+            .first()
+            .waitFor({state: 'visible'});
     }
 
     async openAllToggleBoxes() {

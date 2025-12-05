@@ -57,7 +57,7 @@ export const InternalNoteLabel: React.FC<IInternalNoteLabelProps> = ({
 
     if (!showTooltip) {
         return (
-            <div className={className}>
+            <div data-test-id="internal-note-label" className={className}>
                 {icon}
                 {showText && internalNoteRaw}
             </div>
@@ -72,6 +72,7 @@ export const InternalNoteLabel: React.FC<IInternalNoteLabelProps> = ({
             placement="auto"
             content={() => (
                 <div
+                    data-test-id="internal-note-label"
                     style={{
                         boxShadow: 'var(--sd-shadow--z3)',
                         padding: 'var(--space--1-5)',

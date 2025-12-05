@@ -2,12 +2,9 @@ import React from 'react';
 import {superdeskApi} from '../../superdeskApi';
 import {Button, Modal} from 'superdesk-ui-framework/react';
 import {IFormField, IFormGroup} from 'superdesk-api';
-import {IAgenda, IAgendaEntity, IPlanningAppState} from '../../interfaces';
+import {IAgenda, IAgendaEntity} from '../../interfaces';
 import {AgendaListItem} from './AgendaListItem';
 import {PRIVILEGES} from '../../constants';
-import {connect, ConnectedProps} from 'react-redux';
-import * as selectors from '../../selectors';
-import {hasPrivilege} from '../../constants/privileges';
 
 export const getNameField = (): IFormField<IAgenda> => {
     const {GenericFormFieldType} = superdeskApi.forms;
@@ -38,13 +35,11 @@ const getFormConfig = (): IFormGroup<IAgenda> => {
     };
 };
 
-interface IManageAgendasModalOwnProps {
+interface IProps {
     handleHide(): void;
 }
 
-type IProps = IManageAgendasModalOwnProps & ConnectedProps<typeof connector>;
-
-class ManageAgendasModalComponent extends React.PureComponent<IProps> {
+export class ManageAgendasModal extends React.PureComponent<IProps> {
     private config: IFormGroup<IAgenda>;
 
     constructor(props: IProps) {
@@ -86,18 +81,10 @@ class ManageAgendasModalComponent extends React.PureComponent<IProps> {
                     defaultSortOption={{field: 'is_enabled', direction: 'descending'}}
                     hideItemsCount
                     disallowCreatingNewItem={
-                        hasPrivilege(this.props.privileges, PRIVILEGES.AGENDA_MANAGEMENT) ? true : undefined
+                        superdeskApi.privileges.hasPrivilege(PRIVILEGES.AGENDA_MANAGEMENT) ? undefined : true
                     }
                 />
             </Modal>
         );
     }
 }
-
-const mapStateToProps = (state: IPlanningAppState) => ({
-    privileges: selectors.general.privileges(state),
-});
-
-const connector = connect(mapStateToProps);
-
-export const ManageAgendasModal = connector(ManageAgendasModalComponent);
