@@ -126,6 +126,7 @@ export class Editor {
     }
 
     async waitLoadingComplete(): Promise<void> {
+        await this.page.waitForTimeout(500);
         await this.element.locator('.sd-loader').waitFor({state: 'detached'});
         // Wait for any text input to be visible
         await this.element
