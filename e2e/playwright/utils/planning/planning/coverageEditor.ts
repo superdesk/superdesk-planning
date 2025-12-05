@@ -59,16 +59,15 @@ export class CoverageEditor extends Editor {
      */
     get element(): Locator {
         return this.parentEditor.element
-            .locator(`[data-test-id="field-coverages[${this.index}]"]`);
+            .getByTestId(`field-coverages[${this.index}]`);
     }
 
     /**
      * Waits until the coverage array components are mounted and visible
-     * @param {number} timeout - The number of ms to wait for coverages to be visible
      */
     async waitTillVisible() {
-        this.parentEditor.element
-            .locator('[data-test-id="field-coverages"]')
+        await this.parentEditor.element
+            .getByTestId('field-coverages')
             .waitFor({state: 'visible'});
     }
 
@@ -77,7 +76,7 @@ export class CoverageEditor extends Editor {
      * @returns {Cypress.Chainable<JQuery<HTMLElement>>}
      */
     get reassignButton(): Locator {
-        return this.element.locator('Reassign');
+        return this.element.getByRole('button', {name: 'Reassign', exact: true});
     }
 
     /**
@@ -85,7 +84,7 @@ export class CoverageEditor extends Editor {
      * @returns {Cypress.Chainable<JQuery<HTMLElement>>}
      */
     get removeButton(): Locator {
-        return this.element.locator('Remove');
+        return this.element.getByRole('button', {name: 'Remove', exact: true});
     }
 
     /**
@@ -93,15 +92,7 @@ export class CoverageEditor extends Editor {
      * @returns {Cypress.Chainable<JQuery<HTMLElement>>}
      */
     get editAssignmentButton(): Locator {
-        return this.element.locator('#editAssignment');
-    }
-
-    /**
-     * Returns the dom node for the assign button for the assignment
-     * @returns {Cypress.Chainable<JQuery<HTMLElement>>}
-     */
-    get submitAssignmentButton(): Locator {
-        return this.element.locator('#submitAssignment');
+        return this.element.getByRole('button', {name: 'Assign', exact: true});
     }
 
     /**
@@ -128,7 +119,7 @@ export class CoverageEditor extends Editor {
 
     async toggleAddToWorkflow(): Promise<void> {
         await this.element
-            .locator('[data-test-id="field-add_coverage_to_workflow"]')
+            .getByTestId('field-add_coverage_to_workflow')
             .getByRole('checkbox')
             .click();
     }

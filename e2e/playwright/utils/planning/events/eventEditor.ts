@@ -98,10 +98,13 @@ export class EventEditor extends Editor {
     }
 
     async toggleShowAllLanguages(): Promise<void> {
-        await this.element.locator('#editor--language-controls [role="checkbox"]').click();
+        await this.element.locator('#editor--language-controls')
+            .getByRole('checkbox')
+            .click();
     }
 
     getMainLanguageButton(languageQcode: string): Locator {
-        return this.element.locator(`#editor--language-controls [data-test-id="main-language--${languageQcode}"]`);
+        return this.element.locator('#editor--language-controls')
+            .getByTestId(`main-language--${languageQcode}`);
     }
 }

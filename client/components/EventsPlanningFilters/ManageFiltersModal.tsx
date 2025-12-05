@@ -5,7 +5,6 @@ import {superdeskApi} from '../../superdeskApi';
 import {ISearchFilter, IEventsPlanningContentPanelProps} from '../../interfaces';
 
 import {MODALS, PRIVILEGES, KEYCODES} from '../../constants';
-import {SubNav, StretchBar, Button} from '../UI/SubNav';
 import {ColumnBox} from '../UI';
 import {SidePanel} from '../UI/SidePanel';
 import * as selectors from '../../selectors';
@@ -14,7 +13,7 @@ import {FiltersList} from './FiltersList';
 import {EditFilter} from './EditFilter';
 import {PreviewFilter} from './PreviewFilter';
 import {EditFilterSchedule} from './EditFilterSchedule';
-import {Modal} from 'superdesk-ui-framework/react';
+import {Button, Modal, SubNav, ButtonGroup} from 'superdesk-ui-framework/react';
 
 interface IProps {
     handleHide(): void;
@@ -27,6 +26,8 @@ interface IProps {
 interface IState {
     selectedFilter?: Partial<ISearchFilter>;
     contentPanelState: null | 'preview' | 'edit' | 'schedule';
+    isPristine: boolean;
+    pendingFilter?: Partial<ISearchFilter>;
 }
 
 const mapStateToProps = (state) => ({
@@ -71,13 +72,9 @@ export class ManageFiltersComponent extends React.Component<IProps, IState> {
         this.state = {
             selectedFilter: null,
             contentPanelState: null,
+            isPristine: true,
+            pendingFilter: null,
         };
-
-        this.editFilter = this.editFilter.bind(this);
-        this.previewFilter = this.previewFilter.bind(this);
-        this.editFilterSchedule = this.editFilterSchedule.bind(this);
-        this.closeEditor = this.closeEditor.bind(this);
-        this.handleKeydown = this.handleKeydown.bind(this);
     }
 
     componentDidMount() {
@@ -88,42 +85,80 @@ export class ManageFiltersComponent extends React.Component<IProps, IState> {
         document.removeEventListener('keydown', this.handleKeydown);
     }
 
-    handleKeydown(event) {
+    handleKeydown = (event) => {
         if (event.keyCode === KEYCODES.ESCAPE) {
             event.preventDefault();
             this.props.handleHide();
         }
     }
 
-    editFilter(filter: Partial<ISearchFilter> = null) {
+    editFilter = (filter: Partial<ISearchFilter> = null) => {
         this.setState({
             selectedFilter: filter,
             contentPanelState: 'edit',
+            isPristine: true,
+            pendingFilter: null,
         });
     }
 
-    previewFilter(filter: ISearchFilter) {
+    editFilterWithConfirmation = (filter: Partial<ISearchFilter> = null) => {
+        if (this.state.contentPanelState === 'edit' && !this.state.isPristine) {
+            this.setState({pendingFilter: filter});
+        } else {
+            this.editFilter(filter);
+        }
+    }
+
+    onDontSave = () => {
+        const {pendingFilter} = this.state;
+
+        this.editFilter(pendingFilter);
+    }
+
+    onSaveAndSwitch = () => {
+        const {createOrUpdate} = this.props;
+        const {pendingFilter} = this.state;
+        const filter = this.state.selectedFilter;
+        const updates = {
+            ...filter,
+        };
+
+        createOrUpdate(updates).then(() => {
+            this.editFilter(pendingFilter);
+        });
+    }
+
+    onCancelSwitch = () => {
+        this.setState({pendingFilter: null});
+    }
+
+    previewFilter = (filter: ISearchFilter) => {
         this.setState({
             selectedFilter: filter,
             contentPanelState: 'preview',
         });
     }
 
-    editFilterSchedule(filter: ISearchFilter) {
+    editFilterSchedule = (filter: ISearchFilter) => {
         this.setState({
             selectedFilter: filter,
             contentPanelState: 'schedule',
         });
     }
 
-    closeEditor() {
+    closeEditor = () => {
         this.setState({
             selectedFilter: null,
             contentPanelState: null,
+            isPristine: true,
         });
     }
 
-    getContentPanelComponent(): React.ComponentType<IEventsPlanningContentPanelProps> | null {
+    onPristineChange = (pristine: boolean) => {
+        this.setState({isPristine: pristine});
+    }
+
+    getContentPanelComponent = (): React.ComponentType<IEventsPlanningContentPanelProps> | null => {
         switch (this.state.contentPanelState) {
         case 'edit':
             return EditFilter;
@@ -155,28 +190,33 @@ export class ManageFiltersComponent extends React.Component<IProps, IState> {
                 className="sd-content-wrapper__main-content-area sd-main-content-grid comfort"
                 onHide={handleHide}
                 headerTemplate={gettext('Manage Events & Planning Filters')}
+                footerTemplate={(
+                    <Button
+                        onClick={handleHide}
+                        text={gettext('Close')}
+                        type="tertiary"
+                    />
+                )}
             >
                 <div className="sd-main-content-grid__content">
                     {!!privileges[PRIVILEGES.EVENTS_PLANNING_FILTERS_MANAGEMENT] && (
-                        <SubNav>
-                            <StretchBar />
+                        <SubNav className="px-2 sd-flex justify-end">
                             <Button
-                                right={true}
-                                buttonClassName="btn btn--primary"
+                                text={gettext('Add New Filter')}
                                 onClick={() => this.editFilter()}
-                                testId="manage-filters--add-new-filter"
-                            >
-                                <i className="icon-plus-sign icon-white" />
-                                {gettext('Add New Filter')}
-                            </Button>
+                                data-test-id="manage-filters--add-new-filter"
+                                type="primary"
+                                icon="plus-sign"
+                            />
                         </SubNav>
                     )}
                     <ColumnBox.Box verticalScroll={true}>
                         <ColumnBox.MainColumn padded={true}>
                             <FiltersList
+                                activeFilterId={this.state.selectedFilter?._id}
                                 privileges={privileges}
                                 deleteFilter={deleteFilter}
-                                editFilter={this.state.contentPanelState === 'edit' ? null : this.editFilter}
+                                editFilter={this.editFilterWithConfirmation}
                                 editFilterSchedule={this.editFilterSchedule}
                                 deleteFilterSchedule={this.props.deleteFilterSchedule}
                                 previewFilter={this.previewFilter}
@@ -191,6 +231,7 @@ export class ManageFiltersComponent extends React.Component<IProps, IState> {
                                 <div />
                             ) : (
                                 <ContentPanel
+                                    key={this.state.selectedFilter?._id ?? 'new'}
                                     filter={this.state.selectedFilter}
                                     onClose={this.closeEditor}
                                     onSave={createOrUpdate}
@@ -198,11 +239,42 @@ export class ManageFiltersComponent extends React.Component<IProps, IState> {
                                     editFilterSchedule={this.editFilterSchedule}
                                     previewFilter={this.previewFilter}
                                     deleteFilterSchedule={this.props.deleteFilterSchedule}
+                                    onPristineChange={this.onPristineChange}
                                 />
                             )}
                         </SidePanel>
                     </div>
                 </div>
+                {this.state.pendingFilter != null && (
+                    <Modal
+                        visible
+                        size="small"
+                        position="top"
+                        onHide={this.onCancelSwitch}
+                        headerTemplate={gettext('Save changes?')}
+                        footerTemplate={(
+                            <ButtonGroup align="end">
+                                <Button
+                                    text={gettext('Go Back')}
+                                    onClick={this.onCancelSwitch}
+                                    type="tertiary"
+                                />
+                                <Button
+                                    text={gettext('Don\'t Save')}
+                                    onClick={this.onDontSave}
+                                    type="default"
+                                />
+                                <Button
+                                    text={gettext('Save')}
+                                    onClick={this.onSaveAndSwitch}
+                                    type="primary"
+                                />
+                            </ButtonGroup>
+                        )}
+                    >
+                        {gettext('Your changes will be lost if you switch now. What would you like to do?')}
+                    </Modal>
+                )}
             </Modal>
         );
     }

@@ -1,13 +1,20 @@
 import React from 'react';
-import PropTypes from 'prop-types';
 import classNames from 'classnames';
 import {get} from 'lodash';
 
 import {GENERIC_ITEM_ACTIONS} from '../../constants';
 import {onEventCapture} from '../../utils';
 import {gettext} from '../../utils/gettext';
+import {IItemAction} from '../../interfaces';
 
 import {Popup, Content} from '../UI/Popup';
+
+interface IProps {
+    closeMenu(event?: React.MouseEvent): void;
+    actions: Array<IItemAction>;
+    target: string;
+    wide?: boolean;
+}
 
 /**
  * ActionMenuPopup component
@@ -15,10 +22,16 @@ import {Popup, Content} from '../UI/Popup';
  * action labels must use gettext here because only when rendering
  * there will be translations available, not when the constant is defined.
  */
-export class ActionsMenuPopup extends React.PureComponent {
-    triggerAction(action, event) {
+export class ActionsMenuPopup extends React.PureComponent<IProps> {
+    static defaultProps: Partial<IProps> = {
+        wide: false,
+    };
+
+    triggerAction(action: IItemAction, event: React.MouseEvent) {
         this.props.closeMenu(event);
-        action.callback();
+        if (typeof action.callback === 'function') {
+            action.callback();
+        }
     }
 
     render() {
@@ -58,13 +71,13 @@ export class ActionsMenuPopup extends React.PureComponent {
         );
     }
 
-    renderItem(action) {
+    renderItem(action: IItemAction) {
         const key = action.key ? action.key : action.label;
 
         if (get(action, 'text')) {
             // Header of a menu or submenu
             return (
-                <div className="dropdown__menu-label">{gettext(action.text)}</div>
+                <div key={key} className="dropdown__menu-label">{gettext(action.text)}</div>
             );
         }
 
@@ -72,13 +85,13 @@ export class ActionsMenuPopup extends React.PureComponent {
             let items = action.callback.map(this.renderItem.bind(this));
 
             if (!items.length) {
-                items = (
-                    <li>
+                items = [(
+                    <li key="no-actions">
                         <button onClick={this.props.closeMenu.bind(this)}>
                             {gettext('There are no actions available.')}
                         </button>
                     </li>
-                );
+                )];
             }
 
             const submenuDirection = get(action, 'direction', 'left');
@@ -108,7 +121,7 @@ export class ActionsMenuPopup extends React.PureComponent {
         return (
             <li key={key}>
                 <button
-                    id={action.id}
+                    id={action.key}
                     className={classNames({disabled: inactiveOption})}
                     onClick={!inactiveOption ? trigger : undefined}
                 >
@@ -119,13 +132,3 @@ export class ActionsMenuPopup extends React.PureComponent {
         );
     }
 }
-
-
-ActionsMenuPopup.propTypes = {
-    closeMenu: PropTypes.func.isRequired,
-    actions: PropTypes.array.isRequired,
-    target: PropTypes.string.isRequired,
-    wide: PropTypes.bool,
-};
-
-ActionsMenuPopup.defaultProps = {wide: false};

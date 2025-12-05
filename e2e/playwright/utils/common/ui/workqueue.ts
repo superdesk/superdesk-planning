@@ -18,7 +18,7 @@ export class Workqueue {
     }
 
     get items(): Locator {
-        return this.panel.locator('[data-test-id="workqueue-item"]');
+        return this.panel.getByTestId('workqueue-item');
     }
 
     async expectItemCount(count: number): Promise<void> {
@@ -26,7 +26,7 @@ export class Workqueue {
     }
 
     getItem(index: number): Locator {
-        return this.items.nth(index).locator('[data-test-id="workqueue-item--title"]');
+        return this.items.nth(index).getByTestId('workqueue-item--title');
     }
 
     async expectTitle(index: number, title: string): Promise<void> {
@@ -66,7 +66,7 @@ export class Workqueue {
     async closeItem(index: number): Promise<void> {
         await this.items
             .nth(index)
-            .locator('[data-test-id="close-icon"]')
+            .getByRole('button', {name: 'Close', exact: true})
             .click();
     }
 }

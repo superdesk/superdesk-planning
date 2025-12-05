@@ -72,7 +72,6 @@ class ContentProfileModalComponent extends React.Component<IProps, IState> {
 
         this.handleKeyDown = this.handleKeyDown.bind(this);
         this.closeModal = this.closeModal.bind(this);
-        this.reset = this.reset.bind(this);
         this.save = this.save.bind(this);
         this.changeTab = this.changeTab.bind(this);
         this.updateGroup = this.updateGroup.bind(this);
@@ -154,17 +153,6 @@ class ContentProfileModalComponent extends React.Component<IProps, IState> {
         });
 
         return profile;
-    }
-
-    reset() {
-        this.closeCurrentEditor(true).then((response) => {
-            if (response !== 'cancel') {
-                this.setState({
-                    profile: this.reloadOriginal(this.props.mainProfile.profile),
-                    dirty: false,
-                });
-            }
-        });
     }
 
     save() {
@@ -413,19 +401,10 @@ class ContentProfileModalComponent extends React.Component<IProps, IState> {
                 <Modal.Footer flex={true}>
                     <ButtonGroup align="end">
                         <Button
-                            text={this.state.dirty ?
-                                gettext('Cancel') :
-                                gettext('Close')
-                            }
-                            style="hollow"
+                            text={gettext('Don\'t save')}
+                            type="tertiary"
                             onClick={this.closeModal}
                             disabled={this.state.saving}
-                        />
-                        <Button
-                            text={gettext('Reset')}
-                            style="hollow"
-                            onClick={this.reset}
-                            disabled={this.state.saving || !this.state.dirty}
                         />
                         <Button
                             text={gettext('Save')}

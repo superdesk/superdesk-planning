@@ -9,7 +9,7 @@ export class CoverageUserSelectInput extends Input {
 
         await this.element.click();
         await popup.waitTillOpen();
-        await popup.element.locator('[data-test-id="filter-input"]').fill(value);
+        await popup.element.getByTestId('filter-input').fill(value);
         await popup.element.locator('li').click();
         await popup.waitTillClosed();
     }

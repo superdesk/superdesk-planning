@@ -148,7 +148,7 @@ export class FeaturedPlanningModalComponent extends React.Component<IProps, any>
                     noScroll={true}
                 >
                     <FeaturedPlanningModalSubnav itemUpdatedAfterPosting={itemUpdatedAfterPosting} />
-                    <div className="grid">
+                    <div className="sd-d-flex sd-flex-wrap">
                         {(this.props.isLockedForCurrentUser) ? null : (
                             <div className="sd-loader" />
                         )}
@@ -206,7 +206,8 @@ export class FeaturedPlanningModalComponent extends React.Component<IProps, any>
                 </Modal.Body>
                 <Modal.Footer>
                     <Button
-                        text={this.props.dirty ? gettext('Cancel') : gettext('Close')}
+                        text={gettext('Close')}
+                        type="tertiary"
                         onClick={this.props.closeFeaturedStoriesModal}
                     />
                     {!canPost ? null : (

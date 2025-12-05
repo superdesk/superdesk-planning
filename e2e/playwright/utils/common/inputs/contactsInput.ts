@@ -19,7 +19,9 @@ export class ContactsInput extends Input {
     }
 
     get list(): Locator {
-        return this.container.locator('[data-test-id="contacts-preview-list"] [data-test-id="contact-metadata"]');
+        return this.container
+            .getByTestId('contacts-preview-list')
+            .getByTestId('contact-metadata');
     }
 
     async results(): Promise<Locator> {
@@ -34,7 +36,7 @@ export class ContactsInput extends Input {
     async remove(index: number): Promise<void> {
         await this.list
             .nth(index)
-            .locator('.icon-trash')
+            .getByRole('button', {name: 'Remove Contact', exact: true})
             .click();
     }
 
@@ -44,10 +46,11 @@ export class ContactsInput extends Input {
     }
 
     async editContact(index: number): Promise<void> {
+        await this.list.nth(index).hover();
         await this.list
             .nth(index)
-            .locator('.icon-pencil')
-            .click({force: true}); // the icon is only shown on hover
+            .getByRole('button', {name: 'Edit Contact', exact: true})
+            .click(); // the icon is only shown on hover
     }
 
     async type(value: string | Array<string>): Promise<void> {

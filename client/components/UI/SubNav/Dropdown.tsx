@@ -154,6 +154,7 @@ export class Dropdown extends React.Component<IProps, IState> {
                 <button
                     id={item.id}
                     onMouseDown={() => item.action()}
+                    aria-label={item.label}
                 >
                     {!item.icon ? null : (
                         <i

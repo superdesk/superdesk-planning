@@ -362,6 +362,8 @@ export interface IAgenda {
     is_enabled: boolean;
 }
 
+export type IAgendaEntity = IAgenda & IBaseRestApiResponse;
+
 // An Event's Location could also come from an Ingest, not just the Locations DB
 export interface IEventLocation {
     qcode?: string; // qcode may not be provided when the Event is ingested
@@ -1769,6 +1771,7 @@ export interface IEventsPlanningContentPanelProps {
     editFilterSchedule(filter: ISearchFilter): void;
     deleteFilterSchedule(filter: ISearchFilter): void;
     previewFilter(filter: ISearchFilter): void;
+    onPristineChange?(pristine: boolean): void;
 }
 
 export interface IPlanningExportTemplate extends IBaseRestApiResponse {

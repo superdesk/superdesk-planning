@@ -15,7 +15,7 @@ export class LocationInput extends Input {
     }
 
     get addNewButton(): Locator {
-        return this.page.locator('[data-test-id="location-search__create-new"]');
+        return this.page.getByTestId('location-search__create-new');
     }
 
     async search(value: string): Promise<void> {
@@ -39,6 +39,7 @@ export class LocationInput extends Input {
     }
 
     async clear(): Promise<void> {
+        await this.listItem.hover();
         await this.listItem.locator('.icon-trash').click();
     }
 }

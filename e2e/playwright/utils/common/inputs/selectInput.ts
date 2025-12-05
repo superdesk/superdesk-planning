@@ -8,10 +8,9 @@ export class SelectInput extends Input {
 
     async expect(value: any): Promise<void> {
         await expect(this.element.locator('option:checked')).toHaveText(value);
-        // await expect(this.element).toHaveValue(value);
     }
 
     async clear(): Promise<void> {
-        await this.element.clear();
+        await this.element.selectOption('');
     }
 }
