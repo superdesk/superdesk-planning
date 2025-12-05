@@ -69,7 +69,6 @@ export class CoverageProfilesModal extends React.Component<IProps, IState> {
         };
 
         this.closeModal = this.closeModal.bind(this);
-        this.reset = this.reset.bind(this);
         this.save = this.save.bind(this);
         this.updateField = this.updateField.bind(this);
         this.updateFields = this.updateFields.bind(this);
@@ -93,13 +92,6 @@ export class CoverageProfilesModal extends React.Component<IProps, IState> {
         } else {
             this.props.closeModal();
         }
-    }
-
-    reset() {
-        this.setState({
-            profile: cloneDeep(this.state.originalProfile),
-            dirty: false,
-        });
     }
 
     save() {
@@ -221,13 +213,8 @@ export class CoverageProfilesModal extends React.Component<IProps, IState> {
                     <Spacer gap="4" alignItems="end" justifyContent="end" h noGrow>
                         <Button
                             onClick={this.closeModal}
-                            text={gettext('Cancel')}
-                        />
-                        <Button
-                            text={gettext('Reset')}
-                            style="hollow"
-                            onClick={this.reset}
-                            disabled={this.state.saving || !this.state.dirty}
+                            text={gettext('Don\'t save')}
+                            type="tertiary"
                         />
                         <Button
                             isLoading={this.state.saving}

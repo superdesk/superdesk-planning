@@ -1,6 +1,6 @@
 import React from 'react';
-import {planningApi, superdeskApi} from '../../superdeskApi';
-import {Modal} from 'superdesk-ui-framework/react';
+import {superdeskApi} from '../../superdeskApi';
+import {Button, Modal} from 'superdesk-ui-framework/react';
 import {gettext} from '../../utils';
 import {IFormField, IFormGroup} from 'superdesk-api';
 import {IPlanningExportTemplate} from 'interfaces';
@@ -94,6 +94,13 @@ export class ManageExportTemplatesModal extends React.PureComponent<IProps> {
                 closeOnEscape
                 contentPadding="none"
                 headerTemplate={gettext('Manage Custom Layouts')}
+                footerTemplate={(
+                    <Button
+                        type="tertiary"
+                        onClick={this.props.closeModal}
+                        text={gettext('Close')}
+                    />
+                )}
                 onHide={this.props.closeModal}
             >
                 <ExportTemplatesView

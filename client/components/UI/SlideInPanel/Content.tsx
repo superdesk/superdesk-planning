@@ -1,13 +1,16 @@
 import React from 'react';
-import PropTypes from 'prop-types';
 import classNames from 'classnames';
 
+interface IProps {
+    children: React.ReactNode;
+    first?: boolean;
+}
 /**
  * @ngdoc react
  * @name Content
  * @description Contents of a slide-in panel
  */
-export const Content = ({children, first}) => (
+export const Content = ({children, first = true}: IProps) => (
     <div className="sd-slide-in-panel__content">
         <div
             className={classNames('sd-slide-in-panel__content-block',
@@ -17,10 +20,3 @@ export const Content = ({children, first}) => (
         </div>
     </div>
 );
-
-Content.propTypes = {
-    children: PropTypes.node,
-    first: PropTypes.bool,
-};
-
-Content.defaultProps = {first: true};

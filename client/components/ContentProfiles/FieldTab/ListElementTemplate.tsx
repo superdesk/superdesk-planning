@@ -48,6 +48,7 @@ export default class ProfileFieldTemplate extends React.PureComponent<IProps> {
                 testId={`content-list--field-${fieldEntry.name}`}
                 shadow={1}
                 activated={this.props.selectedField === fieldEntry.name}
+                className={`mt-1 ${this.props.selectedField === fieldEntry.name ? 'sd-list-item--selected' : ''}`}
                 onClick={(e) => {
                     // don't trigger editor if click went to a three dot menu
                     // or other button inside the list item
@@ -59,7 +60,6 @@ export default class ProfileFieldTemplate extends React.PureComponent<IProps> {
                     }
                     this.props.onClick(fieldEntry);
                 }}
-                className="mt-1"
             >
                 {!menuItems.before.length ? null : (
                     <div className="profile-item__add-btn">

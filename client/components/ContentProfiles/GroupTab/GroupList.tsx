@@ -34,7 +34,7 @@ export class GroupList extends React.PureComponent<IProps> {
 
         return (
             <List.Item
-                className="mt-1"
+                className={`mt-1 ${this.props.selectedGroup?._id === group._id ? 'sd-list-item--selected' : ''}`}
                 shadow={1}
                 flexRow
                 activated={this.props.selectedGroup?._id === group._id}
@@ -129,6 +129,7 @@ export class GroupList extends React.PureComponent<IProps> {
                     itemTemplate={({item}) => (
                         <GroupElementTemplate
                             group={item}
+                            selectedGroup={this.props.selectedGroup}
                             onClick={this.props.onClick}
                             isLastGroup={item._id === this.props.groups[this.props.groups.length - 1]?._id}
                             insertGroup={this.props.insertGroup}

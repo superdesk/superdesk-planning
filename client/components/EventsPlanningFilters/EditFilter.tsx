@@ -40,18 +40,10 @@ export class EditFilter extends React.Component<IEventsPlanningContentPanelProps
             profile: this.getProfile(filter.item_type),
         };
 
-        this.onFilterChange = this.onFilterChange.bind(this);
-        this.onParamChange = this.onParamChange.bind(this);
-        this.onMultiParamChange = this.onMultiParamChange.bind(this);
-        this.onSaveHandler = this.onSaveHandler.bind(this);
-        this.isPristine = this.isPristine.bind(this);
-        this.getPopupContainer = this.getPopupContainer.bind(this);
-        this.onTypeChanged = this.onTypeChanged.bind(this);
-
         this.popupContainer = React.createRef();
     }
 
-    getProfile(itemType: FILTER_TYPE = FILTER_TYPE.COMBINED) {
+    getProfile = (itemType: FILTER_TYPE = FILTER_TYPE.COMBINED) => {
         switch (itemType) {
         case FILTER_TYPE.EVENTS:
             return planningApi.events.getSearchProfile();
@@ -62,23 +54,23 @@ export class EditFilter extends React.Component<IEventsPlanningContentPanelProps
         }
     }
 
-    onTypeChanged(field: string, value: FILTER_TYPE) {
+    onTypeChanged = (field: string, value: FILTER_TYPE) => {
         this.setState({profile: this.getProfile(value)});
         this.onFilterChange(field, value);
     }
 
-    getPopupContainer() {
+    getPopupContainer = () => {
         return this.popupContainer.current;
     }
 
-    isPristine(updates: Partial<ISearchFilter> = null) {
+    isPristine = (updates: Partial<ISearchFilter> = null) => {
         return this.props.filter != null &&
             this.props.filter.name == updates?.name &&
             this.props.filter.item_type == updates?.item_type &&
             isEqual(this.props.filter.params ?? {}, updates?.params);
     }
 
-    onFilterChange(field: string, value: any) {
+    onFilterChange = (field: string, value: any) => {
         const updates = cloneDeep(this.state.filter);
         let newValue = value;
 
@@ -102,10 +94,12 @@ export class EditFilter extends React.Component<IEventsPlanningContentPanelProps
             pristine: pristine,
             invalid: invalid,
             errors: errors,
+        }, () => {
+            this.props.onPristineChange?.(pristine);
         });
     }
 
-    onParamChange(field: string, value: any) {
+    onParamChange = (field: string, value: any) => {
         let newValue = value;
 
         if (typeof value === 'string') {
@@ -122,7 +116,7 @@ export class EditFilter extends React.Component<IEventsPlanningContentPanelProps
         this.onFilterChange(`params.${field}`, newValue);
     }
 
-    onMultiParamChange(updates: ISearchParams) {
+    onMultiParamChange = (updates: ISearchParams) => {
         const filter = cloneDeep(this.state.filter);
 
         Object.keys(updates).forEach((field) => {
@@ -147,10 +141,12 @@ export class EditFilter extends React.Component<IEventsPlanningContentPanelProps
             pristine,
             invalid,
             errors,
+        }, () => {
+            this.props.onPristineChange?.(pristine);
         });
     }
 
-    isInValid(updates) {
+    isInValid = (updates) => {
         const errors: {[key: string]: string} = {};
 
         if ((get(updates, 'name') || '').replace(/^\s+/, '').length === 0) {
@@ -163,7 +159,7 @@ export class EditFilter extends React.Component<IEventsPlanningContentPanelProps
         };
     }
 
-    onSaveHandler() {
+    onSaveHandler = () => {
         const {onClose, onSave, filter} = this.props;
         const updates = pick(this.state.filter, ['name', 'item_type', 'params']);
         const updateFilter: Partial<ISearchFilter> = {

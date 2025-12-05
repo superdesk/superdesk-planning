@@ -22,7 +22,7 @@ export default class GroupElementTemplate extends React.PureComponent<IProps, an
 
         return (
             <List.Item
-                className="mt-1"
+                className={`mt-1 ${this.props.selectedGroup?._id === group._id ? 'sd-list-item--selected' : ''}`}
                 shadow={1}
                 flexRow
                 activated={this.props.selectedGroup?._id === group._id}
