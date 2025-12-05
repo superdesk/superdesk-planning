@@ -37,7 +37,6 @@ export class ContactsInput extends Input {
         await this.list
             .nth(index)
             .getByRole('button', {name: 'Remove Contact', exact: true})
-            // .locator('.icon-trash')
             .click();
     }
 
@@ -51,9 +50,7 @@ export class ContactsInput extends Input {
         await this.list
             .nth(index)
             .getByRole('button', {name: 'Edit Contact', exact: true})
-            // .locator('.icon-pencil')
             .click(); // the icon is only shown on hover
-            // .click({force: true}); // the icon is only shown on hover
     }
 
     async type(value: string | Array<string>): Promise<void> {

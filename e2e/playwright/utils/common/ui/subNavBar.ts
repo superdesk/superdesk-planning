@@ -34,7 +34,6 @@ export class SubNavBar {
         await this.plusBtn.click();
         await this.createMenu
             .getByRole('button', {name: 'Event', exact: true})
-            // .locator('#create_event')
             .click();
     }
 
@@ -42,7 +41,6 @@ export class SubNavBar {
         await this.plusBtn.click();
         await this.createMenu
             .getByRole('button', {name: 'Planning Item', exact: true})
-            // .locator('#create_planning')
             .click();
     }
 }

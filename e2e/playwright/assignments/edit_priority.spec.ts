@@ -49,7 +49,7 @@ test.describe('Planning.Assignment: edit assignment priority', () => {
         await expect(
             coverageEditor.element
                 .locator('.sd-collapse-box__content-block--top')
-                // .locator('.label')
+                .locator('.label')
         ).toContainText('Draft');
 
         await coverageEditor.toggleAddToWorkflow();

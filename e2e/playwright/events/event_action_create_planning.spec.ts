@@ -95,9 +95,6 @@ test.describe('Planning.Events: create planning action', () => {
         await editors.planning.waitForAutosave();
         await editors.planning.saveButton.click();
 
-        // Wait for autosave to be completed
-        await editors.planning.waitForAutosave();
-
         await editors.planning.closeButton.click();
         await editors.planning.waitTillClosed();
     }
