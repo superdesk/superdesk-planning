@@ -305,21 +305,24 @@ class AssignmentsService(AsyncBaseService):
         self.notify("assignments:updated", updates, original)
         await self.send_assignment_notification(updates, original)
 
-        # If Desk, User and/or State was changed, then re-publish the Planning item
-        # So that the newly appointed assignee's/state will be pushed to subscribers
-        if self.assignee_details_changed(updates, original):
+        # If Assignee details have changed, and the current request comes from an Assignment API endpoint
+        # then re-publish the Planning item (So updated Assignment details are published to subscribers)
+        current_request = get_current_app().get_current_request()
+        assignee_details_changed = self.assignee_details_changed(updates, original)
+        if assignee_details_changed and (current_request is None or "/assignments" in current_request.path):
             await self.publish_planning(original.get("planning_item"))
 
     def assignee_details_changed(self, updates: Dict[str, Any], original: Dict[str, Any]) -> bool:
-        if "assigned_to" not in updates:
-            return False
+        if "assigned_to" in updates:
+            original_assigned_to = original.get("assigned_to") or {}
+            updated_assigned_to = updates["assigned_to"] or {}
 
-        original_assigned_to = original.get("assigned_to") or {}
-        updated_assigned_to = updates["assigned_to"] or {}
+            for field in {"user", "desk", "state", "contact", "coverage_provider"}:
+                if original_assigned_to.get(field) != updated_assigned_to.get(field):
+                    return True
 
-        for field in ["user", "desk", "state"]:
-            if original_assigned_to.get(field) != updated_assigned_to.get(field):
-                return True
+        if "priority" in updates and updates["priority"] != original.get("priority"):
+            return True
 
         return False
 

@@ -817,18 +817,22 @@ def _sync_coverage_assigned_to(coverages, lookup_field, id_field):
         if not assignment:
             continue
 
-        assignment.setdefault("assigned_to", {})
-        coverage["assigned_to"]["assignment_id"] = assignment[ID_FIELD]
-        coverage["assigned_to"]["desk"] = assignment["assigned_to"].get("desk")
-        coverage["assigned_to"]["user"] = assignment["assigned_to"].get("user")
-        coverage["assigned_to"]["contact"] = assignment["assigned_to"].get("contact")
-        coverage["assigned_to"]["state"] = assignment["assigned_to"].get("state")
-        coverage["assigned_to"]["assignor_user"] = assignment["assigned_to"].get("assignor_user")
-        coverage["assigned_to"]["assignor_desk"] = assignment["assigned_to"].get("assignor_desk")
-        coverage["assigned_to"]["assigned_date_desk"] = assignment["assigned_to"].get("assigned_date_desk")
-        coverage["assigned_to"]["assigned_date_user"] = assignment["assigned_to"].get("assigned_date_user")
-        coverage["assigned_to"]["coverage_provider"] = assignment["assigned_to"].get("coverage_provider")
-        coverage["assigned_to"]["priority"] = assignment.get("priority")
+        copy_assignment_details_to_coverage(assignment, coverage)
+
+
+def copy_assignment_details_to_coverage(assignment: dict, coverage: dict) -> None:
+    assignment.setdefault("assigned_to", {})
+    coverage["assigned_to"]["assignment_id"] = assignment[ID_FIELD]
+    coverage["assigned_to"]["desk"] = assignment["assigned_to"].get("desk")
+    coverage["assigned_to"]["user"] = assignment["assigned_to"].get("user")
+    coverage["assigned_to"]["contact"] = assignment["assigned_to"].get("contact")
+    coverage["assigned_to"]["state"] = assignment["assigned_to"].get("state")
+    coverage["assigned_to"]["assignor_user"] = assignment["assigned_to"].get("assignor_user")
+    coverage["assigned_to"]["assignor_desk"] = assignment["assigned_to"].get("assignor_desk")
+    coverage["assigned_to"]["assigned_date_desk"] = assignment["assigned_to"].get("assigned_date_desk")
+    coverage["assigned_to"]["assigned_date_user"] = assignment["assigned_to"].get("assigned_date_user")
+    coverage["assigned_to"]["coverage_provider"] = assignment["assigned_to"].get("coverage_provider")
+    coverage["assigned_to"]["priority"] = assignment.get("priority")
 
 
 def sync_assignment_details_to_coverages(doc):
