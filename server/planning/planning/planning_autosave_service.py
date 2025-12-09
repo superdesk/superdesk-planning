@@ -1,7 +1,9 @@
 import logging
 
+from superdesk.core import get_current_app
+
 from planning.autosave_service import AutosaveAsyncService
-from planning.common import WORKFLOW_STATE
+from planning.common import WORKFLOW_STATE, copy_assignment_details_to_coverage
 
 logger = logging.getLogger(__name__)
 
@@ -33,3 +35,49 @@ class PlanningAutosaveAsyncService(AutosaveAsyncService):
             coverage_update["workflow_status"] = WORKFLOW_STATE.DRAFT
 
         await self.system_update(planning_id, {"coverages": coverages})
+
+    async def on_assignment_updated(self, updates: dict, original: dict) -> None:
+        """Update the Planning Autosave upon changes to any associated Assignment.
+
+        This makes sure that the Coverage's Assignee details (user, desk etc) are kept in sync with the Assignment.
+
+        :param updates: The Assignment updates that were made
+        :param original: The original Assignment document
+        """
+
+        if "assigned_to" not in updates and "priority" not in updates:
+            # Relevant Assignment data was not updated, no need to update the Planning autosave
+            return
+
+        current_request = get_current_app().get_current_request()
+        if current_request and "/planning" in current_request.path:
+            # This request came from the Planning endpoint itself,
+            # no need to respond to an Assignment update here
+            return
+
+        planning_id = original.get("planning_item")
+        planning_autosave = await self.find_by_id_raw(item_id=planning_id)
+        if not planning_autosave:
+            # Item is not currently being edited (No current autosave item)
+            return
+
+        # There is a current autosave, we need to update it now
+        coverages = planning_autosave.get("coverages")
+        assignment = original.copy()
+        assignment.update(updates)
+
+        coverage_to_update = next(
+            (
+                coverage
+                for coverage in coverages
+                if str((coverage.get("assigned_to") or {}).get("assignment_id")) == str(assignment["_id"])
+            ),
+            None,
+        )
+
+        if not coverage_to_update:
+            logger.warning("Coverage not found for Assignment", extra={"assignment_id": assignment["_id"]})
+            return
+
+        copy_assignment_details_to_coverage(assignment, coverage_to_update)
+        await self.system_update(planning_autosave["_id"], updates={"coverages": coverages})
