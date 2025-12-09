@@ -309,7 +309,7 @@ class AssignmentsService(AsyncBaseService):
         # then re-publish the Planning item (So updated Assignment details are published to subscribers)
         current_request = get_current_app().get_current_request()
         assignee_details_changed = self.assignee_details_changed(updates, original)
-        if assignee_details_changed and (current_request is None or "/assignments" in current_request.path):
+        if assignee_details_changed and (current_request is None or "/planning" not in current_request.path):
             await self.publish_planning(original.get("planning_item"))
 
     def assignee_details_changed(self, updates: Dict[str, Any], original: Dict[str, Any]) -> bool:
