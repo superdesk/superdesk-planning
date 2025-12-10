@@ -118,7 +118,7 @@ class AssignmentsService(AsyncBaseService):
     async def _enhance_assignments(self, docs):
         """Populate `item_ids` with ids for all linked Archive items for an Assignment"""
         assignment_archive_map: dict[str, tuple[list[str], list[dict]]] = {}
-        async for item in await self.get_archive_items_for_assignments([doc.get(ID_FIELD) for doc in docs]):
+        async for item in await self.get_archive_links_for_assignments([doc.get(ID_FIELD) for doc in docs]):
             linked_item_ids, linked_items = assignment_archive_map.setdefault(str(item.get("assignment_id")), ([], []))
             linked_item_ids.append(str(item.get("_id")))
             linked_items.append(
@@ -139,7 +139,7 @@ class AssignmentsService(AsyncBaseService):
             except KeyError:
                 pass
 
-    async def get_archive_items_for_assignments(self, assignment_ids):
+    async def get_archive_links_for_assignments(self, assignment_ids):
         """
         Given an array of assignment id's return the matching items
         :param assignment_ids:
@@ -159,7 +159,7 @@ class AssignmentsService(AsyncBaseService):
             "projections": json.dumps(["_id", "_type", "event_id", "assignment_id"]),
             "aggs": None,
         }
-        return await get_resource_service("search").get_async(req=req, lookup=None)
+        return await get_resource_service("search").get_async(req=req, lookup=None, signals=False)
 
     async def get_archive_items_for_assignment(self, assignment):
         """Using the `search` resource service, retrieve the list of Archive items linked to the provided Assignment."""
