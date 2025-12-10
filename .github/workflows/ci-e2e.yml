@@ -36,7 +36,7 @@ jobs:
         run: npm ci
         working-directory: ./
       - name: Install E2E Client
-        run: npm install
+        run: npm ci
       - name: Build Client
         run: npm run build
       - name: Start Services
