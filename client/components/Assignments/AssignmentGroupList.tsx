@@ -86,7 +86,7 @@ class AssignmentGroupListComponent extends React.Component<IProps, IState> {
         this.changeListOrder = this.changeListOrder.bind(this);
     }
 
-    componentWillUpdate(nextProps) {
+    UNSAFE_componentWillUpdate(nextProps) {
         // Bring scrolltop to top if list settings change
         if (this.props.filterBy !== nextProps.filterBy ||
             this.props.orderByField !== nextProps.orderByField ||

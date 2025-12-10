@@ -1,5 +1,4 @@
 import React from 'react';
-import PropTypes from 'prop-types';
 import classNames from 'classnames';
 
 import {KEYCODES} from './constants';
@@ -7,31 +6,47 @@ import {onEventCapture} from './utils';
 
 import {Icon} from './';
 
+interface IProps extends React.HTMLAttributes<HTMLButtonElement> {
+    onClick?: () => void;
+    tabIndex?: number;
+    onKeyDown?: (event: React.KeyboardEvent<HTMLButtonElement>) => void;
+    onFocus?: (event: React.FocusEvent<HTMLButtonElement>) => void;
+    enterKeyIsClick?: boolean;
+    icon?: string;
+    useDefaultClass?: boolean;
+    className?: string;
+    label?: string;
+    tooltip?: string;
+    tooltipDirection?: string;
+    testId?: string;
+    refNode?: React.LegacyRef<HTMLButtonElement>;
+}
+
 /**
  * @ngdoc react
  * @name IconButton
  * @description Icon with Button component
  */
-const IconButton = ({
+const IconButton: React.FC<IProps> = ({
     onClick,
     tabIndex,
     onKeyDown,
     onFocus,
-    enterKeyIsClick,
+    enterKeyIsClick = false,
     icon,
-    useDefaultClass,
+    useDefaultClass = true,
     className,
     label,
     tooltip,
-    tooltipDirection,
+    tooltipDirection = 'down',
     testId,
     refNode,
     ...props
 }) => {
-    const handleKeyDown = (event) => {
+    const handleKeyDown = (event: React.KeyboardEvent<HTMLButtonElement>) => {
         if (event.keyCode === KEYCODES.ENTER) {
             onEventCapture(event);
-            onClick();
+            onClick?.();
             return;
         }
 
@@ -60,28 +75,6 @@ const IconButton = ({
             {label}
         </button>
     );
-};
-
-IconButton.propTypes = {
-    onClick: PropTypes.func,
-    tabIndex: PropTypes.number,
-    onKeyDown: PropTypes.func,
-    onFocus: PropTypes.func,
-    enterKeyIsClick: PropTypes.bool,
-    icon: PropTypes.string,
-    useDefaultClass: PropTypes.bool,
-    className: PropTypes.string,
-    label: PropTypes.string,
-    tooltip: PropTypes.string,
-    tooltipDirection: PropTypes.string,
-    testId: PropTypes.string,
-    refNode: PropTypes.object,
-};
-
-IconButton.defaultProps = {
-    enterKeyIsClick: false,
-    useDefaultClass: true,
-    tooltipDirection: 'down',
 };
 
 export default IconButton;

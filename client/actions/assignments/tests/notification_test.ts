@@ -10,12 +10,11 @@ import assignmentsApi from '../api';
 import main from '../../main';
 import assignmentNotifications from '../notifications';
 import planningApis from '../../planning/api';
-import type {inject} from '../../../globals';
 import {noop} from 'lodash';
 
 describe('actions.assignments.notification', () => {
-    let store;
-    let testStore;
+    let store: ReturnType<typeof getTestActionStore>;
+    let testStore: ReturnType<typeof createTestStore>;
 
     beforeEach(() => {
         store = getTestActionStore();
@@ -120,7 +119,7 @@ describe('actions.assignments.notification', () => {
                 assignment_state: 'assigned',
             };
 
-            return store.test(done, assignmentNotifications.onAssignmentCreated({}, payload))
+            store.test(done, assignmentNotifications.onAssignmentCreated({}, payload))
                 .then(() => {
                     expect(assignmentsApi.query.callCount).toBe(2);
                     expect(assignmentsApi.receivedAssignments.callCount).toBe(1);
@@ -192,7 +191,7 @@ describe('actions.assignments.notification', () => {
                 assignment_state: 'in_progress',
             };
 
-            return store.test(done, assignmentNotifications.onAssignmentUpdated({}, payload))
+            store.test(done, assignmentNotifications.onAssignmentUpdated({}, payload))
                 .then(() => {
                     expect(assignmentsUi.reloadAssignments.callCount).toBe(2);
                     done();
@@ -221,7 +220,7 @@ describe('actions.assignments.notification', () => {
             expect(coverage1.assigned_to.desk).toBe('desk1');
             expect(coverage1.assigned_to.state).toBe(undefined);
 
-            return store.test(done, assignmentNotifications.onAssignmentUpdated({}, payload))
+            store.test(done, assignmentNotifications.onAssignmentUpdated({}, payload))
                 .then(() => {
                     expect(main.fetchItemHistory.callCount).toBe(1);
                     expect(main.fetchItemHistory.args[0]).toEqual([jasmine.objectContaining({
@@ -259,7 +258,7 @@ describe('actions.assignments.notification', () => {
                 etag: 'etag1',
             };
 
-            return store.test(done, assignmentNotifications.onAssignmentLocked({}, payload))
+            store.test(done, assignmentNotifications.onAssignmentLocked({}, payload))
                 .then(() => {
                     expect(planningApi.locks.setItemAsLocked.callCount).toBe(1);
                     expect(store.dispatch.callCount).toBe(2);
@@ -288,7 +287,7 @@ describe('actions.assignments.notification', () => {
                 etag: 'etag1',
             };
 
-            return store.test(done, assignmentNotifications.onAssignmentUnlocked({}, payload))
+            store.test(done, assignmentNotifications.onAssignmentUnlocked({}, payload))
                 .then(() => {
                     expect(planningApi.locks.setItemAsUnlocked.callCount).toBe(1);
                     expect(store.dispatch.callCount).toBe(2);
@@ -335,7 +334,7 @@ describe('actions.assignments.notification', () => {
         it('update planning on assignment complete', (done) => {
             setTestStore();
 
-            let payload = {
+            const payload = {
                 item: 'as1',
                 assigned_desk: 'desk2',
                 assignment_state: 'completed',
@@ -343,7 +342,8 @@ describe('actions.assignments.notification', () => {
                 planning: 'p1',
                 original_assigned_desk: 'desk1',
             };
-            let coverage1 = getCoverage(payload);
+
+            const coverage1 = getCoverage(payload);
 
             expect(coverage1.assigned_to.desk).toBe('desk1');
             expect(coverage1.assigned_to.state).toBe(undefined);
@@ -359,11 +359,13 @@ describe('actions.assignments.notification', () => {
                     expect(planningApis.loadPlanningByIds.args).toEqual([
                         [['p1']],
                     ]);
+
                     expect(assignmentsUi.reloadAssignments.callCount).toBe(2);
                     expect(assignmentsUi.reloadAssignments.args[0]).toEqual([
                         ['completed'],
                         false,
                     ]);
+
                     done();
                 })
                 .catch(done.fail);
@@ -378,6 +380,7 @@ describe('actions.assignments.notification', () => {
             store.initialState.assignment.selectedDeskId = 'desk1';
             store.initialState.locks.assignment = {as1: {user: 'ident1'}};
             store.initialState.workspace.currentDeskId = 'desk1';
+
             let payload = {
                 item: 'as1',
                 assigned_desk: 'desk2',
@@ -386,7 +389,7 @@ describe('actions.assignments.notification', () => {
                 planning: 'p1',
             };
 
-            return store.test(done, assignmentNotifications.onAssignmentUpdated({}, payload))
+            store.test(done, assignmentNotifications.onAssignmentUpdated({}, payload))
                 .then(() => {
                     expect(planningApi.locks.setItemAsUnlocked.callCount).toBe(1);
                     expect(assignmentsApi.fetchAssignmentById.callCount).toBe(1);
@@ -417,7 +420,7 @@ describe('actions.assignments.notification', () => {
             restoreSinonStub(assignmentsUi.queryAndGetMyAssignments);
         });
 
-        it('calls `REMOVE_ASSIGNMENT` action', (done) => (
+        it('calls `REMOVE_ASSIGNMENT` action', (done) => {
             store.test(done, assignmentNotifications.onAssignmentRemoved(
                 {},
                 {assignments: ['as1']}
@@ -431,12 +434,13 @@ describe('actions.assignments.notification', () => {
 
                     done();
                 })
-        ).catch(done.fail));
+                .catch(done.fail);
+        });
 
         it('notifies the user if they are viewing the removed Assignment', (done) => {
             store.initialState.assignment.currentAssignmentId = 'as1';
 
-            return store.test(done, assignmentNotifications.onAssignmentRemoved(
+            store.test(done, assignmentNotifications.onAssignmentRemoved(
                 {},
                 {assignments: ['as1']}
             ))

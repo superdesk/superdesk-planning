@@ -106,7 +106,7 @@ describe('agenda', () => {
             const item = {name: 'TestAgenda3'};
             const action = actions.createOrUpdateAgenda({name: item.name});
 
-            it('createOrUpdateAgenda saves and executes dispatches', (done) => (
+            it('createOrUpdateAgenda saves and executes dispatches', (done) => {
                 action(dispatch, getState, {
                     api,
                     notify,
@@ -128,15 +128,15 @@ describe('agenda', () => {
                         expect(error).toBe(null);
                         expect(error.stack).toBe(null);
                         done();
-                    })
-            ));
+                    });
+            });
         });
 
         it('fetchAgendas', (done) => {
             apiSpy.query = sinon.spy(() => (Promise.resolve({_items: agendas})));
             const action = actions.fetchAgendas();
 
-            return action(dispatch, getState, {
+            action(dispatch, getState, {
                 api,
                 notify,
             })
@@ -161,7 +161,7 @@ describe('agenda', () => {
         });
 
         describe('deleteAgenda', () => {
-            it('calls api and notifies end user', (done) => (
+            it('calls api and notifies end user', (done) => {
                 actions.deleteAgenda(agendas[0])(dispatch, getState, {
                     api,
                     notify,
@@ -175,14 +175,14 @@ describe('agenda', () => {
                         expect(error).toBe(null);
                         expect(error.stack).toBe(null);
                         done();
-                    })
-            ));
+                    });
+            });
 
             it('remove agenda call fails', (done) => {
-                apiSpy.remove = sinon.spy(() => (Promise.reject({ })));
+                apiSpy.remove = sinon.spy(() => (Promise.reject({})));
                 const action = actions.deleteAgenda(agendas[0]);
 
-                return action(dispatch, getState, {
+                action(dispatch, getState, {
                     api,
                     notify,
                 })
@@ -207,7 +207,7 @@ describe('agenda', () => {
                 apiSpy.getById = sinon.spy(() => Promise.resolve(agendas[1]));
                 const action = actions.fetchAgendaById('a2');
 
-                return action(dispatch, getState, {
+                action(dispatch, getState, {
                     api,
                     notify,
                 })
@@ -235,7 +235,7 @@ describe('agenda', () => {
                 apiSpy.getById = sinon.spy(() => Promise.reject());
                 const action = actions.fetchAgendaById('a2');
 
-                return action(dispatch, getState, {
+                action(dispatch, getState, {
                     api,
                     notify,
                 })
@@ -271,7 +271,7 @@ describe('agenda', () => {
 
             it('calls `planning.ui.fetchToList`', (done) => {
                 store.initialState.main.search.PLANNING.fulltext = 'hello world';
-                return store.test(done, actions.selectAgenda('a1'))
+                store.test(done, actions.selectAgenda('a1'))
                     .then(() => {
                         expect(store.dispatch.args[0]).toEqual([{
                             type: 'SELECT_AGENDA',
@@ -318,7 +318,7 @@ describe('agenda', () => {
                 events[0].ednote = 'Editorial note about this Event';
                 const action = actions.addEventToCurrentAgenda(events[0]);
 
-                return action(dispatch, getState, {
+                action(dispatch, getState, {
                     notify,
                     $timeout,
                 })
@@ -378,7 +378,7 @@ describe('agenda', () => {
                 agendas[1].is_enabled = false;
                 const action = actions.addEventToCurrentAgenda(events[0]);
 
-                return action(dispatch, getState, {
+                action(dispatch, getState, {
                     notify,
                     $timeout,
                 })

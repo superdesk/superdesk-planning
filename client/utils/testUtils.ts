@@ -172,18 +172,19 @@ export const getTestActionStore = () => {
             },
             $timeout: sinon.spy((func) => func()),
             api: apiSpy,
-            $location: {search: sinon.spy(
-                (key, value = null) => {
-                    if (key) {
-                        if (value) {
-                            store.urlParams[key] = value;
-                        } else {
-                            delete store.urlParams[key];
+            $location: {
+                search: sinon.spy(
+                    (key, value = null) => {
+                        if (key) {
+                            if (value) {
+                                store.urlParams[key] = value;
+                            } else {
+                                delete store.urlParams[key];
+                            }
                         }
-                    }
 
-                    return store.urlParams;
-                }),
+                        return store.urlParams;
+                    }),
             },
             desks: {
                 getCurrentDeskId: sinon.spy(() => 'desk1'),
@@ -251,7 +252,10 @@ export const getTestActionStore = () => {
             },
         },
 
-        test: (done, action) => {
+        test: (
+            done: any,
+            action: (dispatch: any, getState: any, services: any) => any,
+        ) => {
             if (!store._ready) store.init();
             let response = action(store.dispatch, store.getState, store.services);
 
@@ -261,12 +265,12 @@ export const getTestActionStore = () => {
 
             return response
                 .catch((error) => {
-                // If this is from a Promise.reject, then pass that on
+                    // If this is from a Promise.reject, then pass that on
                     if (get(error, 'stack', null) === null) return Promise.reject(error);
                     // Otherwise this is a js exception
                     expect(error).toBe(null);
                     expect(error.stack).toBe(null);
-                    done.fail();
+                    done?.fail?.();
                     throw error;
                 });
         },

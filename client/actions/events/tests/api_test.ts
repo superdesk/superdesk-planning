@@ -1,6 +1,6 @@
 import sinon from 'sinon';
 import moment from 'moment';
-import {omit} from 'lodash';
+import {noop, omit} from 'lodash';
 
 import {appConfig} from 'appConfig';
 
@@ -118,7 +118,7 @@ describe('actions.events.api', () => {
                 .catch(done.fail);
         });
 
-        it('returns the Event from the store instead of the API', (done) => (
+        it('returns the Event from the store instead of the API', (done) => {
             store.test(done, eventsApi.fetchById('e2'))
                 .then((event) => {
                     const eventInStore = omit(eventUtils.modifyForClient(data.events[1]),
@@ -133,9 +133,10 @@ describe('actions.events.api', () => {
 
                     done();
                 })
-        ).catch(done.fail));
+                .catch(done.fail);
+        });
 
-        it('returns the Event from the API if force = true', (done) => (
+        it('returns the Event from the API if force = true', (done) => {
             store.test(done, eventsApi.fetchById('e2', {force: true}))
                 .then((event) => {
                     const mockedEventResult = data.events[1];
@@ -150,23 +151,26 @@ describe('actions.events.api', () => {
 
                     done();
                 })
-        ).catch(done.fail));
+                .catch(done.fail);
+        });
 
-        it('doesnt save to the store if saveToStore = false', (done) => (
+        it('doesnt save to the store if saveToStore = false', (done) => {
             store.test(done, eventsApi.fetchById('e2', {saveToStore: false}))
                 .then(() => {
                     expect(eventsApi.receiveEvents.callCount).toBe(0);
                     done();
                 })
-        ).catch(done.fail));
+                .catch(done.fail);
+        });
 
-        it('doesnt load associated Planning if loadPlanning = false', (done) => (
+        it('doesnt load associated Planning if loadPlanning = false', (done) => {
             store.test(done, eventsApi.fetchById('e2', {loadPlanning: false}))
                 .then(() => {
                     expect(eventsApi.loadAssociatedPlannings.callCount).toBe(0);
                     done();
                 })
-        ).catch(done.fail));
+                .catch(done.fail);
+        });
 
         it('returns rejected promise if API fails', (done) => {
             restoreSinonStub(planningApis.events.getById);
@@ -196,7 +200,7 @@ describe('actions.events.api', () => {
             restoreSinonStub(eventsApi.loadEventsByRecurrenceId);
         });
 
-        it('runs the query', (done) => (
+        it('runs the query', (done) => {
             store.test(done, eventsApi.loadEventsByRecurrenceId('r1', SPIKED_STATE.NOT_SPIKED))
                 .then((items) => {
                     expect(items).toEqual({_items: data.events});
@@ -216,13 +220,14 @@ describe('actions.events.api', () => {
 
                     done();
                 })
-        ).catch(done.fail));
+                .catch(done.fail);
+        });
 
         it('returns Promise.reject if query fails', (done) => {
             restoreSinonStub(planningApis.events.search);
             sinon.stub(planningApis.events, 'search').returns(Promise.reject(errorMessage));
             store.test(done, eventsApi.loadEventsByRecurrenceId('r1'))
-                .then(() => { /* no-op */ }, (error) => {
+                .then(noop, (error) => {
                     expect(error).toEqual(errorMessage);
 
                     done();
@@ -236,7 +241,7 @@ describe('actions.events.api', () => {
             store.initialState.agenda.currentAgendaId = 'a2';
         });
 
-        it('can spike a single event', (done) => (
+        it('can spike a single event', (done) => {
             store.test(done, eventsApi.spike(data.events[1]))
                 .then((items) => {
                     expect(items).toEqual([data.events[1]]);
@@ -249,9 +254,10 @@ describe('actions.events.api', () => {
 
                     done();
                 })
-        ).catch(done.fail));
+                .catch(done.fail);
+        });
 
-        it('can spike multiple events', (done) => (
+        it('can spike multiple events', (done) => {
             store.test(done, eventsApi.spike(data.events))
                 .then((items) => {
                     expect(items).toEqual(data.events);
@@ -267,11 +273,13 @@ describe('actions.events.api', () => {
 
                     done();
                 })
-        ).catch(done.fail));
+                .catch(done.fail);
+        });
 
         it('can send `future` for `update_method`', (done) => {
             data.events[1].update_method = 'future';
-            return store.test(done, eventsApi.spike(data.events[1]))
+
+            store.test(done, eventsApi.spike(data.events[1]))
                 .then(() => {
                     expect(services.api.update.callCount).toBe(1);
                     expect(services.api.update.args[0]).toEqual([
@@ -287,8 +295,9 @@ describe('actions.events.api', () => {
 
         it('returns Promise.reject if `events_spike` fails', (done) => {
             services.api.update = sinon.spy(() => (Promise.reject(errorMessage)));
-            return store.test(done, eventsApi.spike(data.events[1]))
-                .then(() => { /* no-op */ }, (error) => {
+
+            store.test(done, eventsApi.spike(data.events[1]))
+                .then(noop, (error) => {
                     expect(error).toEqual(errorMessage);
                     done();
                 })
@@ -297,7 +306,7 @@ describe('actions.events.api', () => {
     });
 
     describe('unspike', () => {
-        it('can unspike a single event', (done) => (
+        it('can unspike a single event', (done) => {
             store.test(done, eventsApi.unspike(data.events[1]))
                 .then((items) => {
                     expect(items).toEqual([data.events[1]]);
@@ -311,9 +320,10 @@ describe('actions.events.api', () => {
 
                     done();
                 })
-        ).catch(done.fail));
+                .catch(done.fail);
+        });
 
-        it('can unspike multiple events', (done) => (
+        it('can unspike multiple events', (done) => {
             store.test(done, eventsApi.unspike(data.events))
                 .then((items) => {
                     expect(items).toEqual(data.events);
@@ -329,11 +339,13 @@ describe('actions.events.api', () => {
 
                     done();
                 })
-        ).catch(done.fail));
+                .catch(done.fail);
+        });
 
         it('can send `future` for `update_method` when unspiking', (done) => {
             data.events[1].update_method = 'future';
-            return store.test(done, eventsApi.unspike(data.events[1]))
+
+            store.test(done, eventsApi.unspike(data.events[1]))
                 .then(() => {
                     expect(services.api.update.callCount).toBe(1);
                     expect(services.api.update.args[0]).toEqual([
@@ -349,7 +361,8 @@ describe('actions.events.api', () => {
 
         it('returns Promise.reject if `events_unspike` fails', (done) => {
             services.api.update = sinon.spy(() => (Promise.reject(errorMessage)));
-            return store.test(done, eventsApi.unspike(data.events))
+
+            store.test(done, eventsApi.unspike(data.events))
                 .then(null, (error) => {
                     expect(error).toEqual(errorMessage);
                     done();
@@ -367,7 +380,7 @@ describe('actions.events.api', () => {
                 () => (Promise.resolve(data.events))
             );
 
-            return store.test(done, eventsApi.refetch())
+            store.test(done, eventsApi.refetch())
                 .then((events) => {
                     expect(events).toEqual(data.events);
                     expect(eventsApi.query.callCount).toBe(1);
@@ -478,7 +491,7 @@ describe('actions.events.api', () => {
                     tz: 'Australia/Sydney',
                 },
             }))
-                .then(() => { /* no-op */ }, (error) => {
+                .then(noop, (error) => {
                     expect(error).toEqual(errorMessage);
                     done();
                 })
@@ -487,7 +500,7 @@ describe('actions.events.api', () => {
     });
 
     describe('loadAssociatedPlannings', () => {
-        it('returns if no associated Planning items', (done) => (
+        it('returns if no associated Planning items', (done) => {
             store.test(done, eventsApi.loadAssociatedPlannings(data.events[1]))
                 .then((items) => {
                     expect(items).toEqual([]);
@@ -495,9 +508,10 @@ describe('actions.events.api', () => {
 
                     done();
                 })
-        ).catch(done.fail));
+                .catch(done.fail);
+        });
 
-        it('loads associated Planning items', (done) => (
+        it('loads associated Planning items', (done) => {
             store.test(done, eventsApi.loadAssociatedPlannings(data.events[0]))
                 .then((items) => {
                     expect(items).toEqual(data.plannings);
@@ -506,11 +520,12 @@ describe('actions.events.api', () => {
 
                     done();
                 })
-        ).catch(done.fail));
+                .catch(done.fail);
+        });
     });
 
     describe('getEvent', () => {
-        it('returns the Event if it is already in the store', (done) => (
+        it('returns the Event if it is already in the store', (done) => {
             store.test(done, eventsApi.getEvent(data.events[0]._id))
                 .then((event) => {
                     expect(event).toEqual({
@@ -525,7 +540,8 @@ describe('actions.events.api', () => {
 
                     done();
                 })
-        ).catch(done.fail));
+                .catch(done.fail);
+        });
 
         it('loads the Event if it is not in the store', (done) => {
             store.init();
@@ -569,7 +585,7 @@ describe('actions.events.api', () => {
         });
     });
 
-    it('post calls `events_post` endpoint', (done) => (
+    it('post calls `events_post` endpoint', (done) => {
         store.test(done, eventsApi.post(data.events[0]))
             .then(() => {
                 expect(services.api.save.callCount).toBe(1);
@@ -585,9 +601,10 @@ describe('actions.events.api', () => {
                 ]);
                 done();
             })
-    ).catch(done.fail));
+            .catch(done.fail);
+    });
 
-    it('unpost calls `events_post` endpoint', (done) => (
+    it('unpost calls `events_post` endpoint', (done) => {
         store.test(done, eventsApi.unpost(data.events[0]))
             .then(() => {
                 expect(services.api.save.callCount).toBe(1);
@@ -602,7 +619,8 @@ describe('actions.events.api', () => {
                 ]);
                 done();
             })
-    ).catch(done.fail));
+            .catch(done.fail);
+    });
 
     describe('uploadFiles', () => {
         it('uploads files and dispatches RECEIVE_FILES', (done) => {
@@ -652,14 +670,15 @@ describe('actions.events.api', () => {
                 .catch(done.fail);
         });
 
-        it('returns if event has no files', (done) => (
+        it('returns if event has no files', (done) => {
             store.test(done, eventsApi.uploadFiles(data.events[0]))
                 .then((files) => {
                     expect(files).toEqual([]);
                     expect(services.upload.start.callCount).toBe(0);
                     done();
                 })
-        ).catch(done.fail));
+                .catch(done.fail);
+        });
 
         it('returns if no files to upload', (done) => {
             data.events[0].files = [{_id: 'test_file_1'}, {_id: 'test_file_2'}];
@@ -693,7 +712,7 @@ describe('actions.events.api', () => {
     });
 
 
-    it('updateRepetitions', (done) => (
+    it('updateRepetitions', (done) => {
         store.test(done, eventsApi.updateRepetitions(data.events[0], {dates: {}}))
             .then(() => {
                 expect(services.api.update.callCount).toBe(1);
@@ -705,7 +724,8 @@ describe('actions.events.api', () => {
 
                 done();
             })
-    ).catch(done.fail));
+            .catch(done.fail);
+    });
 
     describe('save', () => {
         beforeEach(() => {
@@ -720,7 +740,7 @@ describe('actions.events.api', () => {
             restoreSinonStub(planningApis.events.update);
         });
 
-        it('doesnt call event.api.fetchById if it is a new Event', (done) => (
+        it('doesnt call event.api.fetchById if it is a new Event', (done) => {
             store.test(done, eventsApi.save(null, {name: 'New Event', slugline: 'New Slugline'}))
                 .then(() => {
                     expect(eventsApi.fetchById.callCount).toBe(0);
@@ -734,11 +754,12 @@ describe('actions.events.api', () => {
 
                     done();
                 })
-        ).catch(done.fail));
+                .catch(done.fail);
+        });
     });
 
     describe('events.api.fetchCalendars', () => {
-        it('fetchCalendars sends RECEIVE_CALENDARS dispatch', (done) => (
+        it('fetchCalendars sends RECEIVE_CALENDARS dispatch', (done) => {
             store.test(done, eventsApi.fetchCalendars())
                 .then((calendars) => {
                     expect(calendars).toEqual([
@@ -783,7 +804,8 @@ describe('actions.events.api', () => {
 
                     done();
                 })
-        ).catch(done.fail));
+                .catch(done.fail);
+        });
 
         it('fetchCalendars returns Promise.reject if an error occurs', (done) => {
             services.vocabularies.getVocabularies = sinon.spy(() => Promise.reject(errorMessage));

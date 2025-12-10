@@ -449,7 +449,7 @@ describe('actions.events.notifications', () => {
                 })
         ).catch(done.fail));
 
-        it('fetches associated plannings for an event', (done) => (
+        it('fetches associated plannings for an event', (done) => {
             store.test(done, eventsNotifications.onEventPostChanged(
                 {},
                 {
@@ -464,7 +464,8 @@ describe('actions.events.notifications', () => {
                     expect(planningApis.loadPlanningByEventId.callCount).toBe(1);
                     done();
                 })
-        ).catch(done.fail));
+                .catch(done.fail);
+        });
     });
 
     describe('onEventLocked', () => {
@@ -478,7 +479,7 @@ describe('actions.events.notifications', () => {
             restoreSinonStub(eventsApi.getEvent);
         });
 
-        it('calls getEvent and dispatches the LOCK_EVENT action', (done) => (
+        it('calls getEvent and dispatches the LOCK_EVENT action', (done) => {
             store.test(done, eventsNotifications.onEventLocked(
                 {},
                 {
@@ -514,7 +515,8 @@ describe('actions.events.notifications', () => {
 
                     done();
                 })
-        ).catch(done.fail));
+                .catch(done.fail);
+        });
     });
 
     describe('onEventUnlocked', () => {
@@ -579,7 +581,7 @@ describe('actions.events.notifications', () => {
                 .catch(done.fail);
         });
 
-        it('dispatches `UNLOCK_EVENT` action', (done) => (
+        it('dispatches `UNLOCK_EVENT` action', (done) => {
             store.test(done, eventsNotifications.onEventUnlocked(
                 {},
                 {
@@ -612,7 +614,8 @@ describe('actions.events.notifications', () => {
 
                     done();
                 })
-        ).catch(done.fail));
+                .catch(done.fail);
+        });
     });
 
     describe('onEventSpiked/onEventUnspiked', () => {
@@ -631,7 +634,7 @@ describe('actions.events.notifications', () => {
             restoreSinonStub(eventsPlanningUi.scheduleRefetch);
         });
 
-        it('onEventSpiked dispatches `SPIKE_EVENT`', (done) => (
+        it('onEventSpiked dispatches `SPIKE_EVENT`', (done) => {
             store.test(done, eventsNotifications.onEventSpiked({}, {
                 item: data.events[0]._id,
                 spiked_items: [{
@@ -676,9 +679,10 @@ describe('actions.events.notifications', () => {
 
                     done();
                 })
-        ).catch(done.fail));
+                .catch(done.fail);
+        });
 
-        it('onEventUnspiked dispatches `UNSPIKE_EVENT`', (done) => (
+        it('onEventUnspiked dispatches `UNSPIKE_EVENT`', (done) => {
             store.test(done, eventsNotifications.onEventUnspiked({}, {
                 item: data.events[0]._id,
                 unspiked_items: [{
@@ -723,7 +727,8 @@ describe('actions.events.notifications', () => {
 
                     done();
                 })
-        ).catch(done.fail));
+                .catch(done.fail);
+        });
     });
 
     describe('onEventUpdated', () => {
@@ -759,7 +764,7 @@ describe('actions.events.notifications', () => {
                 item_type: 'event',
             };
 
-            return store.test(done, eventsNotifications.onEventUpdated({}, {item: data.events[0]._id}))
+            store.test(done, eventsNotifications.onEventUpdated({}, {item: data.events[0]._id}))
                 .then(() => {
                     expect(eventsUi.scheduleRefetch.callCount).toBe(1);
                     expect(eventsPlanningUi.scheduleRefetch.callCount).toBe(1);
@@ -768,15 +773,15 @@ describe('actions.events.notifications', () => {
                 .catch(done.fail);
         });
 
-        it('onEventUpdated does calls scheduleRefetch if item is not being edited', (done) => (
+        it('onEventUpdated does calls scheduleRefetch if item is not being edited', (done) => {
             store.test(done, eventsNotifications.onEventUpdated({}, {item: data.events[0]._id}))
                 .then(() => {
                     expect(eventsUi.scheduleRefetch.callCount).toBe(1);
                     expect(eventsPlanningUi.scheduleRefetch.callCount).toBe(1);
                     done();
                 })
-                .catch(done.fail)
-        ));
+                .catch(done.fail);
+        });
 
         it('onEventUpdated calls scheduleRefetch if item edited is a recurring event', (done) => {
             store.initialState.events.events['e1'] = {
@@ -789,7 +794,7 @@ describe('actions.events.notifications', () => {
             };
             store.initialState.forms.editors.panel.itemId = 'e1';
 
-            return store.test(done, eventsNotifications.onEventUpdated({}, {
+            store.test(done, eventsNotifications.onEventUpdated({}, {
                 item: data.events[0]._id,
                 recurrence_id: 'rec1',
             }))

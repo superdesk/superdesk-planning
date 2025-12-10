@@ -40,7 +40,7 @@ describe('actions.autosave', () => {
     });
 
     describe('fetch autosave items', () => {
-        it('fetches items and saves them to redux', (done) => (
+        it('fetches items and saves them to redux', (done) => {
             store.test(done, autosave.fetch('event'))
                 .then(() => {
                     expect(services.api('event_autosave').query.callCount).toBe(1);
@@ -59,8 +59,8 @@ describe('actions.autosave', () => {
                     }]);
 
                     done();
-                }, done.fail)
-        ));
+                }, done.fail);
+        });
 
         it('notifies user if failed to load autosave items', (done) => {
             services.api('event_autosave').query = sinon.spy(() => Promise.reject(errorMessage));
@@ -96,14 +96,14 @@ describe('actions.autosave', () => {
                 }, done.fail);
         });
 
-        it('fetchById from the redux store', (done) => (
+        it('fetchById from the redux store', (done) => {
             store.test(done, autosave.fetchById('event', data.events[0]._id))
                 .then((autosaveItem) => {
                     expect(autosaveItem).toEqual(data.event_autosave[0]);
 
                     done();
-                }, done.fail)
-        ));
+                }, done.fail);
+        });
 
         it('fetchById from the server', (done) => {
             store.init();
@@ -123,7 +123,7 @@ describe('actions.autosave', () => {
     });
 
     describe('save', () => {
-        it('creates a new autosave item', (done) => (
+        it('creates a new autosave item', (done) => {
             store.test(done, autosave.save(null, {
                 ...data.events[1],
                 _id: 'tempId-e4',
@@ -158,10 +158,10 @@ describe('actions.autosave', () => {
                     ]);
 
                     done();
-                }, done.fail)
-        ));
+                }, done.fail);
+        });
 
-        it('updates an existing autosave item', (done) => (
+        it('updates an existing autosave item', (done) => {
             store.test(done, autosave.save(data.event_autosave[0], {
                 ...data.event_autosave[0],
                 slugline: 'Newest Event Slugline',
@@ -200,8 +200,8 @@ describe('actions.autosave', () => {
                     ]);
 
                     done();
-                }, done.fail)
-        ));
+                }, done.fail);
+        });
 
         it('notifies the user if saving fails', (done) => {
             services.api('event_autosave').save = sinon.spy(() => Promise.reject(errorMessage));
@@ -218,7 +218,7 @@ describe('actions.autosave', () => {
     });
 
     describe('remove', () => {
-        it('removes an item from the local Redux store and the server', (done) => (
+        it('removes an item from the local Redux store and the server', (done) => {
             store.test(done, autosave.remove(data.event_autosave[0]))
                 .then(() => {
                     expect(store.dispatch.args[0]).toEqual([{
@@ -232,8 +232,8 @@ describe('actions.autosave', () => {
                     );
 
                     done();
-                }, done.fail)
-        ));
+                }, done.fail);
+        });
 
         it('only removes autosave from Redux if item doesnt have an etag', (done) => {
             delete data.event_autosave[0]._etag;
@@ -250,7 +250,7 @@ describe('actions.autosave', () => {
                 }, done.fail);
         });
 
-        it('removes an item by itemType and itemId', (done) => (
+        it('removes an item by itemType and itemId', (done) => {
             store.test(done, autosave.removeById('event', data.events[0]._id))
                 .then(() => {
                     expect(store.dispatch.args[1]).toEqual([{
@@ -264,8 +264,8 @@ describe('actions.autosave', () => {
                     );
 
                     done();
-                }, done.fail)
-        ));
+                }, done.fail);
+        });
 
         describe('auto save not found', () => {
             beforeEach(() => {
@@ -276,7 +276,7 @@ describe('actions.autosave', () => {
                 restoreSinonStub(store.spies.api._getById);
             });
 
-            it('removes an item from the store', (done) => (
+            it('removes an item from the store', (done) => {
                 store.test(done, autosave.removeById('event', data.events[0]._id))
                     .then(() => {
                         expect(store.dispatch.args[0]).toEqual([{
@@ -287,8 +287,8 @@ describe('actions.autosave', () => {
                         expect(services.api('event_autosave').remove.callCount).toBe(0);
 
                         done();
-                    }, done.fail)
-            ));
+                    }, done.fail);
+            });
         });
     });
 });

@@ -1,47 +1,56 @@
-type IPlanningItem = import('./interfaces').IPlanningItem;
-type IEventItem = import('./interfaces').IEventItem;
-type PLANNING_VIEW = import('./interfaces').PLANNING_VIEW;
+/// <reference types="jasmine" />
+/// <reference types="angular" />
 
 
-// ------------------------------------------------------------------------------------------------
-// VARIABLES
-// ------------------------------------------------------------------------------------------------
+declare global {
+    // ------------------------------------------------------------------------------------------------
+    // TYPE IMPORTS
+    // ------------------------------------------------------------------------------------------------
+    type IPlanningItem = import('./client/interfaces').IPlanningItem;
+    type IEventItem = import('./client/interfaces').IEventItem;
+    type PLANNING_VIEW = import('./client/interfaces').PLANNING_VIEW;
 
-declare const __SUPERDESK_CONFIG__: any;
 
-declare const $: any; // jquery
+    // ------------------------------------------------------------------------------------------------
+    // VARIABLES
+    // ------------------------------------------------------------------------------------------------
 
-declare const KV: any; // qumu widgets
+    declare const __SUPERDESK_CONFIG__: any;
 
-// angular
-declare const angular: IAngularStatic;
+    declare const $: any; // jquery
 
-declare const inject: any;
+    declare const KV: any; // qumu widgets
 
-// testing
-declare const jasmine: any;
+    // angular
+    declare const angular: IAngularStatic;
 
-declare const spyOn: any;
+    declare const inject: any;
 
-declare const describe: any;
+    // testing
+    declare const jasmine: any;
 
-declare const fdescribe: any;
+    declare const spyOn: any;
 
-declare const xdescribe: any;
+    declare const describe: any;
 
-declare const beforeEach: any;
+    declare const fdescribe: any;
 
-declare const afterEach: any;
+    declare const xdescribe: any;
 
-declare const expect: any;
+    declare const beforeEach: any;
 
-declare const it: any;
+    declare const afterEach: any;
 
-declare const fit: any;
+    declare const expect: any;
 
-declare const xit: any;
+    declare const it: any;
 
-declare const fail: any;
+    declare const fit: any;
+
+    declare const xit: any;
+
+    declare const fail: any;
+}
 
 // globals
 // tslint:disable-next-line: interface-name

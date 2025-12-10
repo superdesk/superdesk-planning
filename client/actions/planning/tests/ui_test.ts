@@ -7,6 +7,7 @@ import sinon from 'sinon';
 import {MAIN, WORKSPACE} from '../../../constants';
 import {getTestActionStore, restoreSinonStub} from '../../../utils/testUtils';
 import {planningUtils} from '../../../utils';
+import {noop} from 'lodash';
 
 describe('actions.planning.ui', () => {
     let store;
@@ -63,7 +64,7 @@ describe('actions.planning.ui', () => {
     });
 
     describe('spike', () => {
-        it('ui.spike notifies end user on successful spike', (done) => (
+        it('ui.spike notifies end user on successful spike', (done) => {
             store.test(done, planningUi.spike(data.plannings[1]))
                 .then((item) => {
                     expect(item).toEqual(data.plannings[1]);
@@ -82,11 +83,12 @@ describe('actions.planning.ui', () => {
 
                     done();
                 })
-        ).catch(done.fail));
+                .catch(done.fail);
+        });
 
         it('ui.spike closes editor if item is open', (done) => {
             store.initialState.planning.currentPlanningId = data.plannings[1]._id;
-            return store.test(done, planningUi.spike(data.plannings[1]))
+            store.test(done, planningUi.spike(data.plannings[1]))
                 .then(() => {
                     expect(main.closePreviewAndEditorForItems.callCount).toBe(1);
                     done();
@@ -97,10 +99,9 @@ describe('actions.planning.ui', () => {
         it('ui.spike notifies end user on failure to spike', (done) => {
             restoreSinonStub(planningApis.spike);
             sinon.stub(planningApis, 'spike').callsFake(() => (Promise.reject(errorMessage)));
-            return store.test(done, planningUi.spike(data.plannings[1]))
-                .then(() => {
-                    /* no-op */
-                }, (error) => {
+
+            store.test(done, planningUi.spike(data.plannings[1]))
+                .then(noop, (error) => {
                     expect(error).toEqual(errorMessage);
 
                     // Notifies end user of failure
@@ -115,7 +116,7 @@ describe('actions.planning.ui', () => {
     });
 
     describe('unspike', () => {
-        it('ui.unspike notifies end user on successful unspike', (done) => (
+        it('ui.unspike notifies end user on successful unspike', (done) => {
             store.test(done, planningUi.unspike(data.plannings[1]))
                 .then((item) => {
                     expect(item).toEqual(data.plannings[1]);
@@ -134,12 +135,14 @@ describe('actions.planning.ui', () => {
 
                     done();
                 })
-        ).catch(done.fail));
+                .catch(done.fail);
+        });
 
         it('ui.unspike notifies end user on failure to unspike', (done) => {
             restoreSinonStub(planningApis.unspike);
             sinon.stub(planningApis, 'unspike').callsFake(() => (Promise.reject(errorMessage)));
-            return store.test(done, planningUi.unspike(data.plannings[1]))
+
+            store.test(done, planningUi.unspike(data.plannings[1]))
                 .then(() => {
                     /* no-op */
                 }, (error) => {
@@ -157,7 +160,7 @@ describe('actions.planning.ui', () => {
     });
 
     describe('save', () => {
-        it('saves and reloads planning items', (done) => (
+        it('saves and reloads planning items', (done) => {
             store.test(done, planningUi.save(
                 data.plannings[1],
                 {slugline: 'New Slugger'}
@@ -173,8 +176,8 @@ describe('actions.planning.ui', () => {
 
                     done();
                 })
-                .catch(done.fail))
-        );
+                .catch(done.fail);
+        });
 
         it('on save fail notifies the end user', (done) => {
             restoreSinonStub(planningApis.save);
@@ -182,7 +185,7 @@ describe('actions.planning.ui', () => {
                 () => (Promise.reject(errorMessage))
             );
 
-            return store.test(done, planningUi.save(data.plannings[1], {}))
+            store.test(done, planningUi.save(data.plannings[1], {}))
                 .then(() => {
                     /* no-op */
                 }, (error) => {
@@ -451,7 +454,7 @@ describe('actions.planning.ui', () => {
                 .catch(done.fail);
         });
 
-        it('calls link and notifies user of success', (done) => (
+        it('calls link and notifies user of success', (done) => {
             store.test(done, planningUi.saveFromAuthoring(
                 data.plannings[0],
                 {...data.plannings[0], slugline: 'New Slugger'}
@@ -491,7 +494,8 @@ describe('actions.planning.ui', () => {
 
                     done();
                 })
-        ).catch(done.fail));
+                .catch(done.fail);
+        });
     });
 
     describe('duplicate', () => {
@@ -553,7 +557,7 @@ describe('actions.planning.ui', () => {
                 agendas: ['a1'],
             };
 
-            return store.test(done, planningUi.assignToAgenda(data.plannings[0], data.agendas[0]))
+            store.test(done, planningUi.assignToAgenda(data.plannings[0], data.agendas[0]))
                 .then(() => {
                     expect(planningUi.save.callCount).toBe(1);
                     expect(planningUi.save.args[0]).toEqual([

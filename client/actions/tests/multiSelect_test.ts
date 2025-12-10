@@ -11,7 +11,7 @@ describe('actions.events.ui', () => {
     });
 
     describe('itemBulkSpikeModal', () => {
-        it('shows the spike modal', (done) => (
+        it('shows the spike modal', (done) => {
             store.test(done, multiSelect.itemBulkSpikeModal(data.events))
                 .then(() => {
                     expect(store.dispatch.callCount).toBe(1);
@@ -25,11 +25,12 @@ describe('actions.events.ui', () => {
 
                     done();
                 })
-        ).catch(done.fail));
+                .catch(done.fail);
+        });
     });
 
     describe('itemBulkUnSpikeModal', () => {
-        it('shows the unspike modal', (done) => (
+        it('shows the unspike modal', (done) => {
             store.test(done, multiSelect.itemBulkUnSpikeModal(data.events))
                 .then(() => {
                     expect(store.dispatch.callCount).toBe(1);
@@ -43,6 +44,7 @@ describe('actions.events.ui', () => {
 
                     done();
                 })
-        ).catch(done.fail));
+                .catch(done.fail);
+        });
     });
 });

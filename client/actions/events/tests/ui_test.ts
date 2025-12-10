@@ -1,4 +1,4 @@
-import {omit} from 'lodash';
+import {noop, omit} from 'lodash';
 import sinon from 'sinon';
 import moment from 'moment';
 
@@ -14,7 +14,7 @@ import {getTestActionStore, restoreSinonStub} from '../../../utils/testUtils';
 
 describe('actions.events.ui', () => {
     let errorMessage;
-    let store;
+    let store: ReturnType<typeof getTestActionStore>;
     let services;
     let data;
 
@@ -81,7 +81,7 @@ describe('actions.events.ui', () => {
         restoreSinonStub(eventsUi._openActionModalFromEditor);
     });
 
-    it('openSpikeModal calls `_openActionModal`', (done) => (
+    it('openSpikeModal calls `_openActionModal`', (done) => {
         store.test(done, eventsUi.openSpikeModal(data.events[1]))
             .then(() => {
                 expect(eventsUi._openActionModal.callCount).toBe(1);
@@ -99,7 +99,8 @@ describe('actions.events.ui', () => {
 
                 done();
             })
-    ).catch(done.fail));
+            .catch(done.fail);
+    });
 
     it('openCancelModal calls `_openActionModalFromEditor`', () => {
         eventsUi.openCancelModal(data.events[1]);
@@ -179,7 +180,7 @@ describe('actions.events.ui', () => {
             restoreSinonStub(eventsUi._openActionModal);
         });
 
-        it('openActionModal locks event, calls loadEventDataForAction then shows modal', (done) => (
+        it('openActionModal locks event, calls loadEventDataForAction then shows modal', (done) => {
             store.test(done, eventsUi._openActionModal(
                 data.events[1],
                 {},
@@ -213,18 +214,20 @@ describe('actions.events.ui', () => {
 
                 done();
             })
-        ).catch(done.fail));
+                .catch(done.fail);
+        });
 
         it('openActionModal displays error message if lock fails', (done) => {
             restoreSinonStub(planningApi.locks.lockItem);
             sinon.stub(planningApi.locks, 'lockItem').callsFake(() => Promise.reject(errorMessage));
-            return store.test(done, eventsUi._openActionModal(
+
+            store.test(done, eventsUi._openActionModal(
                 data.events[1],
                 'Cancel Event',
                 'cancel',
                 true,
                 false
-            )).then(() => { /* no-op */ }, (error) => {
+            )).then(noop, (error) => {
                 expect(error).toEqual(errorMessage);
                 done();
             })
@@ -236,13 +239,14 @@ describe('actions.events.ui', () => {
             sinon.stub(eventsApi, 'loadEventDataForAction').callsFake(
                 () => (Promise.reject(errorMessage))
             );
-            return store.test(done, eventsUi._openActionModal(
+
+            store.test(done, eventsUi._openActionModal(
                 data.events[1],
                 'Cancel Event',
                 'cancel',
                 true,
                 false
-            )).then(() => { /* no-op */ }, (error) => {
+            )).then(noop, (error) => {
                 expect(error).toEqual(errorMessage);
                 done();
             })
@@ -251,7 +255,7 @@ describe('actions.events.ui', () => {
     });
 
     describe('spike', () => {
-        it('calls `api.spike`', (done) => (
+        it('calls `api.spike`', (done) => {
             store.test(done, eventsUi.spike(data.events[0]))
                 .then((items) => {
                     expect(items).toEqual(data.events);
@@ -266,13 +270,14 @@ describe('actions.events.ui', () => {
 
                     done();
                 })
-        ).catch(done.fail));
+                .catch(done.fail);
+        });
 
         it('notifies user if `api.spike` fails', (done) => {
             restoreSinonStub(eventsApi.spike);
             sinon.stub(eventsApi, 'spike').callsFake(() => (Promise.reject(errorMessage)));
 
-            return store.test(done, eventsUi.spike(data.events[0]))
+            store.test(done, eventsUi.spike(data.events[0]))
                 .then(null, (error) => {
                     expect(error).toEqual(errorMessage);
 
@@ -288,7 +293,7 @@ describe('actions.events.ui', () => {
     });
 
     describe('unspike', () => {
-        it('calls `api.unspike`', (done) => (
+        it('calls `api.unspike`', (done) => {
             store.test(done, eventsUi.unspike(data.events[0]))
                 .then((items) => {
                     expect(items).toEqual(data.events);
@@ -303,13 +308,14 @@ describe('actions.events.ui', () => {
 
                     done();
                 })
-        ).catch(done.fail));
+                .catch(done.fail);
+        });
 
         it('notifies user if `api.unspike` fails', (done) => {
             restoreSinonStub(eventsApi.unspike);
             sinon.stub(eventsApi, 'unspike').callsFake(() => (Promise.reject(errorMessage)));
 
-            return store.test(done, eventsUi.unspike(data.events[0]))
+            store.test(done, eventsUi.unspike(data.events[0]))
                 .then(null, (error) => {
                     expect(error).toEqual(errorMessage);
 
@@ -350,7 +356,7 @@ describe('actions.events.ui', () => {
 
             store.initialState.main.filter = MAIN.FILTERS.EVENTS;
 
-            return store.test(done, eventsUi.refetch())
+            store.test(done, eventsUi.refetch())
                 .then((events) => {
                     expect(events).toEqual(data.events);
 
@@ -374,7 +380,7 @@ describe('actions.events.ui', () => {
 
             store.initialState.main.filter = MAIN.FILTERS.EVENTS;
 
-            return store.test(done, eventsUi.refetch())
+            store.test(done, eventsUi.refetch())
                 .then(null, (error) => {
                     expect(error).toEqual(errorMessage);
 
@@ -390,7 +396,7 @@ describe('actions.events.ui', () => {
             restoreSinonStub(eventsUi.refetch);
             store.initialState.main.filter = MAIN.FILTERS.COMBINED;
 
-            return store.test(done, eventsUi.refetch())
+            store.test(done, eventsUi.refetch())
                 .then((events) => {
                     expect(events).toEqual([]);
 
@@ -413,7 +419,7 @@ describe('actions.events.ui', () => {
             restoreSinonStub(eventsApi.receiveEvents);
         });
 
-        it('ids', (done) => (
+        it('ids', (done) => {
             store.test(done, eventsUi.fetchEvents({ids: ['e1', 'e2', 'e3']}))
                 .then((response) => {
                     expect(store.dispatch.callCount).toBe(4);
@@ -423,7 +429,8 @@ describe('actions.events.ui', () => {
                     expect(response).toEqual(data.events);
                     done();
                 })
-        ).catch(done.fail));
+                .catch(done.fail);
+        });
     });
 
     describe('duplicate', () => {
@@ -439,7 +446,7 @@ describe('actions.events.ui', () => {
             restoreSinonStub(moment.tz.guess);
         });
 
-        it('duplicate updates past event date to current date and preserves files and links', () => {
+        it('duplicate updates past event date to current date and preserves files and links', (done) => {
             data.events[0].dates.start = moment(data.events[0].dates.start);
             data.events[0].dates.end = moment(data.events[0].dates.end);
             data.events[0].files = ['file1_id'];
@@ -684,7 +691,7 @@ describe('actions.events.ui', () => {
             restoreSinonStub(eventsUi.fetchEvents);
         });
 
-        it('selects default Calendar', (done) => (
+        it('selects default Calendar', (done) => {
             store.test(done, eventsUi.selectCalendar())
                 .then(() => {
                     expect(store.dispatch.callCount).toBe(4);
@@ -702,9 +709,10 @@ describe('actions.events.ui', () => {
 
                     done();
                 })
-        ).catch(done.fail));
+                .catch(done.fail);
+        });
 
-        it('selects specific calendar and passes params to fetchEvents', (done) => (
+        it('selects specific calendar and passes params to fetchEvents', (done) => {
             store.test(done, eventsUi.selectCalendar('cal1', {fulltext: 'search text'}))
                 .then(() => {
                     expect(store.dispatch.callCount).toBe(4);
@@ -722,6 +730,7 @@ describe('actions.events.ui', () => {
 
                     done();
                 })
-        ).catch(done.fail));
+                .catch(done.fail);
+        });
     });
 });

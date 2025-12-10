@@ -4,6 +4,7 @@ import eventsApi from '../../events/api';
 import sinon from 'sinon';
 import {getTestActionStore, restoreSinonStub} from '../../../utils/testUtils';
 import {PLANNING, EVENTS, EVENTS_PLANNING, MAIN} from '../../../constants';
+import {noop} from 'lodash';
 
 describe('actions.eventsplanning.ui', () => {
     let store;
@@ -35,7 +36,7 @@ describe('actions.eventsplanning.ui', () => {
         restoreSinonStub(eventsApi.loadAssociatedPlannings);
     });
 
-    it('fetch data', (done) => (
+    it('fetch data', (done) => {
         store.test(done, eventsPlanningUi.fetch({}))
             .then(() => {
                 expect(eventsPlanningApi.query.callCount).toBe(1);
@@ -80,7 +81,8 @@ describe('actions.eventsplanning.ui', () => {
 
                 done();
             })
-    ).catch(done.fail));
+            .catch(done.fail);
+    });
 
     it('load more and fetch data equal to page size', (done) => {
         store.initialState.main.search.COMBINED.lastRequestParams = {page: 2};
@@ -95,7 +97,8 @@ describe('actions.eventsplanning.ui', () => {
                 expect(store.dispatch.args[1][0]).toEqual(
                     {
                         type: MAIN.ACTIONS.REQUEST,
-                        payload: {COMBINED: {page: 3}}}
+                        payload: {COMBINED: {page: 3}}
+                    }
                 );
 
                 expect(store.dispatch.args[3][0]).toEqual(
@@ -378,7 +381,7 @@ describe('actions.eventsplanning.ui', () => {
 
             api.events_planning_filters.save = sinon.spy(() => (Promise.reject()));
             store.test(done, eventsPlanningUi.saveFilter(newFilter))
-                .then(() => { /* no-op */ }, () => {
+                .then(noop, () => {
                     expect(api.events_planning_filters.save.callCount).toBe(1);
                     expect(store.dispatch.callCount).toBe(1);
                     expect(services.notify.error.callCount).toBe(1);

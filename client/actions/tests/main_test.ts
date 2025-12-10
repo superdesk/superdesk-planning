@@ -11,7 +11,6 @@ import eventsApi from '../events/api';
 import planningUi from '../planning/ui';
 import planningApis from '../planning/api';
 import eventsPlanningUi from '../eventsPlanning/ui';
-import {locks} from '../';
 
 describe('actions.main', () => {
     let store;
@@ -25,8 +24,10 @@ describe('actions.main', () => {
     });
 
     describe('closeEditor', () => {
-        it('closes panel editor', () => {
-            store.test(null, main.closeEditor());
+        it('closes panel editor', (done) => {
+            store.test(done, () => {
+                main.closeEditor();
+            });
 
             expect(store.dispatch.callCount).toBe(3);
             expect(store.dispatch.args[0]).toEqual([{
@@ -65,7 +66,7 @@ describe('actions.main', () => {
             restoreSinonStub(planningApis.post);
         });
 
-        it('calls events.ui.post', (done) => (
+        it('calls events.ui.post', (done) => {
             store.test(done, main.post(data.events[0], {}, false))
                 .then(() => {
                     expect(eventsApi.post.callCount).toBe(1);
@@ -76,10 +77,10 @@ describe('actions.main', () => {
 
                     done();
                 })
-                .catch(done.fail)
-        ));
+                .catch(done.fail);
+        });
 
-        it('calls planning.ui.post', (done) => (
+        it('calls planning.ui.post', (done) => {
             store.test(done, main.post(data.plannings[0]))
                 .then(() => {
                     expect(planningApis.post.callCount).toBe(1);
@@ -90,10 +91,10 @@ describe('actions.main', () => {
 
                     done();
                 })
-                .catch(done.fail)
-        ));
+                .catch(done.fail);
+        });
 
-        it('raises an error on post if the item type was not found', (done) => (
+        it('raises an error on post if the item type was not found', (done) => {
             store.test(done, main.post({}))
                 .then(null, () => {
                     expect(services.notify.error.callCount).toBe(1);
@@ -103,8 +104,8 @@ describe('actions.main', () => {
 
                     done();
                 })
-                .catch(done.fail)
-        ));
+                .catch(done.fail);
+        });
     });
 
     describe('unpost', () => {
@@ -118,7 +119,7 @@ describe('actions.main', () => {
             restoreSinonStub(planningApis.unpost);
         });
 
-        it('calls events.ui.unpost', (done) => (
+        it('calls events.ui.unpost', (done) => {
             store.test(done, main.unpost(data.events[0], {}, false))
                 .then(() => {
                     expect(eventsApi.unpost.callCount).toBe(1);
@@ -129,10 +130,10 @@ describe('actions.main', () => {
 
                     done();
                 })
-                .catch(done.fail)
-        ));
+                .catch(done.fail);
+        });
 
-        it('calls planning.ui.unpost', (done) => (
+        it('calls planning.ui.unpost', (done) => {
             store.test(done, main.unpost(data.plannings[0]))
                 .then(() => {
                     expect(planningApis.unpost.callCount).toBe(1);
@@ -143,10 +144,10 @@ describe('actions.main', () => {
 
                     done();
                 })
-                .catch(done.fail)
-        ));
+                .catch(done.fail);
+        });
 
-        it('raises an error on unpost if the item type was not found', (done) => (
+        it('raises an error on unpost if the item type was not found', (done) => {
             store.test(done, main.unpost({}))
                 .then(null, () => {
                     expect(services.notify.error.callCount).toBe(1);
@@ -156,8 +157,8 @@ describe('actions.main', () => {
 
                     done();
                 })
-                .catch(done.fail)
-        ));
+                .catch(done.fail);
+        });
     });
 
     describe('loadmore', () => {
@@ -332,7 +333,7 @@ describe('actions.main', () => {
             restoreSinonStub(planningApis.fetchById);
         });
 
-        it('loads an Event for preview', (done) => (
+        it('loads an Event for preview', (done) => {
             store.test(done, main.loadItem('e1', 'event', 'preview'))
                 .then((item) => {
                     expect(item).toEqual(data.events[0]);
@@ -346,10 +347,10 @@ describe('actions.main', () => {
                     expect(store.dispatch.args[3]).toEqual([{type: 'MAIN_PREVIEW_LOADING_COMPLETE'}]);
 
                     done();
-                }, done.fail)
-        ));
+                }, done.fail);
+        });
 
-        it('loads an Event for editing', (done) => (
+        it('loads an Event for editing', (done) => {
             store.test(done, main.loadItem('e1', 'event', 'edit'))
                 .then((item) => {
                     expect(item).toEqual(data.events[0]);
@@ -363,10 +364,10 @@ describe('actions.main', () => {
                     expect(store.dispatch.args[3]).toEqual([{type: 'MAIN_EDIT_LOADING_COMPLETE'}]);
 
                     done();
-                }, done.fail)
-        ));
+                }, done.fail);
+        });
 
-        it('loads an Planning for preview', (done) => (
+        it('loads an Planning for preview', (done) => {
             store.test(done, main.loadItem('p1', 'planning', 'preview'))
                 .then((item) => {
                     expect(item).toEqual(data.plannings[0]);
@@ -380,10 +381,10 @@ describe('actions.main', () => {
                     expect(store.dispatch.args[3]).toEqual([{type: 'MAIN_PREVIEW_LOADING_COMPLETE'}]);
 
                     done();
-                }, done.fail)
-        ));
+                }, done.fail);
+        });
 
-        it('loads an Planning for editing', (done) => (
+        it('loads an Planning for editing', (done) => {
             store.test(done, main.loadItem('p1', 'planning', 'edit'))
                 .then((item) => {
                     expect(item).toEqual(data.plannings[0]);
@@ -397,10 +398,10 @@ describe('actions.main', () => {
                     expect(store.dispatch.args[3]).toEqual([{type: 'MAIN_EDIT_LOADING_COMPLETE'}]);
 
                     done();
-                }, done.fail)
-        ));
+                }, done.fail);
+        });
 
-        it('fails if unknown action type supplied', (done) => (
+        it('fails if unknown action type supplied', (done) => {
             store.test(done, main.loadItem('e1', 'event', 'dummy'))
                 .then(null, (error) => {
                     expect(error).toBe('Unknown action "dummy"');
@@ -412,9 +413,10 @@ describe('actions.main', () => {
 
                     done();
                 })
-        ).catch(done.fail));
+                .catch(done.fail);
+        });
 
-        it('fails if unknown item type supplied', (done) => (
+        it('fails if unknown item type supplied', (done) => {
             store.test(done, main.loadItem('e1', 'dummy', 'edit'))
                 .then(null, (error) => {
                     expect(error).toBe('Unknown item type "dummy"');
@@ -426,7 +428,8 @@ describe('actions.main', () => {
 
                     done();
                 })
-        ).catch(done.fail));
+                .catch(done.fail);
+        });
     });
 
     describe('openFromURLOrRedux', () => {
@@ -541,7 +544,7 @@ describe('actions.main', () => {
             restoreSinonStub(main.openIgnoreCancelSaveModal);
         });
 
-        it('directly runs the action if the item is not locked', (done) => (
+        it('directly runs the action if the item is not locked', (done) => {
             store.test(done, main.openActionModalFromEditor(data.events[0], 'title', actionCallback))
                 .then(() => {
                     expect(actionCallback.callCount).toBe(1);
@@ -549,7 +552,8 @@ describe('actions.main', () => {
 
                     done();
                 })
-        ).catch(done.fail));
+                .catch(done.fail);
+        });
 
         it('unlocks and runs action if there is no autosave data', (done) => {
             store.init();
@@ -563,7 +567,7 @@ describe('actions.main', () => {
                 },
             };
 
-            return store.test(done, main.openActionModalFromEditor(data.events[0], 'title', actionCallback))
+            store.test(done, main.openActionModalFromEditor(data.events[0], 'title', actionCallback))
                 .then(() => {
                     expect(planningApi.locks.unlockItem.callCount).toBe(1);
                     expect(planningApi.locks.unlockItem.args[0]).toEqual([data.events[0]]);
@@ -619,7 +623,7 @@ describe('actions.main', () => {
 
             store.initialState.forms.editors.panel.itemId = data.events[0]._id;
 
-            return store.test(done, main.openActionModalFromEditor(data.events[0], 'title', actionCallback))
+            store.test(done, main.openActionModalFromEditor(data.events[0], 'title', actionCallback))
                 .then(() => {
                     expect(main.openIgnoreCancelSaveModal.callCount).toBe(1);
                     expect(main.openIgnoreCancelSaveModal.args[0]).toEqual([{
@@ -660,7 +664,7 @@ describe('actions.main', () => {
             store.initialState.forms.editors.panel.itemId = null;
             store.initialState.forms.editors.modal.itemId = data.events[0]._id;
 
-            return store.test(done, main.openActionModalFromEditor(data.events[0], 'title', actionCallback))
+            store.test(done, main.openActionModalFromEditor(data.events[0], 'title', actionCallback))
                 .then(() => {
                     expect(main.openIgnoreCancelSaveModal.callCount).toBe(1);
                     expect(main.openIgnoreCancelSaveModal.args[0]).toEqual([{
@@ -701,7 +705,7 @@ describe('actions.main', () => {
             store.initialState.forms.editors.panel.itemId = null;
             store.initialState.forms.editors.modal.itemId = null;
 
-            return store.test(done, main.openActionModalFromEditor(data.events[0], 'title', actionCallback))
+            store.test(done, main.openActionModalFromEditor(data.events[0], 'title', actionCallback))
                 .then(() => {
                     expect(main.openIgnoreCancelSaveModal.callCount).toBe(1);
                     expect(main.openIgnoreCancelSaveModal.args[0]).toEqual([{
@@ -731,7 +735,7 @@ describe('actions.main', () => {
             restoreSinonStub(main.save);
         });
 
-        it('Does not save if there are no unsaved changes', (done) => (
+        it('Does not save if there are no unsaved changes', (done) => {
             store.test(done, main.saveAutosave(data.events[0]))
                 .then((item) => {
                     expect(item).toEqual(data.events[0]);
@@ -739,8 +743,8 @@ describe('actions.main', () => {
 
                     done();
                 })
-                .catch(done.fail))
-        );
+                .catch(done.fail);
+        });
 
         it('Autosaves a Planning item', (done) => {
             store.init();
@@ -751,7 +755,7 @@ describe('actions.main', () => {
                 },
             };
 
-            return store.test(done, main.saveAutosave(data.plannings[0]))
+            store.test(done, main.saveAutosave(data.plannings[0]))
                 .then((item) => {
                     expect(item).toEqual({
                         ...data.plannings[0],
@@ -782,7 +786,7 @@ describe('actions.main', () => {
                 },
             };
 
-            return store.test(done, main.saveAutosave(data.events[0], false, 'all'))
+            store.test(done, main.saveAutosave(data.events[0], false, 'all'))
                 .then((item) => {
                     expect(item).toEqual({
                         ...data.events[0],
@@ -826,7 +830,7 @@ describe('actions.main', () => {
 
             store.init();
 
-            return store.test(done, main.fetchQueueItem(queueItem))
+            store.test(done, main.fetchQueueItem(queueItem))
                 .then((item) => {
                     expect(item._id).toEqual('queueitem--e1--12');
                     expect(store.spies.api.published_planning.query.callCount).toBe(1);
@@ -882,7 +886,7 @@ describe('actions.main', () => {
             sinon.stub(planningApi.locks, 'unlockItem').callsFake((item) => Promise.resolve(item));
         });
 
-        it('saves and unlocks planning item', (done) =>
+        it('saves and unlocks planning item', (done) => {
             store.test(done, main.saveAndUnlockItem(data.plannings[0], {
                 ...data.plannings[0],
                 slugline: 'New Slugger',
@@ -899,10 +903,10 @@ describe('actions.main', () => {
 
                     done();
                 })
-                .catch(done.fail)
-        );
+                .catch(done.fail);
+        });
 
-        it('saves and unlocks event', (done) =>
+        it('saves and unlocks event', (done) => {
             store.test(done, main.saveAndUnlockItem(data.events[0], {slugline: 'New Slugger'}))
                 .then(() => {
                     expect(eventsUi.saveWithConfirmation.callCount).toBe(1);
@@ -918,8 +922,8 @@ describe('actions.main', () => {
 
                     done();
                 })
-                .catch(done.fail)
-        );
+                .catch(done.fail);
+        });
 
         afterEach(() => {
             restoreSinonStub(planningUi.save);

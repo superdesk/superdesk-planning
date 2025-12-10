@@ -3,7 +3,8 @@
         "index.ts"
     ],
     "include": [
-        "client"
+        "client",
+        "globals.d.ts"
     ],
     "compilerOptions": {
         "baseUrl": "client",
@@ -20,10 +21,18 @@
         ],
         "jsx": "react",
         "paths": {
-            "core/*": ["superdesk-core/scripts/core/*"],
-            "apps/*": ["superdesk-core/scripts/apps/*"],
-            "superdesk-interfaces/*": ["superdesk-core/scripts/superdesk-interfaces/*"],
-            "appConfig": ["superdesk-core/scripts/appConfig"]
+            "core/*": [
+                "superdesk-core/scripts/core/*"
+            ],
+            "apps/*": [
+                "superdesk-core/scripts/apps/*"
+            ],
+            "superdesk-interfaces/*": [
+                "superdesk-core/scripts/superdesk-interfaces/*"
+            ],
+            "appConfig": [
+                "superdesk-core/scripts/appConfig"
+            ],
         }
     }
 }

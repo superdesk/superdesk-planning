@@ -3,7 +3,6 @@ import planningApis from '../../planning/api';
 import planningUi from '../ui';
 import featuredPlanning from '../featuredPlanning';
 import eventsPlanningUi from '../../eventsPlanning/ui';
-import eventsApi from '../../events/api';
 import main from '../../main';
 import sinon from 'sinon';
 import {registerNotifications} from '../../../utils';
@@ -169,7 +168,7 @@ describe('actions.planning.notifications', () => {
             const eventId = data.plannings[1].related_events[0]._id;
 
             store.initialState.main.filter = MAIN.FILTERS.PLANNING;
-            return store.test(done, planningNotifications.onPlanningCreated({}, {
+            store.test(done, planningNotifications.onPlanningCreated({}, {
                 item: data.plannings[1]._id,
                 event_ids: [eventId]
             }))
@@ -199,7 +198,7 @@ describe('actions.planning.notifications', () => {
             restoreSinonStub(planningApis.getPlanning);
         });
 
-        it('calls getPlanning and dispatches the LOCK_PLANNING action', (done) => (
+        it('calls getPlanning and dispatches the LOCK_PLANNING action', (done) => {
             store.test(done, planningNotifications.onPlanningLocked(
                 {},
                 {
@@ -233,7 +232,8 @@ describe('actions.planning.notifications', () => {
 
                     done();
                 })
-        ).catch(done.fail));
+                .catch(done.fail);
+        });
     });
 
     describe('onPlanningUnlocked', () => {
@@ -296,7 +296,7 @@ describe('actions.planning.notifications', () => {
                 .catch(done.fail);
         });
 
-        it('dispatches `UNLOCK_PLANNING` action', (done) => (
+        it('dispatches `UNLOCK_PLANNING` action', (done) => {
             store.test(done, planningNotifications.onPlanningUnlocked({},
                 {
                     item: 'p1',
@@ -322,7 +322,8 @@ describe('actions.planning.notifications', () => {
 
                     done();
                 })
-        ).catch(done.fail));
+                .catch(done.fail);
+        });
     });
 
     describe('onPlanningPosted', () => {
@@ -372,7 +373,7 @@ describe('actions.planning.notifications', () => {
             restoreSinonStub(featuredPlanning.getAndUpdateStoredPlanningItem);
         });
 
-        it('onPlanningSpiked dispatches `SPIKE_PLANNING`', (done) => (
+        it('onPlanningSpiked dispatches `SPIKE_PLANNING`', (done) => {
             store.test(done, planningNotifications.onPlanningSpiked({}, {
                 item: data.plannings[0]._id,
                 state: 'spiked',
@@ -409,9 +410,10 @@ describe('actions.planning.notifications', () => {
 
                     done();
                 })
-        ).catch(done.fail));
+                .catch(done.fail);
+        });
 
-        it('onPlanningUnspiked dispatches `UNSPIKE_PLANNING`', (done) => (
+        it('onPlanningUnspiked dispatches `UNSPIKE_PLANNING`', (done) => {
             store.test(done, planningNotifications.onPlanningUnspiked({}, {
                 item: data.plannings[0]._id,
                 state: 'draft',
@@ -446,7 +448,8 @@ describe('actions.planning.notifications', () => {
 
                     done();
                 })
-        ).catch(done.fail));
+                .catch(done.fail);
+        });
     });
 
     describe('onPlanningUpdated', () => {
@@ -485,7 +488,7 @@ describe('actions.planning.notifications', () => {
                 item_type: 'planning',
             };
 
-            return store.test(done, planningNotifications.onPlanningUpdated({}, {
+            store.test(done, planningNotifications.onPlanningUpdated({}, {
                 item: data.plannings[0]._id,
                 event_ids: [],
                 added_agendas: [],
@@ -499,7 +502,7 @@ describe('actions.planning.notifications', () => {
                 .catch(done.fail);
         });
 
-        it('onPlanningUpdated does calls scheduleRefetch if item is not being edited', (done) => (
+        it('onPlanningUpdated does calls scheduleRefetch if item is not being edited', (done) => {
             store.test(done, planningNotifications.onPlanningUpdated({}, {
                 item: data.plannings[0]._id,
                 event_ids: [],
@@ -511,7 +514,7 @@ describe('actions.planning.notifications', () => {
 
                     done();
                 })
-                .catch(done.fail)
-        ));
+                .catch(done.fail);
+        });
     });
 });

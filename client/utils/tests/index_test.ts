@@ -75,7 +75,7 @@ describe('Utils', () => {
             jasmine.getGlobal().setTimeout = originalSetTimeout;
         });
 
-        it('sends dispatch on every retry', (done) => (
+        it('sends dispatch on every retry', (done) => {
             dispatch(utils.dispatchUtils.retryDispatch(mockActionDispatcher(), mockCheck, maxRetries))
                 .then(() => {
                     expect(1).toBe(0, 'Should never get executed');
@@ -98,9 +98,10 @@ describe('Utils', () => {
 
                     done();
                 })
-        ).catch(done.fail));
+                .catch(done.fail);
+        });
 
-        it('rejects when maxRetries is exceeded', (done) => (
+        it('rejects when maxRetries is exceeded', (done) => {
             dispatch(utils.dispatchUtils.retryDispatch(mockActionDispatcher(), mockCheck, maxRetries))
                 .then(() => {
                     expect(1).toBe(0, 'Should never get executed');
@@ -111,12 +112,14 @@ describe('Utils', () => {
                     expect(mockCheck.callCount).toBe(maxRetries);
                     done();
                 })
-        ).catch(done.fail));
+                .catch(done.fail);
+        });
 
         it('fails on first action error', (done) => {
             mockAction = sinon.spy(() => Promise.reject({error_msg: 'Action failed!'}));
             mockCheck = sinon.spy(() => true);
-            return dispatch(utils.dispatchUtils.retryDispatch(mockActionDispatcher(), mockCheck, maxRetries))
+
+            dispatch(utils.dispatchUtils.retryDispatch(mockActionDispatcher(), mockCheck, maxRetries))
                 .then(() => {
                     expect(1).toBe(0, 'Should never get executed');
                     done();
@@ -132,7 +135,8 @@ describe('Utils', () => {
 
         it('returns the action response on success', (done) => {
             mockCheck = sinon.spy(() => true);
-            return dispatch(utils.dispatchUtils.retryDispatch(mockActionDispatcher(), mockCheck, maxRetries))
+
+            dispatch(utils.dispatchUtils.retryDispatch(mockActionDispatcher(), mockCheck, maxRetries))
                 .then((data) => {
                     expect(data).toEqual({_items: [1, 2, 3]});
                     expect(mockCheck.callCount).toBe(1);
@@ -153,7 +157,7 @@ describe('Utils', () => {
                 return tries === 2;
             });
 
-            return dispatch(utils.dispatchUtils.retryDispatch(mockActionDispatcher(), mockCheck, maxRetries))
+            dispatch(utils.dispatchUtils.retryDispatch(mockActionDispatcher(), mockCheck, maxRetries))
                 .then(() => {
                     expect(mockCheck.callCount).toBe(2);
                     expect(mockCheck.args[0]).toEqual([{_items: [1, 2, 3]}]);
@@ -171,7 +175,7 @@ describe('Utils', () => {
                 called: false,
             };
 
-            return dispatch(utils.dispatchUtils.scheduleDispatch(mockActionDispatcher(), nextDispatch))
+            dispatch(utils.dispatchUtils.scheduleDispatch(mockActionDispatcher(), nextDispatch))
                 .then(() => {
                     expect(mockAction.callCount).toBe(1);
                     // nextDispatch.called value is modified
@@ -189,7 +193,7 @@ describe('Utils', () => {
                 called: true,
             };
 
-            return dispatch(utils.dispatchUtils.scheduleDispatch(mockActionDispatcher(), nextDispatch))
+            dispatch(utils.dispatchUtils.scheduleDispatch(mockActionDispatcher(), nextDispatch))
                 .then(() => {
                     expect(mockAction.callCount).toBe(0);
                     // nextDispatch.called value is not modified

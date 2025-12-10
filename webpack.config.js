@@ -32,6 +32,9 @@ module.exports = {
         alias: {
             images: path.resolve(__dirname, 'node_modules/superdesk-core/images'),
             'draft-js': '@sourcefabric/draft-js',
+
+            react: path.resolve(__dirname, 'node_modules/react'),
+            'react-dom': path.resolve(__dirname, 'node_modules/react-dom'),
         },
     },
     module: {
@@ -87,6 +90,7 @@ module.exports = {
         new webpack.DefinePlugin({
             gettext: 'function gettext(msg) { return msg; }',
             __SUPERDESK_CONFIG__: JSON.stringify({ view: {} }),
+            'process.env.TEST_FILE_PATTERN': JSON.stringify(process.env.TEST_FILE_PATTERN || ''),
         }),
     ],
 };

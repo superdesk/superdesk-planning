@@ -8,7 +8,8 @@ import {
     getTestActionStore,
     restoreSinonStub,
 } from '../../../utils/testUtils';
-import {ASSIGNMENTS, ALL_DESKS} from '../../../constants';
+import {ASSIGNMENTS} from '../../../constants';
+import {noop} from 'lodash';
 
 describe('actions.assignments.api', () => {
     let store;
@@ -110,7 +111,7 @@ describe('actions.assignments.api', () => {
                 store.initialState.assignment.assignments = {};
                 return store.dispatch(assignmentsApi.fetchAssignmentById('as1'));
             })
-                .then(() => { /* no-op */ }, (error) => {
+                .then(noop, (error) => {
                     expect(services.api('assignments').getById.callCount).toBe(1);
                     expect(services.api('assignments').getById.args[0]).toEqual(['as1']);
 

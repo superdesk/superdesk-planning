@@ -312,7 +312,8 @@ describe('actions.assignments.ui', () => {
 
         it('openArchivePreview does nothing if no content is linked', (done) => {
             sinon.stub(assignmentsApi, 'loadArchiveItem');
-            return store.test(done, assignmentsUi.openArchivePreview(data.assignments[0]))
+
+            store.test(done, assignmentsUi.openArchivePreview(data.assignments[0]))
                 .then(() => {
                     expect(assignmentsApi.loadArchiveItem.callCount).toBe(0);
                     expect(assignmentsUi.closePreview.callCount).toBe(0);
@@ -325,7 +326,8 @@ describe('actions.assignments.ui', () => {
         it('openArchivePreview fetches the archive item and opens the authoring workspace in view mode', (done) => {
             sinon.stub(assignmentsApi, 'loadArchiveItem').returns(Promise.resolve(testData.archive[0]));
             data.assignments[0].item_ids = ['item1'];
-            return store.test(done, assignmentsUi.openArchivePreview(data.assignments[0]))
+
+            store.test(done, assignmentsUi.openArchivePreview(data.assignments[0]))
                 .then((item) => {
                     expect(item).toEqual(testData.archive[0]);
 
@@ -344,7 +346,8 @@ describe('actions.assignments.ui', () => {
         it('openArchivePreview returns rejected Promise on failure to load the archive item', (done) => {
             sinon.stub(assignmentsApi, 'loadArchiveItem').returns(Promise.reject(errorMessage));
             data.assignments[0].item_ids = ['item1'];
-            return store.test(done, assignmentsUi.openArchivePreview(data.assignments[0]))
+
+            store.test(done, assignmentsUi.openArchivePreview(data.assignments[0]))
                 .then(noop, (error) => {
                     expect(error).toEqual(errorMessage);
 
@@ -410,7 +413,7 @@ describe('actions.assignments.ui', () => {
                 search: sinon.stub().callsFake(() => ({assignment: 'as1'})),
             };
 
-            return store.test(done, assignmentsUi.updatePreviewItemOnRouteUpdate())
+            store.test(done, assignmentsUi.updatePreviewItemOnRouteUpdate())
                 .then(() => {
                     expect(assignmentsUi.preview.callCount).toBe(1);
                     done();
@@ -425,7 +428,7 @@ describe('actions.assignments.ui', () => {
             };
 
             sinon.stub(assignmentsApi, 'fetchAssignmentById').callsFake(() => (Promise.resolve(newAssignment)));
-            return store.test(done, assignmentsUi.updatePreviewItemOnRouteUpdate())
+            store.test(done, assignmentsUi.updatePreviewItemOnRouteUpdate())
                 .then(() => {
                     expect(assignmentsUi.preview.callCount).toBe(1);
                     done();
@@ -440,7 +443,7 @@ describe('actions.assignments.ui', () => {
             };
 
             sinon.stub(assignmentsApi, 'fetchAssignmentById').callsFake(() => (Promise.resolve(restrictedAssignment)));
-            return store.test(done, assignmentsUi.updatePreviewItemOnRouteUpdate())
+            store.test(done, assignmentsUi.updatePreviewItemOnRouteUpdate())
                 .then(() => {
                     expect(assignmentsUi.preview.callCount).toBe(0);
                     expect(services.notify.error.callCount).toBe(1);
@@ -458,7 +461,7 @@ describe('actions.assignments.ui', () => {
             };
 
             sinon.stub(assignmentsApi, 'fetchAssignmentById').callsFake(() => (Promise.reject()));
-            return store.test(done, assignmentsUi.updatePreviewItemOnRouteUpdate())
+            store.test(done, assignmentsUi.updatePreviewItemOnRouteUpdate())
                 .then(() => {
                     expect(assignmentsUi.preview.callCount).toBe(0);
                     expect(services.notify.error.callCount).toBe(1);

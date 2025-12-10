@@ -21,8 +21,8 @@ export class PreviewFieldLocation extends React.PureComponent<IListFieldProps> {
                     value={locations.length ? '' : undefined} // otherwise it won't render in preview
                     {...this.props}
                 >
-                    {locations.map((location) => (
-                        <div key={location.qcode}>
+                    {locations.map((location, i) => (
+                        <div key={i}>
                             <Location
                                 name={location.name}
                                 address={location.formatted_address}
