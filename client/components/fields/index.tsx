@@ -35,7 +35,6 @@ import {related_events} from './related_events';
 import {related_plannings} from './related_plannings';
 import {event_datetime} from './event_datetime';
 import {vocabulary} from './vocabulary';
-import {ILineConfig} from 'globals';
 import {urgency} from './urgency';
 import {anpa_category} from './anpa_category';
 import {priority} from './priority';

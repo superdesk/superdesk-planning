@@ -5,7 +5,6 @@ import {EditorFieldToggle} from './base/toggle';
 import {superdeskApi} from '../../../superdeskApi';
 import {Tooltip} from '@sourcefabric/common';
 import {isItemExpired, planningUtils} from '../../../utils';
-import {IPlanningItem} from 'globals';
 import {WORKFLOW_STATE} from '../../../constants';
 
 type IProps = IEditorFieldProps<IPlanningCoverageItem> & {planningItem: IPlanningItem};

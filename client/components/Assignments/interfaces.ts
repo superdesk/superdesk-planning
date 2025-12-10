@@ -1,4 +1,3 @@
-import {ILineConfig} from 'globals';
 import {IAssignmentItem} from 'interfaces';
 
 export interface IAssignmentListItemField {

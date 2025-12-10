@@ -24,7 +24,6 @@ import {getUserInterfaceLanguageFromCV} from '../../utils/users';
 import {LineItems} from '../../components/UI/List/LineItems';
 import {eventFirstLineConfig, eventSecondLineConfig} from '../../config';
 import {isSameDay} from '../../helpers';
-import {ILineConfig} from 'globals';
 
 interface IState {
     hover: boolean;

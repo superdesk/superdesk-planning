@@ -12,7 +12,6 @@ import {LineItems} from '../../../components/UI/List/LineItems';
 import {getPlanningSecondLineConfig, planningFirstLineConfig} from '../../../config';
 import {getUserInterfaceLanguageFromCV} from '../../../utils/users';
 import {ILockedItems, IPlanningItem} from '../../../interfaces';
-import {ILineConfig} from 'globals';
 
 interface IProps {
     item: IPlanningItem;

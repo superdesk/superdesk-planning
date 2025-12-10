@@ -4,7 +4,6 @@ import {superdeskApi} from '../../superdeskApi';
 import {IFieldsProps} from '../../interfaces';
 import {DEFAULT_PRIORITY_COLORS} from '../../components/editor-standalone/field-definitions/priority-field';
 import {getTextColor} from 'superdesk-ui-framework/react';
-import {ILineConfigPriority} from 'globals';
 
 type IProps = Omit<IFieldsProps, 'fieldOptions'> & ILineConfigPriority;
 

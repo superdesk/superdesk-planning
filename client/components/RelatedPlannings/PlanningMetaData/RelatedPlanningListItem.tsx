@@ -14,7 +14,6 @@ import {LineItems} from '../../../components/UI/List/LineItems';
 import {getPlanningSecondLineConfig, planningFirstLineConfig} from '../../../config';
 import {getUserInterfaceLanguageFromCV} from '../../../utils/users';
 import {renderFields} from '../../../components/fields';
-import {ILineConfig} from 'globals';
 
 interface IOwnProps {
     item: DeepPartial<IPlanningItem>;

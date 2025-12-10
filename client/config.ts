@@ -2,7 +2,6 @@ import moment from 'moment-timezone';
 
 import {PLANNING_VIEW} from './interfaces';
 import {appConfig} from 'appConfig';
-import {ILineConfig} from 'globals';
 
 // Set the default values for Planning config entries
 

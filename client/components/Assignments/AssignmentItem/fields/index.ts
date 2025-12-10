@@ -12,7 +12,6 @@ import {SluglineComponent} from './Slugline';
 import {StateComponent} from './State';
 import {LanguageComponent} from './Language';
 import {appConfig} from 'appConfig';
-import {ILineConfig} from 'globals';
 import {IAssignmentListItemField} from '../../../../components/Assignments/interfaces';
 import {VocabularyComponent} from './Vocabulary';
 import {AnpaCategory} from './AnpaCategory';

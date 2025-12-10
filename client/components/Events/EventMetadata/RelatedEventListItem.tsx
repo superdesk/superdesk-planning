@@ -13,7 +13,6 @@ import {LineItems} from '../../../components/UI/List/LineItems';
 import {eventFirstLineConfig, eventSecondLineConfig} from '../../../config';
 import {renderFields} from '../../../components/fields';
 import {getUserInterfaceLanguageFromCV} from '../../../utils/users';
-import {ILineConfig} from 'globals';
 
 interface IProps {
     item: DeepPartial<IEventItem>;

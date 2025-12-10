@@ -14,7 +14,6 @@ import {
 import {Dispatch, Store} from 'redux';
 import * as moment from 'moment';
 import * as React from 'react';
-import {ILineConfig} from './globals';
 
 export interface IPlanningNewsCoverageStatus {
     qcode: 'ncostat:int' | 'ncostat:notdec' | 'ncostat:notint' | 'ncostat:onreq';

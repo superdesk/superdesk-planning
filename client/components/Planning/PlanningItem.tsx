@@ -32,7 +32,6 @@ import {getUserInterfaceLanguageFromCV} from '../../utils/users';
 import {LineItems} from '../../components/UI/List/LineItems';
 import {getPlanningSecondLineConfig, planningFirstLineConfig} from '../../config';
 import {getRelatedEventIdsForPlanning} from '../../utils/planning';
-import {ILineConfig} from 'globals';
 
 interface IState {
     hover: boolean;

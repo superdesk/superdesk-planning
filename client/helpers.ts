@@ -4,7 +4,6 @@ import {IDateTime, IItemAction} from './interfaces';
 import {IVocabulary} from 'superdesk-api';
 import {isEmpty, partition} from 'lodash';
 import {superdeskApi} from './superdeskApi';
-import {ILineConfig} from 'globals';
 
 export function isItemAction(
     x: IItemAction | typeof GENERIC_ITEM_ACTIONS.DIVIDER | typeof GENERIC_ITEM_ACTIONS.LABEL,

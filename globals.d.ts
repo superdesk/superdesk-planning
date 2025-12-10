@@ -50,147 +50,147 @@ declare global {
     declare const xit: any;
 
     declare const fail: any;
-}
 
-// globals
-// tslint:disable-next-line: interface-name
-interface Window {
-    instgrm: any;
+    // globals
+    // tslint:disable-next-line: interface-name
+    interface Window {
+        instgrm: any;
 
-    // tansa
+        // tansa
 
-    tansa: {
-        settings: {
-            profileId: number;
-            platformName?: string;
-            platformVersion?: string;
-            baseUrl: string;
-            parentAppId: string;
-            tansaUserId: string;
-            licenseKey: string;
-            parentAppVersion: string;
-            checkboxPreference: boolean;
-            clientExtenstionJs: string;
-        },
-        useDocumentWriteFun: boolean,
-    };
-    afterProofing: (isCanceled: boolean) => void;
-    tansaJQuery: {
-        pgwBrowser: () => {
-            os: {
-                name: string;
-                fullVersion: string;
-            }
+        tansa: {
+            settings: {
+                profileId: number;
+                platformName?: string;
+                platformVersion?: string;
+                baseUrl: string;
+                parentAppId: string;
+                tansaUserId: string;
+                licenseKey: string;
+                parentAppVersion: string;
+                checkboxPreference: boolean;
+                clientExtenstionJs: string;
+            },
+            useDocumentWriteFun: boolean,
         };
+        afterProofing: (isCanceled: boolean) => void;
+        tansaJQuery: {
+            pgwBrowser: () => {
+                os: {
+                    name: string;
+                    fullVersion: string;
+                }
+            };
+        };
+
+        $: any;
+        _paq: any;
+        GoogleAnalyticsObject: any;
+        ga: any;
+        TimeoutHttpInterceptor: any;
+        RequestService: any;
+        clipboardData: any;
+        dragPageY: any;
+        gettext: any;
+        _: any;
+        webkitURL: any;
+        superdeskConfig: any;
+        module: any;
+        RunTansaProofing: any;
+        iframely: any;
+    }
+
+    // Allow importing json/html files
+    declare module '*.json';
+    declare module '*.html';
+
+    // ------------------------------------------------------------------------------------------------
+    // TYPES
+    // ------------------------------------------------------------------------------------------------
+
+    type Dictionary<K, V> = {[key: string]: V};
+    type valueof<T> = T[keyof T];
+    type DeepPartial<T> = {
+        [K in keyof T]?: DeepPartial<T[K]>;
+    }
+
+    // ResizeObserver types aren't available in the version of Typescript we use
+    // see: https://github.com/Microsoft/TypeScript/issues/28502
+    // The following is copied from https://github.com/microsoft/TypeScript-DOM-lib-generator/pull/948
+    interface ResizeObserverOptions {
+        box?: ResizeObserverBoxOptions;
+    }
+
+    interface ResizeObserver {
+        disconnect(): void;
+        observe(target: Element, options?: ResizeObserverOptions): void;
+        unobserve(target: Element): void;
+    }
+
+    // eslint-disable-next-line no-redeclare
+    declare var ResizeObserver: {
+        prototype: ResizeObserver;
+        new(callback: ResizeObserverCallback): ResizeObserver;
     };
 
-    $: any;
-    _paq: any;
-    GoogleAnalyticsObject: any;
-    ga: any;
-    TimeoutHttpInterceptor: any;
-    RequestService: any;
-    clipboardData: any;
-    dragPageY: any;
-    gettext: any;
-    _: any;
-    webkitURL: any;
-    superdeskConfig: any;
-    module: any;
-    RunTansaProofing: any;
-    iframely: any;
-}
+    interface ResizeObserverEntry {
+        readonly borderBoxSize: ReadonlyArray<ResizeObserverSize>;
+        readonly contentBoxSize: ReadonlyArray<ResizeObserverSize>;
+        readonly contentRect: DOMRectReadOnly;
+        readonly target: Element;
+    }
 
-// Allow importing json/html files
-declare module '*.json';
-declare module '*.html';
-
-// ------------------------------------------------------------------------------------------------
-// TYPES
-// ------------------------------------------------------------------------------------------------
-
-type Dictionary<K, V> = {[key: string]: V};
-type valueof<T> = T[keyof T];
-type DeepPartial<T> = {
-    [K in keyof T]?: DeepPartial<T[K]>;
-}
-
-// ResizeObserver types aren't available in the version of Typescript we use
-// see: https://github.com/Microsoft/TypeScript/issues/28502
-// The following is copied from https://github.com/microsoft/TypeScript-DOM-lib-generator/pull/948
-interface ResizeObserverOptions {
-    box?: ResizeObserverBoxOptions;
-}
-
-interface ResizeObserver {
-    disconnect(): void;
-    observe(target: Element, options?: ResizeObserverOptions): void;
-    unobserve(target: Element): void;
-}
-
-// eslint-disable-next-line no-redeclare
-declare var ResizeObserver: {
-    prototype: ResizeObserver;
-    new(callback: ResizeObserverCallback): ResizeObserver;
-};
-
-interface ResizeObserverEntry {
-    readonly borderBoxSize: ReadonlyArray<ResizeObserverSize>;
-    readonly contentBoxSize: ReadonlyArray<ResizeObserverSize>;
-    readonly contentRect: DOMRectReadOnly;
-    readonly target: Element;
-}
-
-// eslint-disable-next-line no-redeclare
-declare var ResizeObserverEntry: {
-    prototype: ResizeObserverEntry;
-    new(): ResizeObserverEntry;
-};
-
-interface ResizeObserverSize {
-    readonly blockSize: number;
-    readonly inlineSize: number;
-}
-
-// eslint-disable-next-line no-redeclare
-declare var ResizeObserverSize: {
-    prototype: ResizeObserverSize;
-    new(): ResizeObserverSize;
-};
-
-interface ResizeObserverCallback {
-    (entries: ResizeObserverEntry[], observer: ResizeObserver): void;
-}
-
-export interface ILineConfigStandard {
-    fieldId: string;
-    position?: 'start' | 'end';
-    fieldOptions?: any; // type of options will be different for each field type
-}
-
-export interface ILineConfigAnpaCategory extends ILineConfigStandard {
-    fieldId: 'anpa_category';
-    fieldOptions: {
-        hideLabel?: boolean;
+    // eslint-disable-next-line no-redeclare
+    declare var ResizeObserverEntry: {
+        prototype: ResizeObserverEntry;
+        new(): ResizeObserverEntry;
     };
-}
 
-export interface ILineConfigPriority extends ILineConfigStandard {
-    fieldId: 'priority';
-    fieldOptions: {
-        hideLabel?: boolean;
+    interface ResizeObserverSize {
+        readonly blockSize: number;
+        readonly inlineSize: number;
+    }
+
+    // eslint-disable-next-line no-redeclare
+    declare var ResizeObserverSize: {
+        prototype: ResizeObserverSize;
+        new(): ResizeObserverSize;
     };
-}
 
-export interface ILineConfigVocabulary extends ILineConfigStandard {
-    fieldId: 'vocabulary';
-    fieldOptions: {
-        vocabularyId: string;
-        hideVocabularyName?: boolean;
-    };
-}
+    interface ResizeObserverCallback {
+        (entries: ResizeObserverEntry[], observer: ResizeObserver): void;
+    }
 
-export type ILineConfig = ILineConfigStandard | ILineConfigAnpaCategory | ILineConfigPriority | ILineConfigVocabulary;
+    interface ILineConfigStandard {
+        fieldId: string;
+        position?: 'start' | 'end';
+        fieldOptions?: any; // type of options will be different for each field type
+    }
+
+    interface ILineConfigAnpaCategory extends ILineConfigStandard {
+        fieldId: 'anpa_category';
+        fieldOptions: {
+            hideLabel?: boolean;
+        };
+    }
+
+    interface ILineConfigPriority extends ILineConfigStandard {
+        fieldId: 'priority';
+        fieldOptions: {
+            hideLabel?: boolean;
+        };
+    }
+
+    interface ILineConfigVocabulary extends ILineConfigStandard {
+        fieldId: 'vocabulary';
+        fieldOptions: {
+            vocabularyId: string;
+            hideVocabularyName?: boolean;
+        };
+    }
+
+    type ILineConfig = ILineConfigStandard | ILineConfigAnpaCategory | ILineConfigPriority | ILineConfigVocabulary;
+}
 
 // KEEP IN SYNC WITH client/planning-extension/src/globals.d.ts
 declare module 'superdesk-api' {
@@ -272,3 +272,7 @@ declare module 'superdesk-api' {
         };
     }
 }
+
+// This empty export makes TypeScript treat this as a module file
+// which allows the `declare global` block above to work properly
+export { };

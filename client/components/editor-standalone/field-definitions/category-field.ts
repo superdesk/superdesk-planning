@@ -1,7 +1,6 @@
 import {IDropdownConfigVocabulary, IAuthoringFieldV2, IVocabularyItem} from 'superdesk-api';
 import {superdeskApi} from '../../../superdeskApi';
 import {IFieldDefinition, IFieldStorageAdapter} from './interfaces';
-import {IPlanningItem, IEventItem} from 'globals';
 
 function getStorageAdapterCommon<T extends IPlanningItem | IEventItem>(): IFieldStorageAdapter<T> {
     const storageAdapterCommon: IFieldStorageAdapter<T> = {

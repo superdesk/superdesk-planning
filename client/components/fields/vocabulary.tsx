@@ -4,7 +4,6 @@ import {Spacer} from '@sourcefabric/common';
 import {IFieldsProps} from '../../interfaces';
 import {superdeskApi} from '../../superdeskApi';
 import {WithMoreItems} from './with-more-items';
-import {ILineConfigVocabulary} from 'globals';
 
 type IProps = Omit<IFieldsProps, 'fieldOptions'> & ILineConfigVocabulary;
 

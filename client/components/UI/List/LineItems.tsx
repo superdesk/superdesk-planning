@@ -1,6 +1,5 @@
 import React from 'react';
-import {Spacer, SpacerBlock} from 'superdesk-ui-framework/react';
-import {ILineConfig} from 'globals';
+import {Spacer} from 'superdesk-ui-framework/react';
 import {partitionLineItems} from '../../../helpers';
 
 interface IProps {
