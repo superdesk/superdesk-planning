@@ -2683,3 +2683,61 @@ Feature: Assignments
             }
         }]}
         """
+
+    @auth
+    @planning_cvs
+    Scenario: Assignments enhanced with Archive details
+        When we post to "/archive" with success
+        """
+        [{
+            "type": "text",
+            "headline": "test headline",
+            "slugline": "test slugline",
+            "task": {
+                "desk": "#desks._id#",
+                "stage": "#desks.incoming_stage#"
+            }
+        }]
+        """
+        When we post to "/planning" with success
+        """
+        [{
+            "item_class": "item class value",
+            "slugline": "test slugline",
+            "planning_date": "2016-01-02",
+            "coverages": [{
+                "planning": {
+                    "ednote": "test coverage, I want 250 words",
+                    "slugline": "test slugline"
+                },
+                "assigned_to": {
+                    "desk": "#desks._id#",
+                    "user": "#CONTEXT_USER_ID#"
+                },
+                "workflow_status": "active"
+            }]
+        }]
+        """
+        Then we store assignment id in "assignmentId" from coverage 0
+        When we post to "assignments/link" with success
+        """
+        [{
+            "assignment_id": "#assignmentId#",
+            "item_id": "#archive._id#",
+            "reassign": true
+        }]
+        """
+        When we get "assignments"
+        Then we get list with 1 items
+        """
+        {"_items": [{
+            "_id": "#assignmentId#",
+            "item_ids": ["#archive._id#"],
+            "linked_items": [{
+                "_id": "#archive._id#",
+                "_type": "#archive._type#",
+                "event_id": "#archive.event_id#",
+                "body_html": "__no_value__"
+            }]
+        }]}
+        """
