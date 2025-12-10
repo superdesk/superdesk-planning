@@ -9,6 +9,11 @@ declare global {
     type IPlanningItem = import('./client/interfaces').IPlanningItem;
     type IEventItem = import('./client/interfaces').IEventItem;
     type PLANNING_VIEW = import('./client/interfaces').PLANNING_VIEW;
+    type ILineConfig = import('./client/interfaces').ILineConfig;
+    type ILineConfigStandard = import('./client/interfaces').ILineConfigStandard;
+    type ILineConfigAnpaCategory = import('./client/interfaces').ILineConfigAnpaCategory;
+    type ILineConfigPriority = import('./client/interfaces').ILineConfigPriority;
+    type ILineConfigVocabulary = import('./client/interfaces').ILineConfigVocabulary;
 
 
     // ------------------------------------------------------------------------------------------------
@@ -160,36 +165,6 @@ declare global {
     interface ResizeObserverCallback {
         (entries: ResizeObserverEntry[], observer: ResizeObserver): void;
     }
-
-    interface ILineConfigStandard {
-        fieldId: string;
-        position?: 'start' | 'end';
-        fieldOptions?: any; // type of options will be different for each field type
-    }
-
-    interface ILineConfigAnpaCategory extends ILineConfigStandard {
-        fieldId: 'anpa_category';
-        fieldOptions: {
-            hideLabel?: boolean;
-        };
-    }
-
-    interface ILineConfigPriority extends ILineConfigStandard {
-        fieldId: 'priority';
-        fieldOptions: {
-            hideLabel?: boolean;
-        };
-    }
-
-    interface ILineConfigVocabulary extends ILineConfigStandard {
-        fieldId: 'vocabulary';
-        fieldOptions: {
-            vocabularyId: string;
-            hideVocabularyName?: boolean;
-        };
-    }
-
-    type ILineConfig = ILineConfigStandard | ILineConfigAnpaCategory | ILineConfigPriority | ILineConfigVocabulary;
 }
 
 // KEEP IN SYNC WITH client/planning-extension/src/globals.d.ts

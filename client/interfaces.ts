@@ -15,6 +15,36 @@ import {Dispatch, Store} from 'redux';
 import * as moment from 'moment';
 import * as React from 'react';
 
+export interface ILineConfigStandard {
+    fieldId: string;
+    position?: 'start' | 'end';
+    fieldOptions?: any; // type of options will be different for each field type
+}
+
+export interface ILineConfigAnpaCategory extends ILineConfigStandard {
+    fieldId: 'anpa_category';
+    fieldOptions: {
+        hideLabel?: boolean;
+    };
+}
+
+export interface ILineConfigPriority extends ILineConfigStandard {
+    fieldId: 'priority';
+    fieldOptions: {
+        hideLabel?: boolean;
+    };
+}
+
+export interface ILineConfigVocabulary extends ILineConfigStandard {
+    fieldId: 'vocabulary';
+    fieldOptions: {
+        vocabularyId: string;
+        hideVocabularyName?: boolean;
+    };
+}
+
+export type ILineConfig = ILineConfigStandard | ILineConfigAnpaCategory | ILineConfigPriority | ILineConfigVocabulary;
+
 export interface IPlanningNewsCoverageStatus {
     qcode: 'ncostat:int' | 'ncostat:notdec' | 'ncostat:notint' | 'ncostat:onreq';
     name: string;
