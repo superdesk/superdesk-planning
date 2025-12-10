@@ -1,5 +1,9 @@
 import os
+import json
+import tempfile
 from datetime import datetime, timedelta, timezone
+
+from bson import ObjectId
 
 from planning.feed_parsers.superdesk_event_json import EventJsonFeedParser
 from planning.tests import TestCase
@@ -55,8 +59,6 @@ class EventJsonFeedParserTestCase(TestCase):
             provider = {"content_expiry": 1}
             events = EventJsonFeedParser().parse(self.sample_json, provider)
 
-            # ignore fields like files as per the ACs in SDNTB-682
-            self.assertNotIn("files", events[0])
             for field in assign_from_local_cv.keys():
                 # check if the same random is returned after parsing as inserted above.
                 if events[0].get(field):
@@ -99,3 +101,43 @@ class EventJsonFeedParserTestCase(TestCase):
             assert events[0]["reference"] == "2021/00000001"
             assert events[0]["priority"] == 3
             assert events[0]["language"] == "en"
+
+    def test_event_json_feed_parser_handles_files(self):
+        with self.app.app_context():
+            dir_path = os.path.dirname(os.path.realpath(__file__))
+            existing_file_id = ObjectId()
+            self.app.data.insert(
+                "events_files",
+                [
+                    {
+                        "_id": existing_file_id,
+                        "media": "existing-media",
+                        "mimetype": "image/jpeg",
+                    }
+                ],
+            )
+
+            with open(self.sample_json, "r") as f:
+                sample = json.load(f)
+
+            sample["files"] = [str(existing_file_id), "attachments/sunset.jpg"]
+            provider = {"content_expiry": 1}
+
+            with tempfile.NamedTemporaryFile(mode="w", suffix=".json", dir=dir_path, delete=False) as tmp:
+                json.dump(sample, tmp)
+                tmp_path = tmp.name
+
+            events_files_service = get_resource_service("events_files")
+
+            try:
+                events = EventJsonFeedParser().parse(tmp_path, provider)
+                files = events[0].get("files", [])
+                self.assertEqual(2, len(files))
+                self.assertEqual(existing_file_id, files[0])
+
+                new_file_id = files[1]
+                saved_file = events_files_service.find_one(req=None, _id=new_file_id)
+                self.assertIsNotNone(saved_file)
+                self.assertEqual("image/jpeg", saved_file.get("mimetype"))
+            finally:
+                os.remove(tmp_path)

@@ -1,10 +1,16 @@
 import logging
+import os
+import mimetypes
+
+from flask import current_app as app
+from bson import ObjectId
 
 from superdesk.io.feed_parsers import FileFeedParser
 from superdesk import get_resource_service
 from superdesk.io.subjectcodes import get_subjectcodeitems
 from superdesk.utc import utcnow
 from superdesk.io.commands.update_ingest import set_expiry
+from superdesk.media.media_operations import process_file_from_stream
 from planning.common import WORKFLOW_STATE
 import pytz
 import json
@@ -39,13 +45,14 @@ class EventJsonFeedParser(FileFeedParser):
         self.items = []
         with open(file_path, "r") as f:
             superdesk_event = json.load(f)
-        event = self._transform_from_superdesk_event(superdesk_event)
+        event = self._transform_from_superdesk_event(superdesk_event, file_path, provider)
         set_expiry(event, provider)
         self.items.append(event)
 
         return self.items
 
-    def _transform_from_superdesk_event(self, superdesk_event):
+    def _transform_from_superdesk_event(self, superdesk_event, file_path, provider=None):
+        superdesk_event = self._process_files(superdesk_event, file_path, provider)
         superdesk_event = self.ignore_fields(superdesk_event)
         superdesk_event["_created"] = utcnow()
         superdesk_event["_updated"] = utcnow()
@@ -92,7 +99,6 @@ class EventJsonFeedParser(FileFeedParser):
 
     def ignore_fields(self, superdesk_event):
         ignore_fields = [
-            "files",
             "state_reason",
             "schedule_settings",
             "_current_version",
@@ -160,6 +166,89 @@ class EventJsonFeedParser(FileFeedParser):
 
             if field == "event_contact_info":
                 superdesk_event[field] = [item["_id"] for item in superdesk_event[field]]
+
+        return superdesk_event
+
+    def _process_files(self, superdesk_event, file_path, provider=None):
+        """
+        This functions processes attachments from ingested Event JSON
+        - Accepts a list of strings (existing events_files IDs or filenames).
+        - If an entry is an ObjectId that exists in events_files, we go ahead and reuse it.
+        - If not, we treat the entry as a local path relative to the JSON file, upload it, and create an events_files record whose ID is added to the Event
+        - NOTE: We keep attachments in a subfolder (e.g., `attachments/`) so the file feed doesn’t try to parse them as items and throw many errors
+        """
+        files = superdesk_event.get("files")
+        if not files:
+            superdesk_event.pop("files", None)
+            return superdesk_event
+
+        base_dir = os.path.dirname(file_path)
+        events_files_service = get_resource_service("events_files")
+        processed_file_ids = []
+
+        for entry in files:
+            if not entry:
+                continue
+
+            media_id = None
+
+            if isinstance(entry, str):
+                try:
+                    object_id = ObjectId(entry)
+                    existing_file = events_files_service.find_one(req=None, _id=object_id)
+                    if existing_file:
+                        logger.info("Reusing existing event file %s", existing_file.get("_id"))
+                        processed_file_ids.append(existing_file.get("_id"))
+                        continue
+                except Exception:
+                    pass
+                filename = entry
+            else:
+                logger.warning("Skipping unsupported file entry type: %s", type(entry))
+                continue
+
+            file_path_to_use = filename
+            if not os.path.isabs(file_path_to_use):
+                file_path_to_use = os.path.join(base_dir, filename)
+
+            try:
+                with open(file_path_to_use, "rb") as content:
+                    guessed_type = mimetypes.guess_type(file_path_to_use)[0]
+                    content_type = guessed_type or "application/octet-stream"
+                    file_name, content_type, metadata = process_file_from_stream(content, content_type)
+                    content.seek(0)
+                    media_id = app.media.put(
+                        content,
+                        filename=file_name or os.path.basename(file_path_to_use),
+                        content_type=content_type,
+                        metadata=metadata,
+                        resource="events_files",
+                    )
+
+                    payload = {"media": media_id, "mimetype": content_type}
+                    if metadata:
+                        payload["filemeta"] = metadata
+
+                    ids = events_files_service.post([payload])
+                    saved_id = next(iter(ids or []), None)
+                    if saved_id:
+                        logger.info("Attached event file %s as %s", file_path_to_use, saved_id)
+                        processed_file_ids.append(saved_id)
+            except FileNotFoundError:
+                logger.warning("File %s not found for event ingest", file_path_to_use)
+            except Exception as ex:
+                logger.warning("Failed to ingest file %s: %s", file_path_to_use, ex)
+                if media_id:
+                    try:
+                        app.media.delete(media_id)
+                    except Exception:
+                        logger.warning("Failed to cleanup media for %s", file_path_to_use)
+
+        processed_file_ids = [file_id for file_id in processed_file_ids if file_id]
+        if processed_file_ids:
+            superdesk_event["files"] = processed_file_ids
+        else:
+            superdesk_event.pop("files", None)
 
         return superdesk_event
 
