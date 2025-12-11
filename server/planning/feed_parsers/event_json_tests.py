@@ -6,6 +6,7 @@ from datetime import timedelta
 from bson import ObjectId
 
 from planning.feed_parsers.superdesk_event_json import EventJsonFeedParser
+from planning.feeding_services.event_file_service import EventFileFeedingService
 from planning.tests import TestCase
 from superdesk import get_resource_service
 
@@ -128,9 +129,10 @@ class EventJsonFeedParserTestCase(TestCase):
                 tmp_path = tmp.name
 
             events_files_service = get_resource_service("events_files")
+            feeding_service = EventFileFeedingService()
 
             try:
-                events = EventJsonFeedParser().parse(tmp_path, provider)
+                events = EventJsonFeedParser().parse(tmp_path, provider, feeding_service=feeding_service)
                 files = events[0].get("files", [])
                 self.assertEqual(2, len(files))
                 self.assertEqual(existing_file_id, files[0])
@@ -156,8 +158,10 @@ class EventJsonFeedParserTestCase(TestCase):
                 json.dump(sample, tmp)
                 tmp_path = tmp.name
 
+            feeding_service = EventFileFeedingService()
+
             try:
-                events = EventJsonFeedParser().parse(tmp_path, provider)
+                events = EventJsonFeedParser().parse(tmp_path, provider, feeding_service=feeding_service)
                 self.assertNotIn("files", events[0])
             finally:
                 os.remove(tmp_path)

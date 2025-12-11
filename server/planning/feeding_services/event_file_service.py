@@ -89,7 +89,7 @@ class EventFileFeedingService(FileFeedingService):
                             with open(file_path, "rb") as f:
                                 item = parser.parse_file(f, provider)
                         else:
-                            item = parser.parse(file_path, provider)
+                            item = parser.parse(file_path, provider, feeding_service=self)
 
                         self.after_extracting(item, provider)
                         self.move_file(self.path, filename, provider=provider, success=True)
