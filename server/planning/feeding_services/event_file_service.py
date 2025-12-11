@@ -107,8 +107,14 @@ class EventFileFeedingService(FileFeedingService):
 
         push_notification("ingest:update")
 
-    @staticmethod
-    def fetch_file(base_dir, filename):
+    def fetch_file(self, base_dir, filename):
+        """
+        Fetch a local file, upload to media storage, and create an events_files record.
+
+        :param base_dir: Directory to resolve relative paths against
+        :param filename: Filename or absolute path to the file
+        :return: The created events_files document ID, or None on failure
+        """
         file_path_to_use = filename
         if not os.path.isabs(file_path_to_use):
             file_path_to_use = os.path.join(base_dir, filename)

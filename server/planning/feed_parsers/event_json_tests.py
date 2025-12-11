@@ -1,7 +1,7 @@
 import os
 import json
 import tempfile
-from datetime import datetime, timedelta, timezone
+from datetime import timedelta
 
 from bson import ObjectId
 
@@ -139,5 +139,45 @@ class EventJsonFeedParserTestCase(TestCase):
                 saved_file = events_files_service.find_one(req=None, _id=new_file_id)
                 self.assertIsNotNone(saved_file)
                 self.assertEqual("image/jpeg", saved_file.get("mimetype"))
+            finally:
+                os.remove(tmp_path)
+
+    def test_event_json_feed_parser_handles_missing_file(self):
+        with self.app.app_context():
+            dir_path = os.path.dirname(os.path.realpath(__file__))
+
+            with open(self.sample_json, "r") as f:
+                sample = json.load(f)
+
+            sample["files"] = ["nonexistent_file.pdf"]
+            provider = {"content_expiry": 1}
+
+            with tempfile.NamedTemporaryFile(mode="w", suffix=".json", dir=dir_path, delete=False) as tmp:
+                json.dump(sample, tmp)
+                tmp_path = tmp.name
+
+            try:
+                events = EventJsonFeedParser().parse(tmp_path, provider)
+                self.assertNotIn("files", events[0])
+            finally:
+                os.remove(tmp_path)
+
+    def test_event_json_feed_parser_handles_empty_files_array(self):
+        with self.app.app_context():
+            dir_path = os.path.dirname(os.path.realpath(__file__))
+
+            with open(self.sample_json, "r") as f:
+                sample = json.load(f)
+
+            sample["files"] = []
+            provider = {"content_expiry": 1}
+
+            with tempfile.NamedTemporaryFile(mode="w", suffix=".json", dir=dir_path, delete=False) as tmp:
+                json.dump(sample, tmp)
+                tmp_path = tmp.name
+
+            try:
+                events = EventJsonFeedParser().parse(tmp_path, provider)
+                self.assertNotIn("files", events[0])
             finally:
                 os.remove(tmp_path)

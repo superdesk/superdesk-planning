@@ -43,14 +43,14 @@ class EventJsonFeedParser(FileFeedParser):
         self.items = []
         with open(file_path, "r") as f:
             superdesk_event = json.load(f)
-        event = self._transform_from_superdesk_event(superdesk_event, file_path, provider)
+        event = self._transform_from_superdesk_event(superdesk_event, file_path)
         set_expiry(event, provider)
         self.items.append(event)
 
         return self.items
 
-    def _transform_from_superdesk_event(self, superdesk_event, file_path, provider=None):
-        superdesk_event = self._process_files(superdesk_event, file_path, provider)
+    def _transform_from_superdesk_event(self, superdesk_event, file_path):
+        superdesk_event = self._process_files(superdesk_event, file_path)
         superdesk_event = self.ignore_fields(superdesk_event)
         superdesk_event["_created"] = utcnow()
         superdesk_event["_updated"] = utcnow()
@@ -167,14 +167,8 @@ class EventJsonFeedParser(FileFeedParser):
 
         return superdesk_event
 
-    def _process_files(self, superdesk_event, file_path, provider=None):
-        """
-        This functions processes attachments from ingested Event JSON
-        - Accepts a list of strings (existing events_files IDs or filenames).
-        - If an entry is an ObjectId that exists in events_files, we go ahead and reuse it.
-        - If not, we treat the entry as a local path relative to the JSON file, upload it, and create an events_files record whose ID is added to the Event
-        - NOTE: We keep attachments in a subfolder (e.g., `attachments/`) so the file feed doesn’t try to parse them as items and throw many errors
-        """
+    def _process_files(self, superdesk_event, file_path):
+        """Process event attachments by reusing existing IDs or uploading new files via the feeding service."""
         files = superdesk_event.get("files")
         if not files:
             superdesk_event.pop("files", None)
@@ -203,7 +197,8 @@ class EventJsonFeedParser(FileFeedParser):
                 logger.warning("Skipping unsupported file entry type: %s", type(entry))
                 continue
 
-            saved_id = EventFileFeedingService.fetch_file(base_dir, filename)
+            feeding_service = EventFileFeedingService()
+            saved_id = feeding_service.fetch_file(base_dir, filename)
             if saved_id:
                 processed_file_ids.append(saved_id)
 
