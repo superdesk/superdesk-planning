@@ -44,7 +44,7 @@ describe('<Location />', () => {
     });
 
     it('render single line with map', () => {
-        appConfig.street_map_url = 'http://www.google.com/?q=';
+        appConfig.street_map_url = 'https://www.google.com.au/maps/?q=';
         wrapper = mount(
             <Provider store={store}>
                 <Location name={name} address={address} />
@@ -53,7 +53,7 @@ describe('<Location />', () => {
 
         expect(wrapper.text()).toBe(name);
         expect(wrapper.find('a').prop('title')).toBe('Show on map');
-        expect(wrapper.find('a').prop('href')).toBe('http://www.google.com/?q=location_name location_address');
+        expect(wrapper.find('a').prop('href')).toBe('https://www.google.com.au/maps/?q=location_name location_address');
     });
 
     it('render multi line', () => {
@@ -84,6 +84,6 @@ describe('<Location />', () => {
         expect(wrapper.find('i').html()).toBe('<i class="icon-map-marker icon--gray"></i>');
         expect(wrapper.find('div.sd-line-input__input--address').text()).toBe(address);
         expect(wrapper.find('a').prop('title')).toBe('Show on map');
-        expect(wrapper.find('a').prop('href')).toBe('http://www.google.com/?q=location_name location_address');
+        expect(wrapper.find('a').prop('href')).toBe('https://www.google.com.au/maps/?q=location_name location_address');
     });
 });

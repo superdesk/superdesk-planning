@@ -7,6 +7,7 @@ import {getTestActionStore, restoreSinonStub} from '../../../utils/testUtils';
 import * as testData from '../../../utils/testData';
 import {ASSIGNMENTS, ALL_DESKS} from '../../../constants';
 import {noop} from 'lodash';
+import {fakePromise} from './test-utils';
 
 describe('actions.assignments.ui', () => {
     let store;
@@ -22,7 +23,7 @@ describe('actions.assignments.ui', () => {
 
         sinon.stub(planningApi.locks, 'lockItem').callsFake((item) => Promise.resolve(item));
         sinon.stub(planningApi.locks, 'unlockItem').callsFake((item) => Promise.resolve(item));
-        sinon.stub(assignmentsApi, 'link').callsFake(() => (Promise.resolve()));
+        sinon.stub(assignmentsApi, 'link').callsFake(fakePromise);
         sinon.stub(assignmentsApi, 'query').callsFake(() => (Promise.resolve({_items: []})));
     });
 

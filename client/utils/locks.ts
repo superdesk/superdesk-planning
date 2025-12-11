@@ -108,9 +108,15 @@ function isLockedForAddToPlanning(item: IEventOrPlanningItem, lockedItems: ILock
 
 function getLockedItemIds(lockedItems: ILockedItems): Array<IEventOrPlanningItem['_id']> {
     return [
-        ...Object.keys(lockedItems.event).map((lockId) => lockedItems.event[lockId].item_id),
-        ...Object.keys(lockedItems.recurring).map((lockId) => lockedItems.recurring[lockId].item_id),
-        ...Object.keys(lockedItems.planning).map((lockId) => lockedItems.planning[lockId].item_id),
+        ...(lockedItems.event ?
+            Object.keys(lockedItems.event).map((lockId) => lockedItems.event[lockId].item_id) :
+            []),
+        ...(lockedItems.recurring ?
+            Object.keys(lockedItems.recurring).map((lockId) => lockedItems.recurring[lockId].item_id) :
+            []),
+        ...(lockedItems.planning ?
+            Object.keys(lockedItems.planning).map((lockId) => lockedItems.planning[lockId].item_id) :
+            []),
     ];
 }
 

@@ -446,13 +446,13 @@ describe('actions.events.ui', () => {
             restoreSinonStub(moment.tz.guess);
         });
 
-        it('duplicate updates past event date to current date and preserves files and links', (done) => {
+        it('duplicate updates past event date to current date and preserves files and links', async () => {
             data.events[0].dates.start = moment(data.events[0].dates.start);
             data.events[0].dates.end = moment(data.events[0].dates.end);
             data.events[0].files = ['file1_id'];
             data.events[0].links = ['http://www.google.com'];
 
-            store.test(null, eventsUi.duplicate(data.events[0]));
+            await store.test(null, eventsUi.duplicate(data.events[0]));
 
             const daysBetween = moment().diff(data.events[0].dates.start, 'days');
             const newStartDate = data.events[0].dates.start.add(daysBetween, 'days');

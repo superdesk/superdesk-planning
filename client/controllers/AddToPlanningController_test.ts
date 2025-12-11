@@ -1,3 +1,4 @@
+import {noop} from 'lodash';
 import {AddToPlanningController} from './AddToPlanningController';
 import sinon from 'sinon';
 
@@ -23,7 +24,7 @@ describe('AddToPlanningController', () => {
         scope = {
             locals: {data: {item: newsItem}},
             resolve: sinon.stub().returns(Promise.resolve()),
-            reject: sinon.stub().returns(Promise.reject()),
+            reject: sinon.stub().callsFake((reason) => Promise.reject(reason)),
             $on: sinon.stub(),
         };
     });
@@ -80,7 +81,7 @@ describe('AddToPlanningController', () => {
             gettext, api, lock, session, userList,
             $timeout, {}
         ) as any)
-            .then(() => { /* no-op */ }, () => {
+            .then(noop, () => {
                 expect(api.find.callCount).toBe(1);
                 expect(api.find.args[0]).toEqual(['archive', 'item1']);
 

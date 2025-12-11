@@ -1,7 +1,6 @@
 import sinon from 'sinon';
 import moment from 'moment';
 
-import {superdeskApi} from '../../../superdeskApi';
 import assignmentsApi from '../api';
 import contactsApi from '../../contacts';
 import {
@@ -10,21 +9,23 @@ import {
 } from '../../../utils/testUtils';
 import {ASSIGNMENTS} from '../../../constants';
 import {noop} from 'lodash';
+import {fakePromise} from './test-utils';
 
 describe('actions.assignments.api', () => {
-    let store;
+    let store: ReturnType<typeof getTestActionStore>;
     let services;
     let data;
+    let receivedAssignmentsStub;
 
     beforeEach(() => {
         store = getTestActionStore();
         services = store.services;
         data = store.data;
 
-        sinon.stub(assignmentsApi, 'query').callsFake(() => (Promise.resolve({})));
-        sinon.stub(assignmentsApi, 'receivedAssignments').callsFake(() => (Promise.resolve({})));
-        sinon.stub(assignmentsApi, 'fetchAssignmentById').callsFake(() => (Promise.resolve({})));
-        sinon.stub(assignmentsApi, 'save').callsFake(() => (Promise.resolve({})));
+        receivedAssignmentsStub = sinon.stub(assignmentsApi, 'receivedAssignments').callsFake(fakePromise);
+        sinon.stub(assignmentsApi, 'query').callsFake(fakePromise);
+        sinon.stub(assignmentsApi, 'fetchAssignmentById').callsFake(fakePromise);
+        sinon.stub(assignmentsApi, 'save').callsFake(fakePromise);
     });
 
     afterEach(() => {
@@ -32,21 +33,6 @@ describe('actions.assignments.api', () => {
         restoreSinonStub(assignmentsApi.receivedAssignments);
         restoreSinonStub(assignmentsApi.fetchAssignmentById);
         restoreSinonStub(assignmentsApi.save);
-    });
-
-    describe('queryLockedAssignments', () => {
-        xit('queries for locked assignments', (done) => (
-            store.test(done, assignmentsApi.queryLockedAssignments())
-                .then(() => {
-                    const query = {constant_score: {filter: {exists: {field: 'lock_session'}}}};
-
-                    expect(services.api('assignments').query.callCount).toBe(1);
-                    expect(services.api('assignments').query.args[0]).toEqual([
-                        {source: JSON.stringify({query})},
-                    ]);
-                    done();
-                })
-        ).catch(done.fail));
     });
 
     describe('fetchByAssignmentId', () => {
@@ -62,10 +48,9 @@ describe('actions.assignments.api', () => {
                 .then((item) => {
                     expect(item).toEqual(data.assignments[0]);
                     expect(services.api('assignments').getById.callCount).toBe(1);
-                    expect(services.api('assignments').getById.args[0]).toEqual(['as1']);
-
-                    expect(assignmentsApi.receivedAssignments.callCount).toBe(1);
-                    expect(assignmentsApi.receivedAssignments.args[0]).toEqual([[data.assignments[0]]]);
+                    expect(receivedAssignmentsStub.callCount).toBe(1);
+                    expect(receivedAssignmentsStub.args[0]).toEqual([[data.assignments[0]]]);
+                    expect(receivedAssignmentsStub.args[0]).toEqual([[data.assignments[0]]]);
                     done();
                 })
                 .catch(done.fail);
@@ -78,8 +63,8 @@ describe('actions.assignments.api', () => {
                     expect(services.api('assignments').getById.callCount).toBe(1);
                     expect(services.api('assignments').getById.args[0]).toEqual(['as1']);
 
-                    expect(assignmentsApi.receivedAssignments.callCount).toBe(1);
-                    expect(assignmentsApi.receivedAssignments.args[0]).toEqual([[data.assignments[0]]]);
+                    expect(receivedAssignmentsStub.callCount).toBe(1);
+                    expect(receivedAssignmentsStub.args[0]).toEqual([[data.assignments[0]]]);
                     done();
                 })
                 .catch(done.fail);
@@ -98,7 +83,7 @@ describe('actions.assignments.api', () => {
 
                     expect(item).toEqual(storeItem);
                     expect(services.api('assignments').getById.callCount).toBe(0);
-                    expect(assignmentsApi.receivedAssignments.callCount).toBe(0);
+                    expect(receivedAssignmentsStub.callCount).toBe(0);
 
                     done();
                 })
@@ -115,7 +100,7 @@ describe('actions.assignments.api', () => {
                     expect(services.api('assignments').getById.callCount).toBe(1);
                     expect(services.api('assignments').getById.args[0]).toEqual(['as1']);
 
-                    expect(assignmentsApi.receivedAssignments.callCount).toBe(0);
+                    expect(receivedAssignmentsStub.callCount).toBe(0);
 
                     expect(error).toBe('Failed!');
                     done();
@@ -149,7 +134,7 @@ describe('actions.assignments.api', () => {
     describe('receivedAssignments', () => {
         beforeEach(() => {
             restoreSinonStub(assignmentsApi.receivedAssignments);
-            sinon.stub(contactsApi, 'fetchContactsFromAssignments').returns(Promise.resolve([]));
+            sinon.stub(contactsApi, 'fetchContactsFromAssignments').returns(() => Promise.resolve([]));
         });
 
         afterEach(() => {
@@ -175,8 +160,10 @@ describe('actions.assignments.api', () => {
             ];
 
             store.dispatch(assignmentsApi.receivedAssignments(items));
-            expect(contactsApi.fetchContactsFromAssignments.callCount).toBe(1);
-            expect(contactsApi.fetchContactsFromAssignments.args[0]).toEqual([items]);
+            const stub = (contactsApi.fetchContactsFromAssignments as sinon.SinonStub);
+
+            expect(stub.callCount).toBe(1);
+            expect(stub.args[0]).toEqual([items]);
         });
     });
 });

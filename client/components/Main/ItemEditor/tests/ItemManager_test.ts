@@ -802,10 +802,13 @@ describe('components.Main.ItemManager', () => {
                         lockedItem,
                     ]);
 
+                    const expectedDiff = cloneDeep(lockedItem);
+
+                    convertEventDatesForTimezone(expectedDiff);
                     expectState({
                         initialValues: lockedItem,
                         diff: {
-                            ...lockedItem,
+                            ...expectedDiff,
                             associated_plannings: [testData.plannings[1]],
                         },
                         dirty: false,
@@ -834,10 +837,13 @@ describe('components.Main.ItemManager', () => {
                     expect(main.fetchById.args[0]).toEqual(['e1', 'event', true]);
                     expect(planningApi.locks.lockItem.callCount).toBe(0);
 
+                    const expectedDiff = cloneDeep(testData.events[0]);
+
+                    convertEventDatesForTimezone(expectedDiff);
                     expectState({
                         initialValues: testData.events[0],
                         diff: {
-                            ...testData.events[0],
+                            ...expectedDiff,
                             associated_plannings: [testData.plannings[1]],
                         },
                         dirty: false,

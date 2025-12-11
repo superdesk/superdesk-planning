@@ -4,7 +4,7 @@ import * as actions from '../agenda';
 import {createTestStore, registerNotifications} from '../../utils';
 import {cloneDeep} from 'lodash';
 import * as selectors from '../../selectors';
-import {getTestActionStore, restoreSinonStub} from '../../utils/testUtils';
+import {getTestActionStore, restoreSinonStub, waitFor} from '../../utils/testUtils';
 import planningUi from '../../actions/planning/ui';
 
 describe('agenda', () => {
@@ -490,29 +490,29 @@ describe('agenda', () => {
             $rootScope.$digest();
         }));
 
-        it('`agenda:created` adds the Agenda to the store', (done) => {
-            $rootScope.$broadcast('agenda:created', {item: '2'});
+        it('`agenda:created` adds the Agenda to the store', async () => {
+            await waitFor(() => {
+                $rootScope.$broadcast('agenda:created', {item: '2'});
 
-            // Expects run in setTimeout to give the event listeners a chance to execute
-            setTimeout(() => {
-                expect(spyGetById.callCount).toBe(1);
-                expect(spyGetById.args[0]).toEqual([
-                    'agenda',
-                    '2',
-                ]);
+                return true;
+            }, 3000);
 
-                expect(selectors.general.agendas(store.getState())).toEqual([
-                    {
-                        _id: '1',
-                        name: 'agenda',
-                    },
-                    {
-                        _id: '2',
-                        name: 'NewAgenda',
-                    },
-                ]);
-                done();
-            }, 0);
+            expect(spyGetById.callCount).toBe(1);
+            expect(spyGetById.args[0]).toEqual([
+                'agenda',
+                '2',
+            ]);
+
+            expect(selectors.general.agendas(store.getState())).toEqual([
+                {
+                    _id: '1',
+                    name: 'agenda',
+                },
+                {
+                    _id: '2',
+                    name: 'NewAgenda',
+                },
+            ]);
         });
 
         it('`agenda:updated` updates the Agenda in the store', (done) => {

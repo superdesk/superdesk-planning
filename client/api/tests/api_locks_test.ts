@@ -20,9 +20,12 @@ describe('planningApi.locks', () => {
         redux = createTestStore();
         planningApi.redux.store = redux;
         sinon.stub(planningApi.redux.store, 'dispatch').callThrough();
+        sinon.stub(planningApi.autosave, 'deleteById').returns(Promise.resolve());
     });
+
     afterEach(() => {
         restoreSinonStub(planningApi.redux.store.dispatch);
+        restoreSinonStub(planningApi.autosave.deleteById);
     });
 
     it('store locks are managed through setItemAsLocked and setItemAsUnlocked functions', () => {

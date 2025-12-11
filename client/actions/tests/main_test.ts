@@ -5,7 +5,7 @@ import {planningApi} from '../../superdeskApi';
 import {getTestActionStore, restoreSinonStub} from '../../utils/testUtils';
 import {removeAutosaveFields, modifyForClient} from '../../utils';
 import {main} from '../';
-import {AGENDA, POST_STATE} from '../../constants';
+import {AGENDA, MAIN, POST_STATE} from '../../constants';
 import eventsUi from '../events/ui';
 import eventsApi from '../events/api';
 import planningUi from '../planning/ui';
@@ -13,7 +13,7 @@ import planningApis from '../planning/api';
 import eventsPlanningUi from '../eventsPlanning/ui';
 
 describe('actions.main', () => {
-    let store;
+    let store: ReturnType<typeof getTestActionStore>;
     let services;
     let data;
 
@@ -24,10 +24,8 @@ describe('actions.main', () => {
     });
 
     describe('closeEditor', () => {
-        it('closes panel editor', (done) => {
-            store.test(done, () => {
-                main.closeEditor();
-            });
+        it('closes panel editor', async () => {
+            await store.test(null, main.closeEditor());
 
             expect(store.dispatch.callCount).toBe(3);
             expect(store.dispatch.args[0]).toEqual([{
@@ -57,8 +55,8 @@ describe('actions.main', () => {
 
     describe('post', () => {
         beforeEach(() => {
-            sinon.stub(eventsApi, 'post').returns(Promise.resolve(data.events[0]));
-            sinon.stub(planningApis, 'post').returns(Promise.resolve(data.plannings[0]));
+            sinon.stub(eventsApi, 'post').returns(() => Promise.resolve(data.events[0]));
+            sinon.stub(planningApis, 'post').returns(() => Promise.resolve(data.plannings[0]));
         });
 
         afterEach(() => {
@@ -446,7 +444,7 @@ describe('actions.main', () => {
         it('loads the preview item from the URL', (done) => {
             store.init();
             services.$location.search('preview', JSON.stringify({id: 'e1', type: 'event'}));
-            store.test(done, main.openFromURLOrRedux('preview'))
+            store.test(done, main.openFromURLOrRedux(MAIN.PREVIEW))
                 .then(() => {
                     expect(main.openPreview.callCount).toBe(1);
                     expect(main.openPreview.args[0]).toEqual([{
@@ -508,7 +506,8 @@ describe('actions.main', () => {
             store.init();
             store.initialState.forms.editors.panel.itemId = 'e1';
             store.initialState.forms.editors.panel.itemType = 'event';
-            store.test(done, main.openFromURLOrRedux('edit'))
+
+            store.test(done, main.openFromURLOrRedux(MAIN.EDIT))
                 .then(() => {
                     expect(main.openForEdit.callCount).toBe(1);
                     expect(main.openForEdit.args[0]).toEqual([{

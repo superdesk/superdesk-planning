@@ -1,7 +1,7 @@
 import sinon from 'sinon';
 
 import {planningApi} from '../../../superdeskApi';
-import {getTestActionStore, restoreSinonStub} from '../../../utils/testUtils';
+import {getTestActionStore, restoreSinonStub, waitFor} from '../../../utils/testUtils';
 import {createTestStore, assignmentUtils} from '../../../utils';
 import {registerNotifications} from '../../../utils/notifications';
 import * as selectors from '../../../selectors';
@@ -10,7 +10,7 @@ import assignmentsApi from '../api';
 import main from '../../main';
 import assignmentNotifications from '../notifications';
 import planningApis from '../../planning/api';
-import {noop} from 'lodash';
+import {fakePromise} from './test-utils';
 
 describe('actions.assignments.notification', () => {
     let store: ReturnType<typeof getTestActionStore>;
@@ -44,13 +44,9 @@ describe('actions.assignments.notification', () => {
         let $rootScope;
 
         beforeEach(inject((_$rootScope_) => {
-            sinon.stub(assignmentNotifications, 'onAssignmentCreated').callsFake(
-                () => (Promise.resolve())
-            );
-            sinon.stub(assignmentNotifications, 'onAssignmentUpdated').callsFake(
-                () => (Promise.resolve())
-            );
-            sinon.stub(assignmentNotifications, 'onAssignmentRemoved').returns(Promise.resolve());
+            sinon.stub(assignmentNotifications, 'onAssignmentCreated').callsFake(fakePromise);
+            sinon.stub(assignmentNotifications, 'onAssignmentUpdated').callsFake(fakePromise);
+            sinon.stub(assignmentNotifications, 'onAssignmentRemoved').returns(fakePromise);
             $rootScope = _$rootScope_;
             registerNotifications($rootScope, store);
             $rootScope.$digest();
@@ -62,47 +58,46 @@ describe('actions.assignments.notification', () => {
             restoreSinonStub(assignmentNotifications.onAssignmentRemoved);
         });
 
-        it('`assignments:created` calls onAssignmentCreated', (done) => {
-            $rootScope.$broadcast('assignments:created', {item: 'p2'});
+        it('`assignments:created` calls onAssignmentCreated', async () => {
+            await waitFor(() => {
+                $rootScope.$broadcast('assignments:created', {item: 'p2'});
 
-            setTimeout(() => {
-                expect(assignmentNotifications.onAssignmentCreated.callCount).toBe(1);
-                expect(assignmentNotifications.onAssignmentCreated.args[0][1])
-                    .toEqual({item: 'p2'});
-
-                done();
+                return true;
             }, delay);
+            expect(assignmentNotifications.onAssignmentCreated.callCount).toBe(1);
+            expect(assignmentNotifications.onAssignmentCreated.args[0][1])
+                .toEqual({item: 'p2'});
         });
 
-        it('`assignments:updated` calls onAssignmentUpdated', (done) => {
-            $rootScope.$broadcast('assignments:updated', {item: 'p2'});
+        it('`assignments:updated` calls onAssignmentUpdated', async () => {
+            await waitFor(() => {
+                $rootScope.$broadcast('assignments:updated', {item: 'p2'});
 
-            setTimeout(() => {
-                expect(assignmentNotifications.onAssignmentUpdated.callCount).toBe(1);
-                expect(assignmentNotifications.onAssignmentUpdated.args[0][1])
-                    .toEqual({item: 'p2'});
 
-                done();
+                return true;
             }, delay);
+
+            expect(assignmentNotifications.onAssignmentUpdated.callCount).toBe(1);
+            expect(assignmentNotifications.onAssignmentUpdated.args[0][1])
+                .toEqual({item: 'p2'});
         });
 
-        it('`assignments:removed` calls onAssignmentRemoved', (done) => {
-            $rootScope.$broadcast('assignments:removed', {assignment: 'as1'});
-
-            setTimeout(() => {
-                expect(assignmentNotifications.onAssignmentRemoved.callCount).toBe(1);
-                expect(assignmentNotifications.onAssignmentRemoved.args[0][1])
-                    .toEqual({assignment: 'as1'});
-
-                done();
+        it('`assignments:removed` calls onAssignmentRemoved', async () => {
+            await waitFor(() => {
+                $rootScope.$broadcast('assignments:removed', {assignment: 'as1'});
+                return true;
             }, delay);
+
+            expect(assignmentNotifications.onAssignmentRemoved.callCount).toBe(1);
+            expect(assignmentNotifications.onAssignmentRemoved.args[0][1])
+                .toEqual({assignment: 'as1'});
         });
     });
 
     describe('`assignment:created`', () => {
         beforeEach(() => {
-            sinon.stub(assignmentsApi, 'query').callsFake(() => (Promise.resolve({_items: []})));
-            sinon.stub(assignmentsApi, 'receivedAssignments').callsFake(noop);
+            sinon.stub(assignmentsApi, 'query').callsFake(() => Promise.resolve({_items: []}));
+            sinon.stub(assignmentsApi, 'receivedAssignments').callsFake(fakePromise);
             sinon.stub(assignmentUtils, 'getCurrentSelectedDeskId').returns('desk1');
         });
 
@@ -112,32 +107,25 @@ describe('actions.assignments.notification', () => {
             restoreSinonStub(assignmentUtils.getCurrentSelectedDeskId);
         });
 
-        it('query assignments on create', (done) => {
+        it('query assignments on create', async () => {
             let payload = {
                 item: 'as1',
                 assigned_desk: 'desk1',
                 assignment_state: 'assigned',
             };
 
-            store.test(done, assignmentNotifications.onAssignmentCreated({}, payload))
-                .then(() => {
-                    expect(assignmentsApi.query.callCount).toBe(2);
-                    expect(assignmentsApi.receivedAssignments.callCount).toBe(1);
-                    done();
-                })
-                .catch(done.fail);
+            await store.test(null, assignmentNotifications.onAssignmentCreated({}, payload));
+
+            expect(assignmentsApi.query.callCount).toBe(2);
+            expect(assignmentsApi.receivedAssignments.callCount).toBe(1);
         });
     });
 
     describe('`assignment:update`', () => {
         beforeEach(() => {
-            sinon.stub(assignmentsUi, 'reloadAssignments').callsFake(
-                () => () => Promise.resolve()
-            );
+            sinon.stub(assignmentsUi, 'reloadAssignments').callsFake(fakePromise);
             sinon.stub(assignmentUtils, 'getCurrentSelectedDeskId').returns('desk1');
-            sinon.stub(planningApis, 'loadPlanningByIds').callsFake(
-                () => () => Promise.resolve()
-            );
+            sinon.stub(planningApis, 'loadPlanningByIds').callsFake(fakePromise);
         });
 
         afterEach(() => {
@@ -200,9 +188,7 @@ describe('actions.assignments.notification', () => {
         });
 
         it('updates planning-history if planning item in store', (done) => {
-            sinon.stub(main, 'fetchItemHistory').callsFake(
-                () => (Promise.resolve())
-            );
+            sinon.stub(main, 'fetchItemHistory').callsFake(fakePromise);
             store.initialState.workspace.currentDeskId = 'desk1';
             let payload = {
                 item: 'as1',
@@ -314,13 +300,12 @@ describe('actions.assignments.notification', () => {
     describe('`assignment:completed`', () => {
         beforeEach(() => {
             sinon.stub(planningApi.locks, 'setItemAsUnlocked').returns(undefined);
-            sinon.stub(assignmentsUi, 'queryAndGetMyAssignments').callsFake(
-                () => () => (Promise.resolve())
-            );
+            sinon.stub(assignmentsUi, 'queryAndGetMyAssignments').callsFake(fakePromise);
+            sinon.stub(assignmentsUi, 'reloadAssignments').callsFake(fakePromise);
             sinon.stub(assignmentUtils, 'getCurrentSelectedDeskId').returns('desk1');
-            sinon.stub(planningApis, 'loadPlanningByIds').callsFake(
-                () => () => (Promise.resolve())
-            );
+            sinon.stub(planningApis, 'loadPlanningByIds').callsFake(fakePromise);
+            sinon.stub(assignmentsApi, 'fetchAssignmentById').callsFake(() => () => (
+                Promise.resolve(store.initialState.assignment.assignments.as1)));
         });
 
         afterEach(() => {
@@ -329,6 +314,7 @@ describe('actions.assignments.notification', () => {
             restoreSinonStub(assignmentsUi.queryAndGetMyAssignments);
             restoreSinonStub(assignmentUtils.getCurrentSelectedDeskId);
             restoreSinonStub(planningApis.loadPlanningByIds);
+            restoreSinonStub(assignmentsApi.fetchAssignmentById);
         });
 
         it('update planning on assignment complete', (done) => {
@@ -347,14 +333,9 @@ describe('actions.assignments.notification', () => {
 
             expect(coverage1.assigned_to.desk).toBe('desk1');
             expect(coverage1.assigned_to.state).toBe(undefined);
-            sinon.stub(assignmentsUi, 'reloadAssignments').callsFake(
-                () => () => Promise.resolve()
-            );
 
             testStore.dispatch(assignmentNotifications.onAssignmentUpdated({}, payload))
                 .then(() => {
-                    coverage1 = getCoverage(payload);
-
                     expect(planningApis.loadPlanningByIds.callCount).toBe(1);
                     expect(planningApis.loadPlanningByIds.args).toEqual([
                         [['p1']],
@@ -372,10 +353,6 @@ describe('actions.assignments.notification', () => {
         });
 
         it('unlocks assignment on assignment complete', (done) => {
-            restoreSinonStub(assignmentsUi.fetchAssignmentById);
-            sinon.stub(assignmentsApi, 'fetchAssignmentById').callsFake(() => (
-                Promise.resolve(store.initialState.assignment.assignments.as1)));
-
             store.initialState.assignment.filterBy = 'Desk';
             store.initialState.assignment.selectedDeskId = 'desk1';
             store.initialState.locks.assignment = {as1: {user: 'ident1'}};
@@ -413,7 +390,7 @@ describe('actions.assignments.notification', () => {
 
     describe('assignments:removed', () => {
         beforeEach(() => {
-            sinon.stub(assignmentsUi, 'queryAndGetMyAssignments').callsFake(() => (Promise.resolve()));
+            sinon.stub(assignmentsUi, 'queryAndGetMyAssignments').callsFake(fakePromise);
         });
 
         afterEach(() => {

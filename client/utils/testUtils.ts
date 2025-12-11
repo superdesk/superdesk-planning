@@ -228,6 +228,7 @@ export const getTestActionStore = () => {
 
             vocabularies: {
                 getVocabularies: () => Promise.resolve(testData.allVocabularies),
+                getCustomVocabularies: () => [],
             },
 
             modal: {
