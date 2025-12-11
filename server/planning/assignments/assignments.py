@@ -120,10 +120,10 @@ class AssignmentsService(AsyncBaseService):
         assignment_archive_map: dict[str, tuple[list[str], list[dict]]] = {}
         async for item in await self.get_archive_links_for_assignments([doc.get(ID_FIELD) for doc in docs]):
             linked_item_ids, linked_items = assignment_archive_map.setdefault(str(item.get("assignment_id")), ([], []))
-            linked_item_ids.append(str(item.get("_id")))
+            linked_item_ids.append(str(item.get("guid")))
             linked_items.append(
                 {
-                    "_id": item.get("_id"),
+                    "_id": item.get("guid"),
                     "_type": item.get("_type"),
                     "event_id": item.get("event_id"),
                 }
@@ -156,7 +156,7 @@ class AssignmentsService(AsyncBaseService):
             "source": json.dumps(query),
             "repo": repos,
             "run_signals": False,
-            "projections": json.dumps(["_id", "_type", "event_id", "assignment_id"]),
+            "projections": json.dumps(["_id", "guid", "_type", "event_id", "assignment_id"]),
             "aggs": None,
         }
         return await get_resource_service("search").get_async(req=req, lookup=None, signals=False)

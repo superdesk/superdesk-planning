@@ -86,9 +86,9 @@ class AssignmentsTestCase(TestCase):
         await assignment_service.delete_action_async(lookup={"_id": ObjectId("5b20652a1d41c812e24aa49e")})
         self.assertIsNone(delivery_service.find_one(req=None, item_id="item1"))
 
-    async def test_get_archive_items_for_assignments_excludes_body(self):
+    async def test_get_archive_links_for_assignments_excludes_body(self):
         assignment_service = get_resource_service("assignments")
-        cursor = await assignment_service.get_archive_items_for_assignments([self.assignment_item["_id"]])
+        cursor = await assignment_service.get_archive_links_for_assignments([self.assignment_item["_id"]])
 
         # Test that aggregations were not generated
         self.assertNotIn("aggregations", cursor.hits)
@@ -99,7 +99,8 @@ class AssignmentsTestCase(TestCase):
         self.assertEqual(
             item,
             {
-                "_id": self.archive_item["_id"],
+                "_id": self.archive_item["guid"],
+                "guid": self.archive_item["guid"],
                 "_type": "archive",
                 "event_id": self.archive_item["event_id"],
                 "assignment_id": self.assignment_item["_id"],

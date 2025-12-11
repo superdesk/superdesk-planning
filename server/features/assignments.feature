@@ -1460,7 +1460,10 @@ Feature: Assignments
                 "desk": "#desks._id#",
                 "user": "#CONTEXT_USER_ID#",
                 "state": "completed"
-            }
+            },
+            "linked_items": [
+                {"_id": "#archive._id#", "_type": "published"}
+            ]
         }
         """
 
