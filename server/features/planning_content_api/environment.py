@@ -1,7 +1,5 @@
-import logging
-import asyncio
-
 from superdesk.tests import update_config, TestClient
+from features.utils import run_async_task
 from superdesk.tests.environment import (
     setup_before_all,
     before_scenario_async,
@@ -15,17 +13,8 @@ from superdesk.tests.environment import (
 from content_api.app import get_app
 
 
-logger = logging.getLogger(__name__)
-
-
 def before_feature(context, feature):
-    try:
-        loop = asyncio.get_event_loop()
-        loop.run_until_complete(setup_apps(context, feature))
-    except Exception as e:
-        # Make sure exceptions raised are printed to the console
-        logger.exception(e)
-        raise e
+    run_async_task(setup_apps(context, feature))
 
 
 async def setup_apps(context, feature):
