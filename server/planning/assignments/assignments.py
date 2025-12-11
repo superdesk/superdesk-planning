@@ -117,25 +117,29 @@ class AssignmentsService(AsyncBaseService):
 
     async def _enhance_assignments(self, docs):
         """Populate `item_ids` with ids for all linked Archive items for an Assignment"""
-        items = await (await self.get_archive_items_for_assignments([str(doc.get(ID_FIELD)) for doc in docs])).to_list()
-        for doc in docs:
-            linked_items = [
+        assignment_archive_map: dict[str, tuple[list[str], list[dict]]] = {}
+        async for item in await self.get_archive_links_for_assignments([doc.get(ID_FIELD) for doc in docs]):
+            linked_item_ids, linked_items = assignment_archive_map.setdefault(str(item.get("assignment_id")), ([], []))
+            linked_item_ids.append(str(item.get("guid")))
+            linked_items.append(
                 {
-                    "_id": item.get("_id"),
+                    "_id": item.get("guid"),
                     "_type": item.get("_type"),
                     "event_id": item.get("event_id"),
                 }
-                for item in items
-                if str(item.get("assignment_id")) == str(doc.get("_id"))
-            ]
+            )
 
-            if len(linked_items):
-                doc["item_ids"] = [item["_id"] for item in linked_items]
-                doc["linked_items"] = linked_items
-
+        for doc in docs:
             self.set_type(doc, doc)
 
-    async def get_archive_items_for_assignments(self, assignment_ids):
+            try:
+                linked_item_ids, linked_items = assignment_archive_map[str(doc.get("_id"))]
+                doc["item_ids"] = linked_item_ids
+                doc["linked_items"] = linked_items
+            except KeyError:
+                pass
+
+    async def get_archive_links_for_assignments(self, assignment_ids):
         """
         Given an array of assignment id's return the matching items
         :param assignment_ids:
@@ -148,8 +152,14 @@ class AssignmentsService(AsyncBaseService):
 
         req = ParsedRequest()
         repos = "archive,published,archived"
-        req.args = {"source": json.dumps(query), "repo": repos}
-        return await get_resource_service("search").get_async(req=req, lookup=None)
+        req.args = {
+            "source": json.dumps(query),
+            "repo": repos,
+            "run_signals": False,
+            "projections": json.dumps(["_id", "guid", "_type", "event_id", "assignment_id"]),
+            "aggs": None,
+        }
+        return await get_resource_service("search").get_async(req=req, lookup=None, signals=False)
 
     async def get_archive_items_for_assignment(self, assignment):
         """Using the `search` resource service, retrieve the list of Archive items linked to the provided Assignment."""
@@ -305,21 +315,24 @@ class AssignmentsService(AsyncBaseService):
         self.notify("assignments:updated", updates, original)
         await self.send_assignment_notification(updates, original)
 
-        # If Desk, User and/or State was changed, then re-publish the Planning item
-        # So that the newly appointed assignee's/state will be pushed to subscribers
-        if self.assignee_details_changed(updates, original):
+        # If Assignee details have changed, and the current request comes from an Assignment API endpoint
+        # then re-publish the Planning item (So updated Assignment details are published to subscribers)
+        current_request = get_current_app().get_current_request()
+        assignee_details_changed = self.assignee_details_changed(updates, original)
+        if assignee_details_changed and (current_request is None or "/planning" not in current_request.path):
             await self.publish_planning(original.get("planning_item"))
 
     def assignee_details_changed(self, updates: Dict[str, Any], original: Dict[str, Any]) -> bool:
-        if "assigned_to" not in updates:
-            return False
+        if "assigned_to" in updates:
+            original_assigned_to = original.get("assigned_to") or {}
+            updated_assigned_to = updates["assigned_to"] or {}
 
-        original_assigned_to = original.get("assigned_to") or {}
-        updated_assigned_to = updates["assigned_to"] or {}
+            for field in {"user", "desk", "state", "contact", "coverage_provider"}:
+                if original_assigned_to.get(field) != updated_assigned_to.get(field):
+                    return True
 
-        for field in ["user", "desk", "state"]:
-            if original_assigned_to.get(field) != updated_assigned_to.get(field):
-                return True
+        if "priority" in updates and updates["priority"] != original.get("priority"):
+            return True
 
         return False
 

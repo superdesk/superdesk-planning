@@ -76,8 +76,8 @@ class DuplicateCoverageTestCase(TestCase):
         try:
             await get_resource_service("planning").duplicate_coverage_for_article_rewrite("plan1", "cov2", {})
         except SuperdeskApiError as e:
-            self.assertEquals(e.status_code, 400)
-            self.assertEquals(e.message, "Coverage does not exist")
+            self.assertEqual(e.status_code, 400)
+            self.assertEqual(e.message, "Coverage does not exist")
             return
 
         self.assertFalse("Failed to raise an exception")
@@ -86,8 +86,8 @@ class DuplicateCoverageTestCase(TestCase):
         try:
             await get_resource_service("planning").duplicate_coverage_for_article_rewrite("plan2", "cov1", {})
         except SuperdeskApiError as e:
-            self.assertEquals(e.status_code, 400)
-            self.assertEquals(e.message, "Planning does not exist")
+            self.assertEqual(e.status_code, 400)
+            self.assertEqual(e.message, "Planning does not exist")
             return
 
         self.assertFalse("Failed to raise an exception")

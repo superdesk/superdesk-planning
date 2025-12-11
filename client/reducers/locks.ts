@@ -1,8 +1,8 @@
 import {ILockedItems, ILock, IWebsocketMessageData} from '../interfaces';
 import {createReducer} from './createReducer';
 import {RESET_STORE, INIT_STORE, LOCKS} from '../constants';
-import {cloneDeep} from 'lodash';
 import {getRelatedEventIdsForPlanning} from '../utils/planning';
+import {produce} from 'immer';
 
 const initialLockState: ILockedItems = {
     event: {},
@@ -61,9 +61,9 @@ function addLock(state: ILockedItems, data: IWebsocketMessageData['ITEM_LOCKED']
 }
 
 export default createReducer(initialLockState, {
-    [RESET_STORE]: () => null,
+    [RESET_STORE]: () => ({...initialLockState}),
 
-    [INIT_STORE]: () => initialLockState,
+    [INIT_STORE]: () => ({...initialLockState}),
 
     [LOCKS.ACTIONS.RECEIVE]: (state: ILockedItems, payload: ILockedItems) => (
         {
@@ -75,11 +75,15 @@ export default createReducer(initialLockState, {
     ),
 
     [LOCKS.ACTIONS.SET_ITEM_AS_LOCKED]: (state: ILockedItems, payload: IWebsocketMessageData['ITEM_LOCKED']) => (
-        addLock(cloneDeep(state), payload)
+        produce(state, (draft) => {
+            addLock(draft, payload);
+        })
     ),
 
     [LOCKS.ACTIONS.SET_ITEM_AS_UNLOCKED]: (state: ILockedItems, payload: IWebsocketMessageData['ITEM_UNLOCKED']) => (
-        removeLock(cloneDeep(state), payload)
+        produce(state, (draft) => {
+            removeLock(draft, payload);
+        })
     ),
 
     [LOCKS.ACTIONS.RELOAD_SOFT_LOCKS_FOR_RELATED_EVENTS]: (state: ILockedItems, payload: {planning: IPlanningItem}) => {

@@ -69,6 +69,7 @@ export const SPIKED_STATE = {
 
 export const RESET_STORE = 'RESET_STORE';
 export const INIT_STORE = 'INIT_STORE';
+export const INITIAL_STATE = '_INITIAL_STATE';
 export const FORM_NAMES = {
     PlanningForm: 'planning',
     EventForm: 'event',
@@ -94,6 +95,9 @@ export const TEMP_ID_PREFIX = 'tempId-';
 
 // The delay in ms for use with single and double click detection
 export const CLICK_DELAY = 250;
+
+// The delay in ms for use with input changes
+export const CHANGE_DELAY = 500;
 
 export const USER_ACTIONS = {
     RECEIVE_USER_PREFERENCES: 'RECEIVE_USER_PREFERENCES',

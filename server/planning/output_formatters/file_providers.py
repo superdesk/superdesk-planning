@@ -31,6 +31,7 @@ def get_event_planning_files_for_transmission(
             resource="events_files" if item["type"] == "event" else "planning_files",
         )
         for file in item.get("files") or []
+        if isinstance(file, dict)
     }
 
 

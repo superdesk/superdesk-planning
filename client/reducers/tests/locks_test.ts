@@ -114,7 +114,7 @@ describe('lock reducers', () => {
             {type: 'RESET_STORE'}
         );
 
-        expect(result).toBe(null);
+        expect(result).toEqual(initialState);
 
         result = locks(
             null,

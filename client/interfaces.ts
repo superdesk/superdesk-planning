@@ -1716,6 +1716,7 @@ export interface IEditorFieldProps<T = any> {
     editorType?: EDITOR_TYPE;
 
     profile?: IPlanningContentProfile;
+    debounce?: number;
 
     // overloads don't work in interfaces
     // onChange(values: {[key: string]: any}): void;

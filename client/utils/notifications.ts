@@ -1,4 +1,3 @@
-import {WS_NOTIFICATION} from '../constants';
 import * as actions from '../actions';
 import {forEach} from 'lodash';
 
@@ -10,13 +9,6 @@ import {forEach} from 'lodash';
 export const registerNotifications = ($scope, store) => {
     forEach(actions.notifications, (func, event) => {
         $scope.$on(event, (_e, data) => {
-            store.dispatch({
-                type: WS_NOTIFICATION,
-                payload: {
-                    event,
-                    data,
-                },
-            });
             store.dispatch(func()(_e, data));
         });
     });
