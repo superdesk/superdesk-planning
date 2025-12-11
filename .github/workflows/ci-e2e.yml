@@ -54,7 +54,7 @@ jobs:
       - name: E2E Suite B
         if: matrix.e2e == 'b'
         run: npm run playwright -- --grep-invert events
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v5
         if: ${{ failure() }}
         with:
           name: playwright-report-${{ matrix.node-version }}-${{ matrix.e2e }}
