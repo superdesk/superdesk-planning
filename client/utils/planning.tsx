@@ -70,6 +70,7 @@ import {isItemAction, isMenuDivider} from '../helpers';
 import {confirmAddingRelatedItems} from './confirmAddingRelatedItems';
 import {getOpenEditorType} from './editor';
 import {coverageProfiles} from '../selectors/coverageProfiles';
+import {getEndDate} from './events';
 
 export const isCoverageAssigned = (coverage: IPlanningCoverageItem) => coverage.assigned_to?.desk != null;
 
@@ -1667,10 +1668,13 @@ function getDefaultCoverageDueDate(
     const primaryEventIds = getRelatedEventIdsForPlanning(planningItem, 'primary');
 
     if (primaryEventIds.length === 0) {
-        coverageTime = moment(planningItem?.planning_date || moment());
+        coverageTime = moment(planningItem?.planning_date) || moment();
     } else if (eventItem) {
-        coverageTime = moment(eventItem?.dates?.end || moment());
+        coverageTime = moment(getEndDate(eventItem)) || moment();
     }
+
+    // Convert to local time for further calculations
+    coverageTime.local();
 
     if (!coverageTime) {
         return coverageTime;
