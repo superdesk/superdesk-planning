@@ -10,7 +10,8 @@ jobs:
       matrix:
         python-version: ['3.10']
         node-version: ['14', '22']
-        e2e: ['a', 'b']
+        shardIndex: [1, 2]
+        shardTotal: [2]
     env:
       INSTALL_NODE_MODULES: false
       RUN_SERVICES: true
@@ -48,15 +49,11 @@ jobs:
       # playwright start
       - name: Install Playwright Browsers
         run: npx playwright install --with-deps chromium
-      - name: E2E Suite A
-        if: matrix.e2e == 'a'
-        run: npm run playwright -- --grep events
-      - name: E2E Suite B
-        if: matrix.e2e == 'b'
-        run: npm run playwright -- --grep-invert events
+      - name: Run Playwright tests
+        run: npm run playwright -- --shard=${{ matrix.shardIndex }}/${{ matrix.shardTotal }}
       - uses: actions/upload-artifact@v6
         if: ${{ failure() }}
         with:
-          name: playwright-report-${{ matrix.node-version }}-${{ matrix.e2e }}
+          name: playwright-report-${{ matrix.node-version }}-${{ matrix.shardIndex }}
           path: e2e/test-results
       # playwright end
