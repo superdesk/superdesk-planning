@@ -1,7 +1,7 @@
 import logging
-import os
 
 from bson import ObjectId
+from bson.errors import InvalidId
 
 from superdesk.io.feed_parsers import FileFeedParser
 from superdesk import get_resource_service
@@ -42,14 +42,14 @@ class EventJsonFeedParser(FileFeedParser):
         self.items = []
         with open(file_path, "r") as f:
             superdesk_event = json.load(f)
-        event = self._transform_from_superdesk_event(superdesk_event, file_path, feeding_service)
+        event = self._transform_from_superdesk_event(superdesk_event, feeding_service)
         set_expiry(event, provider)
         self.items.append(event)
 
         return self.items
 
-    def _transform_from_superdesk_event(self, superdesk_event, file_path, feeding_service=None):
-        superdesk_event = self._process_files(superdesk_event, file_path, feeding_service)
+    def _transform_from_superdesk_event(self, superdesk_event, feeding_service=None):
+        superdesk_event = self._process_files(superdesk_event, feeding_service)
         superdesk_event = self.ignore_fields(superdesk_event)
         superdesk_event["_created"] = utcnow()
         superdesk_event["_updated"] = utcnow()
@@ -166,14 +166,13 @@ class EventJsonFeedParser(FileFeedParser):
 
         return superdesk_event
 
-    def _process_files(self, superdesk_event, file_path, feeding_service=None):
+    def _process_files(self, superdesk_event, feeding_service=None):
         """Process event attachments by reusing existing IDs or uploading new files via the feeding service."""
         files = superdesk_event.get("files")
         if not files:
             superdesk_event.pop("files", None)
             return superdesk_event
 
-        base_dir = os.path.dirname(file_path)
         events_files_service = get_resource_service("events_files")
         processed_file_ids = []
 
@@ -189,7 +188,7 @@ class EventJsonFeedParser(FileFeedParser):
                         logger.info("Reusing existing event file %s", existing_file.get("_id"))
                         processed_file_ids.append(existing_file.get("_id"))
                         continue
-                except Exception:
+                except InvalidId:
                     pass
                 filename = entry
             else:
@@ -197,9 +196,12 @@ class EventJsonFeedParser(FileFeedParser):
                 continue
 
             if feeding_service and hasattr(feeding_service, "fetch_file"):
-                saved_id = feeding_service.fetch_file(base_dir, filename)
-                if saved_id:
-                    processed_file_ids.append(saved_id)
+                result = feeding_service.fetch_file(filename)
+                if result:
+                    stream, content_type = result
+                    saved_id = events_files_service.ingest_file(stream, filename, content_type)
+                    if saved_id:
+                        processed_file_ids.append(saved_id)
             else:
                 logger.warning("No feeding service available to fetch file: %s", filename)
 

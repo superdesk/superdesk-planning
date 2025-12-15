@@ -124,15 +124,15 @@ class EventJsonFeedParserTestCase(TestCase):
             sample["files"] = [str(existing_file_id), "attachments/sunset.jpg"]
             provider = {"content_expiry": 1}
 
-            with tempfile.NamedTemporaryFile(mode="w", suffix=".json", dir=dir_path, delete=False) as tmp:
-                json.dump(sample, tmp)
-                tmp_path = tmp.name
-
             events_files_service = get_resource_service("events_files")
             feeding_service = EventFileFeedingService()
+            feeding_service.path = dir_path
 
-            try:
-                events = EventJsonFeedParser().parse(tmp_path, provider, feeding_service=feeding_service)
+            with tempfile.NamedTemporaryFile(mode="w", suffix=".json", dir=dir_path, delete=True) as tmp:
+                json.dump(sample, tmp)
+                tmp.flush()
+
+                events = EventJsonFeedParser().parse(tmp.name, provider, feeding_service=feeding_service)
                 files = events[0].get("files", [])
                 self.assertEqual(2, len(files))
                 self.assertEqual(existing_file_id, files[0])
@@ -141,8 +141,12 @@ class EventJsonFeedParserTestCase(TestCase):
                 saved_file = events_files_service.find_one(req=None, _id=new_file_id)
                 self.assertIsNotNone(saved_file)
                 self.assertEqual("image/jpeg", saved_file.get("mimetype"))
-            finally:
-                os.remove(tmp_path)
+
+                # Verify binary was stored properly
+                media_id = saved_file.get("media")
+                stored_file = self.app.media.get(media_id)
+                self.assertIsNotNone(stored_file)
+                self.assertGreater(stored_file.length, 0)
 
     def test_event_json_feed_parser_handles_missing_file(self):
         with self.app.app_context():
@@ -154,17 +158,15 @@ class EventJsonFeedParserTestCase(TestCase):
             sample["files"] = ["nonexistent_file.pdf"]
             provider = {"content_expiry": 1}
 
-            with tempfile.NamedTemporaryFile(mode="w", suffix=".json", dir=dir_path, delete=False) as tmp:
-                json.dump(sample, tmp)
-                tmp_path = tmp.name
-
             feeding_service = EventFileFeedingService()
+            feeding_service.path = dir_path
 
-            try:
-                events = EventJsonFeedParser().parse(tmp_path, provider, feeding_service=feeding_service)
+            with tempfile.NamedTemporaryFile(mode="w", suffix=".json", dir=dir_path, delete=True) as tmp:
+                json.dump(sample, tmp)
+                tmp.flush()
+
+                events = EventJsonFeedParser().parse(tmp.name, provider, feeding_service=feeding_service)
                 self.assertNotIn("files", events[0])
-            finally:
-                os.remove(tmp_path)
 
     def test_event_json_feed_parser_handles_empty_files_array(self):
         with self.app.app_context():
@@ -176,12 +178,9 @@ class EventJsonFeedParserTestCase(TestCase):
             sample["files"] = []
             provider = {"content_expiry": 1}
 
-            with tempfile.NamedTemporaryFile(mode="w", suffix=".json", dir=dir_path, delete=False) as tmp:
+            with tempfile.NamedTemporaryFile(mode="w", suffix=".json", dir=dir_path, delete=True) as tmp:
                 json.dump(sample, tmp)
-                tmp_path = tmp.name
+                tmp.flush()
 
-            try:
-                events = EventJsonFeedParser().parse(tmp_path, provider)
+                events = EventJsonFeedParser().parse(tmp.name, provider)
                 self.assertNotIn("files", events[0])
-            finally:
-                os.remove(tmp_path)

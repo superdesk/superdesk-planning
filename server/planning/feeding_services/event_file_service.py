@@ -9,16 +9,12 @@
 # at https://www.sourcefabric.org/superdesk/license
 
 import logging
-import os
 import mimetypes
+import os
 from datetime import datetime
 
-from flask import current_app as app
-
-from superdesk import get_resource_service
 from superdesk.errors import ParserError, ProviderError
 from superdesk.io.feeding_services.file_service import FileFeedingService
-from superdesk.media.media_operations import process_file_from_stream
 from superdesk.notification import push_notification
 from superdesk.utc import utc
 from superdesk.utils import get_sorted_files, FileSortAttributes
@@ -87,7 +83,7 @@ class EventFileFeedingService(FileFeedingService):
                         logger.info("Ingesting events with {} parser".format(parser.__class__.__name__))
                         if hasattr(parser, "parse_file"):
                             with open(file_path, "rb") as f:
-                                item = parser.parse_file(f, provider)
+                                item = parser.parse_file(f, provider, feeding_service=self)
                         else:
                             item = parser.parse(file_path, provider, feeding_service=self)
 
@@ -107,52 +103,26 @@ class EventFileFeedingService(FileFeedingService):
 
         push_notification("ingest:update")
 
-    def fetch_file(self, base_dir, filename):
+    def fetch_file(self, filename):
         """
-        Fetch a local file, upload to media storage, and create an events_files record.
+        Fetch a local file from the configured ingest path.
 
-        :param base_dir: Directory to resolve relative paths against
-        :param filename: Filename or absolute path to the file
-        :return: The created events_files document ID, or None on failure
+        :param filename: Filename (relative to self.path)
+        :return: Tuple of (file_handle, content_type) or None on failure
         """
-        file_path_to_use = filename
-        if not os.path.isabs(file_path_to_use):
-            file_path_to_use = os.path.join(base_dir, filename)
-
-        events_files_service = get_resource_service("events_files")
-        media_id = None
+        file_path = os.path.join(self.path, filename)
+        stream = None
 
         try:
-            with open(file_path_to_use, "rb") as content:
-                guessed_type = mimetypes.guess_type(file_path_to_use)[0]
-                content_type = guessed_type or "application/octet-stream"
-                file_name, content_type, metadata = process_file_from_stream(content, content_type)
-                content.seek(0)
-                media_id = app.media.put(
-                    content,
-                    filename=file_name or os.path.basename(file_path_to_use),
-                    content_type=content_type,
-                    metadata=metadata,
-                    resource="events_files",
-                )
-
-                payload = {"media": media_id, "mimetype": content_type}
-                if metadata:
-                    payload["filemeta"] = metadata
-
-                ids = events_files_service.post([payload])
-                saved_id = next(iter(ids or []), None)
-                if saved_id:
-                    logger.info("Attached event file %s as %s", file_path_to_use, saved_id)
-                    return saved_id
+            stream = open(file_path, "rb")
+            guessed_type = mimetypes.guess_type(file_path)[0]
+            content_type = guessed_type or "application/octet-stream"
+            return (stream, content_type)
         except FileNotFoundError:
-            logger.warning("File %s not found for event ingest", file_path_to_use)
+            logger.warning("File %s not found for event ingest", file_path)
         except Exception as ex:
-            logger.warning("Failed to ingest file %s: %s", file_path_to_use, ex)
-            if media_id:
-                try:
-                    app.media.delete(media_id)
-                except Exception:
-                    logger.warning("Failed to cleanup media for %s", file_path_to_use)
+            logger.warning("Failed to fetch file %s: %s", file_path, ex)
+            if stream and not stream.closed:
+                stream.close()
 
         return None
