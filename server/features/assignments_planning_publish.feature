@@ -116,10 +116,10 @@ Feature: For posted planning item changes in assignment state post a planning it
         """
         {"state": "scheduled"}
         """
-        When we get "published_planning?sort=item_id,version"
+        When we get "published_planning?sort=_id"
         Then we get list with 1 items
         Then we store "PLANNING" with first item
-        When we get "published_planning?where={\"item_id\": \"#PLANNING.item_id#\", \"version\": #PLANNING.version#}"
+        When we get "published_planning?where={\"_id\": \"#PLANNING._id#\"}"
         Then we get list with 1 items
         """
         {
@@ -206,10 +206,10 @@ Feature: For posted planning item changes in assignment state post a planning it
         Then we get OK response
         Then we store assignment id in "firstassignment" from coverage 0
         When we transmit items
-        When we get "published_planning?sort=item_id,version"
+        When we get "published_planning?sort=_id"
         Then we get list with 2 items
         Then we store "PLANNING" with 2 item
-        When we get "published_planning?where={\"item_id\": \"#PLANNING.item_id#\", \"version\": #PLANNING.version#}"
+        When we get "published_planning?where={\"_id\": \"#PLANNING._id#\"}"
         Then we get list with 1 items
         Then we get transmitted item "/tmp/#PLANNING.item_id#-#PLANNING.version#-2.txt"
         """
@@ -274,10 +274,10 @@ Feature: For posted planning item changes in assignment state post a planning it
         }
         """
         When we transmit items
-        When we get "published_planning?sort=item_id,version"
+        When we get "published_planning?sort=_id"
         Then we get list with 3 items
         Then we store "PLANNING" with 3 item
-        When we get "published_planning?where={\"item_id\": \"#PLANNING.item_id#\", \"version\": #PLANNING.version#}"
+        When we get "published_planning?where={\"_id\": \"#PLANNING._id#\"}"
         Then we get list with 1 items
         Then we get transmitted item "/tmp/#PLANNING.item_id#-#PLANNING.version#-3.txt"
         """
@@ -340,7 +340,7 @@ Feature: For posted planning item changes in assignment state post a planning it
             "coverage_item": "#firstcoverage#"
         }
         """
-        When we get "published_planning?sort=item_id,version"
+        When we get "published_planning?sort=_id"
         Then we get list with 3 items
         When we post to "desks"
         """
@@ -371,10 +371,10 @@ Feature: For posted planning item changes in assignment state post a planning it
         }
         """
         When we transmit items
-        When we get "published_planning?sort=item_id,version"
+        When we get "published_planning?sort=_id"
         Then we get list with 4 items
         Then we store "PLANNING" with 4 item
-        When we get "published_planning?where={\"item_id\": \"#PLANNING.item_id#\", \"version\": #PLANNING.version#}"
+        When we get "published_planning?where={\"_id\": \"#PLANNING._id#\"}"
         Then we get list with 1 items
         Then we get transmitted item "/tmp/#PLANNING.item_id#-#PLANNING.version#-4.txt"
         """
@@ -404,10 +404,10 @@ Feature: For posted planning item changes in assignment state post a planning it
         }
         """
         When we transmit items
-        When we get "published_planning?sort=item_id,version"
+        When we get "published_planning?sort=_id"
         Then we get list with 5 items
         Then we store "PLANNING" with 5 item
-        When we get "published_planning?where={\"item_id\": \"#PLANNING.item_id#\", \"version\": #PLANNING.version#}"
+        When we get "published_planning?where={\"_id\": \"#PLANNING._id#\"}"
         Then we get list with 1 items
         Then we get transmitted item "/tmp/#PLANNING.item_id#-#PLANNING.version#-5.txt"
         """
@@ -454,10 +454,10 @@ Feature: For posted planning item changes in assignment state post a planning it
         """
         {"state": "scheduled"}
         """
-        When we get "published_planning?sort=item_id,version"
+        When we get "published_planning?sort=_id"
         Then we get list with 1 items
         Then we store "PLANNING" with first item
-        When we get "published_planning?where={\"item_id\": \"#PLANNING.item_id#\", \"version\": #PLANNING.version#}"
+        When we get "published_planning?where={\"_id\": \"#PLANNING._id#\"}"
         Then we get list with 1 items
         """
         {
@@ -542,10 +542,10 @@ Feature: For posted planning item changes in assignment state post a planning it
         Then we get OK response
         Then we store assignment id in "firstassignment" from coverage 0
         When we transmit items
-        When we get "published_planning?sort=item_id,version"
+        When we get "published_planning?sort=_id"
         Then we get list with 2 items
         Then we store "PLANNING" with 2 item
-        When we get "published_planning?where={\"item_id\": \"#PLANNING.item_id#\", \"version\": #PLANNING.version#}"
+        When we get "published_planning?where={\"_id\": \"#PLANNING._id#\"}"
         Then we get list with 1 items
         Then we get transmitted item "/tmp/#PLANNING.item_id#-#PLANNING.version#-2.txt"
         """
@@ -588,10 +588,10 @@ Feature: For posted planning item changes in assignment state post a planning it
         When we get "/assignments/#firstassignment#"
         Then we get error 404
         When we transmit items
-        When we get "published_planning?sort=item_id,version"
+        When we get "published_planning?sort=_id"
         Then we get list with 3 items
         Then we store "PLANNING" with 3 item
-        When we get "published_planning?where={\"item_id\": \"#PLANNING.item_id#\", \"version\": #PLANNING.version#}"
+        When we get "published_planning?where={\"_id\": \"#PLANNING._id#\"}"
         Then we get list with 1 items
         Then we get transmitted item "/tmp/#PLANNING.item_id#-#PLANNING.version#-3.txt"
         """
@@ -636,10 +636,10 @@ Feature: For posted planning item changes in assignment state post a planning it
         """
         {"state": "scheduled"}
         """
-        When we get "published_planning?sort=item_id,version"
+        When we get "published_planning?sort=_id"
         Then we get list with 1 items
         Then we store "PLANNING" with first item
-        When we get "published_planning?where={\"item_id\": \"#PLANNING.item_id#\", \"version\": #PLANNING.version#}"
+        When we get "published_planning?where={\"_id\": \"#PLANNING._id#\"}"
         Then we get list with 1 items
         """
         {
@@ -726,10 +726,10 @@ Feature: For posted planning item changes in assignment state post a planning it
         Then we get OK response
         Then we store assignment id in "firstassignment" from coverage 0
         When we transmit items
-        When we get "published_planning?sort=item_id,version"
+        When we get "published_planning?sort=_id"
         Then we get list with 2 items
         Then we store "PLANNING" with 2 item
-        When we get "published_planning?where={\"item_id\": \"#PLANNING.item_id#\", \"version\": #PLANNING.version#}"
+        When we get "published_planning?where={\"_id\": \"#PLANNING._id#\"}"
         Then we get list with 1 items
         Then we get transmitted item "/tmp/#PLANNING.item_id#-#PLANNING.version#-2.txt"
         """
@@ -803,10 +803,10 @@ Feature: For posted planning item changes in assignment state post a planning it
         }
         """
         When we transmit items
-        When we get "published_planning?sort=item_id,version"
+        When we get "published_planning?sort=_id"
         Then we get list with 3 items
         Then we store "PLANNING" with 3 item
-        When we get "published_planning?where={\"item_id\": \"#PLANNING.item_id#\", \"version\": #PLANNING.version#}"
+        When we get "published_planning?where={\"_id\": \"#PLANNING._id#\"}"
         Then we get list with 1 items
         Then we get transmitted item "/tmp/#PLANNING.item_id#-#PLANNING.version#-3.txt"
         """
@@ -839,10 +839,10 @@ Feature: For posted planning item changes in assignment state post a planning it
         When we publish "123" with "publish" type and "published" state
         Then we get OK response
         When we transmit items
-        When we get "published_planning?sort=item_id,version"
+        When we get "published_planning?sort=_id"
         Then we get list with 4 items
         Then we store "PLANNING" with 4 item
-        When we get "published_planning?where={\"item_id\": \"#PLANNING.item_id#\", \"version\": #PLANNING.version#}"
+        When we get "published_planning?where={\"_id\": \"#PLANNING._id#\"}"
         Then we get list with 1 items
         Then we get transmitted item "/tmp/#PLANNING.item_id#-#PLANNING.version#-4.txt"
         """
@@ -898,10 +898,10 @@ Feature: For posted planning item changes in assignment state post a planning it
         }
         """
         When we transmit items
-        When we get "published_planning?sort=item_id,version"
+        When we get "published_planning?sort=_id"
         Then we get list with 5 items
         Then we store "PLANNING" with 5 item
-        When we get "published_planning?where={\"item_id\": \"#PLANNING.item_id#\", \"version\": #PLANNING.version#}"
+        When we get "published_planning?where={\"_id\": \"#PLANNING._id#\"}"
         Then we get list with 1 items
         Then we get transmitted item "/tmp/#PLANNING.item_id#-#PLANNING.version#-5.txt"
         """
@@ -958,10 +958,10 @@ Feature: For posted planning item changes in assignment state post a planning it
         }
         """
         When we transmit items
-        When we get "published_planning?sort=item_id,version"
+        When we get "published_planning?sort=_id"
         Then we get list with 6 items
         Then we store "PLANNING" with 6 item
-        When we get "published_planning?where={\"item_id\": \"#PLANNING.item_id#\", \"version\": #PLANNING.version#}"
+        When we get "published_planning?where={\"_id\": \"#PLANNING._id#\"}"
         Then we get list with 1 items
         Then we get transmitted item "/tmp/#PLANNING.item_id#-#PLANNING.version#-6.txt"
         """
@@ -1062,10 +1062,10 @@ Feature: For posted planning item changes in assignment state post a planning it
         """
         {"state": "scheduled"}
         """
-        When we get "published_planning?sort=item_id,version"
+        When we get "published_planning?sort=_id"
         Then we get list with 1 items
         Then we store "PLANNING" with first item
-        When we get "published_planning?where={\"item_id\": \"#PLANNING.item_id#\", \"version\": #PLANNING.version#}"
+        When we get "published_planning?where={\"_id\": \"#PLANNING._id#\"}"
         Then we get list with 1 items
         When we transmit items
         Then we get transmitted item "/tmp/#PLANNING.item_id#-#PLANNING.version#-1.txt"
@@ -1116,10 +1116,10 @@ Feature: For posted planning item changes in assignment state post a planning it
             }
         }
         """
-        When we get "published_planning?sort=item_id,version"
+        When we get "published_planning?sort=_id"
         Then we get list with 2 items
         Then we store "PLANNING" with 2 item
-        When we get "published_planning?where={\"item_id\": \"#PLANNING.item_id#\", \"version\": #PLANNING.version#}"
+        When we get "published_planning?where={\"_id\": \"#PLANNING._id#\"}"
         Then we get list with 1 items
         When we transmit items
         Then we get transmitted item "/tmp/#PLANNING.item_id#-#PLANNING.version#-2.txt"
@@ -1170,10 +1170,10 @@ Feature: For posted planning item changes in assignment state post a planning it
             }
         }
         """
-        When we get "published_planning?sort=item_id,version"
+        When we get "published_planning?sort=_id"
         Then we get list with 3 items
         Then we store "PLANNING" with 3 item
-        When we get "published_planning?where={\"item_id\": \"#PLANNING.item_id#\", \"version\": #PLANNING.version#}"
+        When we get "published_planning?where={\"_id\": \"#PLANNING._id#\"}"
         Then we get list with 1 items
         When we transmit items
         Then we get transmitted item "/tmp/#PLANNING.item_id#-#PLANNING.version#-3.txt"
@@ -1230,7 +1230,7 @@ Feature: For posted planning item changes in assignment state post a planning it
         """
         Then we get OK response
         Then we store assignment id in "firstassignment" from coverage 0
-        When we get "published_planning?sort=item_id,version"
+        When we get "published_planning?sort=_id"
         Then we get list with 0 items
         When we get "publish_queue"
         Then we get list with 0 items
@@ -1266,7 +1266,7 @@ Feature: For posted planning item changes in assignment state post a planning it
             }
         }
         """
-        When we get "published_planning?sort=item_id,version"
+        When we get "published_planning?sort=_id"
         Then we get list with 0 items
         When we get "publish_queue"
         Then we get list with 0 items
@@ -1284,7 +1284,7 @@ Feature: For posted planning item changes in assignment state post a planning it
         Then we get OK response
         When we get "/assignments/#firstassignment#"
         Then we get error 404
-        When we get "published_planning?sort=item_id,version"
+        When we get "published_planning?sort=_id"
         Then we get list with 0 items
         When we get "publish_queue"
         Then we get list with 0 items

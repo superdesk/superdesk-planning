@@ -17,14 +17,16 @@ Feature: Assignments
         }
         ]
         """
-        And "desks"
-        """
-        [{"name": "Sports", "content_expiry": 60, "members": [{"user": "#CONTEXT_USER_ID#"}]}]
-        """
         And "users"
         """
         [{"_id": "507f191e810c19729de87034", "name":"testfoo", "email":"foo@122d.com", "username":"johnfoo"}]
         """
+        When we post to "desks"
+        """
+        [{"name": "Sports", "content_expiry": 60, "members": [{"user": "#CONTEXT_USER_ID#"}]}]
+        """
+        Then we get OK response
+        And we store "SPORTS_DESK_ID" with value "#desks._id#" to context
 
     @auth
     Scenario: Empty planning list
@@ -1458,7 +1460,10 @@ Feature: Assignments
                 "desk": "#desks._id#",
                 "user": "#CONTEXT_USER_ID#",
                 "state": "completed"
-            }
+            },
+            "linked_items": [
+                {"_id": "#archive._id#", "_type": "published"}
+            ]
         }
         """
 
@@ -2581,5 +2586,161 @@ Feature: Assignments
                 "desk": "#desks._id#",
                 "user": "#CONTEXT_USER_ID#"
             }
+        }]}
+        """
+
+    @auth
+    @planning_cvs
+    Scenario: Assignment reassign also update Planning autosave
+        Given we have sessions "/sessions"
+        When we post to "desks"
+        """
+        [{"name": "News", "content_expiry": 60, "members": [{"user": "#CONTEXT_USER_ID#"}]}]
+        """
+        Then we get OK response
+        And we store "NEWS_DESK_ID" with value "#desks._id#" to context
+        When we post to "planning"
+        """
+        [{
+            "item_class": "item class value",
+            "headline": "test headline",
+            "slugline": "test slugline",
+            "planning_date": "2016-01-02",
+            "coverages": [{
+                "planning": {
+                    "ednote": "test coverage, I want 250 words",
+                    "headline": "test headline",
+                    "slugline": "test slugline",
+                    "g2_content_type" : "text"
+                },
+                "assigned_to": {
+                    "desk": "#SPORTS_DESK_ID#",
+                    "user": "#CONTEXT_USER_ID#",
+                    "state": "assigned"
+                },
+                "workflow_status": "active"
+            }]
+        }]
+        """
+        Then we get OK response
+        Then we store coverage id in "coverageId" from coverage 0
+        Then we store assignment id in "assignmentId" from coverage 0
+        When we post to "/planning/#planning._id#/lock"
+        """
+        {"lock_action": "edit"}
+        """
+        Then we get OK response
+        When we post to "planning_autosave"
+        """
+        {
+            "_id": "#planning._id#",
+            "item_class": "item class value",
+            "headline": "test headline",
+            "slugline": "test slugline",
+            "planning_date": "2016-01-02",
+            "coverages": [{
+                "coverage_id": "#coverageId#",
+                "planning": {
+                    "ednote": "test coverage, I want 250 words",
+                    "headline": "test headline",
+                    "slugline": "test slugline",
+                    "g2_content_type" : "text"
+                },
+                "assigned_to": {
+                    "desk": "#SPORTS_DESK_ID#",
+                    "user": "#CONTEXT_USER_ID#",
+                    "state": "assigned",
+                    "assignment_id": "#assignmentId#"
+                },
+                "workflow_status": "active"
+            }],
+            "lock_user": "#CONTEXT_USER_ID#",
+            "lock_session": "#SESSION_ID#",
+            "lock_action": "edit",
+            "lock_time": "#DATE#"
+        }
+        """
+        Then we get OK response
+        When we post to "/assignments/#assignmentId#/lock"
+        """
+        {"lock_action": "reassign"}
+        """
+        Then we get OK response
+        When we patch "/assignments/#assignmentId#"
+        """
+        {"assigned_to": {
+            "desk": "#NEWS_DESK_ID#",
+            "user": "507f191e810c19729de87034"
+        }}
+        """
+        Then we get OK response
+        When we get "/planning_autosave/#planning._id#"
+        Then we get existing resource
+        """
+        {"coverages": [{
+            "coverage_id": "#coverageId#",
+            "assigned_to": {
+                "assignment_id": "#assignmentId#",
+                "desk": "#NEWS_DESK_ID#",
+                "user": "507f191e810c19729de87034"
+            }
+        }]}
+        """
+
+    @auth
+    @planning_cvs
+    Scenario: Assignments enhanced with Archive details
+        When we post to "/archive" with success
+        """
+        [{
+            "type": "text",
+            "headline": "test headline",
+            "slugline": "test slugline",
+            "task": {
+                "desk": "#desks._id#",
+                "stage": "#desks.incoming_stage#"
+            }
+        }]
+        """
+        When we post to "/planning" with success
+        """
+        [{
+            "item_class": "item class value",
+            "slugline": "test slugline",
+            "planning_date": "2016-01-02",
+            "coverages": [{
+                "planning": {
+                    "ednote": "test coverage, I want 250 words",
+                    "slugline": "test slugline"
+                },
+                "assigned_to": {
+                    "desk": "#desks._id#",
+                    "user": "#CONTEXT_USER_ID#"
+                },
+                "workflow_status": "active"
+            }]
+        }]
+        """
+        Then we store assignment id in "assignmentId" from coverage 0
+        When we post to "assignments/link" with success
+        """
+        [{
+            "assignment_id": "#assignmentId#",
+            "item_id": "#archive._id#",
+            "reassign": true
+        }]
+        """
+        When we get "assignments"
+        Then we get list with 1 items
+        """
+        {"_items": [{
+            "_id": "#assignmentId#",
+            "item_ids": ["#archive._id#"],
+            "linked_items": [{
+                "_id": "#archive._id#",
+                "_type": "#archive._type#",
+                "event_id": "#archive.event_id#",
+                "body_html": "__no_value__"
+            }]
         }]}
         """

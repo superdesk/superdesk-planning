@@ -128,6 +128,7 @@ def init_app(app):
     app.on_updated_planning_reschedule += planning_history_service.on_reschedule
 
     app.on_locked_planning += planning_service.on_locked_planning
+    app.on_updated_assignments += PlanningAutosaveAsyncService().on_assignment_updated
 
     superdesk.privilege(
         name="planning_planning_management",

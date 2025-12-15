@@ -5,7 +5,9 @@ from bson import ObjectId
 
 
 class AssignmentsTestCase(TestCase):
-    users = [{"_id": ObjectId(), "username": "u1"}, {"_id": ObjectId(), "username": "u2"}]
+    users = [{"_id": ObjectId(), "username": "u1", "user_type": "administrator"}, {"_id": ObjectId(), "username": "u2"}]
+    desks = [{"_id": ObjectId(), "name": "desk1", "members": [{"user": users[0]["_id"]}]}]
+    stages = [{"_id": ObjectId(), "name": "working stage", "desk": desks[0]["_id"]}]
 
     auth = [
         {"_id": ObjectId(), "user": users[0]["_id"]},
@@ -15,11 +17,14 @@ class AssignmentsTestCase(TestCase):
     archive_item = {
         "_id": "item1",
         "guid": "item1",
+        "event_id": "abcd123",
         "type": "text",
         "headline": "test headline",
         "slugline": "test slugline",
-        "task": {"desk": "desk1", "stage": "stage1"},
+        "task": {"desk": desks[0]["_id"], "stage": stages[0]["_id"], "user": users[0]["_id"]},
         "assignment_id": ObjectId("5b20652a1d41c812e24aa49e"),
+        "state": "in_progress",
+        "version": 1,
     }
 
     assignment_item = {
@@ -30,7 +35,7 @@ class AssignmentsTestCase(TestCase):
         "assigned_to": {
             "state": "in_progress",
             "user": "aaaaaaaaaaaaaaaaaaaaaaaa",
-            "desk": "desk1",
+            "desk": desks[0]["_id"],
         },
         "lock_user": users[0]["_id"],
         "lock_session": auth[0]["_id"],
@@ -43,7 +48,7 @@ class AssignmentsTestCase(TestCase):
         "coverages": [
             {
                 "coverage_id": "cov1",
-                "assigned_to": {"user": "aaaaaaaaaaaaaaaaaaaaaaaa", "desk": "desk1"},
+                "assigned_to": {"user": "aaaaaaaaaaaaaaaaaaaaaaaa", "desk": desks[0]["_id"]},
             }
         ],
         "lock_user": users[0]["_id"],
@@ -61,21 +66,43 @@ class AssignmentsTestCase(TestCase):
 
     async def asyncSetUp(self):
         await super().asyncSetUp()
-        async with self.app.app_context():
-            self.app.data.insert("users", self.users)
-            self.app.data.insert("auth", self.auth)
-            self.app.data.insert("archive", [self.archive_item])
-            self.app.data.insert("assignments", [self.assignment_item])
-            self.app.data.insert("planning", [self.planning_item])
-            self.app.data.insert("delivery", [self.delivery_item])
+        self.app.data.insert("users", self.users)
+        self.app.data.insert("desks", self.desks)
+        self.app.data.insert("stages", self.stages)
+        self.app.data.insert("auth", self.auth)
+        self.app.data.insert("archive", [self.archive_item])
+        self.app.data.insert("assignments", [self.assignment_item])
+        self.app.data.insert("planning", [self.planning_item])
+        self.app.data.insert("delivery", [self.delivery_item])
+
+        g.user = self.users[0]
+        g.auth = self.auth[0]
 
     async def test_delivery_record_deleted(self):
-        async with self.app.app_context():
-            g.user = self.users[0]
-            g.auth = self.auth[0]
-            delivery_service = get_resource_service("delivery")
-            assignment_service = get_resource_service("assignments")
+        delivery_service = get_resource_service("delivery")
+        assignment_service = get_resource_service("assignments")
 
-            self.assertIsNotNone(await delivery_service.find_one_async(req=None, item_id="item1"))
-            await assignment_service.delete_action_async(lookup={"_id": ObjectId("5b20652a1d41c812e24aa49e")})
-            self.assertIsNone(delivery_service.find_one(req=None, item_id="item1"))
+        self.assertIsNotNone(await delivery_service.find_one_async(req=None, item_id="item1"))
+        await assignment_service.delete_action_async(lookup={"_id": ObjectId("5b20652a1d41c812e24aa49e")})
+        self.assertIsNone(delivery_service.find_one(req=None, item_id="item1"))
+
+    async def test_get_archive_links_for_assignments_excludes_body(self):
+        assignment_service = get_resource_service("assignments")
+        cursor = await assignment_service.get_archive_links_for_assignments([self.assignment_item["_id"]])
+
+        # Test that aggregations were not generated
+        self.assertNotIn("aggregations", cursor.hits)
+
+        # Test that the item only contains the expected fields
+        self.assertEqual(await cursor.count(), 1)
+        item = await cursor.next()
+        self.assertEqual(
+            item,
+            {
+                "_id": self.archive_item["guid"],
+                "guid": self.archive_item["guid"],
+                "_type": "archive",
+                "event_id": self.archive_item["event_id"],
+                "assignment_id": self.assignment_item["_id"],
+            },
+        )

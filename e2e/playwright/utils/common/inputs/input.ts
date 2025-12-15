@@ -22,6 +22,7 @@ export class Input {
     async type(value: string | Array<string>): Promise<void> {
         await this.clear();
         await this.element.fill(Array.isArray(value) ? value[0] : value);
+        await this.page.waitForTimeout(500); // wait for debounced inputs
     }
 
     async expect(value: any): Promise<void> {

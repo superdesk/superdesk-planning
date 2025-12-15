@@ -1,5 +1,6 @@
-import {orderBy, cloneDeep, uniq, get} from 'lodash';
+import {orderBy, uniq, get} from 'lodash';
 import moment from 'moment';
+import {produce} from 'immer';
 
 import {IEventState, IMainState, GROUP_LIST_BY} from '../interfaces';
 
@@ -17,26 +18,26 @@ const initialState: IEventState = {
     eventTemplates: [],
 };
 
-const modifyEventsBeingAdded = (state, payload) => {
-    let _events = cloneDeep(state.events);
+const modifyEventsBeingAdded = (state, payload) => (
+    produce(state, (draft) => {
+        let _events = draft.events;
 
-    payload.forEach((e) => {
-        _events[e._id] = e;
+        payload.forEach((e) => {
+            _events[e._id] = e;
 
-        // Change dates to moment objects
-        if (e.dates) {
-            e.dates.start = moment(e.dates.start);
-            e.dates.end = moment(e.dates.end);
-            if (get(e, 'dates.recurring_rule.until')) {
-                e.dates.recurring_rule.until = moment(e.dates.recurring_rule.until);
+            // Change dates to moment objects
+            if (e.dates) {
+                e.dates.start = moment(e.dates.start);
+                e.dates.end = moment(e.dates.end);
+                if (get(e, 'dates.recurring_rule.until')) {
+                    e.dates.recurring_rule.until = moment(e.dates.recurring_rule.until);
+                }
+                e._startTime = moment(e.dates.start);
+                e._endTime = moment(e.dates.end);
             }
-            e._startTime = moment(e.dates.start);
-            e._endTime = moment(e.dates.end);
-        }
-    });
-
-    return _events;
-};
+        });
+    })
+);
 
 const removeLock = (event, etag = null) => {
     delete event.lock_action;
@@ -70,18 +71,13 @@ export const unspikeEvent = (events, payload) => {
 };
 
 const eventsReducer = createReducer<IEventState>(initialState, {
-    [RESET_STORE]: () => (initialState),
+    [RESET_STORE]: () => ({...initialState}),
 
-    [INIT_STORE]: () => (initialState),
+    [INIT_STORE]: () => ({...initialState}),
 
-    [EVENTS.ACTIONS.ADD_EVENTS]: (state, payload) => {
-        const _events = modifyEventsBeingAdded(state, payload);
-
-        return {
-            ...state,
-            events: _events,
-        };
-    },
+    [EVENTS.ACTIONS.ADD_EVENTS]: (state, payload) => (
+        modifyEventsBeingAdded(state, payload)
+    ),
 
     [EVENTS.ACTIONS.SET_EVENTS_LIST]: (state, payload) => (
         {
@@ -123,105 +119,90 @@ const eventsReducer = createReducer<IEventState>(initialState, {
         if (!(payload.event_id in state.events) && get(payload, 'cancelled_items.length', 0) < 1)
             return state;
 
-        let events = cloneDeep(state.events);
+        return produce(state, (draft) => {
+            let events = draft.events;
 
-        // First mark the original Event as cancelled
-        markEventCancelled(
-            events,
-            payload.event_id,
-            payload.etag,
-            payload.reason,
-            payload.occur_status,
-            payload.actionedDate
-        );
-
-        // Now mark all associated Events that are also cancelled
-        (get(payload, 'cancelled_items') || []).forEach(
-            (event) => markEventCancelled(
+            // First mark the original Event as cancelled
+            markEventCancelled(
                 events,
-                event._id,
-                event._etag,
+                payload.event_id,
+                payload.etag,
                 payload.reason,
                 payload.occur_status,
                 payload.actionedDate
-            )
-        );
+            );
 
-        return {
-            ...state,
-            events,
-        };
+            // Now mark all associated Events that are also cancelled
+            (get(payload, 'cancelled_items') || []).forEach(
+                (event) => markEventCancelled(
+                    events,
+                    event._id,
+                    event._etag,
+                    payload.reason,
+                    payload.occur_status,
+                    payload.actionedDate
+                )
+            );
+        });
     },
 
     [EVENTS.ACTIONS.SET_EVENT_PLANNINGS]: (state, payload) => {
         // If the event is not loaded, disregard this action
         if (!(payload.event_id in state.events)) return state;
 
-        let events = cloneDeep(state.events);
-        let event = events[payload.event_id];
+        return produce(state, (draft) => {
+            let events = draft.events;
+            let event = events[payload.event_item];
 
-        event.planning_ids = payload.planning_ids;
-
-        return {
-            ...state,
-            events,
-        };
+            event.planning_ids = payload.planning_ids;
+        });
     },
 
-    [EVENTS.ACTIONS.LOCK_EVENT]: (state, payload) => {
-        let events = cloneDeep(state.events);
-        const newEvent = payload.event;
-        let event = get(events, newEvent._id, payload.event);
+    [EVENTS.ACTIONS.LOCK_EVENT]: (state, payload) => (
+        produce(state, (draft) => {
+            let events = draft.events;
+            const newEvent = payload.event;
+            let event = get(events, newEvent._id, payload.event);
 
-        event.lock_action = newEvent.lock_action;
-        event.lock_user = newEvent.lock_user;
-        event.lock_time = newEvent.lock_time;
-        event.lock_session = newEvent.lock_session;
-        event._etag = newEvent._etag;
-
-        return {
-            ...state,
-            events,
-        };
-    },
+            event.lock_action = newEvent.lock_action;
+            event.lock_user = newEvent.lock_user;
+            event.lock_time = newEvent.lock_time;
+            event.lock_session = newEvent.lock_session;
+            event._etag = newEvent._etag;
+        })
+    ),
 
     [EVENTS.ACTIONS.UNLOCK_EVENT]: (state, payload) => {
         // If the event is not loaded, disregard this action
         if (!(payload.event._id in state.events)) return state;
 
-        let events = cloneDeep(state.events);
-        const newEvent = payload.event;
-        let event = events[newEvent._id];
+        return produce(state, (draft) => {
+            let events = draft.events;
+            const newEvent = payload.event;
+            let event = events[newEvent._id];
 
-        removeLock(event, newEvent._etag);
-
-        return {
-            ...state,
-            events,
-        };
+            removeLock(event, newEvent._etag);
+        });
     },
 
     [EVENTS.ACTIONS.MARK_EVENT_POSTPONED]: (state, payload) => {
         // If the event is not loaded, disregard this action
         if (!(payload.event._id in state.events)) return state;
 
-        let events = cloneDeep(state.events);
-        let event = events[payload.event._id];
+        return produce(state, (draft) => {
+            let events = draft.events;
+            let event = events[payload.event._id];
 
-        if (get(payload, 'reason.length', 0) > 0) {
-            event.state_reason = payload.reason;
-        }
+            if (get(payload, 'reason.length', 0) > 0) {
+                event.state_reason = payload.reason;
+            }
 
-        if (get(payload, 'actionedDate')) {
-            event.actioned_date = payload.actionedDate;
-        }
+            if (get(payload, 'actionedDate')) {
+                event.actioned_date = payload.actionedDate;
+            }
 
-        event.state = WORKFLOW_STATE.POSTPONED;
-
-        return {
-            ...state,
-            events,
-        };
+            event.state = WORKFLOW_STATE.POSTPONED;
+        });
     },
 
     [EVENTS.ACTIONS.SPIKE_EVENT]: (state, payload) => {
@@ -232,14 +213,11 @@ const eventsReducer = createReducer<IEventState>(initialState, {
 
         // Otherwise iterate over the items and mark them
         // with their new etag and spike state
-        let events = cloneDeep(state.events);
+        return produce(state, (draft) => {
+            let events = draft.events;
 
-        payload.items.forEach((event) => spikeEvent(events, event));
-
-        return {
-            ...state,
-            events,
-        };
+            payload.items.forEach((event) => spikeEvent(events, event));
+        });
     },
 
     [EVENTS.ACTIONS.UNSPIKE_EVENT]: (state, payload) => {
@@ -250,14 +228,11 @@ const eventsReducer = createReducer<IEventState>(initialState, {
 
         // Otherwise iterate over the items and mark them
         // with their new etag and spike state
-        let events = cloneDeep(state.events);
+        return produce(state, (draft) => {
+            let events = draft.events;
 
-        payload.items.forEach((event) => unspikeEvent(events, event));
-
-        return {
-            ...state,
-            events,
-        };
+            payload.items.forEach((event) => unspikeEvent(events, event));
+        });
     },
 
     [EVENTS.ACTIONS.MARK_EVENT_POSTED]: (state, payload) => (
@@ -291,19 +266,16 @@ const eventsReducer = createReducer<IEventState>(initialState, {
         }
     ),
 
-    [EVENTS.ACTIONS.EXPIRE_EVENTS]: (state, payload) => {
-        let events = cloneDeep(state.events);
+    [EVENTS.ACTIONS.EXPIRE_EVENTS]: (state, payload) => (
+        produce(state, (draft) => {
+            let events = draft.events;
 
-        payload.forEach((eventId) => {
-            if (events[eventId])
-                events[eventId].expired = true;
-        });
-
-        return {
-            ...state,
-            events,
-        };
-    },
+            payload.forEach((eventId) => {
+                if (events[eventId])
+                    events[eventId].expired = true;
+            });
+        })
+    ),
 
     [EVENTS.ACTIONS.RECEIVE_EVENT_TEMPLATES]: (state, payload) => ({
         ...state,
@@ -323,22 +295,20 @@ const onEventPostChanged = (state, payload) => {
 
     // Otherwise iterate over the items and mark them
     // with their new etag, state and pubstatus values
-    let events = cloneDeep(state.events);
 
-    payload.items.forEach((event) =>
-        updateEventPubstatus(
-            events,
-            event.id,
-            event.etag,
-            payload.state,
-            payload.pubstatus
-        )
-    );
+    return produce(state, (draft) => {
+        let events = draft.events;
 
-    return {
-        ...state,
-        events,
-    };
+        payload.items.forEach((event) =>
+            updateEventPubstatus(
+                events,
+                event.id,
+                event.etag,
+                payload.state,
+                payload.pubstatus
+            )
+        );
+    });
 };
 
 const updateEventPubstatus = (events, eventId, etag, state, pubstatus) => {

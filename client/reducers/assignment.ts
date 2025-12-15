@@ -128,9 +128,9 @@ const filterList = (state, listId, assignmentId) => {
 };
 
 const assignmentReducer = createReducer(initialState, {
-    [RESET_STORE]: () => (null),
+    [RESET_STORE]: () => ({...initialState}),
 
-    [INIT_STORE]: () => (initialState),
+    [INIT_STORE]: () => ({...initialState}),
 
     [ASSIGNMENTS.ACTIONS.RECEIVED_ASSIGNMENTS]: produce((draftState, actionPayload) => {
         const receivedAssignments = modifyAssignmentBeingAdded(actionPayload);

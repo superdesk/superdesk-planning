@@ -1,4 +1,4 @@
-import {cloneDeep, get, uniq, find} from 'lodash';
+import {get, uniq, find} from 'lodash';
 import {createReducer} from './createReducer';
 import {getItemType, planningUtils} from '../utils';
 import {
@@ -11,6 +11,7 @@ import {
     MAIN,
     ITEM_TYPE,
 } from '../constants';
+import {produce} from 'immer';
 
 const initialState = {
     plannings: {},
@@ -21,13 +22,10 @@ const initialState = {
     planningHistoryItems: [],
 };
 
-let plannings;
-let plan;
-
 const planningReducer = createReducer(initialState, {
-    [RESET_STORE]: () => (initialState),
+    [RESET_STORE]: () => ({...initialState}),
 
-    [INIT_STORE]: () => (initialState),
+    [INIT_STORE]: () => ({...initialState}),
 
     [PLANNING.ACTIONS.SET_LIST]: (state, payload) => (
         {
@@ -66,141 +64,120 @@ const planningReducer = createReducer(initialState, {
         planningHistoryItems: payload,
     }),
 
-    [PLANNING.ACTIONS.MARK_PLANNING_CANCELLED]: (state, payload) => {
-        plannings = cloneDeep(state.plannings);
-        plan = get(plannings, payload.planning_item, null);
+    [PLANNING.ACTIONS.MARK_PLANNING_CANCELLED]: (state, payload) => (
+        produce(state, (draft) => {
+            const plannings = draft.plannings;
+            const plan = get(plannings, payload.planning_item, null);
 
-        // If the planning item is not loaded, disregard this action
-        if (plan === null) return state;
+            // If the planning item is not loaded, disregard this action
+            if (plan === null) return;
 
-        markPlaning(plan, payload, 'cancelled');
-        plan.state = WORKFLOW_STATE.CANCELLED;
-        plan.coverages.forEach((coverage) => {
-            markCoverage(coverage, payload, 'cancelled');
-            get(coverage, 'scheduled_updates', []).forEach(
-                (s) => markCoverage(s, payload, 'cancelled')
-            );
-        });
-
-        return {
-            ...state,
-            plannings,
-        };
-    },
-
-    [PLANNING.ACTIONS.MARK_COVERAGE_CANCELLED]: (state, payload) => {
-        plannings = cloneDeep(state.plannings);
-        plan = get(plannings, payload.planning_item, null);
-
-        // If the planning item is not loaded, disregard this action
-        if (plan === null) return state;
-
-        if ('etag' in payload) {
-            plan._etag = payload.etag;
-        }
-
-        plan.coverages.forEach((coverage) => {
-            if (payload.ids.indexOf(coverage.coverage_id) !== -1) {
+            markPlaning(plan, payload, 'cancelled');
+            plan.state = WORKFLOW_STATE.CANCELLED;
+            plan.coverages.forEach((coverage) => {
                 markCoverage(coverage, payload, 'cancelled');
+                get(coverage, 'scheduled_updates', []).forEach(
+                    (s) => markCoverage(s, payload, 'cancelled')
+                );
+            });
+        })
+    ),
+
+    [PLANNING.ACTIONS.MARK_COVERAGE_CANCELLED]: (state, payload) => (
+        produce(state, (draft) => {
+            const plannings = draft.plannings;
+            const plan = get(plannings, payload.planning_item, null);
+
+            // If the planning item is not loaded, disregard this action
+            if (plan === null) return;
+
+            if ('etag' in payload) {
+                plan._etag = payload.etag;
             }
-        });
 
-        return {
-            ...state,
-            plannings,
-        };
-    },
+            plan.coverages.forEach((coverage) => {
+                if (payload.ids.indexOf(coverage.coverage_id) !== -1) {
+                    markCoverage(coverage, payload, 'cancelled');
+                }
+            });
+        })
+    ),
 
-    [PLANNING.ACTIONS.MARK_PLANNING_POSTPONED]: (state, payload) => {
-        plannings = cloneDeep(state.plannings);
-        plan = get(plannings, payload.planning_item, null);
+    [PLANNING.ACTIONS.MARK_PLANNING_POSTPONED]: (state, payload) => (
+        produce(state, (draft) => {
+            const plannings = draft.plannings;
+            const plan = get(plannings, payload.planning_item, null);
 
-        // If the planning item is not loaded, disregard this action
-        if (plan === null) return state;
+            // If the planning item is not loaded, disregard this action
+            if (plan === null) return;
 
-        markPlaning(plan, payload, 'postponed');
-        plan.state = WORKFLOW_STATE.POSTPONED;
-        plan.coverages.forEach((coverage) => markCoverage(coverage, payload, 'postponed'));
-
-        return {
-            ...state,
-            plannings,
-        };
-    },
+            markPlaning(plan, payload, 'postponed');
+            plan.state = WORKFLOW_STATE.POSTPONED;
+            plan.coverages.forEach((coverage) => markCoverage(coverage, payload, 'postponed'));
+        })
+    ),
 
     [PLANNING.ACTIONS.LOCK_PLANNING]: (state, payload) => {
         if (!(payload.plan._id in state.plannings)) return state;
 
-        plannings = cloneDeep(state.plannings);
-        const newPlan = payload.plan;
+        return produce(state, (draft) => {
+            const plannings = draft.plannings;
+            const newPlan = payload.plan;
 
-        plan = plannings[newPlan._id];
+            const plan = plannings[newPlan._id];
 
-        plan.lock_action = newPlan.lock_action;
-        plan.lock_user = newPlan.lock_user;
-        plan.lock_time = newPlan.lock_time;
-        plan.lock_session = newPlan.lock_session;
-        plan._etag = newPlan._etag;
-
-        return {
-            ...state,
-            plannings,
-        };
+            plan.lock_action = newPlan.lock_action;
+            plan.lock_user = newPlan.lock_user;
+            plan.lock_time = newPlan.lock_time;
+            plan.lock_session = newPlan.lock_session;
+            plan._etag = newPlan._etag;
+        });
     },
 
     [PLANNING.ACTIONS.UNLOCK_PLANNING]: (state, payload) => {
         // If the planning is not loaded, disregard this action
         if (!(payload.plan._id in state.plannings)) return state;
 
-        plannings = cloneDeep(state.plannings);
-        const newPlan = payload.plan;
+        return produce(state, (draft) => {
+            const plannings = draft.plannings;
+            const newPlan = payload.plan;
 
-        plan = plannings[newPlan._id];
+            const plan = plannings[newPlan._id];
 
-        delete plan.lock_action;
-        delete plan.lock_user;
-        delete plan.lock_time;
-        delete plan.lock_session;
-        plan._etag = newPlan._etag;
-
-        return {
-            ...state,
-            plannings,
-        };
+            delete plan.lock_action;
+            delete plan.lock_user;
+            delete plan.lock_time;
+            delete plan.lock_session;
+            plan._etag = newPlan._etag;
+        });
     },
 
     [PLANNING.ACTIONS.SPIKE_PLANNING]: (state, payload) => {
         // If the planning is not loaded, disregard this action
         if (!(payload.id in state.plannings)) return state;
 
-        const plannings = cloneDeep(state.plannings);
-        const plan = plannings[payload.id];
+        return produce(state, (draft) => {
+            const plannings = draft.plannings;
+            const plan = plannings[payload.id];
 
-        plan._etag = payload.etag;
-        plan.state = payload.state;
-        plan.revert_state = payload.revert_state;
-
-        return {
-            ...state,
-            plannings,
-        };
+            plan._etag = payload.etag;
+            plan.state = payload.state;
+            plan.revert_state = payload.revert_state;
+        });
     },
 
     [PLANNING.ACTIONS.UNSPIKE_PLANNING]: (state, payload) => {
         // If the planning is not loaded, disregard this action
         if (!(payload.id in state.plannings)) return state;
 
-        const plannings = cloneDeep(state.plannings);
-        const plan = plannings[payload.id];
+        return produce(state, (draft) => {
+            const plannings = draft.plannings;
+            const plan = plannings[payload.id];
 
-        plan._etag = payload.etag;
-        plan.state = payload.state;
-        delete plan.revert_state;
-
-        return {
-            ...state,
-            plannings,
-        };
+            plan._etag = payload.etag;
+            plan.state = payload.state;
+            delete plan.revert_state;
+        });
     },
 
     [ASSIGNMENTS.ACTIONS.REMOVE_ASSIGNMENT]: (state, payload) => {
@@ -209,23 +186,21 @@ const planningReducer = createReducer(initialState, {
             return state;
         }
 
-        let plannings = cloneDeep(state.plannings);
-        let plan = plannings[payload.planning];
+        return produce(state, (draft) => {
+            const plannings = draft.plannings;
+            const plan = plannings[payload.planning];
 
-        plan._etag = payload.planning_etag;
+            plan._etag = payload.planning_etag;
 
-        const coverage = find(get(plan, 'coverages', []), (c) => c.coverage_id === payload.coverage);
+            const coverage = find(get(plan, 'coverages', []), (c) => c.coverage_id === payload.coverage);
 
-        if (coverage) {
-            delete coverage.assigned_to;
-            coverage.workflow_status = WORKFLOW_STATE.DRAFT;
-        }
-
-        return {
-            ...state,
-            plannings,
-        };
+            if (coverage) {
+                delete coverage.assigned_to;
+                coverage.workflow_status = WORKFLOW_STATE.DRAFT;
+            }
+        });
     },
+
     [MAIN.ACTIONS.PREVIEW]: (state, payload) => {
         if (getItemType(payload) === ITEM_TYPE.PLANNING) {
             return {
@@ -237,19 +212,16 @@ const planningReducer = createReducer(initialState, {
         }
     },
 
-    [PLANNING.ACTIONS.EXPIRE_PLANNING]: (state, payload) => {
-        let plannings = cloneDeep(state.plannings);
+    [PLANNING.ACTIONS.EXPIRE_PLANNING]: (state, payload) => (
+        produce(state, (draft) => {
+            const plannings = draft.plannings;
 
-        payload.forEach((planId) => {
-            if (plannings[planId])
-                plannings[planId].expired = true;
-        });
-
-        return {
-            ...state,
-            plannings,
-        };
-    },
+            payload.forEach((planId) => {
+                if (plannings[planId])
+                    plannings[planId].expired = true;
+            });
+        })
+    ),
 });
 
 const markPlaning = (plan, payload, action) => {

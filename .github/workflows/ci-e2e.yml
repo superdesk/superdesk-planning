@@ -20,11 +20,11 @@ jobs:
       run:
         working-directory: ./e2e
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
         with:
           node-version: ${{ matrix.node-version }}
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@v6
         with:
           python-version: ${{ matrix.python-version }}
           cache: "pip"
@@ -54,7 +54,7 @@ jobs:
       - name: E2E Suite B
         if: matrix.e2e == 'b'
         run: npm run playwright -- --grep-invert events
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v6
         if: ${{ failure() }}
         with:
           name: playwright-report-${{ matrix.node-version }}-${{ matrix.e2e }}

@@ -305,9 +305,9 @@ class AssignmentGroupListComponent extends React.Component<IProps, IState> {
                             <div className="sd-list-header__number sd-flex-grow">
                                 <span className="a11y-only">{gettext(
                                     'Number of Assignments: ',
-                                    {count: (assignmentsCount)}
+                                    {count: (totalCount)}
                                 )}</span>
-                                <span className="badge">{(assignmentsCount)}</span>
+                                <span className="badge">{(totalCount)}</span>
                             </div>
                         )}
 

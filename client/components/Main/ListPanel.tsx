@@ -272,19 +272,19 @@ export class ListPanel extends React.Component<IProps, IState> {
     }
 
     handleScroll(event) {
-        if (this.state.isNextPageLoading) {
+        if (this.state.isNextPageLoading || this.props.isAllListItemsLoaded) {
             return;
         }
 
         const node = event.target;
 
-
         // Load more items if there's any if scroll position is 100px before end of the scrollable list
         if (node.scrollHeight - node.scrollTop - node.clientHeight <= END_OF_LIST_OFFSET) {
-            this.setState({isNextPageLoading: true, scrollTop: node.scrollTop});
-
-            this.props.loadMore(this.props.activeFilter)
-                .then(this.unsetNextPageLoading, this.unsetNextPageLoading);
+            this.setState({isNextPageLoading: true, scrollTop: node.scrollTop}, () => {
+                this.props
+                    .loadMore(this.props.activeFilter)
+                    .then(this.unsetNextPageLoading, this.unsetNextPageLoading);
+            });
         }
     }
 

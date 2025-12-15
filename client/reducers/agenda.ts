@@ -34,9 +34,9 @@ const initialState: IAgendaState = {
 const agendaReducer = (state = initialState, action) => {
     switch (action.type) {
     case RESET_STORE:
-        return initialState;
+        return {...initialState};
     case INIT_STORE:
-        return initialState;
+        return {...initialState};
     case AGENDA.ACTIONS.REQUEST_AGENDAS:
         return {
             ...state,

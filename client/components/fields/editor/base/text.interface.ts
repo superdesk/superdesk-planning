@@ -8,4 +8,5 @@ export interface IEditorFieldTextProps extends IEditorFieldProps {
     schema?: IProfileSchemaTypeString;
     noPadding: boolean;
     language?: string;
+    debounce?: number;
 }

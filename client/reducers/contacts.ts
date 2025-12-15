@@ -8,6 +8,7 @@ const contacts = (state = initialState, action) => {
     switch (action.type) {
     case 'RECEIVE_CONTACTS':
         newState = {
+            ...state,
             contacts: uniqBy([...action.payload.contacts, ...state.contacts], '_id'),
             loading: false,
         };
@@ -20,7 +21,7 @@ const contacts = (state = initialState, action) => {
         return newState;
 
     case 'ADD_CONTACT':
-        return {contacts: uniqBy([action.payload, ...state.contacts], '_id')};
+        return {...state, contacts: uniqBy([action.payload, ...state.contacts], '_id')};
 
     case 'LOADING_CONTACTS':
         return {

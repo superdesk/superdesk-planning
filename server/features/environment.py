@@ -8,8 +8,6 @@
 # AUTHORS and LICENSE files distributed with this source code, or
 # at https://www.sourcefabric.org/superdesk/license
 
-import asyncio
-import logging
 
 from os import path
 from copy import copy
@@ -29,9 +27,7 @@ from app import get_app
 from settings import INSTALLED_APPS, env, MODULES
 
 from planning.tests import clear_planning_signal_listeners
-
-
-logger = logging.getLogger(__name__)
+from features.utils import run_async_task
 
 
 def before_all(context):
@@ -56,18 +52,6 @@ def before_all(context):
         config["LOG_CONFIG_FILE"] = LOG_CONFIG_FILE
 
     setup_before_all(context, config, app_factory=get_app)
-
-
-def run_async_task(task):
-    """
-    Runs async task until completes and logs any exceptions.
-    """
-    try:
-        loop = asyncio.get_event_loop()
-        loop.run_until_complete(task)
-    except Exception as e:
-        logger.exception(e)
-        raise e
 
 
 def before_scenario(context, scenario):
@@ -101,7 +85,7 @@ async def before_scenario_async(context, scenario):
     if "planning_cvs" in scenario.tags:
         async with context.app.app_context():
             cmd = AppPopulateCommand()
-            filename = path.join(path.abspath(path.dirname("features/steps/fixtures/")), "vocabularies.json")
+            filename = path.join(path.dirname(__file__), "steps", "fixtures", "vocabularies.json")
             await cmd.run(filename)
 
 
