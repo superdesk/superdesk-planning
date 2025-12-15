@@ -152,11 +152,63 @@ function create(updates: Partial<IPlanningItem>): Promise<IPlanningItem> {
     return superdeskApi.dataApi.create<IPlanningItem>('planning', updates);
 }
 
+/**
+ * Preserves full assignment objects when coverage updates contain only partial assignment data.
+ * This prevents duplicate assignments from being created on the server.
+ * When auto-save sends only changed fields (e.g., desk), we need to merge them with original
+ * assignment data (including assignment_id) to ensure complete assignment info is sent.
+ */
+function preserveAssignmentFieldsInCoverages(
+    original: IPlanningItem,
+    updates: Partial<IPlanningItem>
+): Partial<IPlanningItem> {
+    if (!updates.coverages || !original.coverages) {
+        return updates;
+    }
+
+    const result = cloneDeep(updates);
+    const originalCoverages = original.coverages;
+
+    // For each coverage being updated, ensure full assignment object is preserved
+    result.coverages.forEach((updatedCoverage, index) => {
+        const originalCoverage = originalCoverages[index];
+
+        // If the original coverage had an assignment and the updated one has partial assignment data
+        if (originalCoverage?.assigned_to && updatedCoverage?.assigned_to) {
+            // Merge the original assignment with the updated one, giving precedence to updated values
+            // This preserves assignment_id, state, assignor_desk, assigned_date_desk, etc.
+            updatedCoverage.assigned_to = {
+                ...originalCoverage.assigned_to,
+                ...updatedCoverage.assigned_to,
+            };
+        }
+
+        // Also handle scheduled updates if present
+        if (updatedCoverage?.scheduled_updates && originalCoverage?.scheduled_updates) {
+            updatedCoverage.scheduled_updates.forEach((scheduledUpdate, updateIndex) => {
+                const originalUpdate = originalCoverage.scheduled_updates?.[updateIndex];
+
+                if (originalUpdate?.assigned_to && scheduledUpdate?.assigned_to) {
+                    scheduledUpdate.assigned_to = {
+                        ...originalUpdate.assigned_to,
+                        ...scheduledUpdate.assigned_to,
+                    };
+                }
+            });
+        }
+    });
+
+    return result;
+}
+
 function update(original: IPlanningItem, updates: Partial<IPlanningItem>): Promise<IPlanningItem> {
+    // Preserve full assignment objects to prevent duplicate assignments
+    const updatesWithPreservedAssignments = preserveAssignmentFieldsInCoverages(original, updates);
+
     return superdeskApi.dataApi.patch<IPlanningItem>(
         'planning',
         original,
-        planningUtils.modifyForServer(updates)
+        planningUtils.modifyForServer(updatesWithPreservedAssignments)
     );
 }
 
