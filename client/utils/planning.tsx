@@ -1660,24 +1660,34 @@ function defaultCoverageValues(
     return newCoverage;
 }
 
+function getCoverageTimeForAllDay(date: IDateTime): moment.Moment {
+    const allDay = moment.utc(date);
+
+    return moment([allDay.year(), allDay.month(), allDay.date(), 11, 0, 0]); // will add 1h later
+}
+
 function getDefaultCoverageDueDate(
     planningItem: IPlanningItem,
     eventItem?: IEventItem,
 ): moment.Moment | null {
-    let coverageTime: moment.Moment = null;
+    let coverageTime: moment.Moment;
     const primaryEventIds = getRelatedEventIdsForPlanning(planningItem, 'primary');
 
     if (primaryEventIds.length === 0) {
-        coverageTime = moment(planningItem?.planning_date) || moment();
+        if (planningItem.all_day && appConfig.planning?.all_day) {
+            coverageTime = getCoverageTimeForAllDay(planningItem.planning_date);
+        } else if (planningItem.planning_date) {
+            coverageTime = moment(planningItem.planning_date);
+        }
     } else if (eventItem) {
-        coverageTime = moment(getEndDate(eventItem)) || moment();
+        const endDate = getEndDate(eventItem);
+
+        coverageTime = eventItem.dates?.all_day || eventItem.dates?.no_end_time ?
+            getCoverageTimeForAllDay(endDate) : moment(endDate);
     }
 
-    // Convert to local time for further calculations
-    coverageTime.local();
-
     if (!coverageTime) {
-        return coverageTime;
+        return null;
     }
 
     coverageTime.add(1, 'hour');
