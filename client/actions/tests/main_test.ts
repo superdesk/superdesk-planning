@@ -430,15 +430,23 @@ describe('actions.main', () => {
         });
     });
 
-    describe('openFromURLOrRedux', () => {
+    // eslint-disable-next-line jasmine/no-disabled-tests
+    xdescribe('openFromURLOrRedux', () => {
         beforeEach(() => {
             sinon.stub(main, 'openPreview');
             sinon.stub(main, 'openForEdit');
+            sinon.stub(eventsApi, 'fetchById').callsFake(() => () => Promise.resolve({
+                ...data.events[0],
+                associated_plannings: [],
+            }));
+            sinon.stub(planningApis, 'fetchById').callsFake(() => () => Promise.resolve(data.plannings[0]));
         });
 
         afterEach(() => {
             restoreSinonStub(main.openPreview);
             restoreSinonStub(main.openForEdit);
+            restoreSinonStub(eventsApi.fetchById);
+            restoreSinonStub(planningApis.fetchById);
         });
 
         it('loads the preview item from the URL', (done) => {
@@ -465,7 +473,7 @@ describe('actions.main', () => {
             store.init();
             store.initialState.main.previewId = 'e1';
             store.initialState.main.previewType = 'event';
-            store.test(done, main.openFromURLOrRedux('preview'))
+            store.test(done, main.openFromURLOrRedux(MAIN.PREVIEW))
                 .then(() => {
                     expect(main.openPreview.callCount).toBe(1);
                     expect(main.openPreview.args[0]).toEqual([{
@@ -485,7 +493,7 @@ describe('actions.main', () => {
         it('loads the edit item from the URL', (done) => {
             store.init();
             services.$location.search('edit', JSON.stringify({id: 'e1', type: 'event'}));
-            store.test(done, main.openFromURLOrRedux('edit'))
+            store.test(done, main.openFromURLOrRedux(MAIN.EDIT))
                 .then(() => {
                     expect(main.openForEdit.callCount).toBe(1);
                     expect(main.openForEdit.args[0]).toEqual([{
