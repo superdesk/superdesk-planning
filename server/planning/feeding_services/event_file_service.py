@@ -29,6 +29,12 @@ class EventFileFeedingService(FileFeedingService):
     """
 
     NAME = "event_file"
+
+    def __init__(self):
+        super().__init__()
+        self._fetched_attachments = set()
+        self._failed_attachments = set()
+
     ERRORS = [
         ParserError.IPTC7901ParserError().get_error_description(),
         ParserError.nitfParserError().get_error_description(),
@@ -61,6 +67,8 @@ class EventFileFeedingService(FileFeedingService):
     def _update(self, provider, update):
         self.provider = provider
         self.path = provider.get("config", {}).get("path", None)
+        self._fetched_attachments = set()
+        self._failed_attachments = set()
 
         if not self.path:
             logger.warn(
@@ -101,6 +109,7 @@ class EventFileFeedingService(FileFeedingService):
                     self.move_file(self.path, filename, provider=provider, success=False)
                 raise ParserError.parseFileError("{}-{}".format(provider["name"], self.NAME), filename, ex, provider)
 
+        self._move_attachment_files()
         push_notification("ingest:update")
 
     def fetch_file(self, filename):
@@ -117,12 +126,29 @@ class EventFileFeedingService(FileFeedingService):
             stream = open(file_path, "rb")
             guessed_type = mimetypes.guess_type(file_path)[0]
             content_type = guessed_type or "application/octet-stream"
+            self._fetched_attachments.add(filename)
             return (stream, content_type)
         except FileNotFoundError:
             logger.warning("File %s not found for event ingest", file_path)
+            self._failed_attachments.add(filename)
         except Exception as ex:
             logger.warning("Failed to fetch file %s: %s", file_path, ex)
+            self._failed_attachments.add(filename)
             if stream and not stream.closed:
                 stream.close()
 
         return None
+
+    def _move_attachment_files(self):
+        for filename in self._fetched_attachments:
+            try:
+                self.move_file(self.path, filename, provider=self.provider, success=True)
+            except Exception as ex:
+                logger.warning("Failed to move attachment %s to _PROCESSED: %s", filename, ex)
+
+        for filename in self._failed_attachments:
+            if filename not in self._fetched_attachments:
+                try:
+                    self.move_file(self.path, filename, provider=self.provider, success=False)
+                except Exception as ex:
+                    logger.warning("Failed to move attachment %s to _ERROR: %s", filename, ex)
