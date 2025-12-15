@@ -1646,7 +1646,7 @@ function defaultCoverageValues(
             });
 
             if (appConfig.long_event_duration_threshold === 0) {
-                newCoverage.planning.scheduled = moment(eventItem?.dates?.end || moment());
+                newCoverage.planning.scheduled = getCoverageTimeFromEvent(eventItem);
             } else if (duration.hours() > appConfig.long_event_duration_threshold) {
                 delete newCoverage.planning.scheduled;
                 delete newCoverage.planning._scheduledTime;
@@ -1666,6 +1666,13 @@ function getCoverageTimeForAllDay(date: IDateTime): moment.Moment {
     return moment([allDay.year(), allDay.month(), allDay.date(), 11, 0, 0]); // will add 1h later
 }
 
+function getCoverageTimeFromEvent(eventItem: IEventItem): moment.Moment {
+    const endDate = getEndDate(eventItem);
+
+    return eventItem.dates?.all_day || eventItem.dates?.no_end_time ?
+        getCoverageTimeForAllDay(endDate) : moment(endDate);
+}
+
 function getDefaultCoverageDueDate(
     planningItem: IPlanningItem,
     eventItem?: IEventItem,
@@ -1680,10 +1687,7 @@ function getDefaultCoverageDueDate(
             coverageTime = moment(planningItem.planning_date);
         }
     } else if (eventItem) {
-        const endDate = getEndDate(eventItem);
-
-        coverageTime = eventItem.dates?.all_day || eventItem.dates?.no_end_time ?
-            getCoverageTimeForAllDay(endDate) : moment(endDate);
+        coverageTime = getCoverageTimeFromEvent(eventItem);
     }
 
     if (!coverageTime) {
