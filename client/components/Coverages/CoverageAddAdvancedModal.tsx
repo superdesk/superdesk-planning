@@ -213,10 +213,10 @@ class CoverageAddAdvancedModalComponent extends React.Component<IProps, IState> 
                         (val) => val.coverage_id === coverage.coverage_id
                     );
 
-                newCoverage.assigned_to = {
+                newCoverage.assigned_to = Object.assign({}, newCoverage.assigned_to || {}, {
                     user: get(coverage, 'user._id'),
                     desk: get(coverage, 'desk._id'),
-                };
+                });
 
                 if (coverage.coverage_id != null && coverage.enabled !== true) {
                     newCoverage.workflow_status = 'spiked';
