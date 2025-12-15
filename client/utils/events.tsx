@@ -1069,11 +1069,11 @@ function getFlattenedEventsByDate(events: Array<IEventItem>, startDate: moment.M
     return flatten(sortBy(eventsList, [(e) => (e.date)]).map((e) => e.events.map((k) => [e.date, k._id])));
 }
 
-const getStartDate = (event: IEventItem) => (
+export const getStartDate = (event: IEventItem) => (
     event.dates?.all_day ? moment.utc(event.dates.start) : moment(event.dates?.start)
 );
 
-const getEndDate = (event: IEventItem) => (
+export const getEndDate = (event: IEventItem) => (
     (event.dates?.all_day || event.dates?.no_end_time) ? moment.utc(event.dates.end) : moment(event.dates?.end)
 );
 

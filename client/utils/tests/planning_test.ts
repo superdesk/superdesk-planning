@@ -1106,7 +1106,7 @@ describe('PlanningUtils', () => {
 
             let coverage = planningUtils.defaultCoverageValues(newsCoverageStatus, plan, null);
 
-            expect(get(coverage, 'planning.scheduled').format()).toBe(planned.add(1, 'hour').format());
+            expect(coverage.planning.scheduled.toISOString()).toBe(planned.add(1, 'hour').toISOString());
 
             planned = moment('2119-03-15T09:33:00+11:00');
             plan.planning_date = planned;
@@ -1116,10 +1116,10 @@ describe('PlanningUtils', () => {
                 null
             );
 
-            expect((get(coverage, 'planning.scheduled').format())).toBe(
+            expect(coverage.planning.scheduled.toISOString()).toBe(
                 planned.add(2, 'hour')
                     .startOf('hour')
-                    .format()
+                    .toISOString()
             );
         });
         it('set coverage time from event', () => {
@@ -1140,7 +1140,7 @@ describe('PlanningUtils', () => {
 
             let coverage = planningUtils.defaultCoverageValues(newsCoverageStatus, plan, event);
 
-            expect(get(coverage, 'planning.scheduled').format()).toBe(eventEnd.add(1, 'hour').format());
+            expect(coverage.planning.scheduled.toISOString()).toBe(eventEnd.add(1, 'hour').toISOString());
 
             eventEnd = moment('2119-03-17T09:33:00+11:00');
             event.dates.end = eventEnd;
@@ -1151,8 +1151,7 @@ describe('PlanningUtils', () => {
                 event
             );
 
-            expect(get(coverage, 'planning.scheduled').format())
-                .toBe(eventEnd.add(1, 'hour').format());
+            expect(coverage.planning.scheduled.toISOString()).toBe(eventEnd.add(1, 'hour').toISOString());
         });
         it('no coverage schedule date for long event', () => {
             const newsCoverageStatus = [{qcode: 'ncostat:int'}];

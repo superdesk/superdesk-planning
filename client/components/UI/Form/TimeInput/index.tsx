@@ -212,8 +212,8 @@ export class TimeInput extends React.Component {
             return;
         }
 
-        let newTime;
-        let newMoment;
+        let newTime: moment.Moment;
+        let newMoment: moment.Moment;
 
         if (remoteTimeZone) {
             newTime = moment.tz(newValue, appConfig.planning.timeformat, true, remoteTimeZone);
@@ -227,6 +227,7 @@ export class TimeInput extends React.Component {
                 moment();
         }
 
+        newMoment.local(); // Ensure we are in local time to set hours/minutes correctly
         newMoment.hour(newTime.hour());
         newMoment.minute(newTime.minute());
         newMoment.second(0);
