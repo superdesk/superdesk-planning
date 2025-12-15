@@ -8,10 +8,13 @@
 # AUTHORS and LICENSE files distributed with this source code, or
 # at https://www.sourcefabric.org/superdesk/license
 
+import io
 import logging
 import mimetypes
 import os
+from contextlib import contextmanager
 from datetime import datetime
+from typing import BinaryIO, Generator, Optional, Tuple
 
 from superdesk.errors import ParserError, ProviderError
 from superdesk.io.feeding_services.file_service import FileFeedingService
@@ -112,34 +115,31 @@ class EventFileFeedingService(FileFeedingService):
         self._move_attachment_files()
         push_notification("ingest:update")
 
-    def fetch_file(self, filename):
+    @contextmanager
+    def fetch_file(self, filename: str) -> Generator[Optional[Tuple[BinaryIO, str]], None, None]:
         """
-        Fetch a local file from the configured ingest path.
+        Fetch a local file from the configured ingest path using context management.
 
         :param filename: Filename (relative to self.path)
-        :return: Tuple of (file_handle, content_type) or None on failure
+        :yield: Tuple of (file_handle, content_type) or None on failure
         """
         file_path = os.path.join(self.path, filename)
-        stream = None
-
         try:
-            stream = open(file_path, "rb")
-            guessed_type = mimetypes.guess_type(file_path)[0]
-            content_type = guessed_type or "application/octet-stream"
-            self._fetched_attachments.add(filename)
-            return (stream, content_type)
+            with open(file_path, "rb") as f:
+                guessed_type = mimetypes.guess_type(file_path)[0]
+                content_type = guessed_type or "application/octet-stream"
+                self._fetched_attachments.add(filename)
+                yield (f, content_type)
         except FileNotFoundError:
             logger.warning("File %s not found for event ingest", file_path)
             self._failed_attachments.add(filename)
+            yield None
         except Exception as ex:
             logger.warning("Failed to fetch file %s: %s", file_path, ex)
             self._failed_attachments.add(filename)
-            if stream and not stream.closed:
-                stream.close()
+            yield None
 
-        return None
-
-    def _move_attachment_files(self):
+    def _move_attachment_files(self) -> None:
         for filename in self._fetched_attachments:
             try:
                 self.move_file(self.path, filename, provider=self.provider, success=True)

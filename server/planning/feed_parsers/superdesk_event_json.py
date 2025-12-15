@@ -196,12 +196,12 @@ class EventJsonFeedParser(FileFeedParser):
                 continue
 
             if feeding_service and hasattr(feeding_service, "fetch_file"):
-                result = feeding_service.fetch_file(filename)
-                if result:
-                    stream, content_type = result
-                    saved_id = events_files_service.ingest_file(stream, filename, content_type)
-                    if saved_id:
-                        processed_file_ids.append(saved_id)
+                with feeding_service.fetch_file(filename) as result:
+                    if result:
+                        stream, content_type = result
+                        saved_id = events_files_service.ingest_file(stream, filename, content_type)
+                        if saved_id:
+                            processed_file_ids.append(saved_id)
             else:
                 logger.warning("No feeding service available to fetch file: %s", filename)
 
