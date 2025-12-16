@@ -35,14 +35,20 @@ const getItemComponent = (nameField: IFormField<IEventTemplate>) =>
                         <div style={{display: 'flex'}}>
                             <IconButton
                                 icon="pencil"
-                                onClick={() => page.startEditing(item._id)}
-                                ariaValue={superdeskApi.localization.gettext('')}
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    page.startEditing(item._id);
+                                }}
+                                ariaValue={superdeskApi.localization.gettext('Edit')}
                                 size="small"
                             />
                             <IconButton
                                 icon="trash"
-                                onClick={() => page.deleteItem(item)}
-                                ariaValue={superdeskApi.localization.gettext('')}
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    page.deleteItem(item);
+                                }}
+                                ariaValue={superdeskApi.localization.gettext('Delete')}
                                 size="small"
                             />
                         </div>
