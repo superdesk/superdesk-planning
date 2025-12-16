@@ -164,7 +164,7 @@ class AddCoveragesWrapperComponent extends React.Component<IProps, IState> {
         return (
             <React.Fragment>
                 <Button toggleMenu={this.toggleMenu} />
-                {!this.state.isOpen ? null : (
+                {this.state.isOpen && (
                     <CoveragesMenuPopup
                         closeMenu={this.closeMenu}
                         actions={coverageTypes}
@@ -174,7 +174,7 @@ class AddCoveragesWrapperComponent extends React.Component<IProps, IState> {
                         openAdvanced={this.openAdvanced}
                     />
                 )}
-                {!this.state.advanced ? null : (
+                {this.state.advanced && (
                     <CoverageAddAdvancedModal
                         close={this.closeAdvanced}
                         contentTypes={this.props.contentTypes}

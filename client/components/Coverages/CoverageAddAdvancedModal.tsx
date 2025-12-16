@@ -1,62 +1,74 @@
 import React from 'react';
-import {get} from 'lodash';
+import {connect} from 'react-redux';
+import {cloneDeep, get} from 'lodash';
 
-import {IG2ContentType, IPlanningCoverageItem, IPlanningNewsCoverageStatus} from '../../interfaces';
+import {IG2ContentType, IPlanningNewsCoverageStatus, IPlanningCoverageItem} from '../../interfaces';
 import {IDesk, IUser} from 'superdesk-api';
 
 import {gettext, planningUtils, getUsersForDesk, getDesksForUser} from '../../utils';
 import {getUserInterfaceLanguageFromCV} from '../../utils/users';
 import {getVocabularyItemFieldTranslated} from '../../utils/vocabularies';
 
-import Modal from '../Modal';
-import {SelectInput} from '../UI/Form';
-import {superdeskApi} from '../../superdeskApi';
+import * as selectors from '../../selectors';
+import * as actions from '../../actions';
 
-const isInvalid = (coverage) => coverage.user && !coverage.desk;
+import {Button, Checkbox, Modal, Spacer, Tooltip} from 'superdesk-ui-framework/react';
+import {CoverageEditableFields} from './CoverageFieldsRow';
 
-interface IProps {
+type IReduxStateProps = {
+    languages: Array<any>;
+};
+
+interface IReduxDispatchProps {
+    setCoverageAddAdvancedMode: (value: boolean) => void;
+}
+
+export interface ICoverageLineItem extends IPlanningCoverageItem {
+    enabled: boolean;
+    qcode: string;
+    desk: IDesk;
+    user: IUser;
+    status: IPlanningNewsCoverageStatus;
+    icon: string;
+    filteredDesks: Array<IDesk>;
+    filteredUsers: Array<IUser>;
+}
+
+interface IOwnProps {
     field: string;
-    value: Array<DeepPartial<IPlanningCoverageItem>>;
+    value: Array<DeepPartial<ICoverageLineItem>>;
     coverageAddAdvancedMode: boolean;
     desks: Array<IDesk>;
     users: Array<IUser>;
     contentTypes: Array<IG2ContentType>;
     newsCoverageStatus: Array<IPlanningNewsCoverageStatus>;
 
-    onChange(field: string, value: Array<DeepPartial<IPlanningCoverageItem>>): void;
-    createCoverage(qcode: IG2ContentType['qcode']): DeepPartial<IPlanningCoverageItem>;
-    setCoverageAddAdvancedMode(enable: boolean): void;
+    onChange(field: string, value: Array<DeepPartial<ICoverageLineItem>>): void;
+    createCoverage(qcode: IG2ContentType['qcode']): DeepPartial<ICoverageLineItem>;
     close(event?: React.MouseEvent): void;
 }
 
-interface ICoverageSelector {
-    id: number;
-    enabled: boolean;
-    qcode: IG2ContentType['qcode'];
-    name: IG2ContentType['name'];
-    icon: string;
-    desk: IDesk;
-    user: IUser;
-    status: IPlanningNewsCoverageStatus;
-    popupContainer: any;
-    filteredDesks: Array<IDesk>;
-    filteredUsers: Array<IUser>;
-    coverage_id?: string;
-}
+type IProps = IOwnProps & IReduxStateProps & IReduxDispatchProps;
 
 interface IState {
     advancedMode: boolean;
-    coverages: Array<ICoverageSelector>;
+    coverages: Array<Partial<ICoverageLineItem>>;
     isDirty: boolean;
 }
 
-export class CoverageAddAdvancedModal extends React.Component<IProps, IState> {
-    id: number;
+class CoverageAddAdvancedModalComponent extends React.Component<IProps, IState> {
+    contentTypes: Map<string, IProps['contentTypes'][0]>;
 
     constructor(props) {
         super(props);
 
-        this.id = 1;
+        this.contentTypes = new Map(
+            this.props.contentTypes.map((contentType) => [
+                contentType.qcode ?? contentType['content item type'],
+                contentType
+            ])
+        );
+
         this.state = {
             advancedMode: !!props.coverageAddAdvancedMode,
             coverages: [],
@@ -64,93 +76,72 @@ export class CoverageAddAdvancedModal extends React.Component<IProps, IState> {
         };
     }
 
-    getContentTypeName(contentType) {
-        return getVocabularyItemFieldTranslated(
-            contentType,
-            'name',
-            getUserInterfaceLanguageFromCV()
-        );
-    }
-
     componentDidMount() {
-        const {value, contentTypes, users, desks, newsCoverageStatus} = this.props;
+        const {value, users, desks, newsCoverageStatus} = this.props;
         const coverages = [];
         const savedCoverages = value
-            // Filter coverages that are in workflow
-            // as these are to be managed from the Assignments page only
-            .filter((coverage) => coverage.workflow_status === 'draft')
-            .map((coverage) => {
-                const contentType = contentTypes.find(
-                    (type) => type.qcode === coverage.planning.g2_content_type
-                );
-                const icon = planningUtils.getCoverageIcon(
-                    get(contentType, 'content item type') ||
-                    contentType.qcode
-                );
 
-                return {
-                    id: this.id++,
-                    enabled: true,
-                    qcode: contentType.qcode,
-                    name: this.getContentTypeName(contentType),
-                    icon: icon,
-                    desk: desks.find((desk) => desk._id === coverage.assigned_to.desk),
-                    user: users.find((user) => user._id === coverage.assigned_to.user),
-                    status: coverage.news_coverage_status,
-                    popupContainer: null,
-                    filteredDesks: desks,
-                    filteredUsers: users,
-                    coverage_id: coverage.coverage_id,
-                };
-            });
+            // if there was a savedCoverage but later the coverage type got removed/disabled from
+            // g2_content_type vocabulary do not render it
+            .filter((coverage) => this.contentTypes.get(coverage.planning.g2_content_type) != null)
+            .map((coverage) => ({
+                enabled: true,
+                workflow_status: coverage.workflow_status,
+                planning: {
+                    language: coverage.planning.language,
+                },
+                qcode: this.contentTypes.get(coverage.planning.g2_content_type).qcode,
+                desk: desks.find((desk) => desk._id === coverage.assigned_to?.desk),
+                user: users.find((user) => user._id === coverage.assigned_to?.user),
+                status: coverage.news_coverage_status,
+                filteredDesks: desks,
+                filteredUsers: users,
+                coverage_id: coverage.coverage_id,
+            }));
 
-        contentTypes.forEach((contentType) => {
+        this.props.contentTypes.forEach((contentType) => {
             const presentInSavedCoverages = savedCoverages.find((coverage) => coverage.qcode === contentType.qcode);
-            const icon = planningUtils.getCoverageIcon(
-                get(contentType, 'content item type') ||
-                contentType.qcode
-            );
 
             if (presentInSavedCoverages == null) {
-                const coverageObj = {
-                    id: this.id++,
+                coverages.push({
                     enabled: false,
                     qcode: contentType.qcode,
-                    name: this.getContentTypeName(contentType),
-                    icon: icon,
+                    workflow_status: 'draft',
+                    planning: {
+                        language: null,
+                    },
                     desk: null,
                     filteredDesks: desks,
                     user: null,
                     filteredUsers: users,
-                    popupContainer: null,
                     status: planningUtils.getDefaultCoverageStatus(newsCoverageStatus),
-                };
-
-                coverages.push(coverageObj);
+                });
             }
         });
 
         this.setState({coverages: [...savedCoverages, ...coverages]});
     }
 
-    duplicate(index, coverage) {
-        const coverages = this.state.coverages.slice();
-        const newCoverage = {
-            id: this.id++,
+    getContentTypeName = (contentType) => getVocabularyItemFieldTranslated(
+        contentType,
+        'name',
+        getUserInterfaceLanguageFromCV()
+    );
+
+    duplicate = (index, coverage) => {
+        const coveragesCopy = cloneDeep(this.state.coverages);
+        const coverageToAdd = {
             enabled: false,
             qcode: coverage.qcode,
-            name: this.getContentTypeName(coverage),
-            icon: coverage.icon,
             desk: null,
             user: null,
             status: planningUtils.getDefaultCoverageStatus(this.props.newsCoverageStatus),
-            popupContainer: null,
             filteredDesks: this.props.desks,
             filteredUsers: this.props.users,
-        };
+        } satisfies Partial<ICoverageLineItem>;
 
-        coverages.splice(index + 1, 0, newCoverage);
-        this.setState({coverages});
+        coveragesCopy.splice(index + 1, 0, coverageToAdd);
+        this.setState({coverages: coveragesCopy});
     }
 
     updateCoverage(selected, updates) {
@@ -164,7 +155,7 @@ export class CoverageAddAdvancedModal extends React.Component<IProps, IState> {
         this.setState({coverages: coverages, isDirty: true});
     }
 
-    onDeskChange(selected, desk) {
+    onDeskChange = (selected, desk) => {
         const updates = {
             desk: desk,
             filteredUsers: getUsersForDesk(desk, this.props.users),
@@ -173,7 +164,7 @@ export class CoverageAddAdvancedModal extends React.Component<IProps, IState> {
         this.updateCoverage(selected, updates);
     }
 
-    onUserChange(selected, user) {
+    onUserChange = (selected, user) => {
         const updates = {
             user: user,
             filteredDesks: getDesksForUser(user, this.props.desks),
@@ -186,7 +177,7 @@ export class CoverageAddAdvancedModal extends React.Component<IProps, IState> {
         const coverages = this.state.coverages
             .filter((coverage) => coverage.enabled || coverage.coverage_id != null)
             .map((coverage) => {
-                const newCoverage: DeepPartial<IPlanningCoverageItem> = coverage.coverage_id == null ?
+                const newCoverage: DeepPartial<ICoverageLineItem> = coverage.coverage_id == null ?
                     this.props.createCoverage(coverage.qcode) :
                     this.props.value.find(
                         (val) => val.coverage_id === coverage.coverage_id
@@ -197,7 +188,14 @@ export class CoverageAddAdvancedModal extends React.Component<IProps, IState> {
                     desk: get(coverage, 'desk._id'),
                 };
 
-                if (coverage.coverage_id != null && !coverage.enabled) {
+                if (coverage.planning?.language) {
+                    newCoverage.planning = {
+                        ...newCoverage.planning,
+                        language: coverage.planning.language,
+                    };
+                }
+
+                if (coverage.coverage_id != null && coverage.enabled !== true) {
                     newCoverage.workflow_status = 'spiked';
                 } else if (coverage.status) {
                     newCoverage.news_coverage_status = coverage.status;
@@ -218,152 +216,120 @@ export class CoverageAddAdvancedModal extends React.Component<IProps, IState> {
     }
 
     render() {
-        const language = getUserInterfaceLanguageFromCV();
-        const {SelectUser} = superdeskApi.components;
+        const canSave = this.state.coverages.every((coverage) => {
+            if (coverage.enabled && coverage.user) {
+                return coverage.desk != null;
+            }
+
+            return true;
+        });
 
         return (
             <Modal
-                xLarge={true}
-                show={true}
+                visible
+                closeOnEscape
+                size="x-large"
                 onHide={this.props.close}
-                onClick={(event) => {
-                    event.stopPropagation();
-                    this.props.close();
-                }}
-                removeTabIndexAttribute={true}
+                headerTemplate={gettext('Add Coverages (advanced mode)')}
+                footerTemplate={(
+                    <Spacer h justifyContent="space-between" gap="0" alignItems="center">
+                        <Checkbox
+                            checked={this.state.advancedMode}
+                            label={{
+                                text: gettext('make this mode the default'),
+                                side: 'end',
+                            }}
+                            onChange={() => {
+                                this.setState({
+                                    advancedMode: !this.state.advancedMode,
+                                    isDirty: true,
+                                });
+                            }}
+                        />
+                        <Spacer h gap="8" alignItems="end" justifyContent="end" noGrow>
+                            <Button
+                                text={gettext('Cancel')}
+                                style="hollow"
+                                onClick={this.props.close}
+                            />
+                            <Button
+                                text={gettext('Save')}
+                                type="primary"
+                                style="filled"
+                                disabled={!this.state.isDirty || !canSave}
+                                onClick={() => {
+                                    this.save();
+                                }}
+                            />
+                        </Spacer>
+                    </Spacer>
+                )}
             >
-                <Modal.Header>
-                    <h3 className="modal__heading">
-                        {gettext('Add Coverages')}
-                        {' '}
-                        <small>{gettext('(advanced mode)')}</small>
-                    </h3>
-                    <a className="icn-btn" aria-label={gettext('Close')} onClick={this.props.close}>
-                        <i className="icon-close-small" />
-                    </a>
-                </Modal.Header>
-                <Modal.Body>
-                    <div className="sd-list-item-group sd-list-item-group--space-between-items">
-                        {this.state.coverages.map((coverage, index) => (
-                            <div key={coverage.id} className="sd-list-item sd-shadow--z1">
+                <Spacer v gap="8" justifyContent="center" alignItems="center">
+                    {this.state.coverages.map((coverage, index) => {
+                        const isActive = coverage.workflow_status === 'active';
+
+                        return (
+                            <div
+                                key={index}
+                                style={coverage.enabled ? {height: 60} : {}}
+                                className="sd-list-item sd-shadow--z1"
+                            >
                                 <div className="sd-list-item__column">
-                                    <input
-                                        type="checkbox"
-                                        value={coverage.enabled}
-                                        checked={coverage.enabled}
-                                        onChange={() => this.updateCoverage(coverage, {enabled: !coverage.enabled})}
-                                    />
+                                    <Tooltip
+                                        flow="top"
+                                        text={isActive
+                                            ? gettext('Coverage has been added to workflow')
+                                            : gettext('Enable coverage')
+                                        }
+                                    >
+                                        <Checkbox
+                                            disabled={isActive}
+                                            label={{
+                                                text: gettext('Coverage enabled'),
+                                                hidden: true,
+                                            }}
+                                            checked={coverage.enabled}
+                                            onChange={() => this.updateCoverage(coverage, {enabled: !coverage.enabled})}
+                                        />
+                                    </Tooltip>
                                 </div>
                                 <div className="sd-list-item__column">
-                                    <i className={coverage.icon} />
+                                    <i className={planningUtils.getCoverageIcon(coverage.qcode)} />
                                 </div>
-                                <div className="sd-list-item__column" style={{width: '15%'}}>
-                                    {coverage.name}
+                                <div className="sd-list-item__column sd-overflow-ellipsis" style={{width: '10%'}}>
+                                    {this.getContentTypeName(this.contentTypes.get(coverage.qcode))}
                                 </div>
                                 {coverage.enabled && (
-                                    <React.Fragment>
-                                        <div className="sd-list-item__column sd-list-item__column--grow">
-                                            <div className="grid">
-                                                <div className="grid__item grid__item--col4">
-                                                    <SelectInput
-                                                        placeholder={gettext('Select desk')}
-                                                        field={'desk'}
-                                                        value={coverage.desk}
-                                                        onChange={(field, value) => this.onDeskChange(coverage, value)}
-                                                        options={coverage.filteredDesks}
-                                                        labelField="name"
-                                                        keyField="_id"
-                                                        clearable={true}
-                                                        invalid={isInvalid(coverage)}
-                                                    />
-                                                </div>
-
-                                                <div className="grid__item grid__item--col4">
-                                                    <div
-                                                        style={
-                                                            {
-                                                                margin: '0 0 1.8em 0',
-                                                                paddingBlockStart: '1.8rem',
-                                                                position: 'relative'}
-                                                        }
-                                                    >
-                                                        <SelectUser
-                                                            key={`${coverage.desk?._id}-${index}`}
-                                                            deskId={coverage.desk?._id ?? undefined}
-                                                            selectedUserId = {coverage.user?._id}
-                                                            onSelect={(user) => {
-                                                                this.onUserChange(coverage, user);
-                                                            }}
-                                                            autoFocus={false}
-                                                            horizontalSpacing={true}
-                                                            clearable={true}
-                                                        />
-                                                        <div ref={(node) => coverage.popupContainer = node} />
-                                                    </div>
-                                                </div>
-
-                                                <div className="grid__item grid__item--col4">
-                                                    <SelectInput
-                                                        placeholder={gettext('Select status')}
-                                                        field={'coverage.status'}
-                                                        value={coverage.status}
-                                                        onChange={(field, value) =>
-                                                            this.updateCoverage(coverage, {status: value})}
-                                                        options={this.props.newsCoverageStatus}
-                                                        labelField="label"
-                                                        keyField="qcode"
-                                                        clearable={true}
-                                                        language={language}
-                                                    />
-                                                </div>
-                                            </div>
-                                        </div>
-                                        <div
-                                            className="sd-list-item__action-menu
-                                            sd-list-item__action-menu--direction-row"
-                                        >
-                                            <button
-                                                className="icn-btn"
-                                                title={gettext('Duplicate')}
-                                                onClick={() => this.duplicate(index, coverage)}
-                                            >
-                                                <i className="icon-plus-sign" />
-                                            </button>
-                                        </div>
-                                    </React.Fragment>
+                                    <CoverageEditableFields
+                                        index={index}
+                                        coverage={coverage}
+                                        languages={this.props.languages}
+                                        handleDeskChange={this.onDeskChange}
+                                        handleUserChange={this.onUserChange}
+                                        updateCoverage={this.updateCoverage}
+                                        duplicateCoverage={this.duplicate}
+                                        newsCoverageStatus={this.props.newsCoverageStatus}
+                                    />
                                 )}
                             </div>
-                        ))}
-                    </div>
-                </Modal.Body>
-                <Modal.Footer>
-                    <label style={{float: 'left'}}>
-                        <input
-                            type="checkbox"
-                            id="advanced-default-mode"
-                            checked={this.state.advancedMode}
-                            onChange={() => this.setState({
-                                advancedMode: !this.state.advancedMode,
-                                isDirty: true,
-                            })}
-                        />
-                        {' '}
-                        {gettext('make this mode the default')}
-                    </label>
-                    <div className="button-group button-group--end button-group--comfort">
-                        <button className="btn" type="button" onClick={this.props.close}>{gettext('Cancel')}</button>
-                        <button
-                            className="btn btn--primary"
-                            type="button"
-                            disabled={
-                                !this.state.isDirty
-                                || this.state.coverages.some((coverage) => coverage.enabled && isInvalid(coverage))
-                            }
-                            onClick={() => this.save()}
-                        >{gettext('Save')}</button>
-                    </div>
-                </Modal.Footer>
+                        );
+                    })}
+                </Spacer>
             </Modal>
         );
     }
 }
+
+const mapDispatchToProps = (dispatch): IReduxDispatchProps => ({
+    setCoverageAddAdvancedMode: (value) => dispatch(actions.users.setCoverageAddAdvancedMode(value)),
+});
+
+const mapStateToProps = (state) => ({
+    languages: selectors.vocabs.getLanguages(state),
+});
+
+export const CoverageAddAdvancedModal = connect<IReduxStateProps, IReduxDispatchProps, IOwnProps>(
+    mapStateToProps,
+    mapDispatchToProps
+)(CoverageAddAdvancedModalComponent);

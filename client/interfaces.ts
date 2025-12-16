@@ -122,6 +122,7 @@ export enum JUMP_INTERVAL {
 }
 
 export type IPlanningWorkflowStatus = 'draft'
+    | 'active'
     | 'assigned'
     | 'in_progress'
     | 'completed'
