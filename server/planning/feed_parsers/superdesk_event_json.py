@@ -10,6 +10,7 @@ from superdesk.io.subjectcodes import get_subjectcodeitems
 from superdesk.utc import utcnow
 from superdesk.io.commands.update_ingest import set_expiry
 from planning.common import WORKFLOW_STATE
+from werkzeug.utils import secure_filename
 import pytz
 import json
 import datetime
@@ -196,20 +197,16 @@ class EventJsonFeedParser(FileFeedParser):
                 logger.warning("Skipping unsupported file entry type: %s", type(entry))
                 continue
 
-            normalized = os.path.normpath(filename)
-            if os.path.isabs(filename) or normalized.startswith("..") or ".." in normalized.split(os.sep):
-                logger.warning("Skipping invalid attachment path: %s", filename)
+            sanitized = secure_filename(filename)
+            if not sanitized:
+                logger.warning("Skipping invalid attachment filename: %s", filename)
                 continue
 
             if feeding_service and hasattr(feeding_service, "fetch_file"):
-                result = feeding_service.fetch_file(normalized)
-                if not result:
-                    continue
-
-                stream, content_type = result
-                saved_id = events_files_service.ingest_file(stream, normalized, content_type)
-                if saved_id:
-                    processed_file_ids.append(saved_id)
+                for stream in feeding_service.fetch_file(filename):
+                    saved_id = events_files_service.ingest_file(stream, sanitized)
+                    if saved_id:
+                        processed_file_ids.append(saved_id)
             else:
                 logger.warning("No feeding service available to fetch file: %s", filename)
 

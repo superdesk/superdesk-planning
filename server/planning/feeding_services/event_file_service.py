@@ -8,13 +8,10 @@
 # AUTHORS and LICENSE files distributed with this source code, or
 # at https://www.sourcefabric.org/superdesk/license
 
-import io
 import logging
-import mimetypes
 import os
-import threading
 from datetime import datetime
-from typing import BinaryIO, Optional, Tuple
+from typing import BinaryIO, Generator
 
 from superdesk.errors import ParserError, ProviderError
 from superdesk.io.feeding_services.file_service import FileFeedingService
@@ -37,7 +34,6 @@ class EventFileFeedingService(FileFeedingService):
         super().__init__()
         self._fetched_attachments = set()
         self._failed_attachments = set()
-        self._lock = threading.Lock()
 
     ERRORS = [
         ParserError.IPTC7901ParserError().get_error_description(),
@@ -71,9 +67,8 @@ class EventFileFeedingService(FileFeedingService):
     def _update(self, provider, update):
         self.provider = provider
         self.path = provider.get("config", {}).get("path", None)
-        with self._lock:
-            self._fetched_attachments = set()
-            self._failed_attachments = set()
+        self._fetched_attachments = set()
+        self._failed_attachments = set()
 
         if not self.path:
             logger.warn(
@@ -117,45 +112,33 @@ class EventFileFeedingService(FileFeedingService):
         self._move_attachment_files()
         push_notification("ingest:update")
 
-    def fetch_file(self, filename: str) -> Optional[Tuple[BinaryIO, str]]:
+    def fetch_file(self, filename: str) -> Generator[BinaryIO, None, None]:
         """Fetch a local file from the configured ingest path.
 
         :param filename: Filename (relative to self.path)
-        :return: Tuple of (stream, content_type) or None on failure
+        :yield: Open binary stream for the file
         """
         file_path = os.path.join(self.path, filename)
         try:
             with open(file_path, "rb") as f:
-                guessed_type = mimetypes.guess_type(file_path)[0]
-                content_type = guessed_type or "application/octet-stream"
-                stream = io.BytesIO(f.read())
-                with self._lock:
-                    self._fetched_attachments.add(filename)
-                return stream, content_type
+                self._fetched_attachments.add(filename)
+                yield f
         except FileNotFoundError:
             logger.warning("File %s not found for event ingest", file_path)
-            with self._lock:
-                self._failed_attachments.add(filename)
+            self._failed_attachments.add(filename)
         except Exception as ex:
             logger.warning("Failed to fetch file %s: %s", file_path, ex)
-            with self._lock:
-                self._failed_attachments.add(filename)
-
-        return None
+            self._failed_attachments.add(filename)
 
     def _move_attachment_files(self) -> None:
-        with self._lock:
-            fetched = set(self._fetched_attachments)
-            failed = set(self._failed_attachments)
-
-        for filename in fetched:
+        for filename in self._fetched_attachments:
             try:
                 self.move_file(self.path, filename, provider=self.provider, success=True)
             except Exception as ex:
                 logger.warning("Failed to move attachment %s to _PROCESSED: %s", filename, ex)
 
-        for filename in failed:
-            if filename not in fetched:
+        for filename in self._failed_attachments:
+            if filename not in self._fetched_attachments:
                 try:
                     self.move_file(self.path, filename, provider=self.provider, success=False)
                 except Exception as ex:
