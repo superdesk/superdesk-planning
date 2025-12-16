@@ -29,7 +29,6 @@ export interface ICoverageLineItem extends IPlanningCoverageItem {
     desk: IDesk;
     user: IUser;
     status: IPlanningNewsCoverageStatus;
-    icon: string;
     filteredDesks: Array<IDesk>;
     filteredUsers: Array<IUser>;
 }

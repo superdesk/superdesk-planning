@@ -19,7 +19,7 @@ interface IProps {
     duplicateCoverage: (index: number, coverage: Partial<ICoverageLineItem>) => void;
 }
 
-export const CoverageEditableFields: React.FC<IProps> = ({
+export const CoverageEditableFields = ({
     index,
     coverage,
     newsCoverageStatus,
@@ -28,7 +28,7 @@ export const CoverageEditableFields: React.FC<IProps> = ({
     handleUserChange,
     updateCoverage,
     duplicateCoverage,
-}) => {
+}: IProps) => {
     const language = getUserInterfaceLanguageFromCV();
     const {SelectUser} = superdeskApi.components;
 
@@ -53,7 +53,7 @@ export const CoverageEditableFields: React.FC<IProps> = ({
                         );
                     }}
                 >
-                    <Option />
+                    <Option>{gettext('Select a desk')}</Option>
                     {coverage.filteredDesks.map((desk) => (
                         <Option key={desk._id} value={desk._id}>{desk.name}</Option>
                     ))}
@@ -76,12 +76,15 @@ export const CoverageEditableFields: React.FC<IProps> = ({
                     value={coverage.planning?.language}
                     label={gettext('Language')}
                     onChange={(value) => {
-                        updateCoverage(coverage, {
-                            planning: {
-                                ...coverage.planning,
-                                language: value,
-                            }
-                        });
+                        updateCoverage(
+                            coverage,
+                            {
+                                planning: {
+                                    ...(coverage.planning ?? {}),
+                                    language: value,
+                                }
+                            } as ICoverageLineItem,
+                        );
                     }}
                 >
                     {languages.map((cov) => (
@@ -100,7 +103,7 @@ export const CoverageEditableFields: React.FC<IProps> = ({
                         updateCoverage(coverage, {status: status});
                     }}
                 >
-                    <Option />
+                    <Option>{gettext('Select a status')}</Option>
                     {newsCoverageStatus.map((cov) => (
                         <Option key={cov.qcode} value={cov.qcode}>
                             {getVocabularyItemFieldTranslated(cov, 'label', language)}
