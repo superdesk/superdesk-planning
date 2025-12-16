@@ -41,6 +41,7 @@ interface IOwnProps {
     users: Array<IUser>;
     contentTypes: Array<IG2ContentType>;
     newsCoverageStatus: Array<IPlanningNewsCoverageStatus>;
+    eventLanguages?: Array<string>;
 
     onChange(field: string, value: Array<DeepPartial<ICoverageLineItem>>): void;
     createCoverage(qcode: IG2ContentType['qcode']): DeepPartial<ICoverageLineItem>;
@@ -143,7 +144,7 @@ class CoverageAddAdvancedModalComponent extends React.Component<IProps, IState> 
         this.setState({coverages: coveragesCopy});
     }
 
-    updateCoverage(selected, updates) {
+    updateCoverage = (selected, updates) => {
         const coverages = this.state.coverages.map((coverage) => {
             if (selected === coverage) {
                 return Object.assign(coverage, updates);
@@ -155,10 +156,18 @@ class CoverageAddAdvancedModalComponent extends React.Component<IProps, IState> 
     }
 
     onDeskChange = (selected, desk) => {
-        const updates = {
+        const updates: Partial<ICoverageLineItem> = {
             desk: desk,
             filteredUsers: getUsersForDesk(desk, this.props.users),
         };
+
+        // Set language if desk has a default language that matches event languages
+        if (desk?.desk_language && this.props.eventLanguages?.includes(desk.desk_language)) {
+            updates.planning = {
+                ...(selected.planning ?? {}),
+                language: desk.desk_language,
+            };
+        }
 
         this.updateCoverage(selected, updates);
     }
@@ -172,7 +181,7 @@ class CoverageAddAdvancedModalComponent extends React.Component<IProps, IState> 
         this.updateCoverage(selected, updates);
     }
 
-    save() {
+    save = () => {
         const coverages = this.state.coverages
             .filter((coverage) => coverage.enabled || coverage.coverage_id != null)
             .map((coverage) => {
@@ -304,6 +313,7 @@ class CoverageAddAdvancedModalComponent extends React.Component<IProps, IState> 
                                         index={index}
                                         coverage={coverage}
                                         languages={this.props.languages}
+                                        eventLanguages={this.props.eventLanguages}
                                         handleDeskChange={this.onDeskChange}
                                         handleUserChange={this.onUserChange}
                                         updateCoverage={this.updateCoverage}
