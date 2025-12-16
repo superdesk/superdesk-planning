@@ -1077,7 +1077,13 @@ class PlanningService(AsyncBaseService):
             )
 
             if not original_assignment:
-                raise SuperdeskApiError.badRequestError("Assignment related to the coverage does not exists.")
+                # Assignment was already deleted - remove the stale assignment_id reference
+                # so the user can continue editing the coverage
+                if not updates.get("assigned_to"):
+                    updates["assigned_to"] = None
+                else:
+                    del updates["assigned_to"]
+                return
 
             # Check if coverage was cancelled
             coverage_cancel_state = get_coverage_status_from_cv("ncostat:notint")
@@ -1300,11 +1306,13 @@ class PlanningService(AsyncBaseService):
             return planning_item
 
         await self.send_remove_assignment_notifications(planning_item, coverage_item, assignment_item)
-        for s in coverage_item.get("scheduled_updates"):
-            del s["assigned_to"]
+        for s in coverage_item.get("scheduled_updates") or []:
+            if "assigned_to" in s:
+                del s["assigned_to"]
             s["workflow_status"] = WORKFLOW_STATE.DRAFT
 
-        del coverage_item["assigned_to"]
+        if "assigned_to" in coverage_item:
+            del coverage_item["assigned_to"]
         coverage_item["workflow_status"] = WORKFLOW_STATE.DRAFT
 
         updated_planning = await self.system_update_async(
