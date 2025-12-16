@@ -1,4 +1,5 @@
 import logging
+import os
 
 from bson import ObjectId
 from bson.errors import InvalidId
@@ -195,13 +196,20 @@ class EventJsonFeedParser(FileFeedParser):
                 logger.warning("Skipping unsupported file entry type: %s", type(entry))
                 continue
 
+            normalized = os.path.normpath(filename)
+            if os.path.isabs(filename) or normalized.startswith("..") or ".." in normalized.split(os.sep):
+                logger.warning("Skipping invalid attachment path: %s", filename)
+                continue
+
             if feeding_service and hasattr(feeding_service, "fetch_file"):
-                with feeding_service.fetch_file(filename) as result:
-                    if result:
-                        stream, content_type = result
-                        saved_id = events_files_service.ingest_file(stream, filename, content_type)
-                        if saved_id:
-                            processed_file_ids.append(saved_id)
+                result = feeding_service.fetch_file(normalized)
+                if not result:
+                    continue
+
+                stream, content_type = result
+                saved_id = events_files_service.ingest_file(stream, normalized, content_type)
+                if saved_id:
+                    processed_file_ids.append(saved_id)
             else:
                 logger.warning("No feeding service available to fetch file: %s", filename)
 

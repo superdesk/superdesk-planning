@@ -12,9 +12,9 @@ import io
 import logging
 import mimetypes
 import os
-from contextlib import contextmanager
+import threading
 from datetime import datetime
-from typing import BinaryIO, Generator, Optional, Tuple
+from typing import BinaryIO, Optional, Tuple
 
 from superdesk.errors import ParserError, ProviderError
 from superdesk.io.feeding_services.file_service import FileFeedingService
@@ -37,6 +37,7 @@ class EventFileFeedingService(FileFeedingService):
         super().__init__()
         self._fetched_attachments = set()
         self._failed_attachments = set()
+        self._lock = threading.Lock()
 
     ERRORS = [
         ParserError.IPTC7901ParserError().get_error_description(),
@@ -70,8 +71,9 @@ class EventFileFeedingService(FileFeedingService):
     def _update(self, provider, update):
         self.provider = provider
         self.path = provider.get("config", {}).get("path", None)
-        self._fetched_attachments = set()
-        self._failed_attachments = set()
+        with self._lock:
+            self._fetched_attachments = set()
+            self._failed_attachments = set()
 
         if not self.path:
             logger.warn(
@@ -115,39 +117,45 @@ class EventFileFeedingService(FileFeedingService):
         self._move_attachment_files()
         push_notification("ingest:update")
 
-    @contextmanager
-    def fetch_file(self, filename: str) -> Generator[Optional[Tuple[BinaryIO, str]], None, None]:
-        """
-        Fetch a local file from the configured ingest path using context management.
+    def fetch_file(self, filename: str) -> Optional[Tuple[BinaryIO, str]]:
+        """Fetch a local file from the configured ingest path.
 
         :param filename: Filename (relative to self.path)
-        :yield: Tuple of (file_handle, content_type) or None on failure
+        :return: Tuple of (stream, content_type) or None on failure
         """
         file_path = os.path.join(self.path, filename)
         try:
             with open(file_path, "rb") as f:
                 guessed_type = mimetypes.guess_type(file_path)[0]
                 content_type = guessed_type or "application/octet-stream"
-                self._fetched_attachments.add(filename)
-                yield (f, content_type)
+                stream = io.BytesIO(f.read())
+                with self._lock:
+                    self._fetched_attachments.add(filename)
+                return stream, content_type
         except FileNotFoundError:
             logger.warning("File %s not found for event ingest", file_path)
-            self._failed_attachments.add(filename)
-            yield None
+            with self._lock:
+                self._failed_attachments.add(filename)
         except Exception as ex:
             logger.warning("Failed to fetch file %s: %s", file_path, ex)
-            self._failed_attachments.add(filename)
-            yield None
+            with self._lock:
+                self._failed_attachments.add(filename)
+
+        return None
 
     def _move_attachment_files(self) -> None:
-        for filename in self._fetched_attachments:
+        with self._lock:
+            fetched = set(self._fetched_attachments)
+            failed = set(self._failed_attachments)
+
+        for filename in fetched:
             try:
                 self.move_file(self.path, filename, provider=self.provider, success=True)
             except Exception as ex:
                 logger.warning("Failed to move attachment %s to _PROCESSED: %s", filename, ex)
 
-        for filename in self._failed_attachments:
-            if filename not in self._fetched_attachments:
+        for filename in failed:
+            if filename not in fetched:
                 try:
                     self.move_file(self.path, filename, provider=self.provider, success=False)
                 except Exception as ex:

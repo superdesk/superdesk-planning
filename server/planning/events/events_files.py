@@ -118,10 +118,12 @@ class EventsFilesService(superdesk.Service):
                 except Exception:
                     logger.warning("Failed to cleanup media for %s", filename)
         finally:
-            if stream and hasattr(stream, "close"):
-                try:
-                    stream.close()
-                except Exception:
-                    logger.warning("Failed to close stream for %s", filename)
+            if stream is not None:
+                close_fn = getattr(stream, "close", None)
+                if callable(close_fn):
+                    try:
+                        close_fn()
+                    except Exception:
+                        logger.warning("Failed to close stream for %s", filename)
 
         return None
