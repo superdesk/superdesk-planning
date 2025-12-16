@@ -8,11 +8,17 @@
 
 """Superdesk Files"""
 
+import io
 import logging
+import mimetypes
+import os
+
 from flask import current_app as app
+
 import superdesk
 from superdesk import get_resource_service
 from superdesk.errors import SuperdeskApiError
+from superdesk.media.media_operations import process_file_from_stream
 
 logger = logging.getLogger(__name__)
 
@@ -67,3 +73,57 @@ class EventsFilesService(superdesk.Service):
         events_using_file = get_resource_service("events").find(where={"files": doc.get("_id")})
         if events_using_file.count() > 0:
             raise SuperdeskApiError.forbiddenError("Delete failed. File still used by other events.")
+
+    def ingest_file(self, content, filename, content_type=None):
+        """Upload binary content to media storage and create an events_files record."""
+
+        media_id = None
+        stream = None
+
+        try:
+            if hasattr(content, "read"):
+                stream = content
+            else:
+                stream = io.BytesIO(content)
+
+            if not content_type:
+                guessed_type = mimetypes.guess_type(filename)[0]
+                content_type = guessed_type or "application/octet-stream"
+
+            file_name, content_type, metadata = process_file_from_stream(stream, content_type)
+            stream.seek(0)
+
+            media_id = app.media.put(
+                stream,
+                filename=file_name or os.path.basename(filename),
+                content_type=content_type,
+                metadata=metadata,
+                resource="events_files",
+            )
+
+            payload = {"media": media_id, "mimetype": content_type}
+            if metadata:
+                payload["filemeta"] = metadata
+
+            ids = self.post([payload])
+            saved_id = next(iter(ids or []), None)
+            if saved_id:
+                logger.info("Ingested event file %s as %s", filename, saved_id)
+                return saved_id
+        except Exception as ex:
+            logger.warning("Failed to ingest file %s: %s", filename, ex)
+            if media_id:
+                try:
+                    app.media.delete(media_id)
+                except Exception:
+                    logger.warning("Failed to cleanup media for %s", filename)
+        finally:
+            if stream is not None:
+                close_fn = getattr(stream, "close", None)
+                if callable(close_fn):
+                    try:
+                        close_fn()
+                    except Exception:
+                        logger.warning("Failed to close stream for %s", filename)
+
+        return None

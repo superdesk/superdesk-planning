@@ -1,4 +1,8 @@
 import logging
+import os
+
+from bson import ObjectId
+from bson.errors import InvalidId
 
 from superdesk.io.feed_parsers import FileFeedParser
 from superdesk import get_resource_service
@@ -6,6 +10,7 @@ from superdesk.io.subjectcodes import get_subjectcodeitems
 from superdesk.utc import utcnow
 from superdesk.io.commands.update_ingest import set_expiry
 from planning.common import WORKFLOW_STATE
+from werkzeug.utils import secure_filename
 import pytz
 import json
 import datetime
@@ -35,17 +40,18 @@ class EventJsonFeedParser(FileFeedParser):
             pass
         return False
 
-    def parse(self, file_path, provider=None):
+    def parse(self, file_path, provider=None, feeding_service=None):
         self.items = []
         with open(file_path, "r") as f:
             superdesk_event = json.load(f)
-        event = self._transform_from_superdesk_event(superdesk_event)
+        event = self._transform_from_superdesk_event(superdesk_event, feeding_service)
         set_expiry(event, provider)
         self.items.append(event)
 
         return self.items
 
-    def _transform_from_superdesk_event(self, superdesk_event):
+    def _transform_from_superdesk_event(self, superdesk_event, feeding_service=None):
+        superdesk_event = self._process_files(superdesk_event, feeding_service)
         superdesk_event = self.ignore_fields(superdesk_event)
         superdesk_event["_created"] = utcnow()
         superdesk_event["_updated"] = utcnow()
@@ -92,7 +98,6 @@ class EventJsonFeedParser(FileFeedParser):
 
     def ignore_fields(self, superdesk_event):
         ignore_fields = [
-            "files",
             "state_reason",
             "schedule_settings",
             "_current_version",
@@ -160,6 +165,56 @@ class EventJsonFeedParser(FileFeedParser):
 
             if field == "event_contact_info":
                 superdesk_event[field] = [item["_id"] for item in superdesk_event[field]]
+
+        return superdesk_event
+
+    def _process_files(self, superdesk_event, feeding_service=None):
+        """Process event attachments by reusing existing IDs or uploading new files via the feeding service."""
+        files = superdesk_event.get("files")
+        if not files:
+            superdesk_event.pop("files", None)
+            return superdesk_event
+
+        events_files_service = get_resource_service("events_files")
+        processed_file_ids = []
+
+        for entry in files:
+            if not entry:
+                continue
+
+            if isinstance(entry, str):
+                try:
+                    object_id = ObjectId(entry)
+                    existing_file = events_files_service.find_one(req=None, _id=object_id)
+                    if existing_file:
+                        logger.info("Reusing existing event file %s", existing_file.get("_id"))
+                        processed_file_ids.append(existing_file.get("_id"))
+                        continue
+                except InvalidId:
+                    pass
+                filename = entry
+            else:
+                logger.warning("Skipping unsupported file entry type: %s", type(entry))
+                continue
+
+            sanitized = secure_filename(filename)
+            if not sanitized:
+                logger.warning("Skipping invalid attachment filename: %s", filename)
+                continue
+
+            if feeding_service and hasattr(feeding_service, "fetch_file"):
+                for stream in feeding_service.fetch_file(filename):
+                    saved_id = events_files_service.ingest_file(stream, sanitized)
+                    if saved_id:
+                        processed_file_ids.append(saved_id)
+            else:
+                logger.warning("No feeding service available to fetch file: %s", filename)
+
+        processed_file_ids = [file_id for file_id in processed_file_ids if file_id]
+        if processed_file_ids:
+            superdesk_event["files"] = processed_file_ids
+        else:
+            superdesk_event.pop("files", None)
 
         return superdesk_event
 
