@@ -8,6 +8,7 @@ import {
     IPlanningItem,
     IEventTemplate,
     IEventUpdateMethod,
+    IPlanningRelatedEventLinkType,
 } from '../../interfaces';
 import {appConfig} from 'appConfig';
 
@@ -577,20 +578,14 @@ function updateLinkedPlanningsForEvent(
         const toUnlink: Array<IPlanningItem> = currentlyLinked
             .filter((item) => associatedPlannings.find(({_id}) => _id === item._id) == null);
         const associatedPlanningIds = associatedPlannings.map(({_id}) => _id);
+        const defaultLinkType = appConfig.planning_event_link_method === 'one_primary' ? 'primary' : 'secondary';
 
         return planningApi.planning.getByIds(associatedPlanningIds, undefined)
             .then((allPlanningItems) => Promise.all([
                 ...toLink.map((oldPlanning) => {
                     const planningItem = allPlanningItems.find((x) => x._id === oldPlanning._id);
-                    const linkType = oldPlanning._temporary?.link_type;
-
-                    if (linkType == null) {
-                        superdeskApi.utilities.logger.error(
-                            new Error('linkType expected but not found'),
-                        );
-
-                        return Promise.resolve(planningItem);
-                    }
+                    // TODO: does not handle one primary many secondary
+                    const linkType = oldPlanning._temporary?.link_type ?? defaultLinkType;
 
                     const patch: Partial<IPlanningItem> = {
                         related_events: [
