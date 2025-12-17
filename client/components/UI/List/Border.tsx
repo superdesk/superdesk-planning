@@ -2,7 +2,7 @@ import React from 'react';
 import classNames from 'classnames';
 
 interface IProps {
-    state: false | 'success' | 'error' | 'locked' | 'active' | 'idle';
+    state?: false | 'success' | 'error' | 'locked' | 'active' | 'idle';
 }
 
 /**
