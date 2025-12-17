@@ -89,7 +89,7 @@ const onAssignmentUpdated = (_e, data) => (
         const currentDesk = assignmentUtils.getCurrentSelectedDeskId(desks, getState());
         let querySearchSettings = selectors.getAssignmentSearch(getState());
 
-        dispatch(updatePlannigRelatedToAssignment(data));
+        dispatch(updatePlanningRelatedToAssignment(data));
 
         // Updates my assignments count
         dispatch(
@@ -224,32 +224,26 @@ const syncEditorWithUpdatedPlanning = (planningId: string, loadedPlannings: IPla
  * @param {object} data - Assignment notification data containing planning and coverage IDs
  * @returns {Function} Thunk action that performs the update
  */
-const updatePlannigRelatedToAssignment = (data) => (
+const updatePlanningRelatedToAssignment = (data) => (
     async(dispatch, getState: GetStateFunc) => {
         const state = getState();
         const plans = selectors.planning.storedPlannings(state);
 
-        if (!get(data, 'planning')) {
-            return Promise.resolve();
-        }
+        if (!get(data, 'planning')) return;
 
         const planningItem = cloneDeep(get(plans, data.planning, {}));
 
-        if (!isExistingItem(planningItem)) {
-            return Promise.resolve();
-        }
+        if (!isExistingItem(planningItem)) return;
 
         let coverages = get(planningItem, 'coverages') || [];
         let coverage = coverages.find((cov) => cov.coverage_id === data.coverage);
 
-        if (!coverage) {
-            return Promise.resolve();
-        }
+        if (!coverage) return;
 
         const loadedPlannings = await dispatch(planningApis.loadPlanningByIds([data.planning]));
 
-        dispatch(syncEditorWithUpdatedPlanning(data.planning, loadedPlannings));
-        dispatch(main.fetchItemHistory(planningItem));
+        await dispatch(syncEditorWithUpdatedPlanning(data.planning, loadedPlannings));
+        await dispatch(main.fetchItemHistory(planningItem));
     }
 );
 
@@ -371,7 +365,7 @@ const onAssignmentRemoved = (_e, data) => (
                 )
             );
 
-            return dispatch(updatePlannigRelatedToAssignment(data));
+            return dispatch(updatePlanningRelatedToAssignment(data));
         }
 
         return Promise.resolve();
