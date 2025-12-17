@@ -20,6 +20,7 @@ interface IProps {
     target: string;
     button: React.ComponentType<{toggleMenu: (event: React.MouseEvent<HTMLButtonElement>) => void}>;
     language?: string;
+    eventLanguages?: Array<string>;
 
     onChange(field: string, value: Array<DeepPartial<IPlanningCoverageItem>>): void;
     createCoverage(qcode: IG2ContentType['qcode']): DeepPartial<IPlanningCoverageItem>;
@@ -164,7 +165,7 @@ class AddCoveragesWrapperComponent extends React.Component<IProps, IState> {
         return (
             <React.Fragment>
                 <Button toggleMenu={this.toggleMenu} />
-                {!this.state.isOpen ? null : (
+                {this.state.isOpen && (
                     <CoveragesMenuPopup
                         closeMenu={this.closeMenu}
                         actions={coverageTypes}
@@ -174,22 +175,19 @@ class AddCoveragesWrapperComponent extends React.Component<IProps, IState> {
                         openAdvanced={this.openAdvanced}
                     />
                 )}
-                {!this.state.advanced ? null : (
+                {this.state.advanced && (
                     <CoverageAddAdvancedModal
                         close={this.closeAdvanced}
                         contentTypes={this.props.contentTypes}
                         newsCoverageStatus={this.props.newsCoverageStatus}
-
                         field={this.props.field}
                         value={this.props.value}
                         onChange={this.props.onChange}
                         createCoverage={this.props.createCoverage}
-
                         users={this.props.users}
                         desks={this.props.desks}
-
                         coverageAddAdvancedMode={this.props.coverageAddAdvancedMode}
-                        setCoverageAddAdvancedMode={this.props.setCoverageAddAdvancedMode}
+                        eventLanguages={this.props.eventLanguages}
                     />
                 )}
             </React.Fragment>
