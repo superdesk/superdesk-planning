@@ -152,7 +152,7 @@ const eventsReducer = createReducer<IEventState>(initialState, {
 
         return produce(state, (draft) => {
             let events = draft.events;
-            let event = events[payload.event_item];
+            let event = events[payload.event_id];
 
             event.planning_ids = payload.planning_ids;
         });
