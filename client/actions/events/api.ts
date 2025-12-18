@@ -8,6 +8,7 @@ import {
     IPlanningItem,
     IEventTemplate,
     IEventUpdateMethod,
+    IPlanningRelatedEventLinkType,
 } from '../../interfaces';
 import {appConfig} from 'appConfig';
 
@@ -569,6 +570,8 @@ function updateLinkedPlanningsForEvent(
      * missing items will be linked, extra items unlinked
      */
     associatedPlannings: Array<IPlanningItem>,
+
+    linkTypeMap: Map<string, IPlanningRelatedEventLinkType>,
 ): Promise<Array<IPlanningItem>> {
     return planningApi.events.getLinkedPlanningItems(eventId).then((currentlyLinked) => {
         const currentLinkedIds = new Set(currentlyLinked.map((item) => item._id));
@@ -582,15 +585,8 @@ function updateLinkedPlanningsForEvent(
             .then((allPlanningItems) => Promise.all([
                 ...toLink.map((oldPlanning) => {
                     const planningItem = allPlanningItems.find((x) => x._id === oldPlanning._id);
-                    const linkType = oldPlanning._temporary?.link_type;
-
-                    if (linkType == null) {
-                        superdeskApi.utilities.logger.error(
-                            new Error('linkType expected but not found'),
-                        );
-
-                        return Promise.resolve(planningItem);
-                    }
+                    // TODO: does not handle one primary many secondary
+                    const linkType = oldPlanning._temporary?.link_type ?? linkTypeMap.get(oldPlanning._id);
 
                     const patch: Partial<IPlanningItem> = {
                         related_events: [
@@ -672,9 +668,35 @@ const save = (original, updates) => (
                 if (!haveLinksChanged) {
                     return [updatedEvent];
                 } else {
+                    // Build a map of planning IDs to their link types for new links
+                    const linkTypeMap = new Map<string, IPlanningRelatedEventLinkType>();
+                    const originalPlanningIds = new Set(
+                        (originalEvent.associated_plannings ?? []).map((p) => p._id)
+                    );
+
+                    // Only calculate link type for newly added planning items
+                    let primaryCount = 0;
+
+                    (updates.associated_plannings ?? []).forEach((planning) => {
+                        const isNewLink = !originalPlanningIds.has(planning._id);
+
+                        if (isNewLink) {
+                            // For methods that support primary links, make the first new one primary
+                            if ((appConfig.planning_event_link_method === 'one_primary' ||
+                                appConfig.planning_event_link_method === 'one_primary_many_secondary') &&
+                                primaryCount === 0) {
+                                linkTypeMap.set(planning._id, 'primary');
+                                primaryCount++;
+                            } else {
+                                linkTypeMap.set(planning._id, 'secondary');
+                            }
+                        }
+                    });
+
                     return updateLinkedPlanningsForEvent(
                         updatedEvent._id,
                         updates.associated_plannings,
+                        linkTypeMap,
                     ).then((updatedPlannings) => {
                         // Update associated events, so if a link has been added/removed etags are updated
                         // after the change in planning items

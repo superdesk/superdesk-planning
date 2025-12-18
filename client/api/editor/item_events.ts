@@ -71,7 +71,7 @@ export function getEventsInstance(type: EDITOR_TYPE): IEditorAPI['item']['events
             .dom.fields.related_plannings?.current as {relatedItemRefs: Array<RelatedPlanningItem>};
 
         return Object.values(embeddedEditorRef.relatedItemRefs ?? [])
-            .find((x) => x.props.item._id === planId)?.containerNode;
+            .find((x) => x != null && x.props.item._id === planId)?.containerNode;
     }
 
     function addPlanningItem(
@@ -114,12 +114,6 @@ export function getEventsInstance(type: EDITOR_TYPE): IEditorAPI['item']['events
 
         return toAddConfirmed.then(() => {
             for (const item of result.canBeAdded) {
-                if (isTemporaryId(item.planning._id)) {
-                    item.planning._temporary = {
-                        link_type: item.link_type,
-                    };
-                }
-
                 plans.push(item.planning);
             }
 

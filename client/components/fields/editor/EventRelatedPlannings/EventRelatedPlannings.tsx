@@ -51,8 +51,9 @@ export class EditorFieldEventRelatedPlanningsComponent extends React.PureCompone
 
     componentWillUnmount(): void {
         if (this.props.disabled !== true) {
+            // Unlock all associated planning items (both temporary and existing)
+            // when the event editor closes
             this.props.item.associated_plannings
-                .filter((x) => x._temporary != null)
                 .forEach((x) => planningApi.locks.unlockEmbeddedItem(x as IPlanningItem));
         }
     }
