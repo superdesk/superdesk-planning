@@ -53,14 +53,7 @@ const mapStateToProps = (state) => ({
 });
 
 class CoverageFormHeaderComponent extends React.PureComponent<IProps> {
-    constructor(props: IProps) {
-        super(props);
-
-        this.showAssignmentModal = this.showAssignmentModal.bind(this);
-        this.removeAssignment = this.removeAssignment.bind(this);
-    }
-
-    showAssignmentModal(event) {
+    showAssignmentModal = (event) => {
         onEventCapture(event);
 
         this.props.showEditCoverageAssignmentModal({
@@ -80,7 +73,7 @@ class CoverageFormHeaderComponent extends React.PureComponent<IProps> {
         });
     }
 
-    removeAssignment() {
+    removeAssignment = () => {
         const {value} = this.props;
 
         const remove = () => {
