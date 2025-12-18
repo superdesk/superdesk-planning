@@ -390,7 +390,11 @@ describe('actions.assignments.notification', () => {
                 .then(() => {
                     expect(planningApi.locks.setItemAsUnlocked.callCount).toBe(1);
                     expect(assignmentsApi.fetchAssignmentById.callCount).toBe(1);
-                    expect(store.dispatch.args[5]).toEqual([{
+
+                    // find the UNLOCK_ASSIGNMENT dispatch call instead of relying on hardcoded dispatch index
+                    const unlockDispatch = store.dispatch.args.find((args) => args[0]?.type === 'UNLOCK_ASSIGNMENT');
+
+                    expect(unlockDispatch).toEqual([{
                         type: 'UNLOCK_ASSIGNMENT',
                         payload: {
                             assignment: {

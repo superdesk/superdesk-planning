@@ -1,16 +1,20 @@
 import {get, cloneDeep} from 'lodash';
 
-import {IWebsocketMessageData} from '../../interfaces';
+import {
+    IWebsocketMessageData, EDITOR_TYPE, IEventOrPlanningItem, IPlanningItem, IPlanningAppState} from '../../interfaces';
 
 import {planningApi, superdeskApi} from '../../superdeskApi';
-import {ASSIGNMENTS, WORKSPACE, MODALS} from '../../constants';
-import {lockUtils, assignmentUtils, gettext, isExistingItem} from '../../utils';
+import {ASSIGNMENTS, WORKSPACE, MODALS, ITEM_TYPE} from '../../constants';
+import {lockUtils, assignmentUtils, gettext, isExistingItem, getAutosaveItem} from '../../utils';
 
+import {editors as editorsActions} from '../../actions';
 import * as selectors from '../../selectors';
 import assignments from './index';
 import main from '../main';
 import {hideModal, showModal} from '../index';
 import planningApis from '../planning/api';
+
+type GetStateFunc = () => IPlanningAppState;
 
 const _notifyAssignmentEdited = (assignmentId) => (
     (dispatch, getState, {notify}) => {
@@ -85,7 +89,7 @@ const onAssignmentUpdated = (_e, data) => (
         const currentDesk = assignmentUtils.getCurrentSelectedDeskId(desks, getState());
         let querySearchSettings = selectors.getAssignmentSearch(getState());
 
-        dispatch(_updatePlannigRelatedToAssignment(data));
+        dispatch(updatePlanningRelatedToAssignment(data));
 
         // Updates my assignments count
         dispatch(
@@ -175,29 +179,71 @@ const onAssignmentUpdated = (_e, data) => (
     }
 );
 
-const _updatePlannigRelatedToAssignment = (data) => (
-    (dispatch, getState) => {
-        const plans = selectors.planning.storedPlannings(getState());
+/**
+ * Synchronizes editor state with updated planning coverages after assignment changes
+ * When assignments are modified (desk changed, state changed to in-progress, etc.), the planning
+ * editor's coverage data becomes stale. This action refreshes the editor form and autosave with
+ * the latest coverage information from the server.
+ * @param {string} planningId - The planning item ID
+ * @param {IPlanningItem[]} loadedPlannings - Planning items freshly loaded from server
+ * @returns {Function} Thunk action that syncs the editor if the planning item is currently being edited
+ */
+const syncEditorWithUpdatedPlanning = (planningId: string, loadedPlannings: IPlanningItem[]) => (
+    (dispatch, getState: GetStateFunc) => {
+        const currentState = getState();
+        const editorSelectors = selectors.editors.editorSelectors[EDITOR_TYPE.INLINE];
+        const editorDiff = cloneDeep(editorSelectors.getEditorDiff(currentState));
 
-        if (!get(data, 'planning')) {
-            return Promise.resolve();
+        // only update if this planning item is currently being edited
+        if (editorDiff?._id === planningId && loadedPlannings.length > 0) {
+            const updatedDiff = {
+                ...editorDiff,
+                coverages: loadedPlannings[0]?.coverages || []
+            };
+
+            dispatch(editorsActions.setFormDiff(EDITOR_TYPE.INLINE, updatedDiff));
+
+            const autosaves = selectors.forms.autosaves(currentState);
+            const autosaveItem = getAutosaveItem(
+                autosaves,
+                ITEM_TYPE.PLANNING,
+                planningId
+            );
+
+            return planningApi.autosave.save(autosaveItem, updatedDiff as IEventOrPlanningItem);
         }
 
-        let planningItem = cloneDeep(get(plans, data.planning, {}));
+        return Promise.resolve();
+    }
+);
 
-        if (!isExistingItem(planningItem)) {
-            return Promise.resolve();
-        }
+/**
+ * Updates planning item when its related assignment changes
+ * Reloads the planning item's coverages from the server and synchronizes them with the editor
+ * if the planning item is currently being edited. Also updates the item history.
+ * @param {object} data - Assignment notification data containing planning and coverage IDs
+ * @returns {Function} Thunk action that performs the update
+ */
+const updatePlanningRelatedToAssignment = (data) => (
+    async(dispatch, getState: GetStateFunc) => {
+        const state = getState();
+        const plans = selectors.planning.storedPlannings(state);
+
+        if (!get(data, 'planning')) return;
+
+        const planningItem = cloneDeep(get(plans, data.planning, {}));
+
+        if (!isExistingItem(planningItem)) return;
 
         let coverages = get(planningItem, 'coverages') || [];
         let coverage = coverages.find((cov) => cov.coverage_id === data.coverage);
 
-        if (!coverage) {
-            return Promise.resolve();
-        }
+        if (!coverage) return;
 
-        dispatch(planningApis.loadPlanningByIds([data.planning]));
-        dispatch(main.fetchItemHistory(planningItem));
+        const loadedPlannings = await dispatch(planningApis.loadPlanningByIds([data.planning]));
+
+        await dispatch(syncEditorWithUpdatedPlanning(data.planning, loadedPlannings));
+        await dispatch(main.fetchItemHistory(planningItem));
     }
 );
 
@@ -319,7 +365,7 @@ const onAssignmentRemoved = (_e, data) => (
                 )
             );
 
-            return dispatch(_updatePlannigRelatedToAssignment(data));
+            return dispatch(updatePlanningRelatedToAssignment(data));
         }
 
         return Promise.resolve();
