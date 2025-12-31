@@ -45,6 +45,7 @@ class EventLocation(Dataclass):
     location: fields.Geopoint | None = None
     extra: dict | None = None
     details: str | None = None
+    translations: Annotated[dict | None, fields.mapping_disabled("object")] = None
 
 
 # HACK: ``index``. Temporal place for this indexes workaround
