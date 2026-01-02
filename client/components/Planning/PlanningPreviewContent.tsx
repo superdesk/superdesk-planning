@@ -121,11 +121,9 @@ export class PlanningPreviewContentComponent extends React.PureComponent<IProps>
         } = this.props;
 
         const createdBy = getCreator(item, 'original_creator', users);
-        const lastPlanningEditor = getCreator(item, 'last_planning_editor', users);
-        const updatedBy = lastPlanningEditor || getCreator(item, 'version_creator', users);
+        const updatedBy = getCreator(item, 'version_creator', users);
         const creationDate = get(item, '_created');
-        const lastPlanningEditAt = get(item, 'last_planning_edit_at');
-        const updatedDate = lastPlanningEditAt || get(item, '_updated');
+        const updatedDate = get(item, '_updated');
         const versionCreator = get(updatedBy, 'display_name') ? updatedBy :
             users.find((user) => user._id === updatedBy);
         const hasCoverage = get(item, 'coverages.length', 0) > 0;

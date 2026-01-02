@@ -123,8 +123,8 @@ class PlanningService(AsyncBaseService):
         update_ingest_on_patch(document, original)
 
         if self._should_update_planning_editor(document, original):
-            document["last_planning_editor"] = None
-            document["last_planning_edit_at"] = None
+            document["version_creator"] = None
+            document["versioncreated"] = None
 
         response = await self.backend.update_in_mongo_async(self.datasource, id, document, original)
         await self.on_updated_async(document, original, from_ingest=True)
@@ -188,8 +188,8 @@ class PlanningService(AsyncBaseService):
 
             user = get_user()
             if user and user.get(ID_FIELD):
-                doc["last_planning_editor"] = user[ID_FIELD]
-                doc["last_planning_edit_at"] = utcnow()
+                doc["version_creator"] = user[ID_FIELD]
+                doc["versioncreated"] = utcnow()
 
             first_event = await self._set_planning_event_info(doc, cast(ContentProfile, planning_type.to_dict()))
             await self._set_coverage(doc)
@@ -306,11 +306,9 @@ class PlanningService(AsyncBaseService):
         await self.validate_on_update(updates, original, user)
 
         if user and user.get(ID_FIELD):
-            updates["version_creator"] = user[ID_FIELD]
-
             if self._should_update_planning_editor(updates, original):
-                updates["last_planning_editor"] = user[ID_FIELD]
-                updates["last_planning_edit_at"] = utcnow()
+                updates["version_creator"] = user[ID_FIELD]
+                updates["versioncreated"] = utcnow()
 
         await self._set_coverage(updates, original)
         self.set_planning_schedule(updates, original)

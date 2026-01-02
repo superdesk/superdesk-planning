@@ -265,8 +265,6 @@ planning_schema = {
     # Audit Information
     "original_creator": metadata_schema["original_creator"],
     "version_creator": metadata_schema["version_creator"],
-    "last_planning_editor": Resource.rel("users", nullable=True),
-    "last_planning_edit_at": {"type": "datetime", "nullable": True},
     "firstcreated": metadata_schema["firstcreated"],
     "versioncreated": metadata_schema["versioncreated"],
     # Ingest Details

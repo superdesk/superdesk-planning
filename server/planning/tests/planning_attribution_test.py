@@ -11,8 +11,6 @@ from planning.planning.planning_history import PlanningHistoryService
 
 
 class DummyPlanningService(PlanningService):
-    """Minimal PlanningService that bypasses DB-specific logic for unit tests."""
-
     async def validate_on_update(self, updates, original, user):  # type: ignore[override]
         return None
 
@@ -27,8 +25,6 @@ class DummyPlanningService(PlanningService):
 
 
 class RecordingPlanningHistoryService(PlanningHistoryService):
-    """Collects history entries instead of touching the database."""
-
     def __init__(self):
         super().__init__()
         self.entries = []
@@ -38,41 +34,32 @@ class RecordingPlanningHistoryService(PlanningHistoryService):
 
 
 @pytest.mark.asyncio
-async def test_planning_edit_updates_last_planning_editor(monkeypatch):
-    """Test that planning-level field edits update last_planning_editor"""
+async def test_planning_edit_updates_version_creator(monkeypatch):
     service = DummyPlanningService()
     admin_id = ObjectId()
-
     original = {
         "_id": "planning-id",
         "slugline": "Original",
         "version_creator": ObjectId(),
     }
-
     updates = {"slugline": "Updated"}
-
     monkeypatch.setattr(planning_module, "get_user", lambda: {"_id": admin_id})
 
     await service.on_update_async(updates, deepcopy(original))
-
-    assert updates["last_planning_editor"] == admin_id, "Planning field edit should set last_planning_editor"
-    assert "last_planning_edit_at" in updates, "Planning field edit should set last_planning_edit_at"
-    assert updates["version_creator"] == admin_id, "version_creator should also be set"
+    assert updates["version_creator"] == admin_id, "Planning field edit should set version_creator"
+    assert "versioncreated" in updates, "Planning field edit should set versioncreated"
 
 
 @pytest.mark.asyncio
-async def test_coverage_only_edit_skips_last_planning_editor(monkeypatch):
-    """Test that coverage-only edits do NOT update last_planning_editor"""
+async def test_coverage_only_edit_skips_version_creator(monkeypatch):
     service = DummyPlanningService()
     admin_id = ObjectId()
     brian_id = ObjectId()
-
     coverage_id = "cov-planning"
     original = {
         "_id": "planning-id",
         "slugline": "Test Item",
         "version_creator": brian_id,
-        "last_planning_editor": brian_id,
         "coverages": [
             {
                 "coverage_id": coverage_id,
@@ -80,7 +67,6 @@ async def test_coverage_only_edit_skips_last_planning_editor(monkeypatch):
             }
         ],
     }
-
     updates = {
         "coverages": [
             {
@@ -89,22 +75,17 @@ async def test_coverage_only_edit_skips_last_planning_editor(monkeypatch):
             }
         ]
     }
-
     monkeypatch.setattr(planning_module, "get_user", lambda: {"_id": admin_id})
 
     await service.on_update_async(updates, deepcopy(original))
-
-    assert updates["version_creator"] == admin_id, "version_creator should track any modification"
-    assert "last_planning_editor" not in updates, "Coverage-only edit should not set last_planning_editor"
-    assert "last_planning_edit_at" not in updates, "Coverage-only edit should not set last_planning_edit_at"
+    assert "version_creator" not in updates, "Coverage-only edit should not set version_creator"
+    assert "versioncreated" not in updates, "Coverage-only edit should not set versioncreated"
 
 
 @pytest.mark.asyncio
-async def test_mixed_planning_and_coverage_edit_updates_last_planning_editor(monkeypatch):
-    """Test that edits to both planning and coverage fields update last_planning_editor"""
+async def test_mixed_planning_and_coverage_edit_updates_version_creator(monkeypatch):
     service = DummyPlanningService()
     admin_id = ObjectId()
-
     coverage_id = "cov-planning"
     original = {
         "_id": "planning-id",
@@ -118,7 +99,6 @@ async def test_mixed_planning_and_coverage_edit_updates_last_planning_editor(mon
             }
         ],
     }
-
     updates = {
         "slugline": "Updated",
         "coverages": [
@@ -128,54 +108,42 @@ async def test_mixed_planning_and_coverage_edit_updates_last_planning_editor(mon
             }
         ],
     }
-
     monkeypatch.setattr(planning_module, "get_user", lambda: {"_id": admin_id})
 
     await service.on_update_async(updates, deepcopy(original))
-
-    assert updates["last_planning_editor"] == admin_id, "Mixed edit should set last_planning_editor"
-    assert "last_planning_edit_at" in updates, "Mixed edit should set last_planning_edit_at"
-    assert updates["version_creator"] == admin_id, "version_creator should also be set"
+    assert updates["version_creator"] == admin_id, "Mixed edit should set version_creator"
+    assert "versioncreated" in updates, "Mixed edit should set versioncreated"
 
 
 @pytest.mark.asyncio
-async def test_system_fields_only_skip_last_planning_editor(monkeypatch):
-    """Test that updates to system-only fields do NOT update last_planning_editor"""
+async def test_system_fields_only_skip_version_creator(monkeypatch):
     service = DummyPlanningService()
     admin_id = ObjectId()
-
     original = {
         "_id": "planning-id",
         "slugline": "Test Item",
         "state": "draft",
         "version_creator": ObjectId(),
     }
-
     updates = {
         "state": "scheduled",
         "pubstatus": "usable",
     }
-
     monkeypatch.setattr(planning_module, "get_user", lambda: {"_id": admin_id})
 
     await service.on_update_async(updates, deepcopy(original))
-
-    assert updates["version_creator"] == admin_id
-    assert "last_planning_editor" not in updates, "System field changes should not set last_planning_editor"
-    assert "last_planning_edit_at" not in updates, "System field changes should not set last_planning_edit_at"
+    assert "version_creator" not in updates, "System field changes should not set version_creator"
+    assert "versioncreated" not in updates, "System field changes should not set versioncreated"
 
 
 @pytest.mark.asyncio
 async def test_should_update_planning_editor_helper_method():
-    """Test the _should_update_planning_editor helper method"""
     service = DummyPlanningService()
-
     original = {
         "_id": "planning-id",
         "slugline": "Original",
         "coverages": [],
     }
-
     updates_planning = {"slugline": "Updated"}
     assert (
         service._should_update_planning_editor(updates_planning, original) is True
@@ -203,9 +171,7 @@ async def test_should_update_planning_editor_helper_method():
 
 
 def test_history_records_only_coverage_operations(monkeypatch):
-    """Test that coverage-only edits don't create planning-level 'edited' history entries"""
     history_service = RecordingPlanningHistoryService()
-
     stub_planning_service = SimpleNamespace(
         is_coverage_planning_modified=lambda new, old: new.get("planning") != old.get("planning"),
         is_coverage_assignment_modified=lambda new, old: new.get("assigned_to") != old.get("assigned_to"),
@@ -253,14 +219,12 @@ def test_history_records_only_coverage_operations(monkeypatch):
     operations = [entry["operation"] for entry in history_service.entries]
 
     assert "edited" not in operations, "Coverage-only changes should not create planning-level 'edited' entries"
-    assert operations.count("coverage_edited") == 1, "Coverage history should capture the modification"
+    assert operations.count("coverage_edited") == 1, "Coverage history should capture modification"
 
 
 @pytest.mark.asyncio
-async def test_ingest_patch_clears_planning_editor(monkeypatch):
-    """Test that ingest patches clear last_planning_editor when updating planning fields"""
+async def test_ingest_patch_clears_version_creator(monkeypatch):
     service = DummyPlanningService()
-
     captured_document = {}
 
     class StubBackend:
@@ -286,7 +250,6 @@ async def test_ingest_patch_clears_planning_editor(monkeypatch):
         "_id": "planning-id",
         "slugline": "Test Item",
         "version_creator": user_id,
-        "last_planning_editor": user_id,
     }
 
     ingest_patch = {
@@ -295,14 +258,12 @@ async def test_ingest_patch_clears_planning_editor(monkeypatch):
     }
 
     await service.patch_in_mongo(original["_id"], ingest_patch, deepcopy(original))
-
-    assert captured_document["last_planning_editor"] is None, "Ingest should clear last_planning_editor"
-    assert captured_document["last_planning_edit_at"] is None, "Ingest should clear last_planning_edit_at"
+    assert captured_document["version_creator"] is None, "Ingest should clear version_creator"
+    assert captured_document["versioncreated"] is None, "Ingest should clear versioncreated"
 
 
 @pytest.mark.asyncio
 async def test_ingest_patch_coverage_only_skips_clearing(monkeypatch):
-    """Test that ingest patches with coverage-only changes don't affect planning editor fields"""
     service = DummyPlanningService()
 
     class StubBackend:
@@ -327,7 +288,6 @@ async def test_ingest_patch_coverage_only_skips_clearing(monkeypatch):
         "_id": "planning-id",
         "slugline": "Test Item",
         "version_creator": user_id,
-        "last_planning_editor": user_id,
         "coverages": [],
     }
 
@@ -341,6 +301,5 @@ async def test_ingest_patch_coverage_only_skips_clearing(monkeypatch):
     }
 
     await service.patch_in_mongo(original["_id"], deepcopy(ingest_patch), deepcopy(original))
-
-    assert "last_planning_editor" not in ingest_patch, "Coverage-only ingest should not modify last_planning_editor"
-    assert "last_planning_edit_at" not in ingest_patch, "Coverage-only ingest should not modify last_planning_edit_at"
+    assert "version_creator" not in ingest_patch, "Coverage-only ingest should not modify version_creator"
+    assert "versioncreated" not in ingest_patch, "Coverage-only ingest should not modify versioncreated"
