@@ -223,7 +223,8 @@ def test_history_records_only_coverage_operations(monkeypatch):
 
 
 @pytest.mark.asyncio
-async def test_ingest_patch_clears_version_creator(monkeypatch):
+async def test_ingest_patch_does_not_modify_version_creator(monkeypatch):
+    """Ingest patches should not modify version_creator/versioncreated fields"""
     service = DummyPlanningService()
     captured_document = {}
 
@@ -258,48 +259,6 @@ async def test_ingest_patch_clears_version_creator(monkeypatch):
     }
 
     await service.patch_in_mongo(original["_id"], ingest_patch, deepcopy(original))
-    assert captured_document["version_creator"] is None, "Ingest should clear version_creator"
-    assert captured_document["versioncreated"] is None, "Ingest should clear versioncreated"
-
-
-@pytest.mark.asyncio
-async def test_ingest_patch_coverage_only_skips_clearing(monkeypatch):
-    service = DummyPlanningService()
-
-    class StubBackend:
-        async def update_in_mongo_async(self, datasource, item_id, document, original):
-            return deepcopy(document)
-
-    async def stub_on_updated_async(document, original, from_ingest=False):
-        return None
-
-    async def stub_planning_ingested_send(document, original):
-        return None
-
-    backend = StubBackend()
-    service.backend = backend
-    service.datasource = "planning"
-
-    monkeypatch.setattr(planning_module, "planning_ingested", SimpleNamespace(send=stub_planning_ingested_send))
-    monkeypatch.setattr(service, "on_updated_async", stub_on_updated_async)
-
-    user_id = ObjectId()
-    original = {
-        "_id": "planning-id",
-        "slugline": "Test Item",
-        "version_creator": user_id,
-        "coverages": [],
-    }
-
-    ingest_patch = {
-        "coverages": [
-            {
-                "coverage_id": "new-cov",
-                "planning": {"headline": "New coverage"},
-            }
-        ]
-    }
-
-    await service.patch_in_mongo(original["_id"], deepcopy(ingest_patch), deepcopy(original))
-    assert "version_creator" not in ingest_patch, "Coverage-only ingest should not modify version_creator"
-    assert "versioncreated" not in ingest_patch, "Coverage-only ingest should not modify versioncreated"
+    assert "version_creator" not in captured_document, "Ingest should not modify version_creator"
+    assert "versioncreated" not in captured_document, "Ingest should not modify versioncreated"
+    assert "ingest_versioncreated" in captured_document, "Ingest should set ingest_versioncreated"

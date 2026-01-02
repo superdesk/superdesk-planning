@@ -121,11 +121,6 @@ class PlanningService(AsyncBaseService):
         """Patch an ingested item onto an existing item locally"""
         prepare_ingested_item_for_storage(document)
         update_ingest_on_patch(document, original)
-
-        if self._should_update_planning_editor(document, original):
-            document["version_creator"] = None
-            document["versioncreated"] = None
-
         response = await self.backend.update_in_mongo_async(self.datasource, id, document, original)
         await self.on_updated_async(document, original, from_ingest=True)
         await planning_ingested.send(document, original)
