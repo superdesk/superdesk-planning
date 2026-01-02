@@ -54,7 +54,7 @@ from planning.types import (
 )
 from planning.utils import (
     get_related_event_links_for_planning,
-    get_related_planning_for_events,
+    get_related_planning_for_events_async,
     get_planning_event_link_method,
     get_first_related_event_id_for_planning,
     get_related_event_ids_for_planning,
@@ -158,7 +158,7 @@ class PlanningAsyncService(BasePlanningAsyncService[PlanningResourceModel]):
             yield items
 
     async def on_event_converted_to_recurring(self, updates: dict[str, Any], original: EventResourceModel):
-        for item in get_related_planning_for_events([original.id]):
+        for item in await get_related_planning_for_events_async([original.id]):
             related_events = get_related_event_links_for_planning(item)
 
             # Set the ``recurrence_id`` in the ``planning.related_events`` field
