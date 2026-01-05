@@ -38,6 +38,7 @@ from superdesk.publish_async.utils import get_next_sequence_number
 from apps.archive.common import get_user, get_auth, update_dates_for
 
 from planning.errors import AssignmentApiError
+from planning.history import fields_to_remove as history_fields_to_remove
 from planning.types import (
     Planning,
     Event,
@@ -180,6 +181,11 @@ class PlanningService(AsyncBaseService):
             await self.validate_planning(doc)
             set_original_creator(doc)
 
+            user = get_user()
+            if user and user.get(ID_FIELD):
+                doc["version_creator"] = user[ID_FIELD]
+                doc["versioncreated"] = utcnow()
+
             first_event = await self._set_planning_event_info(doc, cast(ContentProfile, planning_type.to_dict()))
             await self._set_coverage(doc)
             self.set_planning_schedule(doc)
@@ -295,7 +301,9 @@ class PlanningService(AsyncBaseService):
         await self.validate_on_update(updates, original, user)
 
         if user and user.get(ID_FIELD):
-            updates["version_creator"] = user[ID_FIELD]
+            if self._should_update_version_creator(updates, original):
+                updates["version_creator"] = user[ID_FIELD]
+                updates["versioncreated"] = utcnow()
 
         await self._set_coverage(updates, original)
         self.set_planning_schedule(updates, original)
@@ -1837,6 +1845,33 @@ class PlanningService(AsyncBaseService):
         for field in fields_to_inherit:
             if updates.get(field):
                 coverage["planning"].setdefault(field, updates[field])
+
+    @staticmethod
+    def _should_update_version_creator(updates, original):
+        """
+        Check if version_creator and versioncreated should be updated.
+
+        Uses an exclusion approach since planning fields are dynamic and configurable.
+        Returns True if planning fields changed, False for coverage-only or system field changes.
+        """
+        excluded_fields = set(history_fields_to_remove) | {
+            "coverages",
+            "update_method",
+            "state",
+            "pubstatus",
+            "state_reason",
+            "revert_state",
+            "expired",
+            "versionposted",
+            "version",
+        }
+
+        for field in updates.keys():
+            if field not in excluded_fields:
+                if updates.get(field) != original.get(field):
+                    return True
+
+        return False
 
 
 class PlanningResource(Resource):
