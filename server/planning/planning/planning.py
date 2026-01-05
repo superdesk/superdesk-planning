@@ -301,7 +301,7 @@ class PlanningService(AsyncBaseService):
         await self.validate_on_update(updates, original, user)
 
         if user and user.get(ID_FIELD):
-            if self._should_update_planning_editor(updates, original):
+            if self._should_update_version_creator(updates, original):
                 updates["version_creator"] = user[ID_FIELD]
                 updates["versioncreated"] = utcnow()
 
@@ -1847,9 +1847,9 @@ class PlanningService(AsyncBaseService):
                 coverage["planning"].setdefault(field, updates[field])
 
     @staticmethod
-    def _should_update_planning_editor(updates, original):
+    def _should_update_version_creator(updates, original):
         """
-        Check if any planning-level fields have changed.
+        Check if version_creator and versioncreated should be updated.
 
         Uses an exclusion approach since planning fields are dynamic and configurable.
         Returns True if planning fields changed, False for coverage-only or system field changes.

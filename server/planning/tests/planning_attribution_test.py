@@ -137,7 +137,7 @@ async def test_system_fields_only_skip_version_creator(monkeypatch):
 
 
 @pytest.mark.asyncio
-async def test_should_update_planning_editor_helper_method():
+async def test_should_update_version_creator_helper_method():
     service = DummyPlanningService()
     original = {
         "_id": "planning-id",
@@ -146,27 +146,27 @@ async def test_should_update_planning_editor_helper_method():
     }
     updates_planning = {"slugline": "Updated"}
     assert (
-        service._should_update_planning_editor(updates_planning, original) is True
+        service._should_update_version_creator(updates_planning, original) is True
     ), "Planning field change should return True"
 
     updates_coverage = {"coverages": [{"coverage_id": "new-cov"}]}
     assert (
-        service._should_update_planning_editor(updates_coverage, original) is False
+        service._should_update_version_creator(updates_coverage, original) is False
     ), "Coverage-only change should return False"
 
     updates_system = {"state": "scheduled", "pubstatus": "usable"}
     assert (
-        service._should_update_planning_editor(updates_system, original) is False
+        service._should_update_version_creator(updates_system, original) is False
     ), "System field change should return False"
 
     updates_multiple = {"slugline": "Updated", "description_text": "New description"}
     assert (
-        service._should_update_planning_editor(updates_multiple, original) is True
+        service._should_update_version_creator(updates_multiple, original) is True
     ), "Multiple planning field changes should return True"
 
     updates_mixed = {"slugline": "Updated", "coverages": [{"coverage_id": "new-cov"}]}
     assert (
-        service._should_update_planning_editor(updates_mixed, original) is True
+        service._should_update_version_creator(updates_mixed, original) is True
     ), "Mixed planning and coverage change should return True"
 
 
