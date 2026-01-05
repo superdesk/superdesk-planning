@@ -15,7 +15,7 @@ from superdesk.lock import lock, unlock, remove_locks
 from superdesk.notification import push_notification
 from .async_cli import planning_cli
 
-from planning.utils import get_related_planning_for_events, get_related_event_ids_for_planning
+from planning.utils import get_related_planning_for_events_async, get_related_event_ids_for_planning
 
 
 log_msg_context: ContextVar[str] = ContextVar("log_msg", default="")
@@ -98,7 +98,7 @@ async def flag_expired_events(expiry_datetime: datetime):
     async for items in events_service.get_expired_items(expiry_datetime):
         events.update({item[ID_FIELD]: item for item in items})
 
-    set_event_plans(events)
+    await set_event_plans(events)
 
     for event_id, event in events.items():
         if event.get("lock_user"):
@@ -166,7 +166,7 @@ async def flag_expired_planning(expiry_datetime: datetime):
     logger.info(f"{log_msg} {len(plans_expired)} Planning items expired: {list(plans_expired)}")
 
 
-def set_event_plans(events: dict[str, dict[str, Any]]) -> None:
+async def set_event_plans(events: dict[str, dict[str, Any]]) -> None:
     """
     Populates each event in the given dictionary with its related planning items.
 
@@ -178,7 +178,7 @@ def set_event_plans(events: dict[str, dict[str, Any]]) -> None:
         - The `events` dictionary is modified in place.
         - Each event gains a `_plans` key containing a list of related planning items.
     """
-    for plan in get_related_planning_for_events(list(events.keys()), "primary"):
+    for plan in await get_related_planning_for_events_async(list(events.keys()), "primary"):
         for related_event_id in get_related_event_ids_for_planning(plan, "primary"):
             event = events[related_event_id]
             if "_plans" not in event:

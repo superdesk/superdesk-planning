@@ -16,7 +16,7 @@ from typing import Dict, Optional, List, cast
 from superdesk import get_resource_service
 
 from planning.utils import parse_date
-from planning.utils import get_related_planning_for_events
+from planning.utils import get_related_planning_for_events_async
 from planning.content_profiles.utils import AllContentProfileData
 from planning.common import get_config_event_fields_to_sync_with_planning
 from planning.types import Event, EmbeddedPlanningDict, StringFieldTranslation
@@ -154,7 +154,7 @@ async def sync_event_metadata_with_planning_items(
             await planning_service.patch_async(sync_data.planning.original["_id"], sync_data.planning.updates)
 
     # Sync all the Planning items that were NOT provided in the ``embedded_planning`` field
-    for item in get_related_planning_for_events([event_updated["_id"]], "primary", processed_planning_ids):
+    for item in await get_related_planning_for_events_async([event_updated["_id"]], "primary", processed_planning_ids):
         translated_fields = get_translated_fields(item.get("translations") or [])
         sync_data = SyncData(
             event=event_sync_data,
