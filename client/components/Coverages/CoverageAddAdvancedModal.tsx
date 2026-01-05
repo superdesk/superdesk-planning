@@ -220,7 +220,8 @@ class CoverageAddAdvancedModalComponent extends React.Component<IProps, IState> 
             this.props.setCoverageAddAdvancedMode(this.state.advancedMode);
         }
 
-        this.props.close();
+        // Don't call close here - let the onChange handler close the modal after save/unlock completes
+        // this.props.close();
     }
 
     render() {

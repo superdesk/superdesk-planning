@@ -4,11 +4,12 @@ import {get, isEqual} from 'lodash';
 import {OverlayTrigger, Tooltip} from 'react-bootstrap';
 import {Menu} from 'superdesk-ui-framework/react';
 
-import {superdeskApi} from '../../superdeskApi';
+import {superdeskApi, planningApi} from '../../superdeskApi';
 import {
     IPlanningListItemProps,
     LIST_VIEW_TYPE,
-    SORT_FIELD
+    SORT_FIELD,
+    IPlanningNewsCoverageStatus
 } from '../../interfaces';
 import {PLANNING, EVENTS, MAIN, ICON_COLORS, WORKFLOW_STATE} from '../../constants';
 
@@ -18,6 +19,7 @@ import {Button as NavButton} from '../UI/Nav';
 import Icon from '../UI/IconMix';
 import {EventDateTime} from '../Events';
 import {CreatedUpdatedColumn} from '../UI/List/CreatedUpdatedColumn';
+import {CoverageAddAdvancedModal} from '../Coverages/CoverageAddAdvancedModal';
 
 import {
     eventUtils,
@@ -29,28 +31,82 @@ import {
     isItemExpired,
     isItemDifferent,
     getItemWorkflowState,
+    gettext,
 } from '../../utils';
 import {renderFields} from '../fields';
 import * as actions from '../../actions';
+import * as selectors from '../../selectors';
+import planningApis from '../../actions/planning/api';
 import {getUserInterfaceLanguageFromCV} from '../../utils/users';
 
 interface IState {
     hover: boolean;
+    showCoverageModal: boolean;
+    lockedItem: any; // Store the locked item with updated _etag
 }
 
-interface IProps extends IPlanningListItemProps {
+interface IReduxStateProps {
+    newsCoverageStatus: Array<IPlanningNewsCoverageStatus>;
+    coverageAddAdvancedMode: boolean;
+}
+
+interface IProps extends IPlanningListItemProps, IReduxStateProps {
     dispatch(action: any): void;
 }
 
 class PlanningItemComponent extends React.Component<IProps, IState> {
     constructor(props) {
         super(props);
-        this.state = {hover: false};
+        this.state = {hover: false, showCoverageModal: false, lockedItem: null};
 
         this.onAddCoverageButtonClick = this.onAddCoverageButtonClick.bind(this);
         this.onItemHoverOn = this.onItemHoverOn.bind(this);
         this.onItemHoverOff = this.onItemHoverOff.bind(this);
         this.renderItemActions = this.renderItemActions.bind(this);
+        this.openCoverageModal = this.openCoverageModal.bind(this);
+        this.closeCoverageModal = this.closeCoverageModal.bind(this);
+    }
+
+    // Attempt to unlock the item if the modal is open when the page is closing/reloading
+    private handleBeforeUnload = () => {
+        if (!this.state.showCoverageModal) return;
+
+        const itemToUnlock = this.state.lockedItem || this.props.item;
+
+        if (itemToUnlock) {
+            try {
+                planningApi.locks.unlockItem(itemToUnlock).catch(() => undefined);
+            } catch (e) {
+                // ignore
+            }
+        }
+    };
+
+    componentDidUpdate(prevProps: Readonly<IProps>, prevState: Readonly<IState>) {
+        if (prevState.showCoverageModal !== this.state.showCoverageModal) {
+            if (this.state.showCoverageModal) {
+                window.addEventListener('beforeunload', this.handleBeforeUnload);
+            } else {
+                window.removeEventListener('beforeunload', this.handleBeforeUnload);
+            }
+        }
+    }
+
+    componentWillUnmount() {
+        window.removeEventListener('beforeunload', this.handleBeforeUnload);
+
+        // Also best-effort unlock if still open when unmounting
+        if (this.state.showCoverageModal) {
+            const itemToUnlock = this.state.lockedItem || this.props.item;
+
+            if (itemToUnlock) {
+                try {
+                    planningApi.locks.unlockItem(itemToUnlock).catch(() => undefined);
+                } catch (e) {
+                    // ignore
+                }
+            }
+        }
     }
 
     onAddCoverageButtonClick(event) {
@@ -61,6 +117,7 @@ class PlanningItemComponent extends React.Component<IProps, IState> {
     shouldComponentUpdate(nextProps: Readonly<IProps>, nextState: Readonly<IState>) {
         return isItemDifferent(this.props, nextProps) ||
             this.state.hover !== nextState.hover ||
+            this.state.showCoverageModal !== nextState.showCoverageModal ||
             !isEqual(
                 planningUtils.getAgendaNames(this.props.item, this.props.agendas),
                 planningUtils.getAgendaNames(nextProps.item, nextProps.agendas)
@@ -76,6 +133,36 @@ class PlanningItemComponent extends React.Component<IProps, IState> {
 
     onItemHoverOff() {
         this.setState({hover: false});
+    }
+
+    openCoverageModal() {
+        const {item} = this.props;
+
+        // Lock the planning item before opening the modal
+        planningApi.locks.lockItem(item, 'edit_coverages')
+            .then((lockedItem) => {
+                // Store the locked item with updated _etag
+                this.setState({showCoverageModal: true, lockedItem: lockedItem});
+            })
+            .catch((error) => {
+                console.error('Failed to lock planning item:', error);
+                superdeskApi.ui.alert(
+                    gettext('Failed to lock the planning item. It may be locked by another user.')
+                );
+            });
+    }
+
+    closeCoverageModal() {
+        const {lockedItem} = this.state;
+        const itemToUnlock = lockedItem || this.props.item;
+
+        this.setState({showCoverageModal: false, lockedItem: null});
+
+        // Unlock the planning item after closing the modal
+        planningApi.locks.unlockItem(itemToUnlock)
+            .catch((error) => {
+                console.error('Failed to unlock planning item:', error);
+            });
     }
 
     renderItemActions() {
@@ -107,6 +194,10 @@ class PlanningItemComponent extends React.Component<IProps, IState> {
                 this.props[PLANNING.ITEM_ACTIONS.ASSIGN_TO_AGENDA.actionName],
             [PLANNING.ITEM_ACTIONS.ADD_COVERAGE_FROM_LIST.actionName]:
                 this.props[PLANNING.ITEM_ACTIONS.ADD_COVERAGE_FROM_LIST.actionName],
+            // Only add Edit Coverages action if item is not locked by someone else
+            ...(!lockUtils.isLockRestricted(item, session, lockedItems) ? {
+                [PLANNING.ITEM_ACTIONS.ADD_COVERAGE_ADVANCED.actionName]: this.openCoverageModal,
+            } : {}),
             [PLANNING.ITEM_ACTIONS.ADD_TO_FEATURED.actionName]:
                 this.props[PLANNING.ITEM_ACTIONS.ADD_TO_FEATURED.actionName],
             [PLANNING.ITEM_ACTIONS.REMOVE_FROM_FEATURED.actionName]:
@@ -321,10 +412,63 @@ class PlanningItemComponent extends React.Component<IProps, IState> {
                         </OverlayTrigger>
                     </Column>
                 )}
+                {this.state.showCoverageModal && (
+                    <div onClick={(e) => e.stopPropagation()}> {/* avoid opening preview on click in the modal */}
+                        <CoverageAddAdvancedModal
+                            close={this.closeCoverageModal}
+                            contentTypes={contentTypes}
+                            newsCoverageStatus={this.props.newsCoverageStatus}
+                            field="coverages"
+                            value={get(item, 'coverages', [])}
+                            onChange={(field, value) => {
+                                // Use the locked item (with updated _etag) for saving
+                                const itemToSave = this.state.lockedItem || item;
+
+                                // Save the planning item with updated coverages
+                                this.props.dispatch(planningApis.save(itemToSave, {[field]: value}))
+                                    .then((savedItem) => {
+                                        // Update lockedItem with saved item for proper unlock
+                                        this.setState({lockedItem: savedItem || itemToSave});
+                                        // Use saved item (with updated _etag) to unlock
+                                        return planningApi.locks.unlockItem(savedItem || itemToSave);
+                                    })
+                                    .then(() => {
+                                        // Close modal after unlock is complete
+                                        this.setState({showCoverageModal: false, lockedItem: null});
+                                    })
+                                    .catch((error) => {
+                                        console.error('Failed to save coverages:', error);
+                                        // Still try to unlock even if save failed
+                                        const itemToUnlock = this.state.lockedItem || item;
+
+                                        planningApi.locks.unlockItem(itemToUnlock)
+                                            .finally(() => {
+                                                this.setState({showCoverageModal: false, lockedItem: null});
+                                            });
+                                    });
+                            }}
+                            createCoverage={(qcode) => ({
+                                planning: {
+                                    g2_content_type: qcode,
+                                    language: null,
+                                },
+                                workflow_status: 'draft',
+                            })}
+                            users={users}
+                            desks={desks}
+                            coverageAddAdvancedMode={this.props.coverageAddAdvancedMode}
+                        />
+                    </div>
+                )}
                 {this.renderItemActions()}
             </Item>
         );
     }
 }
 
-export const PlanningItem = connect()(PlanningItemComponent);
+const mapStateToProps = (state) => ({
+    newsCoverageStatus: selectors.general.newsCoverageStatus(state),
+    coverageAddAdvancedMode: selectors.general.coverageAddAdvancedMode(state),
+});
+
+export const PlanningItem = connect(mapStateToProps)(PlanningItemComponent);

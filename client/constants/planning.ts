@@ -96,6 +96,11 @@ export const PLANNING = {
             icon: 'icon-plus-small',
             actionName: 'onAddNewCoverageToPlanning',
         },
+        ADD_COVERAGE_ADVANCED: {
+            label: 'Edit Coverages',
+            icon: 'icon-plus-small',
+            actionName: 'onAddCoverageAdvanced',
+        },
         PREVIEW: {
             label: 'Preview',
             icon: 'icon-preview-mode',
@@ -150,5 +155,6 @@ export function assignPlanningConstantTranslations() {
     PLANNING.ITEM_ACTIONS.ADD_TO_FEATURED.label = gettext('Add to featured stories');
     PLANNING.ITEM_ACTIONS.REMOVE_FROM_FEATURED.label = gettext('Remove from featured stories');
     PLANNING.ITEM_ACTIONS.ADD_COVERAGE_FROM_LIST.label = gettext('Add coverage');
+    PLANNING.ITEM_ACTIONS.ADD_COVERAGE_ADVANCED.label = gettext('Edit Coverages');
     PLANNING.ITEM_ACTIONS.PREVIEW.label = gettext('Preview');
 }
