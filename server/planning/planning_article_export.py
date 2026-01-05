@@ -32,7 +32,7 @@ from planning.common import (
 )
 from planning.events import EventsAsyncService
 from planning.agendas_async import AgendasAsyncService
-from planning.utils import get_related_planning_for_events, get_first_related_event_id_for_planning
+from planning.utils import get_related_planning_for_events_async, get_first_related_event_id_for_planning
 from planning.archive import create_item_from_template
 
 
@@ -79,7 +79,7 @@ async def get_items(ids, resource_type):
             if event_id:
                 item["event"] = await events_service.find_by_id_raw(event_id)
         elif item_type == "event":
-            item["plannings"] = get_related_planning_for_events([item["_id"]], "primary")
+            item["plannings"] = await get_related_planning_for_events_async([item["_id"]], "primary")
             item["coverages"] = []
             for plan in item["plannings"]:
                 item["coverages"].extend(plan.get("coverages") or [])

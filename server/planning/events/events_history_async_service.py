@@ -8,7 +8,7 @@ from planning.types import EventResourceModel
 from planning.types import EventsHistoryResourceModel
 from superdesk.core.types import SearchRequest
 from superdesk.resource_fields import ID_FIELD
-from planning.utils import get_related_planning_for_events
+from planning.utils import get_related_planning_for_events_async
 from planning.history_async_service import HistoryAsyncService
 from planning.item_lock import LOCK_ACTION
 
@@ -30,7 +30,7 @@ class EventsHistoryAsyncService(HistoryAsyncService[EventsHistoryResourceModel])
             if isinstance(item, EventResourceModel):
                 item = item.to_dict()
 
-            planning_items = get_related_planning_for_events([item[ID_FIELD]], "primary")
+            planning_items = await get_related_planning_for_events_async([item[ID_FIELD]], "primary")
             if len(planning_items) > 0:
                 item["created_from_planning"] = planning_items[0].get("_id")
                 created_from_planning.append(item)

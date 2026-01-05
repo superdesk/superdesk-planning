@@ -87,6 +87,7 @@ from .planning_schema import planning_schema
 from planning.utils import (
     get_planning_event_link_method,
     get_related_planning_for_events,
+    get_related_planning_for_events_async,
     get_related_event_links_for_planning,
     get_related_event_ids_for_planning,
     get_first_related_event_id_for_planning,
@@ -480,10 +481,10 @@ class PlanningService(AsyncBaseService):
         added_agendas = list(set(updated_agendas) - set(existing_agendas))
         return added_agendas, removed_agendas
 
-    def _get_event_links(self, event_id) -> List[str]:
-        return [str(link["_id"]) for link in get_related_planning_for_events([event_id])]
+    async def _get_event_links(self, event_id) -> List[str]:
+        return [str(link["_id"]) for link in await get_related_planning_for_events_async([event_id])]
 
-    def _notify_related_events_changed(self, updates, original) -> bool:
+    async def _notify_related_events_changed(self, updates, original) -> bool:
         if "related_events" not in updates:
             return False
 
@@ -503,7 +504,7 @@ class PlanningService(AsyncBaseService):
                 event=str(_id),
                 planning=str(original.get(ID_FIELD)),
                 action="delete" if _id in removed_ids else "create",
-                links=self._get_event_links(_id),
+                links=await self._get_event_links(_id),
             )
 
         return len(changed_ids) > 0
@@ -554,7 +555,7 @@ class PlanningService(AsyncBaseService):
         user_id = str(updates.get("version_creator", ""))
         doc = deepcopy(original)
         doc.update(updates)
-        related_events_changed = self._notify_related_events_changed(updates, original)
+        related_events_changed = await self._notify_related_events_changed(updates, original)
 
         push_notification(
             "planning:updated",
@@ -623,7 +624,7 @@ class PlanningService(AsyncBaseService):
             # Get associated event
             all_items = await (await events_service.find_async(where={"_id": event_id})).to_list()
             # Get all associated planning items
-            return chain(all_items, get_related_planning_for_events([event_id], event_link_type))
+            return chain(all_items, await get_related_planning_for_events_async([event_id], event_link_type))
 
     async def remove_coverages(self, updates, original):
         if "coverages" not in updates:
@@ -1512,7 +1513,7 @@ class PlanningService(AsyncBaseService):
 
     async def on_event_converted_to_recurring(self, updates, original):
         event_id = original[ID_FIELD]
-        for item in get_related_planning_for_events([original[ID_FIELD]]):
+        for item in await get_related_planning_for_events_async([original[ID_FIELD]]):
             related_events = get_related_event_links_for_planning(item)
 
             # Set the ``recurrence_id`` in the ``planning.related_events`` field

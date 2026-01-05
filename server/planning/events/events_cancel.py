@@ -33,7 +33,7 @@ from planning.common import (
     remove_lock_information,
     set_actioned_date_to_event,
 )
-from planning.utils import get_related_planning_for_events
+from planning.utils import get_related_planning_for_events_async
 from planning import signals
 
 
@@ -76,7 +76,7 @@ async def cancel_event_plannings(updates: dict[str, Any], original: dict[str, An
     planning_history_service = PlanningHistoryAsyncService()
     reason = updates.get("reason", None)
 
-    for plan in get_related_planning_for_events([original[ID_FIELD]], "primary"):
+    for plan in await get_related_planning_for_events_async([original[ID_FIELD]], "primary"):
         if plan.get("state") != WORKFLOW_STATE.CANCELLED:
             request.view_args["event_cancellation"] = True
             cancelled_plan = await planning_cancel_service.patch_async(plan[ID_FIELD], {"reason": reason})

@@ -31,7 +31,7 @@ from planning.events.events_utils import (
     pre_update_event_actions,
 )
 from planning.planning.planning_postpone import process_postpone_planning_item
-from planning.utils import get_related_planning_for_events
+from planning.utils import get_related_planning_for_events_async
 
 
 def set_event_postponed(updates):
@@ -44,7 +44,7 @@ def set_event_postponed(updates):
 async def postpone_event_plannings(updates: dict[str, Any], original: dict[str, Any]):
     reason = updates.get("reason", None)
 
-    for plan in get_related_planning_for_events([original[ID_FIELD]], "primary"):
+    for plan in await get_related_planning_for_events_async([original[ID_FIELD]], "primary"):
         if plan.get("state") != WORKFLOW_STATE.CANCELLED:
             updated_plan = await process_postpone_planning_item({"reason": reason}, plan)
             await signals.planning_postponed.send(updated_plan, plan)

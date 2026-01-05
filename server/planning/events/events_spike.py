@@ -26,7 +26,7 @@ from planning.types.assignment import AssignmentResourceModel
 from planning.utils import (
     event_has_planning_items,
     get_first_related_event_id_for_planning,
-    get_related_planning_for_events,
+    get_related_planning_for_events_async,
 )
 from superdesk.errors import SuperdeskApiError
 from superdesk.notification import push_notification
@@ -39,7 +39,7 @@ async def post_spike_event_actions(original: dict[str, Any]) -> None:
     # Spike associated planning
     spiked_items = []
 
-    for planning in get_related_planning_for_events([original[ID_FIELD]], "primary"):
+    for planning in await get_related_planning_for_events_async([original[ID_FIELD]], "primary"):
         if planning["state"] == WORKFLOW_STATE.DRAFT:
             await process_spike_planning_item({"state": "spiked"}, planning)
             spiked_items.append(str(planning[ID_FIELD]))
@@ -103,8 +103,8 @@ def validate_event_states(event: dict[str, Any]) -> None:
         raise SuperdeskApiError.badRequestError(message="Spike failed. Event is already spiked.")
 
 
-def validate_spike_event(event: dict[str, Any]) -> None:
-    for planning in get_related_planning_for_events([event[ID_FIELD]], "primary"):
+async def validate_spike_event(event: dict[str, Any]) -> None:
+    for planning in await get_related_planning_for_events_async([event[ID_FIELD]], "primary"):
         if planning.get(LOCK_USER) or planning.get(LOCK_SESSION):
             raise SuperdeskApiError.forbiddenError(
                 message="Spike failed. One or more related planning items are locked."
@@ -138,7 +138,7 @@ async def validate_recurring_event(original: dict[str, Any], recurrence_id: str)
 
 
 async def spike_single_event(updates: dict[str, Any], original: dict[str, Any]) -> None:
-    validate_spike_event(original)
+    await validate_spike_event(original)
     remove_lock_information(updates)
     spike_event(updates, original)
 

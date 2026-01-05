@@ -33,7 +33,7 @@ from planning.common import (
 from planning.validate import validate_docs
 from planning.events.events_utils import get_recurring_timeline, get_update_method
 from planning.types import EventsHistoryResourceModel
-from planning.utils import try_cast_object_id, get_related_planning_for_events
+from planning.utils import try_cast_object_id, get_related_planning_for_events_async
 from planning.content_profiles.utils import is_post_planning_with_event_enabled, is_cancel_planning_with_event_enabled
 
 
@@ -216,7 +216,7 @@ class EventsPostService(AsyncBaseService):
         updates["version"] = version
 
         await events_history_service._save_history(event, updates, "post")
-        plannings = get_related_planning_for_events([event[ID_FIELD]], "primary")
+        plannings = await get_related_planning_for_events_async([event[ID_FIELD]], "primary")
 
         event["plans"] = [p.get("_id") for p in plannings]
         await self.publish_event(event, version)

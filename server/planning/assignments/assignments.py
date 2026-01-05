@@ -76,7 +76,7 @@ from planning.utils import (
     get_event_formatted_dates,
     get_formatted_contacts,
     update_event_item_with_translations_value,
-    get_related_planning_for_events,
+    get_related_planning_for_events_async,
     get_related_event_ids_for_planning,
     get_first_related_event_id_for_planning,
     get_first_event_item_for_planning_id,
@@ -1075,7 +1075,7 @@ class AssignmentsService(AsyncBaseService):
 
         event = deepcopy(original.to_dict())
         event.update(updates)
-        plannings = get_related_planning_for_events([event[ID_FIELD]], "primary")
+        plannings = await get_related_planning_for_events_async([event[ID_FIELD]], "primary")
 
         if not plannings:
             # If this Event has no associated Planning items

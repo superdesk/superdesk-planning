@@ -46,7 +46,7 @@ from planning.core.service import BasePlanningAsyncService
 from planning.utils import (
     get_planning_event_link_method,
     get_related_event_ids_for_planning,
-    get_related_planning_for_events,
+    get_related_planning_for_events_async,
 )
 
 from .events_sync import sync_event_metadata_with_planning_items
@@ -361,7 +361,7 @@ class EventsAsyncService(BasePlanningAsyncService[EventResourceModel]):
             updates["location"] = original.location
 
         updates[ID_FIELD] = original.id
-        self._enhance_event_item(updates)
+        await self._enhance_event_item(updates)
 
     async def delete_event_files(self, updates: dict[str, Any], event_files: list[ObjectId]):
         files = [f for f in event_files if f not in (updates or {}).get("files", [])]
@@ -626,7 +626,7 @@ class EventsAsyncService(BasePlanningAsyncService[EventResourceModel]):
             if event.dates.start < updates["actioned_date"]:
                 return
 
-        for plan in get_related_planning_for_events([event.id], "primary"):
+        for plan in await get_related_planning_for_events_async([event.id], "primary"):
             if plan.get("state") != WorkflowState.CANCELLED and len(plan.get("coverages", [])) > 0:
                 await get_resource_service("planning_cancel").patch_async(
                     plan[ID_FIELD],
@@ -837,8 +837,8 @@ class EventsAsyncService(BasePlanningAsyncService[EventResourceModel]):
 
         await signals.planning_updated.send(updates, planning_item)
 
-    def _enhance_event_item(self, doc: dict[str, Any]):
-        plannings = get_related_planning_for_events([doc[ID_FIELD]])
+    async def _enhance_event_item(self, doc: dict[str, Any]):
+        plannings = await get_related_planning_for_events_async([doc[ID_FIELD]])
 
         if len(plannings):
             doc["planning_ids"] = [planning.get("_id") for planning in plannings]

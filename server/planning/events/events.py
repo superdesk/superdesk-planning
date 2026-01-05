@@ -87,7 +87,7 @@ from planning.common import (
 )
 from planning.utils import (
     get_planning_event_link_method,
-    get_related_planning_for_events,
+    get_related_planning_for_events_async,
     get_related_event_ids_for_planning,
 )
 from .events_schema import events_schema
@@ -222,13 +222,13 @@ class EventsService(AsyncBaseService):
 
     async def on_fetched_async(self, docs):
         for doc in docs["_items"]:
-            self._enhance_event_item(doc)
+            await self._enhance_event_item(doc)
 
     async def on_fetched_item_async(self, doc):
-        self._enhance_event_item(doc)
+        await self._enhance_event_item(doc)
 
-    def _enhance_event_item(self, doc):
-        plannings = get_related_planning_for_events([doc[ID_FIELD]])
+    async def _enhance_event_item(self, doc):
+        plannings = await get_related_planning_for_events_async([doc[ID_FIELD]])
 
         if len(plannings):
             doc["planning_ids"] = [planning.get("_id") for planning in plannings]
@@ -257,10 +257,10 @@ class EventsService(AsyncBaseService):
             )
         else:
             # Get associated planning items
-            return get_related_planning_for_events([item[ID_FIELD]], event_link_type)
+            return await get_related_planning_for_events_async([item[ID_FIELD]], event_link_type)
 
-    def on_locked_event(self, doc, user_id):
-        self._enhance_event_item(doc)
+    async def on_locked_event(self, doc, user_id):
+        await self._enhance_event_item(doc)
 
     async def set_ingest_provider_sequence_async(self, item, provider):
         """Sets the value of ingest_provider_sequence in item.
@@ -636,7 +636,7 @@ class EventsService(AsyncBaseService):
             updates["location"] = original["location"]
 
         updates[ID_FIELD] = original[ID_FIELD]
-        self._enhance_event_item(updates)
+        await self._enhance_event_item(updates)
 
     async def on_deleted_async(self, doc):
         push_notification(
@@ -788,7 +788,7 @@ class EventsService(AsyncBaseService):
             if event["dates"]["start"] < updates["actioned_date"]:
                 return
 
-        for plan in get_related_planning_for_events([event[ID_FIELD]], "primary"):
+        for plan in await get_related_planning_for_events_async([event[ID_FIELD]], "primary"):
             if plan.get("state") != WORKFLOW_STATE.CANCELLED and len(plan.get("coverages", [])) > 0:
                 await get_resource_service("planning_cancel").patch_async(
                     plan[ID_FIELD],

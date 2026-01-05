@@ -36,7 +36,7 @@ from planning.events.events_utils import (
 )
 from planning.planning.planning_history_async_service import PlanningHistoryAsyncService
 from planning.types import EventsHistoryResourceModel
-from planning.utils import get_related_planning_for_events, event_has_planning_items
+from planning.utils import get_related_planning_for_events_async, event_has_planning_items
 
 from superdesk.core import get_current_app
 from superdesk.resource_fields import ID_FIELD
@@ -80,7 +80,7 @@ async def reschedule_event_plannings(original: dict[str, Any], reason: str, plan
     planning_history_service = PlanningHistoryAsyncService()
 
     plan_updates = {"reason": reason, "state": state}
-    for plan in plans or get_related_planning_for_events([original[ID_FIELD]], "primary"):
+    for plan in plans or await get_related_planning_for_events_async([original[ID_FIELD]], "primary"):
         if plan.get("state") != WORKFLOW_STATE.CANCELLED:
             updated_plan = await planning_reschedule_service.patch_async(plan[ID_FIELD], plan_updates)
             await planning_history_service.on_reschedule(updated_plan, plan)
@@ -315,7 +315,7 @@ async def reschedule_recurring_event(updates: dict[str, Any], original: dict[str
         await app.on_inserted_events.call_async(new_events)
 
     for event in deleted_events.values():
-        event_plans = get_related_planning_for_events([event[ID_FIELD]], "primary")
+        event_plans = await get_related_planning_for_events_async([event[ID_FIELD]], "primary")
         is_original = event[ID_FIELD] == original[ID_FIELD]
         if len(event_plans) > 0 or event.get("pubstatus", None) is not None:
             if is_original:
