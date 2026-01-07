@@ -415,12 +415,12 @@ class PlanningItemComponent extends React.Component<IProps, IState> {
                 {this.state.showCoverageModal && (
                     <div onClick={(e) => e.stopPropagation()}> {/* avoid opening preview on click in the modal */}
                         <CoverageAddAdvancedModal
-                            close={this.closeCoverageModal}
+                            onCancel={this.closeCoverageModal}
                             contentTypes={contentTypes}
                             newsCoverageStatus={this.props.newsCoverageStatus}
                             field="coverages"
                             value={get(item, 'coverages', [])}
-                            onChange={(field, value) => {
+                            onSave={(field, value) => {
                                 // Use the locked item (with updated _etag) for saving
                                 const itemToSave = this.state.lockedItem || item;
 
