@@ -478,6 +478,8 @@ export function getPlanningItemActions(
             canRemovedFeatured(plan, event, session, privileges, locks),
         [PLANNING.ITEM_ACTIONS.ADD_COVERAGE_FROM_LIST.actionName]: () =>
             canModifyPlanning(plan, event, privileges, locks) && !isItemExpired(plan),
+        [PLANNING.ITEM_ACTIONS.ADD_COVERAGE_ADVANCED.actionName]: () =>
+            canModifyPlanning(plan, event, privileges, locks) && !isItemExpired(plan),
         [EVENTS.ITEM_ACTIONS.CANCEL_EVENT.actionName]: () =>
             !isPlanAdHoc(plan) && eventUtils.canCancelEvent(event, session, privileges, locks),
         [EVENTS.ITEM_ACTIONS.UPDATE_TIME.actionName]: () =>
