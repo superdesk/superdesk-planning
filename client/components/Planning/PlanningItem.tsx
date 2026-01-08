@@ -147,7 +147,7 @@ class PlanningItemComponent extends React.Component<IProps, IState> {
             .catch((error) => {
                 console.error('Failed to lock planning item:', error);
                 superdeskApi.ui.alert(
-                    gettext('Failed to lock the planning item. It may be locked by another user.')
+                    gettext('Unable to edit coverages. This planning item is currently locked by another user. Please try again later or contact the user to release the lock.')
                 );
             });
     }

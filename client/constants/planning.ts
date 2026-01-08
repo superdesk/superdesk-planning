@@ -98,7 +98,7 @@ export const PLANNING = {
         },
         ADD_COVERAGE_ADVANCED: {
             label: 'Edit Coverages',
-            icon: 'icon-plus-small',
+            icon: 'icon-pencil',
             actionName: 'onAddCoverageAdvanced',
         },
         PREVIEW: {
