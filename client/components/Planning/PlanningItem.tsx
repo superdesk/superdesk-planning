@@ -165,6 +165,36 @@ class PlanningItemComponent extends React.Component<IProps, IState> {
             });
     }
 
+    onCoverageModalSave = (field: string, value: any) => {
+        // Use the locked item (with updated _etag) for saving
+        const itemToSave = this.state.lockedItem || this.props.item;
+
+        // Save the planning item with updated coverages
+        this.props.dispatch(planningApis.save(itemToSave, {[field]: value}))
+            .then((savedItem) => {
+                // Update lockedItem with saved item for proper unlock
+                this.setState({lockedItem: savedItem || itemToSave});
+                // Refresh the planning item in the store so updated coverages are visible
+                this.props.dispatch(planningApis.receivePlannings([savedItem]));
+                // Use saved item (with updated _etag) to unlock
+                return planningApi.locks.unlockItem(savedItem || itemToSave);
+            })
+            .then(() => {
+                // Close modal after unlock is complete
+                this.setState({showCoverageModal: false, lockedItem: null});
+            })
+            .catch((error) => {
+                console.error('Failed to save coverages:', error);
+                // Still try to unlock even if save failed
+                const itemToUnlock = this.state.lockedItem || this.props.item;
+
+                planningApi.locks.unlockItem(itemToUnlock)
+                    .finally(() => {
+                        this.setState({showCoverageModal: false, lockedItem: null});
+                    });
+            });
+    };
+
     renderItemActions() {
         if (!this.state.hover && !this.props.active) {
             return null;
@@ -420,33 +450,7 @@ class PlanningItemComponent extends React.Component<IProps, IState> {
                             newsCoverageStatus={this.props.newsCoverageStatus}
                             field="coverages"
                             value={get(item, 'coverages', [])}
-                            onSave={(field, value) => {
-                                // Use the locked item (with updated _etag) for saving
-                                const itemToSave = this.state.lockedItem || item;
-
-                                // Save the planning item with updated coverages
-                                this.props.dispatch(planningApis.save(itemToSave, {[field]: value}))
-                                    .then((savedItem) => {
-                                        // Update lockedItem with saved item for proper unlock
-                                        this.setState({lockedItem: savedItem || itemToSave});
-                                        // Use saved item (with updated _etag) to unlock
-                                        return planningApi.locks.unlockItem(savedItem || itemToSave);
-                                    })
-                                    .then(() => {
-                                        // Close modal after unlock is complete
-                                        this.setState({showCoverageModal: false, lockedItem: null});
-                                    })
-                                    .catch((error) => {
-                                        console.error('Failed to save coverages:', error);
-                                        // Still try to unlock even if save failed
-                                        const itemToUnlock = this.state.lockedItem || item;
-
-                                        planningApi.locks.unlockItem(itemToUnlock)
-                                            .finally(() => {
-                                                this.setState({showCoverageModal: false, lockedItem: null});
-                                            });
-                                    });
-                            }}
+                            onSave={this.onCoverageModalSave}
                             createCoverage={(qcode) => ({
                                 planning: {
                                     g2_content_type: qcode,
