@@ -44,6 +44,8 @@ declare module 'superdesk-api' {
             // Controls whether planning should have date only
             all_day?: boolean;
 
+            assignmentItemAvatarDisplayMode?: 'tooltip' | 'inline' | 'none';
+
             planning_list_item?: {
                 firstLine: Array<ILineConfig>;
                 secondLine?: Array<ILineConfig>;
