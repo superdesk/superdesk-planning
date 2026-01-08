@@ -43,9 +43,9 @@ interface IOwnProps {
     newsCoverageStatus: Array<IPlanningNewsCoverageStatus>;
     eventLanguages?: Array<string>;
 
-    onChange(field: string, value: Array<DeepPartial<ICoverageLineItem>>): void;
+    onSave(field: string, value: Array<DeepPartial<ICoverageLineItem>>): void;
+    onCancel(): void;
     createCoverage(qcode: IG2ContentType['qcode']): DeepPartial<ICoverageLineItem>;
-    close(event?: React.MouseEvent): void;
 }
 
 type IProps = IOwnProps & IReduxStateProps & IReduxDispatchProps;
@@ -212,15 +212,13 @@ class CoverageAddAdvancedModalComponent extends React.Component<IProps, IState> 
                 return newCoverage;
             });
 
-        // create coverages
-        this.props.onChange(this.props.field, coverages);
+        // Trigger save with coverages
+        this.props.onSave(this.props.field, coverages);
 
         // save advanced mode preference
         if (this.state.advancedMode !== this.props.coverageAddAdvancedMode) {
             this.props.setCoverageAddAdvancedMode(this.state.advancedMode);
         }
-
-        this.props.close();
     }
 
     render() {
@@ -237,7 +235,7 @@ class CoverageAddAdvancedModalComponent extends React.Component<IProps, IState> 
                 visible
                 closeOnEscape
                 size="x-large"
-                onHide={this.props.close}
+                onHide={this.props.onCancel}
                 headerTemplate={gettext('Add Coverages (advanced mode)')}
                 footerTemplate={(
                     <Spacer h justifyContent="space-between" gap="0" alignItems="center">
@@ -258,7 +256,7 @@ class CoverageAddAdvancedModalComponent extends React.Component<IProps, IState> 
                             <Button
                                 text={gettext('Cancel')}
                                 style="hollow"
-                                onClick={this.props.close}
+                                onClick={this.props.onCancel}
                             />
                             <Button
                                 text={gettext('Save')}
