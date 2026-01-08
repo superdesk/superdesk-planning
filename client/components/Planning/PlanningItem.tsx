@@ -42,7 +42,7 @@ import {getUserInterfaceLanguageFromCV} from '../../utils/users';
 interface IState {
     hover: boolean;
     showCoverageModal: boolean;
-    lockedItem: any; // Store the locked item with updated _etag
+    lockedItem: IPlanningListItemProps['item'] | null; // Store the locked item with updated _etag
 }
 
 interface IReduxStateProps {
