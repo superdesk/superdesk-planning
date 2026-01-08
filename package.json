@@ -84,6 +84,7 @@
     "moment": "^2.29.4",
     "moment-timezone": "^0.5.41",
     "react": "^16.9.0",
+    "react-dom": "^16.9.0",
     "redux": "^4.2.1",
     "redux-logger": "^3.0.6",
     "redux-thunk": "^2.3.0",
