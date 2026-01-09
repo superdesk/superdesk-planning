@@ -115,8 +115,8 @@ test.describe('Planning.Agendas: manage agendas', () => {
         await expect(
             modal.element
                 .getByTestId('list-page--view-edit')
-                .locator('.sd-line-input--invalid')
-                .locator('.sd-line-input__message')
+                .locator('.sd-input--invalid')
+                .locator('.sd-input__message')
         ).toContainText('Field is required');
 
         await modal.element
