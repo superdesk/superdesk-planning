@@ -303,7 +303,7 @@ class CoverageAddAdvancedModalComponent extends React.Component<IProps, IState> 
                                 <div className="sd-list-item__column">
                                     <i className={planningUtils.getCoverageIcon(coverage.qcode)} />
                                 </div>
-                                <div className="sd-list-item__column sd-overflow-ellipsis" style={{width: '10%'}}>
+                                <div className="sd-list-item__column sd-overflow-ellipsis" style={{width: '15%'}}>
                                     {this.getContentTypeName(this.contentTypes.get(coverage.qcode))}
                                 </div>
                                 {coverage.enabled && (
