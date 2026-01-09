@@ -37,6 +37,7 @@ fields_to_remove = [
     "_planning_date",
     "_reschedule_from_schedule",
     "versioncreated",
+    "files",
 ]
 
 

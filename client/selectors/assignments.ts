@@ -17,7 +17,6 @@ import {currentUserId} from './general';
 import {coverageProfiles} from './coverageProfiles';
 import {getItemsById} from '../utils';
 import {ASSIGNMENTS, SORT_DIRECTION, ALL_DESKS} from '../constants';
-import moment from 'moment';
 
 export const getStoredAssignments = (state) => get(state, 'assignment.assignments', {});
 export const getStoredArchiveItems = (state) => get(state, 'assignment.archive', {});
@@ -40,26 +39,10 @@ const getList = (state, list) => get(state, `assignment.lists.${list}`, {
     isLoading: false,
 });
 
-const filterBySelectedDay = (
-    assignments: IAssignmentItem[] = [],
-    selectedDate?: string | null
-) => {
-    if (selectedDate == null) return assignments;
-
-    return assignments.filter((assignment) => {
-        const scheduled = assignment?.planning?.scheduled;
-
-        return scheduled != null && moment(scheduled).isSame(selectedDate, 'day');
-    });
-};
-
+// filtering on server now, no need to filter here
 const selectAssignmentsByDay = (getListSelector) =>
-    createSelector([getListSelector, getStoredAssignments, getDayField],
-        (list, storedAssignments, dayField) => {
-            const items = getListItems(list, storedAssignments);
-
-            return filterBySelectedDay(items, dayField);
-        }
+    createSelector([getListSelector, getStoredAssignments],
+        (list, storedAssignments) => getListItems(list, storedAssignments),
     );
 
 const getListIds = (list) => get(list, 'assignmentIds', []);
@@ -195,6 +178,7 @@ export const getAssignmentSearch = createSelector<
     IUser['_id'],
     string | null,
     string | null,
+    string | null,
     IAssignmentSearchParams,
     IAssignmentSearchParams
 >(
@@ -208,6 +192,7 @@ export const getAssignmentSearch = createSelector<
         currentUserId,
         getAssignmentFilterByType,
         getAssignmentFilterByPriority,
+        getDayField,
         getAssignmentSearchParams,
     ],
     (
@@ -220,9 +205,10 @@ export const getAssignmentSearch = createSelector<
         userId,
         filterByType,
         filterByPriority,
+        dayField,
         params,
     ) => {
-        return {
+        const searchParams: IAssignmentSearchParams = {
             deskIds: filterBy === 'Desk' && (deskId?.length ?? 0) > 0 && deskId !== ALL_DESKS ? [deskId] : null,
             userIds: filterBy === 'User' ? [userId] : null,
             searchQuery: searchQuery,
@@ -233,7 +219,15 @@ export const getAssignmentSearch = createSelector<
             priority: filterByPriority ? filterByPriority : null,
             ignoreScheduledUpdates: ignoreScheduledUpdates,
             ...params,
-        } as IAssignmentSearchParams;
+        };
+
+        // Add day field as server-side date filter
+        if (dayField != null) {
+            searchParams.startDate = dayField;
+            searchParams.endDate = dayField;
+        }
+
+        return searchParams;
     },
 );
 
