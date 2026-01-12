@@ -220,7 +220,7 @@ oauthlib==3.3.1
     # via requests-oauthlib
 packaging==25.0
     # via kombu
-pillow==11.2.1
+pillow==11.3.0
     # via
     #   reportlab
     #   superdesk-core
