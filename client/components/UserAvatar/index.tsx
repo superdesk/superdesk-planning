@@ -8,10 +8,20 @@ import {CC} from 'superdesk-core/scripts/core/ui/configurable-ui-components';
 export function getUserInitials(displayName) {
     return displayName.replace(/\W*(\w)\w*/g, '$1').toUpperCase();
 }
+
 interface IProps {
     user: IUser | null;
     tooltip?: string;
-    size?: 'x-small' | 'small' | 'large'; // defaults to small
+
+    /**
+     * Defaults to `small`
+     */
+    size?: 'x-small' | 'small' | 'large';
+
+    /**
+     * Defaults to `tooltip`
+     */
+    displayMode?: 'inline' | 'tooltip';
 }
 
 export function getCustomAvatarContent(user: IUser) {
@@ -27,25 +37,31 @@ export function getCustomAvatarContent(user: IUser) {
 export class UserAvatar extends React.PureComponent<IProps> {
     render() {
         const {user} = this.props;
-
         const size: IProps['size'] = this.props.size ?? 'small';
+        const displayMode: IProps['displayMode'] = this.props.displayMode ?? 'tooltip';
 
         if (user == null) {
             return (
                 <AvatarPlaceholder kind="user-icon" size={size} />
             );
-        } else {
-            return (
-                <Avatar
-                    imageUrl={user.picture_url}
-                    displayName={user.display_name}
-                    initials={getUserInitials(user.display_name)}
-                    size={size}
-                    customContent={getCustomAvatarContent(user)}
-                    tooltip={this.props.tooltip}
-                />
-            );
         }
+
+        return (
+            <Avatar
+                imageUrl={user.picture_url}
+                displayName={user.display_name}
+                initials={getUserInitials(user.display_name)}
+                size={size}
+                customContent={getCustomAvatarContent(user)}
+                nameDisplay={displayMode === 'inline' ? {
+                    kind: 'inline',
+                    placement: 'start',
+                } : {
+                    kind: 'tooltip',
+                    content: this.props.tooltip,
+                }}
+            />
+        );
     }
 }
 

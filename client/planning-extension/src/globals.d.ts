@@ -44,6 +44,13 @@ declare module 'superdesk-api' {
             // Controls whether planning should have date only
             all_day?: boolean;
 
+            /**
+             * Defaults to `tooltip` in usage.
+             * `inline` mode will show user initials next to the user icon.
+             * `tooltip` mode will show a tooltip with user initials on hover.
+             */
+            assignmentItemAvatarDisplayMode?: 'tooltip' | 'inline';
+
             planning_list_item?: {
                 firstLine: Array<ILineConfig>;
                 secondLine?: Array<ILineConfig>;

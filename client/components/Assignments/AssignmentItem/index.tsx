@@ -21,6 +21,7 @@ import {editPlanningInNewTab, getAssignmentTypeInfo} from '../../../utils/assign
 import {Menu, Tooltip} from 'superdesk-ui-framework/react';
 import {UserAvatar} from '../../../components/UserAvatar';
 import {Item, Border, Column} from '../../UI/List';
+import {appConfig} from 'superdesk-core/scripts/appConfig';
 
 import {getComponentForField, getAssignmentsListView, AssignmentViewField} from './fields';
 import {LineItems} from '../../../components/UI/List/LineItems';
@@ -233,7 +234,12 @@ export class AssignmentItem extends React.Component<IAssignmentItemProps, IState
 
         return (
             <Column border={false}>
-                <UserAvatar size="x-small" user={user} tooltip={tooltip} />
+                <UserAvatar
+                    size="x-small"
+                    user={user}
+                    tooltip={tooltip}
+                    displayMode={appConfig.planning.assignmentItemAvatarDisplayMode === 'inline' ? 'inline' : 'tooltip'}
+                />
             </Column>
         );
     }
@@ -357,7 +363,6 @@ export class AssignmentItem extends React.Component<IAssignmentItemProps, IState
                 activated={get(assignment, '_id') === currentAssignmentId}
                 onClick={this.handleSingleAndDoubleClick}
                 className="AssignmentItem"
-                onFocus={this.onFocus}
                 onMouseLeave={this.onItemHoverOff}
                 onMouseEnter={this.onItemHoverOn}
                 onKeyDown={this.handleKeyDown}
