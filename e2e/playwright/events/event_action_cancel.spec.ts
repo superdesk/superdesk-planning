@@ -1,20 +1,20 @@
 import {test, expect, Page, Locator} from '@playwright/test';
 
-import {setup, login, addItems, waitForPageLoad, Modal, getMenuItem, ActionMenu} from '../utils/common';
+import {setup, login, addItems, waitForPageLoad, UiFrameworkModal, getMenuItem, ActionMenu} from '../utils/common';
 import {PlanningList, EventEditor, PlanningPreview} from '../utils/planning';
 import {createEventFor} from '../utils/fixtures/events';
 
 test.describe('Planning.Events: event cancel action', () => {
     let editor: EventEditor;
-    let modal: Modal;
+    let modal: UiFrameworkModal;
     let preview: PlanningPreview;
     let list: PlanningList;
     let menu: ActionMenu;
     let reason: string;
 
-    test.beforeEach(async ({page}) => {
+    test.beforeEach(async({page}) => {
         editor = new EventEditor(page);
-        modal = new Modal(page);
+        modal = new UiFrameworkModal(page);
         preview = new PlanningPreview(page);
         list = new PlanningList(page);
 
@@ -45,7 +45,7 @@ test.describe('Planning.Events: event cancel action', () => {
         await menu.open();
         await menu.getAction('Cancel').click();
         await modal.waitTillOpen();
-        await modal.element.getByRole('textbox', {name: 'reason'}).fill(reason)
+        await modal.element.getByRole('textbox', {name: 'reason'}).fill(reason);
         await modal.getFooterButton('Cancel Event').click();
     }
 
@@ -118,7 +118,7 @@ test.describe('Planning.Events: event cancel action', () => {
         await editor.closeButton.click();
     });
 
-    test('can cancel from the editor', async () => {
+    test('can cancel from the editor', async() => {
         // 3. Cancel from Editor with no unsaved changes
         // 3.a Create the Event
         reason = 'Cancelled three times';
@@ -146,7 +146,7 @@ test.describe('Planning.Events: event cancel action', () => {
         await editor.closeButton.click();
     });
 
-    test('can cancel from the editor ignoring changes', async () => {
+    test('can cancel from the editor ignoring changes', async() => {
         // 4. Cancel from Editor ignoring unsaved changes
         // 4.a Create the Event
         reason = 'Cancelled without changes';
@@ -197,7 +197,7 @@ test.describe('Planning.Events: event cancel action', () => {
     });
 
     // TODO: Fix this flaky test -- passes locally
-    test.skip('can cancel from the editor saving changes', async () => {
+    test.skip('can cancel from the editor saving changes', async() => {
         // 5. Cancel from Editor saving changes
         // 5.a Create the Event
         reason = 'Cancelled savings changes';

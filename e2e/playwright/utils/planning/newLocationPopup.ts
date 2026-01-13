@@ -17,7 +17,7 @@ export class NewLocationPopup extends Popup {
     }
 
     constructor(page: Page) {
-        super(page, '.modal__dialog');
+        super(page, '.p-dialog');
 
         const getParent = () => this.element;
 

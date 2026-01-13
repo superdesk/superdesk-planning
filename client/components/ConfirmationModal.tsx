@@ -3,7 +3,7 @@ import React from 'react';
 import {gettext} from '../utils';
 
 import {KEYCODES} from '../constants';
-import {Button, ButtonGroup, Modal} from 'superdesk-ui-framework';
+import {Button, ButtonGroup, Modal} from 'superdesk-ui-framework/react';
 
 interface IProps {
     handleHide(itemType?: string): void;
