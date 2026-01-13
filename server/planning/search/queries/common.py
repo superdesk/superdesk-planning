@@ -529,8 +529,19 @@ def get_params_from_search_filter(search_filter: Optional[Dict[str, Any]]) -> Di
     for key, value in search_filter["params"].items():
         if not value:
             continue
-        elif key in ["anpa_category", "subject", "state", "place", "calendars"]:
+        elif key in ["anpa_category", "state", "place", "calendars"]:
             value = [item["qcode"] for item in value if item.get("qcode")]
+        elif key == "subject":
+            subjects: list[str] = []
+            for item in value:
+                qcode = item.get("qcode")
+                if not qcode:
+                    continue
+
+                scheme = item.get("scheme") or ""
+                subjects.append(f"{scheme}:{qcode}" if scheme else qcode)
+
+            value = subjects
         elif key == "source":
             value = [item["id"] for item in value if item.get("id")]
         elif key in ["location", "urgency", "g2_content_type"]:
