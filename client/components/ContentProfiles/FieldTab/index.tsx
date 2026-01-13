@@ -1,4 +1,5 @@
 import * as React from 'react';
+import {connect} from 'react-redux';
 import {cloneDeep, isEqual, set} from 'lodash';
 
 import {IIgnoreCancelSaveResponse, IVocabulary} from 'superdesk-api';
@@ -37,7 +38,7 @@ interface IState {
     selectedField?: IProfileFieldEntry;
 }
 
-export class FieldTab extends React.Component<IProps, IState> {
+export class FieldTabComponent extends React.Component<IProps, IState> {
     private customVocabularies: Array<IVocabulary>;
 
     constructor(props) {
@@ -197,12 +198,12 @@ export class FieldTab extends React.Component<IProps, IState> {
         const {confirm} = superdeskApi.ui;
 
         confirm(
-            gettext('Are you sure you want to delete this field?', {field: item.name}),
-            gettext('Delete Field "{{field}}"?', {
+            gettext('Field "{{field}}" will be permanently deleted.', {
                 field: getFieldNameTranslated(item.name),
-            })
-        ).then((response) => {
-            if (response) {
+            }),
+            gettext('Delete Item?')
+        ).then((confirmed) => {
+            if (confirmed) {
                 if (this.state.selectedField?.name === item.name) {
                     this.setState({selectedField: undefined});
                 }
@@ -335,3 +336,8 @@ export class FieldTab extends React.Component<IProps, IState> {
         );
     }
 }
+
+export const FieldTab = connect(
+    null,
+    null
+)(FieldTabComponent);

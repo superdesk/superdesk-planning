@@ -80,8 +80,8 @@ export class CoverageProfilesModal extends React.Component<IProps, IState> {
             const {showIgnoreCancelSaveDialog} = superdeskApi.ui;
 
             showIgnoreCancelSaveDialog({
-                title: gettext('Save changes?'),
-                body: gettext('There are unsaved changes.'),
+                title: gettext('Unsaved changes'),
+                body: gettext('Your changes will be lost if you close now. What would you like to do?'),
             }).then((response) => {
                 if (response === 'save') {
                     this.save();
@@ -213,16 +213,21 @@ export class CoverageProfilesModal extends React.Component<IProps, IState> {
                     <Spacer gap="4" alignItems="end" justifyContent="end" h noGrow>
                         <Button
                             onClick={this.closeModal}
-                            text={gettext('Don\'t save')}
+                            text={this.state.dirty ?
+                                gettext('Discard All') :
+                                gettext('Close')
+                            }
                             type="tertiary"
                         />
-                        <Button
-                            isLoading={this.state.saving}
-                            text={gettext('Save')}
-                            type="primary"
-                            onClick={this.save}
-                            disabled={this.state.saving || !this.state.dirty}
-                        />
+                        {this.state.dirty && (
+                            <Button
+                                isLoading={this.state.saving}
+                                text={gettext('Save All')}
+                                type="primary"
+                                onClick={this.save}
+                                disabled={this.state.saving}
+                            />
+                        )}
                     </Spacer>
                 )}
                 className="planning-profile-form"

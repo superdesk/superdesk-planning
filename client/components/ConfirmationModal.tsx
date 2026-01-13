@@ -2,9 +2,8 @@ import React from 'react';
 
 import {gettext} from '../utils';
 
-import {Modal} from './index';
-import {ButtonList, Icon} from './UI';
 import {KEYCODES} from '../constants';
+import {Button, ButtonGroup, Modal} from 'superdesk-ui-framework';
 
 interface IProps {
     handleHide(itemType?: string): void;
@@ -97,52 +96,58 @@ export class ConfirmationModal extends React.Component<IProps, IState> {
         const {modalProps} = this.props;
         const {submitting} = this.state;
 
-        let buttons = [{
+        const buttons: Array<{
+            color?: string;
+            type: string;
+            onClick: () => void;
+            text: string;
+            disabled: boolean;
+        }> = [{
             type: 'button',
             onClick: this.onCancel,
             text: modalProps.cancelText || gettext('Cancel'),
             disabled: submitting,
         }];
 
-        if (modalProps.action) {
+        if (modalProps.action != null) {
             buttons.push({
                 color: 'primary',
                 type: 'submit',
                 onClick: this.onOK,
-                text: modalProps.okText || gettext('Ok'),
+                text: modalProps.okText ?? gettext('Ok'),
                 disabled: submitting,
             });
         }
 
-        if (modalProps.showIgnore) {
+        if (modalProps.showIgnore === true) {
             buttons.unshift({
                 type: 'reset',
                 onClick: this.onIgnore,
-                text: modalProps.ignoreText || gettext('Ignore'),
+                text: modalProps.ignoreText ?? gettext('Ignore'),
                 disabled: submitting,
             });
         }
 
         return (
             <Modal
-                show={true}
+                visible
                 onHide={this.onCancel}
-                large={this.props.modalProps.large}
+                size={this.props.modalProps.large ? 'large' : 'small'}
+                headerTemplate={modalProps.title ?? gettext('Confirmation')}
+                footerTemplate={(
+                    <ButtonGroup align="end" padded={false} orientation="horizontal" spaces="compact">
+                        {buttons.map((props) => (
+                            <Button
+                                {...props}
+                                key={props.text}
+                                type={props.color === 'primary' ? 'primary' : 'tertiary'}
+                            />
+                        ))}
+                    </ButtonGroup>
+                )}
+                className={this.props.modalProps.bodyClassname}
             >
-                <Modal.Header>
-                    <h3 className="modal__heading">{modalProps.title || gettext('Confirmation')}</h3>
-                    <a className="icn-btn" aria-label={gettext('Close')} onClick={this.onCancel}>
-                        <Icon icon="icon-close-small" />
-                    </a>
-                </Modal.Header>
-                <Modal.Body className={this.props.modalProps.bodyClassname}>
-                    <div>
-                        {modalProps.body || gettext('Are you sure ?')}
-                    </div>
-                </Modal.Body>
-                <Modal.Footer>
-                    <ButtonList buttonList={buttons} right={false} />
-                </Modal.Footer>
+                {modalProps.body ?? gettext('Are you sure ?')}
             </Modal>
         );
     }
