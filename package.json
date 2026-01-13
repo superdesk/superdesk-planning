@@ -92,6 +92,9 @@
     "superdesk-ui-framework": "*",
     "typescript": "*"
   },
+  "overrides": {
+    "sass": "^1.94.2"
+  },
   "volta": {
     "node": "22.21.1"
   }
