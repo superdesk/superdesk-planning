@@ -32,6 +32,7 @@ module.exports = {
         alias: {
             images: path.resolve(__dirname, 'node_modules/superdesk-core/images'),
             'draft-js': '@sourcefabric/draft-js',
+            // TODO: remove these two below after we unify React version across projects
             // Force single React version to avoid "Invalid hook call" errors
             'react': path.resolve(__dirname, 'node_modules/react'),
             'react-dom': path.resolve(__dirname, 'node_modules/react-dom'),
