@@ -19,8 +19,18 @@ interface IProps {
         body: React.ReactNode;
         itemType?: string;
         autoClose?: boolean;
-        large?: boolean;
         bodyClassname?: string;
+        size?: 'small' | 'medium' | 'large' | 'x-large';
+        position?:
+            'center'
+            | 'top'
+            | 'bottom'
+            | 'left'
+            | 'right'
+            | 'top-left'
+            | 'top-right'
+            | 'bottom-left'
+            | 'bottom-right';
     };
 }
 
@@ -97,50 +107,52 @@ export class ConfirmationModal extends React.Component<IProps, IState> {
         const {submitting} = this.state;
 
         const buttons: Array<{
-            color?: string;
-            type: string;
+            type?: 'primary' | 'secondary' | 'tertiary';
             onClick: () => void;
             text: string;
             disabled: boolean;
+            'data-test-id'?: string;
         }> = [{
-            type: 'button',
+            type: 'secondary',
             onClick: this.onCancel,
             text: modalProps.cancelText || gettext('Cancel'),
             disabled: submitting,
+            'data-test-id': 'cancel-button',
         }];
 
         if (modalProps.action != null) {
             buttons.push({
-                color: 'primary',
-                type: 'submit',
+                type: 'primary',
                 onClick: this.onOK,
                 text: modalProps.okText ?? gettext('Ok'),
                 disabled: submitting,
+                'data-test-id': 'ok-button',
             });
         }
 
         if (modalProps.showIgnore === true) {
             buttons.unshift({
-                type: 'reset',
+                type: 'tertiary',
                 onClick: this.onIgnore,
                 text: modalProps.ignoreText ?? gettext('Ignore'),
                 disabled: submitting,
+                'data-test-id': 'ignore-button',
             });
         }
 
         return (
             <Modal
                 visible
+                position={this.props.modalProps.position}
                 onHide={this.onCancel}
-                size={this.props.modalProps.large ? 'large' : 'small'}
+                size={this.props.modalProps.size}
                 headerTemplate={modalProps.title ?? gettext('Confirmation')}
                 footerTemplate={(
                     <ButtonGroup align="end" padded={false} orientation="horizontal" spaces="compact">
                         {buttons.map((props) => (
                             <Button
-                                {...props}
                                 key={props.text}
-                                type={props.color === 'primary' ? 'primary' : 'tertiary'}
+                                {...props}
                             />
                         ))}
                     </ButtonGroup>

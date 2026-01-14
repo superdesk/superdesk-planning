@@ -3,3 +3,5 @@ cypress/videos/
 dist/
 node_modules/
 index.html
+playwright-report/
+test-results/

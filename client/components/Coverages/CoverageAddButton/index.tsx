@@ -2,7 +2,7 @@ import React from 'react';
 import {IG2ContentType, IPlanningCoverageItem} from '../../../interfaces';
 import {IDesk} from 'superdesk-api';
 import {AddCoveragesWrapper} from './AddCoveragesWrapper';
-import {Button} from 'superdesk-ui-framework';
+import {Button} from 'superdesk-ui-framework/react';
 
 interface IProps {
     field: string;

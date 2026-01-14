@@ -10,7 +10,7 @@ import {IEventItem, ILockedItems, IPlanningItem, IPrivileges, ISession} from 'in
 import {addSomeEventsAsRelatedToPlanningEditor, canAddSomeEventsAsRelatedToPlanningEditor} from '../utils/events';
 import {superdeskApi} from '../superdeskApi';
 import {addSomeRelatedPlanningsToEventEditor, canAddSomeRelatedPlanningsToEventEditor} from '../utils/planning';
-import {IconButton} from 'superdesk-ui-framework';
+import {IconButton} from 'superdesk-ui-framework/react';
 
 interface IReduxState {
     selectedEvents: Array<any>;

@@ -18,6 +18,7 @@ module.exports = {
     output: {
         path: path.join(process.cwd(), 'dist'),
         filename: 'app.bundle.js',
+        globalObject: 'this',
     },
     resolve: {
         modules: [
