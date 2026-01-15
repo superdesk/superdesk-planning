@@ -1,12 +1,22 @@
 import {test, expect, Page, Locator} from '@playwright/test';
 
-import {setup, login, addItems, waitForPageLoad, UiFrameworkModal, getMenuItem, ActionMenu} from '../utils/common';
+import {
+    setup,
+    login,
+    addItems,
+    waitForPageLoad,
+    UiFrameworkModal,
+    Modal,
+    getMenuItem,
+    ActionMenu,
+} from '../utils/common';
 import {PlanningList, EventEditor, PlanningPreview} from '../utils/planning';
 import {createEventFor} from '../utils/fixtures/events';
 
 test.describe('Planning.Events: event cancel action', () => {
     let editor: EventEditor;
-    let modal: UiFrameworkModal;
+    let modal: Modal;
+    let ignoreCancelSaveModal: UiFrameworkModal;
     let preview: PlanningPreview;
     let list: PlanningList;
     let menu: ActionMenu;
@@ -14,7 +24,8 @@ test.describe('Planning.Events: event cancel action', () => {
 
     test.beforeEach(async({page}) => {
         editor = new EventEditor(page);
-        modal = new UiFrameworkModal(page);
+        modal = new Modal(page);
+        ignoreCancelSaveModal = new UiFrameworkModal(page);
         preview = new PlanningPreview(page);
         list = new PlanningList(page);
 
@@ -165,18 +176,18 @@ test.describe('Planning.Events: event cancel action', () => {
         menu = editor.actionMenu;
         await menu.open();
         await menu.getAction('Cancel').click();
-        await modal.waitTillOpen();
-        await modal.getFooterButton('Cancel').click();
-        await modal.waitTillClosed();
+        await ignoreCancelSaveModal.waitTillOpen();
+        await ignoreCancelSaveModal.getFooterButton('Cancel').click();
+        await ignoreCancelSaveModal.waitTillClosed();
 
         // 4.d Start cancel action, showing ignore/cancel/save dialog
         // And ignore changes
         menu = editor.actionMenu;
         await menu.open();
         await menu.getAction('Cancel').click();
-        await modal.waitTillOpen();
-        await modal.getFooterButton('Ignore').click();
-        await modal.waitTillClosed();
+        await ignoreCancelSaveModal.waitTillOpen();
+        await ignoreCancelSaveModal.getFooterButton('Ignore').click();
+        await ignoreCancelSaveModal.waitTillClosed();
 
         // 4.e Now cancel the Event
         await modal.waitTillOpen();
@@ -216,9 +227,9 @@ test.describe('Planning.Events: event cancel action', () => {
         menu = editor.actionMenu;
         await menu.open();
         await menu.getAction('Cancel').click();
-        await modal.waitTillOpen();
-        await modal.getFooterButton('Save').click();
-        await modal.waitTillClosed();
+        await ignoreCancelSaveModal.waitTillOpen();
+        await ignoreCancelSaveModal.getFooterButton('Save').click();
+        await ignoreCancelSaveModal.waitTillClosed();
 
         // 5.d Now cancel the Event
         await modal.waitTillOpen();
