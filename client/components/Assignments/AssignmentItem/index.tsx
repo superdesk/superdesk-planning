@@ -208,7 +208,7 @@ export class AssignmentItem extends React.Component<IAssignmentItemProps, IState
         let user;
         let tooltip;
 
-        if (contacts[assignment.assigned_to?.contact] != null) {
+        if (contacts?.[assignment?.assigned_to?.contact] != null) {
             const contact = contacts[assignment.assigned_to.contact];
 
             user = {
