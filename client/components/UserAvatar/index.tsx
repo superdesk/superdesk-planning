@@ -2,7 +2,7 @@
 import React from 'react';
 import './style.scss';
 import {IUser} from 'superdesk-api';
-import {Avatar, AvatarPlaceholder} from 'superdesk-ui-framework/react';
+import {Avatar} from 'superdesk-ui-framework/react';
 import {CC} from 'superdesk-core/scripts/core/ui/configurable-ui-components';
 
 export function getUserInitials(displayName) {
@@ -42,7 +42,13 @@ export class UserAvatar extends React.PureComponent<IProps> {
 
         if (user == null) {
             return (
-                <AvatarPlaceholder kind="user-icon" size={size} />
+                <Avatar
+                    size={size}
+                    imageUrl={null}
+                    initials={null}
+                    displayName={this.props.tooltip}
+                    noAvatarPlaceholderColor="subtle"
+                />
             );
         }
 

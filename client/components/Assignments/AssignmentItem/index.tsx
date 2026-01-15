@@ -208,18 +208,14 @@ export class AssignmentItem extends React.Component<IAssignmentItemProps, IState
         let user;
         let tooltip;
 
-        if (
-            get(assignment, 'assigned_to.contact') &&
-            get(contacts, assignment.assigned_to.contact)
-        ) {
+        if (contacts[assignment.assigned_to?.contact] != null) {
             const contact = contacts[assignment.assigned_to.contact];
 
             user = {
                 display_name: `${contact.last_name}, ${contact.first_name}`,
             };
-            tooltip = gettext('Provider: {{ name }}', {
-                name: user.display_name,
-            });
+
+            tooltip = gettext('Provider: {{ name }}', {name: user.display_name});
         } else if (assignedUser) {
             const displayName = assignedUser.display_name
                 ? assignedUser.display_name
@@ -228,7 +224,6 @@ export class AssignmentItem extends React.Component<IAssignmentItemProps, IState
             user = assignedUser;
             tooltip = gettext('Assigned: {{ name }}', {name: displayName});
         } else {
-            user = {display_name: '*'};
             tooltip = gettext('Unassigned');
         }
 
