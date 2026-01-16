@@ -98,20 +98,20 @@ test.describe('Planning.Featured', () => {
 
         // 2. Attempt to close the Modal, then cancel
         await modal.footerButton('Close').click();
-        await modal.shouldContainTitle('Save Changes?');
+        await modal.shouldContainTitle('Unsaved changes');
         await modal.getFooterButton('Cancel').click();
         await modal.shouldContainTitle('Featured Stories');
 
         // 3. Attempt to close the Modal again, ignoring unsaved changes
         await modal.footerButton('Close').click();
-        await modal.shouldContainTitle('Save Changes?');
+        await modal.shouldContainTitle('Unsaved changes');
         await modal.getFooterButton('Ignore').click();
         await modal.waitTillClosed();
 
         // 4. Attempt to open -> close the Modal again, this time saving the changes
         await openFeaturedStoriesModal();
         await modal.footerButton('Close').click();
-        await modal.shouldContainTitle('Save Changes?');
+        await modal.shouldContainTitle('Unsaved changes');
         await modal.footerButton('Save').click();
         await modal.waitTillClosed();
 
