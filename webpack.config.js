@@ -18,6 +18,9 @@ module.exports = {
     output: {
         path: path.join(process.cwd(), 'dist'),
         filename: 'app.bundle.js',
+
+        // d3js from superdesk-client-core requires access to 'this' object, if we don't have it as a global object
+        // it can't access it
         globalObject: 'this',
     },
     resolve: {

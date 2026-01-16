@@ -1,5 +1,5 @@
 import React from 'react';
-import {connect, ReactReduxContext} from 'react-redux';
+import {connect} from 'react-redux';
 
 import {superdeskApi} from '../../superdeskApi';
 import {ISearchFilter, IEventsPlanningContentPanelProps} from '../../interfaces';
@@ -19,6 +19,8 @@ interface IProps {
     handleHide(): void;
     privileges: {[key: string]: number};
     createOrUpdate(filter: Partial<ISearchFilter>): Promise<void>;
+    deleteFilter(filter: ISearchFilter): Promise<void>;
+    deleteFilterSchedule(filter: ISearchFilter): Promise<void>;
 }
 
 interface IState {
@@ -34,13 +36,14 @@ const mapStateToProps = (state) => ({
 
 const mapDispatchToProps = (dispatch) => ({
     createOrUpdate: (filter) => dispatch(actions.eventsPlanning.ui.saveFilter(filter)),
+    deleteFilter: (filter) => dispatch(actions.eventsPlanning.ui.deleteFilter(filter)),
+    deleteFilterSchedule: (filter) => dispatch(actions.eventsPlanning.ui.saveFilter({
+        ...filter,
+        schedules: [],
+    })),
 });
 
-
 class ManageFiltersComponent extends React.Component<IProps, IState> {
-    static contextType = ReactReduxContext;
-    context: React.ContextType<typeof ReactReduxContext>;
-
     constructor(props) {
         super(props);
         this.state = {
@@ -67,7 +70,7 @@ class ManageFiltersComponent extends React.Component<IProps, IState> {
             gettext('Delete Item?')
         ).then((confirmed) => {
             if (confirmed) {
-                this.context.store.dispatch(actions.eventsPlanning.ui.deleteFilter(filter) as any);
+                this.props.deleteFilter(filter);
             }
         });
     }
@@ -81,10 +84,7 @@ class ManageFiltersComponent extends React.Component<IProps, IState> {
             gettext('Delete Item?')
         ).then((confirmed) => {
             if (confirmed) {
-                this.context.store.dispatch(actions.eventsPlanning.ui.saveFilter({
-                    ...filter,
-                    schedules: [],
-                }) as any);
+                this.props.deleteFilterSchedule(filter);
             }
         });
     }

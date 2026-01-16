@@ -1,5 +1,4 @@
 import * as React from 'react';
-import {connect} from 'react-redux';
 import {cloneDeep, isEqual, set} from 'lodash';
 
 import {IIgnoreCancelSaveResponse, IVocabulary} from 'superdesk-api';
@@ -38,7 +37,7 @@ interface IState {
     selectedField?: IProfileFieldEntry;
 }
 
-export class FieldTabComponent extends React.Component<IProps, IState> {
+export class FieldTab extends React.Component<IProps, IState> {
     private customVocabularies: Array<IVocabulary>;
 
     constructor(props) {
@@ -336,8 +335,3 @@ export class FieldTabComponent extends React.Component<IProps, IState> {
         );
     }
 }
-
-export const FieldTab = connect(
-    null,
-    null
-)(FieldTabComponent);
