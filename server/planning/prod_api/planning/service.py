@@ -12,7 +12,6 @@ from superdesk.resource_fields import LINKS
 from prod_api.service import ProdApiService
 
 from planning.types import Planning
-from planning.common import sync_assignment_details_to_coverages
 from planning.prod_api.common import excluded_lock_fields
 from planning.prod_api.assignments.utils import (
     get_assignment_ids_from_planning,
@@ -30,7 +29,6 @@ class PlanningService(ProdApiService):
 
     async def _process_fetched_object(self, doc: Planning):
         super()._process_fetched_object(doc)
-        sync_assignment_details_to_coverages(doc)
 
         if doc.get(LINKS):
             add_related_event_links(doc, doc)
