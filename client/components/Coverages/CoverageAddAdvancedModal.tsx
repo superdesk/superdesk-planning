@@ -2,12 +2,18 @@ import React from 'react';
 import {connect} from 'react-redux';
 import {cloneDeep, get} from 'lodash';
 
-import {IG2ContentType, IPlanningNewsCoverageStatus, IPlanningCoverageItem} from '../../interfaces';
+import {
+    IG2ContentType,
+    IPlanningNewsCoverageStatus,
+    IPlanningCoverageItem,
+    ICoveragePlanningDetails,
+} from '../../interfaces';
 import {IDesk, IUser} from 'superdesk-api';
 
 import {gettext, planningUtils, getUsersForDesk, getDesksForUser} from '../../utils';
 import {getUserInterfaceLanguageFromCV} from '../../utils/users';
 import {getVocabularyItemFieldTranslated} from '../../utils/vocabularies';
+import {planningApi} from '../../superdeskApi';
 
 import * as selectors from '../../selectors';
 import * as actions from '../../actions';
@@ -15,8 +21,10 @@ import * as actions from '../../actions';
 import {Button, Checkbox, Modal, Spacer, Tooltip} from 'superdesk-ui-framework/react';
 import {CoverageEditableFields} from './CoverageFieldsRow';
 
+import {IVocabularyItem} from 'superdesk-api';
+
 type IReduxStateProps = {
-    languages: Array<any>;
+    allLanguages: Array<{value: IVocabularyItem}>;
 };
 
 interface IReduxDispatchProps {
@@ -41,7 +49,6 @@ interface IOwnProps {
     users: Array<IUser>;
     contentTypes: Array<IG2ContentType>;
     newsCoverageStatus: Array<IPlanningNewsCoverageStatus>;
-    eventLanguages?: Array<string>;
 
     onSave(field: string, value: Array<DeepPartial<ICoverageLineItem>>): void;
     onCancel(): void;
@@ -76,6 +83,33 @@ class CoverageAddAdvancedModalComponent extends React.Component<IProps, IState> 
         };
     }
 
+    getDefaultLanguage() {
+        const {multilingual} = planningApi.contentProfiles;
+        const profile = planningApi.contentProfiles.get('planning');
+
+        if (!multilingual.isEnabled(profile)) {
+            return null;
+        }
+
+        return planningApi.contentProfiles.getDefaultLanguage(profile) ?? null;
+    }
+
+    getFilteredLanguages(allLanguages: Array<{value: IVocabularyItem}>) {
+        const {multilingual} = planningApi.contentProfiles;
+
+        const planningProfile = planningApi.contentProfiles.get('planning');
+        const isMultilingual = multilingual.isEnabled(planningProfile);
+
+        // If `multilingual` is enabled, filter to only configured languages
+        if (!isMultilingual) {
+            return allLanguages;
+        }
+
+        const planningProfileLanguages = multilingual.getLanguages(planningProfile);
+
+        return allLanguages.filter((language) => planningProfileLanguages.includes(language.value.qcode));
+    }
+
     componentDidMount() {
         const {value, users, desks, newsCoverageStatus} = this.props;
         const coverages = [];
@@ -108,7 +142,7 @@ class CoverageAddAdvancedModalComponent extends React.Component<IProps, IState> 
                     qcode: contentType.qcode,
                     workflow_status: 'draft',
                     planning: {
-                        language: null,
+                        language: this.getDefaultLanguage(),
                     },
                     desk: null,
                     filteredDesks: desks,
@@ -130,15 +164,18 @@ class CoverageAddAdvancedModalComponent extends React.Component<IProps, IState> 
 
     duplicate = (index, coverage) => {
         const coveragesCopy = cloneDeep(this.state.coverages);
-        const coverageToAdd = {
+        const coverageToAdd: Partial<ICoverageLineItem> = {
             enabled: false,
             qcode: coverage.qcode,
             desk: null,
             user: null,
+            planning: {
+                language: this.getDefaultLanguage(),
+            } as ICoveragePlanningDetails,
             status: planningUtils.getDefaultCoverageStatus(this.props.newsCoverageStatus),
             filteredDesks: this.props.desks,
             filteredUsers: this.props.users,
-        } satisfies Partial<ICoverageLineItem>;
+        };
 
         coveragesCopy.splice(index + 1, 0, coverageToAdd);
         this.setState({coverages: coveragesCopy});
@@ -156,17 +193,26 @@ class CoverageAddAdvancedModalComponent extends React.Component<IProps, IState> 
     }
 
     onDeskChange = (selected, desk) => {
+        const deskLanguage = desk?.desk_language;
         const updates: Partial<ICoverageLineItem> = {
             desk: desk,
             filteredUsers: getUsersForDesk(desk, this.props.users),
+            user: null,
         };
 
-        // Set language if desk has a default language that matches event languages
-        if (desk?.desk_language && this.props.eventLanguages?.includes(desk.desk_language)) {
-            updates.planning = {
-                ...(selected.planning ?? {}),
-                language: desk.desk_language,
-            };
+        // If desk has a language, check if it's available in the planning profile
+        // and set it as the coverage language
+        if (deskLanguage != null) {
+            const deskLanguageAvailable = this.state.filteredLanguages.some(
+                (lang) => lang.value.qcode === deskLanguage
+            );
+
+            if (deskLanguageAvailable) {
+                updates.planning = {
+                    ...(selected.planning ?? {}),
+                    language: deskLanguage,
+                };
+            }
         }
 
         this.updateCoverage(selected, updates);
@@ -310,8 +356,7 @@ class CoverageAddAdvancedModalComponent extends React.Component<IProps, IState> 
                                     <CoverageEditableFields
                                         index={index}
                                         coverage={coverage}
-                                        languages={this.props.languages}
-                                        eventLanguages={this.props.eventLanguages}
+                                        languages={this.getFilteredLanguages(this.props.allLanguages)}
                                         handleDeskChange={this.onDeskChange}
                                         handleUserChange={this.onUserChange}
                                         updateCoverage={this.updateCoverage}
@@ -333,7 +378,7 @@ const mapDispatchToProps = (dispatch): IReduxDispatchProps => ({
 });
 
 const mapStateToProps = (state) => ({
-    languages: selectors.vocabs.getLanguages(state),
+    allLanguages: selectors.vocabs.getLanguagesForTreeSelectInput(state),
 });
 
 export const CoverageAddAdvancedModal = connect<IReduxStateProps, IReduxDispatchProps, IOwnProps>(
