@@ -192,7 +192,6 @@ class AddCoveragesWrapperComponent extends React.Component<IProps, IState> {
                         users={this.props.users}
                         desks={this.props.desks}
                         coverageAddAdvancedMode={this.props.coverageAddAdvancedMode}
-                        eventLanguages={this.props.eventLanguages}
                     />
                 )}
             </React.Fragment>

@@ -13,7 +13,6 @@ interface IProps {
     coverage: Partial<ICoverageLineItem>;
     newsCoverageStatus: Array<IPlanningNewsCoverageStatus>;
     languages: Array<{value: IVocabularyItem}>;
-    eventLanguages?: Array<string>;
     handleDeskChange: (coverage: Partial<ICoverageLineItem>, desk: IDesk) => void;
     handleUserChange: (coverage: Partial<ICoverageLineItem>, user: IUser) => void;
     updateCoverage: (coverage: Partial<ICoverageLineItem>, updates: Partial<ICoverageLineItem>) => void;

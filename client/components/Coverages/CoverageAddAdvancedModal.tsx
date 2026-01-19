@@ -2,7 +2,12 @@ import React from 'react';
 import {connect} from 'react-redux';
 import {cloneDeep, get} from 'lodash';
 
-import {IG2ContentType, IPlanningNewsCoverageStatus, IPlanningCoverageItem} from '../../interfaces';
+import {
+    IG2ContentType,
+    IPlanningNewsCoverageStatus,
+    IPlanningCoverageItem,
+    ICoveragePlanningDetails,
+} from '../../interfaces';
 import {IDesk, IUser} from 'superdesk-api';
 
 import {gettext, planningUtils, getUsersForDesk, getDesksForUser} from '../../utils';
@@ -44,7 +49,6 @@ interface IOwnProps {
     users: Array<IUser>;
     contentTypes: Array<IG2ContentType>;
     newsCoverageStatus: Array<IPlanningNewsCoverageStatus>;
-    eventLanguages?: Array<string>;
 
     onSave(field: string, value: Array<DeepPartial<ICoverageLineItem>>): void;
     onCancel(): void;
@@ -57,6 +61,7 @@ interface IState {
     advancedMode: boolean;
     coverages: Array<Partial<ICoverageLineItem>>;
     isDirty: boolean;
+    filteredLanguages: Array<{value: IVocabularyItem}>;
 }
 
 class CoverageAddAdvancedModalComponent extends React.Component<IProps, IState> {
@@ -76,6 +81,7 @@ class CoverageAddAdvancedModalComponent extends React.Component<IProps, IState> 
             advancedMode: !!props.coverageAddAdvancedMode,
             coverages: [],
             isDirty: false,
+            filteredLanguages: this.getFilteredLanguages(props.allLanguages),
         };
     }
 
@@ -90,8 +96,7 @@ class CoverageAddAdvancedModalComponent extends React.Component<IProps, IState> 
         return planningApi.contentProfiles.getDefaultLanguage(profile) ?? null;
     }
 
-    getFilteredLanguages() {
-        const {allLanguages} = this.props;
+    getFilteredLanguages(allLanguages: Array<{value: IVocabularyItem}>) {
         const {multilingual} = planningApi.contentProfiles;
 
         const planningProfile = planningApi.contentProfiles.get('planning');
@@ -106,6 +111,19 @@ class CoverageAddAdvancedModalComponent extends React.Component<IProps, IState> 
         const planningProfileLanguages = multilingual.getLanguages(planningProfile);
 
         return allLanguages.filter((language) => planningProfileLanguages.includes(language.value.qcode));
+    }
+
+    componentDidUpdate(prevProps: IProps) {
+        if (prevProps.allLanguages !== this.props.allLanguages) {
+            const nextFilteredLanguages = this.getFilteredLanguages(this.props.allLanguages);
+
+            if (this.state.filteredLanguages !== nextFilteredLanguages) {
+                // eslint-disable-next-line react/no-did-update-set-state
+                this.setState({
+                    filteredLanguages: nextFilteredLanguages,
+                });
+            }
+        }
     }
 
     componentDidMount() {
@@ -169,7 +187,7 @@ class CoverageAddAdvancedModalComponent extends React.Component<IProps, IState> 
             user: null,
             planning: {
                 language: this.getDefaultLanguage(),
-            } as any,
+            } as ICoveragePlanningDetails,
             status: planningUtils.getDefaultCoverageStatus(this.props.newsCoverageStatus),
             filteredDesks: this.props.desks,
             filteredUsers: this.props.users,
@@ -201,8 +219,9 @@ class CoverageAddAdvancedModalComponent extends React.Component<IProps, IState> 
         // If desk has a language, check if it's available in the planning profile
         // and set it as the coverage language
         if (deskLanguage != null) {
-            const filteredLanguages = this.getFilteredLanguages();
-            const deskLanguageAvailable = filteredLanguages.some((lang) => lang.value.qcode === deskLanguage);
+            const deskLanguageAvailable = this.state.filteredLanguages.some(
+                (lang) => lang.value.qcode === deskLanguage
+            );
 
             if (deskLanguageAvailable) {
                 updates.planning = {
@@ -353,8 +372,7 @@ class CoverageAddAdvancedModalComponent extends React.Component<IProps, IState> 
                                     <CoverageEditableFields
                                         index={index}
                                         coverage={coverage}
-                                        languages={this.getFilteredLanguages()}
-                                        eventLanguages={this.props.eventLanguages}
+                                        languages={this.state.filteredLanguages}
                                         handleDeskChange={this.onDeskChange}
                                         handleUserChange={this.onUserChange}
                                         updateCoverage={this.updateCoverage}
