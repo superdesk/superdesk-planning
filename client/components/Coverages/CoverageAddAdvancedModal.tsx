@@ -61,7 +61,6 @@ interface IState {
     advancedMode: boolean;
     coverages: Array<Partial<ICoverageLineItem>>;
     isDirty: boolean;
-    filteredLanguages: Array<{value: IVocabularyItem}>;
 }
 
 class CoverageAddAdvancedModalComponent extends React.Component<IProps, IState> {
@@ -81,7 +80,6 @@ class CoverageAddAdvancedModalComponent extends React.Component<IProps, IState> 
             advancedMode: !!props.coverageAddAdvancedMode,
             coverages: [],
             isDirty: false,
-            filteredLanguages: this.getFilteredLanguages(props.allLanguages),
         };
     }
 
@@ -102,8 +100,6 @@ class CoverageAddAdvancedModalComponent extends React.Component<IProps, IState> 
         const planningProfile = planningApi.contentProfiles.get('planning');
         const isMultilingual = multilingual.isEnabled(planningProfile);
 
-        // If `multilingual` is not enabled, return all languages
-        // If `multilingual` is enabled, filter to only configured languages
         if (!isMultilingual) {
             return allLanguages;
         }
@@ -111,19 +107,6 @@ class CoverageAddAdvancedModalComponent extends React.Component<IProps, IState> 
         const planningProfileLanguages = multilingual.getLanguages(planningProfile);
 
         return allLanguages.filter((language) => planningProfileLanguages.includes(language.value.qcode));
-    }
-
-    componentDidUpdate(prevProps: IProps) {
-        if (prevProps.allLanguages !== this.props.allLanguages) {
-            const nextFilteredLanguages = this.getFilteredLanguages(this.props.allLanguages);
-
-            if (this.state.filteredLanguages !== nextFilteredLanguages) {
-                // eslint-disable-next-line react/no-did-update-set-state
-                this.setState({
-                    filteredLanguages: nextFilteredLanguages,
-                });
-            }
-        }
     }
 
     componentDidMount() {
@@ -372,7 +355,7 @@ class CoverageAddAdvancedModalComponent extends React.Component<IProps, IState> 
                                     <CoverageEditableFields
                                         index={index}
                                         coverage={coverage}
-                                        languages={this.state.filteredLanguages}
+                                        languages={this.getFilteredLanguages(this.props.allLanguages)}
                                         handleDeskChange={this.onDeskChange}
                                         handleUserChange={this.onUserChange}
                                         updateCoverage={this.updateCoverage}
