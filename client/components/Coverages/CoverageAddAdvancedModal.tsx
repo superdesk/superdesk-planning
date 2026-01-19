@@ -100,6 +100,7 @@ class CoverageAddAdvancedModalComponent extends React.Component<IProps, IState> 
         const planningProfile = planningApi.contentProfiles.get('planning');
         const isMultilingual = multilingual.isEnabled(planningProfile);
 
+        // If `multilingual` is enabled, filter to only configured languages
         if (!isMultilingual) {
             return allLanguages;
         }
