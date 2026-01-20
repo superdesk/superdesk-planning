@@ -144,16 +144,18 @@ class AssignmentsService(AsyncBaseService):
 
         try:
             applied = await _apply_update(planning_item)
-        except Exception:
-            applied = False
+        except Exception as exc:
+            logger.exception(
+                "Failed updating planning coverages from assignment",
+                extra={"planning_id": planning_id, "coverage_id": coverage_id, "assignment_id": assignment.get("_id")},
+            )
+            return
 
         if not applied:
-            planning_item = await planning_service.find_one_async(req=None, _id=planning_id)
-            if planning_item:
-                try:
-                    await _apply_update(planning_item)
-                except Exception:
-                    return
+            logger.warning(
+                "Planning coverages update was not applied",
+                extra={"planning_id": planning_id, "coverage_id": coverage_id, "assignment_id": assignment.get("_id")},
+            )
 
     async def on_fetched_resource_archive(self, docs):
         await self._enhance_archive_items(docs.get(ITEMS, []))
@@ -420,7 +422,7 @@ class AssignmentsService(AsyncBaseService):
         elif (
             original.get(LOCK_ACTION) != "content_edit"
             and updates.get("assigned_to")
-            and updates.get("assigned_to").get("state") != getattr(ASSIGNMENT_WORKFLOW_STATE, "CANCELLED")
+            and updates.get("assigned_to").get("state") != ASSIGNMENT_WORKFLOW_STATE.CANCELLED
         ):
             app = get_current_app().as_any()
             await app.on_updated_assignments.call_async(updates, original)

@@ -111,10 +111,25 @@ assignment_workflow_state = [
     "submitted",
     "cancelled",
 ]
-ASSIGNMENT_WORKFLOW_STATE = namedtuple(
-    "ASSIGNMENT_WORKFLOW_STATE",
-    ["DRAFT", "ASSIGNED", "IN_PROGRESS", "COMPLETED", "SUBMITTED", "CANCELLED"],
-)(*assignment_workflow_state)
+
+
+class AssignmentWorkflowState(NamedTuple):
+    DRAFT: str
+    ASSIGNED: str
+    IN_PROGRESS: str
+    COMPLETED: str
+    SUBMITTED: str
+    CANCELLED: str
+
+
+ASSIGNMENT_WORKFLOW_STATE = AssignmentWorkflowState(
+    "draft",
+    "assigned",
+    "in_progress",
+    "completed",
+    "submitted",
+    "cancelled",
+)
 
 DEFAULT_ASSIGNMENT_PRIORITY = 2
 
