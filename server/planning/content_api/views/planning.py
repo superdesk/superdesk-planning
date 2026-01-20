@@ -40,7 +40,7 @@ class ContentAPICoveragePlanningResponse(ContentAPICoveragePlanning):
 
 class ContentAPICoverageResponse(ContentAPICoverageResource):
     planning: ContentAPICoveragePlanningResponse | None = None
-    time_to_be_confirmed: SkipJsonSchema[None] = None
+    time_to_be_confirmed: SkipJsonSchema[bool] = False
 
 
 class ContentAPIPlanningResponse(ContentAPIPlanningResource):
