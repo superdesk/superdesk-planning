@@ -8,14 +8,14 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        node-version: ['14', '22']
+        node-version: ['22']
     steps:
       - uses: actions/checkout@v6
       - uses: actions/setup-node@v6
         with:
           node-version: ${{ matrix.node-version }}
           cache: npm
-      - run: npm install # needed to support multiple node versions
+      - run: npm ci
       - run: npm run test
       - run: npm run lint
 
@@ -24,14 +24,14 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        node-version: ['14', '22']
+        node-version: ['22']
     steps:
       - uses: actions/checkout@v6
       - uses: actions/setup-node@v6
         with:
           node-version: ${{ matrix.node-version }}
           cache: npm
-      - run: npm install # needed to support multiple node versions
+      - run: npm ci
       - name: install
         working-directory: client/planning-extension
         run: npm ci
