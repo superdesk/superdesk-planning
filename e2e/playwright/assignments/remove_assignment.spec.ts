@@ -1,6 +1,6 @@
 import {test, expect} from '@playwright/test';
 
-import {setup, login, waitForPageLoad, SubNavBar, changeWorkspace, Modal} from '../utils/common';
+import {setup, login, waitForPageLoad, SubNavBar, changeWorkspace, UiFrameworkModal} from '../utils/common';
 import {PlanningList, PlanningEditor, AssignmentEditor} from '../utils/planning';
 import {getMenuItem} from '../utils/common';
 
@@ -8,13 +8,13 @@ test.describe('Planning.Assignment: remove assignment', () => {
     let editor: PlanningEditor;
     let subnav: SubNavBar;
     let list: PlanningList;
-    let modal: Modal;
+    let modal: UiFrameworkModal;
 
-    test.beforeEach(async ({page}) => {
+    test.beforeEach(async({page}) => {
         editor = new PlanningEditor(page);
         subnav = new SubNavBar(page);
         list = new PlanningList(page);
-        modal = new Modal(page);
+        modal = new UiFrameworkModal(page);
 
         await setup(page, 'planning_prepopulate_data', '/#/planning');
 
@@ -25,7 +25,7 @@ test.describe('Planning.Assignment: remove assignment', () => {
         await editor.waitTillOpen();
     });
 
-    test('can remove Assignment', async ({page}) => {
+    test('can remove Assignment', async({page}) => {
         await editor.type({slugline: 'Slugline'});
         await editor.addCoverage('Text');
 
@@ -84,5 +84,5 @@ test.describe('Planning.Assignment: remove assignment', () => {
         await expect(
             coverageEditor.element.locator('.label')
         ).toContainText('draft');
-    })
+    });
 });

@@ -5,7 +5,7 @@ import {IFormGroup, IBaseRestApiResponse, IPropsGenericFormItemComponent, IFormF
 import {superdeskApi} from '../../superdeskApi';
 import {planningEventTemplateEvents} from '../../actions/events/notifications';
 import {ListItemActionsMenu} from 'superdesk-core/scripts/core/components/ListItem';
-import {Button, IconButton, Modal} from 'superdesk-ui-framework';
+import {Button, IconButton, Modal} from 'superdesk-ui-framework/react';
 
 interface IProps {
     handleHide(): void;

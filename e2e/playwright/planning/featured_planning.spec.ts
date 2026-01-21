@@ -12,7 +12,7 @@ test.describe('Planning.Featured', () => {
     let editor: PlanningEditor;
     let preview: PlanningPreview;
 
-    test.beforeEach(async ({page}) => {
+    test.beforeEach(async({page}) => {
         subnav = new SubNavBar(page);
         modal = new FeaturedModal(page);
         list = new PlanningList(page);
@@ -63,27 +63,29 @@ test.describe('Planning.Featured', () => {
             .dblclick();
 
         await editor.waitLoadingComplete();
-        await editor.postButton.click()
+        await editor.postButton.click();
         await editor.waitForAutosave();
-        await editor.closeButton.click()
+        await editor.closeButton.click();
         await editor.waitTillClosed();
     }
 
     async function addPlanningToFeaturedStories(slugline: string): Promise<void> {
-        await list.items().getByText(slugline).click();
+        await list.items().getByText(slugline)
+            .click();
         await expect(preview.element.getByText(slugline)).toBeVisible();
         await preview.clickAction('Add to featured stories');
     }
 
     async function removePlanningFromFeaturedStories(slugline: string): Promise<void> {
-        await list.items().getByText(slugline).click();
+        await list.items().getByText(slugline)
+            .click();
 
         await expect(preview.element
             .getByText(slugline)).toBeVisible();
         await preview.clickAction('Remove from featured stories');
     }
 
-    test('can add a new item', async ({page}) => {
+    test('can add a new item', async({page}) => {
         await openFeaturedStoriesModal();
 
         // 1. Open the Modal with a new FeaturedStory
@@ -98,20 +100,20 @@ test.describe('Planning.Featured', () => {
 
         // 2. Attempt to close the Modal, then cancel
         await modal.footerButton('Close').click();
-        await modal.shouldContainTitle('Save Changes?');
+        await modal.shouldContainTitle('Unsaved changes');
         await modal.getFooterButton('Cancel').click();
         await modal.shouldContainTitle('Featured Stories');
 
         // 3. Attempt to close the Modal again, ignoring unsaved changes
         await modal.footerButton('Close').click();
-        await modal.shouldContainTitle('Save Changes?');
+        await modal.shouldContainTitle('Unsaved changes');
         await modal.getFooterButton('Ignore').click();
         await modal.waitTillClosed();
 
         // 4. Attempt to open -> close the Modal again, this time saving the changes
         await openFeaturedStoriesModal();
         await modal.footerButton('Close').click();
-        await modal.shouldContainTitle('Save Changes?');
+        await modal.shouldContainTitle('Unsaved changes');
         await modal.footerButton('Save').click();
         await modal.waitTillClosed();
 
@@ -149,7 +151,7 @@ test.describe('Planning.Featured', () => {
             removed: null,
         });
         // Make sure this item is highlighted after moving it
-        await modal.expectListItemHighlighted('selected', 0)
+        await modal.expectListItemHighlighted('selected', 0);
         // Update the FeaturedStory, then close the modal
         await modal.footerButton('Update').click();
         await modal.waitTillLoadingFinished();

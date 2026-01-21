@@ -1,5 +1,5 @@
 import {Locator, expect} from '@playwright/test';
-import {Modal} from '../../common';
+import {UiFrameworkModal} from '../../common';
 
 type IFooterButtonLabels = 'Close' | 'Cancel' | 'Save' | 'Post' | 'Update';
 interface IExpectListEntries {
@@ -8,7 +8,7 @@ interface IExpectListEntries {
     removed: Array<string> | null;
 }
 
-export class FeaturedModal extends Modal {
+export class FeaturedModal extends UiFrameworkModal {
     async waitTillLoadingFinished(): Promise<void> {
         await this.element
             .locator('.loading-indicator')
@@ -52,7 +52,8 @@ export class FeaturedModal extends Modal {
 
             for (let index = 0; index < list.length; index++) {
                 await expect(
-                    this.getList(name).locator('li').nth(index)
+                    this.getList(name).locator('li')
+                        .nth(index)
                 ).toContainText(list[index]);
             }
         }

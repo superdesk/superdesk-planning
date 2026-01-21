@@ -42,23 +42,26 @@ const modals = {
     [MODALS.EDIT_COVERAGE_ASSIGNMENT]: EditCoverageAssignmentModal,
 };
 
-export function Modals({modalType, modalProps, handleHide}) {
-    if (modalType && modals[modalType]) {
-        return React.createElement(modals[modalType], {
-            handleHide,
-            modalProps,
-        });
+interface IModalProps {
+    modalType: string;
+    modalProps: any;
+    handleHide: (itemType?: string) => void;
+}
+
+export function Modals({modalType, modalProps, handleHide}: IModalProps) {
+    if (modalType != null && modals[modalType] != null) {
+        const ModalElement = modals[modalType];
+
+        return (
+            <ModalElement
+                handleHide={handleHide}
+                modalProps={modalProps}
+            />
+        );
     } else {
         return null;
     }
 }
-
-Modals.propTypes = {
-    modalType: PropTypes.string,
-    modalProps: PropTypes.object,
-    handleHide: PropTypes.func.isRequired,
-    onModalHide: PropTypes.func,
-};
 
 const mapStateToProps = (state) => ({
     modalType: modalType(state),

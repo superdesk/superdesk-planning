@@ -197,12 +197,12 @@ export class FieldTab extends React.Component<IProps, IState> {
         const {confirm} = superdeskApi.ui;
 
         confirm(
-            gettext('Are you sure you want to delete this field?', {field: item.name}),
-            gettext('Delete Field "{{field}}"?', {
+            gettext('Field "{{field}}" will be permanently deleted.', {
                 field: getFieldNameTranslated(item.name),
-            })
-        ).then((response) => {
-            if (response) {
+            }),
+            gettext('Delete Item?')
+        ).then((confirmed) => {
+            if (confirmed) {
                 if (this.state.selectedField?.name === item.name) {
                     this.setState({selectedField: undefined});
                 }
