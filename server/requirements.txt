@@ -12,7 +12,7 @@ mock==5.2.0
 httmock==1.4.0
 responses==0.25.8
 pytest==8.4.2
-pytest-asyncio==1.0.0
+pytest-asyncio==1.2.0
 pytest-env==1.2.0
 black~=25.11
 behave==1.2.6
