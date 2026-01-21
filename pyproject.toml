@@ -21,3 +21,12 @@ testpaths = ["server/planning", "server/tests/prod_api"]
 python_files = "*_test.py *_tests.py test_*.py tests_*.py tests.py test.py"
 asyncio_mode = "auto"
 asyncio_default_fixture_loop_scope = "function"
+
+[tool.mypy]
+python_version = "3.10"
+warn_unused_configs = true
+allow_untyped_globals = true
+ignore_missing_imports = true
+exclude = [
+    "server/docs/",
+]
