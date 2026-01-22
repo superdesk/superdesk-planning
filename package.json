@@ -22,7 +22,7 @@
     "@sourcefabric/common": "0.0.69",
     "@sourcefabric/draft-js": "^0.11.5",
     "date-fns": "^4.1.0",
-    "dompurify": "^1.0.11",
+    "dompurify": "^3.2.4",
     "immer": "^10.1.1",
     "moment": "^2.29.4",
     "moment-timezone": "^0.5.41",
