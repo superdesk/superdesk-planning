@@ -21,8 +21,17 @@ import {StretchBar} from '../../UI/SubNav';
 
 import {LockContainer, ItemIcon} from '../../index';
 import {EditorItemActions} from './index';
-import {ButtonGroup} from 'superdesk-ui-framework';
-import {IEditorProps, IEditorState, IEventOrPlanningItem, ILockedItems, IPrivileges, ISession} from 'interfaces';
+import {ButtonGroup} from 'superdesk-ui-framework/react';
+import {
+    IEditorProps,
+    IEditorState,
+    IEventItem,
+    IEventOrPlanningItem,
+    ILockedItems,
+    IPlanningItem,
+    IPrivileges,
+    ISession,
+} from 'interfaces';
 import {IUser} from 'superdesk-api';
 import {ItemManager} from './ItemManager';
 import {AutoSave} from './AutoSave';

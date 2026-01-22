@@ -15,6 +15,7 @@ export class UiFrameworkModal extends Popup {
     }
 
     async shouldContainTitle(title: string): Promise<void> {
-        await expect(this.element.locator('.p-dialog-header')).toContainText(title);
+        await expect(this.page.locator('.p-dialog').last()
+            .locator('.p-dialog-header')).toContainText(title);
     }
 }

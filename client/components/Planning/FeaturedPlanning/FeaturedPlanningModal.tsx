@@ -45,7 +45,7 @@ interface IProps {
     postFeaturedStory(): void;
 }
 
-export class FeaturedPlanningModalComponent extends React.Component<IProps, any> {
+export class FeaturedPlanningModalComponent extends React.Component<IProps> {
     constructor(props) {
         super(props);
 
@@ -99,8 +99,9 @@ export class FeaturedPlanningModalComponent extends React.Component<IProps, any>
         const canPost = (
             !this.props.readOnly &&
             !this.props.featuredPlanningItem?.posted &&
-            this.props.selectedPlanningIds?.length
+            (this.props.selectedPlanningIds?.length ?? 0) != 0
         );
+
         const itemUpdatedAfterPosting = planningUtils.isFeaturedPlanningUpdatedAfterPosting(
             this.props.featuredPlanningItem
         );
