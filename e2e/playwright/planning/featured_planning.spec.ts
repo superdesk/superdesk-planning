@@ -1,6 +1,6 @@
 import {test, expect} from '@playwright/test';
 
-import {setup, login, addItems, waitForPageLoad, SubNavBar} from '../utils/common';
+import {setup, login, addItems, waitForPageLoad, SubNavBar, UiFrameworkModal} from '../utils/common';
 import {PlanningList, PlanningEditor, PlanningPreview, FeaturedModal} from '../utils/planning';
 import {createPlanningFor} from '../utils/fixtures/planning';
 import {setupPlanningPublishing} from '../utils/fixtures/publish_config';
@@ -8,6 +8,7 @@ import {setupPlanningPublishing} from '../utils/fixtures/publish_config';
 test.describe('Planning.Featured', () => {
     let subnav: SubNavBar;
     let modal: FeaturedModal;
+    let uiFrameworkModal: UiFrameworkModal;
     let list: PlanningList;
     let editor: PlanningEditor;
     let preview: PlanningPreview;
@@ -15,6 +16,7 @@ test.describe('Planning.Featured', () => {
     test.beforeEach(async({page}) => {
         subnav = new SubNavBar(page);
         modal = new FeaturedModal(page);
+        uiFrameworkModal = new UiFrameworkModal(page);
         list = new PlanningList(page);
         editor = new PlanningEditor(page);
         preview = new PlanningPreview(page);
@@ -100,21 +102,24 @@ test.describe('Planning.Featured', () => {
 
         // 2. Attempt to close the Modal, then cancel
         await modal.footerButton('Close').click();
-        await modal.shouldContainTitle('Unsaved changes');
-        await modal.getFooterButton('Cancel').click();
+        await uiFrameworkModal.shouldContainTitle('Unsaved changes');
+        await uiFrameworkModal.getFooterButton('Cancel').click();
         await modal.shouldContainTitle('Featured Stories');
 
         // 3. Attempt to close the Modal again, ignoring unsaved changes
         await modal.footerButton('Close').click();
-        await modal.shouldContainTitle('Unsaved changes');
-        await modal.getFooterButton('Ignore').click();
+        await uiFrameworkModal.shouldContainTitle('Unsaved changes');
+        await uiFrameworkModal.getFooterButton('Ignore').click();
         await modal.waitTillClosed();
+
+        // Wait a moment for the modal to fully clean up before reopening
+        await page.waitForTimeout(500);
 
         // 4. Attempt to open -> close the Modal again, this time saving the changes
         await openFeaturedStoriesModal();
         await modal.footerButton('Close').click();
-        await modal.shouldContainTitle('Unsaved changes');
-        await modal.footerButton('Save').click();
+        await uiFrameworkModal.shouldContainTitle('Unsaved changes');
+        await uiFrameworkModal.getFooterButton('Save').click();
         await modal.waitTillClosed();
 
         // 5. Post the Planning item

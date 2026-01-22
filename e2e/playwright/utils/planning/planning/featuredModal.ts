@@ -1,5 +1,5 @@
 import {Locator, expect} from '@playwright/test';
-import {UiFrameworkModal} from '../../common';
+import {Modal} from '../../common';
 
 type IFooterButtonLabels = 'Close' | 'Cancel' | 'Save' | 'Post' | 'Update';
 interface IExpectListEntries {
@@ -8,7 +8,7 @@ interface IExpectListEntries {
     removed: Array<string> | null;
 }
 
-export class FeaturedModal extends UiFrameworkModal {
+export class FeaturedModal extends Modal {
     async waitTillLoadingFinished(): Promise<void> {
         await this.element
             .locator('.loading-indicator')

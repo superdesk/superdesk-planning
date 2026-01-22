@@ -11,7 +11,8 @@ import * as selectors from '../../../selectors';
 import * as actions from '../../../actions';
 import {isExistingItem, planningUtils, onEventCapture} from '../../../utils';
 
-import {Button, ButtonGroup, Modal} from 'superdesk-ui-framework/react';
+import {Button} from 'superdesk-ui-framework/react';
+import {Modal} from '../../index';
 import {FeaturedPlanningModalSubnav} from './FeaturedPlanningModalSubnav';
 import {FeaturedPlanningListGroup} from './FeaturedPlanningListGroup';
 import {FeaturedPlanningList} from './FeaturedPlanningList';
@@ -44,7 +45,7 @@ interface IProps {
     postFeaturedStory(): void;
 }
 
-export class FeaturedPlanningModalComponent extends React.Component<IProps, any> {
+export class FeaturedPlanningModalComponent extends React.Component<IProps> {
     constructor(props) {
         super(props);
 
@@ -100,6 +101,7 @@ export class FeaturedPlanningModalComponent extends React.Component<IProps, any>
             !this.props.featuredPlanningItem?.posted &&
             (this.props.selectedPlanningIds?.length ?? 0) != 0
         );
+
         const itemUpdatedAfterPosting = planningUtils.isFeaturedPlanningUpdatedAfterPosting(
             this.props.featuredPlanningItem
         );
@@ -122,101 +124,115 @@ export class FeaturedPlanningModalComponent extends React.Component<IProps, any>
 
         return (
             <Modal
-                visible
-                size="x-large"
+                show={true}
+                fill={true}
                 onHide={this.props.closeFeaturedStoriesModal}
-                headerTemplate={gettext(
-                    'Featured Stories based on timezone: {{tz}}',
-                    {tz: appConfig.default_timezone}
-                )}
-                contentPadding="none"
-                footerTemplate={(
-                    <ButtonGroup align="end">
-                        <Button
-                            text={gettext('Close')}
-                            type="tertiary"
-                            onClick={this.props.closeFeaturedStoriesModal}
-                        />
-                        {canPost && (
-                            <Button
-                                type="success"
-                                text={gettext('Post')}
-                                onClick={this.props.postFeaturedStory}
-                            />
-                        )}
-                        {canUpdate && (
-                            <Button
-                                type="warning"
-                                text={gettext('Update')}
-                                onClick={this.props.postFeaturedStory}
-                            />
-                        )}
-                        {this.props.dirty && (
-                            <Button
-                                type="primary"
-                                text={gettext('Save')}
-                                onClick={this.props.onSave.bind(null, false)}
-                            />
-                        )}
-                    </ButtonGroup>
-                )}
             >
-                <FeaturedPlanningModalSubnav itemUpdatedAfterPosting={itemUpdatedAfterPosting} />
-                <div className="sd-d-flex sd-flex-wrap">
-                    {(this.props.isLockedForCurrentUser) ? null : (
-                        <div className="sd-loader" />
-                    )}
-                    <FeaturedPlanningListGroup>
-                        <FeaturedPlanningList
-                            testId="list-available"
-                            onClick={this.removeHighlightForItem}
-                            readOnly={this.props.readOnly}
-                            selectedPlanningIds={this.props.selectedPlanningIds}
-                            onAddToSelectedFeaturedPlanning={this.movePlanningToSelectedList}
-                            onRemoveFromSelectedFeaturedPlanning={this.movePlanningToUnselectedList}
-                            item={undefined}
-                            items={this.props.unselectedPlanningItems}
-                            emptyMsg={emptyMessage}
-                            header={gettext('Available selections')}
-                        />
-                    </FeaturedPlanningListGroup>
-                    <FeaturedPlanningListGroup leftBorder={true}>
-                        <FeaturedPlanningList
-                            testId="list-selected"
-                            onClick={this.removeHighlightForItem}
-                            readOnly={this.props.readOnly}
-                            selectedPlanningIds={this.props.selectedPlanningIds}
-                            onAddToSelectedFeaturedPlanning={this.movePlanningToSelectedList}
-                            onRemoveFromSelectedFeaturedPlanning={this.movePlanningToUnselectedList}
-                            item={this.props.featuredPlanningItem}
-                            items={this.props.selectedPlanningItems}
-                            emptyMsg={gettext('No selected featured stories')}
-                            header={gettext('Currently Selected')}
-                            showAuditInformation={true}
-                            withMargin={true}
-                            onSortChange={this.onSortChange}
-                            sortable={true}
-                        />
-
-                        {!this.props.removeList?.length ? null : (
+                <Modal.Header>
+                    <h3 className="modal__heading">
+                        {gettext(
+                            'Featured Stories based on timezone: {{tz}}',
+                            {tz: appConfig.default_timezone}
+                        )}
+                    </h3>
+                    <a
+                        className="icn-btn"
+                        aria-label={gettext('Close')}
+                        onClick={this.props.closeFeaturedStoriesModal}
+                    >
+                        <i className="icon-close-small" />
+                    </a>
+                </Modal.Header>
+                <Modal.Body
+                    noPadding={true}
+                    fullHeight={true}
+                    noScroll={true}
+                >
+                    <FeaturedPlanningModalSubnav itemUpdatedAfterPosting={itemUpdatedAfterPosting} />
+                    <div className="sd-d-flex sd-flex-wrap">
+                        {(this.props.isLockedForCurrentUser) ? null : (
+                            <div className="sd-loader" />
+                        )}
+                        <FeaturedPlanningListGroup>
                             <FeaturedPlanningList
-                                testId="list-removed"
+                                testId="list-available"
                                 onClick={this.removeHighlightForItem}
-                                readOnly={true}
-                                disabled={true}
+                                readOnly={this.props.readOnly}
+                                selectedPlanningIds={this.props.selectedPlanningIds}
+                                onAddToSelectedFeaturedPlanning={this.movePlanningToSelectedList}
+                                onRemoveFromSelectedFeaturedPlanning={this.movePlanningToUnselectedList}
+                                item={undefined}
+                                items={this.props.unselectedPlanningItems}
+                                emptyMsg={emptyMessage}
+                                header={gettext('Available selections')}
+                            />
+                        </FeaturedPlanningListGroup>
+                        <FeaturedPlanningListGroup leftBorder={true}>
+                            <FeaturedPlanningList
+                                testId="list-selected"
+                                onClick={this.removeHighlightForItem}
+                                readOnly={this.props.readOnly}
                                 selectedPlanningIds={this.props.selectedPlanningIds}
                                 onAddToSelectedFeaturedPlanning={this.movePlanningToSelectedList}
                                 onRemoveFromSelectedFeaturedPlanning={this.movePlanningToUnselectedList}
                                 item={this.props.featuredPlanningItem}
-                                items={this.props.removeList}
-                                emptyMsg={emptyMessage}
-                                header={gettext('Selections automatically removed')}
-                                showAuditInformation={false}
+                                items={this.props.selectedPlanningItems}
+                                emptyMsg={gettext('No selected featured stories')}
+                                header={gettext('Currently Selected')}
+                                showAuditInformation={true}
                                 withMargin={true}
+                                onSortChange={this.onSortChange}
+                                sortable={true}
                             />
-                        )}
-                    </FeaturedPlanningListGroup>
-                </div>
+
+                            {!this.props.removeList?.length ? null : (
+                                <FeaturedPlanningList
+                                    testId="list-removed"
+                                    onClick={this.removeHighlightForItem}
+                                    readOnly={true}
+                                    disabled={true}
+                                    selectedPlanningIds={this.props.selectedPlanningIds}
+                                    onAddToSelectedFeaturedPlanning={this.movePlanningToSelectedList}
+                                    onRemoveFromSelectedFeaturedPlanning={this.movePlanningToUnselectedList}
+                                    item={this.props.featuredPlanningItem}
+                                    items={this.props.removeList}
+                                    emptyMsg={emptyMessage}
+                                    header={gettext('Selections automatically removed')}
+                                    showAuditInformation={false}
+                                    withMargin={true}
+                                />
+                            )}
+                        </FeaturedPlanningListGroup>
+                    </div>
+                </Modal.Body>
+                <Modal.Footer>
+                    <Button
+                        text={gettext('Close')}
+                        type="tertiary"
+                        onClick={this.props.closeFeaturedStoriesModal}
+                    />
+                    {!canPost ? null : (
+                        <Button
+                            type="success"
+                            text={gettext('Post')}
+                            onClick={this.props.postFeaturedStory}
+                        />
+                    )}
+                    {!canUpdate ? null : (
+                        <Button
+                            type="warning"
+                            text={gettext('Update')}
+                            onClick={this.props.postFeaturedStory}
+                        />
+                    )}
+                    {!this.props.dirty ? null : (
+                        <Button
+                            type="primary"
+                            text={gettext('Save')}
+                            onClick={this.props.onSave.bind(null, false)}
+                        />
+                    )}
+                </Modal.Footer>
             </Modal>
         );
     }
