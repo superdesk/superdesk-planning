@@ -4,7 +4,7 @@ import {connect} from 'react-redux';
 import {superdeskApi} from '../../superdeskApi';
 import {ISearchFilter, IEventsPlanningContentPanelProps} from '../../interfaces';
 
-import {MODALS, PRIVILEGES, KEYCODES} from '../../constants';
+import {PRIVILEGES, KEYCODES} from '../../constants';
 import {ColumnBox} from '../UI';
 import {SidePanel} from '../UI/SidePanel';
 import * as selectors from '../../selectors';
@@ -18,9 +18,9 @@ import {Button, Modal, SubNav, ButtonGroup} from 'superdesk-ui-framework/react';
 interface IProps {
     handleHide(): void;
     privileges: {[key: string]: number};
-    deleteFilter(filter: ISearchFilter): void;
-    deleteFilterSchedule(filter: ISearchFilter): void;
     createOrUpdate(filter: Partial<ISearchFilter>): Promise<void>;
+    deleteFilter(filter: ISearchFilter): Promise<void>;
+    deleteFilterSchedule(filter: ISearchFilter): Promise<void>;
 }
 
 interface IState {
@@ -35,38 +35,15 @@ const mapStateToProps = (state) => ({
 });
 
 const mapDispatchToProps = (dispatch) => ({
-    deleteFilter: (filter) => {
-        const {gettext} = superdeskApi.localization;
-
-        dispatch(actions.showModal({
-            modalType: MODALS.CONFIRMATION,
-            modalProps: {
-                body: gettext('Do you want to delete "{{ name }}" filter?', {name: filter.name}),
-                action: () => dispatch(actions.eventsPlanning.ui.deleteFilter(filter)),
-                autoClose: true,
-            },
-        }));
-    },
-    deleteFilterSchedule: (filter) => {
-        const {gettext} = superdeskApi.localization;
-
-        dispatch(actions.showModal({
-            modalType: MODALS.CONFIRMATION,
-            modalProps: {
-                body: gettext('Are you sure you want to delete this schedule?'),
-                action: () => dispatch(actions.eventsPlanning.ui.saveFilter({
-                    ...filter,
-                    schedules: [],
-                })),
-                autoClose: true,
-            },
-        }));
-    },
     createOrUpdate: (filter) => dispatch(actions.eventsPlanning.ui.saveFilter(filter)),
+    deleteFilter: (filter) => dispatch(actions.eventsPlanning.ui.deleteFilter(filter)),
+    deleteFilterSchedule: (filter) => dispatch(actions.eventsPlanning.ui.saveFilter({
+        ...filter,
+        schedules: [],
+    })),
 });
 
-
-export class ManageFiltersComponent extends React.Component<IProps, IState> {
+class ManageFiltersComponent extends React.Component<IProps, IState> {
     constructor(props) {
         super(props);
         this.state = {
@@ -75,10 +52,41 @@ export class ManageFiltersComponent extends React.Component<IProps, IState> {
             isPristine: true,
             pendingFilter: null,
         };
+
+        this.deleteFilter = this.deleteFilter.bind(this);
+        this.deleteFilterSchedule = this.deleteFilterSchedule.bind(this);
     }
 
     componentDidMount() {
         document.addEventListener('keydown', this.handleKeydown);
+    }
+
+    deleteFilter(filter: ISearchFilter) {
+        const {gettext} = superdeskApi.localization;
+        const {confirm} = superdeskApi.ui;
+
+        confirm(
+            gettext('Filter "{{ name }}" will be permanently deleted.', {name: filter.name}),
+            gettext('Delete Item?')
+        ).then((confirmed) => {
+            if (confirmed) {
+                this.props.deleteFilter(filter);
+            }
+        });
+    }
+
+    deleteFilterSchedule(filter: ISearchFilter) {
+        const {gettext} = superdeskApi.localization;
+        const {confirm} = superdeskApi.ui;
+
+        confirm(
+            gettext('Schedule will be permanently deleted.'),
+            gettext('Delete Item?')
+        ).then((confirmed) => {
+            if (confirmed) {
+                this.props.deleteFilterSchedule(filter);
+            }
+        });
     }
 
     componentWillUnmount() {
@@ -173,7 +181,7 @@ export class ManageFiltersComponent extends React.Component<IProps, IState> {
 
     render() {
         const {gettext} = superdeskApi.localization;
-        const {handleHide, privileges, deleteFilter, createOrUpdate} = this.props;
+        const {handleHide, privileges, createOrUpdate} = this.props;
 
         const rightPanelClasses = this.state.contentPanelState != null ?
             'sd-main-content-grid__preview open-preview' :
@@ -215,10 +223,10 @@ export class ManageFiltersComponent extends React.Component<IProps, IState> {
                             <FiltersList
                                 activeFilterId={this.state.selectedFilter?._id}
                                 privileges={privileges}
-                                deleteFilter={deleteFilter}
+                                deleteFilter={this.deleteFilter}
                                 editFilter={this.editFilterWithConfirmation}
                                 editFilterSchedule={this.editFilterSchedule}
-                                deleteFilterSchedule={this.props.deleteFilterSchedule}
+                                deleteFilterSchedule={this.deleteFilterSchedule}
                                 previewFilter={this.previewFilter}
                             />
                         </ColumnBox.MainColumn>
@@ -238,7 +246,7 @@ export class ManageFiltersComponent extends React.Component<IProps, IState> {
                                     editFilter={this.editFilter}
                                     editFilterSchedule={this.editFilterSchedule}
                                     previewFilter={this.previewFilter}
-                                    deleteFilterSchedule={this.props.deleteFilterSchedule}
+                                    deleteFilterSchedule={this.deleteFilterSchedule}
                                     onPristineChange={this.onPristineChange}
                                 />
                             )}

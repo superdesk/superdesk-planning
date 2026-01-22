@@ -52,7 +52,8 @@ export class FeaturedModal extends Modal {
 
             for (let index = 0; index < list.length; index++) {
                 await expect(
-                    this.getList(name).locator('li').nth(index)
+                    this.getList(name).locator('li')
+                        .nth(index)
                 ).toContainText(list[index]);
             }
         }

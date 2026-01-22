@@ -15,10 +15,9 @@ import {superdeskApi, planningApi} from '../../superdeskApi';
 import {KEYBOARD_CODES} from '../../constants';
 import {getLanguages} from '../../selectors/vocabs';
 import {getErrorMessage} from '../../utils';
-import {Button, ButtonGroup, Tabs, TabLabel, TabContent, TabPanel} from 'superdesk-ui-framework/react';
-import {Modal} from '../index';
+import {Button, ButtonGroup, Modal, Tabs, TabLabel, TabContent, TabPanel} from 'superdesk-ui-framework/react';
 import {GroupTab, GroupTabComponent} from './GroupTab';
-import {FieldTab} from './FieldTab';
+import {FieldTab, FieldTabComponent} from './FieldTab';
 import {validateAndNotifyForRequiredFields} from './utils';
 
 import './style.scss';
@@ -56,7 +55,7 @@ const mapStateToProps = (state) => ({
 
 class ContentProfileModalComponent extends React.Component<IProps, IState> {
     groupTab: React.RefObject<GroupTabComponent>;
-    fieldTab: React.RefObject<FieldTab>;
+    fieldTab: React.RefObject<FieldTabComponent>;
 
     constructor(props) {
         super(props);
@@ -121,8 +120,8 @@ class ContentProfileModalComponent extends React.Component<IProps, IState> {
             const {showIgnoreCancelSaveDialog} = superdeskApi.ui;
 
             showIgnoreCancelSaveDialog({
-                title: gettext('Save changes?'),
-                body: gettext('There are unsaved changes.'),
+                title: gettext('Unsaved changes'),
+                body: gettext('Your changes will be lost if you close now. What would you like to do?'),
             }).then((response) => {
                 if (response === 'save') {
                     this.save();
@@ -367,53 +366,44 @@ class ContentProfileModalComponent extends React.Component<IProps, IState> {
 
         return (
             <Modal
-                show={true}
-                large={true}
-                removeTabIndexAttribute={true}
-            >
-                <Modal.Header>
-                    <h3 className="modal__heading">
-                        {this.props.title}
-                    </h3>
-                    <a
-                        className="icn-btn"
-                        onClick={this.state.saving ?
-                            undefined :
-                            this.closeModal
-                        }
-                    >
-                        <i className="icon-close-small" />
-                    </a>
-                </Modal.Header>
-                <Modal.Body className="sd-padding--0" noScroll={true}>
-                    {!this.state.saving ? null : (
-                        <div className="sd-loader" />
-                    )}
-                    <form className="planning-profile-form" onSubmit={(e) => e.preventDefault()}>
-                        <Tabs onClick={this.changeTab}>
-                            {tabLabels}
-                        </Tabs>
-                        <TabContent activePanel={this.state.activeTabId}>
-                            {tabPanels}
-                        </TabContent>
-                    </form>
-                </Modal.Body>
-                <Modal.Footer flex={true}>
+                visible
+                size="large"
+                position="top"
+                onHide={this.state.saving ? undefined : this.closeModal}
+                headerTemplate={this.props.title}
+                contentPadding="none"
+                footerTemplate={(
                     <ButtonGroup align="end">
                         <Button
-                            text={gettext('Don\'t save')}
+                            text={this.state.dirty ?
+                                gettext('Discard All') :
+                                gettext('Close')
+                            }
                             type="tertiary"
                             onClick={this.closeModal}
                             disabled={this.state.saving}
                         />
-                        <Button
-                            text={gettext('Save')}
-                            type="primary"
-                            onClick={this.save}
-                            disabled={this.state.saving || !this.state.dirty}
-                        />
+                        {this.state.dirty && (
+                            <Button
+                                text={gettext('Save All')}
+                                type="primary"
+                                onClick={this.save}
+                                disabled={this.state.saving}
+                            />
+                        )}
                     </ButtonGroup>
-                </Modal.Footer>
+                )}
+                className="planning-profile-form"
+            >
+                {this.state.saving && (<div className="sd-loader" />)}
+                <form onSubmit={(e) => e.preventDefault()}>
+                    <Tabs onClick={this.changeTab}>
+                        {tabLabels}
+                    </Tabs>
+                    <TabContent activePanel={this.state.activeTabId}>
+                        {tabPanels}
+                    </TabContent>
+                </form>
             </Modal>
         );
     }

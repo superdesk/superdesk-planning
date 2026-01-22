@@ -72,7 +72,7 @@ export class GroupEditor extends React.PureComponent<IProps> {
                             <Button
                                 text={this.props.isNewGroup ?
                                     gettext('Create') :
-                                    gettext('Save')
+                                    gettext('Apply')
                                 }
                                 onClick={() => this.props.saveGroup()}
                                 type="primary"

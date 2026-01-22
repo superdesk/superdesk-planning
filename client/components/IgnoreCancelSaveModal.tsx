@@ -180,8 +180,8 @@ export class IgnoreCancelSaveModalComponent extends React.Component<IProps, ISta
                     body: bodyText || this.renderItemDetails() ||
                         gettext('Changes will be lost, if they are not saved.'),
                     autoClose: autoClose,
-                    large: true,
-                    bodyClassname: 'p-3',
+                    size: 'small',
+                    position: 'top',
                 }}
             />
         );

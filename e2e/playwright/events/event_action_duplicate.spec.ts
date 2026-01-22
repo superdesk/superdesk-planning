@@ -1,7 +1,7 @@
 import {test} from '@playwright/test';
 import moment from 'moment/moment';
 
-import {setup, login, waitForPageLoad, Modal, SubNavBar, CLIENT_FORMAT} from '../utils/common';
+import {setup, login, waitForPageLoad, UiFrameworkModal, SubNavBar, CLIENT_FORMAT} from '../utils/common';
 import {PlanningList, PlanningPreview, EventEditor} from '../utils/planning';
 
 test.describe('Planning.Events: duplicate event', () => {
@@ -9,14 +9,14 @@ test.describe('Planning.Events: duplicate event', () => {
     let expectedValues: {[key: string]: any};
 
     let editor: EventEditor;
-    let modal: Modal;
+    let modal: UiFrameworkModal;
     let subnav: SubNavBar;
     let list: PlanningList;
     let preview: PlanningPreview;
 
-    test.beforeEach(async ({page}) => {
+    test.beforeEach(async({page}) => {
         editor = new EventEditor(page);
-        modal = new Modal(page);
+        modal = new UiFrameworkModal(page);
         subnav = new SubNavBar(page);
         list = new PlanningList(page);
         preview = new PlanningPreview(page);
@@ -49,7 +49,7 @@ test.describe('Planning.Events: duplicate event', () => {
         await waitForPageLoad.planning(page);
     });
 
-    test('can duplicate an event', async () => {
+    test('can duplicate an event', async() => {
         // 1. Duplicate from the list
         await subnav.createEvent();
         await editor.createAndClose(event);
