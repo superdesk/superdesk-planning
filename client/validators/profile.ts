@@ -69,7 +69,7 @@ export const formProfile = ({field, value, profile, errors, messages, diff}) => 
         Object.keys(errors).forEach((fieldError) => {
             const [fieldName, lang] = fieldError.split('.');
 
-            if (fieldName === field && diff.languages.includes(lang)) {
+            if (fieldName === field && diff.languages?.includes(lang)) {
                 if (!missingLangs.includes(lang) && !emptyValues.some((obj) => obj.language === lang)) {
                     delete errors[fieldError];
                 }
