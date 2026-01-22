@@ -1,15 +1,15 @@
 # Translations template for superdesk-planning.
-# Copyright (C) 2025 ORGANIZATION
+# Copyright (C) 2026 ORGANIZATION
 # This file is distributed under the same license as the superdesk-planning
 # project.
-# FIRST AUTHOR <EMAIL@ADDRESS>, 2025.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2026.
 #
 #, fuzzy
 msgid ""
 msgstr ""
-"Project-Id-Version: superdesk-planning 3.1.0.dev0\n"
+"Project-Id-Version: superdesk-planning 3.2.0.dev0\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2025-10-22 11:06+0200\n"
+"POT-Creation-Date: 2026-01-13 11:32+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -128,7 +128,7 @@ msgstr ""
 msgid "Agendas"
 msgstr ""
 
-#: server/planning/utils.py:135
+#: server/planning/utils.py:136
 msgid "ALL DAY"
 msgstr ""
 
@@ -140,23 +140,23 @@ msgstr ""
 msgid "Assignments"
 msgstr ""
 
-#: server/planning/assignments/assignments.py:670
+#: server/planning/assignments/assignments.py:683
 msgid "by "
 msgstr ""
 
-#: server/planning/assignments/assignments.py:672
+#: server/planning/assignments/assignments.py:685
 msgid "to yourself"
 msgstr ""
 
-#: server/planning/assignments/assignments.py:798
+#: server/planning/assignments/assignments.py:811
 msgid "Unknown"
 msgstr ""
 
-#: server/planning/assignments/assignments.py:800
+#: server/planning/assignments/assignments.py:813
 msgid "You"
 msgstr ""
 
-#: server/planning/assignments/assignments_link.py:168
+#: server/planning/assignments/assignments_link.py:171
 #, python-format
 msgid ""
 "Content type \"%(content_type)s\" is not allowed to be linked to a "
@@ -262,51 +262,51 @@ msgstr ""
 msgid "Ability to create, edit and delete locations"
 msgstr ""
 
-#: server/planning/planning/__init__.py:134
+#: server/planning/planning/__init__.py:135
 msgid "Planning - Planning Item Management"
 msgstr ""
 
-#: server/planning/planning/__init__.py:135
+#: server/planning/planning/__init__.py:136
 msgid "Ability to create and modify Planning items"
 msgstr ""
 
-#: server/planning/planning/__init__.py:140
+#: server/planning/planning/__init__.py:141
 msgid "Planning - Spike Planning Items"
 msgstr ""
 
-#: server/planning/planning/__init__.py:141
+#: server/planning/planning/__init__.py:142
 msgid "Ability to spike a Planning Item"
 msgstr ""
 
-#: server/planning/planning/__init__.py:146
+#: server/planning/planning/__init__.py:147
 msgid "Planning - Unspike Planning Items"
 msgstr ""
 
-#: server/planning/planning/__init__.py:147
+#: server/planning/planning/__init__.py:148
 msgid "Ability to unspike a Planning Item"
 msgstr ""
 
-#: server/planning/planning/__init__.py:152
+#: server/planning/planning/__init__.py:153
 msgid "Planning - Post Planning Items"
 msgstr ""
 
-#: server/planning/planning/__init__.py:153
+#: server/planning/planning/__init__.py:154
 msgid "Ability to post a Planning Item"
 msgstr ""
 
-#: server/planning/planning/__init__.py:158
+#: server/planning/planning/__init__.py:159
 msgid "Planning - Unpost Planning Items"
 msgstr ""
 
-#: server/planning/planning/__init__.py:159
+#: server/planning/planning/__init__.py:160
 msgid "Ability to unpost a Planning Item"
 msgstr ""
 
-#: server/planning/planning/__init__.py:164
+#: server/planning/planning/__init__.py:165
 msgid "Planning - Featured Stories"
 msgstr ""
 
-#: server/planning/planning/__init__.py:165
+#: server/planning/planning/__init__.py:166
 msgid "Ability to create and modify a featured stories list from planning items"
 msgstr ""
 
