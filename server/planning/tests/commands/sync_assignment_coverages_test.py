@@ -1,14 +1,11 @@
-import importlib
-
 from bson import ObjectId
 
 from planning.tests import TestCase
+from planning.commands.sync_assignment_coverages import SyncAssignmentCoveragesCommand
 
-DataUpdate = importlib.import_module("planning.data_updates.00036_20260120-120000_sync_assignment_coverages").DataUpdate
 
-
-class SyncAssignmentCoveragesTestCase(TestCase):
-    async def test_upgrade(self):
+class SyncAssignmentCoveragesCommandTestCase(TestCase):
+    async def test_command(self):
         assignment_id = ObjectId()
         planning_id = ObjectId()
 
@@ -21,11 +18,11 @@ class SyncAssignmentCoveragesTestCase(TestCase):
             "coverages": [
                 {
                     "coverage_id": "cov-1",
-                    "assigned_to": {"assignment_id": assignment_id},
+                    "assigned_to": {"assignment_id": str(assignment_id)},
                     "scheduled_updates": [
                         {
                             "scheduled_update_id": "su-1",
-                            "assigned_to": {"assignment_id": assignment_id},
+                            "assigned_to": {"assignment_id": str(assignment_id)},
                         }
                     ],
                 }
@@ -54,9 +51,9 @@ class SyncAssignmentCoveragesTestCase(TestCase):
             self.app.data.insert("planning", [planning_doc])
             self.app.data.insert("assignments", [assignment_doc])
 
-            DataUpdate().forwards(self.app.data.get_mongo_collection(DataUpdate.resource), self.app.data.driver.db)
+            await SyncAssignmentCoveragesCommand().run(dry_run=False)
 
-        updated = self.app.data.find_one("planning", req=None, _id=planning_id)
+        updated = self.app.data.get_mongo_collection("planning").find_one({"_id": planning_id})
         assert updated is not None
         coverage = updated.get("coverages")[0]
         assigned_to = coverage.get("assigned_to")

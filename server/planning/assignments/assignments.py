@@ -119,10 +119,11 @@ class AssignmentsService(AsyncBaseService):
                     copy_assignment_details_to_coverage(assignment, coverage)
                     updated = True
 
+                if not is_scheduled_update:
+                    continue
+
                 for scheduled_update in coverage.get("scheduled_updates") or []:
-                    if is_scheduled_update and str(scheduled_update.get("scheduled_update_id")) == str(
-                        assignment.get("scheduled_update_id")
-                    ):
+                    if str(scheduled_update.get("scheduled_update_id")) == str(assignment.get("scheduled_update_id")):
                         scheduled_update.setdefault("assigned_to", {})
                         copy_assignment_details_to_coverage(assignment, scheduled_update)
                         updated = True

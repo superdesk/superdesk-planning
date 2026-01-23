@@ -141,12 +141,6 @@ class PlanningService(AsyncBaseService):
             doc.pop("_updates_schedule", None)
             sync_assignment_details_to_coverages(doc)
 
-    async def on_fetched_async(self, docs):
-        return
-
-    async def on_fetched_item_async(self, doc):
-        return
-
     async def find_one_async(self, req, **lookup):
         item = await super().find_one_async(req, **lookup)
         if item:
