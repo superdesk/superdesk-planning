@@ -50,6 +50,7 @@ from planning.types import (
 from planning.planning.planning_history_async_service import PlanningHistoryAsyncService
 from planning.planning.planning_autosave_service import PlanningAutosaveAsyncService
 from planning.assignments.assignments_history_async import AssignmentsHistoryAsyncService
+from planning.assignments.assignments import get_next_assignment_status
 from planning.content_profiles.planning_types_async_service import PlanningTypesAsyncService
 from planning.common import (
     get_coverage_status_from_cv,
@@ -77,6 +78,7 @@ from planning.common import (
     UPDATE_FUTURE,
     UPDATE_ALL,
     POST_STATE,
+    get_config_assignment_reset_state_on_reassignment,
 )
 
 from planning.events.events_history_async_service import EventsHistoryAsyncService
@@ -1128,13 +1130,29 @@ class PlanningService(AsyncBaseService):
                     assigned_to["assigned_date_user"] = utcnow()
                     assigned_to["assignor_user"] = user.get(ID_FIELD)
 
-            if original_assignment.get("assigned_to").get("state") == ASSIGNMENT_WORKFLOW_STATE.DRAFT:
+            current_state = original_assignment.get("assigned_to", {}).get("state")
+
+            if current_state == ASSIGNMENT_WORKFLOW_STATE.DRAFT:
                 if self.is_coverage_assignment_modified(updates, original_assignment):
+                    _update_assignment_assigned_to()
+            elif current_state in [ASSIGNMENT_WORKFLOW_STATE.ASSIGNED, ASSIGNMENT_WORKFLOW_STATE.IN_PROGRESS]:
+                # Handle user reassignment (including unassigning)
+                if original.get("assigned_to", {}).get("user") != assigned_to.get("user"):
+                    should_reset_state = get_config_assignment_reset_state_on_reassignment()
+
+                    if should_reset_state:
+                        assigned_to["state"] = get_next_assignment_status(
+                            original_assignment, ASSIGNMENT_WORKFLOW_STATE.ASSIGNED
+                        )
+                    else:
+                        assigned_to["state"] = current_state
+
                     _update_assignment_assigned_to()
 
             # If we made a coverage 'active' - change assignment status to active
             if original.get("workflow_status") == WORKFLOW_STATE.DRAFT and not is_coverage_draft:
-                assigned_to["state"] = ASSIGNMENT_WORKFLOW_STATE.ASSIGNED
+                if current_state not in [ASSIGNMENT_WORKFLOW_STATE.ASSIGNED, ASSIGNMENT_WORKFLOW_STATE.IN_PROGRESS]:
+                    assigned_to["state"] = ASSIGNMENT_WORKFLOW_STATE.ASSIGNED
                 assignment["assigned_to"] = assigned_to
 
             # If the Planning description has been changed
@@ -1149,7 +1167,8 @@ class PlanningService(AsyncBaseService):
             if original.get("workflow_status") != WORKFLOW_STATE.DRAFT and self.is_coverage_assignment_modified(
                 updates, original_assignment
             ):
-                assigned_to["state"] = ASSIGNMENT_WORKFLOW_STATE.ASSIGNED
+                if current_state not in [ASSIGNMENT_WORKFLOW_STATE.ASSIGNED, ASSIGNMENT_WORKFLOW_STATE.IN_PROGRESS]:
+                    assigned_to["state"] = ASSIGNMENT_WORKFLOW_STATE.ASSIGNED
                 _update_assignment_assigned_to()
 
             # If there has been a change in the planning internal note then notify the assigned users/desk

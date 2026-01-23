@@ -264,6 +264,10 @@ def get_config_assignment_manual_reassignment_only(current_app=None):
     return (current_app or get_current_app()).config.get("ASSIGNMENT_MANUAL_REASSIGNMENT_ONLY", False)
 
 
+def get_config_assignment_reset_state_on_reassignment(current_app=None) -> bool:
+    return get_config(bool, "ASSIGNMENT_RESET_STATE_ON_REASSIGNMENT", False)
+
+
 def get_coverage_status_from_cv(qcode: str):
     coverage_states = get_resource_service("vocabularies").find_one(req=None, _id="newscoveragestatus")
 
