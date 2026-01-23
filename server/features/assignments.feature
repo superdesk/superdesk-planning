@@ -651,6 +651,70 @@ Feature: Assignments
         """
 
     @auth
+    Scenario: Assignment update syncs coverage assigned_to
+        Given empty "assignments"
+        When we post to "/planning"
+        """
+        [
+            {
+                "item_class": "item class value",
+                "description_text": "test description",
+                "headline": "test headline",
+                "slugline": "test slugline",
+                "planning_date": "2016-01-02",
+                "coverages": [
+                    {
+                        "planning": {
+                            "ednote": "test coverage",
+                            "headline": "test headline",
+                            "slugline": "test slugline",
+                            "g2_content_type": "text"
+                        },
+                        "assigned_to": {
+                            "desk": "desk1",
+                            "user": "507f191e810c19729de87034"
+                        },
+                        "workflow_status": "active"
+                    }
+                ]
+            }
+        ]
+        """
+        Then we get OK response
+        Then we store coverage id in "coverage" from coverage 0
+        Then we store assignment id in "assignment" from coverage 0
+        When we patch "/assignments/#assignment#"
+        """
+        {
+            "assigned_to": {
+                "desk": "desk2",
+                "user": "507f1f77bcf86cd799439011",
+                "coverage_provider": {"qcode": "agencies", "name": "Agencies"}
+            }
+        }
+        """
+        Then we get OK response
+        When we get "/planning/#planning._id#"
+        Then we get OK response
+        Then we get existing resource
+        """
+        {
+            "_id": "#planning._id#",
+            "coverages": [
+                {
+                    "coverage_id": "#coverage#",
+                    "assigned_to": {
+                        "assignment_id": "#assignment#",
+                        "desk": "desk2",
+                        "user": "507f1f77bcf86cd799439011",
+                        "coverage_provider": {"name": "Agencies"}
+                    }
+                }
+            ]
+        }
+        """
+
+    @auth
     @notification
     Scenario: Notification is sent when coverage is reassigned to another desk and user
         Given empty "assignments"
