@@ -5,12 +5,12 @@ from lxml import etree
 from copy import deepcopy
 from bson import ObjectId
 from datetime import datetime
-from superdesk.core.types import SearchRequest
 from typing_extensions import assert_never
-from typing import AsyncGenerator, Any, cast
+from typing import Any, cast
 
 from apps.auth import get_user, get_auth
 
+from superdesk.core.types import SearchRequest
 from superdesk.core import get_current_app
 from superdesk.utc import utcnow, utc_to_local
 from superdesk.errors import SuperdeskApiError
@@ -18,7 +18,7 @@ from superdesk.resource_fields import ID_FIELD
 from superdesk.metadata.item import GUID_NEWSML
 from superdesk.notification import push_notification
 from superdesk import get_resource_service, get_app_config
-from superdesk.core.utils import date_to_str, generate_guid
+from superdesk.core.utils import generate_guid
 
 from planning.planning_notifications import PlanningNotifications
 from planning.content_profiles.utils import is_field_enabled
@@ -75,87 +75,6 @@ class PlanningAsyncService(BasePlanningAsyncService[PlanningResourceModel]):
             if getattr(updates, field) != getattr(original, field):
                 return True
         return False
-
-    async def get_expired_items(
-        self, expiry_datetime: datetime, spiked_planning_only: bool = False
-    ) -> AsyncGenerator[list[dict[str, Any]], None]:
-        """
-        Retrieve "expired" items which are those whose planning_date is before `expiry_datetime` and
-        have no future schedules or primary-linked events, and are not already expired.
-
-        By default, items are filtered to exclude:
-        - Items linked to a primary event or,
-        - Items already expired or,
-        - Items with future scheduling or a planning_date beyond `expiry_datetime`.
-
-        If `spiked_planning_only` is True, only spiked items are returned, still excluding
-        those with future schedules or planning_dates.
-        """
-        nested_filter = {
-            "nested": {
-                "path": "_planning_schedule",
-                "query": {"range": {"_planning_schedule.scheduled": {"gt": date_to_str(expiry_datetime)}}},
-            }
-        }
-        range_filter = {"range": {"planning_date": {"gt": date_to_str(expiry_datetime)}}}
-        query: dict[str, Any] = {
-            "query": {
-                "bool": {
-                    "must_not": [
-                        {
-                            "nested": {
-                                "path": "related_events",
-                                "query": {"term": {"related_events.link_type": "primary"}},
-                            },
-                        },
-                        {"term": {"expired": True}},
-                        nested_filter,
-                        range_filter,
-                    ]
-                }
-            }
-        }
-
-        if spiked_planning_only:
-            query = {
-                "query": {
-                    "bool": {
-                        "must_not": [nested_filter, range_filter],
-                        "must": [{"term": {"state": WORKFLOW_STATE.SPIKED}}],
-                    }
-                }
-            }
-
-        query["sort"] = [{"planning_date": "asc"}]
-        query["size"] = 200
-
-        total_received = 0
-        total_items = -1
-
-        while True:
-            query["from"] = total_received
-
-            results = await self.search(query)
-            items = await results.to_list_raw()
-            results_count = len(items)
-
-            # If the total_items has not been set, then this is the first query
-            # In which case we need to store the total hits from the search
-            if total_items < 0:
-                total_items = results_count
-
-                # If the search doesn't contain any results, return here
-                if total_items < 1:
-                    break
-
-            # If the last query doesn't contain any results, return here
-            if results_count == 0:
-                break
-
-            total_received += results_count
-
-            # Yield the results for iteration by the callee
-            yield items
 
     async def on_event_converted_to_recurring(self, updates: dict[str, Any], original: EventResourceModel):
         for item in get_related_planning_for_events([original.id]):

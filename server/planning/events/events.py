@@ -22,7 +22,6 @@ from datetime import datetime, timedelta
 from dateutil import parser
 
 from eve.methods.common import resolve_document_etag
-from eve.utils import date_to_str
 from dateutil.rrule import (
     rrule,
     YEARLY,
@@ -47,14 +46,13 @@ from superdesk.errors import SuperdeskApiError
 from superdesk.metadata.utils import generate_guid
 from superdesk.metadata.item import GUID_NEWSML
 from superdesk.notification import push_notification
-from superdesk.utc import get_date, utcnow, utc_to_local
+from superdesk.utc import get_date, utcnow
 from superdesk.users.services import current_user_has_privilege
 from superdesk.publish_async.utils import get_next_sequence_number
 from apps.auth import get_user, get_user_id
 from apps.archive.common import get_auth, update_dates_for
 
 from planning.events.events_reschedule import reschedule_single_event
-from planning.events.events_utils import get_recurring_timeline
 from planning.events.events_history_async_service import EventsHistoryAsyncService
 from planning.types import (
     EmbeddedCoverageItem,
@@ -66,7 +64,6 @@ from planning.types import (
 from planning.common import (
     TEMP_ID_PREFIX,
     UPDATE_SINGLE,
-    UPDATE_FUTURE,
     get_max_recurrent_events,
     WORKFLOW_STATE,
     ITEM_STATE,
@@ -875,48 +872,6 @@ class EventsService(AsyncBaseService):
         await planning_service.system_update_async(plan_id, updates, planning_item)
         app = get_current_app().as_any()
         await app.on_updated_planning.call_async(updates, planning_item)
-
-    async def get_expired_items(self, expiry_datetime, spiked_events_only=False):
-        """Get the expired items
-
-        Where end date is in the past
-        """
-        query = {
-            "query": {"bool": {"must_not": [{"term": {"expired": True}}]}},
-            "filter": {"range": {"dates.end": {"lte": date_to_str(expiry_datetime)}}},
-            "sort": [{"dates.start": "asc"}],
-            "size": get_max_recurrent_events(),
-        }
-
-        if spiked_events_only:
-            query["query"] = {"bool": {"must": [{"term": {"state": WORKFLOW_STATE.SPIKED}}]}}
-
-        total_received = 0
-        total_events = -1
-
-        while total_received + get_max_recurrent_events() < 10000:  # 10k is max elastic limit
-            query["from"] = total_received
-
-            results = await self.search_async(query)
-
-            # If the total_events has not been set, then this is the first query
-            # In which case we need to store the total hits from the search
-            if total_events < 0:
-                total_events = await results.count()
-
-                # If the search doesn't contain any results, return here
-                if total_events < 1:
-                    break
-
-            # If the last query doesn't contain any results, return here
-            items = await results.to_list()
-            if not len(items):
-                break
-
-            total_received += len(items)
-
-            # Yield the results for iteration by the callee
-            yield items
 
     async def delete_event_files(self, updates, original):
         files = [f for f in original.get("files", []) if f not in (updates or {}).get("files", [])]
