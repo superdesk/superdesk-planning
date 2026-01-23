@@ -208,6 +208,12 @@ Below sections include the config options that can be defined in settings.py.
 * ASSIGNMENT_MANUAL_REASSIGNMENT_ONLY
     * Default: False (preserves the current behavior where automatic user assignment occurs)
     * If true, Disables automatic user assignment for coverage, ensuring that assignments are updated only through explicit manual reassignment
+* ASSIGNMENT_RESET_STATE_ON_REASSIGNMENT
+    * Default: False
+    * Controls assignment state transitions when reassigning to a different user (or unassigning)
+    * If False: Preserves the current state (e.g., IN_PROGRESS remains IN_PROGRESS, ASSIGNED remains ASSIGNED)
+    * If True: Resets to ASSIGNED state on reassignment
+    * Does not affect desk moves or assignments in COMPLETED/CANCELLED states
 
 ### Authoring Config
 * PLANNING_CHECK_FOR_ASSIGNMENT_ON_PUBLISH
