@@ -7,7 +7,6 @@
 
 from __future__ import annotations
 
-import logging
 from copy import deepcopy
 from typing import Any
 
@@ -15,12 +14,9 @@ import click
 from bson import ObjectId
 
 from superdesk import get_resource_service
-from superdesk.core import get_current_app
 
 from planning.common import copy_assignment_details_to_coverage
 from .async_cli import planning_cli
-
-logger = logging.getLogger(__name__)
 
 
 @planning_cli.command("planning:sync_assignment_coverages")
@@ -85,18 +81,10 @@ class SyncAssignmentCoveragesCommand:
                 {"coverages.scheduled_updates.assigned_to.assignment_id": {"$exists": True}},
             ]
         }
-        projection = {"_id": 1, "coverages": 1, "type": 1}
         page_size = 500
-        offset = 0
 
-        while True:
-            cursor = planning_service.get_from_mongo(req=None, lookup=query, projection=projection)
-            docs = list(cursor.skip(offset).limit(page_size))
-            if not docs:
-                break
-            for planning in docs:
-                yield planning
-            offset += page_size
+        for planning in planning_service.get_all_batch(size=page_size, lookup=query):
+            yield planning
 
     def collect_assignment_ids(self, coverages: list[dict[str, Any]]) -> list[Any]:
         assignment_ids: list[Any] = []
