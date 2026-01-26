@@ -1136,16 +1136,18 @@ class PlanningService(AsyncBaseService):
                 if self.is_coverage_assignment_modified(updates, original_assignment):
                     _update_assignment_assigned_to()
             elif current_state in [ASSIGNMENT_WORKFLOW_STATE.ASSIGNED, ASSIGNMENT_WORKFLOW_STATE.IN_PROGRESS]:
-                # Handle user reassignment (including unassigning)
-                if original.get("assigned_to", {}).get("user") != assigned_to.get("user"):
-                    should_reset_state = get_config_assignment_reset_state_on_reassignment()
+                if self.is_coverage_assignment_modified(updates, original_assignment):
+                    # By default, preserve the current state
+                    assigned_to["state"] = current_state
 
-                    if should_reset_state:
-                        assigned_to["state"] = get_next_assignment_status(
-                            original_assignment, ASSIGNMENT_WORKFLOW_STATE.ASSIGNED
-                        )
-                    else:
-                        assigned_to["state"] = current_state
+                    # Handle user reassignment (including unassigning) with state management
+                    if original.get("assigned_to", {}).get("user") != assigned_to.get("user"):
+                        should_reset_state = get_config_assignment_reset_state_on_reassignment()
+
+                        if should_reset_state:
+                            assigned_to["state"] = get_next_assignment_status(
+                                original_assignment, ASSIGNMENT_WORKFLOW_STATE.ASSIGNED
+                            )
 
                     _update_assignment_assigned_to()
 
@@ -1164,11 +1166,17 @@ class PlanningService(AsyncBaseService):
                 assignment["name"] = planning["name"] if not translated_value and translated_name else translated_name
 
             # If the coverage assignee has been changed and workflow status is active
-            if original.get("workflow_status") != WORKFLOW_STATE.DRAFT and self.is_coverage_assignment_modified(
-                updates, original_assignment
+            if (
+                original.get("workflow_status") != WORKFLOW_STATE.DRAFT
+                and self.is_coverage_assignment_modified(updates, original_assignment)
+                and current_state
+                not in [
+                    ASSIGNMENT_WORKFLOW_STATE.DRAFT,
+                    ASSIGNMENT_WORKFLOW_STATE.ASSIGNED,
+                    ASSIGNMENT_WORKFLOW_STATE.IN_PROGRESS,
+                ]
             ):
-                if current_state not in [ASSIGNMENT_WORKFLOW_STATE.ASSIGNED, ASSIGNMENT_WORKFLOW_STATE.IN_PROGRESS]:
-                    assigned_to["state"] = ASSIGNMENT_WORKFLOW_STATE.ASSIGNED
+                assigned_to["state"] = ASSIGNMENT_WORKFLOW_STATE.ASSIGNED
                 _update_assignment_assigned_to()
 
             # If there has been a change in the planning internal note then notify the assigned users/desk
@@ -1400,9 +1408,7 @@ class PlanningService(AsyncBaseService):
                 ).get(key):
                     return True
 
-            if updates["assigned_to"].get("priority") and updates["assigned_to"]["priority"] != original.get(
-                "priority"
-            ):
+            if "priority" in updates["assigned_to"] and updates["assigned_to"]["priority"] != original.get("priority"):
                 return True
 
         return False
