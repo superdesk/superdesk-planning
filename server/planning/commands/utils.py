@@ -14,7 +14,7 @@ async def iterate_expired_items(
     base_query: dict | None = None,
     projection: list[str] | None = None,
 ) -> AsyncGenerator[list[dict], None]:
-    if projection and "_updated" not in projection:
+    if projection is not None and "_updated" not in projection:
         projection.append("_updated")
 
     resource_service = EventsAsyncService() if resource_type == "event" else PlanningAsyncService()
@@ -89,4 +89,4 @@ async def iterate_expired_items(
         last_item_query["range"]["_updated"]["gt"] = items[-1]["_updated"]
 
         if i == 0:
-            query_dict["query"]["bool"]["must"].append(last_item_query)
+            query_dict["query"]["bool"].setdefault("must", []).append(last_item_query)

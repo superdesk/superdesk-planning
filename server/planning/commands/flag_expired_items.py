@@ -91,7 +91,7 @@ async def flag_expired_items(resource_type: Literal["event", "planning"], expiry
     """
 
     log_msg = log_msg_context.get()
-    logger.info(f"{log_msg} Starting to flag expired events")
+    logger.info(f"{log_msg} Starting to flag expired {resource_type}s")
 
     processing_events = resource_type == "event"
     events_in_use = set()
@@ -140,12 +140,15 @@ async def flag_expired_items(resource_type: Literal["event", "planning"], expiry
 
             items_expired.add(item_id)
 
-        await get_current_async_app().resources.bulk_update_resources(
-            [
-                ("events", events_to_expire, updates.copy()),
-                ("planning", planning_to_expire, updates.copy()),
-            ]
-        )
+        resource_updates: list[tuple[str, set[str], dict]] = []
+        if events_to_expire:
+            resource_updates.append(("events", events_to_expire, updates.copy()))
+        if planning_to_expire:
+            resource_updates.append(("planning", planning_to_expire, updates.copy()))
+
+        if resource_updates:
+            await get_current_async_app().resources.bulk_update_resources(resource_updates)
+
         logger.info(
             f"{log_msg} {len(events_to_expire)} Events expired, {len(planning_to_expire)} Planning items expired"
         )
@@ -160,7 +163,7 @@ async def flag_expired_items(resource_type: Literal["event", "planning"], expiry
     if len(plans_expired) > 0:
         push_notification("planning:expired", items=list(plans_expired))
 
-    logger.info(f"{log_msg} {len(items_expired)} Events expired")
+    logger.info(f"{log_msg} {len(items_expired)} {resource_type}s expired")
 
 
 def get_event_plans(events: list[dict[str, Any]]) -> dict[str, list[dict]]:
