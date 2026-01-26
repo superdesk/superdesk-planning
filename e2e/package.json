@@ -8,7 +8,7 @@
         "superdesk-planning": "file:../"
     },
     "devDependencies": {
-        "@playwright/test": "~1.47.0",
+        "@playwright/test": "~1.58.0",
         "@superdesk/build-tools": "^1.0.14",
         "http-server": "14.1.1",
         "lodash": "^4.17.15",
