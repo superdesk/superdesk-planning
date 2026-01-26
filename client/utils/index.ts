@@ -678,7 +678,7 @@ export const isDateInRange = (inputDate, startDate, endDate, allDay = false) => 
 
     if (allDay) {
         if (startDate && inputDate.isBefore(startDate, 'day') ||
-            endDate && inputDate.isSameOrAfter(endDate, 'day')
+            endDate && inputDate.isAfter(endDate, 'day') // when allDay is true, endDate should be inclusive
         ) {
             return false;
         }
