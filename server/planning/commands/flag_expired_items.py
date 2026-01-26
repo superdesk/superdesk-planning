@@ -140,11 +140,15 @@ async def flag_expired_items(resource_type: Literal["event", "planning"], expiry
 
             items_expired.add(item_id)
 
-        await get_current_async_app().resources.bulk_update_resources([
-            ("events", events_to_expire, updates.copy()),
-            ("planning", planning_to_expire, updates.copy()),
-        ])
-        logger.info(f"{log_msg} {len(events_to_expire)} Events expired, {len(planning_to_expire)} Planning items expired")
+        await get_current_async_app().resources.bulk_update_resources(
+            [
+                ("events", events_to_expire, updates.copy()),
+                ("planning", planning_to_expire, updates.copy()),
+            ]
+        )
+        logger.info(
+            f"{log_msg} {len(events_to_expire)} Events expired, {len(planning_to_expire)} Planning items expired"
+        )
 
     if len(events_in_use) > 0:
         logger.info(f"{log_msg} Skipping {len(events_in_use)} Events in use: {list(events_in_use)}")
@@ -175,11 +179,7 @@ def get_event_plans(events: list[dict[str, Any]]) -> dict[str, list[dict]]:
     plans: dict[str, list[dict]] = {}
     event_ids = [event[ID_FIELD] for event in events]
 
-    projection = {
-        "_planning_schedule": 1,
-        "planning_date": 1,
-        "related_events": 1
-    }
+    projection = {"_planning_schedule": 1, "planning_date": 1, "related_events": 1}
     for plan in get_related_planning_for_events(event_ids, "primary", projection=projection):
         for related_event_id in get_related_event_ids_for_planning(plan, "primary"):
             plans.setdefault(related_event_id, []).append(plan)

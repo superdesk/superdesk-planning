@@ -44,15 +44,17 @@ async def iterate_expired_items(
                 )
             ),
         )
-        query.filter.extend([
-            elastic.field_range(
-                elastic.ElasticRangeParams(
-                    field="planning_date",
-                    lt=date_to_str(expiry_datetime),
-                    time_zone="UTC",
+        query.filter.extend(
+            [
+                elastic.field_range(
+                    elastic.ElasticRangeParams(
+                        field="planning_date",
+                        lt=date_to_str(expiry_datetime),
+                        time_zone="UTC",
+                    )
                 )
-            )
-        ])
+            ]
+        )
 
     query_dict = query.build()
 
