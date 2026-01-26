@@ -50,9 +50,9 @@ from planning.types import (
 from planning.planning.planning_history_async_service import PlanningHistoryAsyncService
 from planning.planning.planning_autosave_service import PlanningAutosaveAsyncService
 from planning.assignments.assignments_history_async import AssignmentsHistoryAsyncService
-from planning.assignments.assignments import get_next_assignment_status
 from planning.content_profiles.planning_types_async_service import PlanningTypesAsyncService
 from planning.common import (
+    get_next_assignment_status,
     get_coverage_status_from_cv,
     WORKFLOW_STATE,
     ASSIGNMENT_WORKFLOW_STATE,
@@ -1408,6 +1408,7 @@ class PlanningService(AsyncBaseService):
                 ).get(key):
                     return True
 
+            # check if priority exists in updates (not just truthy) to handle priority correctly
             if "priority" in updates["assigned_to"] and updates["assigned_to"]["priority"] != original.get("priority"):
                 return True
 
