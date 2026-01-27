@@ -3,19 +3,19 @@ import itertools
 
 from copy import deepcopy
 from bson import ObjectId
-from typing import Any, AsyncGenerator, cast
-from datetime import datetime, timedelta
+from typing import Any, cast
+from datetime import timedelta
 from apps.archive.common import get_auth
 from apps.auth import get_user, get_user_id
 
 from superdesk.utc import utcnow
-from superdesk.core import get_app_config
+from superdesk.core import get_config
 from superdesk import get_resource_service
 from superdesk.resource_fields import ID_FIELD
 from superdesk.errors import SuperdeskApiError
 from superdesk.metadata.item import GUID_NEWSML
 from superdesk.notification import push_notification
-from superdesk.core.utils import date_to_str, generate_guid
+from superdesk.core.utils import generate_guid
 
 
 from planning import signals
@@ -59,65 +59,6 @@ from .events_utils import (
 
 class EventsAsyncService(BasePlanningAsyncService[EventResourceModel]):
     resource_name = "events"
-
-    async def get_expired_items(
-        self, expiry_datetime: datetime, spiked_events_only: bool = False
-    ) -> AsyncGenerator[list[dict[str, Any]], None]:
-        """
-        Retrieve "expired" events which are those whose end date is on or before `expiry_datetime` and
-        are not already marked as expired.
-
-        By default, items returned are:
-        - Not already marked as expired (expired=True).
-        - Have an end date `<= expiry_datetime`.
-
-        If `spiked_events_only` is True, only spiked events are returned, still filtered by
-        end date `<= expiry_datetime`.
-
-        Results are sorted by start date and fetched in batches.
-        """
-        query: dict[str, Any] = {
-            "query": {
-                "bool": {
-                    "must_not": [{"term": {"expired": True}}],
-                    "filter": {"range": {"dates.end": {"lte": date_to_str(expiry_datetime)}}},
-                },
-            },
-            "sort": [{"dates.start": "asc"}],
-            "size": get_max_recurrent_events(),
-        }
-
-        if spiked_events_only:
-            del query["query"]["bool"]["must_not"]
-            query["query"]["bool"]["must"] = [{"term": {"state": WorkflowState.SPIKED}}]
-
-        total_received = 0
-        total_events = -1
-
-        while True:
-            query["from"] = total_received
-
-            results = await self.search(query)
-            items = await results.to_list_raw()
-            results_count = len(items)
-
-            # If the total_events has not been set, then this is the first query
-            # In which case we need to store the total hits from the search
-            if total_events < 0:
-                total_events = results_count
-
-                # If the search doesn't contain any results, return here
-                if total_events < 1:
-                    break
-
-            # If the last query doesn't contain any results, return here
-            if results_count == 0:
-                break
-
-            total_received += results_count
-
-            # Yield the results for iteration by the callee
-            yield items
 
     def _extract_embedded_planning(
         self, docs: list[EventResourceModel]
@@ -177,7 +118,7 @@ class EventsAsyncService(BasePlanningAsyncService[EventResourceModel]):
             event.id = event.guid
 
             if not event.language:
-                event.language = event.languages[0] if len(event.languages) > 0 else get_app_config("DEFAULT_LANGUAGE")
+                event.language = event.languages[0] if len(event.languages) > 0 else get_config(str, "DEFAULT_LANGUAGE")
 
             # overwrite expiry date if needed
             self._overwrite_event_expiry_date(event)
@@ -703,7 +644,7 @@ class EventsAsyncService(BasePlanningAsyncService[EventResourceModel]):
             assert event.dates is not None
             assert event.dates.end is not None
 
-            expiry_minutes = get_app_config("PLANNING_EXPIRY_MINUTES", None)
+            expiry_minutes = get_config(int, "PLANNING_EXPIRY_MINUTES", 0)
             event.expiry = event.dates.end + timedelta(minutes=expiry_minutes or 0)
 
     def set_recurring_mode(self, event: EventResourceModel):
