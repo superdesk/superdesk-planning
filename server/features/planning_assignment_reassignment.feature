@@ -111,7 +111,10 @@ Feature: Planning Assignment Reassignment State Management
     @vocabulary
     Scenario: User reassignment resets to ASSIGNED state when config enabled
         Given empty "planning"
-        When we set config assignment reset state on reassignment to True
+        Given config update
+        """
+        {"ASSIGNMENT_RESET_STATE_ON_REASSIGNMENT": true}
+        """
         When we post to "/archive"
         """
         [{
@@ -310,7 +313,10 @@ Feature: Planning Assignment Reassignment State Management
     @vocabulary
     Scenario: Unassigning user resets to ASSIGNED when config enabled
         Given empty "planning"
-        When we set config assignment reset state on reassignment to True
+        Given config update
+        """
+        {"ASSIGNMENT_RESET_STATE_ON_REASSIGNMENT": true}
+        """
         When we post to "/archive"
         """
         [{
@@ -410,7 +416,10 @@ Feature: Planning Assignment Reassignment State Management
     @vocabulary
     Scenario: Desk change without user change does NOT trigger state reset
         Given empty "planning"
-        When we set config assignment reset state on reassignment to True
+        Given config update
+        """
+        {"ASSIGNMENT_RESET_STATE_ON_REASSIGNMENT": true}
+        """
         When we post to "desks"
         """
         {"name": "Politics Desk", "members": [{"user": "#CONTEXT_USER_ID#"}]}
@@ -517,7 +526,10 @@ Feature: Planning Assignment Reassignment State Management
     @vocabulary
     Scenario: ASSIGNED state is also reset on user reassignment when config enabled
         Given empty "planning"
-        When we set config assignment reset state on reassignment to True
+        Given config update
+        """
+        {"ASSIGNMENT_RESET_STATE_ON_REASSIGNMENT": true}
+        """
         When we post to "/planning"
         """
         [{
