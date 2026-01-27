@@ -308,13 +308,13 @@ Feature: Planning Assignment Reassignment State Management
     @auth
     @notification
     @vocabulary
-    Scenario: Unassigning user does NOT reset to ASSIGNED even with config enabled
+    Scenario: Unassigning user resets to ASSIGNED when config enabled
         Given empty "planning"
         When we set config assignment reset state on reassignment to True
         When we post to "/archive"
         """
         [{
-            "guid": "test_content_unassign_noreset",
+            "guid": "test_content_unassign_reset",
             "type": "text",
             "headline": "test headline",
             "slugline": "test slugline",
@@ -328,9 +328,9 @@ Feature: Planning Assignment Reassignment State Management
         When we post to "/planning"
         """
         [{
-            "guid": "test_unassign_noreset",
+            "guid": "test_unassign_reset",
             "headline": "Test unassignment with config enabled",
-            "slugline": "test unassign no reset",
+            "slugline": "test unassign reset",
             "planning_date": "2026-01-02"
         }]
         """
@@ -387,6 +387,7 @@ Feature: Planning Assignment Reassignment State Management
                 },
                 "assigned_to": {
                     "desk": "#desks._id#",
+                    "user": null,
                     "assignment_id": "#assignment1#"
                 }
             }]
@@ -398,7 +399,7 @@ Feature: Planning Assignment Reassignment State Management
         """
         {
             "assigned_to": {
-                "state": "in_progress",
+                "state": "assigned",
                 "desk": "#desks._id#"
             }
         }
