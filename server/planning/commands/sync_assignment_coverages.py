@@ -11,7 +11,9 @@ from copy import deepcopy
 from typing import Any
 
 import click
+
 from bson import ObjectId
+from bson.errors import InvalidId
 
 from superdesk import get_resource_service
 
@@ -86,19 +88,16 @@ class SyncAssignmentCoveragesCommand:
         for planning in planning_service.get_all_batch(size=page_size, lookup=query):
             yield planning
 
-    def collect_assignment_ids(self, coverages: list[dict[str, Any]]) -> list[Any]:
-        assignment_ids: list[Any] = []
+    def collect_assignment_ids(self, coverages: list[dict[str, Any]]) -> list[ObjectId]:
+        assignment_ids: list[ObjectId] = []
 
         def _collect(value: Any) -> None:
             if not value:
                 return
-            if isinstance(value, ObjectId):
-                assignment_ids.append(value)
-                return
             try:
-                assignment_ids.append(ObjectId(str(value)))
-            except Exception:
-                assignment_ids.append(str(value))
+                assignment_ids.append(ObjectId(value))
+            except InvalidId:
+                pass
 
         for coverage in coverages:
             assigned_to = coverage.get("assigned_to") or {}
@@ -112,8 +111,7 @@ class SyncAssignmentCoveragesCommand:
 
     def fetch_assignments(self, assignment_ids: list[ObjectId]) -> dict[str, dict[str, Any]]:
         assignments_service = get_resource_service("assignments")
-        query_ids = self.build_assignment_query_ids(assignment_ids)
-        cursor = assignments_service.get_from_mongo(req=None, lookup={"_id": {"$in": list(query_ids)}})
+        cursor = assignments_service.get_from_mongo(req=None, lookup={"_id": {"$in": assignment_ids}})
         return {str(doc.get("_id")): doc for doc in cursor}
 
     def sync_coverages(self, coverages: list[dict[str, Any]], assignments: dict[str, dict[str, Any]]) -> bool:
@@ -129,6 +127,10 @@ class SyncAssignmentCoveragesCommand:
             assigned_to = coverage.get("assigned_to") or {}
             assignment_id = assigned_to.get("assignment_id")
             if assignment_id is not None:
+                try:
+                    assignment_id = ObjectId(assignment_id)
+                except InvalidId:
+                    continue
                 assignment = assignments.get(str(assignment_id))
                 if assignment is None:
                     assignment = self.find_assignment_by_id(assignment_id)
@@ -142,6 +144,10 @@ class SyncAssignmentCoveragesCommand:
                 scheduled_assignment_id = scheduled_assigned_to.get("assignment_id")
                 if scheduled_assignment_id is None:
                     continue
+                try:
+                    scheduled_assignment_id = ObjectId(scheduled_assignment_id)
+                except InvalidId:
+                    continue
                 assignment = assignments.get(str(scheduled_assignment_id))
                 if assignment is None:
                     assignment = self.find_assignment_by_id(scheduled_assignment_id)
@@ -152,26 +158,9 @@ class SyncAssignmentCoveragesCommand:
 
         return updated
 
-    def find_assignment_by_id(self, assignment_id: Any) -> dict[str, Any] | None:
+    def find_assignment_by_id(self, assignment_id: ObjectId) -> dict[str, Any] | None:
         assignments_service = get_resource_service("assignments")
-        query_ids = self.build_assignment_query_ids([assignment_id])
-        cursor = assignments_service.get_from_mongo(req=None, lookup={"_id": {"$in": list(query_ids)}})
+        cursor = assignments_service.get_from_mongo(req=None, lookup={"_id": {"$in": [assignment_id]}})
         for doc in cursor:
             return doc
         return None
-
-    def build_assignment_query_ids(self, assignment_ids: list[Any]) -> set[Any]:
-        query_ids: set[Any] = set()
-        for assignment_id in assignment_ids:
-            if assignment_id is None:
-                continue
-            query_ids.add(assignment_id)
-            if isinstance(assignment_id, ObjectId):
-                query_ids.add(str(assignment_id))
-            else:
-                try:
-                    query_ids.add(ObjectId(str(assignment_id)))
-                except Exception:
-                    pass
-            query_ids.add(str(assignment_id))
-        return query_ids
