@@ -4,7 +4,7 @@ import classNames from 'classnames';
 import {superdeskApi} from '../../superdeskApi';
 import {getVocabularyItemFieldTranslated} from '../../utils/vocabularies';
 import {getUserInterfaceLanguageFromCV} from '../../utils/users';
-import {Tooltip} from 'superdesk-ui-framework';
+import {Tooltip} from 'superdesk-ui-framework/react';
 
 interface IProps {
     item: {

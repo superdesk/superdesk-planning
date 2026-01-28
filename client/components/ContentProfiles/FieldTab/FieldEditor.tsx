@@ -158,7 +158,7 @@ export class FieldEditor extends React.Component<IProps, IState> {
                             />
                             {noOptionsAvailable ? null : (
                                 <Button
-                                    text={gettext('Save')}
+                                    text={gettext('Apply')}
                                     onClick={this.saveField}
                                     type="primary"
                                     disabled={!this.props.isDirty}

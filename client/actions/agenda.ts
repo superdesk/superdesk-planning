@@ -1,6 +1,6 @@
 import * as selectors from '../selectors';
 import {cloneDeep, pick, get, sortBy, findIndex} from 'lodash';
-import {Moment} from 'moment';
+import moment, {Moment} from 'moment';
 
 import {IEventItem, IPlanningItem, IAgenda, IPlanningRelatedEventLink} from '../interfaces';
 import {planningApi} from '../superdeskApi';
@@ -270,6 +270,11 @@ export function convertEventToPlanningItem(event: IEventItem): Partial<IPlanning
         language: event.language || defaultValues.language,
         languages: event.languages || defaultValues.languages,
     };
+
+    if (newPlanningItem.all_day && event.dates?.all_day) {
+        // avoid using local _sortDate for all day planning, copy event start date
+        newPlanningItem.planning_date = moment.utc(event.dates?.start);
+    }
 
     if (event.location) {
         newPlanningItem.location = event.location;

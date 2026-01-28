@@ -295,13 +295,15 @@ export class GroupTabComponent extends React.Component<IProps, IState> {
 
         confirm(
             groupFields.length ?
-                gettext('This will also remove all fields for this group. Delete anyway?') :
-                gettext('Are you sure you want to delete this group'),
-            gettext('Delete Group "{{group}}"?', {
-                group: getProfileGroupNameTranslated(group),
-            })
-        ).then((response) => {
-            if (response) {
+                gettext('Group "{{group}}" and all its fields will be permanently deleted.', {
+                    group: getProfileGroupNameTranslated(group),
+                }) :
+                gettext('Group "{{group}}" will be permanently deleted.', {
+                    group: getProfileGroupNameTranslated(group),
+                }),
+            gettext('Delete Item?')
+        ).then((confirmed) => {
+            if (confirmed) {
                 if (this.state.selectedGroup?._id === group._id) {
                     this.setState({
                         selectedGroup: undefined,

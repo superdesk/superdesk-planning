@@ -1,6 +1,6 @@
 import {test, expect} from '@playwright/test';
 
-import {setup, login, addItems, waitForPageLoad, SubNavBar} from '../utils/common';
+import {setup, login, addItems, waitForPageLoad, SubNavBar, UiFrameworkModal} from '../utils/common';
 import {PlanningList, PlanningEditor, PlanningPreview, FeaturedModal} from '../utils/planning';
 import {createPlanningFor} from '../utils/fixtures/planning';
 import {setupPlanningPublishing} from '../utils/fixtures/publish_config';
@@ -8,13 +8,15 @@ import {setupPlanningPublishing} from '../utils/fixtures/publish_config';
 test.describe('Planning.Featured', () => {
     let subnav: SubNavBar;
     let modal: FeaturedModal;
+    let uiFrameworkModal: UiFrameworkModal;
     let list: PlanningList;
     let editor: PlanningEditor;
     let preview: PlanningPreview;
 
-    test.beforeEach(async ({page}) => {
+    test.beforeEach(async({page}) => {
         subnav = new SubNavBar(page);
         modal = new FeaturedModal(page);
+        uiFrameworkModal = new UiFrameworkModal(page);
         list = new PlanningList(page);
         editor = new PlanningEditor(page);
         preview = new PlanningPreview(page);
@@ -63,27 +65,29 @@ test.describe('Planning.Featured', () => {
             .dblclick();
 
         await editor.waitLoadingComplete();
-        await editor.postButton.click()
+        await editor.postButton.click();
         await editor.waitForAutosave();
-        await editor.closeButton.click()
+        await editor.closeButton.click();
         await editor.waitTillClosed();
     }
 
     async function addPlanningToFeaturedStories(slugline: string): Promise<void> {
-        await list.items().getByText(slugline).click();
+        await list.items().getByText(slugline)
+            .click();
         await expect(preview.element.getByText(slugline)).toBeVisible();
         await preview.clickAction('Add to featured stories');
     }
 
     async function removePlanningFromFeaturedStories(slugline: string): Promise<void> {
-        await list.items().getByText(slugline).click();
+        await list.items().getByText(slugline)
+            .click();
 
         await expect(preview.element
             .getByText(slugline)).toBeVisible();
         await preview.clickAction('Remove from featured stories');
     }
 
-    test('can add a new item', async ({page}) => {
+    test('can add a new item', async({page}) => {
         await openFeaturedStoriesModal();
 
         // 1. Open the Modal with a new FeaturedStory
@@ -98,21 +102,24 @@ test.describe('Planning.Featured', () => {
 
         // 2. Attempt to close the Modal, then cancel
         await modal.footerButton('Close').click();
-        await modal.shouldContainTitle('Save Changes?');
-        await modal.getFooterButton('Cancel').click();
+        await uiFrameworkModal.shouldContainTitle('Unsaved changes');
+        await uiFrameworkModal.getFooterButton('Cancel').click();
         await modal.shouldContainTitle('Featured Stories');
 
         // 3. Attempt to close the Modal again, ignoring unsaved changes
         await modal.footerButton('Close').click();
-        await modal.shouldContainTitle('Save Changes?');
-        await modal.getFooterButton('Ignore').click();
+        await uiFrameworkModal.shouldContainTitle('Unsaved changes');
+        await uiFrameworkModal.getFooterButton('Ignore').click();
         await modal.waitTillClosed();
+
+        // Wait a moment for the modal to fully clean up before reopening
+        await page.waitForTimeout(500);
 
         // 4. Attempt to open -> close the Modal again, this time saving the changes
         await openFeaturedStoriesModal();
         await modal.footerButton('Close').click();
-        await modal.shouldContainTitle('Save Changes?');
-        await modal.footerButton('Save').click();
+        await uiFrameworkModal.shouldContainTitle('Unsaved changes');
+        await uiFrameworkModal.getFooterButton('Save').click();
         await modal.waitTillClosed();
 
         // 5. Post the Planning item
@@ -149,7 +156,7 @@ test.describe('Planning.Featured', () => {
             removed: null,
         });
         // Make sure this item is highlighted after moving it
-        await modal.expectListItemHighlighted('selected', 0)
+        await modal.expectListItemHighlighted('selected', 0);
         // Update the FeaturedStory, then close the modal
         await modal.footerButton('Update').click();
         await modal.waitTillLoadingFinished();

@@ -1,6 +1,6 @@
 import {test, expect} from '@playwright/test';
 
-import {setup, login, waitForPageLoad, Workqueue, Modal, addItems} from './utils/common';
+import {setup, login, waitForPageLoad, Workqueue, UiFrameworkModal, addItems} from './utils/common';
 import {AdvancedSearch, EventEditor, PlanningList} from './utils/planning';
 
 import {TEST_EVENTS} from './utils/fixtures/events';
@@ -9,14 +9,14 @@ test.describe('Planning.Workqueue', () => {
     let editor: EventEditor;
     let list: PlanningList;
     let workqueue: Workqueue;
-    let modal: Modal;
+    let modal: UiFrameworkModal;
     let search: AdvancedSearch;
 
-    test.beforeEach(async ({page}) => {
+    test.beforeEach(async({page}) => {
         editor = new EventEditor(page);
         list = new PlanningList(page);
         workqueue = new Workqueue(page);
-        modal = new Modal(page);
+        modal = new UiFrameworkModal(page);
         search = new AdvancedSearch(page);
 
         await setup(page, 'planning_prepopulate_data', '/#/planning');
@@ -24,7 +24,7 @@ test.describe('Planning.Workqueue', () => {
         await waitForPageLoad.planning(page);
     });
 
-    test('Events', async ({page}) => {
+    test('Events', async({page}) => {
         // Add the 3 Events we'll use for testing against
         await addItems(
             page.request,
@@ -144,7 +144,7 @@ test.describe('Planning.Workqueue', () => {
         await expect(list.item(1).locator('.sd-list-item__border--locked')).not.toBeAttached();
     });
 
-    test('infinite load with goto from workqueue', async ({page}) => {
+    test('infinite load with goto from workqueue', async({page}) => {
         // Add the Event/Planning items we'll use for testing against
         await addItems(page.request, 'events', [TEST_EVENTS.draft]);
 

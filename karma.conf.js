@@ -9,14 +9,12 @@ module.exports = function(config) {
     webpackConfig.mode = 'development';
 
     // Pass test file pattern to webpack via environment variable
-    if (process.env.TEST_FILE_PATTERN) {
-        webpackConfig.plugins = webpackConfig.plugins || [];
-        webpackConfig.plugins.push(
-            new (require('webpack')).DefinePlugin({
-                'process.env.TEST_FILE_PATTERN': JSON.stringify(process.env.TEST_FILE_PATTERN),
-            })
-        );
-    }
+    webpackConfig.plugins = webpackConfig.plugins || [];
+    webpackConfig.plugins.push(
+        new (require('webpack')).DefinePlugin({
+            'process.env.TEST_FILE_PATTERN': JSON.stringify(process.env.TEST_FILE_PATTERN || ''),
+        })
+    );
 
     // Allow choosing reporter via KARMA_REPORTER env variable
     // Options: 'dots' (default), 'verbose', 'progress'

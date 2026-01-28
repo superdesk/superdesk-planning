@@ -1,18 +1,34 @@
 import React from 'react';
-import PropTypes from 'prop-types';
 import classNames from 'classnames';
 
 import {Button} from './index';
 import {KEYCODES} from './constants';
 import {onEventCapture} from './utils';
 
+interface ButtonListProps {
+    buttonList?: Array<any>;
+    captureShiftTab?: boolean;
+    right?: boolean;
+}
+
 /**
  * @ngdoc react
  * @name ButtonList
  * @description List of buttons
  */
-class ButtonList extends React.PureComponent {
-    constructor(props) {
+class ButtonList extends React.PureComponent<ButtonListProps> {
+    static defaultProps = {
+        buttonList: [],
+        captureShiftTab: true,
+        right: true,
+    };
+
+    dom: {
+        startButton: HTMLButtonElement | null;
+        endButton: HTMLButtonElement | null;
+    };
+
+    constructor(props: ButtonListProps) {
         super(props);
         this.dom = {
             startButton: null,
@@ -20,7 +36,7 @@ class ButtonList extends React.PureComponent {
         };
     }
 
-    onKeyDown(index, event) {
+    onKeyDown(index: number, event: React.KeyboardEvent) {
         if (event.keyCode !== KEYCODES.TAB) {
             return;
         }
@@ -62,17 +78,5 @@ class ButtonList extends React.PureComponent {
         );
     }
 }
-
-ButtonList.propTypes = {
-    buttonList: PropTypes.array,
-    captureShiftTab: PropTypes.bool,
-    right: PropTypes.bool,
-};
-
-ButtonList.defaultProps = {
-    buttonList: [],
-    captureShiftTab: true,
-    right: true,
-};
 
 export default ButtonList;

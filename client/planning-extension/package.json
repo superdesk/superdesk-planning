@@ -15,5 +15,8 @@
   },
   "superdeskExtension": {
     "translations-directory": "./translations"
+  },
+  "volta": {
+    "node": "22.22.0"
   }
 }

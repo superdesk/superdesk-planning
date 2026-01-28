@@ -263,11 +263,11 @@ class AssignmentsContentService(AsyncBaseService):
         coverage = await get_coverage_for_assignment(assignment)
         assignment_id = (coverage.get("assigned_to") or {}).get("assignment_id")
 
-        if len(coverage.get("scheduled_updates")) == 0:
+        if len(coverage.get("scheduled_updates") or []) == 0:
             previous_items = await get_archive_items_for_assignment(assignment_id)
         else:
             previous_items = await get_archive_items_for_assignment(assignment_id)
-            for s in coverage.get("scheduled_updates"):
+            for s in coverage.get("scheduled_updates") or []:
                 new_items = await get_archive_items_for_assignment((s.get("assigned_to") or {}).get("assignment_id"))
                 if await new_items.count() > 0:
                     previous_items = new_items
@@ -322,7 +322,7 @@ class AssignmentsContentService(AsyncBaseService):
                 raise SuperdeskApiError.badRequestError("Coverage not linked to news item yet.")
 
             # Since scheduled_updates are cronologically indexed, check all previous scheduled_updates
-            for s in coverage.get("scheduled_updates"):
+            for s in coverage.get("scheduled_updates") or []:
                 if s.get("scheduled_update_id") == assignment["scheduled_update_id"]:
                     break
 

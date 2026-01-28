@@ -120,6 +120,10 @@ class AssignmentsCompleteService(AsyncBaseService):
 
         item = await self.backend.update_async(self.datasource, id, updates, original)
 
+        assignment = deepcopy(original)
+        assignment.update(updates)
+        await assignments_service._update_planning_coverages_from_assignment(assignment)
+
         # publish the planning item
         await assignments_service.publish_planning(original["planning_item"])
 
