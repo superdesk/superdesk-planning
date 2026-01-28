@@ -5,6 +5,7 @@ from .export_to_newsroom import ExportToNewsroom  # noqa
 from .export_scheduled_filters import ExportScheduledFilters  # noqa
 from .purge_expired_locks import purge_expired_locks_handler  # noqa
 from .replace_deprecated_event_item_attribute import ReplaceDeprecatedEventItemAttributeCommand  # noqa
+from .sync_assignment_coverages import sync_assignment_coverages_command  # noqa
 from .async_cli import planning_cli, commands_blueprint  # noqa
 
 

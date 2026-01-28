@@ -143,16 +143,9 @@ class PlanningService(AsyncBaseService):
             doc.pop("_updates_schedule", None)
             sync_assignment_details_to_coverages(doc)
 
-    async def on_fetched_async(self, docs):
-        self.generate_related_assignments(docs.get(ITEMS))
-
-    async def on_fetched_item_async(self, doc):
-        self.generate_related_assignments([doc])
-
     async def find_one_async(self, req, **lookup):
         item = await super().find_one_async(req, **lookup)
         if item:
-            self.generate_related_assignments([item])
             for coverage in item.get("coverages", []):
                 if coverage.get("planning", {}).get("scheduled") and not isinstance(
                     coverage["planning"]["scheduled"], datetime
@@ -1066,9 +1059,10 @@ class PlanningService(AsyncBaseService):
             if TO_BE_CONFIRMED_FIELD in doc:
                 assignment["planning"][TO_BE_CONFIRMED_FIELD] = doc[TO_BE_CONFIRMED_FIELD]
 
-            new_assignment_id = str((await assignment_service.post_async([assignment]))[0])
+            new_assignment_id = str((await assignment_service.post_from_planning([assignment]))[0])
             updates["assigned_to"]["assignment_id"] = new_assignment_id
             updates["assigned_to"]["state"] = assign_state
+            updates["assigned_to"]["priority"] = assignment.get("priority")
         elif assigned_to.get("assignment_id"):
             await self.set_xmp_file_info(updates, original)
 
@@ -1207,6 +1201,7 @@ class PlanningService(AsyncBaseService):
                     ObjectId(assigned_to.get("assignment_id")),
                     assignment,
                     original_assignment,
+                    skip_planning_sync=True,
                 )
 
             if self.is_xmp_updated(updates, original):
@@ -1344,11 +1339,11 @@ class PlanningService(AsyncBaseService):
         await self.send_remove_assignment_notifications(planning_item, coverage_item, assignment_item)
         for s in coverage_item.get("scheduled_updates") or []:
             if "assigned_to" in s:
-                del s["assigned_to"]
+                s["assigned_to"] = {}
             s["workflow_status"] = WORKFLOW_STATE.DRAFT
 
         if "assigned_to" in coverage_item:
-            del coverage_item["assigned_to"]
+            coverage_item["assigned_to"] = {}
         coverage_item["workflow_status"] = WORKFLOW_STATE.DRAFT
 
         updated_planning = await self.system_update_async(
@@ -1453,7 +1448,7 @@ class PlanningService(AsyncBaseService):
                 original_assigment = await assignment_service.find_one_async(req=None, _id=assign_id)
                 if original_assigment:
                     await assignment_service.system_update_async(
-                        ObjectId(assign_id), {"_to_delete": True}, original_assigment
+                        ObjectId(assign_id), {"_to_delete": True}, original_assigment, skip_planning_sync=True
                     )
 
         if request:

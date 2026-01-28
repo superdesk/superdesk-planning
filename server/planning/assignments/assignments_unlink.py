@@ -55,7 +55,7 @@ class AssignmentsUnlinkService(AsyncBaseService):
             coverage = await get_coverage_for_assignment(assignment)
             related_items = await get_related_items(
                 actioned_item,
-                assignment if coverage and len(coverage.get("scheduled_updates")) <= 0 else None,
+                assignment if coverage and len(coverage.get("scheduled_updates") or []) <= 0 else None,
             )
             for item in related_items:
                 # For all items, update news item for unlinking
