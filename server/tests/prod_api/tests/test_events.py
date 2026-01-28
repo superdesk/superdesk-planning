@@ -74,6 +74,27 @@ def test_excluded_fields(prodapi_app_with_data, prodapi_app_with_data_client):
         assert len(set(resp_data.keys()) & excluded_fields) == 0
 
 
+def test_filter_by_planning_search(prodapi_app_with_data, prodapi_app_with_data_client):
+    """Test filtering events by planning items using planning_source parameter with Elasticsearch query.
+
+    Note: The query must use analyzed field queries (match, query_string) not term queries
+    because planning fields like 'slugline' are analyzed during indexing.
+    """
+    target_event_id = "urn:newsml:localhost:5000:2019-09-10T16:22:34.066960:6b2d9c79-08b9-456f-b890-9b2154ee997a"
+
+    with prodapi_app_with_data.test_request_context():
+        # Use match query for analyzed fields like slugline
+        elastic_query = {"query": {"match": {"slugline": "PLAN B"}}}
+        resp = prodapi_app_with_data_client.get(
+            url_for("events|resource", planning_source=json.dumps(elastic_query)),
+        )
+        resp_data = json.loads(resp.data.decode("utf-8"))
+
+        assert resp.status_code == 200
+        assert len(resp_data["_items"]) == 1
+        assert resp_data["_items"][0]["guid"] == target_event_id
+
+
 def test_filter_events_by_source_and_planning_source(prodapi_app_with_data, prodapi_app_with_data_client):
     """Test combining event search via source param with planning filtering via planning_source param
 
@@ -94,6 +115,107 @@ def test_filter_events_by_source_and_planning_source(prodapi_app_with_data, prod
                 source=json.dumps(event_source),
                 planning_source=json.dumps(planning_source),
             ),
+        )
+        resp_data = json.loads(resp.data.decode("utf-8"))
+
+        assert resp.status_code == 200
+        assert len(resp_data["_items"]) == 1
+        assert resp_data["_items"][0]["guid"] == target_event_id
+
+
+def test_planning_source_invalid_json(prodapi_app_with_data, prodapi_app_with_data_client):
+    """Test that invalid JSON in planning_source parameter returns 400 error
+
+    :param prodapi_app_with_data: prod api app with filled data
+    :param prodapi_app_with_data_client: client for prod api app with filled data
+    """
+
+    with prodapi_app_with_data.test_request_context():
+        # Pass invalid JSON as planning_source
+        resp = prodapi_app_with_data_client.get(
+            url_for("events|resource", planning_source="not valid json"),
+        )
+
+        assert resp.status_code == 400
+
+
+def test_planning_source_no_matches(prodapi_app_with_data, prodapi_app_with_data_client):
+    """Test that planning_source matching no items returns empty results
+
+    :param prodapi_app_with_data: prod api app with filled data
+    :param prodapi_app_with_data_client: client for prod api app with filled data
+    """
+
+    with prodapi_app_with_data.test_request_context():
+        # Query for planning items that don't exist
+        elastic_query = {"query": {"match": {"slugline": "NONEXISTENT_PLANNING"}}}
+        resp = prodapi_app_with_data_client.get(
+            url_for("events|resource", planning_source=json.dumps(elastic_query)),
+        )
+        resp_data = json.loads(resp.data.decode("utf-8"))
+
+        assert resp.status_code == 200
+        assert len(resp_data["_items"]) == 0
+
+
+def test_planning_items_without_event_item(prodapi_app_with_data, prodapi_app_with_data_client):
+    """Test that planning items without event_item field are skipped
+
+    When planning items match the query but have no event_item field,
+    they should be ignored (not cause errors).
+
+    :param prodapi_app_with_data: prod api app with filled data
+    :param prodapi_app_with_data_client: client for prod api app with filled data
+    """
+
+    with prodapi_app_with_data.test_request_context():
+        # Query for "test planning item" which exists but may not have event_item
+        elastic_query = {"query": {"match": {"slugline": "test"}}}
+        resp = prodapi_app_with_data_client.get(
+            url_for("events|resource", planning_source=json.dumps(elastic_query)),
+        )
+        resp_data = json.loads(resp.data.decode("utf-8"))
+
+        # Should not error, just return whatever matches
+        assert resp.status_code == 200
+
+
+def test_event_source_without_planning_source(prodapi_app_with_data, prodapi_app_with_data_client):
+    """Test that event source filtering works independently without planning_source
+
+    :param prodapi_app_with_data: prod api app with filled data
+    :param prodapi_app_with_data_client: client for prod api app with filled data
+    """
+
+    with prodapi_app_with_data.test_request_context():
+        # Use only source parameter, no planning_source
+        event_source = {"query": {"query_string": {"query": "EVENT A", "default_field": "slugline"}}}
+        resp = prodapi_app_with_data_client.get(
+            url_for("events|resource", source=json.dumps(event_source)),
+        )
+        resp_data = json.loads(resp.data.decode("utf-8"))
+
+        assert resp.status_code == 200
+        # Should return event matching the source query
+        assert len(resp_data["_items"]) >= 1
+        for item in resp_data["_items"]:
+            assert "EVENT A" in item.get("slugline", "")
+
+
+def test_planning_source_alone_filters_correctly(prodapi_app_with_data, prodapi_app_with_data_client):
+    """Test that planning_source alone (without source parameter) filters events correctly
+
+    :param prodapi_app_with_data: prod api app with filled data
+    :param prodapi_app_with_data_client: client for prod api app with filled data
+    """
+
+    target_event_id = "urn:newsml:localhost:5000:2019-09-10T16:22:34.066960:6b2d9c79-08b9-456f-b890-9b2154ee997a"
+
+    with prodapi_app_with_data.test_request_context():
+        # Use only planning_source, no event source parameter
+        planning_source = {"query": {"match": {"slugline": "PLAN B"}}}
+        resp = prodapi_app_with_data_client.get(
+            url_for("events|resource", planning_source=json.dumps(planning_source)),
         )
         resp_data = json.loads(resp.data.decode("utf-8"))
 
