@@ -27,6 +27,7 @@ interface IBaseProps {
     shadow?: number;
     editPlanningComponent?: React.ReactNode;
     isAgendaEnabled: boolean;
+    noColumnPadding?: boolean;
     onClick?(): void;
 }
 
@@ -118,7 +119,7 @@ class RelatedPlanningListItemComponent extends React.PureComponent<IProps> {
                 <List.Column
                     grow={true}
                     border={false}
-                    style={{paddingBlock: 'var(--space--1)'}}
+                    style={this.props.noColumnPadding ? undefined : {paddingBlock: 'var(--space--1)'}}
                 >
                     <LineItems
                         firstLine={planningFirstLineConfig.filter(({fieldId}) => fieldId !== 'related_events')}

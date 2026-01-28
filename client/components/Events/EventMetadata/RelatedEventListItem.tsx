@@ -26,6 +26,7 @@ interface IBaseProps {
     shadow?: number;
     dateOnly?: boolean;
     eventActions?: React.ReactNode;
+    noColumnPadding?: boolean;
     onClick?(): void;
 
     // Redux Store
@@ -110,7 +111,7 @@ class RelatedEventListItemComponent extends React.PureComponent<IProps> {
                 <List.Column
                     grow={true}
                     border={false}
-                    style={{paddingBlock: 'var(--space--1)'}}
+                    style={this.props.noColumnPadding ? undefined : {paddingBlock: 'var(--space--1)'}}
                 >
                     <LineItems
                         firstLine={eventFirstLineConfig.filter(({fieldId}) => fieldId !== 'related_plannings')}

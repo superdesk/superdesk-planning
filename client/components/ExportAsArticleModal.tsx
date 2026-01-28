@@ -5,11 +5,10 @@ import {IDesk, ITemplate} from 'superdesk-api';
 import {superdeskApi} from '../superdeskApi';
 import {IEventOrPlanningItem, ILockedItems, IPlanningExportTemplate} from '../interfaces';
 
-import {KEYCODES, PERSONAL_WORKSPACE} from '../constants';
+import {PERSONAL_WORKSPACE} from '../constants';
 import {lockUtils} from '../utils';
 import * as selectors from '../selectors';
 
-import {Modal} from './index';
 import SortItems from './SortItems/index';
 import {RelatedEventListItem} from './Events/EventMetadata/RelatedEventListItem';
 import {RelatedPlanningListItem} from './RelatedPlannings/PlanningMetaData/RelatedPlanningListItem';
@@ -23,6 +22,7 @@ import {
     Select,
     Option,
     Spacer,
+    Modal,
 } from 'superdesk-ui-framework/react';
 
 interface IOwnProps {
@@ -94,21 +94,6 @@ class ExportAsArticleModalComponent extends React.Component<IProps, IState> {
             articleTemplateId: articleTemplateId,
             articleTemplates: articleTemplates,
         };
-    }
-
-    componentDidMount() {
-        document.addEventListener('keydown', this.handleKeydown);
-    }
-
-    componentWillUnmount() {
-        document.removeEventListener('keydown', this.handleKeydown);
-    }
-
-    handleKeydown = (event) => {
-        if (event.keyCode === KEYCODES.ESCAPE) {
-            event.preventDefault();
-            this.props.handleHide();
-        }
     }
 
     onChangeDesk = (deskId: IDesk['_id']) => {
@@ -228,6 +213,7 @@ class ExportAsArticleModalComponent extends React.Component<IProps, IState> {
                     showCheckbox={true}
                     checked={selected}
                     onCheckToggle={this.toggleItemSelection.bind(this, item)}
+                    noColumnPadding={true}
                 />
             );
         } else if (item.type === 'planning') {
@@ -242,6 +228,7 @@ class ExportAsArticleModalComponent extends React.Component<IProps, IState> {
                     showCheckbox={true}
                     checked={selected}
                     onCheckToggle={this.toggleItemSelection.bind(this, item)}
+                    noColumnPadding={true}
                 />
             );
         } else {
@@ -261,110 +248,15 @@ class ExportAsArticleModalComponent extends React.Component<IProps, IState> {
         const unselectedLockedItemIds = lockedItemIds.filter((itemId) => !this.state.selectedItems.includes(itemId));
 
         return (
-            <Modal show={true} large={true}>
-                <Modal.Header>
-                    <h3 className="modal__heading">{gettext('Export as article')}</h3>
-                </Modal.Header>
-                <Modal.Body>
-                    <FormLayout marginBottom="spaces">
-                        {this.props.modalProps.download === true ? null : (
-                            <React.Fragment>
-                                <FormGroupV2>
-                                    <FormGroupItem>
-                                        <Select
-                                            label={gettext('Desk')}
-                                            value={this.state.deskId}
-                                            onChange={this.onChangeDesk}
-                                            required={true}
-                                        >
-                                            <Option value={PERSONAL_WORKSPACE._id}>
-                                                {PERSONAL_WORKSPACE.name}
-                                            </Option>
-                                            {this.props.userDesks.map((desk) => (
-                                                <Option key={desk._id} value={desk._id}>{desk.name}</Option>
-                                            ))}
-                                        </Select>
-                                    </FormGroupItem>
-                                </FormGroupV2>
-                                <FormGroupV2>
-                                    <FormGroupItem>
-                                        <Select
-                                            label={gettext('Article Template')}
-                                            value={this.state.articleTemplateId}
-                                            onChange={this.onChangeTemplate}
-                                        >
-                                            <Option />
-                                            {this.state.articleTemplates.map((articleTemplate) => (
-                                                <Option key={articleTemplate._id} value={articleTemplate._id}>
-                                                    {articleTemplate.template_name}
-                                                </Option>
-                                            ))}
-                                        </Select>
-                                    </FormGroupItem>
-                                </FormGroupV2>
-                            </React.Fragment>
-                        )}
-
-                        <FormGroupV2>
-                            <FormGroupItem>
-                                <Select
-                                    label={gettext('Custom Layout')}
-                                    value={this.state.planningTemplateName}
-                                    onChange={this.onChangePlanningTemplate}
-                                >
-                                    <Option />
-                                    {this.props.planningTemplates.map((planningTemplate) => (
-                                        <Option key={planningTemplate.name} value={planningTemplate.name}>
-                                            {planningTemplate.label}
-                                        </Option>
-                                    ))}
-                                </Select>
-                            </FormGroupItem>
-                        </FormGroupV2>
-                    </FormLayout>
-                    {lockedItemIds.length === 0 ? null : (
-                        <React.Fragment>
-                            <Alert
-                                style="hollow"
-                                size="normal"
-                                icon="warning-sign"
-                                type="warning"
-                                restoreIcon="info"
-                            >
-                                <Spacer v={true} gap="4">
-                                    {gettextPlural(
-                                        lockedItemIds.length,
-                                        'One of the items that was selected is locked. ' +
-                                        'By default locked items are not included in the export.',
-                                        '{{ count }} items that were selected are locked. ' +
-                                        'By default locked items are not included in the export.',
-                                        {count: lockedItemIds.length}
-                                    )}
-                                    <ButtonGroup align="end">
-                                        <Button
-                                            type="tertiary"
-                                            onClick={unselectedLockedItemIds.length > 0 ?
-                                                this.includeAllLockedItems :
-                                                this.excludeAllLockedItems
-                                            }
-                                            text={unselectedLockedItemIds.length > 0 ?
-                                                gettext('Include all locked items') :
-                                                gettext('Exclude all locked items')
-                                            }
-                                        />
-                                    </ButtonGroup>
-                                </Spacer>
-                            </Alert>
-                        </React.Fragment>
-                    )}
-                    <SortItems
-                        items={this.state.items}
-                        onSortChange={this.onSortChange}
-                        getListElement={this.getListElement}
-                    />
-                </Modal.Body>
-                <Modal.Footer>
-                    <div className="button-group button-group--end button-group--comfort">
+            <Modal
+                visible={true}
+                size="large"
+                position="top"
+                headerTemplate={gettext('Export as article')}
+                onHide={this.props.handleHide}
+                closeOnEscape={true}
+                footerTemplate={(
+                    <ButtonGroup align="end">
                         <Button type="default" onClick={this.props.handleHide} text={gettext('Cancel')} />
                         {this.props.modalProps.download !== true ? (
                             <Button
@@ -376,8 +268,107 @@ class ExportAsArticleModalComponent extends React.Component<IProps, IState> {
                         ) : (
                             <Button type="primary" onClick={this.onSubmit} text={gettext('Download')} />
                         )}
-                    </div>
-                </Modal.Footer>
+                    </ButtonGroup>
+                )}
+            >
+                <FormLayout spaces="compact" className="mb-4">
+                    {this.props.modalProps.download === true ? null : (
+                        <React.Fragment>
+                            <FormGroupV2>
+                                <FormGroupItem>
+                                    <Select
+                                        label={gettext('Desk')}
+                                        value={this.state.deskId}
+                                        onChange={this.onChangeDesk}
+                                        required={true}
+                                    >
+                                        <Option value={PERSONAL_WORKSPACE._id}>
+                                            {PERSONAL_WORKSPACE.name}
+                                        </Option>
+                                        {this.props.userDesks.map((desk) => (
+                                            <Option key={desk._id} value={desk._id}>{desk.name}</Option>
+                                        ))}
+                                    </Select>
+                                </FormGroupItem>
+                            </FormGroupV2>
+                            <FormGroupV2>
+                                <FormGroupItem>
+                                    <Select
+                                        label={gettext('Article Template')}
+                                        value={this.state.articleTemplateId}
+                                        onChange={this.onChangeTemplate}
+                                    >
+                                        <Option />
+                                        {this.state.articleTemplates.map((articleTemplate) => (
+                                            <Option key={articleTemplate._id} value={articleTemplate._id}>
+                                                {articleTemplate.template_name}
+                                            </Option>
+                                        ))}
+                                    </Select>
+                                </FormGroupItem>
+                            </FormGroupV2>
+                        </React.Fragment>
+                    )}
+
+                    <FormGroupV2>
+                        <FormGroupItem>
+                            <Select
+                                label={gettext('Custom Layout')}
+                                value={this.state.planningTemplateName}
+                                onChange={this.onChangePlanningTemplate}
+                            >
+                                <Option />
+                                {this.props.planningTemplates.map((planningTemplate) => (
+                                    <Option key={planningTemplate.name} value={planningTemplate.name}>
+                                        {planningTemplate.label}
+                                    </Option>
+                                ))}
+                            </Select>
+                        </FormGroupItem>
+                    </FormGroupV2>
+                </FormLayout>
+                {lockedItemIds.length === 0 ? null : (
+                    <React.Fragment>
+                        <Alert
+                            style="hollow"
+                            size="normal"
+                            margin="small"
+                            icon="warning-sign"
+                            type="warning"
+                            restoreIcon="info"
+                        >
+                            <Spacer v={true} gap="4">
+                                {gettextPlural(
+                                    lockedItemIds.length,
+                                    'One of the items that was selected is locked. ' +
+                                    'By default locked items are not included in the export.',
+                                    '{{ count }} items that were selected are locked. ' +
+                                    'By default locked items are not included in the export.',
+                                    {count: lockedItemIds.length}
+                                )}
+                                <ButtonGroup align="end">
+                                    <Button
+                                        type="tertiary"
+                                        size="small"
+                                        onClick={unselectedLockedItemIds.length > 0 ?
+                                            this.includeAllLockedItems :
+                                            this.excludeAllLockedItems
+                                        }
+                                        text={unselectedLockedItemIds.length > 0 ?
+                                            gettext('Include all locked items') :
+                                            gettext('Exclude all locked items')
+                                        }
+                                    />
+                                </ButtonGroup>
+                            </Spacer>
+                        </Alert>
+                    </React.Fragment>
+                )}
+                <SortItems
+                    items={this.state.items}
+                    onSortChange={this.onSortChange}
+                    getListElement={this.getListElement}
+                />
             </Modal>
         );
     }
