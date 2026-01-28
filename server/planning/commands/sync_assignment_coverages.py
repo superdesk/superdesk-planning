@@ -16,12 +16,12 @@ from bson import ObjectId
 from bson.errors import InvalidId
 
 from superdesk import get_resource_service
+from superdesk.commands import cli
 
 from planning.common import copy_assignment_details_to_coverage
-from .async_cli import planning_cli
 
 
-@planning_cli.command("planning:sync_assignment_coverages")
+@cli.command("planning:sync_assignment_coverages")
 @click.option("--dry-run", "-d", is_flag=True, default=False)
 async def sync_assignment_coverages_command(dry_run: bool) -> None:
     """Sync assignment details into planning coverages.
