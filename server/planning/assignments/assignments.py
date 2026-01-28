@@ -52,6 +52,7 @@ from planning.common import (
     assignment_workflow_state,
     remove_lock_information,
     is_locked_in_this_session,
+    copy_assignment_details_to_coverage,
     get_coverage_type_name,
     get_version_item_for_post,
     get_related_items,
@@ -89,6 +90,73 @@ planning_type["mapping"] = not_analyzed
 
 class AssignmentsService(AsyncBaseService):
     """Service class for the Assignments model."""
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self._skip_planning_sync: bool = False
+
+    async def _update_planning_coverages_from_assignment(
+        self, assignment: Dict[str, Any], skip_planning_sync: bool = False
+    ) -> None:
+        if skip_planning_sync or self._skip_planning_sync:
+            # Avoid clashing with planning updates that already manage coverages
+            return
+
+        planning_id = assignment.get("planning_item")
+        coverage_id = assignment.get("coverage_item")
+        if not planning_id or not coverage_id:
+            return
+
+        planning_service = get_resource_service("planning")
+        is_scheduled_update = bool(assignment.get("scheduled_update_id"))
+
+        async def _apply_update(current_planning: Dict[str, Any]) -> bool:
+            coverages = current_planning.get("coverages") or []
+            updated = False
+            for coverage in coverages:
+                if str(coverage.get("coverage_id")) == str(coverage_id) and not is_scheduled_update:
+                    coverage.setdefault("assigned_to", {})
+                    copy_assignment_details_to_coverage(assignment, coverage)
+                    updated = True
+
+                if not is_scheduled_update:
+                    continue
+
+                for scheduled_update in coverage.get("scheduled_updates") or []:
+                    if str(scheduled_update.get("scheduled_update_id")) == str(assignment.get("scheduled_update_id")):
+                        scheduled_update.setdefault("assigned_to", {})
+                        copy_assignment_details_to_coverage(assignment, scheduled_update)
+                        updated = True
+
+            if not updated:
+                return False
+
+            result = await planning_service.backend.update_async(
+                planning_service.datasource,
+                current_planning[ID_FIELD],
+                {"coverages": coverages},
+                current_planning,
+            )
+            return bool(result)
+
+        planning_item = await planning_service.find_one_async(req=None, _id=planning_id)
+        if not planning_item:
+            return
+
+        try:
+            applied = await _apply_update(planning_item)
+        except Exception as exc:
+            logger.exception(
+                "Failed updating planning coverages from assignment",
+                extra={"planning_id": planning_id, "coverage_id": coverage_id, "assignment_id": assignment.get("_id")},
+            )
+            return
+
+        if not applied:
+            logger.warning(
+                "Planning coverages update was not applied",
+                extra={"planning_id": planning_id, "coverage_id": coverage_id, "assignment_id": assignment.get("_id")},
+            )
 
     async def on_fetched_resource_archive(self, docs):
         await self._enhance_archive_items(docs.get(ITEMS, []))
@@ -190,6 +258,7 @@ class AssignmentsService(AsyncBaseService):
     async def on_created_async(self, docs):
         for doc in docs:
             await self._send_assignment_creation_notification(doc)
+            await self._update_planning_coverages_from_assignment(doc)
 
         await AssignmentsHistoryAsyncService().on_item_created(docs)
 
@@ -315,6 +384,10 @@ class AssignmentsService(AsyncBaseService):
         self.notify("assignments:updated", updates, original)
         await self.send_assignment_notification(updates, original)
 
+        assignment = deepcopy(original)
+        assignment.update(updates)
+        await self._update_planning_coverages_from_assignment(assignment)
+
         # If Assignee details have changed, and the current request comes from an Assignment API endpoint
         # then re-publish the Planning item (So updated Assignment details are published to subscribers)
         current_request = get_current_app().get_current_request()
@@ -336,8 +409,12 @@ class AssignmentsService(AsyncBaseService):
 
         return False
 
-    async def system_update_async(self, id, updates, original, **kwargs):
-        rtn = await super().system_update_async(id, updates, original, **kwargs)
+    async def system_update_async(self, id, updates, original, skip_planning_sync: bool = False, **kwargs):
+        self._skip_planning_sync = skip_planning_sync
+        try:
+            rtn = await super().system_update_async(id, updates, original, **kwargs)
+        finally:
+            self._skip_planning_sync = False
         if self.is_assignment_being_activated(updates, original):
             doc = deepcopy(original)
             doc.update(updates)
@@ -351,6 +428,13 @@ class AssignmentsService(AsyncBaseService):
             app = get_current_app().as_any()
             await app.on_updated_assignments.call_async(updates, original)
         return rtn
+
+    async def post_from_planning(self, docs):
+        self._skip_planning_sync = True
+        try:
+            return await self.post_async(docs)
+        finally:
+            self._skip_planning_sync = False
 
     def is_assignment_modified(self, updates, original):
         """Checks whether the assignment is modified or not"""
@@ -1156,7 +1240,7 @@ class AssignmentsService(AsyncBaseService):
 
             # get latest assignment available to link
             assignment_id = (coverage.get("assigned_to") or {}).get("assignment_id")
-            for s in coverage.get("scheduled_updates"):
+            for s in coverage.get("scheduled_updates") or []:
                 if (s.get("assigned_to") or {}).get("state") in [
                     ASSIGNMENT_WORKFLOW_STATE.IN_PROGRESS,
                     ASSIGNMENT_WORKFLOW_STATE.COMPLETED,

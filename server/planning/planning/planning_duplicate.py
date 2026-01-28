@@ -95,7 +95,7 @@ def duplicate_planning_item(original: dict[str, Any]) -> dict:
         cov["news_coverage_status"].pop("is_active", None)
 
         if not get_config_planning_duplicate_retain_assignee_details():
-            cov.pop("assigned_to", None)
+            cov["assigned_to"] = {}
 
     return new_plan
 
