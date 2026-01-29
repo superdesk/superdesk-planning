@@ -900,18 +900,10 @@ export class ItemManager {
     }
 
     addCoverage(g2ContentType) {
-        const state = planningApi.redux.store.getState();
-        const preferredCoverageDesks = selectors.general.preferredCoverageDesks(state)?.desks ?? {};
-        const coverageProfilesMap = selectors.coverageProfiles.getCoverageProfilesMap(state);
-
-        const newCoverage = planningUtils.defaultCoverageValues(
-            this.props.newsCoverageStatus,
+        const newCoverage = planningApi.planning.coverages.setDefaultValues(
             this.state.initialValues,
             this.props.associatedEvents?.[0] ?? null, // TAG: MULTIPLE_PRIMARY_EVENTS
             g2ContentType,
-            this.props.defaultDesk,
-            preferredCoverageDesks,
-            coverageProfilesMap[g2ContentType],
         );
 
         this.editor.onChangeHandler(
