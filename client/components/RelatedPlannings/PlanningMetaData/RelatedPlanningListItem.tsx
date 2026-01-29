@@ -3,6 +3,7 @@ import {connect} from 'react-redux';
 
 import {IPlanningItem, IG2ContentType, ILockedItems, IAgenda} from '../../../interfaces';
 import {IDesk, IUser} from 'superdesk-api';
+import {superdeskApi} from '../../../superdeskApi';
 
 import {lockUtils} from '../../../utils';
 import * as selectors from '../../../selectors';
@@ -15,8 +16,9 @@ import {getPlanningSecondLineConfig, planningFirstLineConfig} from '../../../con
 import {getUserInterfaceLanguageFromCV} from '../../../utils/users';
 import {renderFields} from '../../../components/fields';
 import {ILineConfig} from 'globals';
+import {Checkbox} from 'superdesk-ui-framework/react';
 
-interface IOwnProps {
+interface IBaseProps {
     item: DeepPartial<IPlanningItem>;
     active?: boolean;
     noBg?: boolean;
@@ -25,8 +27,23 @@ interface IOwnProps {
     shadow?: number;
     editPlanningComponent?: React.ReactNode;
     isAgendaEnabled: boolean;
+    noColumnPadding?: boolean;
     onClick?(): void;
 }
+
+interface IWithoutCheckboxProps extends IBaseProps {
+    showCheckbox?: never;
+    checked?: never;
+    onCheckToggle?: never;
+}
+
+interface IWithCheckboxProps extends IBaseProps {
+    showCheckbox: true;
+    checked: boolean;
+    onCheckToggle(value: boolean): void;
+}
+
+type IOwnProps = IWithoutCheckboxProps | IWithCheckboxProps;
 
 interface IStateProps {
     users: Array<IUser>;
@@ -48,6 +65,7 @@ const mapStateToProps = (state) => ({
 
 class RelatedPlanningListItemComponent extends React.PureComponent<IProps> {
     render() {
+        const {gettext} = superdeskApi.localization;
         const isItemLocked = lockUtils.isItemLocked(
             this.props.item,
             this.props.lockedItems
@@ -76,6 +94,19 @@ class RelatedPlanningListItemComponent extends React.PureComponent<IProps> {
                     <List.Border state="locked" />
                 )}
 
+                {!this.props.showCheckbox ? null : (
+                    <List.Column>
+                        <Checkbox
+                            label={{
+                                text: gettext('Selected'),
+                                hidden: true,
+                            }}
+                            checked={this.props.checked}
+                            onChange={this.props.onCheckToggle}
+                        />
+                    </List.Column>
+                )}
+
                 {!this.props.showIcon ? null : (
                     <List.Column>
                         <ItemIcon
@@ -88,7 +119,7 @@ class RelatedPlanningListItemComponent extends React.PureComponent<IProps> {
                 <List.Column
                     grow={true}
                     border={false}
-                    style={{paddingBlock: 'var(--space--1)'}}
+                    style={this.props.noColumnPadding ? undefined : {paddingBlock: 'var(--space--1)'}}
                 >
                     <LineItems
                         firstLine={planningFirstLineConfig.filter(({fieldId}) => fieldId !== 'related_events')}
