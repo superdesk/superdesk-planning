@@ -46,11 +46,17 @@ from planning.types import (
     PlanningRelatedEventLink,
     ContentProfile,
     PLANNING_RELATED_EVENT_LINK_TYPE,
+    CoverageProfile,
 )
 from planning.planning.planning_history_async_service import PlanningHistoryAsyncService
 from planning.planning.planning_autosave_service import PlanningAutosaveAsyncService
 from planning.assignments.assignments_history_async import AssignmentsHistoryAsyncService
 from planning.content_profiles.planning_types_async_service import PlanningTypesAsyncService
+from planning.content_profiles.utils import (
+    get_coverage_schema,
+    get_enabled_fields,
+    get_custom_vocabulary_fields_from_profile,
+)
 from planning.common import (
     get_next_assignment_status,
     get_coverage_status_from_cv,
@@ -718,7 +724,7 @@ class PlanningService(AsyncBaseService):
                 coverage.setdefault("planning", {})
                 coverage["planning"].setdefault("scheduled", planning_date)
 
-                self.inherit_planning_metadata(coverage, updates)
+                await self.inherit_planning_metadata(coverage, updates, original)
 
                 set_original_creator(coverage)
                 self.set_coverage_active(coverage, updates)
@@ -806,7 +812,7 @@ class PlanningService(AsyncBaseService):
             coverage.setdefault("planning", {})
             coverage["planning"].setdefault("scheduled", (original_coverage.get("planning") or {}).get("scheduled"))
 
-            self.inherit_planning_metadata(coverage, updates)
+            await self.inherit_planning_metadata(coverage, updates, original)
 
             self.set_coverage_active(coverage, updates)
             await self.set_slugline_from_xmp(coverage, original_coverage)
@@ -1858,15 +1864,54 @@ class PlanningService(AsyncBaseService):
                 continue
             yield plan
 
-    def inherit_planning_metadata(self, coverage, updates):
+    async def inherit_planning_metadata(self, coverage: dict, updates: dict, original: dict) -> None:
         """
         Inherit planning metadata fields to coverage if not explicitly set in coverage profile.
         The fields inherited are those overlapping metadata fields from the planning schema and coverage schema
         """
-        fields_to_inherit = ["anpa_category", "subject", "genre", "priority", "location"]
-        for field in fields_to_inherit:
-            if updates.get(field):
-                coverage["planning"].setdefault(field, updates[field])
+
+        schema: CoverageProfile | None = None
+
+        if coverage.get("profile"):
+            schema = await get_coverage_schema(coverage["profile"])
+            if not schema:
+                logger.warning(
+                    "Issue copying Planning metadata to Coverage, CoverageProfile not found",
+                    extra={
+                        "coverage_id": coverage.get("coverage_id"),
+                        "profile": coverage["profile"],
+                    },
+                )
+
+        supported_fields = {"anpa_category", "subject", "genre", "priority", "location", "headline", "slugline"}
+
+        if schema:
+            custom_vocabulary_fields = get_custom_vocabulary_fields_from_profile(schema)
+            enabled_fields = {
+                field
+                for field in get_enabled_fields(schema)
+                if field in supported_fields and field not in custom_vocabulary_fields
+            }
+        else:
+            enabled_fields = supported_fields
+            custom_vocabulary_fields = set()
+
+        for field in enabled_fields:
+            value = updates.get(field, original.get(field))
+            if field != "subject" and value:
+                coverage["planning"].setdefault(field, value)
+
+        subjects: list[dict] | None = updates.get("subject", original.get("subject"))
+        if subjects and "subject" not in coverage["planning"]:
+            # Copy ``Subject`` and ``Custom Vocabulary`` fields that are enabled in both Planning and Coverage profiles
+            coverage["planning"]["subject"] = [
+                subject
+                for subject in subjects
+                if (
+                    (not subject.get("scheme") and "subject" in enabled_fields)
+                    or (subject.get("scheme") in custom_vocabulary_fields)
+                )
+            ]
 
     @staticmethod
     def _should_update_version_creator(updates, original):

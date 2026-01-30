@@ -10,8 +10,11 @@
 
 from typing import TypedDict, Dict, List
 
+from bson import ObjectId
+
 
 class ContentFieldSchema(TypedDict, total=False):
+    type: str
     multilingual: bool
     field_type: str
     planning_auto_publish: bool  # Only available in ``related_plannings`` field
@@ -23,8 +26,17 @@ class ContentFieldEditor(TypedDict):
     enabled: bool
 
 
-class ContentProfile(TypedDict):
-    _id: str
-    name: str
+class BaseProfile(TypedDict):
     schema: Dict[str, ContentFieldSchema]
     editor: Dict[str, ContentFieldEditor]
+
+
+class ContentProfile(BaseProfile):
+    _id: str
+    name: str
+
+
+class CoverageProfile(BaseProfile):
+    _id: ObjectId
+    content_type: str
+    name: str | None

@@ -11,7 +11,7 @@
 from typing import TypedDict, Dict, Any, Literal
 from datetime import datetime
 
-from .content_profiles import ContentFieldSchema, ContentFieldEditor, ContentProfile  # noqa
+from .content_profiles import ContentFieldSchema, ContentFieldEditor, BaseProfile, ContentProfile, CoverageProfile
 
 from .base import BasePlanningModel
 from .common import (
@@ -87,7 +87,11 @@ __all__ = [
     "SearchScheduleFrequency",
     "SearchWeekDay",
     "SearchDateRange",
+    "ContentFieldSchema",
+    "ContentFieldEditor",
+    "BaseProfile",
     "ContentProfile",
+    "CoverageProfile",
     "PlanningRelatedEventLink",
     "AgendasResourceModel",
     "AgendaItem",
