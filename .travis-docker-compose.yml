@@ -6,17 +6,18 @@ services:
             - "6379:6379"
 
     mongo:
-        image: mongo:3.6
+        image: mongo:6
         ports:
             - "27017:27017"
         tmpfs:
             - /data/db
 
     elastic:
-        image: elasticsearch:7.6.2
+        image: elasticsearch:7.17.29
         ports:
             - "9200:9200"
         environment:
             - discovery.type=single-node
+            - xpack.security.enabled=false
         tmpfs:
             - /usr/share/elasticsearch/data
