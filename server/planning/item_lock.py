@@ -67,7 +67,7 @@ class LockService(BaseComponent):
             raise SuperdeskApiError.forbiddenError(message="Item is locked by another user.")
 
         try:
-            can_user_lock, error_message = self.can_lock(item, user_id, session_id, resource)
+            can_user_lock, error_message = self.can_lock(item, user_id, session_id, resource, action)
 
             if can_user_lock:
                 # following line executes handlers attached to function:
@@ -177,19 +177,25 @@ class LockService(BaseComponent):
         for item in item_service.search({"query": {"bool": {"filter": {"term": term_filter}}}}):
             self.unlock(item, user_id, session_id, resource)
 
-    def can_lock(self, item, user_id, session_id, resource):
+    def can_lock(self, item, user_id, session_id, resource, action=None):
         """
         Function checks whether user can lock the item or not. If not then raises exception.
         """
-        can_user_edit, error_message = superdesk.get_resource_service(resource).can_edit(item, user_id)
+        service = superdesk.get_resource_service(resource)
+        check_method = service.can_edit
+
+        if resource == "assignments" and action in ["start_working", "content_edit"]:
+            check_method = service.can_work_on_content
+
+        can_user_edit, error_message = check_method(item, user_id)
 
         if can_user_edit:
-            if item.get(LOCK_USER):
-                if str(item.get(LOCK_USER, "")) == str(user_id) and str(item.get(LOCK_SESSION)) != str(session_id):
-                    return False, "Item is locked by you in another session."
+            if lock_user := item.get(LOCK_USER):
+                if str(lock_user) == str(user_id):
+                    if str(item.get(LOCK_SESSION)) != str(session_id):
+                        return False, "Item is locked by you in another session."
                 else:
-                    if str(item.get(LOCK_USER, "")) != str(user_id):
-                        return False, "Item is locked by another user."
+                    return False, "Item is locked by another user."
         else:
             return False, error_message
 
@@ -199,8 +205,14 @@ class LockService(BaseComponent):
         """
         Function checks whether user can unlock the item or not.
         """
-        can_user_edit, error_message = superdesk.get_resource_service(resource).can_edit(item, user_id)
 
+        service = superdesk.get_resource_service(resource)
+        check_method = service.can_edit
+
+        if resource == "assignments":
+            check_method = service.can_work_on_content
+
+        can_user_edit, error_message = check_method(item, user_id)
         if can_user_edit:
             resource_privileges = get_resource_privileges(resource).get("PATCH")
 
