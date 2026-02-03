@@ -82,7 +82,10 @@ export class IgnoreCancelSaveModalComponent extends React.Component<IProps, ISta
                     />
                 </div>
             );
-        } else if (this.props.modalProps.item.type === 'event') {
+        } else if (
+            this.props.modalProps.item.type === 'event'
+            && this.props.modalProps.item.recurrence_id != null
+        ) {
             return (
                 <UpdateRecurringEventsForm
                     original={this.props.modalProps.item}
@@ -174,7 +177,8 @@ export class IgnoreCancelSaveModalComponent extends React.Component<IProps, ISta
                     action: (onGoTo || onSave || onSaveAndPost) ? this.onSubmit : null,
                     okText: okText,
                     title: title || gettext('Save Changes?'),
-                    body: bodyText || this.renderItemDetails(),
+                    body: bodyText || this.renderItemDetails() ||
+                        gettext('Changes will be lost, if they are not saved.'),
                     autoClose: autoClose,
                     large: true,
                     bodyClassname: 'p-3',
