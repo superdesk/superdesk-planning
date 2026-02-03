@@ -62,9 +62,9 @@ class EventHTTPFeedingService(HTTPFeedingServiceBase):
         logger.info("Ingesting content: {} ...".format(str(response.content)[:4000]))
 
         if hasattr(parser, "parse_http"):
-            items = parser.parse_http(response.content, provider)
+            items = await parser.parse_http(response.content, provider)
         else:
-            items = parser.parse(response.content)
+            items = await parser.parse(response.content)
 
         if isinstance(items, list):
             yield items

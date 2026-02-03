@@ -71,7 +71,7 @@ class OnclusiveApiService(HTTPFeedingServiceBase):
     HTTP_AUTH = False
     timeout = (5, 60)
 
-    def _update(self, provider, update):
+    async def _update(self, provider, update):
         """
         Fetch events from external API.
 
@@ -85,7 +85,7 @@ class OnclusiveApiService(HTTPFeedingServiceBase):
         LIMIT = 2000
         self.session = requests.Session()
         self.language = "en-CA"  # make sure there is some default
-        parser = self.get_feed_parser(provider)
+        parser = await self.get_feed_parser(provider)
         update["tokens"] = provider.get("tokens") or {}
         with timer("onclusive:update"):
             self.authenticate(provider, update["tokens"])
@@ -150,7 +150,7 @@ class OnclusiveApiService(HTTPFeedingServiceBase):
                     params[iterations_param] = i
                     logger.info("Onclusive PARAMS %s", params)
                     content = self._fetch(url, params, provider, update["tokens"])
-                    items = parser.parse(content, provider)
+                    items = await parser.parse(content, provider)
                     logger.info("Onclusive returned %d items", len(items))
                     for item in items:
                         item.setdefault("language", self.language)
