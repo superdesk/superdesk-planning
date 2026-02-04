@@ -222,3 +222,28 @@ def test_planning_source_alone_filters_correctly(prodapi_app_with_data, prodapi_
         assert resp.status_code == 200
         assert len(resp_data["_items"]) == 1
         assert resp_data["_items"][0]["guid"] == target_event_id
+
+
+def test_planning_source_malformed_elasticsearch_query(prodapi_app_with_data, prodapi_app_with_data_client):
+    """Test that malformed Elasticsearch query in planning_source returns 400 error
+
+    When the planning_source contains a malformed Elasticsearch query that causes
+    an Elasticsearch RequestError, it should be caught and returned as a 400 Bad Request
+    instead of a 500 Internal Server Error.
+
+    :param prodapi_app_with_data: prod api app with filled data
+    :param prodapi_app_with_data_client: client for prod api app with filled data
+    """
+
+    with prodapi_app_with_data.test_request_context():
+        # Pass a malformed Elasticsearch query (exists query without proper structure)
+        # This simulates: [exists] query malformed, no start_object after query name
+        malformed_query = {"query": {"exists": "field_name"}}  # Should be {"exists": {"field": "field_name"}}
+        resp = prodapi_app_with_data_client.get(
+            url_for("events|resource", planning_source=json.dumps(malformed_query)),
+        )
+        resp_data = json.loads(resp.data.decode("utf-8"))
+
+        assert resp.status_code == 400
+        assert "_message" in resp_data
+        assert "Invalid planning_source query" in resp_data["_message"]
