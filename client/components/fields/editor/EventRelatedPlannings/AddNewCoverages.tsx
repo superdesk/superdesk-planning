@@ -16,6 +16,7 @@ import {IDesk, IUser} from 'superdesk-api';
 
 import * as selectors from '../../../../selectors';
 import {planningUtils, generateTempId} from '../../../../utils';
+import {getTranslatedValue} from '../../index';
 
 import {ButtonGroup, Button, IconLabel} from 'superdesk-ui-framework/react';
 import {ICoverageDetails, CoverageRowForm} from './CoverageRowForm';
@@ -171,6 +172,7 @@ class AddNewCoveragesComponent extends React.Component<IProps, IState> {
             return;
         }
 
+        const multilingualFields = ['slugline', 'headline', 'internal_note', 'ednote'];
         const coverages: Array<DeepPartial<IPlanningCoverageItem>> = this.state.coverages
             .filter((coverage) => coverage.enabled)
             .map((coverage) => {
@@ -192,6 +194,15 @@ class AddNewCoveragesComponent extends React.Component<IProps, IState> {
                     }
 
                     newCoverage.planning.language = coverage.language;
+
+                    // Copy translated field values based on the language of the Coverage
+                    for (const field of multilingualFields) {
+                        const value = getTranslatedValue(newCoverage.planning.language, this.props.event, field);
+
+                        if (value != null) {
+                            newCoverage.planning[field] = value;
+                        }
+                    }
                 }
 
                 if (coverage.status) {
