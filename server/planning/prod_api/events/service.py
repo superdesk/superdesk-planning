@@ -11,6 +11,7 @@
 import json
 from typing import Dict, Iterable, List
 
+from elasticsearch.exceptions import RequestError
 from eve.utils import config
 from superdesk.errors import SuperdeskApiError
 from werkzeug.datastructures import MultiDict
@@ -86,7 +87,12 @@ class EventsService(ProdApiService):
         planning_service = get_resource_service("planning")
 
         # Search for planning documents matching the query
-        results = planning_service.search(planning_query)
+        try:
+            results = planning_service.search(planning_query)
+        except RequestError as e:
+            raise SuperdeskApiError.badRequestError(
+                f"Invalid planning_source query: {str(e.info.get('error', {}).get('reason', str(e)))}"
+            )
 
         event_ids = {event_id for event_id in self._extract_event_items(results) if event_id}
         return list(event_ids)
