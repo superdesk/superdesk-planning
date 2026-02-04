@@ -146,6 +146,10 @@ function canRevertAssignment(
         get(assignment, 'assigned_to.state') === ASSIGNMENTS.WORKFLOW_STATE.COMPLETED;
 }
 
+function canEditPlanning(privileges: IPrivileges) {
+    return !!privileges[PRIVILEGES.PLANNING] && !!privileges[PRIVILEGES.PLANNING_MANAGEMENT];
+}
+
 const assignmentHasContent = (assignment) => (
     get(assignment, 'item_ids.length', 0) > 0
 );
@@ -289,6 +293,8 @@ function getAssignmentItemActions(
             self.canEditPriorityOrReassignAssignment(assignment, session, privileges, PRIVILEGES.ARCHIVE, lockedItems),
         [ASSIGNMENTS.ITEM_ACTIONS.START_WORKING.actionName]: () =>
             self.canStartWorking(assignment, session, privileges, contentTypes),
+        [ASSIGNMENTS.ITEM_ACTIONS.EDIT_PLANNING.actionName]: () =>
+            self.canEditPlanning(privileges),
         [ASSIGNMENTS.ITEM_ACTIONS.REMOVE.actionName]: () =>
             self.canRemoveAssignment(assignment, session, privileges, PRIVILEGES.PLANNING_MANAGEMENT, lockedItems),
         [ASSIGNMENTS.ITEM_ACTIONS.PREVIEW_ARCHIVE.actionName]: () =>
@@ -467,6 +473,7 @@ const self = {
     getAssignmentActions,
     canStartWorking,
     canFulfilAssignment,
+    canEditPlanning,
     getAssignmentGroupsByStates,
     canEditDesk,
     assignmentHasContent,
