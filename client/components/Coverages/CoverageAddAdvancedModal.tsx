@@ -203,7 +203,7 @@ class CoverageAddAdvancedModalComponent extends React.Component<IProps, IState> 
         // If desk has a language, check if it's available in the planning profile
         // and set it as the coverage language
         if (deskLanguage != null) {
-            const deskLanguageAvailable = this.state.filteredLanguages.some(
+            const deskLanguageAvailable = this.getFilteredLanguages(this.props.allLanguages).some(
                 (lang) => lang.value.qcode === deskLanguage
             );
 
