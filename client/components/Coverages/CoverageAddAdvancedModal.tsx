@@ -170,7 +170,7 @@ class CoverageAddAdvancedModalComponent extends React.Component<IProps, IState> 
             desk: null,
             user: null,
             planning: {
-                language: this.getDefaultLanguage(),
+                language: coverage.planning?.language,
             } as ICoveragePlanningDetails,
             status: planningUtils.getDefaultCoverageStatus(this.props.newsCoverageStatus),
             filteredDesks: this.props.desks,
@@ -192,12 +192,20 @@ class CoverageAddAdvancedModalComponent extends React.Component<IProps, IState> 
         this.setState({coverages: coverages, isDirty: true});
     }
 
-    onDeskChange = (selected, desk) => {
+    onDeskChange = (selected: Partial<ICoverageLineItem>, desk: IDesk | null) => {
         const deskLanguage = desk?.desk_language;
+        let user = selected.user;
+
+        const deskUsers = getUsersForDesk(desk, this.props.users);
+
+        if (!user || !deskUsers.some((u) => u._id === user._id)) {
+            user = null;
+        }
+
         const updates: Partial<ICoverageLineItem> = {
             desk: desk,
-            filteredUsers: getUsersForDesk(desk, this.props.users),
-            user: null,
+            filteredUsers: deskUsers,
+            user: user,
         };
 
         // If desk has a language, check if it's available in the planning profile
