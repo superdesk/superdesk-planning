@@ -174,6 +174,10 @@ function getDateAsString(value: string | Date | moment.Moment): string {
     }
 }
 
+function normalizeAllDayDate(value: moment.MomentInput): moment.Moment {
+    return moment(moment.utc(value).format('YYYY-MM-DD'));
+}
+
 // eslint-disable-next-line consistent-this
 const self = {
     getStartOfNextWeek,
@@ -187,6 +191,7 @@ const self = {
     getTimeZoneAbbreviation,
     getDateForVersionInList,
     getDateAsString,
+    normalizeAllDayDate,
 };
 
 export default self;

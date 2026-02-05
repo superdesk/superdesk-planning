@@ -6,6 +6,7 @@ import './style.scss';
 import Button from '../../Button';
 import {gettext} from '../../utils';
 import {get} from 'lodash';
+import timeUtils from '../../../../utils/time';
 
 interface IProps {
     field: string;
@@ -80,10 +81,7 @@ export const DateTimeInput = ({
     let dateValue = value;
 
     if (props.allDay && value != null) {
-        const tz = remoteTimeZone || moment.tz.guess();
-        const momentValue = moment.isMoment(value) ? value : moment(value);
-
-        dateValue = moment.tz(momentValue.format('YYYY-MM-DD'), tz);
+        dateValue = timeUtils.normalizeAllDayDate(value);
     }
 
     if (props.allDay) {
