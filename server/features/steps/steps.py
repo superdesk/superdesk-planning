@@ -428,11 +428,6 @@ def then_set_assignment_manual_reassignment_only(context):
     context.app.config["ASSIGNMENT_MANUAL_REASSIGNMENT_ONLY"] = True
 
 
-@when("we set config assignment reset state on reassignment to True")
-def then_set_assignment_reset_state_on_reassignment(context):
-    context.app.config["ASSIGNMENT_RESET_STATE_ON_REASSIGNMENT"] = True
-
-
 @when("we set PLANNING_USE_XMP_FOR_PIC_ASSIGNMENTS")
 def then_set_use_xmp_for_pic_assignments(context):
     ABS_PATH = os.path.abspath(os.path.join(os.path.dirname(__file__), "../"))
