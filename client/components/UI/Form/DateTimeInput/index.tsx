@@ -77,6 +77,14 @@ export const DateTimeInput = ({
     ...props
 }: IProps) => {
     let timeValue = timeField ? get(diff, timeField, null) : value;
+    let dateValue = value;
+
+    if (props.allDay && value != null) {
+        const tz = remoteTimeZone || moment.tz.guess();
+        const momentValue = moment.isMoment(value) ? value : moment(value);
+
+        dateValue = moment.tz(momentValue.format('YYYY-MM-DD'), tz);
+    }
 
     if (props.allDay) {
         timeValue = null;
@@ -98,7 +106,7 @@ export const DateTimeInput = ({
                 row={false}
                 component={DateInput}
                 field={`${field}.date`}
-                value={value}
+                value={dateValue as moment.Moment}
                 item={item}
                 diff={diff}
                 readOnly={readOnly}
