@@ -81,7 +81,7 @@ export const DateTimeInput = ({
     let dateValue = value;
 
     if (props.allDay && value != null) {
-        dateValue = timeUtils.normalizeAllDayDate(value);
+        dateValue = timeUtils.allDayDateToLocalDate(value);
     }
 
     if (props.allDay) {

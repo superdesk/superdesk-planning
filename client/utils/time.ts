@@ -174,7 +174,7 @@ function getDateAsString(value: string | Date | moment.Moment): string {
     }
 }
 
-function normalizeAllDayDate(value: moment.MomentInput): moment.Moment {
+function allDayDateToLocalDate(value: moment.MomentInput): moment.Moment {
     return moment(moment.utc(value).format('YYYY-MM-DD'));
 }
 
@@ -191,7 +191,7 @@ const self = {
     getTimeZoneAbbreviation,
     getDateForVersionInList,
     getDateAsString,
-    normalizeAllDayDate,
+    allDayDateToLocalDate,
 };
 
 export default self;
