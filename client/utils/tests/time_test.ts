@@ -1,4 +1,4 @@
-import moment from 'moment';
+import moment from 'moment-timezone';
 import sinon from 'sinon';
 import {timeUtils} from '../';
 import {restoreSinonStub} from '../testUtils';
@@ -182,6 +182,30 @@ describe('utils.time', () => {
             sinon.stub(timeUtils, 'localTimeZone').callsFake(() => 'Europe/Amsterdam');
             expect(timeUtils.isEventInDifferentTimeZone(event)).toBeFalsy();
             restoreSinonStub(timeUtils.localTimeZone);
+        });
+    });
+
+    describe('allDayDateToLocalDate', () => {
+        afterEach(() => {
+            moment.tz.setDefault();
+        });
+
+        it('keeps the same calendar day in a negative timezone', () => {
+            moment.tz.setDefault('America/Toronto');
+
+            const value = '2026-02-14T00:00:00.000Z';
+            const result = timeUtils.allDayDateToLocalDate(value);
+
+            expect(result.format('YYYY-MM-DD')).toBe('2026-02-14');
+        });
+
+        it('keeps the same calendar day in a positive timezone', () => {
+            moment.tz.setDefault('Australia/Sydney');
+
+            const value = '2026-02-14T00:00:00.000Z';
+            const result = timeUtils.allDayDateToLocalDate(value);
+
+            expect(result.format('YYYY-MM-DD')).toBe('2026-02-14');
         });
     });
 });

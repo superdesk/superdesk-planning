@@ -174,6 +174,16 @@ function getDateAsString(value: string | Date | moment.Moment): string {
     }
 }
 
+/**
+ * Converts a UTC all-day date to a local date-only moment instance.
+ *
+ * This normalizes the value to a `YYYY-MM-DD` string in UTC and then
+ * creates a local moment from that date-only representation to avoid
+ * timezone offsets shifting the displayed day.
+ *
+ * @param {moment.MomentInput} value - The UTC date value for an all-day event.
+ * @return {moment.Moment} A local moment representing the same calendar day.
+ */
 function allDayDateToLocalDate(value: moment.MomentInput): moment.Moment {
     return moment(moment.utc(value).format('YYYY-MM-DD'));
 }
