@@ -58,7 +58,6 @@ from planning.content_profiles.utils import (
     get_custom_vocabulary_fields_from_profile,
 )
 from planning.common import (
-    get_next_assignment_status,
     get_coverage_status_from_cv,
     WORKFLOW_STATE,
     ASSIGNMENT_WORKFLOW_STATE,
@@ -84,7 +83,6 @@ from planning.common import (
     UPDATE_FUTURE,
     UPDATE_ALL,
     POST_STATE,
-    get_config_assignment_reset_state_on_reassignment,
 )
 
 from planning.events.events_history_async_service import EventsHistoryAsyncService
@@ -1130,31 +1128,13 @@ class PlanningService(AsyncBaseService):
                     assigned_to["assigned_date_user"] = utcnow()
                     assigned_to["assignor_user"] = user.get(ID_FIELD)
 
-            current_state = original_assignment.get("assigned_to", {}).get("state")
-
-            if current_state == ASSIGNMENT_WORKFLOW_STATE.DRAFT:
+            if original_assignment.get("assigned_to").get("state") == ASSIGNMENT_WORKFLOW_STATE.DRAFT:
                 if self.is_coverage_assignment_modified(updates, original_assignment):
-                    _update_assignment_assigned_to()
-            elif current_state in [ASSIGNMENT_WORKFLOW_STATE.ASSIGNED, ASSIGNMENT_WORKFLOW_STATE.IN_PROGRESS]:
-                if self.is_coverage_assignment_modified(updates, original_assignment):
-                    # By default, preserve the current state
-                    assigned_to["state"] = current_state
-
-                    # Handle user reassignment (including unassigning) with state management
-                    if original.get("assigned_to", {}).get("user") != assigned_to.get("user"):
-                        should_reset_state = get_config_assignment_reset_state_on_reassignment()
-
-                        if should_reset_state:
-                            assigned_to["state"] = get_next_assignment_status(
-                                original_assignment, ASSIGNMENT_WORKFLOW_STATE.ASSIGNED
-                            )
-
                     _update_assignment_assigned_to()
 
             # If we made a coverage 'active' - change assignment status to active
             if original.get("workflow_status") == WORKFLOW_STATE.DRAFT and not is_coverage_draft:
-                if current_state not in [ASSIGNMENT_WORKFLOW_STATE.ASSIGNED, ASSIGNMENT_WORKFLOW_STATE.IN_PROGRESS]:
-                    assigned_to["state"] = ASSIGNMENT_WORKFLOW_STATE.ASSIGNED
+                assigned_to["state"] = ASSIGNMENT_WORKFLOW_STATE.ASSIGNED
                 assignment["assigned_to"] = assigned_to
 
             # If the Planning description has been changed
@@ -1166,15 +1146,8 @@ class PlanningService(AsyncBaseService):
                 assignment["name"] = planning["name"] if not translated_value and translated_name else translated_name
 
             # If the coverage assignee has been changed and workflow status is active
-            if (
-                original.get("workflow_status") != WORKFLOW_STATE.DRAFT
-                and self.is_coverage_assignment_modified(updates, original_assignment)
-                and current_state
-                not in [
-                    ASSIGNMENT_WORKFLOW_STATE.DRAFT,
-                    ASSIGNMENT_WORKFLOW_STATE.ASSIGNED,
-                    ASSIGNMENT_WORKFLOW_STATE.IN_PROGRESS,
-                ]
+            if original.get("workflow_status") != WORKFLOW_STATE.DRAFT and self.is_coverage_assignment_modified(
+                updates, original_assignment
             ):
                 assigned_to["state"] = ASSIGNMENT_WORKFLOW_STATE.ASSIGNED
                 _update_assignment_assigned_to()
@@ -1409,8 +1382,9 @@ class PlanningService(AsyncBaseService):
                 ).get(key):
                     return True
 
-            # check if priority exists in updates (not just truthy) to handle priority correctly
-            if "priority" in updates["assigned_to"] and updates["assigned_to"]["priority"] != original.get("priority"):
+            if updates["assigned_to"].get("priority") and updates["assigned_to"]["priority"] != original.get(
+                "priority"
+            ):
                 return True
 
         return False

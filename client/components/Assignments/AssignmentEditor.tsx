@@ -88,8 +88,7 @@ export class AssignmentEditorComponent extends React.PureComponent<IProps> {
     }
 
     onUserChange = (value?: IUser) => {
-        // use null explicitly to ensure unassigned user is sent to backend
-        this.props.onChange({[this.FIELDS.USER]: value?._id ?? null});
+        this.props.onChange({[this.FIELDS.USER]: value?._id});
     }
 
     onContactChange = (contact: IContact) => {
