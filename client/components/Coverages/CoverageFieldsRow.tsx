@@ -86,7 +86,7 @@ export const CoverageEditableFields = ({
                     );
                 }}
             >
-                <Option value={null} />
+                <Option value={null}>{gettext('Select a language')}</Option>
                 {languages.map((lang) => (
                     <Option key={lang.value.qcode} value={lang.value.qcode}>
                         {getVocabularyItemFieldTranslated(lang.value, 'name', language)}
