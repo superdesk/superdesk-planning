@@ -1124,7 +1124,7 @@ class PlanningService(AsyncBaseService):
                 if original_assignment.get("assigned_to", {}).get("desk") != assigned_to.get("desk"):
                     assigned_to["assigned_date_desk"] = utcnow()
                     assigned_to["assignor_desk"] = user.get(ID_FIELD)
-                if assigned_to.get("user") and original.get("assigned_to", {}).get("user") != assigned_to.get("user"):
+                if "user" in assigned_to and original.get("assigned_to", {}).get("user") != assigned_to.get("user"):
                     assigned_to["assigned_date_user"] = utcnow()
                     assigned_to["assignor_user"] = user.get(ID_FIELD)
 
