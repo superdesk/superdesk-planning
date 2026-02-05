@@ -6,6 +6,7 @@ import './style.scss';
 import Button from '../../Button';
 import {gettext} from '../../utils';
 import {get} from 'lodash';
+import timeUtils from '../../../../utils/time';
 
 interface IProps {
     field: string;
@@ -77,6 +78,11 @@ export const DateTimeInput = ({
     ...props
 }: IProps) => {
     let timeValue = timeField ? get(diff, timeField, null) : value;
+    let dateValue = value;
+
+    if (props.allDay && value != null) {
+        dateValue = timeUtils.allDayDateToLocalDate(value);
+    }
 
     if (props.allDay) {
         timeValue = null;
@@ -98,7 +104,7 @@ export const DateTimeInput = ({
                 row={false}
                 component={DateInput}
                 field={`${field}.date`}
-                value={value}
+                value={dateValue as moment.Moment}
                 item={item}
                 diff={diff}
                 readOnly={readOnly}
