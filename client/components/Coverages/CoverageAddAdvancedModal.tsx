@@ -83,17 +83,6 @@ class CoverageAddAdvancedModalComponent extends React.Component<IProps, IState> 
         };
     }
 
-    getDefaultLanguage() {
-        const {multilingual} = planningApi.contentProfiles;
-        const profile = planningApi.contentProfiles.get('planning');
-
-        if (!multilingual.isEnabled(profile)) {
-            return null;
-        }
-
-        return planningApi.contentProfiles.getDefaultLanguage(profile) ?? null;
-    }
-
     getFilteredLanguages(allLanguages: Array<{value: IVocabularyItem}>) {
         const {multilingual} = planningApi.contentProfiles;
 
@@ -142,7 +131,7 @@ class CoverageAddAdvancedModalComponent extends React.Component<IProps, IState> 
                     qcode: contentType.qcode,
                     workflow_status: 'draft',
                     planning: {
-                        language: this.getDefaultLanguage(),
+                        language: null,
                     },
                     desk: null,
                     filteredDesks: desks,
