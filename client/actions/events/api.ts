@@ -581,7 +581,7 @@ function updateLinkedPlanningsForEvent(
             .filter((item) => associatedPlannings.find(({_id}) => _id === item._id) == null);
         const associatedPlanningIds = associatedPlannings.map(({_id}) => _id);
 
-        return planningApi.planning.getByIds(associatedPlanningIds, undefined)
+        return planningApi.planning.getByIds(associatedPlanningIds, 'both')
             .then((allPlanningItems) => Promise.all([
                 ...toLink.map((oldPlanning) => {
                     const planningItem = allPlanningItems.find((x) => x._id === oldPlanning._id);

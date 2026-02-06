@@ -414,7 +414,6 @@ const loadPlanningByEventId = (eventId: IEventItem['_id'], loadToStore: boolean 
         planningApi.planning.search({
             event_item: [eventId],
             only_future: false,
-            include_killed: true,
         })
             .then((data) => {
                 if (loadToStore) {
