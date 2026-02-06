@@ -14,6 +14,7 @@ from typing import Dict, Iterable, List
 from elasticsearch.exceptions import RequestError
 from eve.utils import config
 from superdesk.errors import SuperdeskApiError
+from flask import has_request_context, request
 from werkzeug.datastructures import MultiDict
 
 from superdesk import get_resource_service
@@ -24,11 +25,21 @@ from planning.prod_api.assignments.utils import (
     get_assignment_ids_from_planning,
     construct_assignment_links,
 )
-from planning.prod_api.planning.utils import construct_planning_link
+from planning.prod_api.planning.utils import (
+    construct_planning_link,
+    extract_coverage_summaries,
+    str_to_bool,
+)
 
 
 class EventsService(ProdApiService):
     excluded_fields = ProdApiService.excluded_fields | excluded_lock_fields
+
+    def _include_assignment_links(self) -> bool:
+        if not has_request_context():
+            return True
+
+        return not str_to_bool(request.args.get("exclude_assignments"), default=False)
 
     def get(self, req, lookup):
         planning_query = self._extract_planning_source(req)
@@ -114,9 +125,15 @@ class EventsService(ProdApiService):
                 assignment_ids.extend(get_assignment_ids_from_planning(plan))
 
             if doc.get(config.LINKS):
-                doc[config.LINKS]["plannings"] = [construct_planning_link(item[config.ID_FIELD]) for item in plannings]
+                doc[config.LINKS]["plannings"] = [
+                    construct_planning_link(
+                        item[config.ID_FIELD],
+                        coverages=extract_coverage_summaries(item.get("coverages") or []),
+                    )
+                    for item in plannings
+                ]
 
-                if len(assignment_ids):
+                if len(assignment_ids) and self._include_assignment_links():
                     doc[config.LINKS]["assignments"] = construct_assignment_links(assignment_ids)
 
 
