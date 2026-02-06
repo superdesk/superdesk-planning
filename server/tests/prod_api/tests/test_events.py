@@ -247,3 +247,70 @@ def test_planning_source_malformed_elasticsearch_query(prodapi_app_with_data, pr
         assert resp.status_code == 400
         assert "_message" in resp_data
         assert "Invalid planning_source query" in resp_data["_message"]
+
+
+def test_event_planning_links_include_coverage_summaries(prodapi_app_with_data, prodapi_app_with_data_client):
+    """Ensure event planning links include limited coverage summaries."""
+
+    event_id = "urn:newsml:localhost:5000:2019-09-10T15:43:13.722490:5dcea683-fb9b-42ca-a77f-ce1216aef8b1"
+
+    with prodapi_app_with_data.test_request_context():
+        resp = prodapi_app_with_data_client.get(
+            url_for("events|item_lookup", _id=event_id),
+        )
+        resp_data = json.loads(resp.data.decode("utf-8"))
+
+        assert resp.status_code == 200
+        assert resp_data["guid"] == event_id
+
+        plannings = (resp_data.get("_links") or {}).get("plannings") or []
+        assert len(plannings) == 1
+
+        coverage_summaries = plannings[0].get("coverages") or []
+        assert len(coverage_summaries) == 2
+
+        expected_status = {
+            "qcode": "ncostat:int",
+            "name": "coverage intended",
+            "label": "Planned",
+        }
+        expected_coverage_ids = {
+            "urn:newsml:localhost:5000:2019-09-10T15:47:04.656641:5cfa0851-6985-47c3-8091-3c06dae91c66",
+            "urn:newsml:localhost:5000:2019-09-10T16:15:02.472468:39bf806f-a802-4cb4-bc81-9f28477c7a64",
+        }
+
+        assert {coverage.get("coverage_id") for coverage in coverage_summaries} == expected_coverage_ids
+
+        for coverage in coverage_summaries:
+            assert set(coverage.keys()) == {
+                "coverage_id",
+                "workflow_status",
+                "news_coverage_status",
+                "g2_content_type",
+            }
+            assert coverage["workflow_status"] == "active"
+            assert coverage["news_coverage_status"] == expected_status
+            assert coverage["g2_content_type"] == "text"
+
+
+def test_event_assignments_links_optional(prodapi_app_with_data, prodapi_app_with_data_client):
+    """Ensure assignment links can be excluded via query param."""
+
+    event_id = "urn:newsml:localhost:5000:2019-09-10T15:43:13.722490:5dcea683-fb9b-42ca-a77f-ce1216aef8b1"
+
+    with prodapi_app_with_data.test_request_context():
+        resp = prodapi_app_with_data_client.get(
+            url_for("events|item_lookup", _id=event_id),
+        )
+        resp_data = json.loads(resp.data.decode("utf-8"))
+
+        assert resp.status_code == 200
+        assert "assignments" in (resp_data.get("_links") or {})
+
+        resp = prodapi_app_with_data_client.get(
+            url_for("events|item_lookup", _id=event_id, exclude_assignments=1),
+        )
+        resp_data = json.loads(resp.data.decode("utf-8"))
+
+        assert resp.status_code == 200
+        assert "assignments" not in (resp_data.get("_links") or {})
