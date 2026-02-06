@@ -73,30 +73,44 @@ class ExportScheduledFilters:
             return
 
         for search_filter in filters:
+            filter_exported = False
             for schedule in search_filter.get("schedules") or []:
                 try:
-                    await self.export_filter(search_filter, schedule, now_local, now_utc)
-                except Exception as err:
-                    search_filter_id = search_filter["_id"]
-                    logger.error(f"Failed to export filter {search_filter_id}")
-                    logger.exception(err)
+                    if await self.export_filter(search_filter, schedule, now_local):
+                        filter_exported = True
+                        schedule["_last_sent"] = now_utc
+                except Exception:
+                    logger.exception(
+                        "Failed to export planning filter",
+                        extra={
+                            "filter_id": search_filter["_id"],
+                            "schedule": schedule,
+                        },
+                    )
 
-            # Update the DB for _last_sent of all schedules for this filter
-            await event_planning_filters_service.system_update(
-                search_filter["_id"],
-                {"schedules": search_filter["schedules"]},
-            )
+            if not filter_exported:
+                continue
 
-    async def export_filter(self, search_filter, schedule, now_local, now_utc):
+            try:
+                # Update the DB for ``_last_sent`` of all schedules for this filter
+                await event_planning_filters_service.system_update(
+                    search_filter["_id"],
+                    {"schedules": search_filter["schedules"]},
+                )
+            except Exception:
+                # Log the exception but allow other filters to run
+                logger.exception(
+                    "Failed to update scheduled filter _last_sent", extra={"filter_id": search_filter["_id"]}
+                )
+
+    async def export_filter(self, search_filter, schedule, now_local) -> bool:
         if not self.should_export(schedule, now_local):
-            return
+            return False
 
         search_filter_id = search_filter["_id"]
         logger.info(f"Attempting to export filter {search_filter_id}")
         await self._export_filter(search_filter, schedule)
-
-        # Update the _last_sent of the schedule
-        schedule["_last_sent"] = now_utc
+        return True
 
     async def get_filters_with_schedules(self):
         event_planning_filters_service = EventsPlanningFiltersAsyncService()
