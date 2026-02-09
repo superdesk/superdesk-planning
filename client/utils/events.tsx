@@ -1176,6 +1176,14 @@ export function convertEventDatesForTimezone(event: IEventItem | Partial<IEventI
     }
 }
 
+export function setRecurringEventUntilDate(event: Partial<IEventItem>): void {
+    const until = timeUtils.dateToJsDate(event.dates?.recurring_rule?.until, event.dates?.tz);
+
+    if (until) {
+        event.dates.recurring_rule.until = until;
+    }
+}
+
 function modifyForClient(event: IEventItem): IEventItem; // overload
 
 // eslint-disable-next-line no-redeclare
@@ -1195,12 +1203,7 @@ function modifyForClient(event: Partial<IEventItem>): Partial<IEventItem> {
             : timeUtils.getDateInRemoteTimeZone(event.dates.end, timeUtils.localTimeZone());
     }
 
-    if (get(event, 'dates.recurring_rule.until')) {
-        event.dates.recurring_rule.until = timeUtils.getDateInRemoteTimeZone(
-            event.dates.recurring_rule.until,
-            timeUtils.localTimeZone()
-        );
-    }
+    setRecurringEventUntilDate(event);
 
     if (get(event, 'unique_id') && typeof event.unique_id === 'string') {
         event.unique_id = parseInt(event.unique_id, 10);
@@ -1262,13 +1265,6 @@ function modifyForServer(event: IEventItem, removeNullLinks: boolean = false) {
         if (get(event, 'dates.end') && moment.isMoment(event.dates.end)) {
             event.dates.end = timeUtils.getDateInRemoteTimeZone(event.dates.end, event.dates.tz);
         }
-
-        if (get(event, 'dates.recurring_rule.until') && moment.isMoment(event.dates.recurring_rule.until)) {
-            event.dates.recurring_rule.until = timeUtils.getDateInRemoteTimeZone(
-                event.dates.recurring_rule.until,
-                event.dates.tz
-            );
-        }
     }
 
     if (event.dates?.start != null && moment.isMoment(event.dates.start)) {
@@ -1279,8 +1275,10 @@ function modifyForServer(event: IEventItem, removeNullLinks: boolean = false) {
         event.dates.end = event.dates.end.toISOString();
     }
 
-    if (event.dates?.recurring_rule?.until != null && moment.isMoment(event.dates.recurring_rule.until)) {
-        event.dates.recurring_rule.until = event.dates.recurring_rule.until.toISOString();
+    const until = timeUtils.dateToMomentDate(event.dates?.recurring_rule?.until, event.dates?.tz);
+
+    if (until) {
+        event.dates.recurring_rule.until = until.endOf('day').toISOString();
     }
 
     return event;
@@ -1375,7 +1373,6 @@ function shouldFetchFilesForEvent(event?: IEventItem) {
 function getRepeatSummaryForEvent(schedule: IEventItem['dates']): string {
     const frequency = get(schedule, 'recurring_rule.frequency');
     const endRepeatMode = get(schedule, 'recurring_rule.endRepeatMode');
-    const until = get(schedule, 'recurring_rule.until');
     const count = get(schedule, 'recurring_rule.count');
     const byDay = get(schedule, 'recurring_rule.byday');
     const startDate = get(schedule, 'start');
@@ -1408,7 +1405,15 @@ function getRepeatSummaryForEvent(schedule: IEventItem['dates']): string {
     };
 
     const getEnds = () => {
-        if (endRepeatMode === 'until' && moment.isMoment(until)) {
+        if (endRepeatMode === 'count') {
+            return count ? gettext('for {{ repeatCount }} repeats ', {repeatCount: count}) : gettext('for ');
+        }
+
+        const until = timeUtils
+            .dateToMomentDate(schedule.recurring_rule?.until, schedule.tz)
+            ?.endOf('day');
+
+        if (endRepeatMode === 'until' && until != null) {
             const localUntil = timeUtils.getDateInRemoteTimeZone(until, timeUtils.localTimeZone());
             let timezoneString = timeUtils.getTimeZoneAbbreviation(localUntil.format('z'));
             let untilText = gettext(
@@ -1423,10 +1428,6 @@ function getRepeatSummaryForEvent(schedule: IEventItem['dates']): string {
                 untilText = untilText + `(${timezoneString} ${remoteUntil.format('D MMM YYYY')})`;
             }
             return untilText;
-        }
-
-        if (endRepeatMode === 'count') {
-            return count ? gettext('for {{ repeatCount }} repeats ', {repeatCount: count}) : gettext('for ');
         }
 
         return '';

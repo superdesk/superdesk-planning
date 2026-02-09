@@ -1,6 +1,5 @@
 import React from 'react';
 import {get, range} from 'lodash';
-import moment from 'moment';
 
 import {IEventItem} from '../../../interfaces';
 import {superdeskApi} from '../../../superdeskApi';
@@ -139,9 +138,9 @@ export class RecurringRulesInput extends React.PureComponent<IProps> {
                         </Select>
                         {endRepeatMode === 'until' ? (
                             <DatePicker
-                                value={until != null ? new Date(until) : null}
+                                value={until}
                                 onChange={(next) => {
-                                    onChange('dates.recurring_rule.until', moment(next));
+                                    onChange('dates.recurring_rule.until', next);
                                 }}
                                 dateFormat={appConfig.view.dateformat}
                                 disabled={readOnly}

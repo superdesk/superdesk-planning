@@ -578,7 +578,7 @@ describe('EventUtils', () => {
                     start: '2014-08-15T04:00:00+0000',
                     end: '2014-08-15T07:00:00+0000',
                     tz: 'Australia/Sydney',
-                    recurring_rule: {until: '2014-08-18T04:00:00+0000'},
+                    recurring_rule: {until: '2014-08-18'},
                 },
             };
 
@@ -587,7 +587,7 @@ describe('EventUtils', () => {
                     start: moment.tz('2014-08-15T04:00:00+0000', 'Australia/Sydney'),
                     end: moment.tz('2014-08-15T07:00:00+0000', 'Australia/Sydney'),
                     tz: 'Australia/Sydney',
-                    recurring_rule: {until: moment.tz('2014-08-18T04:00:00+0000', 'Australia/Sydney')},
+                    recurring_rule: {until: new Date(2014, 7, 18)},
                 },
                 _startTime: moment.tz('2014-08-15T04:00:00+0000', 'Australia/Sydney'),
                 _endTime: moment.tz('2014-08-15T07:00:00+0000', 'Australia/Sydney'),
@@ -600,7 +600,7 @@ describe('EventUtils', () => {
                     start: '2014-08-15T04:00:00+0000',
                     end: '2014-08-15T07:00:00+0000',
                     tz: 'Australia/Perth',
-                    recurring_rule: {until: '2014-08-18T04:00:00+0000'},
+                    recurring_rule: {until: '2014-08-18'},
                 },
             };
 
@@ -609,7 +609,7 @@ describe('EventUtils', () => {
                     start: moment.tz('2014-08-15T04:00:00+0000', 'Australia/Sydney'),
                     end: moment.tz('2014-08-15T07:00:00+0000', 'Australia/Sydney'),
                     tz: 'Australia/Perth',
-                    recurring_rule: {until: moment.tz('2014-08-18T04:00:00+0000', 'Australia/Sydney')},
+                    recurring_rule: {until: new Date(2014, 7, 18)},
                 },
                 _startTime: moment.tz('2014-08-15T04:00:00+0000', 'Australia/Sydney'),
                 _endTime: moment.tz('2014-08-15T07:00:00+0000', 'Australia/Sydney'),

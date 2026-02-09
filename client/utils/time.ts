@@ -174,6 +174,32 @@ function getDateAsString(value: string | Date | moment.Moment): string {
     }
 }
 
+function dateToMomentDate(value: Date | string | null, tz: string | null = null): moment.Moment | null {
+    if (value == null) {
+        return null;
+    }
+
+    const jsDate = typeof value === 'string' ? new Date(value) : value;
+
+    const year = jsDate.getFullYear();
+    const month = jsDate.getMonth();
+    const day = jsDate.getDate();
+
+    return tz == null ? moment([year, month, day]) : moment.tz([year, month, day], tz);
+}
+
+function dateToJsDate(value: moment.Moment | Date | string | null, tz: string | null = null): Date | null {
+    if (value == null) {
+        return null;
+    } else if (value instanceof Date) {
+        return value;
+    }
+
+    const momentDate = tz == null ? moment(value) : moment.tz(value, tz);
+
+    return new Date(momentDate.year(), momentDate.month(), momentDate.date());
+}
+
 // eslint-disable-next-line consistent-this
 const self = {
     getStartOfNextWeek,
@@ -187,6 +213,8 @@ const self = {
     getTimeZoneAbbreviation,
     getDateForVersionInList,
     getDateAsString,
+    dateToMomentDate,
+    dateToJsDate,
 };
 
 export default self;

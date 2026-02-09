@@ -6,6 +6,7 @@ import {IEventState, IMainState, GROUP_LIST_BY} from '../interfaces';
 
 import {EVENTS, RESET_STORE, INIT_STORE, LOCKS, WORKFLOW_STATE, MAIN} from '../constants';
 import {createReducer} from './createReducer';
+import {setRecurringEventUntilDate} from '../utils/events';
 
 const initialState: IEventState = {
     events: {},
@@ -29,9 +30,7 @@ const modifyEventsBeingAdded = (state, payload) => (
             if (e.dates) {
                 e.dates.start = moment(e.dates.start);
                 e.dates.end = moment(e.dates.end);
-                if (get(e, 'dates.recurring_rule.until')) {
-                    e.dates.recurring_rule.until = moment(e.dates.recurring_rule.until);
-                }
+                setRecurringEventUntilDate(e);
                 e._startTime = moment(e.dates.start);
                 e._endTime = moment(e.dates.end);
             }

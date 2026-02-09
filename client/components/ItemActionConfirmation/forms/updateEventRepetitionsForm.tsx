@@ -7,7 +7,7 @@ import {IEventItem} from '../../../interfaces';
 
 import * as actions from '../../../actions';
 import * as selectors from '../../../selectors';
-import {gettext, updateFormValues, eventUtils, timeUtils} from '../../../utils';
+import {gettext, updateFormValues, eventUtils} from '../../../utils';
 import {Row} from '../../UI/Preview/';
 import {RepeatEventSummary} from '../../Events';
 import {RecurringRulesInput} from '../../Events/RecurringRulesInput/index';
@@ -151,18 +151,8 @@ const mapStateToProps = (state) => ({
 
 const mapDispatchToProps = (dispatch) => ({
     onSubmit: (original, updates, modalProps) => {
-        let newUpdates = cloneDeep(updates);
-
-        if (get(event, 'dates.recurring_rule.until')) {
-            newUpdates.dates.recurring_rule.until =
-                timeUtils.getDateInRemoteTimeZone(
-                    newUpdates.dates.recurring_rule.until,
-                    newUpdates.dates.tz
-                ).endOf('day');
-        }
-
         const promise = dispatch(
-            actions.events.ui.updateRepetitions(original, newUpdates)
+            actions.events.ui.updateRepetitions(original, cloneDeep(updates))
         );
 
         if (get(modalProps, 'onCloseModal')) {
