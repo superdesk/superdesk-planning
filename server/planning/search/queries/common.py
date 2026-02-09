@@ -385,7 +385,7 @@ def append_states_query_for_advanced_search(params: Dict[str, Any], query: elast
     else:
         # Otherwise include/exclude Spiked/Killed based on the params provided
         # Default: exclude spiked unless spike_state=both
-        if spike_state == WORKFLOW_STATE.DRAFT:
+        if spike_state == WORKFLOW_STATE.DRAFT or spike_state is None:
             query.must_not.append(elastic.term(field="state", value=WORKFLOW_STATE.SPIKED))
 
         if not strtobool(params.get("include_killed", False)):
@@ -484,8 +484,8 @@ def remove_filter_params_from_query(filter_params: Dict[str, Any], params: Dict[
         params["exclude_states"] = True
 
     # Skip request defaults when filter has spike_state or include_killed params
-    # if filter_params.get("spike_state") or filter_params.get("include_killed"):
-    #     params["exclude_states"] = True
+    if filter_params.get("spike_state") or filter_params.get("include_killed"):
+        params["exclude_states"] = True
 
 
 async def construct_search_query(
