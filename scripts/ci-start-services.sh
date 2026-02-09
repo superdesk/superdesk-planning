@@ -7,6 +7,6 @@ fi
 
 if [ "$E2E" == "true" ]; then
     cd e2e/server
-    honcho start &
+    python -m honcho start &
     cd ../../
 fi
