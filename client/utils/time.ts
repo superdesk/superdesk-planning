@@ -247,12 +247,9 @@ const self = {
     getTimeZoneAbbreviation,
     getDateForVersionInList,
     getDateAsString,
-<<<<<<< HEAD
     dateToMomentDate,
     dateToJsDate,
-=======
     allDayDateToLocalDate,
->>>>>>> release/3.1
 };
 
 export default self;
