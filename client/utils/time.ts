@@ -205,7 +205,7 @@ function dateToMomentDate(value: Date | string | null, tz: string | null = null)
  * Note: This function ignores any time attributes from the provided value.
  *
  * @param {moment.Moment | Date | string | null} value - The input value to be converted into a JavaScript Date object.
- * @param {string | null} [tz=null] - The optional timezone to use when interpreting the value. Defaults to null if not provided.
+ * @param {string | null} [tz=null] - The optional timezone to use when interpreting the value.
  * @return {Date | null} The resulting JavaScript Date object, or null if the input value is null.
  */
 function dateToJsDate(value: moment.Moment | Date | string | null, tz: string | null = null): Date | null {
