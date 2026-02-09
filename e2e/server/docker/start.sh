@@ -12,6 +12,6 @@ done
 echo 'done.'
 
 # init dbs
-honcho run python3 manage.py app:initialize_data
+QUART_APP=app:get_app honcho run python3 manage.py app:initialize_data
 
 exec "$@"
