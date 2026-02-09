@@ -23,6 +23,6 @@ fi
 
 if [ "$E2E" == "true" ]; then
     cd e2e/server
-    pip install -r requirements.txt
+    python -m pip install -r requirements.txt
     cd ../
 fi
