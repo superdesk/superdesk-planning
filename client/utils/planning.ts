@@ -1617,7 +1617,10 @@ function setCoverageActiveValues(
     coverage: IPlanningCoverageItem | ICoverageScheduledUpdate,
     newsCoverageStatus: Array<IPlanningNewsCoverageStatus>
 ) {
-    set(coverage, 'news_coverage_status', newsCoverageStatus.find((s) => s.qcode === 'ncostat:int'));
+    if (appConfig.planning.manual_news_coverage_status !== true) {
+        set(coverage, 'news_coverage_status', newsCoverageStatus.find((s) => s.qcode === 'ncostat:int'));
+    }
+
     set(coverage, 'workflow_status', COVERAGES.WORKFLOW_STATE.ACTIVE);
     set(coverage, 'assigned_to.state', ASSIGNMENTS.WORKFLOW_STATE.ASSIGNED);
 }
