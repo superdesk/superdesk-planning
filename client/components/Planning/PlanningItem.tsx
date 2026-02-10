@@ -173,8 +173,14 @@ class PlanningItemComponent extends React.Component<IProps, IState> {
         // Use the locked item (with updated _etag) for saving
         const itemToSave = this.state.lockedItem || this.props.item;
 
+        // Filter out coverages marked as 'spiked' - these are meant to be removed
+        // The backend removes coverages by their absence from the array, not by status
+        const coveragesToSave = Array.isArray(value)
+            ? value.filter((coverage) => coverage.workflow_status !== WORKFLOW_STATE.SPIKED)
+            : value;
+
         // Save the planning item with updated coverages
-        this.props.dispatch(planningApis.save(itemToSave, {[field]: value}))
+        this.props.dispatch(planningApis.save(itemToSave, {[field]: coveragesToSave}))
             .then((savedItem) => {
                 // Update lockedItem with saved item for proper unlock
                 this.setState({lockedItem: savedItem || itemToSave});
