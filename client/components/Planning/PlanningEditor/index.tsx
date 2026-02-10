@@ -19,6 +19,7 @@ import {
 } from '../../../interfaces';
 import {IArticle, IDesk, IUser, IVocabularyItem} from 'superdesk-api';
 import {planningApi} from '../../../superdeskApi';
+import {planningConfig} from '../../../config';
 
 import * as actions from '../../../actions';
 import * as selectors from '../../../selectors';
@@ -279,7 +280,8 @@ class PlanningEditorComponent extends React.Component<IProps, IState> {
 
             // If there is an assignment and coverage status not planned,
             // change it to 'planned'
-            if (newsCoverageStatus.length > 0 &&
+            if (planningConfig.planning.manual_news_coverage_status !== true &&
+                newsCoverageStatus.length > 0 &&
                 coverage?.news_coverage_status?.qcode !== newsCoverageStatus[0].qcode &&
                 coverage?.assigned_to?.desk != null
             ) {

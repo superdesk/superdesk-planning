@@ -38,6 +38,7 @@ from .common import (
     get_planning_auto_close_popup_editor,
     get_config_default_create_planning_series_with_event_series,
     get_start_of_week,
+    get_manual_news_coverage_status_config,
 )
 from apps.common.components.utils import register_component
 from .item_lock import LockService
@@ -241,6 +242,7 @@ def init_app(app):
     app.client_config["planning"][
         "default_create_planning_series_with_event_series"
     ] = get_config_default_create_planning_series_with_event_series(app)
+    app.client_config["planning"]["manual_news_coverage_status"] = get_manual_news_coverage_status_config(app)
 
     # Set up Celery task options
     if not app.config.get("CELERY_TASK_ROUTES"):

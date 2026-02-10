@@ -306,6 +306,7 @@ export interface IPlanningConfig extends ISuperdeskGlobalConfig {
         autosave_timeout?: number;
         default_create_planning_series_with_event_series?: boolean;
         event_related_item_search_provider_name?: string;
+        manual_news_coverage_status?: boolean;
     };
 
     coverage?: {
