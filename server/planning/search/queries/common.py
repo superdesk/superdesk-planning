@@ -384,8 +384,7 @@ def append_states_query_for_advanced_search(params: Dict[str, Any], query: elast
         query.must.append(elastic.terms(field="state", values=states))
     else:
         # Otherwise include/exclude Spiked/Killed based on the params provided
-        # Default: exclude spiked unless spike_state=both
-        if spike_state == WORKFLOW_STATE.DRAFT or spike_state is None:
+        if spike_state == WORKFLOW_STATE.DRAFT:
             query.must_not.append(elastic.term(field="state", value=WORKFLOW_STATE.SPIKED))
 
         if not strtobool(params.get("include_killed", False)):
@@ -483,9 +482,12 @@ def remove_filter_params_from_query(filter_params: Dict[str, Any], params: Dict[
     if filter_params.get("spike_state") == params.get("spike_state"):
         params["exclude_states"] = True
 
-    # Skip request defaults when filter has spike_state or include_killed params
-    if filter_params.get("spike_state") or filter_params.get("include_killed"):
+    if any(key in filter_params for key in ["state", "spike_state", "include_killed"]):
+        # When the saved filter includes state-related params, skip request defaults
         params["exclude_states"] = True
+        params.pop("state", None)
+        params.pop("spike_state", None)
+        params.pop("include_killed", None)
 
 
 async def construct_search_query(
@@ -497,6 +499,10 @@ async def construct_search_query(
     filter_params = get_params_from_search_filter(search_params)
 
     if len(filter_params):
+        if filter_params.get("include_killed") and "spike_state" not in filter_params:
+            # When a saved filter only enables killed items, keep spiked excluded by default.
+            filter_params["spike_state"] = WORKFLOW_STATE.DRAFT
+
         query = elastic.ElasticQuery()
 
         # Set `only_future` to False as `construct_query` with request params will add this if neccessary
