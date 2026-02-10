@@ -4365,3 +4365,100 @@ Feature: Planning
         }
         """
         Then we get error 400
+
+    @auth
+    Scenario: Coverage inherits metadata from Planning
+        Given "vocabularies"
+        """
+        [{
+            "_id": "my_options",
+            "selection_type": "single selection",
+            "display_name": "My Custom Options",
+            "service": {"all": 1},
+            "items": [
+                {"qcode": "a", "name": "Option A", "is_active": true},
+                {"qcode": "b", "name": "Option B", "is_active": true},
+                {"qcode": "c", "name": "Option C", "is_active": true},
+                {"qcode": "d", "name": "Option D", "is_active": true}
+            ]
+        }]
+        """
+        Given "planning_types"
+        """
+        [{
+            "_id": "planning",
+            "name": "planning",
+            "editor": {
+                "slugline": {"enabled": true, "index": 1},
+                "anpa_category": {"enabled": true, "index": 3},
+                "subject": {"enabled": true, "index": 4},
+                "my_options": {"enabled": true, "index": 5}
+            },
+            "schema": {
+                "slugline": {"required": true},
+                "anpa_category": {"required": true},
+                "subject": {"required": true},
+                "my_options": {"type": "custom_vocabulary", "required": false}
+            }
+        }]
+        """
+        Given "coverage_profiles"
+        """
+        [{
+            "name": "Custom Text Coverage",
+            "content_type": "text",
+            "editor": {
+                "g2_content_type": {"enabled": true, "index": 1},
+                "slugline": {"enabled": true, "index": 2},
+                "scheduled": {"enabled": true, "index": 3},
+                "my_options": {"enabled": true, "index": 4},
+                "anpa_category": {"enabled": false}
+            },
+            "schema": {
+                "g2_content_type": {"required": true},
+                "slugline": {"required": true},
+                "scheduled": {"required": true},
+                "my_options": {"type": "custom_vocabulary", "required": false}
+            }
+        }]
+        """
+        When we post to "/planning" with success
+        """
+        [{
+            "slugline": "test slugline",
+            "planning_date": "2036-01-02",
+            "anpa_category": [{"name": "Sports", "qcode": "s"}],
+            "subject": [
+                {"qcode": "test", "name": "Testing"},
+                {"qcode": "b", "name": "Option B", "scheme": "my_options"}
+            ]
+        }]
+        """
+        When we patch "/planning/#planning._id#"
+        """
+        {"coverages": [{
+            "profile": "#coverage_profiles._id#",
+            "workflow_status": "draft",
+            "news_coverage_status": {"qcode": "ncostat:int"},
+            "planning": {
+                "ednote": "testing stuff",
+                "g2_content_type": "text",
+                "scheduled": "2036-01-03"
+            }
+        }]}
+        """
+        When we get "/planning/#planning._id#"
+        Then we get existing resource
+        """
+        {
+            "coverages": [{
+                "planning": {
+                    "slugline": "test slugline",
+                    "anpa_category": "__no_value__",
+                    "subject": [
+                        {"qcode": "b", "name": "Option B", "scheme": "my_options"}
+                    ]
+                }
+            }]
+        }
+        """

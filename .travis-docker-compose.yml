@@ -13,10 +13,11 @@ services:
             - /data/db
 
     elastic:
-        image: elasticsearch:7.6.2
+        image: elasticsearch:7.17.28
         ports:
             - "9200:9200"
         environment:
             - discovery.type=single-node
+            - xpack.security.enabled=false
         tmpfs:
             - /usr/share/elasticsearch/data

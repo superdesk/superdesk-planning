@@ -122,6 +122,20 @@ class PlanningTypesService(AsyncBaseService):
 
 
 class ContentProfilesService(AsyncBaseService):
+    async def find_one_async(self, req, **lookup):
+        try:
+            coverage_profile = await super().find_one_async(req, **lookup)
+
+            default_coverage_profile = deepcopy(DEFAULT_COVERAGE_PROFILE)
+            if not coverage_profile:
+                return default_coverage_profile
+
+            self.merge_content_profile(coverage_profile, default_coverage_profile)
+            return coverage_profile
+
+        except IndexError:
+            return None
+
     async def get_async(self, req: ParsedRequest, lookup: dict[str, Any] | None) -> AsyncListCursor:
         """Get all content profiles with default fields merged in.
 

@@ -5,7 +5,6 @@ import {isEmpty} from 'lodash';
 import {
     EDITOR_TYPE,
     IAssignmentPriority,
-    ICoverageContentProfile,
     ICoverageProvider,
     ICoverageType,
     IEventItem,
@@ -13,13 +12,13 @@ import {
     IG2ContentType,
     IGenre,
     IInputArrayHocModeOptions,
-    IPlanningCoverageItem, IPlanningItem,
+    IPlanningCoverageItem,
+    IPlanningItem,
     IPlanningNewsCoverageStatus,
 } from '../../interfaces';
 import {IArticle, IDesk, IUser} from 'superdesk-api';
-import {superdeskApi} from '../../superdeskApi';
+import {superdeskApi, planningApi} from '../../superdeskApi';
 
-import {planningUtils} from '../../utils';
 import * as selectors from '../../selectors';
 
 import {InputArray} from '../UI/Form';
@@ -67,7 +66,6 @@ interface IReduxStateProps {
     newsCoverageStatus: Array<IPlanningNewsCoverageStatus>;
     coverageAddAdvancedMode: boolean;
     defaultDesk: IDesk;
-    coverageProfilesMap: Record<string, ICoverageContentProfile>;
 }
 
 interface IReduxDispatchProps {
@@ -81,7 +79,6 @@ interface IState {
 }
 
 const mapStateToProps = (state): IReduxStateProps => ({
-    coverageProfilesMap: selectors.coverageProfiles.getCoverageProfilesMap(state),
     users: selectors.general.users(state),
     desks: selectors.general.desks(state),
     genres: state.genres,
@@ -151,6 +148,14 @@ class CoverageArrayInputComponent extends React.Component<IProps, IState> {
         }
     }
 
+    createCoverage = (coverageType: ICoverageType): DeepPartial<IPlanningCoverageItem> => {
+        return planningApi.planning.coverages.setDefaultValues(
+            this.props.item,
+            this.props.event,
+            coverageType
+        );
+    }
+
     render() {
         const {gettext} = superdeskApi.localization;
         const {
@@ -184,18 +189,9 @@ class CoverageArrayInputComponent extends React.Component<IProps, IState> {
             onItemClose: this.onCoverageClose,
         };
 
-        const createCoverage = (coverageType: ICoverageType) => planningUtils.defaultCoverageValues(
-            newsCoverageStatus,
-            item,
-            event,
-            coverageType,
-            null,
-            null,
-            this.props.coverageProfilesMap[coverageType],
-        );
-
         const {desks, users, coverageAddAdvancedMode} = this.props;
         const language = this.props.item.language;
+        const createCoverage = this.createCoverage;
 
         return (
             <InputArray

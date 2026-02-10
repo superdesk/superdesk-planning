@@ -1,12 +1,17 @@
 .sortable-list__item {
     list-style-type: none;
     cursor: move;
-    z-index: 1100;
+    z-index: 2000;  // Make sure the items are visible in Modals too
     background-color: #fff;
 
     &--no-padding {
         padding: 0 0 0 10px !important;
     }
+}
+
+// Make sure text within the list items are not selectable
+.sortable-list__item * {
+    user-select: none;
 }
 
 .sortable-list__item button {

@@ -154,6 +154,7 @@ export const TIME_COMPARISON_GRANULARITY = {
 };
 
 export const ALL_DESKS = '_all';
+export const PERSONAL_WORKSPACE = {_id: 'personal-workspace', name: 'Personal Workspace'};
 
 export const SORT_DIRECTION = {
     ASCENDING: 'Asc',
@@ -166,6 +167,7 @@ export function assignConstantLabelTranslations() {
 
     DATE_FORMATS.DISPLAY_TBC_FORMAT = `D. MMMM YYYY @ ${TO_BE_CONFIRMED_SHORT_TEXT}`;
     DATE_FORMATS.DISPLAY_CDATE_TBC_FORMAT = `D. MMMM @ ${TO_BE_CONFIRMED_SHORT_TEXT}`;
+    PERSONAL_WORKSPACE.name = gettext('Personal Workspace');
 
     assignEventConstantTranslations();
     assignPlanningConstantTranslations();

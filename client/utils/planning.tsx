@@ -1656,7 +1656,7 @@ function defaultCoverageValues(
         newCoverage.planning._scheduledTime = newCoverage.planning.scheduled;
     }
 
-    self.setDefaultAssignment(newCoverage, preferredCoverageDesks, g2contentType, defaultDesk);
+    self.setDefaultAssignment(newCoverage, preferredCoverageDesks, profileId || g2contentType, defaultDesk);
     return newCoverage;
 }
 
