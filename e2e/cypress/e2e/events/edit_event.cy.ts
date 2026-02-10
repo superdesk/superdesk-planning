@@ -97,9 +97,10 @@ describe('Planning.Events: edit metadata', () => {
         editor.createButton
             .should('exist')
             .click();
-        list.expectItemCount(2);
+        list.expectItemCount(3);
         list.expectItemText(0, 'slugline of the recurring event');
         list.expectItemText(1, 'slugline of the recurring event');
+        list.expectItemText(2, 'slugline of the recurring event');
 
         // Test cancelling the Post modal
         editor.postButton
@@ -121,11 +122,14 @@ describe('Planning.Events: edit metadata', () => {
         modal.waitTillClosed();
         editor.waitForAutosave();
 
-        // Make sure both recurring Events now have the 'Scheduled' badge
+        // Make sure all recurring Events now have the 'Scheduled' badge
         list.item(0)
             .find('.label--success')
             .should('contain.text', 'Scheduled');
         list.item(1)
+            .find('.label--success')
+            .should('contain.text', 'Scheduled');
+        list.item(2)
             .find('.label--success')
             .should('contain.text', 'Scheduled');
     });

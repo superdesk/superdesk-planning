@@ -209,7 +209,7 @@ describe('eventValidators', () => {
         it('fail if until date is before start date', () => {
             event.dates.recurring_rule.endRepeatMode = 'until';
             event.dates.recurring_rule.count = null;
-            event.dates.recurring_rule.until = moment('2013-10-15T14:01:11');
+            event.dates.recurring_rule.until = new Date('2013-10-15');
             testValidate(eventValidators.validateDates, 'dates',
                 {dates: {recurring_rule: {until: 'Must be greater than starting date'}}},
                 ['RECURRING ENDS ON must be greater than START DATE']

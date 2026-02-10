@@ -23,26 +23,14 @@ export const getRecurringRulesField = (): IFieldDefinition => {
         },
         storageAdapterEvent: {
             retrieveStoredValue: (item) => {
-                const clonedValue = cloneDeep(item.dates.recurring_rule);
-
-                if (clonedValue?.until != null) {
-                    clonedValue.until = moment(clonedValue.until);
-                }
-
-                return clonedValue;
+                return cloneDeep(item.dates.recurring_rule);
             },
             storeValue: (item, operationalValue: NonNullable<IEventItem['dates']>['recurring_rule']) => {
-                const clonedValue = cloneDeep(operationalValue);
-
-                if (clonedValue?.until != null) {
-                    clonedValue.until = (clonedValue.until as Moment).toISOString();
-                }
-
                 return {
                     ...item,
                     dates: {
                         ...item.dates,
-                        recurring_rule: clonedValue,
+                        recurring_rule: cloneDeep(operationalValue),
                     },
                 };
             }
