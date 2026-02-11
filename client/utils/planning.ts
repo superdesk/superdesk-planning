@@ -1716,9 +1716,13 @@ function duplicateCoverage(
     return diffCoverages;
 }
 
+/**
+ * Updates the news coverage status of a given coverage item when changes occur,
+ * setting it to "planned" if a Desk has been assigned
+ *
+ * @param {IPlanningCoverageItem} coverage - The coverage item whose news coverage status is being evaluated and potentially updated.
+ */
 function setNewsCoverageStatusOnChange(coverage: IPlanningCoverageItem): void {
-    // If there is an assignment and coverage status not planned,
-    // change it to 'planned'
     if (planningConfig.planning.manual_news_coverage_status === true) {
         return;
     }
