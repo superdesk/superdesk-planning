@@ -25,7 +25,10 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
           cache: 'pip'
-          cache-dependency-path: 'server/requirements.txt'
+          cache-dependency-path: |
+            server/requirements.txt
+            e2e/server/requirements.txt
+            e2e/server/core-requirements.txt
       - name: Setup Environment
         run: ./scripts/ci-install.sh
       - name: Install Planning Client
