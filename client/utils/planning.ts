@@ -1561,7 +1561,9 @@ function getAgendaNames(
     field: string = 'agendas'
 ): Array<IAgenda> {
     return get(item, field, [])
-        .map((agendaId) => agendas.find((agenda) => agenda._id === get(agendaId, '_id', agendaId)))
+        .map((agendaId) => (
+            agendas.find((agenda) => agenda._id === get(agendaId, '_id', agendaId))
+        ))
         .filter((agenda) => agenda && (!onlyEnabled || agenda.is_enabled));
 }
 
@@ -1619,7 +1621,11 @@ function setCoverageActiveValues(
     coverage: IPlanningCoverageItem | ICoverageScheduledUpdate,
     newsCoverageStatus: Array<IPlanningNewsCoverageStatus>
 ) {
-    set(coverage, 'news_coverage_status', newsCoverageStatus.find((s) => s.qcode === 'ncostat:int'));
+    set(
+        coverage,
+        'news_coverage_status',
+        newsCoverageStatus.find((s) => s.qcode === 'ncostat:int')
+    );
     set(coverage, 'workflow_status', COVERAGES.WORKFLOW_STATE.ACTIVE);
     set(coverage, 'assigned_to.state', ASSIGNMENTS.WORKFLOW_STATE.ASSIGNED);
 }
@@ -1695,7 +1701,10 @@ function duplicateCoverage(
     );
 
     newCoverage.coverage_id = newCoverage.coverage_id + '-duplicate';
-    if (['picture', 'Picture'].includes(newCoverage.planning.g2_content_type) && coverage.planning.xmp_file) {
+    if (
+        ['picture', 'Picture'].includes(newCoverage.planning.g2_content_type) &&
+        coverage.planning.xmp_file
+    ) {
         newCoverage.planning.xmp_file = coverage.planning.xmp_file;
     }
 
