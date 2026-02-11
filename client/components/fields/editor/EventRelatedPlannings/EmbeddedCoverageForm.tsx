@@ -12,6 +12,7 @@ import {
 import {ICoverageDetails} from './CoverageRowForm';
 import {superdeskApi, planningApi} from '../../../../superdeskApi';
 import {getDesksForUser, getUsersForDesk} from '../../../../utils';
+import {getNewsCoverageStatusPlanned} from '../../../../utils/vocabularies';
 import {Select, Option} from 'superdesk-ui-framework/react';
 import * as List from '../../../UI/List';
 import {Row} from '../../../UI/Form';
@@ -112,6 +113,16 @@ export class EmbeddedCoverageFormComponent extends React.PureComponent<IProps, I
             filteredUsers: getUsersForDesk(newDesk, this.props.users),
             user: null,
         };
+
+        if (appConfig.planning.manual_news_coverage_status !== true) {
+            // If there is an assignment and coverage status not planned,
+            // change it to 'planned'
+            const plannedStatus = getNewsCoverageStatusPlanned();
+
+            if (this.props.coverage.status?.qcode !== plannedStatus.qcode && newDesk != null) {
+                updates.status = plannedStatus;
+            }
+        }
 
         const hasDeskLanguage = deskLanguage != null;
         const noCoverageLanguageSet = coverageLanguage == null;

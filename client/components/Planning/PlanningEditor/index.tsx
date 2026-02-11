@@ -275,21 +275,7 @@ class PlanningEditorComponent extends React.Component<IProps, IState> {
         let valueToUpdate = value;
 
         if (field.match(/^coverages\[/)) {
-            const {newsCoverageStatus} = this.props;
-            const coverage = value as IPlanningCoverageItem;
-
-            // If there is an assignment and coverage status not planned,
-            // change it to 'planned'
-            if (planningConfig.planning.manual_news_coverage_status !== true &&
-                newsCoverageStatus.length > 0 &&
-                coverage?.news_coverage_status?.qcode !== newsCoverageStatus[0].qcode &&
-                coverage?.assigned_to?.desk != null
-            ) {
-                valueToUpdate = {
-                    ...coverage,
-                    news_coverage_status: this.props.newsCoverageStatus[0],
-                };
-            }
+            planningUtils.setNewsCoverageStatusOnChange(value as IPlanningCoverageItem);
 
             if (field.match(/g2_content_type$/) &&
                 value === 'text' &&

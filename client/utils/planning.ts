@@ -65,6 +65,7 @@ import {
 import * as selectors from '../selectors';
 import {IMenuItem} from 'superdesk-ui-framework/react/components/Menu';
 import {planningConfig} from '../config';
+import {getNewsCoverageStatusPlanned} from './vocabularies';
 
 const isCoverageAssigned = (coverage) => !!get(coverage, 'assigned_to.desk');
 
@@ -1715,6 +1716,20 @@ function duplicateCoverage(
     return diffCoverages;
 }
 
+function setNewsCoverageStatusOnChange(coverage: IPlanningCoverageItem): void {
+    // If there is an assignment and coverage status not planned,
+    // change it to 'planned'
+    if (planningConfig.planning.manual_news_coverage_status === true) {
+        return;
+    }
+
+    const plannedStatus = getNewsCoverageStatusPlanned();
+
+    if (coverage.news_coverage_status?.qcode !== plannedStatus.qcode && coverage.assigned_to?.desk != null) {
+        coverage.news_coverage_status = plannedStatus;
+    }
+}
+
 // eslint-disable-next-line consistent-this
 const self = {
     canSpikePlanning,
@@ -1770,6 +1785,7 @@ const self = {
     showXMPFileUIControl,
     duplicateCoverage,
     toUIFrameworkInterface,
+    setNewsCoverageStatusOnChange,
 };
 
 export default self;
