@@ -51,7 +51,7 @@ interface IReduxStateProps {
 }
 
 interface IProps extends IPlanningListItemProps, IReduxStateProps {
-    dispatch(action: any): void;
+    dispatch(action: any): any;
 }
 
 class PlanningItemComponent extends React.Component<IProps, IState> {
@@ -173,8 +173,6 @@ class PlanningItemComponent extends React.Component<IProps, IState> {
         // Use the locked item (with updated _etag) for saving
         const itemToSave = this.state.lockedItem || this.props.item;
 
-        // Filter out coverages marked as 'spiked' - these are meant to be removed
-        // The backend removes coverages by their absence from the array, not by status
         const coveragesToSave = Array.isArray(value)
             ? value.filter((coverage) => coverage.workflow_status !== WORKFLOW_STATE.SPIKED)
             : value;
