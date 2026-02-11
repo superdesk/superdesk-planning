@@ -222,13 +222,14 @@ class OnclusiveFeedParser(FeedParser):
             # item["subjects"] = categories
         if event.get("eventTypes"):
             for category in event["eventTypes"]:
-                categories.append(
-                    {
-                        "name": category["tagName"],
-                        "qcode": str(category["tagId"]),
-                        "scheme": "onclusive_event_types",
-                    }
-                )
+                if category["tagId"] and category["tagName"]:
+                    categories.append(
+                        {
+                            "name": category["tagName"],
+                            "qcode": str(category["tagId"]),
+                            "scheme": "onclusive_event_types",
+                        }
+                    )
         item["subject"] = categories
 
     def datetime(self, date, time=None, timezone=None, tzinfo=None):

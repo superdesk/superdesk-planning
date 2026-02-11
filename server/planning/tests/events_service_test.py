@@ -54,3 +54,18 @@ def test_should_update():
     old_event: Event = new_event.copy()
 
     assert service.should_update(old_event, new_event, provider={})
+
+    # Test: should_update returns True when old_item is None
+    assert service.should_update(None, new_event, provider={})
+
+    # Test: should_update returns True when version_creator is None
+    old_event = {"versioncreated": datetime.now(), "version_creator": None}
+    assert service.should_update(old_event, new_event, provider={})
+
+    # Test: should_update returns False when pubstatus is "cancelled"
+    old_event = {
+        "versioncreated": datetime.now(),
+        "version_creator": "user_id",
+        "pubstatus": "cancelled",
+    }
+    assert not service.should_update(old_event, new_event, provider={})
