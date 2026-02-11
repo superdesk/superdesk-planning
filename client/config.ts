@@ -98,6 +98,10 @@ export function updateConfigAfterLoad() {
     if (appConfig?.planning?.autosave_timeout == null) {
         appConfig.planning.autosave_timeout = 1500;
     }
+
+    if (appConfig?.planning?.manual_news_coverage_status == null) {
+        appConfig.planning.manual_news_coverage_status = false;
+    }
 }
 
 export const planningConfig = appConfig as IPlanningConfig;

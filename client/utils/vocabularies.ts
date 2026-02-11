@@ -1,3 +1,6 @@
+import {IPlanningNewsCoverageStatus} from '../interfaces';
+import {superdeskApi} from '../superdeskApi';
+
 export function getVocabularyItemFieldTranslated(
     item: {
         translations?: {[key: string]: any},
@@ -95,4 +98,16 @@ export function getVocabularyItemNameFromString<T>(
             nameField as string,
             language
         );
+}
+
+export function getNewsCoverageStatusPlanned(): IPlanningNewsCoverageStatus {
+    const items = (
+        superdeskApi.entities.vocabulary.getVocabulary('newscoveragestatus')?.items ?? []
+    ) as Array<IPlanningNewsCoverageStatus>;
+
+    return items.find((item) => item.qcode === 'ncostat:int') ?? {
+        qcode: 'ncostat:int',
+        name: 'coverage intended',
+        label: 'Planned',
+    };
 }

@@ -65,6 +65,7 @@ import {
 import * as selectors from '../selectors';
 import {IMenuItem} from 'superdesk-ui-framework/react/components/Menu';
 import {planningConfig} from '../config';
+import {getNewsCoverageStatusPlanned} from './vocabularies';
 
 const isCoverageAssigned = (coverage) => !!get(coverage, 'assigned_to.desk');
 
@@ -1621,11 +1622,14 @@ function setCoverageActiveValues(
     coverage: IPlanningCoverageItem | ICoverageScheduledUpdate,
     newsCoverageStatus: Array<IPlanningNewsCoverageStatus>
 ) {
-    set(
-        coverage,
-        'news_coverage_status',
-        newsCoverageStatus.find((s) => s.qcode === 'ncostat:int')
-    );
+    if (appConfig.planning.manual_news_coverage_status !== true) {
+        set(
+            coverage,
+            'news_coverage_status',
+            newsCoverageStatus.find((s) => s.qcode === 'ncostat:int')
+        );
+    }
+
     set(coverage, 'workflow_status', COVERAGES.WORKFLOW_STATE.ACTIVE);
     set(coverage, 'assigned_to.state', ASSIGNMENTS.WORKFLOW_STATE.ASSIGNED);
 }
@@ -1723,6 +1727,24 @@ function duplicateCoverage(
     return diffCoverages;
 }
 
+/**
+ * Updates the news coverage status of a given coverage item when changes occur,
+ * setting it to "planned" if a Desk has been assigned
+ *
+ * @param {IPlanningCoverageItem} coverage - The coverage item whose news coverage status is being evaluated and potentially updated.
+ */
+function setNewsCoverageStatusOnChange(coverage: IPlanningCoverageItem): void {
+    if (planningConfig.planning.manual_news_coverage_status === true) {
+        return;
+    }
+
+    const plannedStatus = getNewsCoverageStatusPlanned();
+
+    if (coverage.news_coverage_status?.qcode !== plannedStatus.qcode && coverage.assigned_to?.desk != null) {
+        coverage.news_coverage_status = plannedStatus;
+    }
+}
+
 // eslint-disable-next-line consistent-this
 const self = {
     canSpikePlanning,
@@ -1778,6 +1800,7 @@ const self = {
     showXMPFileUIControl,
     duplicateCoverage,
     toUIFrameworkInterface,
+    setNewsCoverageStatusOnChange,
 };
 
 export default self;

@@ -259,6 +259,10 @@ def get_config_event_related_item_search_provider_name(current_app=None) -> Opti
     return (current_app or app).config.get("EVENT_RELATED_ITEM_SEARCH_PROVIDER_NAME")
 
 
+def get_manual_news_coverage_status_config(current_app=None) -> bool:
+    return (current_app or app).config.get("PLANNING_MANUAL_NEWS_COVERAGE_STATUS", False)
+
+
 def remove_lock_information(item):
     item.update({LOCK_USER: None, LOCK_SESSION: None, LOCK_TIME: None, LOCK_ACTION: None})
 
