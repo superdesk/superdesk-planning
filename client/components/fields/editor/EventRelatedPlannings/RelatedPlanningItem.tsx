@@ -67,10 +67,14 @@ export class RelatedPlanningItem extends React.PureComponent<IProps> {
         this.props.updatePlanningItem(this.props.item, updates, scrollOnChange);
     }
 
-    updateCoverage(field: string, value: any) {
+    updateCoverage(index: number, field: string, value: IPlanningCoverageItem) {
         const updates = {coverages: [...this.props.item.coverages]};
 
+        // Make sure this specific Coverage gets a new value reference
+        // So any shallow comparison causes a re-render
+        updates.coverages[index] = {...updates.coverages[index]};
         set(updates, field, value);
+        planningUtils.setNewsCoverageStatusOnChange(value);
         this.update(updates, false);
     }
 

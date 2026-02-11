@@ -32,7 +32,7 @@ interface IProps {
     keywords: Array<string>;
     editorType: EDITOR_TYPE;
 
-    updateCoverage(field: string, value: any): void;
+    updateCoverage(index: number, field: string, value: any): void;
     removeCoverage(coverage: DeepPartial<IPlanningCoverageItem>): void;
     duplicateCoverage(coverage: DeepPartial<IPlanningCoverageItem>, duplicateAs?: IG2ContentType['qcode']): void;
     setCoverageDefaultDesk(coverage: DeepPartial<IPlanningCoverageItem>): void;
@@ -82,7 +82,9 @@ class RelatedCoverageItemsComponent extends React.PureComponent<IProps> {
                         field={`coverages[${index}]`}
                         includeScheduledUpdates={false}
 
-                        onChange={this.props.updateCoverage}
+                        onChange={(field, value) => {
+                            this.props.updateCoverage(index, field, value);
+                        }}
                         remove={() => this.props.removeCoverage(coverage)}
                         onDuplicateCoverage={this.props.duplicateCoverage}
                         setCoverageDefaultDesk={() => this.props.setCoverageDefaultDesk(coverage)}
