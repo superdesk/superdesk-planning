@@ -1373,7 +1373,9 @@ function defaultPlanningValues(currentAgenda?: IAgenda, defaultPlaceList?: Array
     return self.modifyForClient(newPlanning);
 }
 
-function getDefaultCoverageStatus(newsCoverageStatus: Array<IPlanningNewsCoverageStatus>): IPlanningNewsCoverageStatus {
+function getDefaultCoverageStatus(
+    newsCoverageStatus: Array<IPlanningNewsCoverageStatus>,
+): IPlanningNewsCoverageStatus {
     return newsCoverageStatus[0];
 }
 
