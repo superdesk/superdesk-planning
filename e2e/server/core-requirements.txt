@@ -103,7 +103,7 @@ click-repl==0.3.0
     # via celery
 croniter==6.0.0
     # via superdesk-core
-cryptography==46.0.3
+cryptography==46.0.5
     # via
     #   authlib
     #   jwcrypto
@@ -155,7 +155,7 @@ hachoir==3.3.0
 hermescache==1.1.0
     # via superdesk-core
 honcho==1.0.1
-    # via -r e2e/server/core-requirements.in
+    # via -r core-requirements.in
 hpack==4.1.0
     # via h2
 httplib2==0.31.0
@@ -321,7 +321,7 @@ six==1.17.0
     #   oauth2client
     #   python-dateutil
 superdesk-core @ git+https://github.com/superdesk/superdesk-core.git@develop
-    # via -r e2e/server/core-requirements.in
+    # via -r core-requirements.in
 taskgroup==0.2.2
     # via hypercorn
 tomli==2.3.0
@@ -387,4 +387,4 @@ yarl==1.22.0
 
 # The following packages are considered to be unsafe in a requirements file:
 setuptools==80.9.0
-    # via -r e2e/server/core-requirements.in
+    # via -r core-requirements.in
