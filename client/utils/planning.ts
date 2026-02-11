@@ -1374,7 +1374,9 @@ function defaultPlanningValues(currentAgenda?: IAgenda, defaultPlaceList?: Array
     return self.modifyForClient(newPlanning);
 }
 
-function getDefaultCoverageStatus(newsCoverageStatus: Array<IPlanningNewsCoverageStatus>): IPlanningNewsCoverageStatus {
+function getDefaultCoverageStatus(
+    newsCoverageStatus: Array<IPlanningNewsCoverageStatus>,
+): IPlanningNewsCoverageStatus {
     return newsCoverageStatus[0];
 }
 
@@ -1560,7 +1562,9 @@ function getAgendaNames(
     field: string = 'agendas'
 ): Array<IAgenda> {
     return get(item, field, [])
-        .map((agendaId) => agendas.find((agenda) => agenda._id === get(agendaId, '_id', agendaId)))
+        .map((agendaId) => (
+            agendas.find((agenda) => agenda._id === get(agendaId, '_id', agendaId))
+        ))
         .filter((agenda) => agenda && (!onlyEnabled || agenda.is_enabled));
 }
 
@@ -1619,7 +1623,11 @@ function setCoverageActiveValues(
     newsCoverageStatus: Array<IPlanningNewsCoverageStatus>
 ) {
     if (appConfig.planning.manual_news_coverage_status !== true) {
-        set(coverage, 'news_coverage_status', newsCoverageStatus.find((s) => s.qcode === 'ncostat:int'));
+        set(
+            coverage,
+            'news_coverage_status',
+            newsCoverageStatus.find((s) => s.qcode === 'ncostat:int')
+        );
     }
 
     set(coverage, 'workflow_status', COVERAGES.WORKFLOW_STATE.ACTIVE);
@@ -1697,7 +1705,10 @@ function duplicateCoverage(
     );
 
     newCoverage.coverage_id = newCoverage.coverage_id + '-duplicate';
-    if (['picture', 'Picture'].includes(newCoverage.planning.g2_content_type) && coverage.planning.xmp_file) {
+    if (
+        ['picture', 'Picture'].includes(newCoverage.planning.g2_content_type) &&
+        coverage.planning.xmp_file
+    ) {
         newCoverage.planning.xmp_file = coverage.planning.xmp_file;
     }
 
@@ -1720,7 +1731,8 @@ function duplicateCoverage(
  * Updates the news coverage status of a given coverage item when changes occur,
  * setting it to "planned" if a Desk has been assigned
  *
- * @param {IPlanningCoverageItem} coverage - The coverage item whose news coverage status is being evaluated and potentially updated.
+ * @param {IPlanningCoverageItem} coverage - The coverage item whose news coverage status is being evaluated
+ * and potentially updated.
  */
 function setNewsCoverageStatusOnChange(coverage: IPlanningCoverageItem): void {
     if (planningConfig.planning.manual_news_coverage_status === true) {
