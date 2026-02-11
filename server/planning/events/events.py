@@ -881,7 +881,25 @@ class EventsService(AsyncBaseService):
             if await events_using_file.count() == 0:
                 await files_service.delete_action_async(lookup={"_id": file})
 
-    def should_update(self, old_item, new_item, provider):
+    def should_update(self, old_item, new_item, provider) -> bool:
+        """Determine if an ingest feed event should update the local event.
+
+        Allows updates when:
+        - Event doesn't exist locally
+        - Event never manually edited (version_creator is None), even if cancelled/killed
+        - Event manually edited but not cancelled/killed
+
+        Key behavior: Ingest feeds can update cancelled/killed events only if never manually
+        touched. Once user-edited, cancelled/killed events won't be updated from feeds.
+
+        Args:
+            old_item: Existing event (None if doesn't exist)
+            new_item: Incoming event from feed
+            provider: Ingest provider config
+
+        Returns:
+            True if should update, False otherwise
+        """
         return (
             old_item is None
             or old_item.get("version_creator") is None

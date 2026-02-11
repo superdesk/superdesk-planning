@@ -375,7 +375,7 @@ class EventsAsyncService(BasePlanningAsyncService[EventResourceModel]):
         if not start_date or not end_date:
             raise SuperdeskApiError(message="Event START DATE and END DATE are mandatory.")
 
-        if end_date < start_date and not event.dates.no_end_date:
+        if end_date < start_date and not event.dates.no_end_time:
             raise SuperdeskApiError(message="END TIME should be after START TIME")
 
         if event.dates.recurring_rule and not event.dates.recurring_rule.until and not event.dates.recurring_rule.count:
