@@ -203,3 +203,38 @@ class OnclusiveFeedParserTestCase(TestCase):
         with self.assertLogs("planning", level=logging.ERROR) as logger:
             await OnclusiveFeedParser().parse([data])
             assert "Error when parsing Onclusive event" in logger.output[0]
+
+    async def test_get_contact_updates(self):
+        contacts_service = superdesk.get_resource_service("contacts")
+        parser = OnclusiveFeedParser()
+        contact_info = self.data["pressContacts"][0].copy()
+
+        # 1. Get data for a contact not currently in the db
+        updates, contact_id = await parser._get_contact_updates(contact_info)
+        self.assertIsNone(contact_id)
+        self.assertEqual(
+            updates,
+            {
+                "uri": "onclusive:28871",
+                "is_active": True,
+                "public": True,
+                "contact_email": ["customerservice@americanconference.com"],
+                "contact_phone": [{"number": "1 212 352 3220", "public": True}],
+                "organisation": "American Conference Institute",
+                "first_name": "Benjamin Andrew",
+                "last_name": "Stokes",
+            },
+        )
+
+        # 2. Get empty updates for contact in db with no changes from ingest
+        await contacts_service.post_async([updates])
+        existing_contact_id = bson.ObjectId(updates["_id"])
+        updates, contact_id = await parser._get_contact_updates(contact_info)
+        self.assertEqual(contact_id, existing_contact_id)
+        self.assertEqual(updates, {})
+
+        # 3. Get name updates for contact in db with changes from ingest
+        contact_info["pressContactName"] = "Foo Bar"
+        updates, contact_id = await parser._get_contact_updates(contact_info)
+        self.assertEqual(contact_id, existing_contact_id)
+        self.assertEqual(updates, {"first_name": "Foo", "last_name": "Bar"})
