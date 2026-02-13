@@ -277,15 +277,11 @@ class OnclusiveFeedParser(FeedParser):
 
             try:
                 if existing_contact_id is None:
-                    updates.setdefault(
-                        {
-                            "contact_email": [],
-                            "contact_phone": [],
-                            "organisation": "",
-                            "first_name": "",
-                            "last_name": "",
-                        }
-                    )
+                    updates.setdefault("contact_email", [])
+                    updates.setdefault("contact_phone", [])
+                    updates.setdefault("organisation", "")
+                    updates.setdefault("first_name", "")
+                    updates.setdefault("last_name", "")
                     await contacts_service.post_async([updates])
                     item["event_contact_info"].append(bson.ObjectId(updates["_id"]))
                 elif updates:
@@ -327,24 +323,28 @@ class OnclusiveFeedParser(FeedParser):
 
         for field in {"pressContactEmail", "pressContactTelephone", "pressContactOffice", "pressContactName"}:
             value = contact_info.get(field)
-            if not value:
-                continue
-
-            elif field == "pressContactEmail":
+            if field == "pressContactEmail":
                 existing_emails = existing_contact.get("contact_email") or []
-                if value not in existing_emails:
+                if not value:
+                    if existing_emails:
+                        updates["contact_email"] = []
+                elif value not in existing_emails:
                     updates["contact_email"] = [value]
 
             elif field == "pressContactTelephone":
                 existing_phones = existing_contact.get("contact_phone") or []
-                phone_exists = False
-                for phone in existing_phones:
-                    if phone.get("number") == value:
-                        phone_exists = True
-                        break
+                if not value:
+                    if existing_phones:
+                        updates["contact_phone"] = []
+                else:
+                    phone_exists = False
+                    for phone in existing_phones:
+                        if phone.get("number") == value:
+                            phone_exists = True
+                            break
 
-                if not phone_exists:
-                    updates["contact_phone"] = [{"number": value, "public": True}]
+                    if not phone_exists:
+                        updates["contact_phone"] = [{"number": value, "public": True}]
 
             elif field == "pressContactOffice":
                 if value != existing_contact.get("organisation"):
