@@ -351,10 +351,13 @@ class OnclusiveFeedParser(FeedParser):
                     updates["organisation"] = value
 
             elif field == "pressContactName":
-                try:
-                    first, last = value.rsplit(" ", 1)
-                except ValueError:
-                    first, last = "", value
+                if not value:
+                    first, last = "", ""
+                else:
+                    try:
+                        first, last = value.rsplit(" ", 1)
+                    except ValueError:
+                        first, last = "", value
 
                 if first != existing_contact.get("first_name"):
                     updates["first_name"] = first
