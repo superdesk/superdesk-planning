@@ -283,10 +283,11 @@ class OnclusiveFeedParser(FeedParser):
                     updates.setdefault("first_name", "")
                     updates.setdefault("last_name", "")
                     await contacts_service.post_async([updates])
-                    item["event_contact_info"].append(bson.ObjectId(updates["_id"]))
+                    existing_contact_id = bson.ObjectId(updates["_id"])
                 elif updates:
                     await contacts_service.patch_async(existing_contact_id, updates)
-                    item["event_contact_info"].append(existing_contact_id)
+
+                item["event_contact_info"].append(existing_contact_id)
             except Exception:
                 # Make sure that if we fail to create/update the contact, we still ingest the Event
                 logger.exception("Error when parsing Onclusive contact info", extra={"contact": contact_info})
