@@ -73,6 +73,15 @@ if (appConfig.start_of_week == null) {
     appConfig.start_of_week = parseInt(appConfig.start_of_week, 10);
 }
 
+// Align planning week start with core config
+if (appConfig.startingDay != null) {
+    appConfig.start_of_week = typeof appConfig.startingDay === 'string'
+        ? parseInt(appConfig.startingDay, 10)
+        : appConfig.startingDay;
+} else {
+    appConfig.startingDay = appConfig.start_of_week;
+}
+
 if (appConfig.planning == null) {
     appConfig.planning = {};
 }
