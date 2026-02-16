@@ -260,12 +260,11 @@ class OnclusiveFeedParser(FeedParser):
         return parsed.replace(tzinfo=pytz.utc)
 
     async def parse_contact_info(self, event, item):
+        item.setdefault("event_contact_info", [])
         if not event.get("pressContacts"):
             return
 
         contacts_service = get_resource_service("contacts")
-        item.setdefault("event_contact_info", [])
-
         for contact_info in event["pressContacts"]:
             if not contact_info.get("pressContactID"):
                 logger.warning(
