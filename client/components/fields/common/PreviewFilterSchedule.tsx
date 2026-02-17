@@ -66,7 +66,7 @@ export class PreviewFieldFilterScheduleComponent extends React.PureComponent<IPr
                                     <IconButton
                                         icon="trash"
                                         size="small"
-                                        ariaValue={gettext('Edit')}
+                                        ariaValue={gettext('Delete')}
                                         onClick={(event) => {
                                             event.stopPropagation();
                                             this.props.deleteSchedule(this.props.item);

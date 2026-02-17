@@ -208,7 +208,7 @@ export class CoverageProfilesModal extends React.Component<IProps, IState> {
                 contentPadding="none"
                 closeOnEscape
                 onHide={this.closeModal}
-                headerTemplate={gettext('Manage coverage profiles')}
+                headerTemplate={gettext('Manage Coverage Profiles')}
                 footerTemplate={(
                     <Spacer gap="4" alignItems="end" justifyContent="end" h noGrow>
                         <Button

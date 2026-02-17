@@ -67,7 +67,8 @@ class ManageFiltersComponent extends React.Component<IProps, IState> {
 
         confirm(
             gettext('Filter "{{ name }}" will be permanently deleted.', {name: filter.name}),
-            gettext('Delete Item?')
+            gettext('Delete Item?'),
+            gettext('Delete'),
         ).then((confirmed) => {
             if (confirmed) {
                 this.props.deleteFilter(filter);
@@ -81,7 +82,8 @@ class ManageFiltersComponent extends React.Component<IProps, IState> {
 
         confirm(
             gettext('Schedule will be permanently deleted.'),
-            gettext('Delete Item?')
+            gettext('Delete Item?'),
+            gettext('Delete'),
         ).then((confirmed) => {
             if (confirmed) {
                 this.props.deleteFilterSchedule(filter);
