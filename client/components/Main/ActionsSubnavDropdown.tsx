@@ -19,19 +19,19 @@ const ActionsSubnavDropdownComponent = (props) => {
 
     if (props.privileges[PRIVILEGES.AGENDA_MANAGEMENT]) {
         items.push({
-            label: gettext('Manage agendas'),
+            label: gettext('Manage Agendas'),
             action: props.openAgendas,
         });
     }
 
     if (props.privileges[PRIVILEGES.MANAGE_CONTENT_PROFILES]) {
         items.push({
-            label: gettext('Manage planning profile'),
+            label: gettext('Manage Planning Profile'),
             action: planningApi.contentProfiles.showManagePlanningProfileModal,
         });
 
         items.push({
-            label: gettext('Manage coverage profiles'),
+            label: gettext('Manage Coverage Profiles'),
             action: () => showModalSf(({closeModal}) => (
                 <Provider store={planningApi.redux.store}>
                     <CoverageProfilesModal closeModal={closeModal} />
@@ -40,14 +40,14 @@ const ActionsSubnavDropdownComponent = (props) => {
         });
 
         items.push({
-            label: gettext('Manage event profile'),
+            label: gettext('Manage Event Profile'),
             action: planningApi.contentProfiles.showManageEventProfileModal,
         });
     }
 
     if (appConfig.event_templates_enabled === true && props.privileges[PRIVILEGES.EVENT_TEMPLATES]) {
         items.push({
-            label: gettext('Manage event templates'),
+            label: gettext('Manage Event templates'),
             action: () => props.dispatch(showModal({
                 modalType: MODALS.MANAGE_EVENT_TEMPLATES,
             })),
@@ -72,7 +72,7 @@ const ActionsSubnavDropdownComponent = (props) => {
 
     if (props.privileges[PRIVILEGES.FEATURED_STORIES]) {
         items.push({
-            label: gettext('Featured stories'),
+            label: gettext('Featured Stories'),
             action: props.openFeaturedPlanningModal,
         });
     }

@@ -301,7 +301,8 @@ export class GroupTabComponent extends React.Component<IProps, IState> {
                 gettext('Group "{{group}}" will be permanently deleted.', {
                     group: getProfileGroupNameTranslated(group),
                 }),
-            gettext('Delete Item?')
+            gettext('Delete Item?'),
+            gettext('Delete'),
         ).then((confirmed) => {
             if (confirmed) {
                 if (this.state.selectedGroup?._id === group._id) {

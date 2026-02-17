@@ -81,7 +81,9 @@ export class InputArray extends React.PureComponent<IProps> {
         const {confirm, notify} = superdeskApi.ui;
 
         confirm(
-            gettext('Remove Coverage')
+            gettext('Remove Coverage'),
+            undefined,
+            gettext('Delete'),
         ).then((response) => {
             if (response) {
                 this.props.onChange(

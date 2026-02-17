@@ -1,5 +1,5 @@
 import * as React from 'react';
-import {cloneDeep, isEqual, set} from 'lodash';
+import {cloneDeep, get, isEqual, set} from 'lodash';
 
 import {IIgnoreCancelSaveResponse, IVocabulary} from 'superdesk-api';
 import {
@@ -200,7 +200,8 @@ export class FieldTab extends React.Component<IProps, IState> {
             gettext('Field "{{field}}" will be permanently deleted.', {
                 field: getFieldNameTranslated(item.name),
             }),
-            gettext('Delete Item?')
+            gettext('Delete Item?'),
+            gettext('Delete'),
         ).then((confirmed) => {
             if (confirmed) {
                 if (this.state.selectedField?.name === item.name) {
@@ -238,7 +239,7 @@ export class FieldTab extends React.Component<IProps, IState> {
 
             return (
                 <>
-                    {this.customVocabularies.find((x) => x._id === fieldEntry.name).display_name}
+                    {this.customVocabularies.find((x) => x._id === fieldEntry.name)?.display_name}
                         &nbsp;
                     <span className="sd-text--italic sd-text--light">
                         {fieldTypeLabel}
