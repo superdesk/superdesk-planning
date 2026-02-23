@@ -74,6 +74,80 @@ Feature: Assignments Locking
         """
 
     @auth
+    Scenario: Can lock assignment for reassign with archive privilege only
+        Given "assignments"
+        """
+        [{
+            "_id": "a124",
+            "planning": {
+                "ednote": "test coverage, I want 250 words",
+                "headline": "test headline",
+                "slugline": "test slugline",
+                "scheduled": "2016-01-02T14:00:00+0000"
+            },
+            "assigned_to": {
+                "desk": "Politic Desk",
+                "user": "507f191e810c19729de870eb",
+                "state": "assigned"
+            }
+        }]
+        """
+        When we switch user
+        When we patch "/users/#USERS_ID#"
+        """
+        {"user_type": "user", "privileges": {"archive": 1, "planning_planning_management": 0}}
+        """
+        Then we get OK response
+        When we post to "/assignments/a124/lock"
+        """
+        {"lock_action": "reassign"}
+        """
+        Then we get existing resource
+        """
+        {
+            "_id": "a124",
+            "lock_user": "#CONTEXT_USER_ID#"
+        }
+        """
+
+    @auth
+    Scenario: Can lock assignment for complete with archive privilege only
+        Given "assignments"
+        """
+        [{
+            "_id": "a125",
+            "planning": {
+                "ednote": "test coverage, I want 250 words",
+                "headline": "test headline",
+                "slugline": "test slugline",
+                "scheduled": "2016-01-02T14:00:00+0000"
+            },
+            "assigned_to": {
+                "desk": "Politic Desk",
+                "user": "507f191e810c19729de870eb",
+                "state": "assigned"
+            }
+        }]
+        """
+        When we switch user
+        When we patch "/users/#USERS_ID#"
+        """
+        {"user_type": "user", "privileges": {"archive": 1, "planning_planning_management": 0}}
+        """
+        Then we get OK response
+        When we post to "/assignments/a125/lock"
+        """
+        {"lock_action": "complete"}
+        """
+        Then we get existing resource
+        """
+        {
+            "_id": "a125",
+            "lock_user": "#CONTEXT_USER_ID#"
+        }
+        """
+
+    @auth
     Scenario: Lock fails if associated content item is locked by another user
         Given "desks"
         """
