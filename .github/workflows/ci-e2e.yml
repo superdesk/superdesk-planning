@@ -5,25 +5,6 @@ on: [push, pull_request]
 jobs:
   e2e:
     runs-on: ubuntu-latest
-    services:
-      redis:
-        image: redis:alpine
-        ports:
-            - "6379:6379"
-
-      mongo:
-        image: mongo:6
-        ports:
-            - "27017:27017"
-
-      elastic:
-        image: elasticsearch:7.17.28
-        ports:
-            - "9200:9200"
-        env:
-            discovery.type: single-node
-            xpack.security.enabled: false
-
     strategy:
       fail-fast: false
       matrix:
@@ -59,6 +40,9 @@ jobs:
         run: npm install
       - name: Build Client
         run: npm run build
+      - name: Start Services
+        run: ./scripts/ci-start-services.sh
+        working-directory: ./
       - name: Start web server
         run: npm run start-client-server
 
