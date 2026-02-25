@@ -148,6 +148,44 @@ Feature: Assignments Locking
         """
 
     @auth
+    Scenario: Can lock assignment for revert with archive privilege only
+        Given "assignments"
+        """
+        [{
+            "_id": "a126",
+            "planning": {
+                "ednote": "test coverage, I want 250 words",
+                "headline": "test headline",
+                "slugline": "test slugline",
+                "scheduled": "2016-01-02T14:00:00+0000"
+            },
+            "assigned_to": {
+                "desk": "Politic Desk",
+                "user": "507f191e810c19729de870eb",
+                "state": "assigned"
+            }
+        }]
+        """
+        When we switch user
+        When we patch "/users/#USERS_ID#"
+        """
+        {"user_type": "user", "privileges": {"archive": 1, "planning_planning_management": 0}}
+        """
+        Then we get OK response
+        When we post to "/assignments/a126/lock"
+        """
+        {"lock_action": "revert"}
+        """
+        Then we get existing resource
+        """
+        {
+            "_id": "a126",
+            "lock_user": "#CONTEXT_USER_ID#"
+        }
+        """
+
+
+    @auth
     Scenario: Lock fails if associated content item is locked by another user
         Given "desks"
         """

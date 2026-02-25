@@ -184,7 +184,7 @@ class LockService(BaseComponent):
         service = superdesk.get_resource_service(resource)
         check_method = service.can_edit
 
-        if resource == "assignments" and action in ["start_working", "content_edit", "reassign", "complete"]:
+        if resource == "assignments" and action in ["start_working", "content_edit", "reassign", "complete", "revert"]:
             check_method = service.can_work_on_content
 
         can_user_edit, error_message = check_method(item, user_id)
