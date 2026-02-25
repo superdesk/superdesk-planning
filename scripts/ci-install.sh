@@ -4,9 +4,6 @@
 sudo apt-get -y update
 sudo apt-get -y install libxml2-dev libxmlsec1-dev libxmlsec1-openssl
 
-# Update python core packages
-python -m pip install --upgrade pip wheel setuptools
-
 git config --global url."https://git@".insteadOf git://
 
 if [ "$INSTALL_NODE_MODULES" == "true" ]; then
