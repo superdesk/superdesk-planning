@@ -113,10 +113,8 @@ const setListSortOrder = (state, payload) => {
 };
 
 const setGroupLoading = (state, payload) => {
-    state.lists[payload.list] = {
-        ...state.lists[payload.list],
-        isLoading: payload.isLoading,
-    };
+    state.lists[payload.list].isLoading = payload.isLoading;
+
     return state;
 };
 
@@ -189,7 +187,9 @@ const assignmentReducer = createReducer(initialState, {
     ),
 
     [ASSIGNMENTS.ACTIONS.SET_LOADING]: (state, payload) => (
-        setGroupLoading(state, payload)
+        produce(state, (draft) => {
+            setGroupLoading(draft, payload);
+        })
     ),
 
     [ASSIGNMENTS.ACTIONS.SET_SORT_FIELD]: (state, payload) => ({
