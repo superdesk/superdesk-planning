@@ -34,7 +34,7 @@ class BaseJsonFormatter(Formatter):
 
     async def format(self, item, subscriber, codes=None):
         output_item = await self._format_item(deepcopy(item))
-        await self._enhance_item(item)
+        await self._enhance_item(output_item)
 
         return [
             (

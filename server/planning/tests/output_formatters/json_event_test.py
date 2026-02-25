@@ -164,6 +164,25 @@ class JsonEventTestCase(TestCase):
             self.assertEqual(output_item.get("anpa_category")[0]["name"], "News")
             self.assertEqual(output_item.get("language"), "en")
 
+    async def test_subject_translation_uses_item_language(self):
+        async with self.app.app_context():
+            formatter = JsonEventFormatter()
+            item = self.item.copy()
+            item["language"] = "cs"
+            item["subject"] = [
+                {
+                    "name": "tourism",
+                    "qcode": "10006000",
+                    "parent": "10000000",
+                    "translations": {"name": {"cs": "Cestovní ruch", "en": "Tourism"}},
+                }
+            ]
+
+            output = (await formatter.format(item, self.subscriber))[0]
+            output_item = json.loads(output[1])
+
+            self.assertEqual(output_item["subject"][0]["name"], "Cestovní ruch")
+
     async def test_files_publishing(self):
         async with self.app.app_context():
             init_app(self.app)
