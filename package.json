@@ -1,6 +1,6 @@
 {
   "name": "superdesk-planning",
-  "version": "2.11.0",
+  "version": "2.11.1",
   "license": "AGPL-3.0",
   "description": "",
   "repository": {
@@ -87,5 +87,8 @@
     "redux-thunk": "^2.3.0",
     "superdesk-ui-framework": "*",
     "typescript": "*"
+  },
+  "volta": {
+    "node": "14.21.3"
   }
 }
