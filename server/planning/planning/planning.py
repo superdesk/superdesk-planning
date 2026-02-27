@@ -991,8 +991,8 @@ class PlanningService(AsyncBaseService):
                 assignment={},
             )
             if assignment_updates:
-                assignment_id = str((await assignment_service.post_from_planning([assignment_updates]))[0])
-                updates["assigned_to"]["assignment_id"] = assignment_id
+                new_assignment_id = str((await assignment_service.post_from_planning([assignment_updates]))[0])
+                updates["assigned_to"]["assignment_id"] = new_assignment_id
                 # Copy across the ``priority`` as well (as it's placed in a different location)
                 if assignment_updates.get("priority"):
                     updates["assigned_to"]["priority"] = assignment_updates["priority"]
@@ -1008,8 +1008,8 @@ class PlanningService(AsyncBaseService):
 
             await self.set_xmp_file_info(updates, original)
 
-            assignment_id = ObjectId(assigned_to["assignment_id"])
-            original_assignment = await assignment_service.find_one_async(req=None, _id=assignment_id)
+            existing_assignment_id = ObjectId(assigned_to["assignment_id"])
+            original_assignment = await assignment_service.find_one_async(req=None, _id=existing_assignment_id)
             if not original_assignment:
                 # Assignment was already deleted - remove the stale assignment_id reference
                 # so the user can continue editing the coverage
@@ -1053,7 +1053,7 @@ class PlanningService(AsyncBaseService):
             if assignment_updates:
                 # Update only if anything got modified
                 await assignment_service.system_update_async(
-                    assignment_id,
+                    existing_assignment_id,
                     assignment_updates,
                     original_assignment,
                     skip_planning_sync=True,
