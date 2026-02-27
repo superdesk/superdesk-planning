@@ -2537,7 +2537,7 @@ Feature: Assignments
                 "assigned_to": {
                     "desk": "#desks._id#",
                     "user": "#CONTEXT_USER_ID#",
-                    "coverage_provider": "__no_value__"
+                    "coverage_provider": null
                 }
             },
             {

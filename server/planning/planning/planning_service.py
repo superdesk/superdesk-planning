@@ -40,7 +40,7 @@ from planning.common import (
     TEMP_ID_PREFIX,
     get_planning_allow_scheduled_updates,
     update_post_item,
-    sync_assignment_details_to_coverages,
+    # sync_assignment_details_to_coverages,
 )
 from planning.core.service import BasePlanningAsyncService
 from planning.assignments.assignments_history_async import AssignmentsHistoryAsyncService
@@ -257,7 +257,6 @@ class PlanningAsyncService(BasePlanningAsyncService[PlanningResourceModel]):
         for doc in docs:
             doc.pop("_planning_schedule", None)
             doc.pop("_updates_schedule", None)
-            sync_assignment_details_to_coverages(doc)
 
     async def validate_on_update(self, updates: dict[str, Any], original: PlanningResourceModel, user: dict[str, Any]):
         lock_user = original.lock_user
