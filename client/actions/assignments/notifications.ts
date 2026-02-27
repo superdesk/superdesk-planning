@@ -1,13 +1,11 @@
 import {get, cloneDeep} from 'lodash';
 
-import {
-    IWebsocketMessageData, EDITOR_TYPE, IEventOrPlanningItem, IPlanningItem, IPlanningAppState} from '../../interfaces';
+import {IWebsocketMessageData, IPlanningAppState} from '../../interfaces';
 
 import {planningApi, superdeskApi} from '../../superdeskApi';
-import {ASSIGNMENTS, WORKSPACE, MODALS, ITEM_TYPE} from '../../constants';
-import {lockUtils, assignmentUtils, gettext, isExistingItem, getAutosaveItem} from '../../utils';
+import {ASSIGNMENTS, WORKSPACE, MODALS} from '../../constants';
+import {lockUtils, assignmentUtils, gettext, isExistingItem} from '../../utils';
 
-import {editors as editorsActions} from '../../actions';
 import * as selectors from '../../selectors';
 import assignments from './index';
 import main from '../main';
@@ -75,8 +73,12 @@ const onAssignmentCreated = (_e, data) => (
  * @param {object} _e - Event object
  * @param {object} data - Assignment, User, Desk IDs
  */
-const onAssignmentUpdated = (_e, data) => (
+const onAssignmentUpdated = (_e: any, data: IWebsocketMessageData['ASSIGNMENT_UPDATED']) => (
     (dispatch, getState, {desks}) => {
+        window.dispatchEvent(
+            new CustomEvent<IWebsocketMessageData['ASSIGNMENT_UPDATED']>('assignments:updated', {detail: data}),
+        );
+
         // If this planning item was updated by this user in AddToPlanning Modal
         // Then ignore this notification
         if (selectors.general.sessionId(getState()) === data.session && (
@@ -147,7 +149,7 @@ const onAssignmentUpdated = (_e, data) => (
             }
         }
 
-        if (!get(data, 'lock_user')) {
+        if (data.lock_user == null) {
             // Assignment was completed on editor but context was a different desk
             return dispatch(assignments.api.fetchAssignmentById(data.item, false))
                 .then((assignmentInStore) => {
@@ -180,44 +182,6 @@ const onAssignmentUpdated = (_e, data) => (
 );
 
 /**
- * Synchronizes editor state with updated planning coverages after assignment changes
- * When assignments are modified (desk changed, state changed to in-progress, etc.), the planning
- * editor's coverage data becomes stale. This action refreshes the editor form and autosave with
- * the latest coverage information from the server.
- * @param {string} planningId - The planning item ID
- * @param {IPlanningItem[]} loadedPlannings - Planning items freshly loaded from server
- * @returns {Function} Thunk action that syncs the editor if the planning item is currently being edited
- */
-const syncEditorWithUpdatedPlanning = (planningId: string, loadedPlannings: IPlanningItem[]) => (
-    (dispatch, getState: GetStateFunc) => {
-        const currentState = getState();
-        const editorSelectors = selectors.editors.editorSelectors[EDITOR_TYPE.INLINE];
-        const editorDiff = cloneDeep(editorSelectors.getEditorDiff(currentState));
-
-        // only update if this planning item is currently being edited
-        if (editorDiff?._id === planningId && loadedPlannings.length > 0) {
-            const updatedDiff = {
-                ...editorDiff,
-                coverages: loadedPlannings[0]?.coverages || []
-            };
-
-            dispatch(editorsActions.setFormDiff(EDITOR_TYPE.INLINE, updatedDiff));
-
-            const autosaves = selectors.forms.autosaves(currentState);
-            const autosaveItem = getAutosaveItem(
-                autosaves,
-                ITEM_TYPE.PLANNING,
-                planningId
-            );
-
-            return planningApi.autosave.save(autosaveItem, updatedDiff as IEventOrPlanningItem);
-        }
-
-        return Promise.resolve();
-    }
-);
-
-/**
  * Updates planning item when its related assignment changes
  * Reloads the planning item's coverages from the server and synchronizes them with the editor
  * if the planning item is currently being edited. Also updates the item history.
@@ -240,9 +204,7 @@ const updatePlanningRelatedToAssignment = (data) => (
 
         if (!coverage) return;
 
-        const loadedPlannings = await dispatch(planningApis.loadPlanningByIds([data.planning]));
-
-        await dispatch(syncEditorWithUpdatedPlanning(data.planning, loadedPlannings));
+        await dispatch(planningApis.loadPlanningByIds([data.planning]));
         await dispatch(main.fetchItemHistory(planningItem));
     }
 );
@@ -338,37 +300,41 @@ function onAssignmentUnlocked(_e, data: IWebsocketMessageData['ITEM_UNLOCKED']) 
  * @param {object} _e - Event object
  * @param {object} data - IDs for the Assignment, Planning and Coverage items
  */
-const onAssignmentRemoved = (_e, data) => (
-    (dispatch, getState, {notify}) => {
-        if (get(data, 'assignments')) {
-            dispatch({
-                type: ASSIGNMENTS.ACTIONS.REMOVE_ASSIGNMENT,
-                payload: data,
-            });
-
-            data.assignments.forEach((a) => {
-                dispatch(_notifyAssignmentEdited(a));
-                // Though assignment is removed, this is to remove the orphan lock in the store
-                dispatch({
-                    type: ASSIGNMENTS.ACTIONS.UNLOCK_ASSIGNMENT,
-                    payload: {assignment: {_id: a}},
-                });
-            });
-
-            // Updates my assignment count
-            dispatch(
-                assignments.ui.queryAndGetMyAssignments(
-                    [
-                        ASSIGNMENTS.WORKFLOW_STATE.ASSIGNED,
-                        ASSIGNMENTS.WORKFLOW_STATE.SUBMITTED,
-                    ]
-                )
-            );
-
-            return dispatch(updatePlanningRelatedToAssignment(data));
+const onAssignmentRemoved = (_e: any, data: IWebsocketMessageData['ASSIGNMENT_REMOVED']) => (
+    (dispatch) => {
+        if (data.assignments == null) {
+            return Promise.resolve();
         }
 
-        return Promise.resolve();
+        window.dispatchEvent(
+            new CustomEvent<IWebsocketMessageData['ASSIGNMENT_REMOVED']>('assignments:removed', {detail: data}),
+        );
+
+        dispatch({
+            type: ASSIGNMENTS.ACTIONS.REMOVE_ASSIGNMENT,
+            payload: data,
+        });
+
+        data.assignments.forEach((a) => {
+            dispatch(_notifyAssignmentEdited(a));
+            // Though assignment is removed, this is to remove the orphan lock in the store
+            dispatch({
+                type: ASSIGNMENTS.ACTIONS.UNLOCK_ASSIGNMENT,
+                payload: {assignment: {_id: a}},
+            });
+        });
+
+        // Updates my assignment count
+        dispatch(
+            assignments.ui.queryAndGetMyAssignments(
+                [
+                    ASSIGNMENTS.WORKFLOW_STATE.ASSIGNED,
+                    ASSIGNMENTS.WORKFLOW_STATE.SUBMITTED,
+                ]
+            )
+        );
+
+        return dispatch(updatePlanningRelatedToAssignment(data));
     }
 );
 
