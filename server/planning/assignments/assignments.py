@@ -52,7 +52,6 @@ from planning.common import (
     assignment_workflow_state,
     remove_lock_information,
     is_locked_in_this_session,
-    copy_assignment_details_to_coverage,
     get_coverage_type_name,
     get_version_item_for_post,
     get_related_items,
@@ -66,6 +65,7 @@ from planning.common import (
     get_notify_self_on_assignment,
     planning_auto_assign_to_workflow,
     get_config_assignment_manual_reassignment_only,
+    set_original_creator,
 )
 
 from planning.types import EventResourceModel
@@ -82,6 +82,7 @@ from planning.utils import (
     get_first_related_event_id_for_planning,
     get_first_event_item_for_planning_id,
 )
+from planning.coverage_assignments import update_planning_from_assignment_changes
 
 logger = logging.getLogger(__name__)
 planning_type = deepcopy(superdesk.Resource.rel("planning", type="string", required=True))
@@ -95,68 +96,12 @@ class AssignmentsService(AsyncBaseService):
         super().__init__(*args, **kwargs)
         self._skip_planning_sync: bool = False
 
-    async def _update_planning_coverages_from_assignment(
-        self, assignment: Dict[str, Any], skip_planning_sync: bool = False
-    ) -> None:
-        if skip_planning_sync or self._skip_planning_sync:
+    async def _update_planning_coverages_from_assignment(self, assignment: dict) -> None:
+        if self._skip_planning_sync:
             # Avoid clashing with planning updates that already manage coverages
             return
 
-        planning_id = assignment.get("planning_item")
-        coverage_id = assignment.get("coverage_item")
-        if not planning_id or not coverage_id:
-            return
-
-        planning_service = get_resource_service("planning")
-        is_scheduled_update = bool(assignment.get("scheduled_update_id"))
-
-        async def _apply_update(current_planning: Dict[str, Any]) -> bool:
-            coverages = current_planning.get("coverages") or []
-            updated = False
-            for coverage in coverages:
-                if str(coverage.get("coverage_id")) == str(coverage_id) and not is_scheduled_update:
-                    coverage.setdefault("assigned_to", {})
-                    copy_assignment_details_to_coverage(assignment, coverage)
-                    updated = True
-
-                if not is_scheduled_update:
-                    continue
-
-                for scheduled_update in coverage.get("scheduled_updates") or []:
-                    if str(scheduled_update.get("scheduled_update_id")) == str(assignment.get("scheduled_update_id")):
-                        scheduled_update.setdefault("assigned_to", {})
-                        copy_assignment_details_to_coverage(assignment, scheduled_update)
-                        updated = True
-
-            if not updated:
-                return False
-
-            result = await planning_service.backend.update_async(
-                planning_service.datasource,
-                current_planning[ID_FIELD],
-                {"coverages": coverages},
-                current_planning,
-            )
-            return bool(result)
-
-        planning_item = await planning_service.find_one_async(req=None, _id=planning_id)
-        if not planning_item:
-            return
-
-        try:
-            applied = await _apply_update(planning_item)
-        except Exception as exc:
-            logger.exception(
-                "Failed updating planning coverages from assignment",
-                extra={"planning_id": planning_id, "coverage_id": coverage_id, "assignment_id": assignment.get("_id")},
-            )
-            return
-
-        if not applied:
-            logger.warning(
-                "Planning coverages update was not applied",
-                extra={"planning_id": planning_id, "coverage_id": coverage_id, "assignment_id": assignment.get("_id")},
-            )
+        await update_planning_from_assignment_changes(assignment)
 
     async def on_fetched_resource_archive(self, docs):
         await self._enhance_archive_items(docs.get(ITEMS, []))
@@ -253,7 +198,12 @@ class AssignmentsService(AsyncBaseService):
 
     async def on_create_async(self, docs):
         for doc in docs:
-            self.set_assignment(doc)
+            set_original_creator(doc)
+            self.set_type(doc, {})
+            await self.validate_assignment(doc, {})
+
+            user = get_user()
+            doc["version_creator"] = str(user.get(ID_FIELD)) if user else None
 
     async def on_created_async(self, docs):
         for doc in docs:
@@ -271,27 +221,33 @@ class AssignmentsService(AsyncBaseService):
                 await get_resource_service("planning").set_xmp_file_info(doc)
                 await self.send_assignment_notification(doc, {})
 
-    def set_assignment(self, updates, original=None):
-        """Set the assignment information"""
-        if not original:
-            original = {}
-
+    async def on_update_async(self, updates, original):
         self.set_type(updates, original)
-
-        if not updates.get("assigned_to"):
-            if updates.get("priority"):
-                # Priority was edited - nothing to set here
-                return
+        await self.validate_assignment(updates, original)
+        if updates.get("assigned_to"):
+            if not updates["assigned_to"].get("user"):
+                # In case user was removed, make sure it's a null value
+                updates["assigned_to"]["user"] = None
             else:
-                updates["assigned_to"] = {}
+                # Moving from submitted to assigned after user assigned after desk submission
+                if original.get("assigned_to")["state"] == ASSIGNMENT_WORKFLOW_STATE.SUBMITTED:
+                    updates["assigned_to"]["state"] = get_next_assignment_status(
+                        updates, ASSIGNMENT_WORKFLOW_STATE.IN_PROGRESS
+                    )
+
+        user = get_user()
+        updates["version_creator"] = str(user.get(ID_FIELD)) if user else None
+        remove_lock_information(updates)
+
+    async def validate_assignment(self, updates: dict, original: dict) -> None:
+        if original:
+            await self.validate_assignment_action(original)
 
         assigned_to = updates.get("assigned_to") or {}
         if (assigned_to.get("user") or assigned_to.get("contact")) and planning_auto_assign_to_workflow():
             if not assigned_to.get("desk"):
                 raise SuperdeskApiError.badRequestError(message="Assignment should have a desk.")
 
-        # set the assignment information
-        user = get_user()
         if original.get("assigned_to", {}).get("desk") != assigned_to.get("desk"):
             if original.get("assigned_to", {}).get("state") in [
                 ASSIGNMENT_WORKFLOW_STATE.IN_PROGRESS,
@@ -301,42 +257,7 @@ class AssignmentsService(AsyncBaseService):
                     message="Assignment linked to content. Desk reassignment not allowed."
                 )
 
-            assigned_to["assigned_date_desk"] = utcnow()
-
-            if user and user.get(ID_FIELD):
-                assigned_to["assignor_desk"] = user.get(ID_FIELD)
-
-        if assigned_to.get("user") and original.get("assigned_to", {}).get("user") != assigned_to.get("user"):
-            assigned_to["assigned_date_user"] = utcnow()
-
-            if user and user.get(ID_FIELD):
-                assigned_to["assignor_user"] = user.get(ID_FIELD)
-
-        if not original.get(ID_FIELD):
-            updates["original_creator"] = str(user.get(ID_FIELD)) if user else None
-            updates["assigned_to"][ITEM_STATE] = get_next_assignment_status(
-                updates,
-                updates["assigned_to"].get(ITEM_STATE) or ASSIGNMENT_WORKFLOW_STATE.ASSIGNED,
-            )
-        else:
-            # In case user was removed
-            if not assigned_to.get("user"):
-                assigned_to["user"] = None
-            else:
-                # Moving from submitted to assigned after user assigned after desk submission
-                if original.get("assigned_to")["state"] == ASSIGNMENT_WORKFLOW_STATE.SUBMITTED:
-                    updates["assigned_to"]["state"] = get_next_assignment_status(
-                        updates, ASSIGNMENT_WORKFLOW_STATE.IN_PROGRESS
-                    )
-
-            updates["version_creator"] = str(user.get(ID_FIELD)) if user else None
-
-    async def on_update_async(self, updates, original):
-        await self.validate_assignment_action(original)
-        self.set_assignment(updates, original)
-        remove_lock_information(updates)
-
-    async def validate_assignment_action(self, assignment):
+    async def validate_assignment_action(self, assignment: dict) -> None:
         if assignment.get("_to_delete"):
             plan = await get_resource_service("planning").find_one_async(req=None, _id=assignment.get("planning_item"))
             state = "unposted" if (plan or {}).get("state") == WORKFLOW_STATE.KILLED else (plan or {}).get("state")
@@ -413,20 +334,20 @@ class AssignmentsService(AsyncBaseService):
         self._skip_planning_sync = skip_planning_sync
         try:
             rtn = await super().system_update_async(id, updates, original, **kwargs)
+            if self.is_assignment_being_activated(updates, original):
+                doc = deepcopy(original)
+                doc.update(updates)
+                await self._send_assignment_creation_notification(doc)
+                await AssignmentsHistoryAsyncService().on_item_add_to_workflow(updates, original)
+            elif (
+                original.get(LOCK_ACTION) != "content_edit"
+                and updates.get("assigned_to")
+                and updates.get("assigned_to").get("state") != ASSIGNMENT_WORKFLOW_STATE.CANCELLED
+            ):
+                app = get_current_app().as_any()
+                await app.on_updated_assignments.call_async(updates, original)
         finally:
             self._skip_planning_sync = False
-        if self.is_assignment_being_activated(updates, original):
-            doc = deepcopy(original)
-            doc.update(updates)
-            await self._send_assignment_creation_notification(doc)
-            await AssignmentsHistoryAsyncService().on_item_add_to_workflow(updates, original)
-        elif (
-            original.get(LOCK_ACTION) != "content_edit"
-            and updates.get("assigned_to")
-            and updates.get("assigned_to").get("state") != ASSIGNMENT_WORKFLOW_STATE.CANCELLED
-        ):
-            app = get_current_app().as_any()
-            await app.on_updated_assignments.call_async(updates, original)
         return rtn
 
     async def post_from_planning(self, docs):
@@ -1176,9 +1097,6 @@ class AssignmentsService(AsyncBaseService):
             # If no relevant Event fields have changed
             # then there is no need to send notifications
             return
-
-        # Add 'assigned_to' details to all the coverages
-        get_resource_service("planning").generate_related_assignments(plannings)
 
         for planning in plannings:
             for coverage in planning.get("coverages") or []:
