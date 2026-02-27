@@ -345,25 +345,6 @@ Feature: Events Cancel
         """
         [{"_id": "desk_123", "name": "Politic Desk"}]
         """
-        Given "assignments"
-        """
-        [{
-            "_id": "aaaaaaaaaaaaaaaaaaaaaaaa",
-            "planning_item": "plan1",
-            "planning": {
-                "ednote": "test coverage, I want 250 words",
-                "headline": "test headline",
-                "slugline": "test slugline",
-                "g2_content_type": "text",
-                "scheduled": "2029-11-21T14:00:00.000Z"
-            },
-            "assigned_to": {
-                "desk": "#desks._id#",
-                "user": "#CONTEXT_USER_ID#",
-                "state": "assigned"
-            }
-        }]
-        """
         Given "events"
         """
         [{
@@ -411,11 +392,11 @@ Feature: Events Cancel
                     "qcode": "ncostat:int",
                     "name": "Coverage intended"
                 },
-                  "assigned_to": {
-                        "desk": "#desks._id#",
-                        "user": "#CONTEXT_USER_ID#",
-                        "assignment_id": "aaaaaaaaaaaaaaaaaaaaaaaa"
-                  }
+                "assigned_to": {
+                    "desk": "#desks._id#",
+                    "user": "#CONTEXT_USER_ID#",
+                    "state": "assigned"
+                }
             }],
             "planning_date": "2029-11-21T14:00:00.000Z"
         }]

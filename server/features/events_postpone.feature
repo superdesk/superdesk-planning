@@ -312,25 +312,6 @@ Feature: Events Postpone
         """
         [{"_id": "desk_123", "name": "Politic Desk"}]
         """
-        Given "assignments"
-        """
-        [{
-            "_id": "aaaaaaaaaaaaaaaaaaaaaaaa",
-            "planning_item": "plan1",
-            "planning": {
-                "ednote": "test coverage, I want 250 words",
-                "headline": "test headline",
-                "slugline": "test slugline",
-                "g2_content_type": "text",
-                "scheduled": "2029-11-21T15:00:00.000Z"
-            },
-            "assigned_to": {
-                "desk": "#desks._id#",
-                "user": "#CONTEXT_USER_ID#",
-                "state": "assigned"
-            }
-        }]
-        """
         Given "events"
         """
         [{
@@ -378,7 +359,7 @@ Feature: Events Postpone
                 "assigned_to": {
                     "desk": "#desks._id#",
                     "user": "#CONTEXT_USER_ID#",
-                    "assignment_id": "aaaaaaaaaaaaaaaaaaaaaaaa"
+                    "state": "assigned"
                 }
             }],
             "planning_date": "2016-01-02"
@@ -507,25 +488,6 @@ Feature: Events Postpone
         """
         [{"_id": "desk_123", "name": "Politic Desk"}]
         """
-        Given "assignments"
-        """
-        [{
-            "_id": "aaaaaaaaaaaaaaaaaaaaaaaa",
-            "planning_item": "plan1",
-            "planning": {
-                "ednote": "test coverage, I want 250 words",
-                "headline": "test headline",
-                "slugline": "test slugline",
-                "g2_content_type": "text",
-                "scheduled": "2029-11-21T15:00:00.000Z"
-            },
-            "assigned_to": {
-                "desk": "#desks._id#",
-                "user": "#CONTEXT_USER_ID#",
-                "state": "assigned"
-            }
-        }]
-        """
         Given "events"
         """
         [{
@@ -574,7 +536,7 @@ Feature: Events Postpone
                 "assigned_to": {
                     "desk": "#desks._id#",
                     "user": "#CONTEXT_USER_ID#",
-                    "assignment_id": "aaaaaaaaaaaaaaaaaaaaaaaa"
+                    "state": "assigned"
                 }
             }],
             "planning_date": "2016-01-02"
