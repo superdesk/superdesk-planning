@@ -11,9 +11,8 @@ import {IPropsEditorFieldCoverages} from './coverages.interface';
 /**
  * Copy assignment details from an assignment to a coverage assignment.
  *
- * TODO-PR: Update the location where this function should be synced with
- * Note: This was copied from the `planning.common.copy_assignment_details_to_coverage` backend function.
- * The functionality between these two should be kept in sync.
+ * This copies the data that is editable from the Assignment, all other data is read-only from the
+ * Assignment point of view.
  */
 function copyAssignmentDetailsToCoverage(
     assignment: IAssignmentItem,
@@ -74,7 +73,6 @@ export class EditorFieldCoverages extends React.PureComponent<IPropsEditorFieldC
             }
 
             copyAssignmentDetailsToCoverage(assignment, coverageAssignedTo);
-            debugger;
             this.props.onChange(`coverages[${coverageIndex}].assigned_to`, coverageAssignedTo);
         });
     }
