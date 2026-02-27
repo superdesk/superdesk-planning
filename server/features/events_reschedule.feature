@@ -98,7 +98,7 @@ Feature: Events Reschedule
         """
 
     @auth
-    @notification @wip
+    @notification
     Scenario: Changes associated Planning items to `rescheduled`
         Given we have sessions "/sessions"
         Given "desks"
