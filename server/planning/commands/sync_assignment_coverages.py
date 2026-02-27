@@ -18,7 +18,7 @@ from bson.errors import InvalidId
 from superdesk import get_resource_service
 from superdesk.commands import cli
 
-from planning.common import copy_assignment_details_to_coverage
+from planning.coverage_assignments import copy_assigned_to_fields
 
 
 @cli.command("planning:sync_assignment_coverages")
@@ -120,7 +120,7 @@ class SyncAssignmentCoveragesCommand:
         def _sync_assigned_to(target: dict[str, Any], assignment: dict[str, Any]) -> bool:
             before = deepcopy(target.get("assigned_to") or {})
             target["assigned_to"] = {}
-            copy_assignment_details_to_coverage(assignment, target)
+            copy_assigned_to_fields(target, assignment, before, destination="coverage", generate_assignor_fields=False)
             return before != target.get("assigned_to")
 
         for coverage in coverages:

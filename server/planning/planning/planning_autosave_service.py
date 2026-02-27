@@ -3,7 +3,8 @@ import logging
 from superdesk.core import get_current_app
 
 from planning.autosave_service import AutosaveAsyncService
-from planning.common import WORKFLOW_STATE, copy_assignment_details_to_coverage
+from planning.common import WORKFLOW_STATE
+from planning.coverage_assignments import update_planning_from_assignment_changes
 
 logger = logging.getLogger(__name__)
 
@@ -55,29 +56,6 @@ class PlanningAutosaveAsyncService(AutosaveAsyncService):
             # no need to respond to an Assignment update here
             return
 
-        planning_id = original.get("planning_item")
-        planning_autosave = await self.find_by_id_raw(item_id=planning_id)
-        if not planning_autosave:
-            # Item is not currently being edited (No current autosave item)
-            return
-
-        # There is a current autosave, we need to update it now
-        coverages = planning_autosave.get("coverages")
         assignment = original.copy()
         assignment.update(updates)
-
-        coverage_to_update = next(
-            (
-                coverage
-                for coverage in coverages
-                if str((coverage.get("assigned_to") or {}).get("assignment_id")) == str(assignment["_id"])
-            ),
-            None,
-        )
-
-        if not coverage_to_update:
-            logger.warning("Coverage not found for Assignment", extra={"assignment_id": assignment["_id"]})
-            return
-
-        copy_assignment_details_to_coverage(assignment, coverage_to_update)
-        await self.system_update(planning_autosave["_id"], updates={"coverages": coverages})
+        await update_planning_from_assignment_changes(assignment, is_autosave=True)
