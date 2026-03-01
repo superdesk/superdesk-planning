@@ -159,8 +159,7 @@ def get_metadata_updates_between_entities(
     if destination == "assignment":
         if not coverage.get("assigned_to"):
             return {}
-
-        if not coverage.get("assignment_id"):
+        elif not coverage["assigned_to"].get("assignment_id"):
             # We're attempting to create a new Assignment
 
             if not coverage["assigned_to"].get("user") and not coverage["assigned_to"].get("desk"):
@@ -246,7 +245,7 @@ def copy_assigned_to_fields(
     if destination == "coverage":
         if "assignment_id" not in updates["assigned_to"]:
             # Make sure the Coverage has the Assignment ID
-            updates["assigned_to"]["assignment_id"] = assignment.get("_id")
+            updates["assigned_to"]["assignment_id"] = str(assignment.get("_id"))
             destination_updated = True
 
         assignment_priority = assignment.get("priority")
