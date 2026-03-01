@@ -118,10 +118,13 @@ class SyncAssignmentCoveragesCommand:
         updated = False
 
         def _sync_assigned_to(target: dict[str, Any], assignment: dict[str, Any]) -> bool:
-            before = deepcopy(target.get("assigned_to") or {})
-            target["assigned_to"] = {}
-            copy_assigned_to_fields(target, assignment, before, destination="coverage", generate_assignor_fields=False)
-            return before != target.get("assigned_to")
+            updates: dict = {}
+            if copy_assigned_to_fields(
+                updates, assignment, target, destination="coverage", generate_assignor_fields=False
+            ):
+                target.update(updates)
+                return True
+            return False
 
         for coverage in coverages:
             assigned_to = coverage.get("assigned_to") or {}
