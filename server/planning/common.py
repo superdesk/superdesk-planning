@@ -553,7 +553,7 @@ def set_actioned_date_to_event(updates, original):
 
 async def get_archive_items_for_assignment(assignment_id, descending_rewrite_seq=True) -> AsyncEveCursor:
     if not assignment_id:
-        return AsyncListCursor()
+        return AsyncListCursor([])
 
     req = ParsedRequest()
     req.args = MultiDict()
