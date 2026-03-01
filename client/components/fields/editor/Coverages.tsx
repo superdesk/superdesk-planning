@@ -2,7 +2,14 @@ import * as React from 'react';
 import {get} from 'lodash';
 
 import {superdeskApi, planningApi} from '../../../superdeskApi';
-import {IWebsocketMessageData, IPlanningItem, IPlanningAssignedTo, IAssignmentItem} from '../../../interfaces';
+import {
+    IWebsocketMessageData,
+    IPlanningItem,
+    IPlanningAssignedTo,
+    IAssignmentItem,
+    IPlanningCoverageItem,
+    ICoverageScheduledUpdate,
+} from '../../../interfaces';
 
 import {CoverageArrayInput} from '../../Coverages';
 import {getFileDownloadURL} from '../../../utils';
@@ -49,31 +56,44 @@ export class EditorFieldCoverages extends React.PureComponent<IPropsEditorFieldC
 
         planningApi.assignments.getById(event.detail.item).then((assignment) => {
             const coverages = this.getCoverages();
-            let coverageAssignedTo: DeepPartial<IPlanningAssignedTo> | null = null;
+            let coverageToUpdate: DeepPartial<IPlanningCoverageItem | ICoverageScheduledUpdate> | null = null;
             let coverageIndex: number;
+            let scheduledUpdateIndex: number = -1;
             let coverage: DeepPartial<IPlanningItem['coverages'][number]>;
 
             for (coverageIndex = 0; coverageIndex < coverages.length; coverageIndex++) {
                 coverage = coverages[coverageIndex];
 
-                if (assignment.coverage_item === coverage.coverage_id) {
-                    coverageAssignedTo = assignment.scheduled_update_id == null ?
-                        coverage.assigned_to :
-                        coverage.scheduled_updates.find(
-                            (c) => c.scheduled_update_id === assignment.scheduled_update_id,
-                        )?.assigned_to;
+                if (assignment.coverage_item !== coverage.coverage_id) {
+                    continue;
+                } else if (assignment.scheduled_update_id == null) {
+                    coverageToUpdate = coverage;
+                } else {
+                    scheduledUpdateIndex = coverage.scheduled_updates.findIndex(
+                        (c) => c.scheduled_update_id === assignment.scheduled_update_id,
+                    );
 
-                    break;
+                    if (scheduledUpdateIndex === -1) {
+                        console.warn(`Scheduled update ${assignment.scheduled_update_id} not found`);
+                        return;
+                    }
+                    coverageToUpdate = coverage.scheduled_updates[scheduledUpdateIndex];
                 }
+
+                break;
             }
 
-            if (coverageAssignedTo == null) {
+            if (coverageToUpdate == null || coverageToUpdate?.assigned_to == null) {
                 console.warn(`Coverage for Assignment ${assignment._id} not found`);
                 return;
             }
 
-            copyAssignmentDetailsToCoverage(assignment, coverageAssignedTo);
-            this.props.onChange(`coverages[${coverageIndex}].assigned_to`, coverageAssignedTo);
+            copyAssignmentDetailsToCoverage(assignment, coverageToUpdate.assigned_to);
+            const fieldName = scheduledUpdateIndex === -1 ?
+                `coverages[${coverageIndex}].assigned_to` :
+                `coverages[${coverageIndex}].scheduled_updates[${scheduledUpdateIndex}].assigned_to`;
+
+            this.props.onChange(fieldName, coverageToUpdate.assigned_to);
         });
     }
 
@@ -87,6 +107,7 @@ export class EditorFieldCoverages extends React.PureComponent<IPropsEditorFieldC
 
         if (coverageIndex === -1) {
             console.warn(`Coverage ${event.detail.coverage} not found`);
+            return;
         }
 
         coverages[coverageIndex].assigned_to = {};
