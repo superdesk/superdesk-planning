@@ -672,6 +672,7 @@ export interface ICoverageScheduledUpdate {
 export interface IPlanningCoverageItem {
     coverage_id: string;
     original_coverage_id: string;
+    scheduled_update_id: never;
     guid: string;
     original_creator: string;
     version_creator: string;
