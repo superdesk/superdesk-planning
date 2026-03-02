@@ -156,7 +156,11 @@ class SyncAssignmentCoveragesCommand:
                 if assignment is None:
                     continue
                 elif copy_assigned_to_fields(
-                    scheduled_update, assignment, deepcopy(scheduled_update), destination="coverage", generate_assignor_fields=False
+                    scheduled_update,
+                    assignment,
+                    deepcopy(scheduled_update),
+                    destination="coverage",
+                    generate_assignor_fields=False,
                 ):
                     updated = True
 

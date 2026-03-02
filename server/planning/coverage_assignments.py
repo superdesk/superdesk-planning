@@ -183,6 +183,9 @@ def get_metadata_updates_between_entities(
         if _copy_translated_values_to_assignment(updates, planning):
             destination_updated = True
 
+        if _set_assignment_state(updates, coverage):
+            destination_updated = True
+
     if not updates.get("assigned_to"):
         updates.pop("assigned_to", None)
     if not updates.get("planning"):
@@ -222,7 +225,14 @@ def copy_assigned_to_fields(
     updates.setdefault("assigned_to", {}).update(deepcopy(original["assigned_to"]))
 
     for field in ASSIGNED_TO_SYNC_FIELDS:
-        updates["assigned_to"][field] = source["assigned_to"].get(field)
+        if field in source["assigned_to"]:
+            new_value = source["assigned_to"][field]
+        elif field in original["assigned_to"]:
+            new_value = original["assigned_to"][field]
+        else:
+            new_value = None
+
+        updates["assigned_to"][field] = new_value
         if updates["assigned_to"][field] == original["assigned_to"].get(field):
             continue
 
@@ -306,6 +316,28 @@ def _get_coverage_planning_metadata(planning: dict, coverage: dict) -> dict:
     return planning_metadata
 
 
+def _set_assignment_state(updates: dict, coverage: dict) -> bool:
+    """
+    Determines and updates the assignment state based on the current coverage
+    workflow status and state.
+
+    :param updates: A dictionary to store the updated assignment state.
+    :param coverage: A dictionary containing coverage details.
+    :return: A boolean indicating whether the assignment state was updated.
+    """
+
+    assign_state = ASSIGNMENT_WORKFLOW_STATE.ASSIGNED
+    if coverage.get("workflow_status") == WORKFLOW_STATE.DRAFT:
+        assign_state = ASSIGNMENT_WORKFLOW_STATE.DRAFT
+    elif coverage["assigned_to"].get("state") and coverage["assigned_to"]["state"] != ASSIGNMENT_WORKFLOW_STATE.DRAFT:
+        assign_state = coverage["assigned_to"]["state"]
+
+    if updates["assigned_to"]["state"] != assign_state:
+        updates["assigned_to"]["state"] = assign_state
+        return True
+    return False
+
+
 def _copy_metadata_to_new_assignment(updates: dict, planning: dict, coverage: dict) -> None:
     """
     Updates the metadata of a new assignment by copying relevant details from planning
@@ -336,13 +368,6 @@ def _copy_metadata_to_new_assignment(updates: dict, planning: dict, coverage: di
 
     if TO_BE_CONFIRMED_FIELD in coverage:
         updates["planning"][TO_BE_CONFIRMED_FIELD] = coverage[TO_BE_CONFIRMED_FIELD]
-
-    assign_state = ASSIGNMENT_WORKFLOW_STATE.ASSIGNED
-    if coverage.get("workflow_status") == WORKFLOW_STATE.DRAFT:
-        assign_state = ASSIGNMENT_WORKFLOW_STATE.DRAFT
-    elif coverage["assigned_to"].get("state") and coverage["assigned_to"]["state"] != ASSIGNMENT_WORKFLOW_STATE.DRAFT:
-        assign_state = coverage["assigned_to"]["state"]
-    updates["assigned_to"]["state"] = assign_state
 
 
 def _copy_metadata_to_existing_assignment(updates: dict, assignment: dict, planning: dict, coverage: dict) -> bool:
@@ -380,6 +405,16 @@ def _copy_metadata_to_existing_assignment(updates: dict, assignment: dict, plann
         and (assignment.get("planning") or {}).get(TO_BE_CONFIRMED_FIELD) != coverage[TO_BE_CONFIRMED_FIELD]
     ):
         updates["planning"][TO_BE_CONFIRMED_FIELD] = coverage[TO_BE_CONFIRMED_FIELD]
+        assignment_updated = True
+
+    # If the Planning description has been changed
+    if planning.get("description_text") != assignment.get("description_text"):
+        updates["description_text"] = planning.get("description_text")
+        assignment_updated = True
+
+    # If the Planning name has been changed
+    if planning.get("name") != assignment.get("name"):
+        updates["name"] = planning.get("name")
         assignment_updated = True
 
     if (
