@@ -76,7 +76,7 @@ class SyncAssignmentCoveragesCommandTestCase(TestCase):
         assert updated is not None
         coverage = updated.get("coverages")[0]
         assigned_to = coverage.get("assigned_to")
-        assert assigned_to.get("assignment_id") == assignment_id
+        assert assigned_to.get("assignment_id") == str(assignment_id)
         assert assigned_to.get("desk") == "desk-1"
         assert assigned_to.get("user") == "user-1"
         assert assigned_to.get("contact") == "contact-1"
@@ -89,7 +89,7 @@ class SyncAssignmentCoveragesCommandTestCase(TestCase):
         assert assigned_to.get("priority") == 2
 
         scheduled_assigned_to = coverage.get("scheduled_updates")[0].get("assigned_to")
-        assert scheduled_assigned_to.get("assignment_id") == update_assignment_id
+        assert scheduled_assigned_to.get("assignment_id") == str(update_assignment_id)
         assert scheduled_assigned_to.get("desk") == "desk-1"
         assert scheduled_assigned_to.get("user") == "user-1"
         assert scheduled_assigned_to.get("contact") == "contact-1"
