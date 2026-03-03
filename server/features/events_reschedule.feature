@@ -123,25 +123,6 @@ Feature: Events Reschedule
           ]
         }]
         """
-        Given "assignments"
-        """
-        [{
-            "_id": "aaaaaaaaaaaaaaaaaaaaaaaa",
-            "planning_item": "plan1",
-            "planning": {
-                "ednote": "test coverage, I want 250 words",
-                "headline": "test headline",
-                "slugline": "test slugline",
-                "g2_content_type": "text",
-                "scheduled": "2029-11-21T12:00:00.000Z"
-            },
-            "assigned_to": {
-                "desk": "#desks._id#",
-                "user": "#CONTEXT_USER_ID#",
-                "state": "assigned"
-            }
-        }]
-        """
         Given "events"
         """
         [{
@@ -161,7 +142,7 @@ Feature: Events Reschedule
             "lock_time": "#DATE#"
         }]
         """
-        Given "planning"
+        When we post to "planning"
         """
         [{
             "_id": "plan1",
@@ -180,7 +161,7 @@ Feature: Events Reschedule
                 "assigned_to": {
                     "desk": "#desks._id#",
                     "user": "#CONTEXT_USER_ID#",
-                    "assignment_id": "aaaaaaaaaaaaaaaaaaaaaaaa"
+                    "state": "assigned"
                 },
                 "news_coverage_status" : {
                 "qcode" : "ncostat:int",
@@ -191,6 +172,8 @@ Feature: Events Reschedule
             "planning_date": "2016-01-02"
         }]
         """
+        Then we get OK response
+        And we store assignment id in "ASSIGNMENT_1_ID" from coverage 0
         When we reset notifications
         When we perform reschedule on events "event1"
         """
@@ -246,7 +229,7 @@ Feature: Events Reschedule
             }]
         }
         """
-        When we get "/assignments/aaaaaaaaaaaaaaaaaaaaaaaa"
+        When we get "/assignments/#ASSIGNMENT_1_ID#"
         Then we get existing resource
         """
         {

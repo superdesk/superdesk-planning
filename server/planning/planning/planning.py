@@ -75,7 +75,6 @@ from planning.common import (
     get_planning_xmp_slugline_mapping,
     get_planning_use_xmp_for_pic_slugline,
     get_planning_use_xmp_for_pic_assignments,
-    sync_assignment_details_to_coverages,
     set_ingest_version_datetime,
     is_new_version,
     update_ingest_on_patch,
@@ -101,6 +100,7 @@ from planning.utils import (
     get_related_event_items_for_planning,
 )
 from .planning_utils import get_coverage_by_id
+from planning.coverage_assignments import get_metadata_updates_between_entities
 
 logger = logging.getLogger(__name__)
 
@@ -140,12 +140,6 @@ class PlanningService(AsyncBaseService):
         """Ignore cancelling on ingest, this will happen in ``update_post_item``"""
 
         pass
-
-    def generate_related_assignments(self, docs):
-        for doc in docs:
-            doc.pop("_planning_schedule", None)
-            doc.pop("_updates_schedule", None)
-            sync_assignment_details_to_coverages(doc)
 
     async def find_one_async(self, req, **lookup):
         item = await super().find_one_async(req, **lookup)
@@ -236,8 +230,6 @@ class PlanningService(AsyncBaseService):
                     updates["pubstatus"] = POST_STATE.USABLE
                     await update_post_item(updates, doc)
 
-        self.generate_related_assignments(docs)
-
     async def _update_event_history(self, doc: Planning):
         events_service = get_resource_service("events")
         events_history_service = EventsHistoryAsyncService()
@@ -270,9 +262,6 @@ class PlanningService(AsyncBaseService):
             removed_agendas=[],
             session=session_id,
         )
-
-    def on_locked_planning(self, item, user_id):
-        self.generate_related_assignments([item])
 
     def should_update(self, old_item, new_item, provider):
         return True
@@ -575,7 +564,6 @@ class PlanningService(AsyncBaseService):
             related_events_changed=related_events_changed,
         )
 
-        self.generate_related_assignments([doc])
         updates["coverages"] = doc.get("coverages") or []
 
         if original.get("lock_user") and "lock_user" in updates and updates.get("lock_user") is None:
@@ -764,7 +752,7 @@ class PlanningService(AsyncBaseService):
                 s["coverage_id"] = coverage["coverage_id"]
                 s["scheduled_update_id"] = generate_guid(type=GUID_NEWSML)
                 self.set_scheduled_update_active(s, updates, coverage)
-                await self._create_update_assignment(original, updates, s, None, coverage)
+                await self._create_update_assignment(original, updates, s, None)
 
     async def update_scheduled_updates(self, updates, original, coverage, original_coverage):
         for s in coverage.get("scheduled_updates") or []:
@@ -783,7 +771,7 @@ class PlanningService(AsyncBaseService):
                     and s.get("workflow_status") == WORKFLOW_STATE.ACTIVE
                 ):
                     self.set_scheduled_update_active(s, updates, coverage)
-                await self._create_update_assignment(original, updates, s, original_scheduled_update, coverage)
+                await self._create_update_assignment(original, updates, s, original_scheduled_update)
 
     async def update_coverages(self, updates, original):
         if "coverages" not in updates:
@@ -961,12 +949,11 @@ class PlanningService(AsyncBaseService):
 
     async def _create_update_assignment(
         self,
-        planning_original,
-        planning_updates,
-        updates,
-        original=None,
-        parent_coverage=None,
-    ):
+        planning_original: dict,
+        planning_updates: dict,
+        updates: dict,
+        original: dict | None = None,
+    ) -> None:
         """Create or update the assignment.
 
         :param dict planning_original: original parent planning document
@@ -980,177 +967,97 @@ class PlanningService(AsyncBaseService):
         planning = deepcopy(planning_original)
         planning.update(planning_updates)
         planning_id = planning.get(ID_FIELD)
-
-        doc = deepcopy(original)
-        doc.update(deepcopy(updates))
-        assignment_service = get_resource_service("assignments")
-        assigned_to = updates.get("assigned_to") or original.get("assigned_to")
-        new_assignment_id = None
-        if not assigned_to:
-            return
-
         if not planning_id:
             raise SuperdeskApiError.badRequestError("Planning item is required to create assignments.")
 
-        # Coverage is draft if original was draft and updates is still maintaining that state
-        coverage_status = updates.get("workflow_status", original.get("workflow_status"))
-        is_coverage_draft = coverage_status == WORKFLOW_STATE.DRAFT
+        assignment_service = get_resource_service("assignments")
+        updated_coverage = deepcopy(original)
+        updated_coverage.update(deepcopy(updates))
+        assigned_to: dict | None = updated_coverage.get("assigned_to")
 
-        translations = planning.get("translations")
-        translated_value = {}
-        translated_name = planning.get("name", planning.get("headline", ""))
-        doc.setdefault("planning", {})
+        if not assigned_to:
+            return
 
-        # SDBELGA-937
-        doc["planning"]["news_coverage_status"] = updates.get("news_coverage_status") or original.get(
-            "news_coverage_status"
-        )
+        assignment_updates: dict
+        if not assigned_to.get("assignment_id"):
+            if not assigned_to.get("user") and not assigned_to.get("desk"):
+                # If there is no Desk or User, we will not create a new Assignment yet
+                return
 
-        if translations is not None and doc["planning"].get("language") is not None:
-            translated_value.update(
-                {
-                    entry["field"]: entry["value"]
-                    for entry in translations or []
-                    if entry["language"] == doc["planning"]["language"]
-                }
+            assignment_updates = get_metadata_updates_between_entities(
+                planning=planning,
+                coverage=updated_coverage,
+                destination="assignment",
+                assignment={},
             )
-
-            translated_name = translated_value.get("name", translated_value.get("headline"))
-            doc["planning"].update(
-                {
-                    key: val
-                    for key, val in translated_value.items()
-                    if key in ("ednote", "description_text", "headline", "slugline", "authors", "internal_note")
-                    and doc["planning"].get(key) is None
-                }
-            )
-
-        if not assigned_to.get("assignment_id") and (assigned_to.get("user") or assigned_to.get("desk")):
-            # Creating a new assignment
-            assign_state = ASSIGNMENT_WORKFLOW_STATE.DRAFT if is_coverage_draft else ASSIGNMENT_WORKFLOW_STATE.ASSIGNED
-            if not is_coverage_draft:
-                # In case of article_rewrites, this will be 'in_progress' directly
-                if assigned_to.get("state") and assigned_to["state"] != ASSIGNMENT_WORKFLOW_STATE.DRAFT:
-                    assign_state = assigned_to.get("state")
-
-            if translated_value and translated_name and "headline" not in doc["planning"]:
-                doc["planning"]["headline"] = translated_name
-
-            assignment = {
-                "assigned_to": {
-                    "user": assigned_to.get("user"),
-                    "desk": assigned_to.get("desk"),
-                    "contact": assigned_to.get("contact"),
-                    "state": assign_state,
-                },
-                "planning_item": planning_id,
-                "coverage_item": doc.get("coverage_id"),
-                "planning": deepcopy(doc.get("planning")),
-                "priority": assigned_to.get("priority", DEFAULT_ASSIGNMENT_PRIORITY),
-                "description_text": planning.get("description_text"),
-            }
-            if translated_value and translated_name and assignment.get("name") != translated_value.get("name"):
-                assignment["name"] = translated_name
-
-            if doc.get("scheduled_update_id"):
-                assignment["scheduled_update_id"] = doc["scheduled_update_id"]
-                assignment["planning"] = deepcopy(parent_coverage.get("planning"))
-                assignment["planning"].update(doc.get("planning"))
-
-            if "coverage_provider" in assigned_to:
-                assignment["assigned_to"]["coverage_provider"] = assigned_to.get("coverage_provider")
-
-            if TO_BE_CONFIRMED_FIELD in doc:
-                assignment["planning"][TO_BE_CONFIRMED_FIELD] = doc[TO_BE_CONFIRMED_FIELD]
-
-            new_assignment_id = str((await assignment_service.post_from_planning([assignment]))[0])
-            updates["assigned_to"]["assignment_id"] = new_assignment_id
-            updates["assigned_to"]["state"] = assign_state
-            updates["assigned_to"]["priority"] = assignment.get("priority")
-        elif assigned_to.get("assignment_id"):
-            await self.set_xmp_file_info(updates, original)
-
+            if assignment_updates:
+                new_assignment_id = str((await assignment_service.post_from_planning([assignment_updates]))[0])
+                updates["assigned_to"]["assignment_id"] = new_assignment_id
+                # Copy across the ``priority`` as well (as it's placed in a different location)
+                if assignment_updates.get("priority"):
+                    updates["assigned_to"]["priority"] = assignment_updates["priority"]
+        else:
             if not updates.get("assigned_to"):
-                if planning_original.get("state") == WORKFLOW_STATE.CANCELLED or coverage_status not in [
-                    WORKFLOW_STATE.CANCELLED,
-                    WORKFLOW_STATE.DRAFT,
-                ]:
+                if planning_original.get("state") == WORKFLOW_STATE.CANCELLED or updated_coverage.get(
+                    "workflow_status"
+                ) not in [WORKFLOW_STATE.CANCELLED, WORKFLOW_STATE.DRAFT]:
                     raise SuperdeskApiError.badRequestError("Coverage not in correct state to remove assignment.")
 
                 # Return now, we will process the assignment after the DB is updated
                 return
 
-            # update the assignment using the coverage details
-            original_assignment = await assignment_service.find_one_async(
-                req=None, _id=assigned_to.get("assignment_id")
-            )
+            await self.set_xmp_file_info(updates, original)
 
+            existing_assignment_id = ObjectId(assigned_to["assignment_id"])
+            original_assignment = await assignment_service.find_one_async(req=None, _id=existing_assignment_id)
             if not original_assignment:
                 # Assignment was already deleted - remove the stale assignment_id reference
                 # so the user can continue editing the coverage
                 if not updates.get("assigned_to"):
                     updates["assigned_to"] = None
+                    await self.set_xmp_file_info(updates, original)
                 else:
                     del updates["assigned_to"]
                 return
 
-            # Check if coverage was cancelled
-            coverage_cancel_state = get_coverage_status_from_cv("ncostat:notint")
-            coverage_cancel_state.pop("is_active", None)
+            # Check if the coverage was cancelled
             if (
                 original.get("workflow_status") != updates.get("workflow_status")
                 and updates.get("workflow_status") == WORKFLOW_STATE.CANCELLED
             ):
+                coverage_cancel_state = get_coverage_status_from_cv("ncostat:notint")
+                coverage_cancel_state.pop("is_active", None)
                 await self.cancel_coverage(
                     updates,
                     coverage_cancel_state,
                     original.get("workflow_status"),
                     original_assignment,
-                    updates.get("planning").get("workflow_status_reason"),
+                    updates.get("planning", {}).get("workflow_status_reason"),
                 )
                 return
 
-            assignment = {}
-            if self.is_coverage_planning_modified(updates, original):
-                assignment["planning"] = deepcopy(doc.get("planning"))
-
-                if TO_BE_CONFIRMED_FIELD in doc:
-                    assignment["planning"][TO_BE_CONFIRMED_FIELD] = doc[TO_BE_CONFIRMED_FIELD]
-
-            def _update_assignment_assigned_to():
-                user = get_user()
-                assignment["priority"] = assigned_to.pop("priority", original_assignment.get("priority"))
-                assignment["assigned_to"] = assigned_to
-                if original_assignment.get("assigned_to", {}).get("desk") != assigned_to.get("desk"):
-                    assigned_to["assigned_date_desk"] = utcnow()
-                    assigned_to["assignor_desk"] = user.get(ID_FIELD)
-                if "user" in assigned_to and original.get("assigned_to", {}).get("user") != assigned_to.get("user"):
-                    assigned_to["assigned_date_user"] = utcnow()
-                    assigned_to["assignor_user"] = user.get(ID_FIELD)
-
-            if original_assignment.get("assigned_to").get("state") == ASSIGNMENT_WORKFLOW_STATE.DRAFT:
-                if self.is_coverage_assignment_modified(updates, original_assignment):
-                    _update_assignment_assigned_to()
-
-            # If we made a coverage 'active' - change assignment status to active
-            if original.get("workflow_status") == WORKFLOW_STATE.DRAFT and not is_coverage_draft:
-                assigned_to["state"] = ASSIGNMENT_WORKFLOW_STATE.ASSIGNED
-                assignment["assigned_to"] = assigned_to
-
-            # If the Planning description has been changed
-            if planning_original.get("description_text") != planning_updates.get("description_text"):
-                assignment["description_text"] = planning["description_text"]
-
-            # If the Planning name has been changed
-            if planning_original.get("name") != planning_updates.get("name"):
-                assignment["name"] = planning["name"] if not translated_value and translated_name else translated_name
-
-            # If the coverage assignee has been changed and workflow status is active
-            if original.get("workflow_status") != WORKFLOW_STATE.DRAFT and self.is_coverage_assignment_modified(
-                updates, original_assignment
+            if (
+                original.get("workflow_status") == WORKFLOW_STATE.DRAFT
+                and updated_coverage.get("workflow_status") == WORKFLOW_STATE.ACTIVE
             ):
+                # If we made a coverage 'active' - change assignment status to active
                 assigned_to["state"] = ASSIGNMENT_WORKFLOW_STATE.ASSIGNED
-                _update_assignment_assigned_to()
+
+            assignment_updates = get_metadata_updates_between_entities(
+                planning=planning,
+                coverage=updated_coverage,
+                destination="assignment",
+                assignment=original_assignment,
+            )
+
+            if assignment_updates:
+                # Update only if anything got modified
+                await assignment_service.system_update_async(
+                    existing_assignment_id,
+                    assignment_updates,
+                    original_assignment,
+                    skip_planning_sync=True,
+                )
 
             # If there has been a change in the planning internal note then notify the assigned users/desk
             if planning_updates.get("internal_note") and planning_original.get("internal_note") != planning_updates.get(
@@ -1168,22 +1075,9 @@ class PlanningService(AsyncBaseService):
                     no_email=True,
                 )
 
-            # Update only if anything got modified
-            if (
-                "planning" in assignment
-                or "assigned_to" in assignment
-                or "description_text" in assignment
-                or "name" in assignment
-                or "priority" in assignment
-            ):
-                await assignment_service.system_update_async(
-                    ObjectId(assigned_to.get("assignment_id")),
-                    assignment,
-                    original_assignment,
-                    skip_planning_sync=True,
-                )
-
             if self.is_xmp_updated(updates, original):
+                updated_assignment = deepcopy(original_assignment)
+                updated_assignment.update(assignment_updates)
                 await PlanningNotifications().notify_assignment(
                     coverage_status=updates.get("workflow_status"),
                     target_desk=assigned_to.get("desk") if assigned_to.get("user") is None else None,
@@ -1193,8 +1087,15 @@ class PlanningService(AsyncBaseService):
                     meta_message="assignment_details_email",
                     coverage_type=get_coverage_type_name(updates.get("planning", {}).get("g2_content_type", "")),
                     slugline=planning.get("slugline", ""),
-                    assignment=assignment,
+                    assignment=updated_assignment,
                 )
+
+        # Copy Assignment updates back onto the Coverage so it gets stored in the DB
+        if assignment_updates.get("assigned_to"):
+            updates["assigned_to"].update(assignment_updates["assigned_to"])
+
+        if assignment_updates.get("priority"):
+            updates["assigned_to"]["priority"] = assignment_updates["priority"]
 
     async def cancel_coverage(
         self,
@@ -1264,7 +1165,6 @@ class PlanningService(AsyncBaseService):
         if not planning:
             raise SuperdeskApiError.badRequestError("Planning does not exist")
 
-        self.generate_related_assignments([planning])
         coverages = planning.get("coverages") or []
         try:
             coverage = next(c for c in coverages if c.get("coverage_id") == coverage_id)

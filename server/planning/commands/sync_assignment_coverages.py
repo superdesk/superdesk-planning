@@ -18,7 +18,7 @@ from bson.errors import InvalidId
 from superdesk import get_resource_service
 from superdesk.commands import cli
 
-from planning.common import copy_assignment_details_to_coverage
+from planning.coverage_assignments import copy_assigned_to_fields
 
 
 @cli.command("planning:sync_assignment_coverages")
@@ -117,12 +117,6 @@ class SyncAssignmentCoveragesCommand:
     def sync_coverages(self, coverages: list[dict[str, Any]], assignments: dict[str, dict[str, Any]]) -> bool:
         updated = False
 
-        def _sync_assigned_to(target: dict[str, Any], assignment: dict[str, Any]) -> bool:
-            before = deepcopy(target.get("assigned_to") or {})
-            target["assigned_to"] = {}
-            copy_assignment_details_to_coverage(assignment, target)
-            return before != target.get("assigned_to")
-
         for coverage in coverages:
             assigned_to = coverage.get("assigned_to") or {}
             assignment_id = assigned_to.get("assignment_id")
@@ -136,7 +130,12 @@ class SyncAssignmentCoveragesCommand:
                     assignment = self.find_assignment_by_id(assignment_id)
                     if assignment is not None:
                         assignments[str(assignment.get("_id"))] = assignment
-                if assignment and _sync_assigned_to(coverage, assignment):
+
+                if assignment is None:
+                    continue
+                elif copy_assigned_to_fields(
+                    coverage, assignment, deepcopy(coverage), destination="coverage", generate_assignor_fields=False
+                ):
                     updated = True
 
             for scheduled_update in coverage.get("scheduled_updates") or []:
@@ -153,7 +152,16 @@ class SyncAssignmentCoveragesCommand:
                     assignment = self.find_assignment_by_id(scheduled_assignment_id)
                     if assignment is not None:
                         assignments[str(assignment.get("_id"))] = assignment
-                if assignment and _sync_assigned_to(scheduled_update, assignment):
+
+                if assignment is None:
+                    continue
+                elif copy_assigned_to_fields(
+                    scheduled_update,
+                    assignment,
+                    deepcopy(scheduled_update),
+                    destination="coverage",
+                    generate_assignor_fields=False,
+                ):
                     updated = True
 
         return updated

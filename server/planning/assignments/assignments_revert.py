@@ -17,6 +17,7 @@ from superdesk.notification import push_notification
 from superdesk.errors import SuperdeskApiError
 from apps.archive.common import get_user, get_auth
 
+from planning.coverage_assignments import update_planning_from_assignment_changes
 from .assignments import AssignmentsResource, assignments_schema
 from .assignments_history_async import AssignmentsHistoryAsyncService
 from planning.common import (
@@ -75,6 +76,10 @@ class AssignmentsRevertService(AsyncBaseService):
 
         # Save history
         await AssignmentsHistoryAsyncService().on_item_revert_availability(updates, original)
+
+        assignment = deepcopy(original)
+        assignment.update(updates)
+        await update_planning_from_assignment_changes(assignment)
 
         push_notification(
             "assignments:reverted",

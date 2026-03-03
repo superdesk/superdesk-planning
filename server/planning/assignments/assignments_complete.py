@@ -27,6 +27,7 @@ from planning.common import (
     get_coverage_for_assignment,
 )
 from planning.planning_notifications import PlanningNotifications
+from planning.coverage_assignments import update_planning_from_assignment_changes
 
 
 assignments_complete_schema = deepcopy(assignments_schema)
@@ -122,7 +123,7 @@ class AssignmentsCompleteService(AsyncBaseService):
 
         assignment = deepcopy(original)
         assignment.update(updates)
-        await assignments_service._update_planning_coverages_from_assignment(assignment)
+        await update_planning_from_assignment_changes(assignment)
 
         # publish the planning item
         await assignments_service.publish_planning(original["planning_item"])
