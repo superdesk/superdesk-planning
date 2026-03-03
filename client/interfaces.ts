@@ -163,6 +163,10 @@ export type IPlanningAssignedTo = {
         name: string;
         contact_type: string;
     };
+    assignor_desk: IDesk['_id'];
+    assignor_user: IUser['_id'];
+    assigned_date_desk: string | Date;
+    assigned_date_user: string | Date;
 };
 
 export type IEventUpdateMethod = 'single' | 'future' | 'all';
@@ -668,6 +672,7 @@ export interface ICoverageScheduledUpdate {
 export interface IPlanningCoverageItem {
     coverage_id: string;
     original_coverage_id: string;
+    scheduled_update_id: never;
     guid: string;
     original_creator: string;
     version_creator: string;
@@ -888,21 +893,8 @@ export interface IAssignmentItem extends IBaseRestApiResponse {
     planning_item: IPlanningItem['_id'];
     scheduled_update_id: string;
 
-    assigned_to: {
-        desk: string;
-        user: string;
-        assignor_desk: string;
-        assignor_user: string;
-        assigned_date_desk: string | Date;
-        assigned_date_user: string | Date;
-        contact: string;
-        state: ASSIGNMENT_STATE;
-        revert_state: ASSIGNMENT_STATE;
-        coverage_provider: {
-            qcode: string;
-            name: string;
-            contact_type: string;
-        };
+    assigned_to: Omit<IPlanningAssignedTo, 'assignment_id' | 'priority'> & {
+        revert_state: IPlanningWorkflowStatus;
     };
 
     original_creator: string;
@@ -2278,7 +2270,33 @@ export interface IWebsocketMessageData {
         planning: IPlanningItem['_id'];
         links: Array<IPlanningItem['_id']>;
         _created: string; // ISO 8601 datetime
-    }
+    };
+    ASSIGNMENT_UPDATED: {
+        item: IAssignmentItem['_id'];
+        etag: IAssignmentItem['_etag'];
+        coverage: IAssignmentItem['coverage_item'];
+        planning: IAssignmentItem['planning_item'];
+        assigned_user: IAssignmentItem['assigned_to']['user'];
+        assigned_date_user: IAssignmentItem['assigned_to']['assigned_date_user'];
+        assigned_desk: IAssignmentItem['assigned_to']['desk'];
+        assigned_date_desk: IAssignmentItem['assigned_to']['assigned_date_desk'];
+        assigned_contact: IAssignmentItem['assigned_to']['contact'];
+        user: IUser['_id'];
+        original_assigned_desk: IAssignmentItem['assigned_to']['desk'];
+        original_assigned_user: IAssignmentItem['assigned_to']['user'];
+        assignment_state: IAssignmentItem['assigned_to']['state'];
+        lock_user: IAssignmentItem['lock_user'];
+        session: ISession['sessionId'];
+    };
+    ASSIGNMENT_REMOVED: {
+        item: IAssignmentItem['_id'];
+        session: ISession['sessionId'];
+        assignments: Array<IAssignmentItem['_id']>;
+        planning: IAssignmentItem['planning_item'];
+        coverage: IAssignmentItem['coverage_item'];
+        planning_etag: IPlanningItem['_etag'];
+        event_ids: Array<IEventItem['_id']>;
+    };
 }
 
 export interface IEditorAPI {

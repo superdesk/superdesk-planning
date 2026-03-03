@@ -148,61 +148,13 @@ class PlanningEditorComponent extends React.Component<IProps, IState> {
             this.props.fetchEventFiles(this.props.event);
         }
 
-        // No need for partial save features if the editor is in read-only mode
-        if (this.props.readOnly) {
-            return;
-        } else if (
+        if (
+            !this.props.readOnly &&
             this.props.addNewsItemToPlanning &&
             !this.props.itemExists &&
             this.props.diff?.coverages?.length === 0
         ) {
             this.handleAddToPlanningLoading();
-            return;
-        } else if (currentItemId !== prevItemId || this.props.submitting) {
-            return;
-        }
-
-        // If the assignment associated with the planning item are modified
-        const originalCoverages = prevProps.original?.coverages || [];
-        const updatedCoverages = this.props.original?.coverages || [];
-
-        if (!originalCoverages.length) {
-            return;
-        }
-
-        let updates: {[key: string]: any} = {};
-
-        originalCoverages.forEach((original) => {
-            // Push notification updates from 'assignment' workflow changes
-            const index = updatedCoverages.findIndex(
-                (c) => c.coverage_id === original.coverage_id
-            );
-            const covUpdates = index >= 0 ?
-                updatedCoverages[index] :
-                null;
-
-            if (covUpdates == null) {
-                return;
-            }
-
-            if (isEqual(covUpdates.assigned_to, original.assigned_to)) {
-                // If assignment has not changed
-                return;
-            }
-
-            updates[`coverages[${index}]`] = covUpdates;
-        });
-
-        if (prevProps.original?._etag != null &&
-            this.props.original?._etag != null &&
-            prevProps.original._etag !== this.props.original._etag
-        ) {
-            // Update the `_etag` if it has changed
-            updates._etag = this.props.original._etag;
-        }
-
-        if (Object.keys(updates).length) {
-            this.props.itemManager.finalisePartialSave(updates, false);
         }
     }
 
