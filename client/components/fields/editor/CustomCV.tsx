@@ -36,6 +36,7 @@ export class EditorFieldCV extends React.PureComponent<ICustomCVFieldProps> {
                 testId={testId?.length ? testId : cv._id}
             >
                 <TreeSelect
+                    key={`${cv.display_name}-${language}`}
                     selectBranchWithChildren={cv.disable_entire_category_selection !== true}
                     sortable={true}
                     kind="synchronous"
@@ -53,6 +54,7 @@ export class EditorFieldCV extends React.PureComponent<ICustomCVFieldProps> {
                                 scheme: cv._id,
                                 parent: cvItem.parent,
                                 service: cvItem.service,
+                                translations: cvItem.translations,
                             })) as Array<ISubject>,
                             ({qcode}) => qcode.toString(),
                             ({parent}) => parent?.toString(),
