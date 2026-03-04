@@ -29,6 +29,7 @@ export interface IProps {
     maxLength?: number;
     language?: string;
     invalid?: boolean;
+    getLabel?(option: any): string;
 }
 
 interface IState {
@@ -47,7 +48,7 @@ export class SelectMetaTermsInput extends React.Component<IProps, IState> {
     constructor(props: IProps) {
         super(props);
         this.state = {
-            multiLevel: false,
+            multiLevel: this.props.options.filter((o) => (o.parent)).length > 0,
             openSelectPopup: false,
         };
 
@@ -55,11 +56,6 @@ export class SelectMetaTermsInput extends React.Component<IProps, IState> {
         this.toggleOpenSelectPopup = this.toggleOpenSelectPopup.bind(this);
         this.onChange = this.onChange.bind(this);
         this.addBtn = React.createRef();
-    }
-
-    componentWillMount() {
-        // There is at least one parent or multi-level option
-        this.setState({multiLevel: this.props.options.filter((o) => (o.parent)).length > 0});
     }
 
     toggleOpenSelectPopup() {
@@ -89,12 +85,23 @@ export class SelectMetaTermsInput extends React.Component<IProps, IState> {
         }
     }
 
-    removeValuesFromOptions() {
+    getListOfOptions() {
+        let options: Array<any>;
+
         if (!this.state.multiLevel) {
-            return differenceBy(this.props.options, this.props.value, this.props.valueKey);
+            options = differenceBy(this.props.options, this.props.value, this.props.valueKey);
         } else {
-            return this.props.options;
+            options = this.props.options;
         }
+
+        if (this.props.getLabel == null) {
+            return options;
+        }
+
+        return options.map((option) => ({
+            ...option,
+            [this.props.labelKey]: this.props.getLabel(option),
+        }));
     }
 
     onChange(opt) {
@@ -135,7 +142,7 @@ export class SelectMetaTermsInput extends React.Component<IProps, IState> {
             ...props
         } = this.props;
 
-        const options = this.removeValuesFromOptions();
+        const options = this.getListOfOptions();
         const disabled = (() => {
             // No options available to be selected
             if (options.length === 0) {

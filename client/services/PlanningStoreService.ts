@@ -3,7 +3,7 @@ import {createStore} from '../utils';
 import {COVERAGES, ITEM_TYPE, ASSIGNMENTS} from '../constants';
 import * as selectors from '../selectors';
 import * as actions from '../actions';
-import {planningApi} from '../superdeskApi';
+import {planningApi, superdeskApi} from '../superdeskApi';
 import {isCustomVocabulary} from '../helpers';
 import {PLANNING_EXPORT_TEMPLATES_RESOURCE} from '../constants/exportTemplates';
 
@@ -232,7 +232,7 @@ export class PlanningStoreService {
                             })),
                     },
                     privileges: privileges,
-                    subjects: this.metadata.values.subjectcodes,
+                    subjects: superdeskApi.entities.vocabulary.getVocabulary('subject_custom')?.items || [],
                     genres: genres,
                     users: users,
                     desks: this.desks.desks._items,

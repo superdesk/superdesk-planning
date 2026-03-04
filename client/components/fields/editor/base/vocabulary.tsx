@@ -1,6 +1,7 @@
 import * as React from 'react';
 import {get, set} from 'lodash';
 
+import {getVocabularyItemFieldTranslated} from '../../../../utils/vocabularies';
 import {IEditorFieldProps} from '../../../../interfaces';
 import {SelectMetaTermsInput, Row} from '../../../UI/Form';
 
@@ -13,6 +14,7 @@ export interface IEditorFieldVocabularyProps extends IEditorFieldProps {
     noMargin?: boolean; // defaults to true
     valueAsString?: boolean;
     singleSelect?: boolean;
+    language?: string;
 }
 
 export class EditorFieldVocabulary extends React.PureComponent<IEditorFieldVocabularyProps> {
@@ -24,19 +26,17 @@ export class EditorFieldVocabulary extends React.PureComponent<IEditorFieldVocab
         valueAsString: false,
     }
 
-    constructor(props: IEditorFieldVocabularyProps) {
-        super(props);
-
-        this.onChange = this.onChange.bind(this);
-    }
-
-    onChange(field: string, value: Array<any>) {
+    onChange = (field: string, value: Array<any>) => {
         this.props.onChange(
             field,
             !this.props.valueAsString ?
                 value :
                 value.map((val) => get(val, this.props.valueKey))
         );
+    }
+
+    getTranslatedOptionLabel = (option: any): string => {
+        return getVocabularyItemFieldTranslated(option, this.props.labelKey, this.props.language);
     }
 
     render() {
@@ -75,6 +75,7 @@ export class EditorFieldVocabulary extends React.PureComponent<IEditorFieldVocab
                     required={this.props.required ?? this.props.schema?.required}
                     onChange={this.onChange}
                     singleSelect={this.props.singleSelect}
+                    getLabel={this.props.language == null ? undefined : this.getTranslatedOptionLabel}
                 />
             </Row>
         );
