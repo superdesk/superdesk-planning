@@ -91,6 +91,9 @@ class EventsService(ProdApiService):
         if not isinstance(query, dict):
             raise SuperdeskApiError.badRequestError("planning_source must be an object")
 
+        query.setdefault("size", 10_000)
+        query.setdefault("_source", ["_id", "_resource", "event_item"])
+
         return query
 
     def _get_event_ids_from_planning(self, planning_query: Dict) -> List[str]:

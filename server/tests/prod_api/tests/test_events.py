@@ -1,3 +1,4 @@
+from copy import deepcopy
 import json
 from flask import url_for
 
@@ -247,6 +248,154 @@ def test_planning_source_malformed_elasticsearch_query(prodapi_app_with_data, pr
         assert resp.status_code == 400
         assert "_message" in resp_data
         assert "Invalid planning_source query" in resp_data["_message"]
+
+
+def test_planning_source_pagination(prodapi_app, prodapi_app_with_data_client):
+    event_template: dict = {
+        "type": "event",
+        "name": "Test Event",
+        "dates": {"start": "2026-06-30T13:00:00.000Z", "end": "2026-06-30T15:00:00.000Z", "tz": "Europe/Brussels"},
+        "state": "ingested",
+        "occur_status": {
+            "qcode": "eocstat:eos5",
+            "name": "Planned, occurs certainly",
+            "label": "planned, occurs certainly",
+        },
+    }
+    planning_template: dict = {
+        "type": "planning",
+        "name": "Test Planning",
+        "planning_date": "2026-06-30T13:46:38.000Z",
+        "state": "ingested",
+        "language": "de",
+        "coverages": [
+            {
+                "planning": {
+                    "slugline": "Citroen 100 let",
+                    "scheduled": "2026-06-30T15:00:00.000Z",
+                    "g2_content_type": "text",
+                    "genre": [{"qcode": "Article", "name": "Article (news)"}],
+                },
+                "news_coverage_status": {"qcode": "ncostat:int", "name": "coverage intended", "label": "Planned"},
+                "workflow_status": "active",
+                "assigned_to": {
+                    "priority": 2,
+                    "desk": "5d76113ab3af37dea3a2eb9e",
+                    "user": "5d385f31fe985ec67a0ca583",
+                    "state": "assigned",
+                    "assignment_id": "5d77b0244c3b49675964b0cd",
+                },
+            },
+        ],
+        "urgency": 2,
+    }
+
+    with prodapi_app.app_context():
+        events: list[dict] = []
+        planning: list[dict] = []
+
+        for i in range(200):
+            event_id = f"event--{i}"
+            events.append(
+                {
+                    **deepcopy(event_template),
+                    "_id": event_id,
+                    "guid": event_id,
+                    "name": f"Test Event {i}",
+                }
+            )
+            if i % 2 == 0:
+                # Only add Planning for every 2nd Event
+                planning_item: dict = {
+                    **deepcopy(planning_template),
+                    "_id": f"planning--{i}",
+                    "guid": f"planning--{i}",
+                    "name": f"Test Planning {i}",
+                    "event_item": event_id,
+                }
+                if i % 4 == 0:
+                    # Planning item's will alternate between text and picture coverages
+                    planning_item["coverages"][0]["planning"]["g2_content_type"] = "picture"
+
+                planning.append(planning_item)
+
+        prodapi_app.data.insert("events", events)
+        prodapi_app.data.insert("planning", planning)
+
+    event_source: dict = {
+        "query": {
+            "bool": {
+                "filter": [
+                    {"range": {"dates.start": {"gte": "2026-06-01T00:00:00Z", "lte": "2026-06-30T23:59:59Z"}}},
+                    {"terms": {"state": ["scheduled", "rescheduled", "ingested", "cancelled", "postponed"]}},
+                ]
+            }
+        }
+    }
+    planning_source: dict = {
+        "query": {
+            "bool": {
+                "filter": [
+                    {
+                        "nested": {
+                            "path": "coverages",
+                            "query": {
+                                "bool": {"filter": [{"terms": {"coverages.planning.g2_content_type": ["picture"]}}]}
+                            },
+                        }
+                    },
+                    {
+                        "range": {
+                            "planning_date": {"gte": "2026-06-01T00:00:00.000Z", "lte": "2026-07-01T00:00:00.000Z"}
+                        }
+                    },
+                ]
+            }
+        }
+    }
+
+    with prodapi_app.test_request_context():
+
+        def _get_next_page(page: int) -> dict:
+            resp = prodapi_app_with_data_client.get(
+                url_for(
+                    "events|resource",
+                    max_results=10,
+                    source=json.dumps(event_source),
+                    planning_source=json.dumps(planning_source),
+                    page=page,
+                ),
+            )
+            assert resp.status_code == 200
+            return resp.json
+
+        item_ids: list[str] = []
+        current_page = 1
+
+        # There is only 1 picture coverage every 4 events
+        # There should be 50 Planning items associated with an Event that matches the above queries
+        for i in range(1, 6):
+            response = _get_next_page(current_page)
+
+            # Check ``_meta`` attributes for correct details
+            assert response["_meta"] == {"max_results": 10, "page": current_page, "total": 50}
+
+            # Check the items returned in this request, and add the IDs to ``item_ids``
+            assert len(response["_items"]) == 10
+            item_ids.extend([item["guid"] for item in response["_items"]])
+
+            current_page += 1
+
+        # Make sure the first 5 pages don't contain duplicate Events
+        # Make sure the first 5 pages contain 50 unique Events
+        assert current_page == 6
+        assert len(item_ids) == len(set(item_ids)) == 50
+
+        # Now check if we get 1 more page, we should get 0 items
+        current_page += 1
+        response = _get_next_page(current_page)
+        assert response["_meta"] == {"max_results": 10, "page": current_page, "total": 50}
+        assert len(response["_items"]) == 0
 
 
 def test_event_planning_links_include_coverage_summaries(prodapi_app_with_data, prodapi_app_with_data_client):
