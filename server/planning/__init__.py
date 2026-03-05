@@ -1,6 +1,7 @@
 """Superdesk Planning Plugin."""
 
 import logging
+from importlib.metadata import version
 import superdesk
 from quart_babel import lazy_gettext
 
@@ -69,7 +70,7 @@ from planning.search.planning_autocomplete import init_app as init_planning_auto
 
 from .module import module  # noqa
 
-__version__ = "3.4.0-rc.1"
+__version__ = version("superdesk-planning")
 
 _SERVER_PATH = os.path.dirname(os.path.realpath(__file__))
 
