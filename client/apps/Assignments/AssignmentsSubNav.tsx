@@ -187,7 +187,7 @@ export class AssignmentsSubNavComponent extends React.Component<IProps> {
                     userDesks={showDeskSelection ? userDesks : []}
                     selectAssignmentsFrom={this.selectAssignmentsFrom}
                     showDeskSelection={showDeskSelection}
-                    showAllDeskOption={showAllDeskOption}
+                    showAllDeskOption={showAllDeskOption && showDeskAssignmentView}
                     changeSortField={this.changeSortField}
                     showDeskAssignmentView={showDeskAssignmentView}
                 />
