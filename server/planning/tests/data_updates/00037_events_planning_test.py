@@ -1,9 +1,11 @@
 import importlib
 from datetime import timedelta
 
-from superdesk import get_resource_service
-from superdesk.services import BaseService
+from bson import ObjectId
+
+from superdesk.core.resources import AsyncResourceService
 from superdesk.utc import utcnow
+from planning.types import EventResourceModel, PlanningResourceModel, AssignmentResourceModel
 from planning.tests import TestCase
 
 
@@ -16,13 +18,14 @@ class FixAnpaCategorySchemeTestCase(TestCase):
         await super().asyncSetUp()
         self.data_update = DataUpdate()
 
-    def assertItemsToFix(self, service: BaseService, item_ids: set[str]):
-        self.assertEqual(set([item["_id"] for item in self.data_update.iterate_items(service)]), item_ids)
+    async def assertItemsToFix(self, service: AsyncResourceService, item_ids: set[str]):
+        self.assertEqual(set([item["_id"] async for item in self.data_update.iterate_items(service)]), item_ids)
 
     async def test_upgrade_events(self):
-        service: BaseService = get_resource_service("events")
+        service = EventResourceModel.get_service()
         dates = {"start": now, "end": now + timedelta(hours=1)}
-        service.post(
+        self.app.data.insert(
+            "events",
             [
                 {"_id": "e1", "dates": dates},
                 {"_id": "e2", "dates": dates, "anpa_category": [{"qcode": "a", "name": "A", "scheme": "categories"}]},
@@ -35,13 +38,13 @@ class FixAnpaCategorySchemeTestCase(TestCase):
                         {"qcode": "c", "name": "C", "scheme": "test"},
                     ],
                 },
-            ]
+            ],
         )
 
-        self.assertItemsToFix(service, {"e2", "e3"})
-        self.data_update._fix_events()
-        self.assertItemsToFix(service, set())
-        events = {event["_id"]: event for event in service.get(req=None, lookup={})}
+        await self.assertItemsToFix(service, {"e2", "e3"})
+        await self.data_update._fix_events()
+        await self.assertItemsToFix(service, set())
+        events = await service.get_all_map_raw()
         self.assertDictContains(events["e2"], {"anpa_category": [{"qcode": "a", "name": "A", "scheme": None}]})
         self.assertDictContains(
             events["e3"],
@@ -55,8 +58,9 @@ class FixAnpaCategorySchemeTestCase(TestCase):
         )
 
     async def test_upgrade_planning(self):
-        service: BaseService = get_resource_service("planning")
-        service.post(
+        service = PlanningResourceModel.get_service()
+        self.app.data.insert(
+            "planning",
             [
                 {"_id": "p1", "planning_date": now},
                 {
@@ -89,14 +93,14 @@ class FixAnpaCategorySchemeTestCase(TestCase):
                         }
                     ],
                 },
-            ]
+            ],
         )
 
-        self.assertItemsToFix(service, {"p2", "p3", "p4"})
-        self.data_update._fix_planning()
-        self.assertItemsToFix(service, set())
+        await self.assertItemsToFix(service, {"p2", "p3", "p4"})
+        await self.data_update._fix_planning()
+        await self.assertItemsToFix(service, set())
 
-        planning = {planning["_id"]: planning for planning in service.get(req=None, lookup={})}
+        planning = await service.get_all_map_raw()
         self.assertDictContains(planning["p2"], {"anpa_category": [{"qcode": "a", "name": "A", "scheme": None}]})
         self.assertDictContains(planning["p3"], {"anpa_category": [{"qcode": "a", "name": "A", "scheme": None}]})
         self.assertDictContains(
@@ -107,25 +111,27 @@ class FixAnpaCategorySchemeTestCase(TestCase):
         )
 
     async def test_upgrade_assignments(self):
-        service: BaseService = get_resource_service("assignments")
-        service.post(
+        service = AssignmentResourceModel.get_service()
+        oids = [ObjectId(), ObjectId()]
+        self.app.data.insert(
+            "assignments",
             [
-                {"_id": "a1", "planning_date": now},
+                {"_id": oids[0], "planning_date": now},
                 {
-                    "_id": "a2",
+                    "_id": oids[1],
                     "planning_date": now,
                     "planning": {
                         "scheduled": now,
                         "anpa_category": [{"qcode": "a", "name": "A", "scheme": "categories"}],
                     },
                 },
-            ]
+            ],
         )
 
-        self.assertItemsToFix(service, {"a2"})
-        self.data_update._fix_assignments()
-        self.assertItemsToFix(service, set())
-        assignments = {assignment["_id"]: assignment for assignment in service.get(req=None, lookup={})}
+        await self.assertItemsToFix(service, {str(oids[1])})
+        await self.data_update._fix_assignments()
+        await self.assertItemsToFix(service, set())
+        assignments = await service.get_all_map_raw()
         self.assertDictContains(
-            assignments["a2"]["planning"], {"anpa_category": [{"qcode": "a", "name": "A", "scheme": None}]}
+            assignments[oids[1]]["planning"], {"anpa_category": [{"qcode": "a", "name": "A", "scheme": None}]}
         )
