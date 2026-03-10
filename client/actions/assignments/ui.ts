@@ -57,17 +57,18 @@ const loadFulfillModal = (item, groupKeys) => (
     (dispatch, getState, {desks}) => {
         dispatch(self.setListGroups(groupKeys));
 
+        const hasDeskPrivilege = !!selectors.general.privileges(getState())?.planning_assignments_desk;
         const searchQuery = get(item, 'slugline') ?
             `planning.slugline.phrase:("${item.slugline}")` :
             null;
 
         return dispatch(self.loadAssignments({
-            filterBy: 'Desk',
+            filterBy: hasDeskPrivilege ? 'Desk' : 'User',
             searchQuery: searchQuery,
             orderByField: 'Scheduled',
             filterByType: get(item, 'type'),
             filterByPriority: null,
-            selectedDeskId: ALL_DESKS,
+            selectedDeskId: hasDeskPrivilege ? ALL_DESKS : null,
             ignoreScheduledUpdates: true,
         }));
     }
