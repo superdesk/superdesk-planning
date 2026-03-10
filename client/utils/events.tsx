@@ -1189,10 +1189,9 @@ function modifyForClient(event: Partial<IEventItem>): Partial<IEventItem> {
 
     convertEventDatesForTimezone(event);
 
-    if (event.dates?.end != null) {
+    if (event.dates?.end != null && !event.dates.all_day && !event.dates.no_end_time) {
         event.dates.end = timeUtils.getDateInRemoteTimeZone(event.dates.end, timeUtils.localTimeZone());
-        event._endTime = event.dates.all_day || event.dates.no_end_time ? null
-            : timeUtils.getDateInRemoteTimeZone(event.dates.end, timeUtils.localTimeZone());
+        event._endTime = timeUtils.getDateInRemoteTimeZone(event.dates.end, timeUtils.localTimeZone());
     }
 
     if (get(event, 'dates.recurring_rule.until')) {
