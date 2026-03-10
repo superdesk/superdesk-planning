@@ -97,6 +97,12 @@ describe('eventValidators', () => {
                 ['TIMEZONE is a required field']
             );
         });
+
+        it('does not fail timezone if all day is true', () => {
+            event.dates.tz = undefined;
+            event.dates.all_day = true;
+            testValidate(eventValidators.validateDates, 'dates', {});
+        });
     });
 
     describe('validateDateRange', () => {
