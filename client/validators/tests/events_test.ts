@@ -103,6 +103,24 @@ describe('eventValidators', () => {
             event.dates.all_day = true;
             testValidate(eventValidators.validateDates, 'dates', {});
         });
+
+        it('fails if end time is set but start time is not', () => {
+            const value = {
+                ...event.dates,
+                _startTime: null,
+                _endTime: event.dates.end,
+            };
+
+            eventValidators.validateRequiredDates({
+                value: value,
+                errors: errors,
+                messages: errorMessages,
+            });
+            expect(errors).toEqual({_startTime: 'This field is required'});
+            expect(errorMessages).toEqual([
+                'START TIME is required when END TIME is set',
+            ]);
+        });
     });
 
     describe('validateDateRange', () => {
