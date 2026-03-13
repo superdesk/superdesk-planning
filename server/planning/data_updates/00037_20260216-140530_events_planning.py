@@ -7,12 +7,13 @@
 # Author  : MarkLark86
 # Creation: 2026-02-16 14:30
 
-from typing import Iterator
+from typing import AsyncGenerator
 from motor.motor_asyncio import AsyncIOMotorCollection, AsyncIOMotorDatabase
 
-from superdesk import get_resource_service
-from superdesk.services import BaseService
+from superdesk.core.resources import AsyncResourceService
 from superdesk.commands.data_updates import BaseDataUpdate
+
+from planning.types import EventResourceModel, PlanningResourceModel, AssignmentResourceModel
 
 
 class DataUpdate(BaseDataUpdate):
@@ -22,19 +23,19 @@ class DataUpdate(BaseDataUpdate):
     use_async_resources = True
 
     async def forwards(self, _collection: AsyncIOMotorCollection, _database: AsyncIOMotorDatabase) -> None:
-        self._fix_events()
-        self._fix_planning()
-        self._fix_assignments()
+        await self._fix_events()
+        await self._fix_planning()
+        await self._fix_assignments()
 
-    def _fix_events(self) -> None:
-        service: BaseService = get_resource_service("events")
-        for item in self.iterate_items(service):
+    async def _fix_events(self) -> None:
+        service = EventResourceModel.get_service()
+        async for item in self.iterate_items(service):
             if self._remove_scheme(item):
-                service.system_update(item["_id"], {"anpa_category": item["anpa_category"]}, item)
+                await service.system_update(item["_id"], {"anpa_category": item["anpa_category"]})
 
-    def _fix_planning(self) -> None:
-        service = get_resource_service("planning")
-        for item in self.iterate_items(service):
+    async def _fix_planning(self) -> None:
+        service = PlanningResourceModel.get_service()
+        async for item in self.iterate_items(service):
             updates: dict = {}
             if self._remove_scheme(item):
                 updates["anpa_category"] = item["anpa_category"]
@@ -49,24 +50,24 @@ class DataUpdate(BaseDataUpdate):
                 updates["coverages"] = coverages
 
             if updates:
-                service.system_update(item["_id"], updates, item)
+                await service.system_update(item["_id"], updates)
 
-    def _fix_assignments(self) -> None:
-        service = get_resource_service("assignments")
-        for item in self.iterate_items(service):
+    async def _fix_assignments(self) -> None:
+        service = AssignmentResourceModel.get_service()
+        async for item in self.iterate_items(service):
             if self._remove_scheme(item.get("planning") or {}):
-                service.system_update(item["_id"], {"planning": item["planning"]}, item)
+                await service.system_update(item["_id"], {"planning": item["planning"]})
 
-    def iterate_items(self, service: BaseService) -> Iterator[dict]:
+    async def iterate_items(self, service: AsyncResourceService) -> AsyncGenerator[dict, None]:
         def _get_query(field_prefix: str = "") -> dict:
             return {"exists": {"field": f"{field_prefix}anpa_category.scheme"}}
 
         query: dict
-        if service.datasource == "events":
+        if service.resource_name == "events":
             query = {"query": {"bool": {"must": _get_query()}}}
-        elif service.datasource == "assignments":
+        elif service.resource_name == "assignments":
             query = {"query": {"bool": {"must": _get_query("planning.")}}}
-        elif service.datasource == "planning":
+        elif service.resource_name == "planning":
             query = {
                 "query": {
                     "bool": {
@@ -84,16 +85,18 @@ class DataUpdate(BaseDataUpdate):
                 }
             }
         else:
-            print(f"Unknown datasource: {service.datasource}")
+            print(f"Unknown datasource: {service.resource_name}")
             return
 
-        cursor = service.search(query)
+        cursor = service.get_all_batch_elastic_raw(query)
 
-        if not cursor.count():
-            print(f"No {service.datasource} documents with `anpa_category.scheme` found")
+        item = await anext(cursor, None)
+        if item is None:
+            print(f"No {service.resource_name} documents with `anpa_category.scheme` found")
             return
 
-        for item in cursor:
+        yield item
+        async for item in cursor:
             yield item
 
     def _remove_scheme(self, item: dict) -> bool:
