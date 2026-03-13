@@ -32,6 +32,7 @@ from planning.archive import create_item_from_template
 
 PLACEHOLDER_TEXT = r"{{content}}"
 PLACEHOLDER_HTML = "<p>%s</p>" % PLACEHOLDER_TEXT
+EXPORT_FETCH_PAGE_SIZE = 1000
 
 
 class PlanningArticleExportResource(Resource):
@@ -60,7 +61,9 @@ class PlanningArticleExportResource(Resource):
 def get_items(ids, resource_type):
     ids_string = [str(item_id) for item_id in ids]
     items = get_resource_service("events_planning_search").search_repos(
-        resource_type, {"item_ids": ",".join(ids_string), "only_future": False}
+        resource_type,
+        {"item_ids": ",".join(ids_string), "only_future": False},
+        page_size=EXPORT_FETCH_PAGE_SIZE,
     )
     items = sorted(items, key=lambda i: ids_string.index(str(i.get("_id"))))
 
