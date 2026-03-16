@@ -96,6 +96,9 @@ describe('can edit assignment', () => {
             expect(canEditPriority()).toBe(true);
             expect(canConfirmAvailability()).toBe(false);
             expect(canRevertAvailability()).toBe(false);
+
+            assignment.planning.multiple_content = true;
+            expect(canStartWorking()).toBe(true);
         });
 
         it('assignment workflow state is `completed`', () => {
@@ -107,6 +110,10 @@ describe('can edit assignment', () => {
             expect(canEditPriority()).toBe(false);
             expect(canConfirmAvailability()).toBe(false);
             expect(canRevertAvailability()).toBe(true);
+
+            assignment.planning.multiple_content = true;
+            expect(canReassign()).toBe(true);
+            expect(canEditPriority()).toBe(true);
         });
 
         it('assignment workflow state is `submitted`', () => {
@@ -118,6 +125,9 @@ describe('can edit assignment', () => {
             expect(canEditPriority()).toBe(true);
             expect(canConfirmAvailability()).toBe(false);
             expect(canRevertAvailability()).toBe(false);
+
+            assignment.planning.multiple_content = true;
+            expect(canStartWorking()).toBe(true);
         });
 
         it('assignment workflow state is `cancelled`', () => {
@@ -129,6 +139,10 @@ describe('can edit assignment', () => {
             expect(canEditPriority()).toBe(false);
             expect(canConfirmAvailability()).toBe(false);
             expect(canRevertAvailability()).toBe(false);
+
+            assignment.planning.multiple_content = true;
+            expect(canReassign()).toBe(false);
+            expect(canEditPriority()).toBe(false);
         });
     });
 

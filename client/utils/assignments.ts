@@ -46,9 +46,15 @@ function canEditPriorityOrReassignAssignment(
     privilege: string,
     lockedItems: ILockedItems,
 ) {
-    return !!privileges[privilege] &&
-        self.isNotLockRestricted(assignment, session, lockedItems) &&
-        self.isAssignmentInEditableState(assignment);
+    return !!privileges[privilege]
+        && self.isNotLockRestricted(assignment, session, lockedItems)
+        && (
+            self.isAssignmentInEditableState(assignment)
+            || (
+                assignment.planning?.multiple_content === true
+                && assignment.assigned_to?.state !== ASSIGNMENTS.WORKFLOW_STATE.CANCELLED
+            )
+        );
 }
 
 function canRemoveAssignment(
