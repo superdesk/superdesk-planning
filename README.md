@@ -191,6 +191,9 @@ Below sections include the config options that can be defined in settings.py.
 * PLANNING_DUPLICATE_RETAIN_ASSIGNEE_DETAILS
     * Default: False (the current behavior where assignee details are removed)
     * If true, the `assigned_to` field (assignee details) is retained when duplicating planning items with coverages.
+* PLANNING_DUPLICATE_RETAIN_COVERAGE_STATUS
+    * Default: False (the current behavior where coverage status is reset to default)
+    * If true, the `news_coverage_status` field is retained when duplicating planning items with coverages.
 
 ### Assignments Config
 * SLACK_BOT_TOKEN

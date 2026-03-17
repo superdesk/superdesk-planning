@@ -25,6 +25,7 @@ from planning.common import (
     TEMP_ID_PREFIX,
     get_coverage_status_from_cv,
     get_config_planning_duplicate_retain_assignee_details,
+    get_config_planning_duplicate_retain_coverage_status,
 )
 from planning.planning import PlanningHistoryAsyncService
 from planning.utils import get_related_event_links_for_planning, get_related_event_items_for_planning
@@ -91,8 +92,10 @@ def duplicate_planning_item(original: dict[str, Any]) -> dict:
         cov.get("planning", {})["scheduled"] = new_plan.get("planning_date")
         cov["coverage_id"] = TEMP_ID_PREFIX + "duplicate"
         cov["workflow_status"] = WORKFLOW_STATE.DRAFT
-        cov["news_coverage_status"] = get_coverage_status_from_cv("ncostat:int")
-        cov["news_coverage_status"].pop("is_active", None)
+
+        if not get_config_planning_duplicate_retain_coverage_status():
+            cov["news_coverage_status"] = get_coverage_status_from_cv("ncostat:int")
+            cov["news_coverage_status"].pop("is_active", None)
 
         if not get_config_planning_duplicate_retain_assignee_details():
             cov["assigned_to"] = {}
