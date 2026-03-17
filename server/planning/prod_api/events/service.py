@@ -91,6 +91,7 @@ class EventsService(ProdApiService):
         if not isinstance(query, dict):
             raise SuperdeskApiError.badRequestError("planning_source must be an object")
 
+        query.setdefault("sort", [{"_created": "asc"}, {"_updated": "asc"}, {"guid": "asc"}])
         query.setdefault("_source", ["_id", "_resource", "event_item"])
 
         return query
