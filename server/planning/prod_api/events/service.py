@@ -91,7 +91,7 @@ class EventsService(ProdApiService):
         if not isinstance(query, dict):
             raise SuperdeskApiError.badRequestError("planning_source must be an object")
 
-        query.setdefault("size", 10_000)
+        query.setdefault("sort", [{"_created": "asc"}, {"_updated": "asc"}, {"guid": "asc"}])
         query.setdefault("_source", ["_id", "_resource", "event_item"])
 
         return query
@@ -102,14 +102,13 @@ class EventsService(ProdApiService):
 
         # Search for planning documents matching the query
         try:
-            results = planning_service.search(planning_query)
+            results = planning_service.get_all_batch_elastic(planning_query)
+            event_ids = {event_id for event_id in self._extract_event_items(results) if event_id}
+            return list(event_ids)
         except RequestError as e:
             raise SuperdeskApiError.badRequestError(
                 f"Invalid planning_source query: {str(e.info.get('error', {}).get('reason', str(e)))}"
             )
-
-        event_ids = {event_id for event_id in self._extract_event_items(results) if event_id}
-        return list(event_ids)
 
     def _extract_event_items(self, results: Iterable[Dict]) -> Iterable[str]:
         for item in results:
