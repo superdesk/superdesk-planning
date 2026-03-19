@@ -275,6 +275,10 @@ def get_config_planning_duplicate_retain_assignee_details(current_app=None):
     return (current_app or get_current_app()).config.get("PLANNING_DUPLICATE_RETAIN_ASSIGNEE_DETAILS", False)
 
 
+def get_config_planning_duplicate_retain_coverage_status(current_app=None):
+    return (current_app or get_current_app()).config.get("PLANNING_DUPLICATE_RETAIN_COVERAGE_STATUS", False)
+
+
 def get_config_assignment_manual_reassignment_only(current_app=None):
     return (current_app or get_current_app()).config.get("ASSIGNMENT_MANUAL_REASSIGNMENT_ONLY", False)
 
