@@ -260,7 +260,7 @@ class EventsPostService(AsyncBaseService):
                 docs = [
                     {
                         "planning": planning[ID_FIELD],
-                        "etag": planning.get("etag"),
+                        "etag": planning.get("etag") or planning.get("_etag"),
                         "pubstatus": POST_STATE.USABLE,
                     }
                     for planning in plannings
