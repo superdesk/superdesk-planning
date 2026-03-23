@@ -89,7 +89,6 @@ def duplicate_planning_item(original: dict[str, Any]) -> dict:
     for cov in new_plan.get("coverages") or []:
         cov.get("planning", {}).pop("workflow_status_reason", None)
         cov.pop("scheduled_updates", None)
-        cov.get("planning", {})["scheduled"] = new_plan.get("planning_date")
         cov["coverage_id"] = TEMP_ID_PREFIX + "duplicate"
         cov["workflow_status"] = WORKFLOW_STATE.DRAFT
 

@@ -67,6 +67,9 @@ class PlanningDuplicateTestCase(TestCase):
         self.assertEqual(coverage["news_coverage_status"]["qcode"], "ncostat:int")
         self.assertEqual(coverage["news_coverage_status"]["name"], "coverage intended")
 
+        # Scheduled time should be preserved from original (not reset to planning date)
+        self.assertEqual(coverage["planning"]["scheduled"], datetime(2029, 10, 12, 15, 0, 0, tzinfo=pytz.UTC))
+
         # Assignee details should be cleared
         self.assertEqual(coverage["assigned_to"], {})
 
@@ -180,6 +183,14 @@ class PlanningDuplicateTestCase(TestCase):
         # Both coverages should retain their original status
         self.assertEqual(duplicated["coverages"][0]["news_coverage_status"]["qcode"], "ncostat:onreq")
         self.assertEqual(duplicated["coverages"][1]["news_coverage_status"]["qcode"], "ncostat:notdec")
+
+        # Both coverages should retain their scheduled times
+        self.assertEqual(
+            duplicated["coverages"][0]["planning"]["scheduled"], datetime(2029, 10, 12, 15, 0, 0, tzinfo=pytz.UTC)
+        )
+        self.assertEqual(
+            duplicated["coverages"][1]["planning"]["scheduled"], datetime(2029, 10, 12, 16, 0, 0, tzinfo=pytz.UTC)
+        )
 
         # Both coverages should retain their assignees
         self.assertEqual(duplicated["coverages"][0]["assigned_to"]["desk"], "desk1")
