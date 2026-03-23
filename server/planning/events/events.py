@@ -11,7 +11,6 @@
 """Superdesk Events"""
 
 
-import re
 import pytz
 import logging
 import itertools
@@ -22,20 +21,7 @@ from datetime import datetime, timedelta
 from dateutil import parser
 
 from eve.methods.common import resolve_document_etag
-from dateutil.rrule import (
-    rrule,
-    YEARLY,
-    MONTHLY,
-    WEEKLY,
-    DAILY,
-    MO,
-    TU,
-    WE,
-    TH,
-    FR,
-    SA,
-    SU,
-)
+
 
 import superdesk
 from superdesk.core import get_app_config, get_current_app
@@ -89,12 +75,10 @@ from planning.utils import (
 )
 from .events_schema import events_schema
 from .events_sync import sync_event_metadata_with_planning_items
-from .events_utils import get_recurring_event_updates_iterator
+from .events_utils import get_recurring_event_updates_iterator, generate_recurring_dates
 
 logger = logging.getLogger(__name__)
 
-FREQUENCIES = {"DAILY": DAILY, "WEEKLY": WEEKLY, "MONTHLY": MONTHLY, "YEARLY": YEARLY}
-DAYS = {"MO": MO, "TU": TU, "WE": WE, "TH": TH, "FR": FR, "SA": SA, "SU": SU}
 
 organizer_roles = {
     "eorol:artAgent": "Artistic agent",
@@ -943,91 +927,6 @@ class EventsResource(superdesk.Resource):
     merge_nested_documents = True
 
 
-# TODO-ASYNC: moved to `events_utils.py`. Remove when it is no longer referenced
-def generate_recurring_dates(
-    start,
-    frequency,
-    interval=1,
-    until=None,
-    byday=None,
-    count=5,
-    tz=None,
-    date_only=False,
-    **_,
-):
-    """
-
-    Returns list of dates related to recurring rules
-
-    :param start datetime: date when to start
-    :param frequency str: DAILY, WEEKLY, MONTHLY, YEARLY
-    :param interval int: indicates how often the rule repeats as a positive integer
-    :param until datetime: date after which the recurrence rule expires
-    :param byday str or list: "MO TU"
-    :param count int: number of occurrences of the rule
-    :return list: list of datetime
-
-    """
-    # if tz is given, respect the timzone by starting from the local time
-    # NOTE: rrule uses only naive datetime
-    if tz:
-        try:
-            # start can already be localized
-            start = pytz.UTC.localize(start)
-        except ValueError:
-            pass
-        start = start.astimezone(tz).replace(tzinfo=None)
-        if until:
-            until = get_date(until).astimezone(tz).replace(tzinfo=None)
-
-    if frequency == "DAILY":
-        byday = None
-
-    # check format of the recurring_rule byday value
-    if byday and re.match(r"^-?[1-5]+.*", byday):
-        # byday uses monthly or yearly frequency rule with day of week and
-        # preceding day of month integer by day value
-        # examples:
-        # 1FR - first friday of the month
-        # -2MON - second to last monday of the month
-        if byday[:1] == "-":
-            day_of_month = int(byday[:2])
-            day_of_week = byday[2:]
-        else:
-            day_of_month = int(byday[:1])
-            day_of_week = byday[1:]
-
-        byweekday = DAYS.get(day_of_week)(day_of_month)
-    else:
-        # byday uses DAYS constants
-        byweekday = byday and [DAYS.get(d) for d in byday.split()] or None
-
-    # Convert count of repeats to count of events
-    if count:
-        count = count * (len(byday.split()) if byday else 1)
-
-    # TODO: use dateutil.rrule.rruleset to incude ex_date and ex_rule
-    dates = rrule(
-        FREQUENCIES.get(frequency),
-        dtstart=start,
-        until=until,
-        byweekday=byweekday,
-        count=count,
-        interval=interval,
-    )
-    # if a timezone has been applied, returns UTC
-    if tz:
-        if date_only:
-            return (tz.localize(dt).astimezone(pytz.UTC).replace(tzinfo=None).date() for dt in dates)
-        else:
-            return (tz.localize(dt).astimezone(pytz.UTC).replace(tzinfo=None) for dt in dates)
-    else:
-        if date_only:
-            return (date.date() for date in dates)
-        else:
-            return (date for date in dates)
-
-
 def setRecurringMode(event):
     endRepeatMode = event.get("dates", {}).get("recurring_rule", {}).get("endRepeatMode")
     if endRepeatMode == "count":
@@ -1059,6 +958,7 @@ def generate_recurring_events(event, recurrence_id=None):
         generate_recurring_dates(
             start=event["dates"]["start"],
             tz=event["dates"].get("tz") and pytz.timezone(event["dates"]["tz"] or None),
+            all_day=bool(event["dates"].get("all_day")),
             **event["dates"]["recurring_rule"],
         ),
         0,
