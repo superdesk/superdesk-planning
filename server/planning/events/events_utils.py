@@ -109,6 +109,8 @@ def generate_recurring_dates(
             if until:
                 if isinstance(until, str):
                     until = parser.isoparse(until)
+                if until.tzinfo is None:
+                    until = pytz.UTC.localize(until)
                 until = until.astimezone(tz).replace(tzinfo=None)
 
     if frequency == "DAILY":
