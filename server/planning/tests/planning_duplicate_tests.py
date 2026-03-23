@@ -69,7 +69,6 @@ class PlanningDuplicateTestCase(TestCase):
 
         # Scheduled time should be preserved from original (not reset to planning date)
         self.assertEqual(coverage["planning"]["scheduled"], datetime(2029, 10, 12, 15, 0, 0, tzinfo=pytz.UTC))
-
         # Assignee details should be cleared
         self.assertEqual(coverage["assigned_to"], {})
 
@@ -191,7 +190,6 @@ class PlanningDuplicateTestCase(TestCase):
         self.assertEqual(
             duplicated["coverages"][1]["planning"]["scheduled"], datetime(2029, 10, 12, 16, 0, 0, tzinfo=pytz.UTC)
         )
-
         # Both coverages should retain their assignees
         self.assertEqual(duplicated["coverages"][0]["assigned_to"]["desk"], "desk1")
         self.assertEqual(duplicated["coverages"][1]["assigned_to"]["desk"], "desk2")
