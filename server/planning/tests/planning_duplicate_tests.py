@@ -184,3 +184,49 @@ class PlanningDuplicateTestCase(TestCase):
         # Both coverages should retain their assignees
         self.assertEqual(duplicated["coverages"][0]["assigned_to"]["desk"], "desk1")
         self.assertEqual(duplicated["coverages"][1]["assigned_to"]["desk"], "desk2")
+
+    async def test_duplicate_planning_item_coverage_time_based_on_date(self):
+        """Test that coverage scheduled time is preserved for future dates and reset for past dates."""
+        original = {
+            "_id": "plan_mixed",
+            "guid": "plan_mixed",
+            "type": "planning",
+            "state": "draft",
+            "slugline": "Test Mixed Dates Planning",
+            "planning_date": datetime(2029, 10, 12, 14, 0, 0, tzinfo=pytz.UTC),
+            "coverages": [
+                {
+                    "coverage_id": "cov_future",
+                    "planning": {
+                        "g2_content_type": "text",
+                        "slugline": "Future Coverage",
+                        "scheduled": datetime(2029, 10, 12, 15, 0, 0, tzinfo=pytz.UTC),
+                    },
+                    "news_coverage_status": {"qcode": "ncostat:onreq"},
+                    "assigned_to": {"user": fixtures.users.ADMIN_USER_ID, "desk": "desk1"},
+                },
+                {
+                    "coverage_id": "cov_past",
+                    "planning": {
+                        "g2_content_type": "picture",
+                        "slugline": "Past Coverage",
+                        "scheduled": datetime(2019, 10, 12, 16, 0, 0, tzinfo=pytz.UTC),
+                    },
+                    "news_coverage_status": {"qcode": "ncostat:notdec"},
+                    "assigned_to": {"user": fixtures.users.ADMIN_USER_ID, "desk": "desk2"},
+                },
+            ],
+        }
+
+        async with self.app.app_context():
+            duplicated = duplicate_planning_item(original)
+
+        # Future coverage (2029) should have preserved scheduled time
+        self.assertEqual(
+            duplicated["coverages"][0]["planning"]["scheduled"], datetime(2029, 10, 12, 15, 0, 0, tzinfo=pytz.UTC)
+        )
+
+        # Past coverage should have reset scheduled time
+        self.assertNotEqual(
+            duplicated["coverages"][1]["planning"]["scheduled"], datetime(2019, 10, 12, 16, 0, 0, tzinfo=pytz.UTC)
+        )
