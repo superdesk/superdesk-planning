@@ -92,6 +92,13 @@ def duplicate_planning_item(original: dict[str, Any]) -> dict:
         cov["coverage_id"] = TEMP_ID_PREFIX + "duplicate"
         cov["workflow_status"] = WORKFLOW_STATE.DRAFT
 
+        # Only reset coverage scheduled time if it's in the past, similar to planning_date logic
+        coverage_scheduled = cov.get("planning", {}).get("scheduled")
+        if coverage_scheduled:
+            coverage_datetime = utc_to_local(default_timezone, coverage_scheduled)
+            if coverage_datetime.date() < local_datetime.date():
+                cov.get("planning", {})["scheduled"] = new_plan.get("planning_date")
+
         if not get_config_planning_duplicate_retain_coverage_status():
             cov["news_coverage_status"] = get_coverage_status_from_cv("ncostat:int")
             cov["news_coverage_status"].pop("is_active", None)

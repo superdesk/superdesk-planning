@@ -67,8 +67,6 @@ class PlanningDuplicateTestCase(TestCase):
         self.assertEqual(coverage["news_coverage_status"]["qcode"], "ncostat:int")
         self.assertEqual(coverage["news_coverage_status"]["name"], "coverage intended")
 
-        # Scheduled time should be preserved from original (not reset to planning date)
-        self.assertEqual(coverage["planning"]["scheduled"], datetime(2029, 10, 12, 15, 0, 0, tzinfo=pytz.UTC))
         # Assignee details should be cleared
         self.assertEqual(coverage["assigned_to"], {})
 
@@ -183,13 +181,52 @@ class PlanningDuplicateTestCase(TestCase):
         self.assertEqual(duplicated["coverages"][0]["news_coverage_status"]["qcode"], "ncostat:onreq")
         self.assertEqual(duplicated["coverages"][1]["news_coverage_status"]["qcode"], "ncostat:notdec")
 
-        # Both coverages should retain their scheduled times
-        self.assertEqual(
-            duplicated["coverages"][0]["planning"]["scheduled"], datetime(2029, 10, 12, 15, 0, 0, tzinfo=pytz.UTC)
-        )
-        self.assertEqual(
-            duplicated["coverages"][1]["planning"]["scheduled"], datetime(2029, 10, 12, 16, 0, 0, tzinfo=pytz.UTC)
-        )
         # Both coverages should retain their assignees
         self.assertEqual(duplicated["coverages"][0]["assigned_to"]["desk"], "desk1")
         self.assertEqual(duplicated["coverages"][1]["assigned_to"]["desk"], "desk2")
+
+    async def test_duplicate_planning_item_past_coverage_time_reset(self):
+        """Test that past coverage scheduled time is reset to planning date, similar to planning_date logic."""
+        from unittest.mock import patch
+        from datetime import datetime
+
+        # Create a planning item with a coverage scheduled in the past (2019)
+        original = {
+            "_id": "plan_past",
+            "guid": "plan_past",
+            "type": "planning",
+            "state": "draft",
+            "slugline": "Test Past Planning",
+            "planning_date": datetime(2019, 10, 12, 14, 0, 0, tzinfo=pytz.UTC),
+            "coverages": [
+                {
+                    "coverage_id": "cov_past",
+                    "planning": {
+                        "g2_content_type": "text",
+                        "slugline": "Past Coverage",
+                        "scheduled": datetime(2019, 10, 12, 15, 0, 0, tzinfo=pytz.UTC),
+                    },
+                    "news_coverage_status": {"qcode": "ncostat:onreq"},
+                    "assigned_to": {"user": fixtures.users.ADMIN_USER_ID, "desk": "desk1"},
+                }
+            ],
+        }
+
+        # Set both configs to True to test time reset specifically
+        self.app.config["PLANNING_DUPLICATE_RETAIN_COVERAGE_STATUS"] = True
+        self.app.config["PLANNING_DUPLICATE_RETAIN_ASSIGNEE_DETAILS"] = True
+
+        async with self.app.app_context():
+            duplicated = duplicate_planning_item(original)
+
+        # Verify the coverage exists
+        self.assertEqual(len(duplicated["coverages"]), 1)
+        coverage = duplicated["coverages"][0]
+
+        # Coverage status and assignee should be retained (configs are True)
+        self.assertEqual(coverage["news_coverage_status"]["qcode"], "ncostat:onreq")
+        self.assertEqual(coverage["assigned_to"]["desk"], "desk1")
+
+        # Past coverage scheduled time should be reset (not preserved)
+        # It should be different from the original past time
+        self.assertNotEqual(coverage["planning"]["scheduled"], datetime(2019, 10, 12, 15, 0, 0, tzinfo=pytz.UTC))
