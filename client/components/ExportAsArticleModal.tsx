@@ -83,8 +83,11 @@ export class ExportAsArticleModal extends React.Component {
     filterArticleTemplates(desk) {
         const newObj = {};
 
-        newObj.articleTemplates = this.props.modalProps.articleTemplates.filter((t) =>
-            Object.keys(t).length > 0 && t.template_desks && t.template_desks.includes(desk._id));
+        newObj.articleTemplates = desk._id === 'personal-workspace' ?
+            this.props.modalProps.articleTemplates :
+            this.props.modalProps.articleTemplates.filter(
+                (t) => Object.keys(t).length > 0 && t.template_desks && t.template_desks.includes(desk._id)
+            );
         newObj.articleTemplate = newObj.articleTemplates.find((t) =>
             Object.keys(t).length > 0 && t._id === get(desk, 'default_content_template'))
             || newObj.articleTemplates[0];
