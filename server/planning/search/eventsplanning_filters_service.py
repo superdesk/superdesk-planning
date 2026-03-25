@@ -59,7 +59,15 @@ class EventsPlanningFiltersAsyncService(BasePlanningAsyncService[EventPlanningFi
             frequency = schedule.get("frequency") or "hourly"
 
             if frequency == "hourly":
-                schedule.update({"frequency": "hourly", "hour": -1, "day": -1, "week_days": []})
+                schedule.update(
+                    {
+                        "frequency": "hourly",
+                        "hours": [],
+                        "hour": -1,
+                        "day": -1,
+                        "week_days": [],
+                    }
+                )
             elif frequency == "daily":
                 schedule.update(
                     {
