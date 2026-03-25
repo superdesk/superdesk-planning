@@ -219,10 +219,9 @@ class OnclusiveFeedParser(FeedParser):
                         "scheme": "onclusive_categories",
                     }
                 )
-            # item["subjects"] = categories
         if event.get("eventTypes"):
             for category in event["eventTypes"]:
-                if category["tagId"] and category["tagName"]:
+                if category and category["tagId"] and category["tagName"]:
                     categories.append(
                         {
                             "name": category["tagName"],
