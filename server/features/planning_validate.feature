@@ -33,6 +33,9 @@ Feature: Planning Validate
             "editor":{
                 "place": {
                     "enabled":true
+                },
+                "description_text": {
+                    "enabled":true
                 }
             },
             "schema": {
@@ -47,7 +50,8 @@ Feature: Planning Validate
                 },
                 "description_text": {
                     "type": "string",
-                    "required": false
+                    "required": false,
+                    "show_in_embedded_editor": true
                 },
                 "internal_note": {
                     "type": "string",
@@ -310,4 +314,83 @@ Feature: Planning Validate
                 "code": 400
             }
         }
+        """
+
+    @auth
+    Scenario: Publishing related planning alongside event succeeds when show_in_embedded_editor is enabled
+        Given the "planning_types"
+        """
+        [{
+            "_id": "event", "name": "event",
+            "editor": {"related_plannings": {"enabled": true}},
+            "schema": {
+                "slugline": {
+                    "type": "string",
+                    "required": true,
+                    "validate_on_post": true
+                },
+                "related_plannings": {
+                    "planning_auto_publish": true
+                }
+            }
+        }, {
+            "_id": "planning", "name": "planning",
+            "editor": {
+                "place": {"enabled": true},
+                "description_text": {"enabled": true}
+            },
+            "schema": {
+                "place": {
+                    "type": "list",
+                    "required": true,
+                    "validate_on_post": true
+                },
+                "description_text": {
+                    "type": "string",
+                    "required": false,
+                    "show_in_embedded_editor": true
+                }
+            }
+        }]
+        """
+        When we post to "events"
+        """
+        [{
+            "name": "Test Event",
+            "slugline": "test-event",
+            "dates": {
+                "start": "2029-11-21T01:00:00.000Z",
+                "end": "2029-11-21T04:00:00.000Z",
+                "tz": "Australia/Sydney"
+            }
+        }]
+        """
+        Then we get OK response
+        When we post to "/planning"
+        """
+        [{
+            "planning_date": "2029-11-21",
+            "place": [{"qcode": "NSW"}],
+            "related_events": [{"_id": "#events._id#", "link_type": "primary"}],
+            "slugline": "test"
+        }]
+        """
+        Then we get OK response
+        When we post to "/events/post"
+        """
+        {
+            "event": "#events._id#",
+            "etag": "#events._etag#",
+            "pubstatus": "usable"
+        }
+        """
+        Then we get OK response
+        Then we get updated response
+        """
+        {"failed_planning_ids": "__empty__"}
+        """
+        When we get "/planning/#planning._id#"
+        Then we get existing resource
+        """
+        {"state": "scheduled", "pubstatus": "usable"}
         """

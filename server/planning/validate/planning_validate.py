@@ -90,6 +90,14 @@ class SchemaValidator(Validator):
         """
         pass
 
+    def _validate_show_in_embedded_editor(self, show_in_embedded_editor, field, value):
+        """
+        {'type': 'boolean', 'nullable': True}
+        """
+
+        # Ignore this profile as it's for the front-end embedded editor
+        pass
+
 
 def get_validator_schema(schema) -> dict:
     """Get schema for given data that will work with validator.
@@ -111,13 +119,16 @@ def get_filtered_validator_schema(validator, validate_on_post: bool) -> dict:
     """
     Get schema for a given validator, excluding fields with None values,
     and only include fields that are in enabled_fields.
+    When no editor configuration is present, all schema fields are considered enabled.
     """
 
-    enabled_fields = get_enabled_fields(validator)
+    enabled_fields = get_enabled_fields(validator) if validator.get("editor") else None
     return {
         field: get_validator_schema(field_schema)
         for field, field_schema in validator["schema"].items()
-        if field in enabled_fields and field_schema and field_schema.get("validate_on_post", False) == validate_on_post
+        if (enabled_fields is None or field in enabled_fields)
+        and field_schema
+        and field_schema.get("validate_on_post", False) == validate_on_post
     }
 
 
