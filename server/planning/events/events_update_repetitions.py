@@ -152,6 +152,7 @@ async def update_event_repetitions(updates: dict[str, Any], original: dict[str, 
         for date in generate_recurring_dates(
             start=first_event.get("dates", {}).get("start"),
             tz=updates["dates"].get("tz") and pytz.timezone(updates["dates"]["tz"] or ""),
+            all_day=bool(updates["dates"].get("all_day")),
             **updated_rule,
         )
     ]
@@ -161,6 +162,7 @@ async def update_event_repetitions(updates: dict[str, Any], original: dict[str, 
         for date in generate_recurring_dates(
             start=first_event.get("dates", {}).get("start"),
             tz=original["dates"].get("tz") and pytz.timezone(original["dates"]["tz"] or ""),
+            all_day=bool(original["dates"].get("all_day")),
             **original_rule,
         )
     ]

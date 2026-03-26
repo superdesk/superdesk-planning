@@ -16,7 +16,7 @@ from superdesk.tests import utils as test_utils, fixtures
 from planning.tests import TestCase, fixtures as planning_fixtures
 from planning.common import format_address, POST_STATE
 from planning.item_lock import LockService
-from planning.events.events import generate_recurring_dates
+from planning.events.events_utils import generate_recurring_dates
 from planning.types import PlanningRelatedEventLink
 from planning.events.events_utils import get_recurring_timeline
 from planning.events.events_reschedule import process_reschedule_event

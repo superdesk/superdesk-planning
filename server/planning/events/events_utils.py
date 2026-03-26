@@ -4,7 +4,7 @@ from dateutil import parser
 import pytz
 from copy import deepcopy
 
-from datetime import date, datetime
+from datetime import date, datetime, time
 from dateutil.rrule import rrule, DAILY, WEEKLY, MONTHLY, YEARLY, MO, TU, WE, TH, FR, SA, SU
 from typing import AsyncGenerator, Any, Generator, Tuple, Literal, cast
 from eve.utils import ParsedRequest
@@ -66,6 +66,7 @@ def generate_recurring_dates(
     count: int = 5,
     tz: pytz.BaseTzInfo | None = None,
     date_only: bool = False,
+    all_day: bool = False,
     **_,
 ) -> Generator[datetime | date, None, None]:
     """
@@ -84,16 +85,33 @@ def generate_recurring_dates(
     # if tz is given, respect the timezone by starting from the local time
     # NOTE: rrule uses only naive datetime
     if tz:
-        try:
-            # start can already be localized
-            start = pytz.UTC.localize(start)
-        except ValueError:
-            pass
-        start = start.astimezone(tz).replace(tzinfo=None)
-        if until:
-            if isinstance(until, str):
-                until = parser.isoparse(until)
-            until = until.astimezone(tz).replace(tzinfo=None)
+        if all_day:
+            # For all-day recurrences, keep recurrence anchored to UTC day boundaries.
+            # Interpret UNTIL using the event timezone's local day, then map that to
+            # the UTC end-of-day for stable cross-timezone behavior.
+            if start.tzinfo:
+                # start is expected to be UTC; just normalize for naive rrule usage
+                start = start.replace(tzinfo=None)
+            if until:
+                if isinstance(until, str):
+                    until = parser.isoparse(until)
+                if until.tzinfo is None:
+                    until = pytz.UTC.localize(until)
+                until_local_date = until.astimezone(tz).date()
+                until = datetime.combine(until_local_date, time(23, 59, 59, 999000))
+        else:
+            try:
+                # start can already be localized
+                start = pytz.UTC.localize(start)
+            except ValueError:
+                pass
+            start = start.astimezone(tz).replace(tzinfo=None)
+            if until:
+                if isinstance(until, str):
+                    until = parser.isoparse(until)
+                if until.tzinfo is None:
+                    until = pytz.UTC.localize(until)
+                until = until.astimezone(tz).replace(tzinfo=None)
 
     if frequency == "DAILY":
         byday = None
@@ -132,6 +150,11 @@ def generate_recurring_dates(
     )
     # if a timezone has been applied, returns UTC
     if tz:
+        if all_day:
+            if date_only:
+                return (dt.date() for dt in dates)
+            else:
+                return (dt for dt in dates)
         if date_only:
             return (tz.localize(dt).astimezone(pytz.UTC).replace(tzinfo=None).date() for dt in dates)
         else:
