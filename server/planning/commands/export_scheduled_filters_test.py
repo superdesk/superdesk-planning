@@ -324,3 +324,18 @@ class ExportScheduledFiltersTestCase(TestCase):
         self.assertEqual(schedule.get("day"), -1)
         self.assertEqual(schedule.get("week_days"), [])
         self.assertEqual(schedule.get("hour"), 14)
+
+    def test_hourly_frequency_runs_only_once_per_hour(self):
+        last_sent_local = to_local("2018-06-30T09") + timedelta(minutes=35)
+        report = {
+            "frequency": "hourly",
+            "hour": -1,
+            "hours": [],
+            "_last_sent": local_to_utc(get_app_config("DEFAULT_TIMEZONE"), last_sent_local),
+        }
+
+        same_hour = to_local("2018-06-30T09") + timedelta(minutes=40)
+        next_hour = to_local("2018-06-30T10")
+
+        self.assertFalse(ExportScheduledFilters().should_export(report, same_hour))
+        self.assertTrue(ExportScheduledFilters().should_export(report, next_hour))
