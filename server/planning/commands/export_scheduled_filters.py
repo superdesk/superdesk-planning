@@ -130,6 +130,7 @@ class ExportScheduledFilters:
         schedule_hour = schedule.get("hour", -1)
         schedule_day = schedule.get("day", -1)
         schedule_week_days = schedule.get("week_days") or []
+        schedule_frequency = schedule.get("frequency") or "hourly"
 
         # Is this export to be run today (Day of the month)?
         # -1 = every day
@@ -144,16 +145,23 @@ class ExportScheduledFilters:
 
         now_hour_str = now_local_minute.strftime("%H:%M")
 
-        # If schedule has 'hours' array, check if current hour is in it
-        if "hours" in schedule and schedule["hours"]:
-            if now_hour_str not in schedule["hours"]:
+        # If schedule has an 'hours' array, treat it as a list of HH:MM times and
+        # check if the current time (to the minute) is in it
+        if schedule_frequency != "hourly":
+            if "hours" in schedule and schedule["hours"]:
+                if now_hour_str not in schedule["hours"]:
+                    return False
+            elif schedule_hour > -1 and schedule_hour != now_local.hour:
                 return False
-        elif schedule_hour > -1 and schedule_hour != now_local.hour:
-            return False
 
         # This export has not been run on this hour
-        if last_sent is not None and now_local_minute <= last_sent:
-            return False
+        if last_sent is not None:
+            if schedule_frequency == "hourly":
+                # Hourly schedule: check if already sent this hour
+                if now_local_minute.replace(minute=0) <= last_sent.replace(minute=0):
+                    return False
+            elif now_local_minute <= last_sent:
+                return False
 
         return True
 
