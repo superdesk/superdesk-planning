@@ -136,6 +136,7 @@ export class Editor {
     }
 
     async openAllToggleBoxes() {
+        await this.element.locator('.toggle-box.toggle-box--circle').first().waitFor({state: 'visible'});
         await clickAll(this.element, '.toggle-box.toggle-box--circle.hidden');
     }
 
