@@ -198,6 +198,12 @@ def get_planning_allow_scheduled_updates(current_app=None):
     return app.config.get("PLANNING_ALLOW_SCHEDULED_UPDATES", True)
 
 
+def get_planning_expand_related_plannings(current_app=None):
+    if current_app is not None:
+        return current_app.config.get("PLANNING_EXPAND_RELATED_PLANNINGS", False)
+    return app.config.get("PLANNING_EXPAND_RELATED_PLANNINGS", False)
+
+
 def get_planning_use_xmp_for_pic_assignments(current_app=None):
     if current_app is not None:
         return current_app.config.get("PLANNING_USE_XMP_FOR_PIC_ASSIGNMENTS", False)

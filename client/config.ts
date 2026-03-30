@@ -67,6 +67,10 @@ if (appConfig?.planning_auto_close_popup_editor == null) {
     appConfig.planning_auto_close_popup_editor = true;
 }
 
+if (appConfig.planning_expand_related_plannings == null) {
+    appConfig.planning_expand_related_plannings = false;
+}
+
 // Configured start of the week (0=Sunday, 1=Monday, ..., 6=Saturday)
 if (appConfig.start_of_week == null) {
     appConfig.start_of_week = 0;

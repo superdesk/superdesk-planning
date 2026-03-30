@@ -283,6 +283,7 @@ export interface IPlanningConfig extends ISuperdeskGlobalConfig {
     planning_allow_freetext_location: boolean;
     planning_allow_scheduled_updates?: boolean;
     planning_auto_assign_to_workflow?: boolean;
+    planning_expand_related_plannings?: boolean;
     planning_check_for_assignment_on_publish?: boolean;
     planning_check_for_assignment_on_send?: boolean;
     planning_fulfil_on_publish_for_desks: Array<string>;
