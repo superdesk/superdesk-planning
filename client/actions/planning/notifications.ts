@@ -41,18 +41,7 @@ const onPlanningCreated = (_e, data) => (
                 ));
                 dispatch(main.fetchItemHistory({_id: data.event_item, type: ITEM_TYPE.EVENT}));
 
-                if (appConfig.planning_expand_related_plannings) {
-                    const relatedPlannings = selectors.eventsPlanning.getRelatedPlanningsList(getState());
-                    const isAlreadyTracked = relatedPlannings[data.event_item] != null;
-
-                    if (!isAlreadyTracked) {
-                        const event = selectors.events.storedEvents(getState())[data.event_item];
-
-                        if (event) {
-                            dispatch(eventsPlanning.ui.showRelatedPlannings(event));
-                        }
-                    }
-                }
+                dispatch(self.expandRelatedPlanningsIfNeeded(data.event_item));
             }
 
             dispatch(main.setUnsetLoadingIndicator(true));
@@ -401,6 +390,26 @@ const onPlanningFilesUpdated = (_e, data) => (
     (dispatch) => (dispatch(planning.api.getFiles([data.item])))
 );
 
+const expandRelatedPlanningsIfNeeded = (eventId) => (
+    (dispatch, getState) => {
+        if (!appConfig.planning_expand_related_plannings) {
+            return;
+        }
+
+        const relatedPlannings = selectors.eventsPlanning.getRelatedPlanningsList(getState());
+
+        if (relatedPlannings[eventId] != null) {
+            return;
+        }
+
+        const event = selectors.events.storedEvents(getState())[eventId];
+
+        if (event) {
+            dispatch(eventsPlanning.ui.showRelatedPlannings(event));
+        }
+    }
+);
+
 // eslint-disable-next-line consistent-this
 const self: any = {
     onPlanningCreated,
@@ -418,6 +427,7 @@ const self: any = {
     onPlanningFeaturedLocked,
     onPlanningFeaturedUnLocked,
     onPlanningFilesUpdated,
+    expandRelatedPlanningsIfNeeded,
 };
 
 // Map of notification name and Action Event to execute
