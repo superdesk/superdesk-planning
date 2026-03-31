@@ -15,6 +15,7 @@ import main from '../main';
 import {showModal, hideModal} from '../index';
 import eventsPlanning from '../eventsPlanning';
 import planningApis from '../planning/api';
+import {appConfig} from 'appConfig';
 
 /**
  * WS Action when a new Planning item is created
@@ -39,6 +40,19 @@ const onPlanningCreated = (_e, data) => (
                     data.item
                 ));
                 dispatch(main.fetchItemHistory({_id: data.event_item, type: ITEM_TYPE.EVENT}));
+
+                if (appConfig.planning_expand_related_plannings) {
+                    const relatedPlannings = selectors.eventsPlanning.getRelatedPlanningsList(getState());
+                    const isAlreadyTracked = relatedPlannings[data.event_item] != null;
+
+                    if (!isAlreadyTracked) {
+                        const event = selectors.events.storedEvents(getState())[data.event_item];
+
+                        if (event) {
+                            dispatch(eventsPlanning.ui.showRelatedPlannings(event));
+                        }
+                    }
+                }
             }
 
             dispatch(main.setUnsetLoadingIndicator(true));
