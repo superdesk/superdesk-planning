@@ -11,7 +11,7 @@
         "@playwright/test": "~1.58.2",
         "@superdesk/build-tools": "^1.0.14",
         "http-server": "14.1.1",
-        "lodash": "^4.17.15",
+        "lodash": "^4.18.1",
         "moment": "^2.29.4",
         "moment-timezone": "^0.5.47",
         "superdesk-code-style": "1.3.0",
