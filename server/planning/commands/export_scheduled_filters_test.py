@@ -353,7 +353,7 @@ class ExportScheduledFiltersTestCase(TestCase):
         self._test(
             report=report,
             start="2026-04-01T10",
-            end="2026-04-01T10",
+            end="2026-04-01T11",
             expected_hits=[
                 to_local("2026-04-01T10"),
             ],
@@ -363,7 +363,7 @@ class ExportScheduledFiltersTestCase(TestCase):
         self._test(
             report=report,
             start="2026-04-02T10",
-            end="2026-04-02T10",
+            end="2026-04-02T11",
             expected_hits=[
                 to_local("2026-04-02T10"),
             ],
@@ -382,7 +382,7 @@ class ExportScheduledFiltersTestCase(TestCase):
         self._test(
             report=report,
             start="2026-04-06T16",
-            end="2026-04-06T16",
+            end="2026-04-06T17",
             expected_hits=[
                 to_local("2026-04-06T16"),
             ],
@@ -392,7 +392,7 @@ class ExportScheduledFiltersTestCase(TestCase):
         self._test(
             report=report,
             start="2026-04-13T16",
-            end="2026-04-13T16",
+            end="2026-04-13T17",
             expected_hits=[
                 to_local("2026-04-13T16"),
             ],

@@ -174,9 +174,6 @@ class ExportScheduledFilters:
                 and now_local_minute.hour == last_sent.hour
             ):
                 return False
-            elif schedule_frequency == "yearly" and not schedule_hours:
-                if now_local_minute.year <= last_sent.year:
-                    return False
             else:
                 if now_local_minute <= last_sent:
                     return False
