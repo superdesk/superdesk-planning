@@ -41,12 +41,13 @@ class ExportScheduledFiltersTestCase(TestCase):
         self.app.config["DEFAULT_TIMEZONE"] = "Australia/Sydney"
         self.app.config["ADMINS"] = ["superdesk@test.com"]
 
-    def _test(self, report, start, end, expected_hits):
+    def _test(self, report, start, end, expected_hits, freq=None):
         count = 0
-        freq = HOURLY
-        hours_list = report.get("hours") or []
-        if any(":" in h and h.split(":")[1] != "00" for h in hours_list):
-            freq = MINUTELY
+        if freq is None:
+            freq = HOURLY
+            hours_list = report.get("hours") or []
+            if any(":" in h and h.split(":")[1] != "00" for h in hours_list):
+                freq = MINUTELY
         for now in rrule(freq, dtstart=to_naive(start), until=to_naive(end)):
             local_tz = pytz.timezone(get_app_config("DEFAULT_TIMEZONE"))
             now_local = local_tz.localize(now)
@@ -343,9 +344,7 @@ class ExportScheduledFiltersTestCase(TestCase):
     def test_monthly_frequency_runs_only_once_per_month(self):
         # Reproduces the bug: monthly schedule with day=-1 and hours=[] was firing every
         # minute after the first export because `now_local_minute > last_sent` was True
-        # for each subsequent minute within the same hour.
-        # This test iterates through ALL hours (via HOURLY), which catches the bug:
-        # without the fix, it would fire at every hour after the first export in the month.
+        # for each subsequent minute within the scheduled hour.
         report = {
             "frequency": "monthly",
             "hour": 1,
@@ -356,23 +355,33 @@ class ExportScheduledFiltersTestCase(TestCase):
 
         self._test(
             report=report,
-            start="2026-04-01T00",
-            end="2026-05-31T23",
+            start="2026-04-01T01",
+            end="2026-04-01T01",
             expected_hits=[
                 to_local("2026-04-01T01"),
+            ],
+            freq=MINUTELY,
+        )
+
+        self._test(
+            report=report,
+            start="2026-05-01T01",
+            end="2026-05-01T01",
+            expected_hits=[
                 to_local("2026-05-01T01"),
             ],
+            freq=MINUTELY,
         )
 
     def test_monthly_frequency_minute_level_precision(self):
         # Test minute-level precision for monthly schedules.
         # Verifies the fix prevents firing every minute after the first export.
-        # Using specific minutes ("01:00") triggers MINUTELY frequency in _test.
+        # Use the explicit freq override so this test always runs at minute precision.
         report = {
             "frequency": "monthly",
             "hour": 1,
             "day": -1,
-            "hours": ["01:00"],  # Specific minute triggers MINUTELY frequency
+            "hours": ["01:00"],
             "week_days": [],
         }
 
@@ -382,5 +391,26 @@ class ExportScheduledFiltersTestCase(TestCase):
             end="2026-04-02T23",
             expected_hits=[
                 to_local("2026-04-01T01"),
+            ],
+            freq=MINUTELY,
+        )
+
+    def test_monthly_frequency_multiple_hours_same_day(self):
+        report = {
+            "frequency": "monthly",
+            "day": 1,
+            "hours": ["08:00", "16:00"],
+            "week_days": [],
+        }
+
+        self._test(
+            report=report,
+            start="2026-04-01T00",
+            end="2026-05-01T23",
+            expected_hits=[
+                to_local("2026-04-01T08"),
+                to_local("2026-04-01T16"),
+                to_local("2026-05-01T08"),
+                to_local("2026-05-01T16"),
             ],
         )
