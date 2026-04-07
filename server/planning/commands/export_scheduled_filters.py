@@ -131,6 +131,7 @@ class ExportScheduledFilters:
         schedule_day = schedule.get("day", -1)
         schedule_week_days = schedule.get("week_days") or []
         schedule_frequency = schedule.get("frequency") or "hourly"
+        schedule_hours = schedule.get("hours") or []
 
         # Is this export to be run today (Day of the month)?
         # -1 = every day
@@ -148,20 +149,34 @@ class ExportScheduledFilters:
         # If schedule has an 'hours' array, treat it as a list of HH:MM times and
         # check if the current time (to the minute) is in it
         if schedule_frequency != "hourly":
-            if "hours" in schedule and schedule["hours"]:
-                if now_hour_str not in schedule["hours"]:
+            if schedule_hours:
+                if now_hour_str not in schedule_hours:
                     return False
             elif schedule_hour > -1 and schedule_hour != now_local.hour:
                 return False
 
-        # This export has not been run on this hour
+        allows_multiple_monthly_times = schedule_frequency == "monthly" and bool(schedule_hours) and schedule_day > -1
+
+        # This export has not been run in the current period
         if last_sent is not None:
             if schedule_frequency == "hourly":
                 # Hourly schedule: check if already sent this hour
                 if now_local_minute.replace(minute=0) <= last_sent.replace(minute=0):
                     return False
-            elif now_local_minute <= last_sent:
+            elif schedule_frequency == "monthly" and not allows_multiple_monthly_times and schedule_day == -1:
+                # Legacy monthly schedules without an explicit day run once per month.
+                if (now_local_minute.year, now_local_minute.month) <= (last_sent.year, last_sent.month):
+                    return False
+            elif (
+                not schedule_hours
+                and schedule_hour > -1
+                and now_local_minute.date() <= last_sent.date()
+                and now_local_minute.hour == last_sent.hour
+            ):
                 return False
+            else:
+                if now_local_minute <= last_sent:
+                    return False
 
         return True
 
