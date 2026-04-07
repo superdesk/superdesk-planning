@@ -154,14 +154,19 @@ class ExportScheduledFilters:
             elif schedule_hour > -1 and schedule_hour != now_local.hour:
                 return False
 
-        # This export has not been run on this hour
+        # This export has not been run in the current period
         if last_sent is not None:
             if schedule_frequency == "hourly":
                 # Hourly schedule: check if already sent this hour
                 if now_local_minute.replace(minute=0) <= last_sent.replace(minute=0):
                     return False
-            elif now_local_minute <= last_sent:
-                return False
+            elif schedule_frequency == "monthly":
+                # Monthly schedule: check if already sent this month
+                if (now_local_minute.year, now_local_minute.month) <= (last_sent.year, last_sent.month):
+                    return False
+            else:
+                if now_local_minute <= last_sent:
+                    return False
 
         return True
 

@@ -339,3 +339,48 @@ class ExportScheduledFiltersTestCase(TestCase):
 
         self.assertFalse(ExportScheduledFilters().should_export(report, same_hour))
         self.assertTrue(ExportScheduledFilters().should_export(report, next_hour))
+
+    def test_monthly_frequency_runs_only_once_per_month(self):
+        # Reproduces the bug: monthly schedule with day=-1 and hours=[] was firing every
+        # minute after the first export because `now_local_minute > last_sent` was True
+        # for each subsequent minute within the same hour.
+        # This test iterates through ALL hours (via HOURLY), which catches the bug:
+        # without the fix, it would fire at every hour after the first export in the month.
+        report = {
+            "frequency": "monthly",
+            "hour": 1,
+            "day": -1,
+            "hours": [],
+            "week_days": [],
+        }
+
+        self._test(
+            report=report,
+            start="2026-04-01T00",
+            end="2026-05-31T23",
+            expected_hits=[
+                to_local("2026-04-01T01"),
+                to_local("2026-05-01T01"),
+            ],
+        )
+
+    def test_monthly_frequency_minute_level_precision(self):
+        # Test minute-level precision for monthly schedules.
+        # Verifies the fix prevents firing every minute after the first export.
+        # Using specific minutes ("01:00") triggers MINUTELY frequency in _test.
+        report = {
+            "frequency": "monthly",
+            "hour": 1,
+            "day": -1,
+            "hours": ["01:00"],  # Specific minute triggers MINUTELY frequency
+            "week_days": [],
+        }
+
+        self._test(
+            report=report,
+            start="2026-04-01T00",
+            end="2026-04-02T23",
+            expected_hits=[
+                to_local("2026-04-01T01"),
+            ],
+        )
