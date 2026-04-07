@@ -15,6 +15,7 @@ import main from '../main';
 import {showModal, hideModal} from '../index';
 import eventsPlanning from '../eventsPlanning';
 import planningApis from '../planning/api';
+import {appConfig} from 'appConfig';
 
 /**
  * WS Action when a new Planning item is created
@@ -39,6 +40,8 @@ const onPlanningCreated = (_e, data) => (
                     data.item
                 ));
                 dispatch(main.fetchItemHistory({_id: data.event_item, type: ITEM_TYPE.EVENT}));
+
+                dispatch(self.expandRelatedPlanningsIfNeeded(data.event_item));
             }
 
             dispatch(main.setUnsetLoadingIndicator(true));
@@ -387,6 +390,28 @@ const onPlanningFilesUpdated = (_e, data) => (
     (dispatch) => (dispatch(planning.api.getFiles([data.item])))
 );
 
+const expandRelatedPlanningsIfNeeded = (eventId) => (
+    (dispatch, getState) => {
+        if (!appConfig.planning_expand_related_plannings) {
+            return Promise.resolve();
+        }
+
+        const relatedPlannings = selectors.eventsPlanning.getRelatedPlanningsList(getState());
+
+        if (relatedPlannings[eventId] != null) {
+            return Promise.resolve();
+        }
+
+        const event = selectors.events.storedEvents(getState())[eventId];
+
+        if (event) {
+            return dispatch(eventsPlanning.ui.showRelatedPlannings(event));
+        }
+
+        return Promise.resolve();
+    }
+);
+
 // eslint-disable-next-line consistent-this
 const self: any = {
     onPlanningCreated,
@@ -404,6 +429,7 @@ const self: any = {
     onPlanningFeaturedLocked,
     onPlanningFeaturedUnLocked,
     onPlanningFilesUpdated,
+    expandRelatedPlanningsIfNeeded,
 };
 
 // Map of notification name and Action Event to execute
