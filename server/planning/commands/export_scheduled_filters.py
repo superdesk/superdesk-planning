@@ -163,9 +163,19 @@ class ExportScheduledFilters:
                 # Hourly schedule: check if already sent this hour
                 if now_local_minute.replace(minute=0) <= last_sent.replace(minute=0):
                     return False
-            elif schedule_frequency == "monthly" and not allows_multiple_monthly_times:
-                # Monthly schedule: check if already sent this month
+            elif schedule_frequency == "monthly" and not allows_multiple_monthly_times and schedule_day == -1:
+                # Legacy monthly schedules without an explicit day run once per month.
                 if (now_local_minute.year, now_local_minute.month) <= (last_sent.year, last_sent.month):
+                    return False
+            elif (
+                not schedule_hours
+                and schedule_hour > -1
+                and now_local_minute.date() <= last_sent.date()
+                and now_local_minute.hour == last_sent.hour
+            ):
+                return False
+            elif schedule_frequency == "yearly" and not schedule_hours:
+                if now_local_minute.year <= last_sent.year:
                     return False
             else:
                 if now_local_minute <= last_sent:
