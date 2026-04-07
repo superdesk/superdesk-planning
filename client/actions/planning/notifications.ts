@@ -393,20 +393,22 @@ const onPlanningFilesUpdated = (_e, data) => (
 const expandRelatedPlanningsIfNeeded = (eventId) => (
     (dispatch, getState) => {
         if (!appConfig.planning_expand_related_plannings) {
-            return;
+            return Promise.resolve();
         }
 
         const relatedPlannings = selectors.eventsPlanning.getRelatedPlanningsList(getState());
 
         if (relatedPlannings[eventId] != null) {
-            return;
+            return Promise.resolve();
         }
 
         const event = selectors.events.storedEvents(getState())[eventId];
 
         if (event) {
-            dispatch(eventsPlanning.ui.showRelatedPlannings(event));
+            return dispatch(eventsPlanning.ui.showRelatedPlannings(event));
         }
+
+        return Promise.resolve();
     }
 );
 
