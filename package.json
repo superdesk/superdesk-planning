@@ -69,6 +69,7 @@
     "sinon": "^4.5.0",
     "style-loader": "^2.0.0",
     "superdesk-code-style": "1.5.0",
+    "@sourcefabric/date-fns-tz": "^1.2.1",
     "superdesk-core": "github:superdesk/superdesk-client-core#release/2.10",
     "superdesk-ui-framework": "4.0.81",
     "ts-loader": "^8.4.0",
