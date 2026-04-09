@@ -2,8 +2,10 @@ import pytz
 
 from planning.tests import TestCase
 from datetime import datetime
+from eve.utils import date_to_str
 from planning.utils import get_event_formatted_dates
 from planning.search.queries import elastic
+from planning.search.queries import common, combined
 
 
 class TestGetEventFormattedDates(TestCase):
@@ -91,3 +93,40 @@ class TestDateRangeFunctions(TestCase):
 
         self.assertEqual(start, "2024-05-13")
         self.assertEqual(end, "2024-05-20")
+
+
+class TestCreatedDateSearch(TestCase):
+    def test_get_created_date_params_normalizes_full_day(self):
+        created_start_date, created_end_date = common.get_created_date_params(
+            {
+                "created_start_date": "2026-04-09",
+                "created_end_date": "2026-04-10",
+            }
+        )
+
+        self.assertEqual(created_start_date, date_to_str(datetime(2026, 4, 9, 0, 0, 0)))
+        self.assertEqual(created_end_date, date_to_str(datetime(2026, 4, 10, 23, 59, 59)))
+
+    def test_combined_search_created_date_adds_created_range(self):
+        query = elastic.ElasticQuery()
+
+        combined.search_created_date(
+            {
+                "created_start_date": "2026-04-09",
+                "created_end_date": "2026-04-10",
+            },
+            query,
+        )
+
+        should = query.build()["query"]["bool"]["must"][0]["bool"]["should"]
+        expected_start = date_to_str(datetime(2026, 4, 9, 0, 0, 0))
+        expected_end = date_to_str(datetime(2026, 4, 10, 23, 59, 59))
+
+        for branch in should:
+            filters = branch["bool"]["filter"]
+            self.assertTrue(
+                any(item.get("range", {}).get("_created", {}).get("gte") == expected_start for item in filters)
+            )
+            self.assertTrue(
+                any(item.get("range", {}).get("_created", {}).get("lte") == expected_end for item in filters)
+            )
