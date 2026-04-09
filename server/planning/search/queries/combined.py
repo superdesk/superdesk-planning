@@ -11,6 +11,7 @@
 from typing import Dict, Any, List, Callable
 
 from planning.search.queries import elastic, events, planning, common
+from .common import get_created_date_params
 
 
 def search_not_common_fields(params: Dict[str, Any], query: elastic.ElasticQuery):
@@ -69,6 +70,32 @@ def search_dates(params: Dict[str, Any], query: elastic.ElasticQuery):
     query.must.append(elastic.bool_or([event_query.build()["query"], planning_query.build()["query"]]))
 
 
+def search_created_date(params: Dict[str, Any], query: elastic.ElasticQuery):
+    created_start_date, created_end_date = get_created_date_params(params)
+
+    if created_start_date or created_end_date:
+        event_query = elastic.ElasticQuery()
+        planning_query = elastic.ElasticQuery()
+
+        if created_start_date:
+            event_query.filter.append(
+                elastic.date_range(elastic.ElasticRangeParams(field="_created", gte=created_start_date))
+            )
+            planning_query.filter.append(
+                elastic.date_range(elastic.ElasticRangeParams(field="_created", gte=created_start_date))
+            )
+
+        if created_end_date:
+            event_query.filter.append(
+                elastic.date_range(elastic.ElasticRangeParams(field="_created", lte=created_end_date))
+            )
+            planning_query.filter.append(
+                elastic.date_range(elastic.ElasticRangeParams(field="_created", lte=created_end_date))
+            )
+
+        query.must.append(elastic.bool_or([event_query.build()["query"], planning_query.build()["query"]]))
+
+
 def search_coverage_assigned_user(params: Dict[str, Any], query: elastic.ElasticQuery):
     planning.search_coverage_assigned_user(params, query)
 
@@ -78,6 +105,7 @@ COMBINED_SEARCH_FILTERS: list[common.FilterFunctionType] = [
     search_sluglines,
     search_calendars_and_agendas,
     search_dates,
+    search_created_date,
     search_coverage_assigned_user,
 ]
 

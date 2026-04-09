@@ -125,6 +125,26 @@ export class PreviewFilter extends React.PureComponent<IEventsPlanningContentPan
                                 )}
                             </ul>
 
+                            <Label
+                                text={gettext('Creation Date')}
+                                row={true}
+                            />
+                            <ul className="simple-list simple-list--dotted">
+                                {renderFieldsForPanel(
+                                    'simple-preview',
+                                    {
+                                        created_start_date: {enabled: true, index: 1},
+                                        created_end_date: {enabled: true, index: 2},
+                                    },
+                                    {
+                                        item: this.props.filter.params,
+                                        language: language,
+                                    },
+                                    {
+                                    }
+                                )}
+                            </ul>
+
                             {!this.props.filter.schedules?.length ? null : (
                                 <React.Fragment>
                                     <Label

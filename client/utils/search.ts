@@ -17,6 +17,9 @@ import {getTimeZoneOffset, timeUtils} from './index';
 import {appConfig} from 'appConfig';
 
 function commonParamsToSearchParams(params: ICommonSearchParams<IEventOrPlanningItem>): ISearchParams {
+    const createdStartDate = params.created_start_date ?? params.advancedSearch?.created_start_date;
+    const createdEndDate = params.created_end_date ?? params.advancedSearch?.created_end_date;
+
     return {
         item_ids: params.itemIds,
         full_text: params.fulltext,
@@ -35,6 +38,8 @@ function commonParamsToSearchParams(params: ICommonSearchParams<IEventOrPlanning
         date_filter: params.advancedSearch?.dates?.range,
         start_date: params.advancedSearch?.dates?.start,
         end_date: params.advancedSearch?.dates?.end,
+        created_start_date: createdStartDate,
+        created_end_date: createdEndDate,
         name: params.advancedSearch?.name,
         place: params.advancedSearch?.place,
         posted: params.advancedSearch?.posted,
@@ -67,6 +72,8 @@ function searchParamsToCommonParams(params: ISearchParams): ICommonSearchParams<
         timezoneOffset: params.tz_offset,
         sortOrder: params.sort_order,
         sortField: params.sort_field,
+        created_start_date: params.created_start_date != undefined ? moment(params.created_start_date) : undefined,
+        created_end_date: params.created_end_date != undefined ? moment(params.created_end_date) : undefined,
         advancedSearch: {
             anpa_category: params.anpa_category,
             dates: {
@@ -74,6 +81,8 @@ function searchParamsToCommonParams(params: ISearchParams): ICommonSearchParams<
                 start: params.start_date != undefined ? moment(params.start_date) : undefined,
                 end: params.end_date != undefined ? moment(params.end_date) : undefined,
             },
+            created_start_date: params.created_start_date != undefined ? moment(params.created_start_date) : undefined,
+            created_end_date: params.created_end_date != undefined ? moment(params.created_end_date) : undefined,
             name: params.name,
             place: params.place,
             posted: params.posted,

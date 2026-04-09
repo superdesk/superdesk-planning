@@ -654,6 +654,10 @@ export function getDateTimeElasticFormat(date: moment.Moment | string, convertTo
     );
 }
 
+export function getDateOnlyElasticFormat(date: moment.Moment | string): string {
+    return moment(date).format('YYYY-MM-DD');
+}
+
 export const isEmptyActions = (actions) => {
     if (get(actions, 'length', 0) < 1) {
         return true;

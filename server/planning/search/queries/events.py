@@ -13,6 +13,7 @@ from typing import Any, Dict, List, Callable
 from planning.search.queries import elastic
 from .common import (
     get_date_params,
+    get_created_date_params,
     COMMON_SEARCH_FILTERS,
     COMMON_PARAMS,
     strtobool,
@@ -296,6 +297,9 @@ def search_date_default(params: Dict[str, Any], query: elastic.ElasticQuery):
     date_filter, start_date, end_date, time_zone = get_date_params(params)
     only_future = strtobool(params.get("only_future", True))
 
+    if params.get("created_start_date") or params.get("created_end_date"):
+        return
+
     if not date_filter and not start_date and not end_date and only_future:
         query.filter.append(
             elastic.date_range(elastic.ElasticRangeParams(field="dates.end", gte="now/d", time_zone=time_zone))
@@ -317,6 +321,21 @@ def search_dates(params: Dict[str, Any], query: elastic.ElasticQuery):
         search_date_end(params, query)
         search_date_range(params, query)
         search_date_default(params, query)
+
+
+def search_created_date(params: Dict[str, Any], query: elastic.ElasticQuery):
+    created_start_date, created_end_date = get_created_date_params(params)
+
+    if created_start_date or created_end_date:
+        base_query = elastic.ElasticRangeParams(field="_created")
+
+        if created_start_date:
+            base_query.gte = created_start_date
+
+        if created_end_date:
+            base_query.lte = created_end_date
+
+        query.filter.append(elastic.date_range(base_query))
 
 
 def set_search_sort(params: Dict[str, Any], query: elastic.ElasticQuery):
@@ -361,6 +380,7 @@ EVENT_SEARCH_FILTERS: list[FilterFunctionType] = [
     search_calendars,
     search_no_calendar_assigned,
     search_dates,
+    search_created_date,
     set_search_sort,
     search_definition_short,
     search_definition_long,

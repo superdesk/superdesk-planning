@@ -150,6 +150,14 @@ const fieldOptions: {[key: string]: IPreviewHocOptions} = {
         props: () => ({label: superdeskApi.localization.gettext('From')}),
         getValue: getDateTimeValue,
     },
+    created_start_date: {
+        props: () => ({label: superdeskApi.localization.gettext('Created From')}),
+        getValue: getDateTimeValue,
+    },
+    created_end_date: {
+        props: () => ({label: superdeskApi.localization.gettext('Created To')}),
+        getValue: getDateTimeValue,
+    },
     subject: {
         props: () => ({label: superdeskApi.localization.gettext('Subjects')}),
         getValue: getValuesFromCV('subjects'),
