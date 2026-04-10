@@ -38,7 +38,15 @@ FilterFunctionType = (
 )
 
 
-def normalize_date_bound(value: datetime | str, start_of_day: bool, error_message: str):
+def is_in_datetime_format(value: str, datetime_format: str) -> bool:
+    try:
+        datetime.strptime(value, datetime_format)
+        return True
+    except ValueError:
+        return False
+
+
+def normalize_created_date_bound(value: datetime | str, start_of_day: bool, error_message: str):
     try:
         value = parse_date(value)
 
@@ -57,13 +65,39 @@ def get_date_params(params: Dict[str, Any]):
     date_filter = (params.get("date_filter") or "").strip().lower()
     time_zone = params.get("time_zone")
 
-    start_date = params.get("start_date")
-    if start_date:
-        start_date = normalize_date_bound(start_date, True, "Invalid value for start date")
+    try:
+        start_date = params.get("start_date")
+        if start_date:
+            if isinstance(start_date, str):
+                if is_in_datetime_format(start_date, "%Y-%m-%d"):
+                    params["start_date"] += "T00:00:00+0000"
+                elif is_in_datetime_format(start_date, "%Y-%m-%dT%H:%M:%S"):
+                    params["start_date"] += "+0000"
 
-    end_date = params.get("end_date")
-    if end_date:
-        end_date = normalize_date_bound(end_date, False, "Invalid value for end date")
+                start_date = params["start_date"]
+                str_to_date(params["start_date"])  # validating if date can be parsed
+            elif isinstance(start_date, datetime):
+                start_date = date_to_str(start_date)
+    except Exception as e:
+        logger.exception(e)
+        raise SuperdeskApiError.badRequestError("Invalid value for start date")
+
+    try:
+        end_date = params.get("end_date")
+        if end_date:
+            if isinstance(end_date, str):
+                if is_in_datetime_format(end_date, "%Y-%m-%d"):
+                    params["end_date"] += "T23:59:59+0000"
+                elif is_in_datetime_format(end_date, "%Y-%m-%dT%H:%M:%S"):
+                    params["end_date"] += "+0000"
+
+                end_date = params["end_date"]
+                str_to_date(params["end_date"])  # validating if date can be parsed
+            elif isinstance(end_date, datetime):
+                end_date = date_to_str(end_date)
+    except Exception as e:
+        logger.exception(e)
+        raise SuperdeskApiError.badRequestError("Invalid value for end date")
 
     return date_filter, start_date, end_date, time_zone
 
@@ -73,14 +107,14 @@ def get_created_date_params(params: Dict[str, Any]):
     created_end_date = params.get("created_end_date")
 
     if created_start_date:
-        created_start_date = normalize_date_bound(
+        created_start_date = normalize_created_date_bound(
             created_start_date,
             True,
             "Invalid value for created start date",
         )
 
     if created_end_date:
-        created_end_date = normalize_date_bound(
+        created_end_date = normalize_created_date_bound(
             created_end_date,
             False,
             "Invalid value for created end date",
