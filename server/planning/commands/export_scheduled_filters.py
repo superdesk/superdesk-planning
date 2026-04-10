@@ -133,6 +133,11 @@ class ExportScheduledFilters:
         schedule_frequency = schedule.get("frequency") or "hourly"
         schedule_hours = schedule.get("hours") or []
 
+        # For non-hourly schedules, default to midnight when no explicit time is provided.
+        effective_schedule_hour = schedule_hour
+        if schedule_frequency != "hourly" and not schedule_hours and schedule_hour == -1:
+            effective_schedule_hour = 0
+
         # Is this export to be run today (Day of the month)?
         # -1 = every day
         if schedule_day > -1 and schedule_day != now_local.day:
@@ -152,7 +157,7 @@ class ExportScheduledFilters:
             if schedule_hours:
                 if now_hour_str not in schedule_hours:
                     return False
-            elif schedule_hour > -1 and schedule_hour != now_local.hour:
+            elif effective_schedule_hour > -1 and effective_schedule_hour != now_local.hour:
                 return False
 
         allows_multiple_monthly_times = schedule_frequency == "monthly" and bool(schedule_hours) and schedule_day > -1
@@ -169,7 +174,7 @@ class ExportScheduledFilters:
                     return False
             elif (
                 not schedule_hours
-                and schedule_hour > -1
+                and effective_schedule_hour > -1
                 and now_local_minute.date() <= last_sent.date()
                 and now_local_minute.hour == last_sent.hour
             ):

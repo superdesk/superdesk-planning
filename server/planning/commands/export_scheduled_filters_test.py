@@ -389,13 +389,40 @@ class ExportScheduledFiltersTestCase(TestCase):
             freq=MINUTELY,
         )
 
+    def test_weekly_frequency_defaults_to_midnight_when_no_hour_defined(self):
+        report = {
+            "frequency": "weekly",
+            "hour": -1,
+            "day": -1,
+            "hours": [],
+            "week_days": ["Monday"],
+        }
+
+        self._test(
+            report=report,
+            start="2026-04-06T00",
+            end="2026-04-06T01",
+            expected_hits=[
+                to_local("2026-04-06T00"),
+            ],
+            freq=MINUTELY,
+        )
+
+        self._test(
+            report=report,
+            start="2026-04-13T00",
+            end="2026-04-13T01",
+            expected_hits=[
+                to_local("2026-04-13T00"),
+            ],
+            freq=MINUTELY,
+        )
+
         self._test(
             report=report,
             start="2026-04-13T16",
             end="2026-04-13T17",
-            expected_hits=[
-                to_local("2026-04-13T16"),
-            ],
+            expected_hits=[],
             freq=MINUTELY,
         )
 
@@ -471,4 +498,33 @@ class ExportScheduledFiltersTestCase(TestCase):
                 to_local("2026-05-01T08"),
                 to_local("2026-05-01T16"),
             ],
+        )
+
+    def test_monthly_frequency_defaults_to_midnight_when_no_hour_defined(self):
+        report = {
+            "frequency": "monthly",
+            "hour": -1,
+            "day": 1,
+            "hours": [],
+            "week_days": [],
+        }
+
+        self._test(
+            report=report,
+            start="2026-04-01T00",
+            end="2026-04-01T01",
+            expected_hits=[
+                to_local("2026-04-01T00"),
+            ],
+            freq=MINUTELY,
+        )
+
+        self._test(
+            report=report,
+            start="2026-05-01T00",
+            end="2026-05-01T01",
+            expected_hits=[
+                to_local("2026-05-01T00"),
+            ],
+            freq=MINUTELY,
         )
