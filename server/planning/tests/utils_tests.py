@@ -105,7 +105,7 @@ class TestCreatedDateSearch(TestCase):
         )
 
         self.assertEqual(created_start_date, date_to_str(datetime(2026, 4, 9, 0, 0, 0)))
-        self.assertEqual(created_end_date, date_to_str(datetime(2026, 4, 10, 23, 59, 59)))
+        self.assertEqual(created_end_date, date_to_str(datetime(2026, 4, 11, 0, 0, 0)))
 
     def test_combined_search_created_date_adds_created_range(self):
         query = elastic.ElasticQuery()
@@ -118,15 +118,9 @@ class TestCreatedDateSearch(TestCase):
             query,
         )
 
-        should = query.build()["query"]["bool"]["must"][0]["bool"]["should"]
+        filters = query.build()["query"]["bool"]["filter"]
         expected_start = date_to_str(datetime(2026, 4, 9, 0, 0, 0))
-        expected_end = date_to_str(datetime(2026, 4, 10, 23, 59, 59))
+        expected_end = date_to_str(datetime(2026, 4, 11, 0, 0, 0))
 
-        for branch in should:
-            filters = branch["bool"]["filter"]
-            self.assertTrue(
-                any(item.get("range", {}).get("_created", {}).get("gte") == expected_start for item in filters)
-            )
-            self.assertTrue(
-                any(item.get("range", {}).get("_created", {}).get("lte") == expected_end for item in filters)
-            )
+        self.assertTrue(any(item.get("range", {}).get("_created", {}).get("gte") == expected_start for item in filters))
+        self.assertTrue(any(item.get("range", {}).get("_created", {}).get("lt") == expected_end for item in filters))

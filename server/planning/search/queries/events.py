@@ -333,7 +333,7 @@ def search_created_date(params: Dict[str, Any], query: elastic.ElasticQuery):
             base_query.gte = created_start_date
 
         if created_end_date:
-            base_query.lte = created_end_date
+            base_query.lt = created_end_date
 
         query.filter.append(elastic.date_range(base_query))
 

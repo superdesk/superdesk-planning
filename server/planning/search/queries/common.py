@@ -11,7 +11,7 @@
 from typing import Dict, Any, Optional, List, Callable, Union, Awaitable
 from inspect import isawaitable
 import logging
-from datetime import datetime
+from datetime import datetime, timedelta
 
 from eve.utils import str_to_date as _str_to_date, date_to_str
 
@@ -53,7 +53,7 @@ def normalize_created_date_bound(value: datetime | str, start_of_day: bool, erro
         if start_of_day:
             value = value.replace(hour=0, minute=0, second=0, microsecond=0)
         else:
-            value = value.replace(hour=23, minute=59, second=59, microsecond=0)
+            value = value.replace(hour=0, minute=0, second=0, microsecond=0) + timedelta(days=1)
 
         return date_to_str(value)
     except Exception as e:
