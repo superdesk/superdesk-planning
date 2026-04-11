@@ -122,7 +122,7 @@ test.describe('Search.Combined: searching events and planning', () => {
                     name: 'Event Tomorrow',
                     slugline: 'Event Tomorrow',
                 }),
-                createEventFor.next_week({
+                createEventFor.safe_next_week({
                     name: 'Event Next Week',
                     slugline: 'Event Next Week',
                 }),
@@ -139,7 +139,7 @@ test.describe('Search.Combined: searching events and planning', () => {
                 createPlanningFor.yesterday({slugline: 'Plan Yesterday'}),
                 createPlanningFor.today({slugline: 'Plan Today'}),
                 createPlanningFor.tomorrow({slugline: 'Plan Tomorrow'}),
-                createPlanningFor.next_week({slugline: 'Plan Next Week'}),
+                createPlanningFor.safe_next_week({slugline: 'Plan Next Week'}),
                 TEST_PLANNINGS.plan_date_01_02_2045,
                 TEST_PLANNINGS.plan_date_02_02_2045,
                 TEST_PLANNINGS.plan_date_03_02_2045,

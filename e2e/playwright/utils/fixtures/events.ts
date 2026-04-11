@@ -147,6 +147,9 @@ export const createEventFor = {
     yesterday: (metadata: {[key: string]: any} = {}, timezone: string | null = TIMEZONE, startTime: string = TIME_STRINGS[0], endTime: string = TIME_STRINGS[1]) => (
         getEventForDate(getDateStringFor.yesterday(), metadata, timezone, startTime, endTime)
     ),
+    safe_next_week: (metadata: {[key: string]: any} = {}, timezone: string | null = TIMEZONE, startTime: string = TIME_STRINGS[0], endTime: string = TIME_STRINGS[1]) => (
+        getEventForDate(getDateStringFor.safe_next_week(), metadata, timezone, startTime, endTime)
+    ),
     next_week: (metadata: {[key: string]: any} = {}, timezone: string | null = TIMEZONE, startTime: string = TIME_STRINGS[0], endTime: string = TIME_STRINGS[1]) => (
         getEventForDate(getDateStringFor.next_week(), metadata, timezone, startTime, endTime)
     ),

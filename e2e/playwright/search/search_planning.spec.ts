@@ -184,7 +184,7 @@ test.describe('Search.Planning: searching planning items', () => {
                 createPlanningFor.yesterday({slugline: 'Plan Yesterday'}),
                 createPlanningFor.today({slugline: 'Plan Today'}),
                 createPlanningFor.tomorrow({slugline: 'Plan Tomorrow'}),
-                createPlanningFor.next_week({slugline: 'Plan Next Week'}),
+                createPlanningFor.safe_next_week({slugline: 'Plan Next Week'}),
                 TEST_PLANNINGS.plan_date_01_02_2045,
                 TEST_PLANNINGS.plan_date_02_02_2045,
                 TEST_PLANNINGS.plan_date_03_02_2045,

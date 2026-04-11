@@ -251,7 +251,7 @@ test.describe('Search.Events: searching events', () => {
                     name: 'Event Tomorrow',
                     slugline: 'Event Tomorrow',
                 }),
-                createEventFor.next_week({
+                createEventFor.safe_next_week({
                     name: 'Event Next Week',
                     slugline: 'Event Next Week',
                 }),

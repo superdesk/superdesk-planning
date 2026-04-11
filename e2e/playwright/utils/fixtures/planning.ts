@@ -74,5 +74,6 @@ export const createPlanningFor = {
     today: (metadata: {[key: string]: any} = {}, timeString: string = TIME_STRINGS[1]) => getPlanningForDate(getDateStringFor.today(), metadata, timeString),
     tomorrow: (metadata: {[key: string]: any} = {}, timeString: string = TIME_STRINGS[1]) => getPlanningForDate(getDateStringFor.tomorrow(), metadata, timeString),
     yesterday: (metadata: {[key: string]: any} = {}, timeString: string = TIME_STRINGS[1]) => getPlanningForDate(getDateStringFor.yesterday(), metadata, timeString),
+    safe_next_week: (metadata: {[key: string]: any} = {}, timeString: string = TIME_STRINGS[1]) => getPlanningForDate(getDateStringFor.safe_next_week(), metadata, timeString),
     next_week: (metadata: {[key: string]: any} = {}, timeString: string = TIME_STRINGS[1]) => getPlanningForDate(getDateStringFor.next_week(), metadata, timeString),
 };
