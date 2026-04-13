@@ -11,7 +11,7 @@
 from typing import Dict, Any, Optional, List, Callable, Union, Awaitable
 from inspect import isawaitable
 import logging
-from datetime import datetime, timedelta
+from datetime import datetime
 
 from eve.utils import str_to_date as _str_to_date, date_to_str
 
@@ -46,14 +46,9 @@ def is_in_datetime_format(value: str, datetime_format: str) -> bool:
         return False
 
 
-def normalize_created_date_bound(value: datetime | str, start_of_day: bool, error_message: str):
+def normalize_created_date_bound(value: datetime | str, error_message: str):
     try:
         value = parse_date(value)
-
-        if start_of_day:
-            value = value.replace(hour=0, minute=0, second=0, microsecond=0)
-        else:
-            value = value.replace(hour=0, minute=0, second=0, microsecond=0) + timedelta(days=1)
 
         return date_to_str(value)
     except Exception as e:
@@ -109,14 +104,12 @@ def get_created_date_params(params: Dict[str, Any]):
     if created_start_date:
         created_start_date = normalize_created_date_bound(
             created_start_date,
-            True,
             "Invalid value for created start date",
         )
 
     if created_end_date:
         created_end_date = normalize_created_date_bound(
             created_end_date,
-            False,
             "Invalid value for created end date",
         )
 

@@ -654,8 +654,20 @@ export function getDateTimeElasticFormat(date: moment.Moment | string, convertTo
     );
 }
 
-export function getDateOnlyElasticFormat(date: moment.Moment | string): string {
-    return moment(date).format('YYYY-MM-DD');
+export function getCreatedStartDateElasticFormat(date: moment.Moment | string): string {
+    return getDateTimeElasticFormat(moment(date).startOf('day'));
+}
+
+export function getCreatedEndDateElasticFormat(date: moment.Moment | string): string {
+    return getDateTimeElasticFormat(
+        moment(date).startOf('day')
+            .add(1, 'day')
+    );
+}
+
+export function getInclusiveMomentFromExclusiveEndDate(date: moment.Moment | string): moment.Moment {
+    // created_end_date is stored as the exclusive start of the next local day
+    return moment(date).subtract(1, 'millisecond');
 }
 
 export const isEmptyActions = (actions) => {

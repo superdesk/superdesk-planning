@@ -2,7 +2,6 @@ import pytz
 
 from planning.tests import TestCase
 from datetime import datetime
-from eve.utils import date_to_str
 from planning.utils import get_event_formatted_dates
 from planning.search.queries import elastic
 from planning.search.queries import common, combined
@@ -96,31 +95,28 @@ class TestDateRangeFunctions(TestCase):
 
 
 class TestCreatedDateSearch(TestCase):
-    def test_get_created_date_params_normalizes_full_day(self):
-        created_start_date, created_end_date = common.get_created_date_params(
-            {
-                "created_start_date": "2026-04-09",
-                "created_end_date": "2026-04-10",
-            }
-        )
+    def test_get_created_date_params_preserves_timestamps(self):
+        params = {
+            "created_start_date": "2026-04-08T22:00:00+0000",
+            "created_end_date": "2026-04-10T22:00:00+0000",
+        }
+        created_start_date, created_end_date = common.get_created_date_params(params)
 
-        self.assertEqual(created_start_date, date_to_str(datetime(2026, 4, 9, 0, 0, 0)))
-        self.assertEqual(created_end_date, date_to_str(datetime(2026, 4, 11, 0, 0, 0)))
+        self.assertEqual(created_start_date, common.normalize_created_date_bound(params["created_start_date"], ""))
+        self.assertEqual(created_end_date, common.normalize_created_date_bound(params["created_end_date"], ""))
 
     def test_combined_search_created_date_adds_created_range(self):
         query = elastic.ElasticQuery()
 
-        combined.search_created_date(
-            {
-                "created_start_date": "2026-04-09",
-                "created_end_date": "2026-04-10",
-            },
-            query,
-        )
+        params = {
+            "created_start_date": "2026-04-08T22:00:00+0000",
+            "created_end_date": "2026-04-10T22:00:00+0000",
+        }
+
+        combined.search_created_date(params, query)
 
         filters = query.build()["query"]["bool"]["filter"]
-        expected_start = date_to_str(datetime(2026, 4, 9, 0, 0, 0))
-        expected_end = date_to_str(datetime(2026, 4, 11, 0, 0, 0))
+        expected_start, expected_end = common.get_created_date_params(params)
 
         self.assertTrue(any(item.get("range", {}).get("_created", {}).get("gte") == expected_start for item in filters))
         self.assertTrue(any(item.get("range", {}).get("_created", {}).get("lt") == expected_end for item in filters))
