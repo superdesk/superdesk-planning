@@ -1,4 +1,5 @@
 import pytz
+from dateutil.parser import parse as parse_datetime
 
 from planning.tests import TestCase
 from datetime import datetime
@@ -102,8 +103,8 @@ class TestCreatedDateSearch(TestCase):
         }
         created_start_date, created_end_date = common.get_created_date_params(params)
 
-        self.assertEqual(created_start_date, common.normalize_created_date_bound(params["created_start_date"], ""))
-        self.assertEqual(created_end_date, common.normalize_created_date_bound(params["created_end_date"], ""))
+        self.assertEqual(parse_datetime(created_start_date), parse_datetime(params["created_start_date"]))
+        self.assertEqual(parse_datetime(created_end_date), parse_datetime(params["created_end_date"]))
 
     def test_combined_search_created_date_adds_created_range(self):
         query = elastic.ElasticQuery()
