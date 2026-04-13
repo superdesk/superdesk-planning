@@ -33,21 +33,6 @@ export function getStartOfNextWeek(): moment.Moment {
     return current.add(diff, 'd');
 }
 
-export function getSafeNextWeek(): moment.Moment {
-    const nextWeek = getStartOfNextWeek();
-    const tomorrow = moment()
-        .set({
-            hour: 0,
-            minute: 0,
-            second: 0,
-            millisecond: 0,
-        })
-        .add(1, 'd');
-
-    // Keep next-week fixtures distinct from tomorrow for weekday-sensitive search specs.
-    return nextWeek.isSame(tomorrow, 'day') ? nextWeek.add(1, 'd') : nextWeek;
-}
-
 /**
  * An object containing methods to compute specific date strings in the format 'YYYY-MM-DD'.
  *
@@ -72,8 +57,6 @@ export const getDateStringFor = {
         .add(1, 'd')
         .format('YYYY-MM-DD'),
     next_week: () => getStartOfNextWeek()
-        .format('YYYY-MM-DD'),
-    safe_next_week: () => getSafeNextWeek()
         .format('YYYY-MM-DD'),
 };
 
