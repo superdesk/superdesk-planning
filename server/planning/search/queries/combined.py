@@ -77,7 +77,7 @@ def search_created_date(params: Dict[str, Any], query: elastic.ElasticQuery):
         query.filter.append(elastic.date_range(elastic.ElasticRangeParams(field="_created", gte=created_start_date)))
 
     if created_end_date:
-        query.filter.append(elastic.date_range(elastic.ElasticRangeParams(field="_created", lt=created_end_date)))
+        query.filter.append(elastic.date_range(elastic.ElasticRangeParams(field="_created", lte=created_end_date)))
 
 
 def search_coverage_assigned_user(params: Dict[str, Any], query: elastic.ElasticQuery):

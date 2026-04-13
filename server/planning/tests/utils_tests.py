@@ -98,7 +98,7 @@ class TestCreatedDateSearch(TestCase):
     def test_get_created_date_params_preserves_timestamps(self):
         params = {
             "created_start_date": "2026-04-08T22:00:00+0000",
-            "created_end_date": "2026-04-10T22:00:00+0000",
+            "created_end_date": "2026-04-10T21:59:59+0000",
         }
         created_start_date, created_end_date = common.get_created_date_params(params)
 
@@ -110,7 +110,7 @@ class TestCreatedDateSearch(TestCase):
 
         params = {
             "created_start_date": "2026-04-08T22:00:00+0000",
-            "created_end_date": "2026-04-10T22:00:00+0000",
+            "created_end_date": "2026-04-10T21:59:59+0000",
         }
 
         combined.search_created_date(params, query)
@@ -119,4 +119,4 @@ class TestCreatedDateSearch(TestCase):
         expected_start, expected_end = common.get_created_date_params(params)
 
         self.assertTrue(any(item.get("range", {}).get("_created", {}).get("gte") == expected_start for item in filters))
-        self.assertTrue(any(item.get("range", {}).get("_created", {}).get("lt") == expected_end for item in filters))
+        self.assertTrue(any(item.get("range", {}).get("_created", {}).get("lte") == expected_end for item in filters))

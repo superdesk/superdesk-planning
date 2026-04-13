@@ -13,7 +13,7 @@ import {
     SORT_ORDER,
 } from '../interfaces';
 import {MAIN} from '../constants';
-import {getInclusiveMomentFromExclusiveEndDate, getTimeZoneOffset, timeUtils} from './index';
+import {getTimeZoneOffset, timeUtils} from './index';
 import {appConfig} from 'appConfig';
 
 function commonParamsToSearchParams(params: ICommonSearchParams<IEventOrPlanningItem>): ISearchParams {
@@ -58,9 +58,7 @@ function commonParamsToSearchParams(params: ICommonSearchParams<IEventOrPlanning
 
 function searchParamsToCommonParams(params: ISearchParams): ICommonSearchParams<IEventOrPlanningItem> {
     const createdStartDate = params.created_start_date != undefined ? moment(params.created_start_date) : undefined;
-    const createdEndDate = params.created_end_date != undefined ?
-        getInclusiveMomentFromExclusiveEndDate(params.created_end_date) :
-        undefined;
+    const createdEndDate = params.created_end_date != undefined ? moment(params.created_end_date) : undefined;
 
     return {
         itemIds: params.item_ids,
