@@ -1,7 +1,12 @@
 import {IEventOrPlanningItem, ISearchAPIParams, ISearchParams} from '../interfaces';
 import {superdeskApi, planningApi as sdPlanningApi} from '../superdeskApi';
 import {IRestApiResponse} from 'superdesk-api';
-import {getDateTimeElasticFormat, getTimeZoneOffset} from '../utils';
+import {
+    getCreatedEndDateElasticFormat,
+    getCreatedStartDateElasticFormat,
+    getDateTimeElasticFormat,
+    getTimeZoneOffset,
+} from '../utils';
 import {default as timeUtils} from '../utils/time';
 import {appConfig} from 'appConfig';
 import planningApi from '../actions/planning/api';
@@ -26,6 +31,9 @@ export function arrayToString(items?: Array<string | number>): string {
 }
 
 export function convertCommonParams(params: ISearchParams): Partial<ISearchAPIParams> {
+    const createdStartDate = params.created_start_date ?? params.advancedSearch?.created_start_date;
+    const createdEndDate = params.created_end_date ?? params.advancedSearch?.created_end_date;
+
     return {
         item_ids: arrayToString(params.item_ids),
         name: params.name,
@@ -44,6 +52,12 @@ export function convertCommonParams(params: ISearchParams): Partial<ISearchAPIPa
         end_date: params.end_date == null ?
             null :
             getDateTimeElasticFormat(params.end_date, params.date_filter != 'for_date'),
+        created_start_date: createdStartDate == null ?
+            null :
+            getCreatedStartDateElasticFormat(createdStartDate),
+        created_end_date: createdEndDate == null ?
+            null :
+            getCreatedEndDateElasticFormat(createdEndDate),
         start_of_week: appConfig.start_of_week,
         slugline: params.slugline,
         lock_state: params.lock_state,

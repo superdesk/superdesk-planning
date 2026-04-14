@@ -22,7 +22,7 @@ from superdesk.users.services import current_user_has_privilege
 
 from apps.auth import get_user_id
 
-from planning.utils import get_related_event_ids_for_planning
+from planning.utils import get_related_event_ids_for_planning, parse_date
 from planning.search.queries import elastic
 from planning.common import POST_STATE, WORKFLOW_STATE
 from planning.content_profiles.utils import get_multilingual_fields
@@ -44,6 +44,16 @@ def is_in_datetime_format(value: str, datetime_format: str) -> bool:
         return True
     except ValueError:
         return False
+
+
+def normalize_created_date_bound(value: datetime | str, error_message: str):
+    try:
+        value = parse_date(value)
+
+        return date_to_str(value)
+    except Exception as e:
+        logger.exception(e)
+        raise SuperdeskApiError.badRequestError(error_message)
 
 
 def get_date_params(params: Dict[str, Any]):
@@ -85,6 +95,25 @@ def get_date_params(params: Dict[str, Any]):
         raise SuperdeskApiError.badRequestError("Invalid value for end date")
 
     return date_filter, start_date, end_date, time_zone
+
+
+def get_created_date_params(params: Dict[str, Any]):
+    created_start_date = params.get("created_start_date")
+    created_end_date = params.get("created_end_date")
+
+    if created_start_date:
+        created_start_date = normalize_created_date_bound(
+            created_start_date,
+            "Invalid value for created start date",
+        )
+
+    if created_end_date:
+        created_end_date = normalize_created_date_bound(
+            created_end_date,
+            "Invalid value for created end date",
+        )
+
+    return created_start_date, created_end_date
 
 
 def str_to_array(arg: Optional[Union[List[str], str]] = None) -> List[str]:
@@ -641,6 +670,8 @@ COMMON_PARAMS = [
     "date_filter",
     "start_date",
     "end_date",
+    "created_start_date",
+    "created_end_date",
     "only_future",
     "start_of_week",
     "slugline",
