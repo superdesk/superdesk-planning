@@ -20,13 +20,13 @@ from superdesk.celery_task_utils import get_lock_id
 from superdesk.lock import lock, unlock, remove_locks
 from planning.common import WORKFLOW_STATE
 from planning.events.events_utils import get_recurring_timeline
-from .async_cli import planning_cli
+from superdesk.commands import cli
 
 
 log_msg_context: ContextVar[str] = ContextVar("log_msg", default="")
 
 
-@planning_cli.command("planning:delete_spiked")
+@cli.command("planning:delete_spiked")
 async def delete_spiked_items_command():
     """
     Delete expired spiked `Events` and `Planning` items.
