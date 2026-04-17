@@ -930,7 +930,7 @@ def generate_recurring_dates(
             pass
         start = start.astimezone(tz).replace(tzinfo=None)
         if until:
-            until = get_date(until).astimezone(tz).replace(tzinfo=None)
+            until = get_date(until).astimezone(tz).replace(tzinfo=None, hour=23, minute=59, second=59)
 
     if frequency == "DAILY":
         byday = None
