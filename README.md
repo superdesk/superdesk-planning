@@ -108,13 +108,14 @@ git clone git@github.com:superdesk/superdesk-planning.git
 ```
 
 #### Client
-Running the following will link the superdesk-planning module in development mode:
-```
+To link this package into a Superdesk client, use [`npx link`](https://github.com/privatenumber/link):
+
+```sh
 cd superdesk/client
-npm install
-npm link ../../superdesk-planning
-cd ../..
+npx link /path/to/superdesk-planning
 ```
+
+A fresh `npm install` in the client will restore the published version.
 
 #### Server
 Run the following to install the python module in development mode:
