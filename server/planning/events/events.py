@@ -68,6 +68,7 @@ from planning.common import (
     is_new_version,
     update_ingest_on_patch,
     TEMP_ID_PREFIX,
+    TO_BE_CONFIRMED_FIELD,
 )
 from .events_base_service import EventsBaseService
 from .events_schema import events_schema
@@ -1016,7 +1017,7 @@ def generate_recurring_events(event, recurrence_id=None):
 
         # Remove fields not required by the new events
         for key in list(new_event.keys()):
-            if key.startswith("_") or key.startswith("lock_"):
+            if (key.startswith("_") and key != TO_BE_CONFIRMED_FIELD) or key.startswith("lock_"):
                 new_event.pop(key)
             elif key == "embedded_planning":
                 if not embedded_planning_added:
