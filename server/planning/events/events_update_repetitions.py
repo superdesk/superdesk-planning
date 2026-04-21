@@ -19,6 +19,7 @@ from planning.common import (
     POST_STATE,
     get_max_recurrent_events,
     set_original_creator,
+    TO_BE_CONFIRMED_FIELD,
 )
 from .events import EventsResource, generate_recurring_dates
 from .events_base_service import EventsBaseService
@@ -169,7 +170,7 @@ class EventsUpdateRepetitionsService(EventsBaseService):
 
         new_event["state"] = WORKFLOW_STATE.DRAFT
         for key in list(new_event.keys()):
-            if key.startswith("_") or key.startswith("lock_"):
+            if (key.startswith("_") and key != TO_BE_CONFIRMED_FIELD) or key.startswith("lock_"):
                 new_event.pop(key)
 
         # Set the new start and end dates, as well as the _id and guid fields
