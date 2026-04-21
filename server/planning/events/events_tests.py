@@ -491,23 +491,24 @@ class EventPlanningSchedule(TestCase):
             schedule["recurring_rule"]["count"] = 5
 
             update_repetitions = get_resource_service("events_update_repetitions")
-            update_repetitions.REQUIRE_LOCK = False
             is_original_event_func = update_repetitions.is_original_event
+            update_repetitions.REQUIRE_LOCK = False
             update_repetitions.is_original_event = Mock(return_value=False)
-            update_repetitions.patch(events[0].get("_id"), {"dates": schedule})
+            try:
+                update_repetitions.patch(events[0].get("_id"), {"dates": schedule})
 
-            events = list(service.get_from_mongo(req=None, lookup=None))
-            self.assertPlanningSchedule(events, 5)
+                events = list(service.get_from_mongo(req=None, lookup=None))
+                self.assertPlanningSchedule(events, 5)
 
-            for evt in events:
-                self.assertTrue(
-                    evt.get(TO_BE_CONFIRMED_FIELD),
-                    f"Event {evt.get('_id')} should have _time_to_be_confirmed=True, "
-                    f"got {evt.get(TO_BE_CONFIRMED_FIELD)}",
-                )
-
-            update_repetitions.is_original_event = is_original_event_func
-            update_repetitions.REQUIRE_LOCK = True
+                for evt in events:
+                    self.assertTrue(
+                        evt.get(TO_BE_CONFIRMED_FIELD),
+                        f"Event {evt.get('_id')} should have _time_to_be_confirmed=True, "
+                        f"got {evt.get(TO_BE_CONFIRMED_FIELD)}",
+                    )
+            finally:
+                update_repetitions.is_original_event = is_original_event_func
+                update_repetitions.REQUIRE_LOCK = True
 
     def test_tbc_preserved_for_reschedule_event(self):
         with self.app.app_context():
@@ -541,25 +542,25 @@ class EventPlanningSchedule(TestCase):
 
             schedule = deepcopy(events[0].get("dates"))
             schedule["start"] = datetime(2099, 11, 21, 12, 00, 00, tzinfo=pytz.UTC) + timedelta(days=5)
-            schedule["end"] = datetime(2099, 11, 21, 12, 00, 00, tzinfo=pytz.UTC) + timedelta(days=5)
+            schedule["end"] = schedule["start"] + timedelta(hours=2)
 
             reschedule = get_resource_service("events_reschedule")
-            reschedule.REQUIRE_LOCK = False
             is_original_event_func = reschedule.is_original_event
+            reschedule.REQUIRE_LOCK = False
             reschedule.is_original_event = Mock(return_value=False)
+            try:
+                reschedule.patch(events[0].get("_id"), {"dates": schedule})
 
-            reschedule.patch(events[0].get("_id"), {"dates": schedule})
-
-            events = list(service.get_from_mongo(req=None, lookup=None))
-            for evt in events:
-                self.assertTrue(
-                    evt.get(TO_BE_CONFIRMED_FIELD),
-                    f"Event {evt.get('_id')} should have _time_to_be_confirmed=True after reschedule, "
-                    f"got {evt.get(TO_BE_CONFIRMED_FIELD)}",
-                )
-
-            reschedule.is_original_event = is_original_event_func
-            reschedule.REQUIRE_LOCK = True
+                events = list(service.get_from_mongo(req=None, lookup=None))
+                for evt in events:
+                    self.assertTrue(
+                        evt.get(TO_BE_CONFIRMED_FIELD),
+                        f"Event {evt.get('_id')} should have _time_to_be_confirmed=True after reschedule, "
+                        f"got {evt.get(TO_BE_CONFIRMED_FIELD)}",
+                    )
+            finally:
+                reschedule.is_original_event = is_original_event_func
+                reschedule.REQUIRE_LOCK = True
 
 
 def generate_recurring_events(num_events):
