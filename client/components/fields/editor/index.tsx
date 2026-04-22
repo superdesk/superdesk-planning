@@ -52,6 +52,7 @@ import {EditorFieldAssignedCoverageComponent} from './AssignedCoverage';
 import {EditorFieldEventRelatedPlannings} from './EventRelatedPlannings/EventRelatedPlanningWrapper';
 import {EditorFieldAddCoverageToWorkflow} from './AddCoverageToWorkflow';
 import {EditorFieldAssignmentPriority} from './AssignmentPriority';
+import {EditorFieldCreationDate} from './CreationDate';
 
 /**
  * This is the single source of truth for field definitions, allows for registering
@@ -121,6 +122,7 @@ export const FIELD_TO_EDITOR_COMPONENT = {
     'dates.recurring_rules': EditorFieldEventRecurringRules,
     recurring_rules: EditorFieldEventRecurringRules,
     dates: EditorFieldEventSchedule,
+    creation_date: EditorFieldCreationDate,
     contacts: EditorFieldContacts,
     event_contact_info: EditorFieldContacts,
     occur_status: EditorFieldEventOccurenceStatus,

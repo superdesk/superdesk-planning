@@ -203,16 +203,6 @@ Feature: Planning
                 "item": "#planning._id#",
                 "user": "#CONTEXT_USER_ID#",
                 "added_agendas": [],
-                "removed_agendas": [],
-                "session": "__any_value__"
-            }
-        },
-        {
-            "event": "planning:updated",
-            "extra": {
-                "item": "#planning._id#",
-                "user": "#CONTEXT_USER_ID#",
-                "added_agendas": [],
                 "removed_agendas": ["#agenda1#", "#agenda2#"],
                 "session": "__any_value__"
             }

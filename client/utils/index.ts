@@ -654,6 +654,14 @@ export function getDateTimeElasticFormat(date: moment.Moment | string, convertTo
     );
 }
 
+export function getCreatedStartDateElasticFormat(date: moment.Moment | string): string {
+    return getDateTimeElasticFormat(moment(date).startOf('day'));
+}
+
+export function getCreatedEndDateElasticFormat(date: moment.Moment | string): string {
+    return getDateTimeElasticFormat(moment(date).endOf('day'));
+}
+
 export const isEmptyActions = (actions) => {
     if (get(actions, 'length', 0) < 1) {
         return true;

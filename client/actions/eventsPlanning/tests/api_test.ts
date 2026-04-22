@@ -63,6 +63,25 @@ describe('actions.eventsplanning.api', () => {
                 })
                 .catch(done.fail);
         });
+
+        it('created date search', (done) => {
+            const params = {
+                created_start_date: moment('2026-04-09T00:00:00+0000'),
+                created_end_date: moment('2026-04-09T23:59:59+0000'),
+            };
+
+            store.test(done, eventsPlanningApi.query(params))
+                .then(() => {
+                    expect(planningApis.combined.search.callCount).toBe(1);
+                    expect(planningApis.combined.search.args[0]).toEqual([jasmine.objectContaining({
+                        created_start_date: params.created_start_date,
+                        created_end_date: params.created_end_date,
+                    })]);
+
+                    done();
+                })
+                .catch(done.fail);
+        });
     });
 
     describe('refetch', () => {

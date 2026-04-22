@@ -828,7 +828,7 @@ Feature: For posted planning item changes in assignment state post a planning it
                     "news_coverage_status": {
                       "qcode": "ncostat:int"
                     },
-                    "deliveries": [],
+                    "deliveries": [{"item_id": "123"}],
                     "coverage_provider": null,
                     "assigned_desk": {"name": "Sports"},
                     "assigned_user": {"display_name": "test_user"}

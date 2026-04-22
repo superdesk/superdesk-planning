@@ -128,6 +128,13 @@ DEFAULT_ADVANCED_SEARCH_PROFILE = {
                 "search_enabled": True,
                 "filter_enabled": True,
             },
+            "creation_date": {
+                "enabled": True,
+                "index": 4,
+                "group": "dates",
+                "search_enabled": True,
+                "filter_enabled": True,
+            },
             # Events
             "no_calendar_assigned": {
                 "enabled": True,
@@ -278,6 +285,13 @@ DEFAULT_ADVANCED_SEARCH_PROFILE = {
             "date_filter": {
                 "enabled": True,
                 "index": 3,
+                "group": "dates",
+                "search_enabled": True,
+                "filter_enabled": True,
+            },
+            "creation_date": {
+                "enabled": True,
+                "index": 4,
                 "group": "dates",
                 "search_enabled": True,
                 "filter_enabled": True,
@@ -460,6 +474,13 @@ DEFAULT_ADVANCED_SEARCH_PROFILE = {
             "date_filter": {
                 "enabled": True,
                 "index": 3,
+                "group": "dates",
+                "search_enabled": True,
+                "filter_enabled": True,
+            },
+            "creation_date": {
+                "enabled": True,
+                "index": 4,
                 "group": "dates",
                 "search_enabled": True,
                 "filter_enabled": True,

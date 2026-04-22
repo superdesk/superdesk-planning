@@ -1,9 +1,11 @@
 import pytz
+from dateutil.parser import parse as parse_datetime
 
 from planning.tests import TestCase
 from datetime import datetime
 from planning.utils import get_event_formatted_dates
 from planning.search.queries import elastic
+from planning.search.queries import common, combined
 
 
 class TestGetEventFormattedDates(TestCase):
@@ -91,3 +93,31 @@ class TestDateRangeFunctions(TestCase):
 
         self.assertEqual(start, "2024-05-13")
         self.assertEqual(end, "2024-05-20")
+
+
+class TestCreatedDateSearch(TestCase):
+    def test_get_created_date_params_preserves_timestamps(self):
+        params = {
+            "created_start_date": "2026-04-08T22:00:00+0000",
+            "created_end_date": "2026-04-10T21:59:59+0000",
+        }
+        created_start_date, created_end_date = common.get_created_date_params(params)
+
+        self.assertEqual(parse_datetime(created_start_date), parse_datetime(params["created_start_date"]))
+        self.assertEqual(parse_datetime(created_end_date), parse_datetime(params["created_end_date"]))
+
+    def test_combined_search_created_date_adds_created_range(self):
+        query = elastic.ElasticQuery()
+
+        params = {
+            "created_start_date": "2026-04-08T22:00:00+0000",
+            "created_end_date": "2026-04-10T21:59:59+0000",
+        }
+
+        combined.search_created_date(params, query)
+
+        filters = query.build()["query"]["bool"]["filter"]
+        expected_start, expected_end = common.get_created_date_params(params)
+
+        self.assertTrue(any(item.get("range", {}).get("_created", {}).get("gte") == expected_start for item in filters))
+        self.assertTrue(any(item.get("range", {}).get("_created", {}).get("lte") == expected_end for item in filters))

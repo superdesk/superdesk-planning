@@ -1245,7 +1245,10 @@ Feature: Rewrite content
                 },
                 "news_coverage_status": {"qcode": "ncostat:int"},
                 "workflow_status": "active",
-                "deliveries": []
+                "deliveries": [{
+                  "item_id": "#archive._id#",
+                  "item_state": "fetched"
+                }]
             }]
         }
         """

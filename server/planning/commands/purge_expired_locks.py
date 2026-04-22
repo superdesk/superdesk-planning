@@ -22,12 +22,12 @@ from planning.item_lock import LOCK_ACTION, LOCK_SESSION, LOCK_TIME, LOCK_USER
 from planning.utils import get_service, try_cast_object_id
 from planning.events import EventsAutosaveAsyncService
 from planning.planning import PlanningAutosaveAsyncService
-from .async_cli import planning_cli
+from superdesk.commands import cli
 
 logger = logging.getLogger(__name__)
 
 
-@planning_cli.command("planning:purge_expired_locks")
+@cli.command("planning:purge_expired_locks")
 @click.option(
     "--resource",
     "-r",

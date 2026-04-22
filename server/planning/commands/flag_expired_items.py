@@ -13,7 +13,7 @@ from superdesk.utc import utcnow
 from superdesk.celery_task_utils import get_lock_id
 from superdesk.lock import lock, unlock, remove_locks
 from superdesk.notification import push_notification
-from .async_cli import planning_cli
+from superdesk.commands import cli
 
 from planning.utils import get_related_planning_for_events_async, get_related_event_ids_for_planning
 
@@ -21,7 +21,7 @@ from planning.utils import get_related_planning_for_events_async, get_related_ev
 log_msg_context: ContextVar[str] = ContextVar("log_msg", default="")
 
 
-@planning_cli.command("planning:flag_expired")
+@cli.command("planning:flag_expired")
 async def flag_expired_items_command():
     """
     Flag expired `Events` and `Planning` items with `{'expired': True}`.

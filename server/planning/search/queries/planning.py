@@ -16,6 +16,7 @@ from planning.search.queries import elastic
 from planning.common import WORKFLOW_STATE
 from .common import (
     get_date_params,
+    get_created_date_params,
     COMMON_SEARCH_FILTERS,
     COMMON_PARAMS,
     strtobool,
@@ -202,6 +203,9 @@ def search_date_default(params: Dict[str, Any], query: elastic.ElasticQuery):
     date_filter, start_date, end_date, time_zone = get_date_params(params)
     only_future = strtobool(params.get("only_future", True))
 
+    if params.get("created_start_date") or params.get("created_end_date"):
+        return
+
     if not date_filter and not start_date and not end_date and only_future:
         field_name = "_planning_schedule.scheduled"
         query_range = elastic.date_range(
@@ -223,6 +227,21 @@ def search_dates(params: Dict[str, Any], query: elastic.ElasticQuery):
     else:
         search_date(params, query)
         search_date_default(params, query)
+
+
+def search_created_date(params: Dict[str, Any], query: elastic.ElasticQuery):
+    created_start_date, created_end_date = get_created_date_params(params)
+
+    if created_start_date or created_end_date:
+        base_query = elastic.ElasticRangeParams(field="_created")
+
+        if created_start_date:
+            base_query.gte = created_start_date
+
+        if created_end_date:
+            base_query.lte = created_end_date
+
+        query.filter.append(elastic.date_range(base_query))
 
 
 def set_search_sort(params: Dict[str, Any], query: elastic.ElasticQuery):
@@ -347,6 +366,7 @@ PLANNING_SEARCH_FILTERS: list[FilterFunctionType] = [
     search_featured,
     search_by_events,
     search_dates,
+    search_created_date,
     set_search_sort,
     search_coverage_assigned_user,
     search_coverage_assignment_status,

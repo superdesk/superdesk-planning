@@ -983,6 +983,8 @@ export type IAssignmentOrPlanningItem = IEventOrPlanningItem | IAssignmentItem;
 export interface ICommonAdvancedSearchParams {
     anpa_category?: Array<IANPACategory>;
     dates?: IDateSearchParams;
+    created_start_date?: IDateTime;
+    created_end_date?: IDateTime;
     name?: string;
     place?: Array<IPlace>;
     posted?: boolean;
@@ -1021,6 +1023,8 @@ export interface ICommonSearchParams<T extends IEventOrPlanningItem> {
     source?: string;
     coverage_user_id?: string;
     coverage_assignment_status?: ICoverageAssigned['qcode'];
+    created_start_date?: IDateTime;
+    created_end_date?: IDateTime;
     include_associated_planning: boolean;
 }
 
@@ -1246,6 +1250,7 @@ export interface IEventSearchProfile {
     start_date_time: IAdvancedSearchFormProfileField,
     end_date_time: IAdvancedSearchFormProfileField,
     date_filter: IAdvancedSearchFormProfileField,
+    creation_date: IAdvancedSearchFormProfileField,
 }
 
 export interface IPlanningFormProfile {
@@ -1300,6 +1305,7 @@ export interface IPlanningSearchProfile {
     start_date_time: IAdvancedSearchFormProfileField;
     end_date_time: IAdvancedSearchFormProfileField;
     date_filter: IAdvancedSearchFormProfileField;
+    creation_date: IAdvancedSearchFormProfileField;
     coverage_assignment_status: IAdvancedSearchFormProfileField;
 }
 
@@ -1350,6 +1356,7 @@ export interface ICombinedSearchProfile {
     start_date_time: IAdvancedSearchFormProfileField;
     end_date_time: IAdvancedSearchFormProfileField;
     date_filter: IAdvancedSearchFormProfileField;
+    creation_date: IAdvancedSearchFormProfileField;
 }
 
 export interface IAdvancedSearchFormProfile {
@@ -1450,6 +1457,8 @@ export interface ISearchParams {
     date_filter?: IDateRange;
     start_date?: IDateTime;
     end_date?: IDateTime;
+    created_start_date?: IDateTime;
+    created_end_date?: IDateTime;
     only_future?: boolean;
     start_of_week?: number;
     slugline?: string;
@@ -1518,6 +1527,8 @@ export interface ISearchAPIParams {
     date_filter?: IDateRange;
     start_date?: string;
     end_date?: string;
+    created_start_date?: string;
+    created_end_date?: string;
     start_of_week?: number;
     slugline?: string;
     lock_state?: LOCK_STATE;

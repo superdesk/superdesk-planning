@@ -7,6 +7,7 @@ import {SEARCH_SPIKE_STATE, IDateRange, ISearchParams, IAssignmentSearchParams, 
 
 import {getUserInterfaceLanguageFromCV} from '../../utils/users';
 import {renderGroupedFieldsForPanel} from '../fields';
+import {DatesGroup} from '../fields/editor/DatesGroup';
 
 interface ICommonParams {
     searchProfile: any;
@@ -124,6 +125,13 @@ export class AdvancedSearch extends React.PureComponent<IProps> {
     }
 
     render() {
+        const {
+            start_date,
+            end_date,
+            date_filter,
+            creation_date,
+            ...profileWithoutDates
+        } = this.props.searchProfile;
         const customTextFields = Object.keys(this.props.searchProfile)
             .filter((field) => superdeskApi.entities.vocabulary.getVocabulary(field)?.field_type === 'text')
             .reduce((prev, field) => ({
@@ -131,100 +139,106 @@ export class AdvancedSearch extends React.PureComponent<IProps> {
                 [field]: {storageField: `customText.${field}`},
             }), {});
 
-        return renderGroupedFieldsForPanel(
-            'editor',
-            this.props.searchProfile,
-            {
-                onChange: this.props.onChange,
-                popupContainer: this.props.popupContainer,
-                language: getUserInterfaceLanguageFromCV(),
-                item: this.props.params,
-                schema: {},
-            },
-            {
-                ...customTextFields,
-                user: {
-                    field: 'userIds',
-                    valueStoredAsArray: true,
-                    deskId: this.props.filterUsersByDesk,
-                },
-                content_type: {
-                    field: 'contentType',
-                },
-                multiple_content: {
-                    field: 'multipleContent',
-                },
-                genre: {
-                    clearable: true,
-                },
-                assignment_priority: {
-                    field: 'assignmentPriority',
-                    noTitleInPopup: true,
-                    clearable: true,
-                },
-                anpa_category: {
-                    field: this.props.type === 'assignments' ? 'anpaCategory' : 'anpa_category',
-                    singleSelect: false,
-                },
-                start_date: {
-                    canClear: true,
-                    onChange: this.onStartDateTimeChange,
-                },
-                end_date: {
-                    canClear: true,
-                    onChange: this.onEndDateTimeChange,
-                },
-                date_filter: {
-                    onChange: this.onRelativeDateTimeChange,
-                },
-                spike_state: {
-                    enabled: (
-                        this.props.type === 'event_planning'
-                        && !this.props.params.posted
-                        && !this.props.params.state?.length
-                    ),
-                },
-                agendas: {
-                    enabled: (
-                        this.props.type === 'event_planning'
-                        && !this.props.params.no_agenda_assigned
-                        && this.props.enabledField !== 'search_enabled'
-                    ),
-                },
-                g2_content_type: {
-                    enabled: this.props.type === 'assignments' || !this.props.params.no_coverage,
-                },
-                calendars: {
-                    enabled: (
-                        this.props.type === 'event_planning'
-                        && !this.props.params.no_calendar_assigned
-                        && this.props.enabledField !== 'search_enabled'
-                    ),
-                },
-                include_killed: {
-                    enabled: this.props.type === 'event_planning' && !this.props.params.state?.length,
-                },
-                exclude_rescheduled_and_cancelled: {
-                    enabled: this.props.type === 'event_planning' && !this.props.params.state?.length,
-                },
-                state: {
-                    excludeOptions: this.props.type === 'event_planning' && !this.props.params.posted ?
-                        [] :
-                        NON_PUBLISHED_STATES,
-                },
-                location: {
-                    disableAddLocation: false,
-                },
-                priority: {
-                    multiple: true,
-                    defaultValue: [],
-                },
-                urgency: {
-                    valueAsString: false,
-                },
-            },
-            null,
-            this.props.enabledField
+        return (
+            <React.Fragment>
+                {renderGroupedFieldsForPanel(
+                    'editor',
+                    profileWithoutDates,
+                    {
+                        onChange: this.props.onChange,
+                        popupContainer: this.props.popupContainer,
+                        language: getUserInterfaceLanguageFromCV(),
+                        item: this.props.params,
+                        onChangeMultiple: this.props.onChangeMultiple,
+                        schema: {},
+                    },
+                    {
+                        ...customTextFields,
+                        user: {
+                            field: 'userIds',
+                            valueStoredAsArray: true,
+                            deskId: this.props.filterUsersByDesk,
+                        },
+                        content_type: {
+                            field: 'contentType',
+                        },
+                        multiple_content: {
+                            field: 'multipleContent',
+                        },
+                        genre: {
+                            clearable: true,
+                        },
+                        assignment_priority: {
+                            field: 'assignmentPriority',
+                            noTitleInPopup: true,
+                            clearable: true,
+                        },
+                        anpa_category: {
+                            field: this.props.type === 'assignments' ? 'anpaCategory' : 'anpa_category',
+                            singleSelect: false,
+                        },
+                        spike_state: {
+                            enabled: (
+                                this.props.type === 'event_planning'
+                                && !this.props.params.posted
+                                && !this.props.params.state?.length
+                            ),
+                        },
+                        agendas: {
+                            enabled: (
+                                this.props.type === 'event_planning'
+                                && !this.props.params.no_agenda_assigned
+                                && this.props.enabledField !== 'search_enabled'
+                            ),
+                        },
+                        g2_content_type: {
+                            enabled: this.props.type === 'assignments' || !this.props.params.no_coverage,
+                        },
+                        calendars: {
+                            enabled: (
+                                this.props.type === 'event_planning'
+                                && !this.props.params.no_calendar_assigned
+                                && this.props.enabledField !== 'search_enabled'
+                            ),
+                        },
+                        include_killed: {
+                            enabled: this.props.type === 'event_planning' && !this.props.params.state?.length,
+                        },
+                        exclude_rescheduled_and_cancelled: {
+                            enabled: this.props.type === 'event_planning' && !this.props.params.state?.length,
+                        },
+                        state: {
+                            excludeOptions: this.props.type === 'event_planning' && !this.props.params.posted ?
+                                [] :
+                                NON_PUBLISHED_STATES,
+                        },
+                        location: {
+                            disableAddLocation: false,
+                        },
+                        priority: {
+                            multiple: true,
+                            defaultValue: [],
+                        },
+                        urgency: {
+                            valueAsString: false,
+                        },
+                    },
+                    null,
+                    this.props.enabledField
+                )}
+
+                <DatesGroup
+                    searchProfile={{start_date, end_date, date_filter, creation_date}}
+                    params={this.props.params}
+                    onChange={this.props.onChange}
+                    onChangeMultiple={this.props.onChangeMultiple}
+                    popupContainer={this.props.popupContainer}
+                    enabledField={this.props.enabledField}
+                    onStartDateTimeChange={this.onStartDateTimeChange}
+                    onEndDateTimeChange={this.onEndDateTimeChange}
+                    onRelativeDateTimeChange={this.onRelativeDateTimeChange}
+                />
+            </React.Fragment>
         );
     }
 }
