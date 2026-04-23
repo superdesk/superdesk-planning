@@ -1469,7 +1469,7 @@ function getCoverageIconColor(item: IPlanningCoverageItem): string | undefined {
         return 'var(--sd-colour-state--completed)';
     }
 
-    if (item.assigned_to.user != null || item.assigned_to.desk != null) {
+    if (item.assigned_to?.user != null || item.assigned_to?.desk != null) {
         return 'var(--sd-colour-state--assigned)';
     } else {
         return 'var(--sd-colour-state--unassigned)';
