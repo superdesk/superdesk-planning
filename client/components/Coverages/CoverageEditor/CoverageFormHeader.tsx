@@ -3,7 +3,7 @@ import {connect} from 'react-redux';
 import {get} from 'lodash';
 import {IPlanningCoverageItem, ICoverageScheduledUpdate, ILockedItems} from '../../../interfaces';
 import {IArticle, IDesk, IUser} from 'superdesk-api';
-import {getCreator, getItemInArrayById, gettext, onEventCapture} from '../../../utils';
+import {getCreator, getItemInArrayById, gettext, onEventCapture, assignmentUtils} from '../../../utils';
 import {Item, Border, Column, Row as ListRow} from '../../UI/List';
 import {UserAvatar} from '../../../components/UserAvatar';
 import {StateLabel} from '../../StateLabel';
@@ -60,15 +60,14 @@ class CoverageFormHeaderComponent extends React.PureComponent<IProps> {
             field: this.props.field,
             value: this.props.value,
             onChange: this.props.onChange,
-            disableDeskSelection: this.props.addNewsItemToPlanning != null || (
-                this.props.value.assigned_to?.state != null
-                && ![
-                    ASSIGNMENTS.WORKFLOW_STATE.DRAFT,
-                    ASSIGNMENTS.WORKFLOW_STATE.ASSIGNED,
-                    ASSIGNMENTS.WORKFLOW_STATE.SUBMITTED,
-                ].includes(this.props.value.assigned_to.state)
+            disableDeskSelection: (
+                this.props.addNewsItemToPlanning != null
+                || !assignmentUtils.canEditDesk(this.props.value)
             ),
-            disableUserSelection: this.props.addNewsItemToPlanning != null,
+            disableUserSelection: (
+                this.props.addNewsItemToPlanning != null
+                || this.props.value.planning?.multiple_content !== true
+            ),
             priorityPrefix: 'assigned_to.',
         });
     }
