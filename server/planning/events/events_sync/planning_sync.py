@@ -34,6 +34,10 @@ def get_normalised_field_value(item, field):
         return value
 
 
+def _get_planning_field_from_event(field: str) -> str:
+    return "description_text" if field == "definition_short" else field
+
+
 def _sync_planning_field(sync_data: SyncData, field: str):
     original_value_normalised = get_normalised_field_value(sync_data.event.original, field)
     updated_value_normalised = get_normalised_field_value(sync_data.event.updates, field)
@@ -43,7 +47,7 @@ def _sync_planning_field(sync_data: SyncData, field: str):
         return
 
     planning_value_normalised = get_normalised_field_value(
-        sync_data.planning.original, "description_text" if field == "definition_short" else field
+        sync_data.planning.original, _get_planning_field_from_event(field)
     )
 
     if planning_value_normalised != original_value_normalised:
@@ -62,10 +66,11 @@ def _sync_planning_field(sync_data: SyncData, field: str):
 
 
 def _sync_planning_multilingual_field(sync_data: SyncData, field: str, profiles: AllContentProfileData):
+    planning_field = _get_planning_field_from_event(field)
     if (
         field not in sync_data.event.updated_translations
         or field not in profiles.events.multilingual_fields
-        or field not in profiles.planning.multilingual_fields
+        or planning_field not in profiles.planning.multilingual_fields
     ):
         return
 
@@ -76,15 +81,14 @@ def _sync_planning_multilingual_field(sync_data: SyncData, field: str, profiles:
             original_value = ""
 
         try:
-            planning_value = sync_data.planning.original_translations[field][language]
+            planning_value = sync_data.planning.original_translations[planning_field][language]
         except KeyError:
             planning_value = ""
 
         if original_value == updated_value or planning_value != original_value:
             continue
 
-        sync_data.planning.updated_translations.setdefault(field, {})
-        sync_data.planning.updated_translations[field][language] = updated_value
+        sync_data.planning.updated_translations.setdefault(planning_field, {})[language] = updated_value
         sync_data.update_translations = True
 
 
