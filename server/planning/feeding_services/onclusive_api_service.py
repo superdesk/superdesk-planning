@@ -176,8 +176,8 @@ class OnclusiveApiService(HTTPFeedingServiceBase):
 
             if response.status_code == 400:
                 logger.error("error from api %s", response.text)
+                break
 
-        logger.error("could not fetch data from api params=%s", params)
         raise ProviderError.ingestError()
 
     @property
@@ -219,7 +219,7 @@ class OnclusiveApiService(HTTPFeedingServiceBase):
             renew_response.raise_for_status()
         except Exception as e:
             logger.error("error %s body %s", e, renew_response.content)
-        if renew_response.status_code == 400:
+        if renew_response.status_code in (400, 401):
             tokens[REFRESH_TOKEN_KEY] = None
             return
         if renew_response.status_code == 200:
