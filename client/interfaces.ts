@@ -666,6 +666,7 @@ export interface ICoverageScheduledUpdate {
             name: string;
         }>;
         workflow_status_reason: string;
+        multiple_content?: false;
     };
 }
 
