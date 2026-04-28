@@ -248,14 +248,16 @@ class AssignmentsService(AsyncBaseService):
             if not assigned_to.get("desk"):
                 raise SuperdeskApiError.badRequestError(message="Assignment should have a desk.")
 
-        if original.get("assigned_to", {}).get("desk") != assigned_to.get("desk"):
-            if original.get("assigned_to", {}).get("state") in [
-                ASSIGNMENT_WORKFLOW_STATE.IN_PROGRESS,
-                ASSIGNMENT_WORKFLOW_STATE.SUBMITTED,
-            ]:
-                raise SuperdeskApiError.forbiddenError(
-                    message="Assignment linked to content. Desk reassignment not allowed."
-                )
+        multi_content_disabled = not assignment_allows_multiple_content_linked(original)
+        desk_changed = original.get("assigned_to", {}).get("desk") != assigned_to.get("desk")
+        in_progress_or_submitted = original.get("assigned_to", {}).get("state") in [
+            ASSIGNMENT_WORKFLOW_STATE.IN_PROGRESS,
+            ASSIGNMENT_WORKFLOW_STATE.SUBMITTED,
+        ]
+        if multi_content_disabled and desk_changed and in_progress_or_submitted:
+            raise SuperdeskApiError.forbiddenError(
+                message="Assignment linked to content. Desk reassignment not allowed."
+            )
 
     async def validate_assignment_action(self, assignment: dict) -> None:
         if assignment.get("_to_delete"):
