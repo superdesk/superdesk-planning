@@ -409,8 +409,8 @@ export type IDateTime = moment.MomentInput;
 export interface IEmbeddedCoverageItem {
     coverage_id?: IPlanningCoverageItem['coverage_id'];
     g2_content_type: ICoveragePlanningDetails['g2_content_type'];
-    desk: IPlanningAssignedTo['desk'];
-    user: IPlanningAssignedTo['user'];
+    desk?: IPlanningAssignedTo['desk'];
+    user?: IPlanningAssignedTo['user'];
     language: ICoveragePlanningDetails['language'];
     news_coverage_status: IPlanningNewsCoverageStatus['qcode'];
     scheduled: ICoveragePlanningDetails['scheduled'];
@@ -654,7 +654,7 @@ export interface ICoverageScheduledUpdate {
     scheduled_update_id: string;
     coverage_id: string;
     workflow_status: IPlanningWorkflowStatus;
-    assigned_to: IPlanningAssignedTo;
+    assigned_to?: IPlanningAssignedTo;
     previous_status: IPlanningWorkflowStatus;
     news_coverage_status: IPlanningNewsCoverageStatus;
     planning: {
@@ -687,7 +687,7 @@ export interface IPlanningCoverageItem {
     news_coverage_status: IPlanningNewsCoverageStatus;
     workflow_status: IPlanningWorkflowStatus;
     previous_status: IPlanningWorkflowStatus;
-    assigned_to: IPlanningAssignedTo;
+    assigned_to?: IPlanningAssignedTo;
     flags: {
         no_content_linking: boolean;
     };

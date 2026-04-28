@@ -812,8 +812,8 @@ const createEventTemplate = (item: IEventItem) => (dispatch, getState, {api, mod
                                 coverages: planning.coverages.map((coverage) => ({
                                     coverage_id: coverage.coverage_id,
                                     g2_content_type: coverage.planning.g2_content_type,
-                                    desk: coverage.assigned_to.desk,
-                                    user: coverage.assigned_to.user,
+                                    desk: coverage.assigned_to?.desk,
+                                    user: coverage.assigned_to?.user,
                                     language: coverage.planning.language,
                                     news_coverage_status: coverage.news_coverage_status.qcode,
                                     scheduled: coverage.planning.scheduled,
