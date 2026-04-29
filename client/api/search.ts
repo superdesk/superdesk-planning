@@ -31,8 +31,12 @@ export function arrayToString(items?: Array<string | number>): string {
 }
 
 export function convertCommonParams(params: ISearchParams): Partial<ISearchAPIParams> {
-    const createdStartDate = params.created_start_date ?? params.advancedSearch?.created_start_date;
-    const createdEndDate = params.created_end_date ?? params.advancedSearch?.created_end_date;
+    const createdStartDate = params.created_start_date !== undefined ?
+        params.created_start_date :
+        params.advancedSearch?.created_start_date;
+    const createdEndDate = params.created_end_date !== undefined ?
+        params.created_end_date :
+        params.advancedSearch?.created_end_date;
 
     return {
         item_ids: arrayToString(params.item_ids),

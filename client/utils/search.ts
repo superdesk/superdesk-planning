@@ -17,8 +17,12 @@ import {getTimeZoneOffset, timeUtils} from './index';
 import {appConfig} from 'appConfig';
 
 function commonParamsToSearchParams(params: ICommonSearchParams<IEventOrPlanningItem>): ISearchParams {
-    const createdStartDate = params.created_start_date ?? params.advancedSearch?.created_start_date;
-    const createdEndDate = params.created_end_date ?? params.advancedSearch?.created_end_date;
+    const createdStartDate = params.created_start_date !== undefined ?
+        params.created_start_date :
+        params.advancedSearch?.created_start_date;
+    const createdEndDate = params.created_end_date !== undefined ?
+        params.created_end_date :
+        params.advancedSearch?.created_end_date;
 
     return {
         item_ids: params.itemIds,
@@ -57,8 +61,12 @@ function commonParamsToSearchParams(params: ICommonSearchParams<IEventOrPlanning
 }
 
 function searchParamsToCommonParams(params: ISearchParams): ICommonSearchParams<IEventOrPlanningItem> {
-    const createdStartDate = params.created_start_date != undefined ? moment(params.created_start_date) : undefined;
-    const createdEndDate = params.created_end_date != undefined ? moment(params.created_end_date) : undefined;
+    const createdStartDate = params.created_start_date !== undefined ?
+        params.created_start_date :
+        params.advancedSearch?.created_start_date;
+    const createdEndDate = params.created_end_date !== undefined ?
+        params.created_end_date :
+        params.advancedSearch?.created_end_date;
 
     return {
         itemIds: params.item_ids,
