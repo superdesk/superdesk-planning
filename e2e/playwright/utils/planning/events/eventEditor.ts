@@ -64,7 +64,7 @@ export class EventEditor extends Editor {
             },
             occur_status: new SelectInput(page, getParent, '[data-test-id="field-occur_status"] select'),
             calendars: new TreeSelect(page, getParent, '[data-test-id=field-calendars]', true),
-            anpa_category: new SelectMetaTerms(page, getParent, '[data-test-id="field-anpa_category"]'),
+            anpa_category: new TreeSelect(page, getParent, '[data-test-id="field-anpa_category"]'),
             subject: new SelectMetaTerms(page, getParent, '[data-test-id="field-subject"]'),
             links: new LinkInput(page, getParent, '[data-test-id="field-links"]'),
             event_contact_info: new ContactsInput(page, getParent, '[data-test-id="field-event_contact_info"]'),

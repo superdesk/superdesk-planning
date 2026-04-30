@@ -41,14 +41,19 @@ const updatePreferences = (updates, key) => (
 const setCoverageDefaultDesk = (coverage: IPlanningCoverageItem) => (
     (dispatch, getState) => {
         const coverageProfileId = coverage.profile ?? coverage.planning?.g2_content_type;
+        const coverageDeskId = coverage.assigned_to?.desk;
         const coverageDeskPref = preferredCoverageDesks(getState());
 
-        if (coverageDeskPref.desks?.[coverageProfileId] !== coverage.assigned_to?.desk) {
+        if (!coverageProfileId || !coverageDeskId) {
+            return Promise.resolve();
+        }
+
+        if (coverageDeskPref.desks?.[coverageProfileId] !== coverageDeskId) {
             const update = {
                 [COVERAGES.DEFAULT_DESK_PREFERENCE]: {
                     desks: {
                         ...(coverageDeskPref.desks ?? {}),
-                        [coverageProfileId]: coverage.assigned_to.desk,
+                        [coverageProfileId]: coverageDeskId,
                     },
                 },
             };

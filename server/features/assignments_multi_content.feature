@@ -649,3 +649,42 @@ Feature: Assignment with multiple linked content
         """
         {"task": {"desk": "#desks_0._id#"}}
         """
+
+    @auth
+    @vocabularies
+    Scenario: Desk re-assignment not allowed if multiple_content disabled when assignment is in progress or submitted
+        When we patch "/planning/#planning._id#"
+        """
+        {"coverages": [{
+            "coverage_id": "#COVERAGE_ID#",
+            "planning": {
+                "slugline": "test slugline",
+                "g2_content_type": "text",
+                "multiple_content": false
+            },
+            "assigned_to": {
+                "assignment_id": "#ASSIGNMENT_ID#",
+                "desk": "#desks._id#",
+                "user": "#CONTEXT_USER_ID#"
+            },
+            "news_coverage_status": {"qcode": "ncostat:int"},
+            "workflow_status": "assigned"
+        }]}
+        """
+        Then we get OK response
+
+        When we post to "/assignments/content"
+        """
+        [{"assignment_id": "#ASSIGNMENT_ID#"}]
+        """
+        Then we get OK response
+        When we get "/assignments/#ASSIGNMENT_ID#"
+        Then we get existing resource
+        """
+        {"assigned_to": {"state": "in_progress"}}
+        """
+        When we patch "/assignments/#ASSIGNMENT_ID#"
+        """
+        {"assigned_to": {"desk": "#desks_0._id#", "user": "#CONTEXT_USER_ID#"}}
+        """
+        Then we get error 400

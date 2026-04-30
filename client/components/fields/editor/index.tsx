@@ -1,4 +1,3 @@
-import {EditorFieldCategories} from './Categories';
 import {EditorFieldCoverageType} from './CoverageType';
 import {EditorFieldEndDateTime} from './EndDateTime';
 import {EditorFieldFeatured} from './Featured';
@@ -59,7 +58,6 @@ import {EditorFieldCreationDate} from './CreationDate';
  * other fields from a different place through `registerEditorField`
 */
 export const FIELD_TO_EDITOR_COMPONENT = {
-    anpa_category: EditorFieldCategories,
     featured: EditorFieldFeatured,
     source: EditorFieldIngestSource,
     location: EditorFieldLocation,

@@ -150,8 +150,8 @@ function create(updates: Partial<IEventItem>): Promise<Array<IEventItem>> {
             coverages: planning.coverages.map((coverage) => ({
                 coverage_id: coverage.coverage_id,
                 g2_content_type: coverage.planning.g2_content_type,
-                desk: coverage.assigned_to.desk,
-                user: coverage.assigned_to.user,
+                desk: coverage.assigned_to?.desk,
+                user: coverage.assigned_to?.user,
                 language: coverage.planning.language,
                 news_coverage_status: coverage.news_coverage_status.qcode,
                 scheduled: coverage.planning.scheduled,
@@ -160,7 +160,7 @@ function create(updates: Partial<IEventItem>): Promise<Array<IEventItem>> {
                 ednote: coverage.planning.ednote,
                 internal_note: coverage.planning.internal_note,
                 headline: coverage.planning.headline,
-                coverage_provider: coverage.assigned_to.coverage_provider
+                coverage_provider: coverage.assigned_to?.coverage_provider
             })),
         })),
         update_method: updates.update_method?.value ?? updates.update_method
@@ -201,8 +201,8 @@ function update(original: IEventItem, updates: Partial<IEventItem>): Promise<Arr
             coverages: planning.coverages.map((coverage) => ({
                 coverage_id: coverage.coverage_id,
                 g2_content_type: coverage.planning.g2_content_type,
-                desk: coverage.assigned_to.desk,
-                user: coverage.assigned_to.user,
+                desk: coverage.assigned_to?.desk,
+                user: coverage.assigned_to?.user,
                 language: coverage.planning.language,
                 news_coverage_status: coverage.news_coverage_status.qcode,
                 scheduled: coverage.planning.scheduled,
@@ -211,7 +211,7 @@ function update(original: IEventItem, updates: Partial<IEventItem>): Promise<Arr
                 ednote: coverage.planning.ednote,
                 internal_note: coverage.planning.internal_note,
                 headline: coverage.planning.headline,
-                coverage_provider: coverage.assigned_to.coverage_provider
+                coverage_provider: coverage.assigned_to?.coverage_provider
             })),
         })),
         update_method: updates.update_method?.value ?? updates.update_method ?? original.update_method

@@ -11,6 +11,8 @@ import {
     IG2ContentType,
     IItemAction,
     IPlanningItem,
+    IPlanningCoverageItem,
+    ICoverageScheduledUpdate,
 } from '../interfaces';
 
 import {ASSIGNMENTS, PRIVILEGES} from '../constants';
@@ -397,12 +399,16 @@ const getAssignmentGroupsByStates = (groups, states) => {
     return groupKeys;
 };
 
-const canEditDesk = (assignment) => {
-    const state = get(assignment, 'assigned_to.state');
-
-    return state !== ASSIGNMENTS.WORKFLOW_STATE.SUBMITTED &&
-        state !== ASSIGNMENTS.WORKFLOW_STATE.IN_PROGRESS;
-};
+function canEditDesk(assignment: IAssignmentItem | IPlanningCoverageItem | ICoverageScheduledUpdate): boolean {
+    return (
+        assignment.planning?.multiple_content === true
+        || assignment.assigned_to?.state == null
+        || [
+            ASSIGNMENTS.WORKFLOW_STATE.DRAFT,
+            ASSIGNMENTS.WORKFLOW_STATE.ASSIGNED,
+        ].includes(assignment.assigned_to.state)
+    );
+}
 
 const isAssignmentLocked = (assignment, locks) =>
     !isNil(assignment) && (

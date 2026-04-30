@@ -1,13 +1,22 @@
 /* eslint-disable react/no-multi-comp */
+import React from 'react';
+
+import {IVocabularyItem} from 'superdesk-api';
+
+import {getVocabularyItemNameFromString} from '../../../utils/vocabularies';
+
 import {registerEditorField} from './registerEditorFields';
 import {superdeskApi} from '../../../superdeskApi';
-import {getPrioritiesForTreeSelect, getUrgenciesForTreeSelect} from '../../../selectors/vocabs';
+import {
+    getPrioritiesForTreeSelect,
+    getUrgenciesForTreeSelect,
+    getCategoriesForTreeSelect,
+} from '../../../selectors/vocabs';
 import {EditorFieldMultilingualText} from '../editor/base/multilingualText';
 import {EditorFieldTreeSelect} from '../editor/base/treeSelect';
 import {EditorFieldEventAttachments} from '../editor/EventAttachments';
 import {DropdownItemTemplate} from '../editor/dropDownTemplate';
 import {EditorFieldUser} from '../editor/User';
-import React from 'react';
 
 registerEditorField(
     'ednote',
@@ -161,4 +170,35 @@ registerEditorField(
     }),
     null,
     true
+);
+
+registerEditorField(
+    'anpa_category',
+    EditorFieldTreeSelect,
+    (props) => {
+        const vocabulary = superdeskApi.entities.vocabulary.getVocabulary('categories');
+
+        return {
+            field: 'anpa_category',
+            label: superdeskApi.localization.gettext('ANPA Category'),
+            allowMultiple: !(props.singleSelect ?? (vocabulary.selection_type !== 'multi selection')),
+            getId: (item: IVocabularyItem) => item.qcode,
+            getLabel: (item: IVocabularyItem) => (
+                getVocabularyItemNameFromString(
+                    item.qcode,
+                    vocabulary.items,
+                    'qcode',
+                    'name',
+                    props.language,
+                )
+            ),
+            // Override prepareValueForStorage to simply return the value
+            // Otherwise if `allowMultiple==false` then a single category is returned and not a list
+            valueAdapter: {prepareValueForStorage: (values) => (values)},
+        };
+    },
+    (state) => ({
+        getOptions: () => getCategoriesForTreeSelect(state),
+    }),
+    false,
 );

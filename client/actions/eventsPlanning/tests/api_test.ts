@@ -82,6 +82,30 @@ describe('actions.eventsplanning.api', () => {
                 })
                 .catch(done.fail);
         });
+
+        it('cleared created date does not fall back to nested advancedSearch value', (done) => {
+            const params = {
+                created_start_date: null,
+                created_end_date: null,
+                advancedSearch: {
+                    created_start_date: moment('2026-04-09T00:00:00+0000'),
+                    created_end_date: moment('2026-04-09T23:59:59+0000'),
+                },
+            };
+
+            store.test(done, eventsPlanningApi.query(params))
+                .then(() => {
+                    expect(planningApis.combined.search.callCount).toBe(1);
+
+                    const request = planningApis.combined.search.args[0][0];
+
+                    expect(request.created_start_date).toBeNull();
+                    expect(request.created_end_date).toBeNull();
+
+                    done();
+                })
+                .catch(done.fail);
+        });
     });
 
     describe('refetch', () => {

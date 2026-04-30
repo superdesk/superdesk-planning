@@ -26,10 +26,10 @@ export interface IEditorFieldTreeSelectProps<T = any, IItem = any> extends IEdit
      */
     valueAdapter?: {
         // e.g. getValue: (event) => [event.urgency]
-        getValue(item: IItem, field: string): Array<T>;
+        getValue?(item: IItem, field: string): Array<T>;
 
         // e.g. prepareValueForStorage: (values) => values[0].qcode
-        prepareValueForStorage(values: Array<T>, valueAsString: boolean): any;
+        prepareValueForStorage?(values: Array<T>, valueAsString: boolean): any;
     };
 }
 
