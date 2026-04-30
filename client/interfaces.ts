@@ -1438,6 +1438,7 @@ export interface IFormAutosave {
 
 export interface ISearchParams {
     ednote?: string;
+    advancedSearch?: ICommonAdvancedSearchParams;
     // Common Params
     item_ids?: Array<string>;
     name?: string;
