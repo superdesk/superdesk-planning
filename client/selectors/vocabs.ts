@@ -53,6 +53,15 @@ export const getPrioritiesForTreeSelect = createSelector<
     }
 );
 
+export const getCategoriesForTreeSelect = createSelector<
+    IPlanningAppState,
+    Array<IVocabularyItem>,
+    Array<{value: IVocabularyItem}>
+>(
+    categories,
+    (categoryItems) => (categoryItems.map((category) => ({value: category})))
+);
+
 export const getUrgenciesForTreeSelect = createSelector<
     IPlanningAppState,
     Array<IVocabularyItem>,
