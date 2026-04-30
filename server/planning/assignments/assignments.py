@@ -17,7 +17,7 @@ import logging
 from bson import ObjectId
 from icalendar import Calendar, Event
 from eve.utils import ParsedRequest
-from quart_babel import lazy_gettext
+from quart_babel import lazy_gettext, gettext
 
 import superdesk
 from superdesk.eve_async.service import AsyncBaseService
@@ -256,7 +256,7 @@ class AssignmentsService(AsyncBaseService):
         ]
         if multi_content_disabled and desk_changed and in_progress_or_submitted:
             raise SuperdeskApiError.forbiddenError(
-                message="Assignment linked to content. Desk reassignment not allowed."
+                message=gettext("Assignment linked to content. Desk reassignment not allowed.")
             )
 
     async def validate_assignment_action(self, assignment: dict) -> None:
