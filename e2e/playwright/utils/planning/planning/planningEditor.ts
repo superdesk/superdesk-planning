@@ -2,7 +2,7 @@ import {Page, Locator} from '@playwright/test';
 
 import {Editor} from '../../common/editor';
 import {CoverageEditor} from './coverageEditor';
-import {Input, SelectMetaTerms, ToggleInput, Popup, UrgencyTreeSelectInput} from '../../common';
+import {Input, SelectMetaTerms, ToggleInput, Popup, UrgencyTreeSelectInput, TreeSelect} from '../../common';
 
 /**
  * Wrapper class around Superdesk's Planning editor component
@@ -26,7 +26,7 @@ export class PlanningEditor extends Editor {
             description_text: new Input(page, getParent, '[data-test-id=field-description_text] textarea'),
             internal_note: new Input(page, getParent, '[data-test-id=field-internal_note] textarea'),
             ednote: new Input(page, getParent, '[data-test-id=field-ednote] textarea'),
-            anpa_category: new SelectMetaTerms(page, getParent, '[data-test-id=field-anpa_category]'),
+            anpa_category: new TreeSelect(page, getParent, '[data-test-id=field-anpa_category]', true),
             subject: new SelectMetaTerms(page, getParent, '[data-test-id=field-subject]'),
             urgency: new UrgencyTreeSelectInput(page, getParent, '[data-test-id=field-urgency]'),
             flags: {

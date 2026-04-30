@@ -36,7 +36,7 @@ export class AdvancedSearch {
             full_text: new Input(page, this.getParent, '[data-test-id=field-full_text] input'),
             name: new Input(page, this.getParent, '[data-test-id=field-name] input'),
             slugline: new Input(page, this.getParent, '[data-test-id=field-slugline] input'),
-            anpa_category: new SelectMetaTerms(page, this.getParent, '[data-test-id=field-anpa_category]'),
+            anpa_category: new TreeSelect(page, this.getParent, '[data-test-id=field-anpa_category]', true),
             subject: new SelectMetaTerms(page, this.getParent, '[data-test-id=field-subject]'),
             state: new SelectMetaTerms(page, this.getParent, '[data-test-id=field-state]'),
             only_posted: new ToggleInput(
