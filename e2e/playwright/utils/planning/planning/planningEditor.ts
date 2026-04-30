@@ -26,7 +26,7 @@ export class PlanningEditor extends Editor {
             description_text: new Input(page, getParent, '[data-test-id=field-description_text] textarea'),
             internal_note: new Input(page, getParent, '[data-test-id=field-internal_note] textarea'),
             ednote: new Input(page, getParent, '[data-test-id=field-ednote] textarea'),
-            anpa_category: new TreeSelect(page, getParent, '[data-test-id=field-anpa_category]', true),
+            anpa_category: new TreeSelect(page, getParent, '[data-test-id=field-anpa_category]'),
             subject: new SelectMetaTerms(page, getParent, '[data-test-id=field-subject]'),
             urgency: new UrgencyTreeSelectInput(page, getParent, '[data-test-id=field-urgency]'),
             flags: {
