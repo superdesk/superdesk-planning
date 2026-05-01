@@ -62,6 +62,7 @@ from planning.common import (
     UPDATE_FUTURE,
     UPDATE_ALL,
     POST_STATE,
+    copy_translated_values_to_root_level_fields,
 )
 from superdesk.utc import utcnow
 from itertools import chain
@@ -170,6 +171,8 @@ class PlanningService(superdesk.Service):
             self.set_planning_schedule(doc)
             # set timestamps
             update_dates_for(doc)
+
+            copy_translated_values_to_root_level_fields(doc, doc["language"])
 
             is_ingested = doc["state"] == "ingested"
             if is_ingested:
@@ -289,6 +292,7 @@ class PlanningService(superdesk.Service):
 
         self._set_coverage(updates, original)
         self.set_planning_schedule(updates, original)
+        copy_translated_values_to_root_level_fields(updates, updates.get("language", original.get("language")))
 
         if update_method and update_method != UPDATE_SINGLE:
             self._update_recurring_planning_items(updates, original, update_method)
