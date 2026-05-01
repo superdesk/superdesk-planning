@@ -893,4 +893,4 @@ def copy_translated_values_to_root_level_fields(item: dict, language: str) -> No
 
     for translation in item["translations"]:
         if translation.get("language") == language:
-            item[translation["field"]] = translation["value"]
+            item.setdefault(translation["field"], translation["value"])
