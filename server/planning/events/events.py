@@ -69,6 +69,7 @@ from planning.common import (
     update_ingest_on_patch,
     TEMP_ID_PREFIX,
     TO_BE_CONFIRMED_FIELD,
+    copy_translated_values_to_root_level_fields,
 )
 from .events_base_service import EventsBaseService
 from .events_schema import events_schema
@@ -293,6 +294,7 @@ class EventsService(superdesk.Service):
 
             set_planning_schedule(event)
             planning_item = event.get("_planning_item")
+            copy_translated_values_to_root_level_fields(event, event["language"])
 
             # validate event
             self.validate_event(event)
@@ -545,6 +547,8 @@ class EventsService(superdesk.Service):
             new_dates = deepcopy(original["dates"])
             new_dates.update(updates["dates"])
             updates["dates"] = new_dates
+
+        copy_translated_values_to_root_level_fields(updates, updates.get("language", original.get("language")))
 
         # validate event
         self.validate_event(updates, original)

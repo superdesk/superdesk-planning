@@ -876,3 +876,21 @@ def get_coverage_from_planning(planning_item: Planning, coverage_id: str) -> Opt
 def prepare_ingested_item_for_storage(doc: Union[Event, Planning]) -> None:
     doc.setdefault("state", "ingested")
     doc["ingest_pubstatus"] = doc.pop("pubstatus", "usable")  # pubstatus is set when posted
+
+
+def copy_translated_values_to_root_level_fields(item: dict, language: str) -> None:
+    """
+    Copies translated values from the 'translations' nested structure to the root level fields
+    in the given item. This ensures that language-specific values are set directly in
+    the item based on the provided language.
+
+    :param item: The item to update
+    :param language: The language code used to filter translations for copying to root level.
+    """
+
+    if not item.get("translations"):
+        return
+
+    for translation in item["translations"]:
+        if translation.get("language") == language:
+            item.setdefault(translation["field"], translation["value"])

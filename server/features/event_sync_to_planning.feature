@@ -73,8 +73,6 @@ Feature: Sync Event metadata To Planning
         """
         [{
             "guid": "event1",
-            "slugline": "slugline-en",
-            "name": "name-en",
             "ednote": "event editorial note",
             "dates": {
                 "start": "2029-11-21T12:00:00+0000",
@@ -145,8 +143,6 @@ Feature: Sync Event metadata To Planning
         When we patch "/events/#EVENT_ID#"
         """
         {
-            "slugline": "slugline-en-2",
-            "name": "name-en-2",
             "ednote": "event editorial note 2",
             "languages": ["en", "nl"],
             "anpa_category": [
@@ -245,15 +241,12 @@ Feature: Sync Event metadata To Planning
         # Now update the Event's slugline
         When we patch "/events/#EVENT_ID#"
         """
-        {
-            "slugline": "slugline-en-3",
-            "translations": [
-                {"field": "name", "language": "en", "value": "name-en-3"},
-                {"field": "name", "language": "nl", "value": "name-nl-2"},
-                {"field": "slugline", "language": "en", "value": "slugline-en-3"},
-                {"field": "slugline", "language": "nl", "value": "slugline-nl-2"}
-            ]
-        }
+        {"translations": [
+            {"field": "name", "language": "en", "value": "name-en-3"},
+            {"field": "name", "language": "nl", "value": "name-nl-2"},
+            {"field": "slugline", "language": "en", "value": "slugline-en-3"},
+            {"field": "slugline", "language": "nl", "value": "slugline-nl-2"}
+        ]}
         """
         Then we get OK response
         # Now make sure the 1st Coverage's slugline does not change
@@ -296,9 +289,6 @@ Feature: Sync Event metadata To Planning
         """
         [{
             "guid": "event1",
-            "slugline": "slugline-nl",
-            "name": "name-nl",
-            "definition_short": "desc-nl",
             "ednote": "event editorial note",
             "dates": {
                 "start": "2029-11-21T12:00:00+0000",
@@ -375,20 +365,14 @@ Feature: Sync Event metadata To Planning
 
         When we patch "/events/#EVENT_ID#"
         """
-        {
-            "slugline": "slugline-nl-2",
-            "name": "name-nl-2",
-            "ednote": "event editorial note 2",
-            "languages": ["nl", "fr"],
-            "translations": [
-                {"field": "name", "language": "nl", "value": "name-nl-2"},
-                {"field": "name", "language": "fr", "value": "name-fr-2"},
-                {"field": "slugline", "language": "nl", "value": "slugline-nl-2"},
-                {"field": "slugline", "language": "fr", "value": "slugline-fr-2"},
-                {"field": "definition_short", "language": "nl", "value": "desc-nl-2"},
-                {"field": "definition_short", "language": "fr", "value": "desc-fr-2"}
-            ]
-        }
+        {"translations": [
+            {"field": "name", "language": "nl", "value": "name-nl-2"},
+            {"field": "name", "language": "fr", "value": "name-fr-2"},
+            {"field": "slugline", "language": "nl", "value": "slugline-nl-2"},
+            {"field": "slugline", "language": "fr", "value": "slugline-fr-2"},
+            {"field": "definition_short", "language": "nl", "value": "desc-nl-2"},
+            {"field": "definition_short", "language": "fr", "value": "desc-fr-2"}
+        ]}
         """
         Then we get OK response
         When we get "/planning/#PLAN1._id#"
@@ -396,6 +380,9 @@ Feature: Sync Event metadata To Planning
         """
         {
             "_id": "#PLAN1._id#",
+            "slugline": "slugline-nl-2",
+            "name": "name-nl-2",
+            "description_text": "desc-nl-2",
             "languages": ["nl", "fr"],
             "translations": [
                 {"field": "name", "language": "nl", "value": "name-nl-2"},
@@ -426,3 +413,11 @@ Feature: Sync Event metadata To Planning
             }]
         }
         """
+        # Make sure we can lock the Planning and create an autosave from it
+        When we post to "/planning/#PLAN1._id#/lock"
+        """
+        {"lock_action": "edit"}
+        """
+        Then we store response in "PLAN1"
+        When we create "planning" autosave from context item "PLAN1"
+        Then we get OK response
