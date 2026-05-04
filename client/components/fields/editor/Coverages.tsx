@@ -1,5 +1,5 @@
 import * as React from 'react';
-import {get} from 'lodash';
+import {cloneDeep, get, isEqual} from 'lodash';
 
 import {superdeskApi, planningApi} from '../../../superdeskApi';
 import {
@@ -35,6 +35,20 @@ function copyAssignmentDetailsToCoverage(
     coverageAssignedTo.assigned_date_user = assignment.assigned_to.assigned_date_user;
     coverageAssignedTo.coverage_provider = assignment.assigned_to.coverage_provider;
     coverageAssignedTo.priority = assignment.priority;
+}
+
+function normalizeAssignedTo(
+    assignedTo: DeepPartial<IPlanningAssignedTo>,
+): DeepPartial<IPlanningAssignedTo> {
+    const normalized = cloneDeep(assignedTo) as Record<string, unknown>;
+
+    Object.keys(normalized).forEach((key) => {
+        if (normalized[key] === undefined) {
+            delete normalized[key];
+        }
+    });
+
+    return normalized as DeepPartial<IPlanningAssignedTo>;
 }
 
 export class EditorFieldCoverages extends React.PureComponent<IPropsEditorFieldCoverages> {
@@ -88,12 +102,26 @@ export class EditorFieldCoverages extends React.PureComponent<IPropsEditorFieldC
                 return;
             }
 
-            copyAssignmentDetailsToCoverage(assignment, coverageToUpdate.assigned_to);
+            const currentAssignedTo = normalizeAssignedTo(coverageToUpdate.assigned_to);
+            const updatedAssignedTo = cloneDeep(currentAssignedTo);
+
+            copyAssignmentDetailsToCoverage(assignment, updatedAssignedTo);
+
+            const normalizedUpdatedAssignedTo = normalizeAssignedTo(updatedAssignedTo);
+
+            if (isEqual(normalizedUpdatedAssignedTo, currentAssignedTo)) {
+                // Ignore websocket echoes that don't change the effective assignment payload.
+                return;
+            }
+
             const fieldName = scheduledUpdateIndex === -1 ?
                 `coverages[${coverageIndex}].assigned_to` :
                 `coverages[${coverageIndex}].scheduled_updates[${scheduledUpdateIndex}].assigned_to`;
 
-            this.props.onChange(fieldName, coverageToUpdate.assigned_to);
+            // Keep assignment sync visible in the form without triggering Save button re-activation.
+            // saveAutosave=true ensures the autosave stays in sync so re-opening the editor
+            // does not produce a stale diff that falsely re-enables Save.
+            this.props.onChange(fieldName, normalizedUpdatedAssignedTo, false, true);
         });
     }
 
