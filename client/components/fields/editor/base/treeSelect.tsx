@@ -34,6 +34,8 @@ export interface IEditorFieldTreeSelectProps<T = any, IItem = any> extends IEdit
 }
 
 export class EditorFieldTreeSelect<T> extends React.PureComponent<IEditorFieldTreeSelectProps<T>> {
+    private rowRef: React.RefObject<HTMLDivElement>;
+
     static defaultProps = {
         defaultValue: [],
     }
@@ -41,7 +43,13 @@ export class EditorFieldTreeSelect<T> extends React.PureComponent<IEditorFieldTr
     constructor(props: IEditorFieldTreeSelectProps) {
         super(props);
 
+        this.rowRef = React.createRef();
         this.onChange = this.onChange.bind(this);
+    }
+
+    // TODO: Replace with a public focus() method on the UIFramework's TreeSelect component
+    focus() {
+        this.rowRef.current?.querySelector<HTMLButtonElement>('button')?.focus();
     }
 
     onChange(values: Array<any>) {
@@ -102,7 +110,7 @@ export class EditorFieldTreeSelect<T> extends React.PureComponent<IEditorFieldTr
         const error = get(this.props.errors ?? {}, field);
 
         return (
-            <Row testId={this.props.testId} smallPadding={this.props.smallPadding}>
+            <Row testId={this.props.testId} smallPadding={this.props.smallPadding} refNode={this.rowRef}>
                 <TreeSelect
                     kind="synchronous"
                     value={this.getViewValue()}
