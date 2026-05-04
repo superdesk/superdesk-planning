@@ -1,7 +1,7 @@
-import {test, expect} from '@playwright/test';
+import {test, expect} from '../fixtures';
 import moment from 'moment/moment';
 
-import {setup, login, waitForPageLoad, SubNavBar, Workqueue, CLIENT_FORMAT} from '../utils/common';
+import {login, waitForPageLoad, SubNavBar, Workqueue, CLIENT_FORMAT} from '../utils/common';
 import {PlanningList, PlanningEditor, AssignmentEditor} from '../utils/planning';
 import {setupPlanningPublishing} from '../utils/fixtures/publish_config';
 
@@ -11,14 +11,15 @@ test.describe('Planning.Planning: edit metadata', () => {
     let subnav: SubNavBar;
     let workqueue: Workqueue;
 
-    test.beforeEach(async ({page}) => {
+    test.beforeEach(async ({page, backendApi}) => {
         list = new PlanningList(page);
         editor = new PlanningEditor(page);
         subnav = new SubNavBar(page);
         workqueue = new Workqueue(page);
 
-        await setup(page, 'planning_prepopulate_data', '/#/planning');
-        await setupPlanningPublishing(page.request);
+        await backendApi.resetApp('planning_prepopulate_data');
+        await page.goto('/#/planning');
+        await setupPlanningPublishing(backendApi);
         await login(page);
         await waitForPageLoad.planning(page);
         await subnav.createPlanning();

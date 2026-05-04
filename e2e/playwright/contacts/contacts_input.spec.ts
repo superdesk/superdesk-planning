@@ -1,8 +1,6 @@
-import {test, expect} from '@playwright/test';
+import {test, expect} from '../fixtures';
 
 import {
-    setup,
-    addItems,
     login,
     waitForPageLoad,
     SubNavBar,
@@ -24,7 +22,7 @@ test.describe('MediaContacts: contact input', () => {
     let list: PlanningList;
     let workqueue: Workqueue;
 
-    test.beforeEach(async ({page}) => {
+    test.beforeEach(async ({page, backendApi}) => {
         editors = {
             event: new EventEditor(page),
             contacts: new ContactsEditor(page),
@@ -35,9 +33,9 @@ test.describe('MediaContacts: contact input', () => {
         list = new PlanningList(page);
         workqueue = new Workqueue(page);
 
-        await setup(page, 'planning_prepopulate_data', '/#/planning');
-        await addItems(
-            page.request,
+        await backendApi.resetApp('planning_prepopulate_data');
+        await page.goto('/#/planning');
+        await backendApi.addItems(
             'contacts',
                 [{
                 first_name: 'Foo',

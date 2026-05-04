@@ -1,5 +1,6 @@
-import type {APIRequestContext} from '@playwright/test';
-import {addItems} from '../common';
+interface ItemAdder {
+    addItems(resource: string, items: Array<any>): Promise<void>;
+}
 
 export const FILTER_CONDITIONS = {
     events: {
@@ -118,9 +119,9 @@ export const SUBSCRIBERS = {
     },
 };
 
-export async function setupPlanningPublishing(request: APIRequestContext) {
-    await addItems(request, 'filter_conditions', Object.values(FILTER_CONDITIONS));
-    await addItems(request, 'content_filters', Object.values(CONTENT_FILTERS));
-    await addItems(request, 'products', Object.values(PRODUCTS));
-    await addItems(request, 'subscribers', Object.values(SUBSCRIBERS));
+export async function setupPlanningPublishing(api: ItemAdder) {
+    await api.addItems('filter_conditions', Object.values(FILTER_CONDITIONS));
+    await api.addItems('content_filters', Object.values(CONTENT_FILTERS));
+    await api.addItems('products', Object.values(PRODUCTS));
+    await api.addItems('subscribers', Object.values(SUBSCRIBERS));
 }

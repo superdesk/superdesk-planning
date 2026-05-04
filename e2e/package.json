@@ -18,17 +18,15 @@
         "typescript": "^5.8.3"
     },
     "scripts": {
-        "clean": "grunt clean",
-        "build": "npx @superdesk/build-tools build-root-repo ./",
-        "serve": "node --max-old-space-size=8192 ./node_modules/.bin/grunt server",
-        "start": "grunt server",
+        "build": "SUPERDESK_URL=http://localhost:5050/api npx @superdesk/build-tools build-root-repo ./",
         "check-types": "tsc --noEmit --resolveJsonModule",
-        "playwright": "playwright test --workers 1",
-        "playwright-interactive": "playwright test --ui",
-        "start-client-server": "http-server dist -p 9000 -s &",
-        "stop-client-server": "fuser -k 9000/tcp",
-        "start-test-server": "cd ../server && docker-compose build && docker-compose up -d",
-        "stop-test-server": "cd ../server && docker-compose stop"
+        "e2e:setup": "bash scripts/setup.sh",
+        "e2e": "docker compose up -d --wait && npx playwright test; EXIT=$?; docker compose down; exit $EXIT",
+        "e2e:ui": "docker compose up -d --wait && npx playwright test --ui",
+        "e2e:services:up": "docker compose up -d --wait",
+        "e2e:services:down": "docker compose down",
+        "playwright": "playwright test",
+        "playwright-interactive": "playwright test --ui"
     },
     "volta": {
         "node": "22.22.0"

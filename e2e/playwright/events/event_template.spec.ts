@@ -1,6 +1,6 @@
-import {test, expect} from '@playwright/test';
+import {test, expect} from '../fixtures';
 
-import {setup, login, waitForPageLoad, SubNavBar, UiFrameworkModal} from '../utils/common';
+import {login, waitForPageLoad, SubNavBar, UiFrameworkModal} from '../utils/common';
 import {EventEditor} from '../utils/planning';
 
 test.describe('Planning.Events: event templates', () => {
@@ -31,12 +31,13 @@ test.describe('Planning.Events: event templates', () => {
         'dates.end.date': '12/12/2045',
     });
 
-    test.beforeEach(async ({page}) => {
+    test.beforeEach(async ({page, backendApi}) => {
         editor = new EventEditor(page);
         subnav = new SubNavBar(page);
         modal = new UiFrameworkModal(page);
 
-        await setup(page, 'planning_prepopulate_data', '/#/planning');
+        await backendApi.resetApp('planning_prepopulate_data');
+        await page.goto('/#/planning');
         await login(page);
         await waitForPageLoad.planning(page);
         await subnav.createEvent();

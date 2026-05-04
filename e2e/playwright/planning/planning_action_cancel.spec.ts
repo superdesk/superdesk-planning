@@ -1,7 +1,7 @@
-import {test, expect} from '@playwright/test';
+import {test, expect} from '../fixtures';
 import moment from 'moment';
 
-import {setup, addItems, login, waitForPageLoad, Modal, getMenuItem} from '../utils/common';
+import {login, waitForPageLoad, Modal, getMenuItem} from '../utils/common';
 import {PlanningList, PlanningEditor, PlanningPreview} from '../utils/planning';
 import {TIME_STRINGS} from '../utils/time';
 import {setupPlanningPublishing} from '../utils/fixtures/publish_config';
@@ -12,16 +12,16 @@ test.describe('Planning.Planning: cancel planning item', () => {
     let preview: PlanningPreview;
     let list: PlanningList;
 
-    test.beforeEach(async ({page}) => {
+    test.beforeEach(async ({page, backendApi}) => {
         editor = new PlanningEditor(page);
         modal = new Modal(page);
         preview = new PlanningPreview(page);
         list = new PlanningList(page);
 
-        await setup(page, 'planning_prepopulate_data', '/#/planning');
-        await setupPlanningPublishing(page.request);
-        await addItems(
-            page.request,
+        await backendApi.resetApp('planning_prepopulate_data');
+        await page.goto('/#/planning');
+        await setupPlanningPublishing(backendApi);
+        await backendApi.addItems(
             'planning',
             [{
                 slugline: 'Test Planning Item',

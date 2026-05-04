@@ -1,63 +1,54 @@
 # Running Playwright using Distrobox
-To set up Playwright using Distrobox, you will create an isolated Ubuntu container, which Playwright officially supports, and then install Playwright and its dependencies within that container.
 
-## Step 1: Install Distrobox on your host machine
-First, ensure you have distrobox and podman (or docker) installed on your host Linux distribution. Installation methods vary by distro; for Fedora, you would use:
+Distrobox provides an isolated Ubuntu container for running Playwright on non-Ubuntu hosts.
 
+## Setup
+
+1. Install Distrobox and Podman (or Docker) on your host:
 ```bash
+# Fedora
 sudo dnf install distrobox podman
-````
-
-> [!NOTE]
-> For other distributions, refer to the official Distrobox documentation for installation instructions.
-
-## Step 2: Create a dedicated directory for containers
-It is recommended to store your container home directories separately from your host's home directory to keep things organized.
-
-```bash
-mkdir ~/distrobox
 ```
 
-## Step 3: Create the Playwright container
-Create a new container using an Ubuntu image (e.g., ubuntu:24.04) and set its home directory to the path you just created. The command below also installs essential packages like Git and Node.js automatically.
+2. Create the container:
 ```bash
+mkdir -p ~/distrobox
 distrobox create \
---name ubuntu-playwright \
---image ubuntu:24.04 \
---home ~/distrobox/ubuntu-playwright \
---additional-packages "git vim nodejs npm"
+  --name ubuntu-playwright \
+  --image ubuntu:24.04 \
+  --home ~/distrobox/ubuntu-playwright \
+  --additional-packages "git vim nodejs npm"
 ```
 
-> [!NOTE]
-> The first time you run this, it will download the Ubuntu image and other dependencies, which may take some time.
-
-## Step 4: Enter the container
-Enter the newly created container environment with the following command:
-
+3. Enter the container and install Playwright:
 ```bash
 distrobox enter ubuntu-playwright
-```
-
-Your current terminal session will now be operating within the Ubuntu container environment.
-
-## Step 5: Install Playwright within the container
-Once inside the container, you can set up your Node.js project and install Playwright using npm.
-
-Install Playwright in that directory:
-```bash
 cd e2e
 npx playwright install --with-deps chromium
 ```
 
-The npx playwright install command will download the Chromium binaries.
+## Running tests
 
-## Step 6: Run your tests
-You can now run your Playwright tests from within the container using standard Playwright CLI commands, for example:
+Infrastructure services (Mongo, Elastic, Redis) must be running on the host. Start them from the `e2e/` directory:
+
 ```bash
-npm run playwright
+npm run e2e:services:up
 ```
 
-To run tests in headed mode (with the browser GUI visible), use the --headed flag.
+Then inside the Distrobox container:
+
 ```bash
+# Full suite
+npm run playwright
+
+# Single file
+npm run playwright -- playwright/events/edit_event.spec.ts
+
+# Interactive UI mode
 npm run playwright-interactive
+```
+
+Stop services when done:
+```bash
+npm run e2e:services:down
 ```

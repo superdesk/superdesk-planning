@@ -1,6 +1,6 @@
-import {test, expect} from '@playwright/test';
+import {test, expect} from '../fixtures';
 
-import {setup, login, addItems, waitForPageLoad, SubNavBar} from '../utils/common';
+import {login, waitForPageLoad, SubNavBar} from '../utils/common';
 import {EventEditor, ManageContentProfiles} from '../utils/planning';
 import {CVs} from '../utils/fixtures/cvs';
 
@@ -11,13 +11,14 @@ test.describe('Planning.Events: multilingual functionality', () => {
     let subnav: SubNavBar;
     let manageProfiles: ManageContentProfiles;
 
-    test.beforeEach(async ({page}) => {
+    test.beforeEach(async ({page, backendApi}) => {
         editor = new EventEditor(page);
         subnav = new SubNavBar(page);
         manageProfiles = new ManageContentProfiles(page);
 
-        await setup(page, 'planning_prepopulate_data', '/#/planning');
-        await addItems(page.request, 'vocabularies', [CVs.LANGUAGES]);
+        await backendApi.resetApp('planning_prepopulate_data');
+        await page.goto('/#/planning');
+        await backendApi.addItems('vocabularies', [CVs.LANGUAGES]);
         await login(page);
         await waitForPageLoad.planning(page);
     });

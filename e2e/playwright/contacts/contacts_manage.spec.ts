@@ -1,6 +1,6 @@
-import {test, expect} from '@playwright/test';
+import {test, expect} from '../fixtures';
 
-import {setup, login, waitForPageLoad, SubNavBar} from '../utils/common';
+import {login, waitForPageLoad, SubNavBar} from '../utils/common';
 import {ContactsEditor, ContactsList} from '../utils/contacts';
 
 test.describe('MediaContacts: contacts manager', () => {
@@ -9,12 +9,13 @@ test.describe('MediaContacts: contacts manager', () => {
     let subnav: SubNavBar;
     let contact: {[key: string]: any};
 
-    test.beforeEach(async ({page}) => {
+    test.beforeEach(async ({page, backendApi}) => {
         editor = new ContactsEditor(page);
         list = new ContactsList(page);
         subnav = new SubNavBar(page);
 
-        await setup(page, 'planning_prepopulate_data', '/#/contacts');
+        await backendApi.resetApp('planning_prepopulate_data');
+        await page.goto('/#/contacts');
         await login(page);
         await waitForPageLoad.contacts(page);
     });

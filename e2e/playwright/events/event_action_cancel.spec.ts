@@ -1,9 +1,8 @@
-import {test, expect, Page, Locator} from '@playwright/test';
+import {test, expect} from '../fixtures';
+import type {Page, Locator} from '@playwright/test';
 
 import {
-    setup,
     login,
-    addItems,
     waitForPageLoad,
     UiFrameworkModal,
     Modal,
@@ -22,16 +21,16 @@ test.describe('Planning.Events: event cancel action', () => {
     let menu: ActionMenu;
     let reason: string;
 
-    test.beforeEach(async({page}) => {
+    test.beforeEach(async({page, backendApi}) => {
         editor = new EventEditor(page);
         modal = new Modal(page);
         ignoreCancelSaveModal = new UiFrameworkModal(page);
         preview = new PlanningPreview(page);
         list = new PlanningList(page);
 
-        await setup(page, 'planning_prepopulate_data', '/#/planning');
-        await addItems(
-            page.request,
+        await backendApi.resetApp('planning_prepopulate_data');
+        await page.goto('/#/planning');
+        await backendApi.addItems(
             'events',
             [createEventFor.today({
                 type: 'event',

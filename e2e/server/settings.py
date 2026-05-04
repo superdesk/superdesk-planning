@@ -30,11 +30,13 @@ LOG_CONFIG_FILE = env('LOG_CONFIG_FILE', 'logging_config.yml')
 REDIS_URL = env('REDIS_URL', 'redis://localhost:6379')
 BROKER_URL = env('CELERY_BROKER_URL', REDIS_URL)
 
-MONGO_DBNAME = 'e2e_superdesk'
-MONGO_URI = os.environ.get("MONGO_URI", 'mongodb://localhost/%s' % MONGO_DBNAME)
+MONGO_DBNAME = os.environ.get('MONGO_DBNAME', 'e2e_superdesk')
+MONGO_URI = os.environ.get('MONGO_URI', 'mongodb://localhost/%s' % MONGO_DBNAME)
 
-ARCHIVED_DBNAME = 'e2e_archived'
-ARCHIVED_URI = os.environ.get("ARCHIVED_MONGO_URI", 'mongodb://localhost/%s' % ARCHIVED_DBNAME)
+ARCHIVED_DBNAME = os.environ.get('ARCHIVED_DBNAME', 'e2e_archived')
+ARCHIVED_URI = os.environ.get('ARCHIVED_MONGO_URI', 'mongodb://localhost/%s' % ARCHIVED_DBNAME)
+
+ELASTICSEARCH_INDEX = os.environ.get('ELASTICSEARCH_INDEX', 'superdesk_e2e')
 
 LEGAL_ARCHIVE = False
 CONTENTAPI_ENABLED = False

@@ -1,6 +1,6 @@
-import {test, expect} from '@playwright/test';
+import {test, expect} from '../fixtures';
 
-import {setup, login, waitForPageLoad, SubNavBar, changeWorkspace, Modal} from '../utils/common';
+import {login, waitForPageLoad, SubNavBar, changeWorkspace, Modal} from '../utils/common';
 import {PlanningList, PlanningEditor, AssignmentEditor, AssignmentPreview} from '../utils/planning';
 import {getMenuItem} from '../utils/common';
 
@@ -11,14 +11,15 @@ test.describe('Planning.Assignment: reassign assignment', () => {
     let modal: Modal;
     let preview: AssignmentPreview;
 
-    test.beforeEach(async ({page}) => {
+    test.beforeEach(async ({page, backendApi}) => {
         editor = new PlanningEditor(page);
         subnav = new SubNavBar(page);
         list = new PlanningList(page);
         modal = new Modal(page);
         preview = new AssignmentPreview(page);
 
-        await setup(page, 'planning_prepopulate_data', '/#/planning');
+        await backendApi.resetApp('planning_prepopulate_data');
+        await page.goto('/#/planning');
 
         await login(page);
 

@@ -1,7 +1,7 @@
-import {test, expect} from '@playwright/test';
+import {test, expect} from '../fixtures';
 import moment from 'moment';
 
-import {setup, login, waitForPageLoad, SubNavBar, CLIENT_FORMAT} from '../utils/common';
+import {login, waitForPageLoad, SubNavBar, CLIENT_FORMAT} from '../utils/common';
 import {PlanningList, EventEditor} from '../utils/planning';
 import {getDateStringFor} from '../utils/time';
 
@@ -17,12 +17,13 @@ test.describe('Planning.Events: all day events and events without end time', () 
         calendars: ['Sport'],
     };
 
-    test.beforeEach(async ({page}) => {
+    test.beforeEach(async ({page, backendApi}) => {
         editor = new EventEditor(page);
         subnav = new SubNavBar(page);
         list = new PlanningList(page);
 
-        await setup(page, 'planning_prepopulate_data', '/#/planning');
+        await backendApi.resetApp('planning_prepopulate_data');
+        await page.goto('/#/planning');
         await login(page);
         await waitForPageLoad.planning(page);
         await subnav.createEvent();

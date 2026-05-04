@@ -1,6 +1,6 @@
-import {test, expect} from '@playwright/test';
+import {test, expect} from '../fixtures';
 
-import {setup, login, waitForPageLoad, addItems} from '../utils/common';
+import {login, waitForPageLoad} from '../utils/common';
 import {PlanningList} from '../utils/planning';
 import {TIME_STRINGS, TIMEZONE} from '../utils/time';
 import {createPlanningFor} from '../utils/fixtures/planning';
@@ -9,13 +9,13 @@ import {createEventFor} from '../utils/fixtures/events';
 test.describe('Planning.Planning: list view accessibility', () => {
     let list: PlanningList;
 
-    test.beforeEach(async ({page}) => {
+    test.beforeEach(async ({page, backendApi}) => {
         list = new PlanningList(page);
 
-        await setup(page, 'planning_prepopulate_data', '/#/planning');
+        await backendApi.resetApp('planning_prepopulate_data');
+        await page.goto('/#/planning');
 
-        await addItems(
-            page.request,
+        await backendApi.addItems(
             'planning',
             [
                 createPlanningFor.today({slugline: 'group 1, item 1'}, TIME_STRINGS[0]),
@@ -27,8 +27,7 @@ test.describe('Planning.Planning: list view accessibility', () => {
             ],
         );
 
-        await addItems(
-            page.request,
+        await backendApi.addItems(
             'events',
             [
                 createEventFor.today(

@@ -5,62 +5,39 @@ services:
         image: docker.elastic.co/elasticsearch/elasticsearch:7.17.23
         environment:
             - discovery.type=single-node
-        networks:
-            - e2e
+            - xpack.security.enabled=false
         ports:
-            - "9200:9200"
+            - "127.0.0.1:9200:9200"
         tmpfs:
             - /usr/share/elasticsearch/data
         deploy:
             resources:
                 limits:
                     memory: 2g
+        healthcheck:
+            test: ["CMD-SHELL", "curl -sf http://localhost:9200/_cluster/health || exit 1"]
+            interval: 5s
+            timeout: 5s
+            retries: 12
 
     redis:
         image: redis:alpine
-        networks:
-            - e2e
         ports:
-            - "6379:6379"
+            - "127.0.0.1:6379:6379"
+        healthcheck:
+            test: ["CMD", "redis-cli", "ping"]
+            interval: 3s
+            timeout: 3s
+            retries: 5
 
     mongo:
         image: mongo:6
-        networks:
-            - e2e
         ports:
-            - "27017:27017"
+            - "127.0.0.1:27017:27017"
         tmpfs:
             - /data/db
-
-    server:
-        build: 
-            context: ../
-            dockerfile: e2e/server/Dockerfile
-        ports:
-            - "5000:5000"
-            - "5100:5100"
-        networks:
-            - e2e
-        depends_on:
-            - redis
-            - mongo
-            - elastic
-        environment:
-            - WEB_CONCURRENCY=2
-            - WEBPACK_MANIFEST_PATH=/opt/client-dist/manifest.json
-            - MONGO_URI=mongodb://mongo/e2e_superdesk
-            - ARCHIVED_MONGO_URI=mongodb://mongo/e2e_archived
-            - CONTENTAPI_MONGO_URI=mongodb://mongo/e2e_capi
-            - PUBLICAPI_MONGO_URI=mongodb://mongo/e2e_pubapi
-            - LEGAL_ARCHIVE_URI=mongodb://mongo/e2e_legal
-            - ARCHIVED_URI=mongodb://mongo/e2e_archived
-            - ELASTICSEARCH_URL=http://elastic:9200
-            - ELASTICSEARCH_INDEX=superdesk_e2e
-            - CELERY_BROKER_URL=redis://redis:6379/1
-            - REDIS_URL=redis://redis:6379/1
-            - DEFAULT_TIMEZONE=Australia/Sydney
-            - SECRET_KEY=e2e
-
-networks:
-    e2e:
-        driver: bridge
+        healthcheck:
+            test: ["CMD", "mongosh", "--eval", "db.runCommand('ping').ok"]
+            interval: 3s
+            timeout: 3s
+            retries: 5

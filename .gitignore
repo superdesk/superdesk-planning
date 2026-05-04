@@ -2,6 +2,7 @@ bower_components
 node_modules
 nbproject
 bower
+.venv
 dist
 dist/*
 templates-cache.generated.js

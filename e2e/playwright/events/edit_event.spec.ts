@@ -1,8 +1,8 @@
-import {test, expect} from '@playwright/test';
+import {test, expect} from '../fixtures';
 import moment from 'moment';
 import {cloneDeep} from 'lodash';
 
-import {setup, login, waitForPageLoad, SubNavBar, Workqueue, Modal, addItems, CLIENT_FORMAT} from '../utils/common';
+import {login, waitForPageLoad, SubNavBar, Workqueue, Modal, CLIENT_FORMAT} from '../utils/common';
 import {EventEditor, PlanningList} from '../utils/planning';
 import {createEventFor, TEST_EVENTS} from '../utils/fixtures/events';
 import {setupPlanningPublishing} from '../utils/fixtures/publish_config';
@@ -16,7 +16,7 @@ test.describe('Planning.Events: edit metadata', () => {
     let event: any;
     let expectedEvent: any;
 
-    test.beforeEach(async ({page}) => {
+    test.beforeEach(async ({page, backendApi}) => {
         list = new PlanningList(page);
         editor = new EventEditor(page);
         subnav = new SubNavBar(page);
@@ -45,7 +45,8 @@ test.describe('Planning.Events: edit metadata', () => {
             'dates.end.date': moment().format(CLIENT_FORMAT),
         };
 
-        await setup(page, 'planning_prepopulate_data', '/#/planning');
+        await backendApi.resetApp('planning_prepopulate_data');
+        await page.goto('/#/planning');
         await login(page);
         await waitForPageLoad.planning(page);
         await subnav.createEvent();
@@ -69,8 +70,8 @@ test.describe('Planning.Events: edit metadata', () => {
         await workqueue.expectTitle(0, 'slugline of the event');
     });
 
-    test('can create a Recurring Event', async ({page}) => {
-        await setupPlanningPublishing(page.request);
+    test('can create a Recurring Event', async ({page: _page, backendApi}) => {
+        await setupPlanningPublishing(backendApi);
         await list.expectEmpty();
         await editor.expectItemType();
 
@@ -125,8 +126,8 @@ test.describe('Planning.Events: edit metadata', () => {
         ).toContainText('Scheduled');
     });
 
-    test('Post updates the initial values', async ({page}) => {
-        await setupPlanningPublishing(page.request);
+    test('Post updates the initial values', async ({page: _page, backendApi}) => {
+        await setupPlanningPublishing(backendApi);
         // Enter minimum Event metadata
         await editor.expectItemType();
         await editor.type({
@@ -164,11 +165,12 @@ test.describe('Planing.Events: edit existing events', () => {
     let list: PlanningList;
     let editor: EventEditor;
 
-    test.beforeEach(async ({page}) => {
+    test.beforeEach(async ({page, backendApi}) => {
         list = new PlanningList(page);
         editor = new EventEditor(page);
-        await setup(page, 'planning_prepopulate_data', '/#/planning');
-        await addItems(page.request, 'events', [createEventFor.tomorrow({
+        await backendApi.resetApp('planning_prepopulate_data');
+        await page.goto('/#/planning');
+        await backendApi.addItems('events', [createEventFor.tomorrow({
             ...cloneDeep(TEST_EVENTS.date_01_02_2045),
         }), createEventFor.tomorrow({
             ...cloneDeep(TEST_EVENTS.date_02_02_2045),

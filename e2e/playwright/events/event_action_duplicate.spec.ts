@@ -1,7 +1,7 @@
-import {test} from '@playwright/test';
+import {test} from '../fixtures';
 import moment from 'moment/moment';
 
-import {setup, login, waitForPageLoad, UiFrameworkModal, SubNavBar, CLIENT_FORMAT} from '../utils/common';
+import {login, waitForPageLoad, UiFrameworkModal, SubNavBar, CLIENT_FORMAT} from '../utils/common';
 import {PlanningList, PlanningPreview, EventEditor} from '../utils/planning';
 
 test.describe('Planning.Events: duplicate event', () => {
@@ -14,7 +14,7 @@ test.describe('Planning.Events: duplicate event', () => {
     let list: PlanningList;
     let preview: PlanningPreview;
 
-    test.beforeEach(async({page}) => {
+    test.beforeEach(async({page, backendApi}) => {
         editor = new EventEditor(page);
         modal = new UiFrameworkModal(page);
         subnav = new SubNavBar(page);
@@ -44,7 +44,8 @@ test.describe('Planning.Events: duplicate event', () => {
             'dates.end.time': '01:00',
         });
 
-        await setup(page, 'planning_prepopulate_data', '/#/planning');
+        await backendApi.resetApp('planning_prepopulate_data');
+        await page.goto('/#/planning');
         await login(page);
         await waitForPageLoad.planning(page);
     });

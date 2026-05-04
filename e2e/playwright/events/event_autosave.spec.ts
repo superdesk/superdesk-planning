@@ -1,6 +1,6 @@
-import {test} from '@playwright/test';
+import {test} from '../fixtures';
 
-import {setup, login, waitForPageLoad, SubNavBar, Workqueue} from '../utils/common';
+import {login, waitForPageLoad, SubNavBar, Workqueue} from '../utils/common';
 import {PlanningList, EventEditor} from '../utils/planning';
 
 test.describe('Planning.Events: autosave', () => {
@@ -12,13 +12,14 @@ test.describe('Planning.Events: autosave', () => {
     let event;
     let expectedEvent;
 
-    test.beforeEach(async ({page}) => {
+    test.beforeEach(async ({page, backendApi}) => {
         editor = new EventEditor(page);
         subnav = new SubNavBar(page);
         list = new PlanningList(page);
         workqueue = new Workqueue(page);
 
-        await setup(page, 'planning_prepopulate_data', '/#/planning');
+        await backendApi.resetApp('planning_prepopulate_data');
+        await page.goto('/#/planning');
         await login(page);
         await waitForPageLoad.planning(page);
         await subnav.createEvent();

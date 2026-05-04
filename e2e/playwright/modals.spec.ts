@@ -1,6 +1,6 @@
-import {test, expect} from '@playwright/test';
+import {test, expect} from './fixtures';
 
-import {setup, login, waitForPageLoad, addItems, Modal} from './utils/common';
+import {login, waitForPageLoad, Modal} from './utils/common';
 import {EventEditor, PlanningList} from './utils/planning';
 import {createEventFor} from './utils/fixtures/events';
 
@@ -9,20 +9,20 @@ test.describe('Planning.Modals', () => {
     let list: PlanningList;
     let modal: Modal;
 
-    test.beforeEach(async({page}) => {
+    test.beforeEach(async({page, backendApi}) => {
         editor = new EventEditor(page);
         list = new PlanningList(page);
         modal = new Modal(page);
 
-        await setup(page, 'planning_prepopulate_data', '/#/planning');
+        await backendApi.resetApp('planning_prepopulate_data');
+        await page.goto('/#/planning');
         await login(page);
         await waitForPageLoad.planning(page);
     });
 
-    test('confirmation modal opens and closes on action when autoClose is truthy', async({page}) => {
+    test('confirmation modal opens and closes on action when autoClose is truthy', async({page, backendApi}) => {
         // Add a test event
-        await addItems(
-            page.request,
+        await backendApi.addItems(
             'events',
             [createEventFor.today({
                 slugline: 'Test Event for Spike',
@@ -69,10 +69,9 @@ test.describe('Planning.Modals', () => {
         expect(finalUrl).not.toBe(initialUrl);
     });
 
-    test('confirmation modal can be cancelled', async({page}) => {
+    test('confirmation modal can be cancelled', async({page, backendApi}) => {
         // Add a test event
-        await addItems(
-            page.request,
+        await backendApi.addItems(
             'events',
             [createEventFor.today({
                 slugline: 'Test Event for Cancel',

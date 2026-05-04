@@ -1,6 +1,6 @@
-import {test, expect} from '@playwright/test';
+import {test, expect} from './fixtures';
 
-import {setup, login, waitForPageLoad, addItems, UiFrameworkModal, SubNavBar} from './utils/common';
+import {login, waitForPageLoad, UiFrameworkModal, SubNavBar} from './utils/common';
 import {EventEditor, PlanningList, PlanningEditor} from './utils/planning';
 import {createEventFor} from './utils/fixtures/events';
 
@@ -10,21 +10,21 @@ test.describe('Planning.IgnoreCancelSaveModal', () => {
     let modal: UiFrameworkModal;
     let subnav: SubNavBar;
 
-    test.beforeEach(async({page}) => {
+    test.beforeEach(async({page, backendApi}) => {
         editor = new EventEditor(page);
         list = new PlanningList(page);
         modal = new UiFrameworkModal(page);
         subnav = new SubNavBar(page);
 
-        await setup(page, 'planning_prepopulate_data', '/#/planning');
+        await backendApi.resetApp('planning_prepopulate_data');
+        await page.goto('/#/planning');
         await login(page);
         await waitForPageLoad.planning(page);
     });
 
-    test('renders Ignore/Cancel/Save buttons for unpublished item with changes', async({page}) => {
+    test('renders Ignore/Cancel/Save buttons for unpublished item with changes', async({page, backendApi}) => {
         // Add a test event
-        await addItems(
-            page.request,
+        await backendApi.addItems(
             'events',
             [createEventFor.today({
                 slugline: 'Test Event',
@@ -57,10 +57,9 @@ test.describe('Planning.IgnoreCancelSaveModal', () => {
         await modal.waitTillClosed();
     });
 
-    test('renders Ignore/Cancel/Update buttons for published item with changes', async({page}) => {
+    test('renders Ignore/Cancel/Update buttons for published item with changes', async({page, backendApi}) => {
         // Add a published event
-        await addItems(
-            page.request,
+        await backendApi.addItems(
             'events',
             [createEventFor.today({
                 slugline: 'Published Event',
@@ -120,10 +119,9 @@ test.describe('Planning.IgnoreCancelSaveModal', () => {
         await modal.waitTillClosed();
     });
 
-    test('executes Ignore callback', async({page}) => {
+    test('executes Ignore callback', async({page, backendApi}) => {
         // Add a test event
-        await addItems(
-            page.request,
+        await backendApi.addItems(
             'events',
             [createEventFor.today({
                 slugline: 'Test Event',
@@ -154,10 +152,9 @@ test.describe('Planning.IgnoreCancelSaveModal', () => {
         await editor.waitTillClosed();
     });
 
-    test('executes Cancel callback', async({page}) => {
+    test('executes Cancel callback', async({page, backendApi}) => {
         // Add a test event
-        await addItems(
-            page.request,
+        await backendApi.addItems(
             'events',
             [createEventFor.today({
                 slugline: 'Test Event',
@@ -189,10 +186,9 @@ test.describe('Planning.IgnoreCancelSaveModal', () => {
         await editor.expect({slugline: 'Modified Event'});
     });
 
-    test('executes Save callback', async({page}) => {
+    test('executes Save callback', async({page, backendApi}) => {
         // Add a test event
-        await addItems(
-            page.request,
+        await backendApi.addItems(
             'events',
             [createEventFor.today({
                 slugline: 'Test Event',

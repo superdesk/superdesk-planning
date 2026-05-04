@@ -1,6 +1,6 @@
-import {test, expect} from '@playwright/test';
+import {test, expect} from '../fixtures';
 
-import {setup, login, waitForPageLoad, SubNavBar, changeWorkspace, UiFrameworkModal} from '../utils/common';
+import {login, waitForPageLoad, SubNavBar, changeWorkspace, UiFrameworkModal} from '../utils/common';
 import {PlanningList, PlanningEditor, AssignmentEditor} from '../utils/planning';
 import {getMenuItem} from '../utils/common';
 
@@ -10,13 +10,14 @@ test.describe('Planning.Assignment: remove assignment', () => {
     let list: PlanningList;
     let modal: UiFrameworkModal;
 
-    test.beforeEach(async({page}) => {
+    test.beforeEach(async({page, backendApi}) => {
         editor = new PlanningEditor(page);
         subnav = new SubNavBar(page);
         list = new PlanningList(page);
         modal = new UiFrameworkModal(page);
 
-        await setup(page, 'planning_prepopulate_data', '/#/planning');
+        await backendApi.resetApp('planning_prepopulate_data');
+        await page.goto('/#/planning');
 
         await login(page);
 

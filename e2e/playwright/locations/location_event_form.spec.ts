@@ -1,6 +1,6 @@
-import {test, expect} from '@playwright/test';
+import {test, expect} from '../fixtures';
 
-import {setup, login, waitForPageLoad, SubNavBar, addItems} from '../utils/common';
+import {login, waitForPageLoad, SubNavBar} from '../utils/common';
 import {EventEditor, NewLocationPopup} from '../utils/planning';
 import {CVs} from '../utils/fixtures/cvs';
 
@@ -9,14 +9,14 @@ test.describe('Planning.Locations: from the Event form', () => {
     let subnav: SubNavBar;
     let locationPopup: NewLocationPopup;
 
-    test.beforeEach(async ({page}) => {
+    test.beforeEach(async ({page, backendApi}) => {
         editor = new EventEditor(page);
         subnav = new SubNavBar(page);
         locationPopup = new NewLocationPopup(page);
 
-        await setup(page, 'planning_prepopulate_data', '/#/planning');
-        await addItems(
-            page.request,
+        await backendApi.resetApp('planning_prepopulate_data');
+        await page.goto('/#/planning');
+        await backendApi.addItems(
             'vocabularies',
             [CVs.COUNTRIES, CVs.REGIONS]
         );

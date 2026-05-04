@@ -1,7 +1,7 @@
-import {test, expect} from '@playwright/test';
+import {test, expect} from '../fixtures';
 import moment from 'moment';
 
-import {setup, login, waitForPageLoad, SubNavBar, addItems, CLIENT_FORMAT} from '../utils/common';
+import {login, waitForPageLoad, SubNavBar, CLIENT_FORMAT} from '../utils/common';
 import {EventEditor, PlanningList, EmbeddedCoverageEditor} from '../utils/planning';
 import {setupPlanningPublishing} from '../utils/fixtures/publish_config';
 import {createEventFor} from '../utils/fixtures/events';
@@ -12,13 +12,14 @@ test.describe('Planning.Events: embedded coverage', () => {
     let subnav: SubNavBar;
     let list: PlanningList;
 
-    test.beforeEach(async ({page}) => {
+    test.beforeEach(async ({page, backendApi}) => {
         editor = new EventEditor(page);
         embeddedCoverages = new EmbeddedCoverageEditor(editor);
         subnav = new SubNavBar(page);
         list = new PlanningList(page);
 
-        await setup(page, 'planning_prepopulate_data', '/#/planning');
+        await backendApi.resetApp('planning_prepopulate_data');
+        await page.goto('/#/planning');
         await login(page);
         await waitForPageLoad.planning(page);
     });
@@ -55,9 +56,8 @@ test.describe('Planning.Events: embedded coverage', () => {
         await list.expectItemText(0, 'slugline of the event');
     });
 
-    test('can add a planning item to an existing event', async ({page}) => {
-        await addItems(
-            page.request,
+    test('can add a planning item to an existing event', async ({page, backendApi}) => {
+        await backendApi.addItems(
             'events',
             [createEventFor.today({
                 type: 'event',
@@ -120,10 +120,9 @@ test.describe('Planning.Events: embedded coverage', () => {
         await expect(list.nestedPlanningItems(0)).toHaveCount(2);
     });
 
-    test('planning items should stay after post/unpost', async ({page}) => {
-        await setupPlanningPublishing(page.request);
-        await addItems(
-            page.request,
+    test('planning items should stay after post/unpost', async ({page: _page, backendApi}) => {
+        await setupPlanningPublishing(backendApi);
+        await backendApi.addItems(
             'events',
             [createEventFor.today({
                 type: 'event',

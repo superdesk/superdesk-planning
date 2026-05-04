@@ -1,6 +1,6 @@
-import {test, expect} from '@playwright/test';
+import {test, expect} from '../fixtures';
 
-import {setup, login, addItems, waitForPageLoad, SubNavBar, UiFrameworkModal} from '../utils/common';
+import {login, waitForPageLoad, SubNavBar, UiFrameworkModal} from '../utils/common';
 import {PlanningList, PlanningEditor, PlanningPreview, FeaturedModal} from '../utils/planning';
 import {createPlanningFor} from '../utils/fixtures/planning';
 import {setupPlanningPublishing} from '../utils/fixtures/publish_config';
@@ -13,7 +13,7 @@ test.describe('Planning.Featured', () => {
     let editor: PlanningEditor;
     let preview: PlanningPreview;
 
-    test.beforeEach(async({page}) => {
+    test.beforeEach(async({page, backendApi}) => {
         subnav = new SubNavBar(page);
         modal = new FeaturedModal(page);
         uiFrameworkModal = new UiFrameworkModal(page);
@@ -21,10 +21,10 @@ test.describe('Planning.Featured', () => {
         editor = new PlanningEditor(page);
         preview = new PlanningPreview(page);
 
-        await setup(page, 'planning_prepopulate_data', '/#/planning');
-        await setupPlanningPublishing(page.request);
-        await addItems(
-            page.request,
+        await backendApi.resetApp('planning_prepopulate_data');
+        await page.goto('/#/planning');
+        await setupPlanningPublishing(backendApi);
+        await backendApi.addItems(
             'planning',
             [
                 createPlanningFor.today({

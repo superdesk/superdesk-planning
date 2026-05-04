@@ -1,18 +1,19 @@
-import {test, expect} from '@playwright/test';
+import {test, expect} from '../fixtures';
 
-import {setup, login, waitForPageLoad, SubNavBar, addItems, UiFrameworkModal} from '../utils/common';
+import {login, waitForPageLoad, SubNavBar, UiFrameworkModal} from '../utils/common';
 import {AGENDAS} from '../utils/fixtures/planning';
 
 test.describe('Planning.Agendas: manage agendas', () => {
     let subnav: SubNavBar;
     let modal: UiFrameworkModal;
 
-    test.beforeEach(async ({page}) => {
+    test.beforeEach(async ({page, backendApi}) => {
         subnav = new SubNavBar(page);
         modal = new UiFrameworkModal(page);
 
-        await setup(page, 'planning_prepopulate_data', '/#/planning');
-        await addItems(page.request, 'agenda', [AGENDAS.sports, AGENDAS.politics]);
+        await backendApi.resetApp('planning_prepopulate_data');
+        await page.goto('/#/planning');
+        await backendApi.addItems('agenda', [AGENDAS.sports, AGENDAS.politics]);
         await login(page);
         await waitForPageLoad.planning(page);
     });

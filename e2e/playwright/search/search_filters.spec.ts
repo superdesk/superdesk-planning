@@ -1,6 +1,6 @@
-import {test, expect} from '@playwright/test';
+import {test, expect} from '../fixtures';
 
-import {setup, login, waitForPageLoad, addItems} from '../utils/common';
+import {login, waitForPageLoad} from '../utils/common';
 import {SearchFilters} from '../utils/planning';
 
 import {LOCATIONS} from '../utils/fixtures/events';
@@ -9,17 +9,18 @@ import {AGENDAS} from '../utils/fixtures/planning';
 test.describe('Search.Filters: creating search filters', () => {
     let searchFilters: SearchFilters;
 
-    test.beforeEach(async ({page}) => {
+    test.beforeEach(async ({page, backendApi}) => {
         searchFilters = new SearchFilters(page);
 
-        await addItems(page.request, 'agenda', [AGENDAS.sports, AGENDAS.politics]);
-        await setup(page, 'planning_prepopulate_data', '/#/planning');
+        await backendApi.addItems('agenda', [AGENDAS.sports, AGENDAS.politics]);
+        await backendApi.resetApp('planning_prepopulate_data');
+        await page.goto('/#/planning');
         await login(page);
         await waitForPageLoad.planning(page);
     });
 
-    test('can create a combined filter', async ({page}) => {
-        await addItems(page.request, 'agenda', [AGENDAS.sports, AGENDAS.politics]);
+    test('can create a combined filter', async ({page: _page, backendApi}) => {
+        await backendApi.addItems('agenda', [AGENDAS.sports, AGENDAS.politics]);
         await searchFilters.open();
         await searchFilters.addNewFilterButton.click();
         await searchFilters.editor.openAllToggleBoxes();
@@ -66,8 +67,8 @@ test.describe('Search.Filters: creating search filters', () => {
         await searchFilters.expectItemText(0, 'Test Empties');
     });
 
-    test('can create event filter', async ({page}) => {
-        await addItems(page.request, 'locations', [LOCATIONS.sydney_opera_house]);
+    test('can create event filter', async ({page: _page, backendApi}) => {
+        await backendApi.addItems('locations', [LOCATIONS.sydney_opera_house]);
 
         await searchFilters.open();
         await searchFilters.addNewFilterButton.click();
@@ -120,8 +121,8 @@ test.describe('Search.Filters: creating search filters', () => {
         await searchFilters.expectItemText(0, 'Test Empties');
     });
 
-    test('can create planning filter', async ({page}) => {
-        await addItems(page.request, 'agenda', [AGENDAS.sports, AGENDAS.politics]);
+    test('can create planning filter', async ({page: _page, backendApi}) => {
+        await backendApi.addItems('agenda', [AGENDAS.sports, AGENDAS.politics]);
 
         await searchFilters.open();
         await searchFilters.addNewFilterButton.click();

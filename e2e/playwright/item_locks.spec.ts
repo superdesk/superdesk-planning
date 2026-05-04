@@ -1,6 +1,7 @@
-import {Page, test, expect} from '@playwright/test';
+import {test, expect} from './fixtures';
+import type {Page} from '@playwright/test';
 
-import {setup, login, waitForPageLoad, addItems, forceUnlockItem, Modal, getMenuItem} from './utils/common';
+import {login, waitForPageLoad, Modal, getMenuItem} from './utils/common';
 import {EventEditor, PlanningList} from './utils/planning';
 
 import {TEST_PLANNINGS} from './utils/fixtures/planning';
@@ -11,12 +12,13 @@ test.describe('Planning: item locks', () => {
     let modal: Modal;
     let editor: EventEditor;
 
-    test.beforeEach(async ({page}) => {
+    test.beforeEach(async ({page, backendApi}) => {
         list = new PlanningList(page);
         modal = new Modal(page);
         editor = new EventEditor(page);
 
-        await setup(page, 'planning_prepopulate_data', '/#/planning');
+        await backendApi.resetApp('planning_prepopulate_data');
+        await page.goto('/#/planning');
     });
 
     async function testCancelActionFromModal(page: Page, actionLabel: string): Promise<void> {
@@ -33,7 +35,7 @@ test.describe('Planning: item locks', () => {
         await expect(list.item(0).locator('.sd-list-item__border--locked')).not.toBeAttached();
     }
 
-    async function testUnlockedFromModal(page: Page, actionLabel: string, itemType: string, itemId: string): Promise<void> {
+    async function testUnlockedFromModal(page: Page, backendApi: {forceUnlockItem: (type: string, id: string) => Promise<void>}, actionLabel: string, itemType: string, itemId: string): Promise<void> {
         await list.item(0).click();
 
         // Open the Cancel Modal
@@ -42,7 +44,7 @@ test.describe('Planning: item locks', () => {
         await expect(list.item(0).locator('.sd-list-item__border--locked')).toBeVisible();
 
         // Test another user force unlocks the item
-        await forceUnlockItem(page.request, itemType, itemId);
+        await backendApi.forceUnlockItem(itemType, itemId);
         await expect(list.item(0).locator('.sd-list-item__border--locked')).not.toBeAttached();
         await modal.shouldContainTitle('Item Unlocked');
         await modal.getFooterButton('OK').click();
@@ -84,7 +86,7 @@ test.describe('Planning: item locks', () => {
         await expect(list.item(0).locator('.sd-list-item__border--locked')).not.toBeAttached();
     }
 
-    async function testUnlockedFromEditPanel(page: Page, actionLabel: string, itemType: string, itemId: string): Promise<void> {
+    async function testUnlockedFromEditPanel(_page: Page, backendApi: {forceUnlockItem: (type: string, id: string) => Promise<void>}, actionLabel: string, itemType: string, itemId: string): Promise<void> {
         // Open the Event for editing, and make sure the form is not disabled
         await list.item(0).dblclick();
         await editor.waitTillOpen();
@@ -105,7 +107,7 @@ test.describe('Planning: item locks', () => {
         await expect(editor.fields.slugline.element).toBeDisabled();
 
         // Test another user force unlocks the item
-        await forceUnlockItem(page.request, itemType, itemId);
+        await backendApi.forceUnlockItem(itemType, itemId);
         await expect(list.item(0).locator('.sd-list-item__border--locked')).not.toBeAttached();
         await modal.shouldContainTitle('Item Unlocked');
         await modal.getFooterButton('OK').click();
@@ -121,9 +123,8 @@ test.describe('Planning: item locks', () => {
     }
 
     test.describe('event actions', () => {
-        test.beforeEach(async ({page}) => {
-            await addItems(
-                page.request,
+        test.beforeEach(async ({page, backendApi}) => {
+            await backendApi.addItems(
                 'events',
                 [{
                     ...TEST_EVENTS.draft,
@@ -134,52 +135,51 @@ test.describe('Planning: item locks', () => {
             await waitForPageLoad.planning(page);
         });
 
-        test('cancel action', async ({page}) => {
+        test('cancel action', async ({page, backendApi}) => {
             await testCancelActionFromModal(page, 'Cancel');
-            await testUnlockedFromModal(page, 'Cancel', 'events', 'event1');
+            await testUnlockedFromModal(page, backendApi, 'Cancel', 'events', 'event1');
             await testCancelActionFromEditPanel('Cancel');
-            await testUnlockedFromEditPanel(page, 'Cancel', 'events', 'event1');
+            await testUnlockedFromEditPanel(page, backendApi, 'Cancel', 'events', 'event1');
         });
 
-        test('spike action', async ({page}) => {
+        test('spike action', async ({page, backendApi}) => {
             await testCancelActionFromModal(page, 'Spike');
-            await testUnlockedFromModal(page, 'Spike', 'events', 'event1');
+            await testUnlockedFromModal(page, backendApi, 'Spike', 'events', 'event1');
             await testCancelActionFromEditPanel('Cancel');
-            await testUnlockedFromEditPanel(page, 'Cancel', 'events', 'event1');
+            await testUnlockedFromEditPanel(page, backendApi, 'Cancel', 'events', 'event1');
         });
 
-        test('update time action', async ({page}) => {
+        test('update time action', async ({page, backendApi}) => {
             await testCancelActionFromModal(page, 'Update time');
-            await testUnlockedFromModal(page, 'Update time', 'events', 'event1');
+            await testUnlockedFromModal(page, backendApi, 'Update time', 'events', 'event1');
             await testCancelActionFromEditPanel('Update time');
-            await testUnlockedFromEditPanel(page, 'Update time', 'events', 'event1');
+            await testUnlockedFromEditPanel(page, backendApi, 'Update time', 'events', 'event1');
         });
 
-        test('mark as postponed action', async ({page}) => {
+        test('mark as postponed action', async ({page, backendApi}) => {
             await testCancelActionFromModal(page, 'Mark as Postponed');
-            await testUnlockedFromModal(page, 'Mark as Postponed', 'events', 'event1');
+            await testUnlockedFromModal(page, backendApi, 'Mark as Postponed', 'events', 'event1');
             await testCancelActionFromEditPanel('Mark as Postponed');
-            await testUnlockedFromEditPanel(page, 'Mark as Postponed', 'events', 'event1');
+            await testUnlockedFromEditPanel(page, backendApi, 'Mark as Postponed', 'events', 'event1');
         });
 
-        test('reschedule action', async ({page}) => {
+        test('reschedule action', async ({page, backendApi}) => {
             await testCancelActionFromModal(page, 'Reschedule');
-            await testUnlockedFromModal(page, 'Reschedule', 'events', 'event1');
+            await testUnlockedFromModal(page, backendApi, 'Reschedule', 'events', 'event1');
             await testCancelActionFromEditPanel('Reschedule');
-            await testUnlockedFromEditPanel(page, 'Reschedule', 'events', 'event1');
+            await testUnlockedFromEditPanel(page, backendApi, 'Reschedule', 'events', 'event1');
         });
 
-        test('convert to recurring action', async ({page}) => {
+        test('convert to recurring action', async ({page, backendApi}) => {
             await testCancelActionFromModal(page, 'Convert to Recurring Event');
-            await testUnlockedFromModal(page, 'Convert to Recurring Event', 'events', 'event1');
+            await testUnlockedFromModal(page, backendApi, 'Convert to Recurring Event', 'events', 'event1');
             // No need to test editor actions, as this is not available in the Editor
         });
     });
 
     test.describe('planning actions', () => {
-        test.beforeEach(async ({page}) => {
-            await addItems(
-                page.request,
+        test.beforeEach(async ({page, backendApi}) => {
+            await backendApi.addItems(
                 'planning',
                 [{
                     ...TEST_PLANNINGS.draft,
@@ -190,11 +190,11 @@ test.describe('Planning: item locks', () => {
             await waitForPageLoad.planning(page);
         });
 
-        test('spike action', async ({page}) => {
+        test('spike action', async ({page, backendApi}) => {
             await testCancelActionFromModal(page, 'Spike');
-            await testUnlockedFromModal(page, 'Spike', 'planning', 'plan1');
+            await testUnlockedFromModal(page, backendApi, 'Spike', 'planning', 'plan1');
             await testCancelActionFromEditPanel('Spike');
-            await testUnlockedFromEditPanel(page, 'Spike', 'planning', 'plan1');
+            await testUnlockedFromEditPanel(page, backendApi, 'Spike', 'planning', 'plan1');
         });
     });
 });

@@ -1,17 +1,18 @@
-import {test, expect} from '@playwright/test';
+import {test, expect} from '../fixtures';
 
-import {setup, login, waitForPageLoad, SubNavBar} from '../utils/common';
+import {login, waitForPageLoad, SubNavBar} from '../utils/common';
 import {EventEditor} from '../utils/planning';
 
 test.describe('Planning.Events: editor bookmarks', () => {
     let editor: EventEditor;
     let subnav: SubNavBar;
 
-    test.beforeEach(async ({page}) => {
+    test.beforeEach(async ({page, backendApi}) => {
         editor = new EventEditor(page);
         subnav = new SubNavBar(page);
 
-        await setup(page, 'planning_prepopulate_data', '/#/planning');
+        await backendApi.resetApp('planning_prepopulate_data');
+        await page.goto('/#/planning');
         await login(page);
         await waitForPageLoad.planning(page);
     });

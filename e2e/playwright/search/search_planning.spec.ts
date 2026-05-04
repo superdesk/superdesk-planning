@@ -1,6 +1,6 @@
-import {test} from '@playwright/test';
+import {test} from '../fixtures';
 
-import {setup, login, addItems, waitForPageLoad} from '../utils/common';
+import {login, waitForPageLoad} from '../utils/common';
 import {AdvancedSearch, PlanningList, PlanningEditor} from '../utils/planning';
 
 import {TEST_PLANNINGS, createPlanningFor} from '../utils/fixtures/planning';
@@ -12,19 +12,19 @@ test.describe('Search.Planning: searching planning items', () => {
     let list: PlanningList;
     let editor: PlanningEditor;
 
-    test.beforeEach(async ({page}) => {
+    test.beforeEach(async ({page, backendApi}) => {
         search = new AdvancedSearch(page);
         list = new PlanningList(page);
         editor = new PlanningEditor(page);
 
-        await setup(page, 'planning_prepopulate_data', '/#/planning');
+        await backendApi.resetApp('planning_prepopulate_data');
+        await page.goto('/#/planning');
         await login(page);
         await waitForPageLoad.planning(page);
     });
 
-    test('can search planning metadata', async ({page}) => {
-        await addItems(
-            page.request,
+    test('can search planning metadata', async ({page, backendApi}) => {
+        await backendApi.addItems(
             'planning',
             [
                 TEST_PLANNINGS.draft,
@@ -32,8 +32,8 @@ test.describe('Search.Planning: searching planning items', () => {
                 TEST_PLANNINGS.featured,
             ]
         );
-        await addItems(page.request, 'vocabularies', [CVs.EVENT_TYPES]);
-        await addItems(page.request, 'planning_types', [ADVANCED_SEARCH]);
+        await backendApi.addItems('vocabularies', [CVs.EVENT_TYPES]);
+        await backendApi.addItems('planning_types', [ADVANCED_SEARCH]);
 
         await page.reload(); // when adding vocabularies, the page needs to be reloaded to reflect the changes
 
@@ -176,9 +176,8 @@ test.describe('Search.Planning: searching planning items', () => {
         ]);
     });
 
-    test('can search planning dates', async ({page}) => {
-        await addItems(
-            page.request,
+    test('can search planning dates', async ({page: _page, backendApi}) => {
+        await backendApi.addItems(
             'planning',
             [
                 createPlanningFor.yesterday({slugline: 'Plan Yesterday'}),

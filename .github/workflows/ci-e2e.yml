@@ -13,51 +13,62 @@ jobs:
       fail-fast: false
       matrix:
         python-version: ['3.10']
-        node-version: ['22']
         shardIndex: [1, 2]
         shardTotal: [2]
     env:
-      INSTALL_NODE_MODULES: false
-      RUN_SERVICES: true
-      E2E: true
       TZ: Australia/Sydney
+      CI: true
+      PW_WORKERS: "2"
     defaults:
       run:
         working-directory: ./e2e
     steps:
       - uses: actions/checkout@v6
+
       - uses: actions/setup-node@v6
         with:
-          node-version: ${{ matrix.node-version }}
+          node-version: '22'
+
       - uses: actions/setup-python@v6
         with:
           python-version: ${{ matrix.python-version }}
-          cache: 'pip'
-          cache-dependency-path: 'server/requirements.txt'
-      - name: Setup Environment
-        run: ./scripts/ci-install.sh
-        working-directory: ./
+
+      - name: Install system dependencies
+        run: sudo apt-get -y update && sudo apt-get -y install libxml2-dev libxmlsec1-dev libxmlsec1-openssl
+
       - name: Install Planning Client
         run: npm ci
         working-directory: ./
-      - name: Install E2E Client
+
+      - name: Install E2E dependencies
         run: npm install
+
       - name: Build Client
         run: npm run build
-      - name: Start Services
-        run: ./scripts/ci-start-services.sh
-        working-directory: ./
-      - name: Start web server
-        run: npm run start-client-server
 
-      # playwright start
-      - name: Install Playwright Browsers
-        run: npx playwright install --with-deps chromium
+      - name: Cache Python venv
+        uses: actions/cache@v4
+        with:
+          path: e2e/server/.venv
+          key: e2e-venv-${{ matrix.python-version }}-${{ hashFiles('e2e/server/requirements.txt', 'e2e/server/core-requirements.txt') }}
+
+      - name: Cache Playwright browsers
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ hashFiles('e2e/package-lock.json') }}
+
+      - name: Setup E2E environment
+        run: npm run e2e:setup
+
+      - name: Start infrastructure services
+        run: docker compose up -d --wait
+
       - name: Run Playwright tests
-        run: npm run playwright -- --shard=${{ matrix.shardIndex }}/${{ matrix.shardTotal }}
+        run: npx playwright test --shard=${{ matrix.shardIndex }}/${{ matrix.shardTotal }}
+
       - uses: actions/upload-artifact@v6
         if: ${{ failure() }}
         with:
-          name: playwright-report-${{ matrix.node-version }}-${{ matrix.shardIndex }}
+          name: playwright-report-${{ matrix.python-version }}-${{ matrix.shardIndex }}
           path: e2e/test-results
-      # playwright end

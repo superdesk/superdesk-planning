@@ -1,6 +1,6 @@
-import {test, expect} from '@playwright/test';
+import {test, expect} from '../fixtures';
 
-import {setup, login, addItems, waitForPageLoad, CLIENT_FORMAT, ActionMenu} from '../utils/common';
+import {login, waitForPageLoad, CLIENT_FORMAT, ActionMenu} from '../utils/common';
 import {PlanningList, PlanningPreview, EventEditor, PlanningEditor} from '../utils/planning';
 import {TIMEZONE} from '../utils/time';
 import moment from "moment-timezone";
@@ -27,7 +27,7 @@ test.describe('Planning.Events: create planning action', () => {
         subject: ['sports awards'],
     };
 
-    test.beforeEach(async ({page}) => {
+    test.beforeEach(async ({page, backendApi}) => {
         editors = {
             event: new EventEditor(page),
             planning: new PlanningEditor(page),
@@ -36,9 +36,9 @@ test.describe('Planning.Events: create planning action', () => {
         list = new PlanningList(page);
         preview = new PlanningPreview(page);
 
-        await setup(page, 'planning_prepopulate_data', '/#/planning');
-        await addItems(
-            page.request,
+        await backendApi.resetApp('planning_prepopulate_data');
+        await page.goto('/#/planning');
+        await backendApi.addItems(
             'events',
             [{
                 slugline: 'Original',
