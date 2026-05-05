@@ -118,10 +118,9 @@ export class EditorFieldCoverages extends React.PureComponent<IPropsEditorFieldC
                 `coverages[${coverageIndex}].assigned_to` :
                 `coverages[${coverageIndex}].scheduled_updates[${scheduledUpdateIndex}].assigned_to`;
 
-            // Keep assignment sync visible in the form without triggering Save button re-activation.
-            // saveAutosave=true ensures the autosave stays in sync so re-opening the editor
-            // does not produce a stale diff that falsely re-enables Save.
-            this.props.onChange(fieldName, normalizedUpdatedAssignedTo, false, true);
+            // Keep assignment sync visible in the form without triggering Save button re-activation
+            // or a redundant autosave write (updateDirtyFlag=false, saveAutosave=false).
+            this.props.onChange(fieldName, normalizedUpdatedAssignedTo, false, false);
         });
     }
 
