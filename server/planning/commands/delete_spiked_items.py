@@ -21,6 +21,7 @@ from superdesk.lock import lock, unlock, remove_locks
 from planning.common import WORKFLOW_STATE
 from planning.events.events_utils import get_recurring_timeline
 from superdesk.commands import cli
+from .utils import iterate_expired_items
 
 
 log_msg_context: ContextVar[str] = ContextVar("log_msg", default="")
@@ -83,10 +84,12 @@ async def delete_spiked_events(expiry_datetime):
     events_deleted = set()
     series_to_delete = dict()
 
+    base_query = {"must": [{"term": {"state": WORKFLOW_STATE.SPIKED}}]}
+
     # Obtain the full list of Events that we're to process first
     # As subsequent queries will change the list of returned items
     events = dict()
-    async for items in events_service.get_expired_items(expiry_datetime, spiked_events_only=True):
+    async for items in iterate_expired_items("event", expiry_datetime, base_query):
         events.update({item[ID_FIELD]: item for item in items})
 
     for event_id, event in events.items():
@@ -101,7 +104,7 @@ async def delete_spiked_events(expiry_datetime):
     # Delete recurring series
     for recurrence_id, events in series_to_delete.items():
         await events_service.delete_async(lookup={"recurrence_id": recurrence_id})
-        events_deleted.add([event["_id"] for event in events])
+        events_deleted.update([event["_id"] for event in events])
 
     logger.info(f"{log_msg} {len(events_deleted)} Events deleted: {list(events_deleted)}")
 
@@ -134,7 +137,10 @@ async def delete_spiked_planning(expiry_datetime):
     # Obtain the full list of Planning items that we're to process first
     # As subsequent queries will change the list of returnd items
     plans = dict()
-    async for items in planning_service.get_expired_items(expiry_datetime, spiked_planning_only=True):
+
+    base_query = {"must": [{"term": {"state": WORKFLOW_STATE.SPIKED}}]}
+
+    async for items in iterate_expired_items("planning", expiry_datetime, base_query):
         plans.update({item[ID_FIELD]: item for item in items})
 
     plans_deleted = set()

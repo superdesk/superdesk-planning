@@ -39,8 +39,6 @@ export class EventScheduleInput extends React.Component<IProps> {
         if (field === 'dates.recurring_rule.count' && !value) {
             // Count is an integer. So set it to null, not to ''
             this.props.onChange(field, null);
-        } else if (field === 'dates.recurring_rule.until' && moment.isMoment(value)) {
-            this.props.onChange(field, value.endOf('day'));
         } else {
             this.props.onChange(field, value);
         }

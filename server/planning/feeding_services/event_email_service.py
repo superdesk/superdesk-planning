@@ -95,7 +95,7 @@ class EventEmailFeedingService(FeedingService):
     """
     service = "events"
 
-    def _update(self, provider, update):
+    async def _update(self, provider, update):
         config = provider.get("config", {})
         server = config.get("server", "")
         port = int(config.get("port", 993))
@@ -117,7 +117,7 @@ class EventEmailFeedingService(FeedingService):
                         if rv == "OK":
                             try:
                                 logger.info("Ingesting events from email")
-                                parser = self.get_feed_parser(provider, data)
+                                parser = await self.get_feed_parser(provider, data)
                                 for response_part in data:
                                     if isinstance(response_part, tuple):
                                         if isinstance(response_part[1], bytes):
@@ -141,7 +141,7 @@ class EventEmailFeedingService(FeedingService):
                                                 if getattr(parser, "parse_email"):
                                                     try:
                                                         new_items.append(
-                                                            parser.parse_email(
+                                                            await parser.parse_email(
                                                                 content,
                                                                 content_type,
                                                                 provider,
@@ -150,7 +150,7 @@ class EventEmailFeedingService(FeedingService):
                                                     except ParserError.parseMessageError:
                                                         continue
                                                 else:
-                                                    new_items.append(parser.parse(data, provider))
+                                                    new_items.append(await parser.parse(data, provider))
                                 rv, data = imap.store(num, "+FLAGS", "\\Seen")
                             except IngestEmailError:
                                 continue

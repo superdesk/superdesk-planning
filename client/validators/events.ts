@@ -3,7 +3,7 @@ import {get, set, isEmpty, isEqual, pick} from 'lodash';
 
 import {appConfig} from 'appConfig';
 
-import {gettext, eventUtils} from '../utils';
+import {gettext, eventUtils, timeUtils} from '../utils';
 import * as selectors from '../selectors';
 import {formProfile} from './profile';
 import {PRIVILEGES, EVENTS, TO_BE_CONFIRMED_FIELD} from '../constants';
@@ -20,18 +20,16 @@ const validateRequiredDates = ({value, errors, messages, diff}) => {
         messages.push(gettext('END DATE is a required field'));
     }
 
-    if (value.tz === undefined) {
+    if (value.tz === undefined && value.all_day !== true) {
         set(errors, 'tz', gettext('This field is required'));
         messages.push(gettext('TIMEZONE is a required field'));
     }
 
-    if (value.all_day === true && value.no_end_time === false) {
-        set(errors, '_startTime', gettext('This field is required'));
-        messages.push(gettext('START TIME is required when END TIME is set'));
-    }
-
     if (!get(diff, TO_BE_CONFIRMED_FIELD)) {
-        if (!value._startTime && value.all_day !== true) {
+        if (value.start != null && value._endTime != null && value._startTime == null) {
+            set(errors, '_startTime', gettext('This field is required'));
+            messages.push(gettext('START TIME is required when END TIME is set'));
+        } else if (!value._startTime && value.all_day !== true) {
             set(errors, '_startTime', gettext('This field is required'));
             messages.push(gettext('START TIME is a required field'));
         }
@@ -93,12 +91,12 @@ const validateRecurringRules = ({value, errors, messages}) => {
     const frequency = get(value, 'recurring_rule.frequency');
     const byday = get(value, 'recurring_rule.byday');
     const endRepeatMode = get(value, 'recurring_rule.endRepeatMode');
-    const until = get(value, 'recurring_rule.until');
+    const until = timeUtils.dateToMomentDate(value?.recurring_rule?.until, value?.tz);
     const startDate = get(value, 'start');
     let count = get(value, 'recurring_rule.count');
     let recurringErrors = {};
 
-    if (until && startDate > until) {
+    if (until != null && moment.isMoment(startDate) && startDate.isAfter(until)) {
         recurringErrors.until = gettext('Must be greater than starting date');
         messages.push(gettext('RECURRING ENDS ON must be greater than START DATE'));
     }

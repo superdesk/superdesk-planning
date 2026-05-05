@@ -33,6 +33,7 @@ class ElasticQuery:
 
         self.extra: Dict[str, Any] = {}
         self.multilingual_fields: Set[str] = set()
+        self.size: int | None = None
 
     def build(self) -> Dict[str, Any]:
         query: Dict[str, Any] = {"query": {"bool": {}}}
@@ -52,12 +53,22 @@ class ElasticQuery:
         if len(self.sort):
             query["sort"] = self.sort
 
+        if self.size is not None:
+            query["size"] = self.size
+
         return query
 
     def extend_query(self, query: Dict[str, Any]):
         def _extend(key: str):
-            conditions = ((query.get("query") or {}).get("bool") or {}).get(key) or []
-            if len(conditions):
+            try:
+                conditions = query["query"]["bool"][key]
+            except KeyError:
+                try:
+                    conditions = query["bool"][key]
+                except KeyError:
+                    conditions = query.get(key, None)
+
+            if conditions:
                 self.__dict__[key].extend(conditions)
 
         _extend("must")

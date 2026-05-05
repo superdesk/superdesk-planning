@@ -98,9 +98,10 @@ test.describe('Planning.Events: edit metadata', () => {
 
         await editor.waitForAutosave();
         await editor.createButton.click();
-        await list.expectItemCount(2);
+        await list.expectItemCount(3);
         await list.expectItemText(0, 'slugline of the recurring event');
         await list.expectItemText(1, 'slugline of the recurring event');
+        await list.expectItemText(2, 'slugline of the recurring event');
 
         // Test cancelling the Post modal
         await editor.postButton.click();
@@ -122,6 +123,9 @@ test.describe('Planning.Events: edit metadata', () => {
         ).toContainText('Scheduled');
         await expect(
             list.item(1).locator('.label--success'),
+        ).toContainText('Scheduled');
+        await expect(
+            list.item(2).locator('.label--success'),
         ).toContainText('Scheduled');
     });
 

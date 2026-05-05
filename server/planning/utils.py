@@ -152,6 +152,7 @@ def get_related_planning_for_events(
     event_ids: List[str],
     link_type: Optional[PLANNING_RELATED_EVENT_LINK_TYPE] = None,
     exclude_planning_ids: Optional[List[str]] = None,
+    projection: dict | str | None = None,
 ) -> List[Planning]:
     """Deprecated: use get_related_planning_for_events_async in async contexts."""
     related_events_filters: List[Dict[str, Any]] = [{"terms": {"related_events._id": event_ids}}]
@@ -172,6 +173,8 @@ def get_related_planning_for_events(
 
     req = ParsedRequest()
     req.args = {"source": json.dumps({"query": {"bool": bool_query}})}
+    if projection:
+        req.projection = json.dumps(projection) if isinstance(projection, dict) else projection
 
     return [cast_item(item) for item in get_resource_service("planning").get(req=req, lookup=None)]
 
@@ -180,6 +183,7 @@ async def get_related_planning_for_events_async(
     event_ids: List[str],
     link_type: Optional[PLANNING_RELATED_EVENT_LINK_TYPE] = None,
     exclude_planning_ids: Optional[List[str]] = None,
+    projection: dict | str | None = None,
 ) -> List[Planning]:
     related_events_filters: List[Dict[str, Any]] = [{"terms": {"related_events._id": event_ids}}]
     if link_type is not None:
@@ -199,6 +203,8 @@ async def get_related_planning_for_events_async(
 
     req = ParsedRequest()
     req.args = {"source": json.dumps({"query": {"bool": bool_query}})}
+    if projection:
+        req.projection = json.dumps(projection) if isinstance(projection, dict) else projection
 
     return [cast_item(item) async for item in await get_resource_service("planning").get_async(req=req, lookup=None)]
 

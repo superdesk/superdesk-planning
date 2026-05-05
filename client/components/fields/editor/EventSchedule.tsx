@@ -233,7 +233,8 @@ export class EditorFieldEventSchedule extends React.PureComponent<IEventSchedule
                     toBeConfirmed={this.props.item[TO_BE_CONFIRMED_FIELD] === true}
                     isLocalTimeZoneDifferent={isLocalTimeZoneDifferent}
                     remoteTimeZone={this.props.item.dates?.tz}
-                    allDay={this.props.item.dates?.no_end_time ?? this.props.item.dates?.all_day}
+                    allDay={this.props.item.dates?.all_day === true ||
+                        this.props.item.dates?.no_end_time === true}
                 />
                 <Row
                     flex={true}

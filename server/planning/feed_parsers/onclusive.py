@@ -219,16 +219,16 @@ class OnclusiveFeedParser(FeedParser):
                         "scheme": "onclusive_categories",
                     }
                 )
-            # item["subjects"] = categories
         if event.get("eventTypes"):
             for category in event["eventTypes"]:
-                categories.append(
-                    {
-                        "name": category["tagName"],
-                        "qcode": str(category["tagId"]),
-                        "scheme": "onclusive_event_types",
-                    }
-                )
+                if category and category["tagId"] and category["tagName"]:
+                    categories.append(
+                        {
+                            "name": category["tagName"],
+                            "qcode": str(category["tagId"]),
+                            "scheme": "onclusive_event_types",
+                        }
+                    )
         item["subject"] = categories
 
     def datetime(self, date, time=None, timezone=None, tzinfo=None):
@@ -260,51 +260,111 @@ class OnclusiveFeedParser(FeedParser):
         return parsed.replace(tzinfo=pytz.utc)
 
     async def parse_contact_info(self, event, item):
-        for contact_info in event.get("pressContacts"):
-            item.setdefault("event_contact_info", [])
-            contact_uri = "onclusive:{}".format(contact_info["pressContactID"])
-            data = {
-                "uri": contact_uri,
-                "contact_email": [],
-                "contact_phone": [],
-                "organisation": "",
-                "first_name": "",
-                "last_name": "",
-            }
+        item.setdefault("event_contact_info", [])
+        if not event.get("pressContacts"):
+            return
 
-            if contact_info.get("pressContactEmail"):
-                data["contact_email"].append(contact_info["pressContactEmail"])
-
-            if contact_info.get("pressContactTelephone"):
-                data["contact_phone"].append({"number": contact_info["pressContactTelephone"], "public": True})
-
-            if contact_info.get("pressContactOffice"):
-                data["organisation"] = contact_info["pressContactOffice"]
-
-            if contact_info.get("pressContactName"):
-                try:
-                    first, last = contact_info["pressContactName"].rsplit(" ", 1)
-                except ValueError:
-                    first = ""
-                    last = contact_info["pressContactName"]
-                data["first_name"] = first
-                data["last_name"] = last
-
-            existing_contact = await get_resource_service("contacts").find_one_async(req=None, uri=contact_uri)
-            if existing_contact is None:
-                data.update(
-                    {
-                        "is_active": True,
-                        "public": True,
-                    }
+        contacts_service = get_resource_service("contacts")
+        for contact_info in event["pressContacts"]:
+            if not contact_info.get("pressContactID"):
+                logger.warning(
+                    "Onclusive contact info missing pressContactID, skipping", extra={"contact": contact_info}
                 )
-                await get_resource_service("contacts").post_async([data])
-                item["event_contact_info"].append(bson.ObjectId(data["_id"]))
-            else:
-                print(existing_contact)
-                existing_contact_id = bson.ObjectId(existing_contact["_id"])
-                await get_resource_service("contacts").patch_async(existing_contact_id, data)
+                continue
+
+            updates, existing_contact_id = await self._get_contact_updates(contact_info)
+
+            try:
+                if existing_contact_id is None:
+                    updates.setdefault("contact_email", [])
+                    updates.setdefault("contact_phone", [])
+                    updates.setdefault("organisation", "")
+                    updates.setdefault("first_name", "")
+                    updates.setdefault("last_name", "")
+                    await contacts_service.post_async([updates])
+                    existing_contact_id = bson.ObjectId(updates["_id"])
+                elif updates:
+                    await contacts_service.patch_async(existing_contact_id, updates)
+
                 item["event_contact_info"].append(existing_contact_id)
+            except Exception:
+                # Make sure that if we fail to create/update the contact, we still ingest the Event
+                logger.exception("Error when parsing Onclusive contact info", extra={"contact": contact_info})
+                continue
+
+    async def _get_contact_updates(self, contact_info: dict) -> tuple[dict, bson.ObjectId | None]:
+        """
+        Retrieves and prepares contact updates based on the provided contact information.
+
+        This method analyzes the provided `contact_info` dictionary containing details about a
+        press contact and determines what updates should be made in comparison to the data
+        of an existing contact retrieved from a resource service. Updates may include changes
+        to email, phone numbers, organization, and name details.
+
+        :param contact_info: A dictionary containing information about the press contact.
+        :return tuple[dict, bson.ObjectId | None]: A tuple where:
+            - The first element is a dictionary containing the updates to be applied.
+            - The second element is the ObjectId of the existing contact, or `None` if no existing contact is found.
+        """
+
+        contact_uri = f"onclusive:{contact_info['pressContactID']}"
+        existing_contact: dict = (
+            await get_resource_service("contacts").find_one_async(req=None, uri=contact_uri)
+        ) or {}
+        updates: dict = {}
+        if not existing_contact:
+            updates.update(
+                {
+                    "uri": contact_uri,
+                    "is_active": True,
+                    "public": True,
+                }
+            )
+
+        for field in {"pressContactEmail", "pressContactTelephone", "pressContactOffice", "pressContactName"}:
+            value = contact_info.get(field)
+            if field == "pressContactEmail":
+                existing_emails = existing_contact.get("contact_email") or []
+                if not value:
+                    if existing_emails:
+                        updates["contact_email"] = []
+                elif value not in existing_emails:
+                    updates["contact_email"] = [value]
+
+            elif field == "pressContactTelephone":
+                existing_phones = existing_contact.get("contact_phone") or []
+                if not value:
+                    if existing_phones:
+                        updates["contact_phone"] = []
+                else:
+                    phone_exists = False
+                    for phone in existing_phones:
+                        if phone.get("number") == value:
+                            phone_exists = True
+                            break
+
+                    if not phone_exists:
+                        updates["contact_phone"] = [{"number": value, "public": True}]
+
+            elif field == "pressContactOffice":
+                if value != existing_contact.get("organisation"):
+                    updates["organisation"] = value
+
+            elif field == "pressContactName":
+                if not value:
+                    first, last = "", ""
+                else:
+                    try:
+                        first, last = value.rsplit(" ", 1)
+                    except ValueError:
+                        first, last = "", value
+
+                if first != existing_contact.get("first_name"):
+                    updates["first_name"] = first
+                if last != existing_contact.get("last_name"):
+                    updates["last_name"] = last
+
+        return updates, bson.ObjectId(existing_contact["_id"]) if existing_contact.get("_id") else None
 
     def set_expiry(self, event, provider) -> None:
         expiry_minutes = (

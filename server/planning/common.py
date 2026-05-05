@@ -263,8 +263,9 @@ def get_config_event_related_item_search_provider_name() -> Optional[str]:
     return get_app_config("EVENT_RELATED_ITEM_SEARCH_PROVIDER_NAME")
 
 
-def remove_lock_information(item):
+def remove_lock_information(item: dict) -> dict:
     item.update({LOCK_USER: None, LOCK_SESSION: None, LOCK_TIME: None, LOCK_ACTION: None})
+    return item
 
 
 def get_default_coverage_status_qcode_on_ingest():

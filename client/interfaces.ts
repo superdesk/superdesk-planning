@@ -488,7 +488,7 @@ export interface IEventItem extends IBaseRestApiResponse {
             frequency?: string;
             interval?: number;
             endRepeatMode?: 'count' | 'until';
-            until?: IDateTime;
+            until?: Date | string;
             count?: number;
             bymonth?: string;
             byday?: string;
@@ -503,7 +503,7 @@ export interface IEventItem extends IBaseRestApiResponse {
         ex_rule?: {
             frequency?: string;
             interval?: string;
-            until?: string | Date;
+            until?: Date | string;
             bymonth?: string;
             byday?: string;
             byhour?: string;

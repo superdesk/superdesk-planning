@@ -11,7 +11,6 @@
 """Superdesk Events"""
 
 
-import re
 import pytz
 import logging
 import itertools
@@ -22,21 +21,7 @@ from datetime import datetime, timedelta
 from dateutil import parser
 
 from eve.methods.common import resolve_document_etag
-from eve.utils import date_to_str
-from dateutil.rrule import (
-    rrule,
-    YEARLY,
-    MONTHLY,
-    WEEKLY,
-    DAILY,
-    MO,
-    TU,
-    WE,
-    TH,
-    FR,
-    SA,
-    SU,
-)
+
 
 import superdesk
 from superdesk.core import get_app_config, get_current_app
@@ -47,14 +32,13 @@ from superdesk.errors import SuperdeskApiError
 from superdesk.metadata.utils import generate_guid
 from superdesk.metadata.item import GUID_NEWSML
 from superdesk.notification import push_notification
-from superdesk.utc import get_date, utcnow, utc_to_local
+from superdesk.utc import get_date, utcnow
 from superdesk.users.services import current_user_has_privilege
 from superdesk.publish_async.utils import get_next_sequence_number
 from apps.auth import get_user, get_user_id
 from apps.archive.common import get_auth, update_dates_for
 
 from planning.events.events_reschedule import reschedule_single_event
-from planning.events.events_utils import get_recurring_timeline
 from planning.events.events_history_async_service import EventsHistoryAsyncService
 from planning.types import (
     EmbeddedCoverageItem,
@@ -66,7 +50,6 @@ from planning.types import (
 from planning.common import (
     TEMP_ID_PREFIX,
     UPDATE_SINGLE,
-    UPDATE_FUTURE,
     get_max_recurrent_events,
     WORKFLOW_STATE,
     ITEM_STATE,
@@ -92,12 +75,10 @@ from planning.utils import (
 )
 from .events_schema import events_schema
 from .events_sync import sync_event_metadata_with_planning_items
-from .events_utils import get_recurring_event_updates_iterator
+from .events_utils import get_recurring_event_updates_iterator, generate_recurring_dates
 
 logger = logging.getLogger(__name__)
 
-FREQUENCIES = {"DAILY": DAILY, "WEEKLY": WEEKLY, "MONTHLY": MONTHLY, "YEARLY": YEARLY}
-DAYS = {"MO": MO, "TU": TU, "WE": WE, "TH": TH, "FR": FR, "SA": SA, "SU": SU}
 
 organizer_roles = {
     "eorol:artAgent": "Artistic agent",
@@ -876,48 +857,6 @@ class EventsService(AsyncBaseService):
         app = get_current_app().as_any()
         await app.on_updated_planning.call_async(updates, planning_item)
 
-    async def get_expired_items(self, expiry_datetime, spiked_events_only=False):
-        """Get the expired items
-
-        Where end date is in the past
-        """
-        query = {
-            "query": {"bool": {"must_not": [{"term": {"expired": True}}]}},
-            "filter": {"range": {"dates.end": {"lte": date_to_str(expiry_datetime)}}},
-            "sort": [{"dates.start": "asc"}],
-            "size": get_max_recurrent_events(),
-        }
-
-        if spiked_events_only:
-            query["query"] = {"bool": {"must": [{"term": {"state": WORKFLOW_STATE.SPIKED}}]}}
-
-        total_received = 0
-        total_events = -1
-
-        while total_received + get_max_recurrent_events() < 10000:  # 10k is max elastic limit
-            query["from"] = total_received
-
-            results = await self.search_async(query)
-
-            # If the total_events has not been set, then this is the first query
-            # In which case we need to store the total hits from the search
-            if total_events < 0:
-                total_events = await results.count()
-
-                # If the search doesn't contain any results, return here
-                if total_events < 1:
-                    break
-
-            # If the last query doesn't contain any results, return here
-            items = await results.to_list()
-            if not len(items):
-                break
-
-            total_received += len(items)
-
-            # Yield the results for iteration by the callee
-            yield items
-
     async def delete_event_files(self, updates, original):
         files = [f for f in original.get("files", []) if f not in (updates or {}).get("files", [])]
         files_service = get_resource_service("events_files")
@@ -926,12 +865,34 @@ class EventsService(AsyncBaseService):
             if await events_using_file.count() == 0:
                 await files_service.delete_action_async(lookup={"_id": file})
 
-    def should_update(self, old_item, new_item, provider):
-        return old_item is None or not any(
-            [
-                old_item.get("pubstatus") == "cancelled",
-                old_item.get("state") == "killed",
-            ]
+    def should_update(self, old_item, new_item, provider) -> bool:
+        """Determine if an ingest feed event should update the local event.
+
+        Allows updates when:
+        - Event doesn't exist locally
+        - Event never manually edited (version_creator is None), even if cancelled/killed
+        - Event manually edited but not cancelled/killed
+
+        Key behavior: Ingest feeds can update cancelled/killed events only if never manually
+        touched. Once user-edited, cancelled/killed events won't be updated from feeds.
+
+        Args:
+            old_item: Existing event (None if doesn't exist)
+            new_item: Incoming event from feed
+            provider: Ingest provider config
+
+        Returns:
+            True if should update, False otherwise
+        """
+        return (
+            old_item is None
+            or old_item.get("version_creator") is None
+            or not any(
+                [
+                    old_item.get("pubstatus") == "cancelled",
+                    old_item.get("state") == "killed",
+                ]
+            )
         )
 
 
@@ -966,91 +927,6 @@ class EventsResource(superdesk.Resource):
     merge_nested_documents = True
 
 
-# TODO-ASYNC: moved to `events_utils.py`. Remove when it is no longer referenced
-def generate_recurring_dates(
-    start,
-    frequency,
-    interval=1,
-    until=None,
-    byday=None,
-    count=5,
-    tz=None,
-    date_only=False,
-    **_,
-):
-    """
-
-    Returns list of dates related to recurring rules
-
-    :param start datetime: date when to start
-    :param frequency str: DAILY, WEEKLY, MONTHLY, YEARLY
-    :param interval int: indicates how often the rule repeats as a positive integer
-    :param until datetime: date after which the recurrence rule expires
-    :param byday str or list: "MO TU"
-    :param count int: number of occurrences of the rule
-    :return list: list of datetime
-
-    """
-    # if tz is given, respect the timzone by starting from the local time
-    # NOTE: rrule uses only naive datetime
-    if tz:
-        try:
-            # start can already be localized
-            start = pytz.UTC.localize(start)
-        except ValueError:
-            pass
-        start = start.astimezone(tz).replace(tzinfo=None)
-        if until:
-            until = get_date(until).astimezone(tz).replace(tzinfo=None)
-
-    if frequency == "DAILY":
-        byday = None
-
-    # check format of the recurring_rule byday value
-    if byday and re.match(r"^-?[1-5]+.*", byday):
-        # byday uses monthly or yearly frequency rule with day of week and
-        # preceding day of month integer by day value
-        # examples:
-        # 1FR - first friday of the month
-        # -2MON - second to last monday of the month
-        if byday[:1] == "-":
-            day_of_month = int(byday[:2])
-            day_of_week = byday[2:]
-        else:
-            day_of_month = int(byday[:1])
-            day_of_week = byday[1:]
-
-        byweekday = DAYS.get(day_of_week)(day_of_month)
-    else:
-        # byday uses DAYS constants
-        byweekday = byday and [DAYS.get(d) for d in byday.split()] or None
-
-    # Convert count of repeats to count of events
-    if count:
-        count = count * (len(byday.split()) if byday else 1)
-
-    # TODO: use dateutil.rrule.rruleset to incude ex_date and ex_rule
-    dates = rrule(
-        FREQUENCIES.get(frequency),
-        dtstart=start,
-        until=until,
-        byweekday=byweekday,
-        count=count,
-        interval=interval,
-    )
-    # if a timezone has been applied, returns UTC
-    if tz:
-        if date_only:
-            return (tz.localize(dt).astimezone(pytz.UTC).replace(tzinfo=None).date() for dt in dates)
-        else:
-            return (tz.localize(dt).astimezone(pytz.UTC).replace(tzinfo=None) for dt in dates)
-    else:
-        if date_only:
-            return (date.date() for date in dates)
-        else:
-            return (date for date in dates)
-
-
 def setRecurringMode(event):
     endRepeatMode = event.get("dates", {}).get("recurring_rule", {}).get("endRepeatMode")
     if endRepeatMode == "count":
@@ -1082,6 +958,7 @@ def generate_recurring_events(event, recurrence_id=None):
         generate_recurring_dates(
             start=event["dates"]["start"],
             tz=event["dates"].get("tz") and pytz.timezone(event["dates"]["tz"] or None),
+            all_day=bool(event["dates"].get("all_day")),
             **event["dates"]["recurring_rule"],
         ),
         0,

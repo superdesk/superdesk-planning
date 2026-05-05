@@ -178,9 +178,12 @@ export class RescheduleEventComponent extends React.Component {
         const {original, formProfiles, submitting} = this.props;
         let reasonLabel = gettext('Reason for rescheduling this event:');
         const numPlannings = get(original, '_plannings.length');
-        const afterUntil = moment.isMoment(get(original, 'dates.recurring_rule.until')) &&
-            moment.isMoment(get(this.state, 'diff.dates.start')) &&
-            this.state.diff.dates.start.isAfter(original.dates.recurring_rule.until);
+        const until = timeUtils.dateToMomentDate(original.dates?.recurring_rule?.until);
+        const afterUntil = (
+            until != null &&
+            this.state.diff.dates?.start != null &&
+            moment(this.state.diff.dates.start).isAfter(original.dates.recurring_rule.until)
+        );
         const timeZone = get(original, 'dates.tz') || appConfig.default_timezone;
         const dateFormat = appConfig.planning.dateformat;
         const timeFormat = appConfig.planning.timeformat;
