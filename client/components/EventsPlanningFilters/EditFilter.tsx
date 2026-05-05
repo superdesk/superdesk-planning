@@ -24,8 +24,6 @@ interface IState {
 }
 
 export class EditFilter extends React.Component<IEventsPlanningContentPanelProps, IState> {
-    private popupContainer: React.RefObject<HTMLDivElement>;
-
     constructor(props) {
         super(props);
         const filter = this.props.filter != null ?
@@ -39,8 +37,6 @@ export class EditFilter extends React.Component<IEventsPlanningContentPanelProps
             errors: {},
             profile: this.getProfile(filter.item_type),
         };
-
-        this.popupContainer = React.createRef();
     }
 
     getProfile = (itemType: FILTER_TYPE = FILTER_TYPE.COMBINED) => {
@@ -57,10 +53,6 @@ export class EditFilter extends React.Component<IEventsPlanningContentPanelProps
     onTypeChanged = (field: string, value: FILTER_TYPE) => {
         this.setState({profile: this.getProfile(value)});
         this.onFilterChange(field, value);
-    }
-
-    getPopupContainer = () => {
-        return this.popupContainer.current;
     }
 
     isPristine = (updates: Partial<ISearchFilter> = null) => {
@@ -216,7 +208,6 @@ export class EditFilter extends React.Component<IEventsPlanningContentPanelProps
                                 },
                                 {
                                     onChange: this.onFilterChange,
-                                    popupContainer: this.getPopupContainer,
                                     language: getUserInterfaceLanguageFromCV(),
                                     item: this.state.filter,
                                 },
@@ -238,13 +229,11 @@ export class EditFilter extends React.Component<IEventsPlanningContentPanelProps
                                 onChange={this.onParamChange}
                                 onChangeMultiple={this.onMultiParamChange}
                                 searchProfile={profile}
-                                popupContainer={this.getPopupContainer}
                                 enabledField="filter_enabled"
                             />
                         </SidePanel.ContentBlockInner>
                     </SidePanel.ContentBlock>
                 </SidePanel.Content>
-                <div ref={this.popupContainer} />
             </React.Fragment>
         );
     }
