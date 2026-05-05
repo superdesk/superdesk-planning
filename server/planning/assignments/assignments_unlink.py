@@ -7,6 +7,8 @@
 # at https://www.sourcefabric.org/superdesk/license
 from copy import deepcopy
 
+from quart_babel import gettext as _
+
 from superdesk.resource_fields import ID_FIELD
 from superdesk import Resource, get_resource_service
 from superdesk.eve_async.service import AsyncBaseService
@@ -146,7 +148,7 @@ class AssignmentsUnlinkService(AsyncBaseService):
         session_id = session.get(ID_FIELD)
 
         if not assignment:
-            raise SuperdeskApiError.badRequestError("Assignment not found.")
+            raise SuperdeskApiError.badRequestError(_("Assignment not found."))
 
         if assignment.get(LOCK_USER):
             if str(assignment.get(LOCK_USER)) != str(user_id):
@@ -165,7 +167,7 @@ class AssignmentsUnlinkService(AsyncBaseService):
         if not item:
             item = get_resource_service("archived").find_one(req=None, _id=doc.get("item_id"))
             if not item:
-                raise SuperdeskApiError.badRequestError("Content item not found.")
+                raise SuperdeskApiError.badRequestError(_("Content item not found."))
 
         # If the item is locked, then check to see if it is locked by the
         # current user in their current session
@@ -186,7 +188,7 @@ class AssignmentsUnlinkService(AsyncBaseService):
             )
 
         if str(item.get("assignment_id")) != str(assignment.get(ID_FIELD)):
-            raise SuperdeskApiError.badRequestError("Assignment and Content are not linked.")
+            raise SuperdeskApiError.badRequestError(_("Assignment and Content are not linked."))
 
         deliveries = await get_resource_service("delivery").get_async(
             req=None, lookup={"assignment_id": assignment.get(ID_FIELD)}

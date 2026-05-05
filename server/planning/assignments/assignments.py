@@ -246,7 +246,7 @@ class AssignmentsService(AsyncBaseService):
         assigned_to = updates.get("assigned_to") or {}
         if (assigned_to.get("user") or assigned_to.get("contact")) and planning_auto_assign_to_workflow():
             if not assigned_to.get("desk"):
-                raise SuperdeskApiError.badRequestError(message="Assignment should have a desk.")
+                raise SuperdeskApiError.badRequestError(message=gettext("Assignment should have a desk."))
 
         multi_content_disabled = not assignment_allows_multiple_content_linked(original)
         desk_changed = original.get("assigned_to", {}).get("desk") != assigned_to.get("desk")
@@ -263,7 +263,7 @@ class AssignmentsService(AsyncBaseService):
         if assignment.get("_to_delete"):
             plan = await get_resource_service("planning").find_one_async(req=None, _id=assignment.get("planning_item"))
             state = "unposted" if (plan or {}).get("state") == WORKFLOW_STATE.KILLED else (plan or {}).get("state")
-            raise SuperdeskApiError.forbiddenError("Action failed. Related planning item is {}".format(state))
+            raise SuperdeskApiError.forbiddenError(gettext("Action failed. Related planning item is {}").format(state))
 
     def notify(self, event_name, updates, original):
         # No notifications for 'draft' assignments
@@ -1141,18 +1141,18 @@ class AssignmentsService(AsyncBaseService):
 
             delivery = await delivery_service.find_one_async(req=None, item_id=original_item[ID_FIELD])
             if not delivery:
-                raise SuperdeskApiError.badRequestError("Delivery record not found.")
+                raise SuperdeskApiError.badRequestError(gettext("Delivery record not found."))
 
             planning = await planning_service.find_one_async(req=None, _id=delivery.get("planning_id"))
             if not planning:
-                raise SuperdeskApiError.badRequestError("Planning does not exist")
+                raise SuperdeskApiError.badRequestError(gettext("Planning does not exist"))
 
             coverage = None
             coverages = planning.get("coverages") or []
             try:
                 coverage = next(c for c in coverages if c.get("coverage_id") == delivery.get("coverage_id"))
             except StopIteration:
-                raise SuperdeskApiError.badRequestError("Coverage does not exist")
+                raise SuperdeskApiError.badRequestError(gettext("Coverage does not exist"))
 
             # Link only if linking updates are enabled
             if (coverage.get("flags") or {}).get("no_content_linking"):
@@ -1169,7 +1169,7 @@ class AssignmentsService(AsyncBaseService):
 
             assignment = await self.find_one_async(req=None, _id=str(assignment_id))
             if not assignment:
-                raise SuperdeskApiError.badRequestError("Assignment not found.")
+                raise SuperdeskApiError.badRequestError(gettext("Assignment not found."))
 
             await assignment_link_service.post_async(
                 [
@@ -1227,7 +1227,7 @@ class AssignmentsService(AsyncBaseService):
             and assignment.get("lock_action") != "content_edit"
             and (assignment["lock_session"] != get_auth()["_id"] or assignment["lock_user"] != user_id)
         ):
-            raise SuperdeskApiError.badRequestError(message="Lock Failed: Related assignment is locked.")
+            raise SuperdeskApiError.badRequestError(message=gettext("Lock Failed: Related assignment is locked."))
 
     async def sync_assignment_lock(self, item, user_id):
         # If more than one archive item is associated with the assignment
@@ -1294,7 +1294,7 @@ class AssignmentsService(AsyncBaseService):
         planning_item = await planning_service.find_one_async(req=None, _id=doc.get("planning_item"))
 
         if not planning_item:
-            raise SuperdeskApiError.badRequestError(message="Failed to find Planning item.")
+            raise SuperdeskApiError.badRequestError(message=gettext("Failed to find Planning item."))
 
         # Make sure either the Assignment or Planning item is locked by this user and session
         assignment_linked_to_coverage = any(
@@ -1303,14 +1303,14 @@ class AssignmentsService(AsyncBaseService):
             if str((coverage.get("assigned_to") or {}).get("assignment_id")) == str(doc["_id"])
         )
         if assignment_linked_to_coverage and not is_locked_in_this_session(doc):
-            raise SuperdeskApiError.forbiddenError(message="Lock is not obtained on the Assignment item")
+            raise SuperdeskApiError.forbiddenError(message=gettext("Lock is not obtained on the Assignment item"))
 
         # Make sure the content linked to assignment (if) is also not locked
         # This is needed when the planing item is being unposted/spiked
         archive_items = await self.get_archive_items_for_assignment(doc)
         async for archive_item in archive_items:
             if archive_item.get("lock_user") and not is_locked_in_this_session(archive_item):
-                raise SuperdeskApiError.forbiddenError(message="Associated archive item is locked")
+                raise SuperdeskApiError.forbiddenError(message=gettext("Associated archive item is locked"))
 
         # Make sure we cannot delete a completed Assignment
         # This should not be needed, as you cannot obtain a lock on an Assignment that is completed

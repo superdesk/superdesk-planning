@@ -18,6 +18,8 @@ from copy import deepcopy
 from werkzeug.datastructures import MultiDict, ImmutableMultiDict
 from eve.utils import ParsedRequest
 
+from quart_babel import gettext as _
+
 from superdesk import Resource, get_resource_service
 from superdesk.eve_async.service import AsyncBaseService
 from superdesk.resource import build_custom_hateoas
@@ -94,7 +96,7 @@ class EventsPlanningService(AsyncBaseService):
 
         for param_name in params.keys():
             if param_name not in whitelist:
-                raise SuperdeskApiError.badRequestError(message="Unexpected parameter ({})".format(param_name))
+                raise SuperdeskApiError.badRequestError(message=_("Unexpected parameter ({})").format(param_name))
 
             if len(params.getlist(param_name)) > 1:
                 desc = "Multiple values received for parameter ({})"
@@ -320,7 +322,7 @@ class EventsPlanningService(AsyncBaseService):
         search_filter = await EventsPlanningFiltersAsyncService().find_by_id_raw(filter_id)
 
         if not search_filter:
-            raise SuperdeskApiError.notFoundError("EventPlanning Filter {} not found".format(filter_id))
+            raise SuperdeskApiError.notFoundError(_("EventPlanning Filter {} not found").format(filter_id))
 
         if args is None:
             args = {}

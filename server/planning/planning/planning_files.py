@@ -8,6 +8,8 @@
 
 """Superdesk Files"""
 
+from quart_babel import gettext as _
+
 import superdesk
 from superdesk import get_resource_service
 from superdesk.errors import SuperdeskApiError
@@ -65,4 +67,4 @@ class PlanningFilesService(AsyncBaseService):
         }
         plannings_using_file = await get_resource_service("planning").find_async(where=find_clause)
         if await plannings_using_file.count() > 0:
-            raise SuperdeskApiError.forbiddenError("Delete failed. File still used by other planning items.")
+            raise SuperdeskApiError.forbiddenError(_("Delete failed. File still used by other planning items."))

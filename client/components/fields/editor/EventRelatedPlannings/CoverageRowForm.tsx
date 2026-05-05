@@ -9,6 +9,7 @@ import {
     ISearchProfile
 } from '../../../../interfaces';
 
+import {superdeskApi} from '../../../../superdeskApi';
 import {planningUtils} from '../../../../utils';
 import {getVocabularyItemFieldTranslated} from '../../../../utils/vocabularies';
 import {getUserInterfaceLanguageFromCV} from '../../../../utils/users';
@@ -79,6 +80,8 @@ export class CoverageRowForm extends React.PureComponent<IProps> {
     }
 
     render() {
+        const {gettext} = superdeskApi.localization;
+
         return (
             <div
                 data-test-id={`coverage_${this.props.index}`}
@@ -120,13 +123,13 @@ export class CoverageRowForm extends React.PureComponent<IProps> {
                         {this.props.typeCount < 2 ? null : (
                             <IconButton
                                 icon="trash"
-                                ariaValue="Remove Coverage"
+                                ariaValue={gettext('Remove Coverage')}
                                 onClick={this.remove}
                             />
                         )}
                         <IconButton
                             icon="plus-sign"
-                            ariaValue="Duplicate"
+                            ariaValue={gettext('Duplicate')}
                             onClick={this.duplicate}
                         />
                     </List.ActionMenu>

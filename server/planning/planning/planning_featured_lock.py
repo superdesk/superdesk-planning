@@ -8,6 +8,8 @@
 # AUTHORS and LICENSE files distributed with this source code, or
 # at https://www.sourcefabric.org/superdesk/license
 
+from quart_babel import gettext as _
+
 from superdesk.eve_async.service import AsyncBaseService
 from superdesk.metadata.utils import generate_guid
 from superdesk.metadata.item import GUID_NEWSML, metadata_schema
@@ -56,7 +58,7 @@ class PlanningFeaturedLockService(AsyncBaseService):
 
         # get the lock if not raise forbidden exception
         if not lock(LOCK_ID, expire=5):
-            raise SuperdeskApiError.forbiddenError(message="Unable to obtain lock on Featured stories.")
+            raise SuperdeskApiError.forbiddenError(message=_("Unable to obtain lock on Featured stories."))
 
         for doc in docs:
             doc["_id"] = generate_guid(type=GUID_NEWSML)

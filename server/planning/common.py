@@ -287,7 +287,9 @@ def get_coverage_status_from_cv(qcode: str):
     coverage_states = get_resource_service("vocabularies").find_one(req=None, _id="newscoveragestatus")
 
     if not coverage_states or not len(coverage_states.get("items", [])):
-        raise SuperdeskApiError.notConfiguredError(message="newscoveragestatus CV not found in DB or has no items")
+        raise SuperdeskApiError.notConfiguredError(
+            message=gettext("newscoveragestatus CV not found in DB or has no items")
+        )
 
     coverage_status = next((state for state in coverage_states["items"] if state.get("qcode") == qcode), None)
     if coverage_status:

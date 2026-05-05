@@ -85,7 +85,7 @@ export function UnlinkAssignmentController(
                     item_id: newsItem._id,
                 })
                     .then(() => {
-                        notify.success('Item unlinked from coverage.');
+                        notify.success(gettext('Item unlinked from coverage.'));
                         // update the scope item.
                         data.item.assignment_id = null;
 

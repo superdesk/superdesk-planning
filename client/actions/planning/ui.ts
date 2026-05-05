@@ -529,7 +529,7 @@ const saveFromAuthoring = (original, updates?: Partial<IPlanningItem>) => (
 
                 return dispatch(actions.assignments.api.link(coverage.assigned_to, newsItem, reassign))
                     .then(() => {
-                        notify.success('Content linked to the planning item.');
+                        notify.success(gettext('Content linked to the planning item.'));
 
                         return Promise.resolve(newPlan);
                     })

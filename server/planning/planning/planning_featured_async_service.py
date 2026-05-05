@@ -1,6 +1,8 @@
 from typing import Any
 from copy import deepcopy
 
+from quart_babel import gettext as _
+
 from apps.auth import get_user_id
 from bson import ObjectId
 from planning.core.service import BasePlanningAsyncService
@@ -24,7 +26,7 @@ class PlanningFeaturedAsyncService(BasePlanningAsyncService[PlanningFeaturedReso
         for doc in docs:
             items = await super().find({"_id": doc.id})
             if await items.count() > 0:
-                raise SuperdeskApiError.badRequestError(message="Featured story already exists for this date.")
+                raise SuperdeskApiError.badRequestError(message=_("Featured story already exists for this date."))
 
             await self.validate_featured_attrribute(doc.items)
             await self.post_featured_planning(doc)
@@ -85,7 +87,7 @@ class PlanningFeaturedAsyncService(BasePlanningAsyncService[PlanningFeaturedReso
         for planning_id in planning_ids:
             planning_item = await planning_service.find_by_id_raw(planning_id)
             if planning_item and not planning_item.get("featured"):
-                raise SuperdeskApiError.badRequestError(message="A planning item in the list is not featured.")
+                raise SuperdeskApiError.badRequestError(message=_("A planning item in the list is not featured."))
 
     async def validate_post_status(self, planning_ids: list):
         planning_service = PlanningAsyncService()

@@ -158,12 +158,12 @@ class AssignmentsLinkService(AsyncBaseService):
         assignment = await get_resource_service("assignments").find_one_async(req=None, _id=doc.get("assignment_id"))
 
         if not assignment:
-            raise SuperdeskApiError.badRequestError("Assignment not found.")
+            raise SuperdeskApiError.badRequestError(_("Assignment not found."))
 
         item = await get_resource_service("archive").find_one_async(req=None, _id=doc.get("item_id"))
 
         if not item:
-            raise SuperdeskApiError.badRequestError("Content item not found.")
+            raise SuperdeskApiError.badRequestError(_("Content item not found."))
 
         if not is_content_link_to_coverage_allowed(item):
             raise SuperdeskApiError.badRequestError(
@@ -175,21 +175,23 @@ class AssignmentsLinkService(AsyncBaseService):
 
         if not doc.get("force") and item.get("assignment_id"):
             raise SuperdeskApiError.badRequestError(
-                "Content is already linked to an assignment. Cannot link assignment and content."
+                _("Content is already linked to an assignment. Cannot link assignment and content.")
             )
 
         if not is_assigned_to_a_desk(item):
-            raise SuperdeskApiError.badRequestError("Content not in workflow. Cannot link assignment and content.")
+            raise SuperdeskApiError.badRequestError(_("Content not in workflow. Cannot link assignment and content."))
 
         if not item.get("rewrite_of") and not assignment_allows_multiple_content_linked(assignment):
             if await get_resource_service("delivery").count_async({"assignment_id": doc.get("assignment_id")}) > 0:
                 raise SuperdeskApiError.badRequestError(
-                    "Content already exists for the assignment. Cannot link assignment and content."
+                    _("Content already exists for the assignment. Cannot link assignment and content.")
                 )
 
             # scheduled update validation
             if assignment.get("scheduled_update_id"):
-                raise SuperdeskApiError.badRequestError("Only updates can be linked to a scheduled update assignment")
+                raise SuperdeskApiError.badRequestError(
+                    _("Only updates can be linked to a scheduled update assignment")
+                )
 
         coverage = await get_coverage_for_assignment(assignment)
         allowed_states = [

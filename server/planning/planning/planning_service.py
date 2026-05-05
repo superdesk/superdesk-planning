@@ -20,6 +20,8 @@ from superdesk.notification import push_notification
 from superdesk import get_resource_service, get_app_config
 from superdesk.core.utils import date_to_str, generate_guid
 
+from quart_babel import gettext as _
+
 from planning.planning_notifications import PlanningNotifications
 from planning.content_profiles.utils import is_field_enabled
 from planning.events.events_utils import get_recurring_timeline
@@ -263,7 +265,7 @@ class PlanningAsyncService(BasePlanningAsyncService[PlanningResourceModel]):
         str_user_id = str(user.get(ID_FIELD)) if user else None
 
         if lock_user and str(lock_user) != str_user_id:
-            raise SuperdeskApiError.forbiddenError("The item was locked by another user")
+            raise SuperdeskApiError.forbiddenError(_("The item was locked by another user"))
 
         await self.validate_planning(updates, original)
 
@@ -483,12 +485,12 @@ class PlanningAsyncService(BasePlanningAsyncService[PlanningResourceModel]):
         for agenda_id in updated_planning.get("agendas", []):
             agenda = await agenda_service.find_one(req=None, _id=agenda_id)
             if not agenda:
-                raise SuperdeskApiError.forbiddenError("Agenda '{}' does not exist".format(agenda_id))
+                raise SuperdeskApiError.forbiddenError(_("Agenda '{}' does not exist").format(agenda_id))
 
             if not agenda.get("is_enabled", False) and (
                 original is None or agenda_id not in original.get("agendas", [])
             ):
-                raise SuperdeskApiError.forbiddenError("Agenda '{}' is not enabled".format(agenda.get("name")))
+                raise SuperdeskApiError.forbiddenError(_("Agenda '{}' is not enabled").format(agenda.get("name")))
 
         # Validate scheduled updates
         for coverage in updated_planning.get("coverages") or []:
@@ -944,7 +946,7 @@ class PlanningAsyncService(BasePlanningAsyncService[PlanningResourceModel]):
             return
 
         if not planning.id:
-            raise SuperdeskApiError.badRequestError("Planning item is required to create assignments.")
+            raise SuperdeskApiError.badRequestError(_("Planning item is required to create assignments."))
 
         # Coverage is draft if original was draft and updates is still maintaining that state
         coverage_status = coverage_updates.get("workflow_status", original_coverage.get("workflow_status"))
@@ -974,14 +976,14 @@ class PlanningAsyncService(BasePlanningAsyncService[PlanningResourceModel]):
                     WorkflowStates.CANCELLED,
                     WorkflowStates.DRAFT,
                 ]:
-                    raise SuperdeskApiError.badRequestError("Coverage not in correct state to remove assignment.")
+                    raise SuperdeskApiError.badRequestError(_("Coverage not in correct state to remove assignment."))
 
                 return await self._remove_assignment(coverage_doc, original_planning, assignment_id)
 
             # update the assignment using the coverage details
             original_assignment = assignment_service.find_one(req=None, _id=assignment_id)
             if not original_assignment:
-                raise SuperdeskApiError.badRequestError("Assignment related to the coverage does not exists.")
+                raise SuperdeskApiError.badRequestError(_("Assignment related to the coverage does not exists."))
 
             # check if coverage was cancelled
             is_coverage_cancelled = self._cancel_coverage_if_needed(
