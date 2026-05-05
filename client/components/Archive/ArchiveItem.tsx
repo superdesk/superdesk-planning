@@ -16,11 +16,20 @@ interface IProps {
     urgencies: any;
     urgencyLabel: any;
     use2Lines?: boolean;
+    hideOpenCoverageAction?: boolean;
     onClick?(): void;
     onDoubleClick?(): void;
 }
 
-export function ArchiveItemComponent({item, urgencies, urgencyLabel, use2Lines, onClick, onDoubleClick}: IProps) {
+export function ArchiveItemComponent({
+    item,
+    urgencies,
+    urgencyLabel,
+    use2Lines,
+    hideOpenCoverageAction,
+    onClick,
+    onDoubleClick,
+}: IProps) {
     const {gettext} = superdeskApi.localization;
     const stateProps: Label['props'] = ['PUBLISHED', 'SCHEDULED', 'CORRECTED'].includes(item.state) ? {
         type: 'success',
@@ -37,7 +46,7 @@ export function ArchiveItemComponent({item, urgencies, urgencyLabel, use2Lines, 
             onClick={onClick}
             onDoubleClick={onDoubleClick}
             locked={item.lock_action != null}
-            action={(
+            action={hideOpenCoverageAction === true ? null : (
                 <IconButton
                     icon="external"
                     ariaValue={gettext('Open Coverage')}
