@@ -983,7 +983,7 @@ class PlanningAsyncService(BasePlanningAsyncService[PlanningResourceModel]):
             # update the assignment using the coverage details
             original_assignment = assignment_service.find_one(req=None, _id=assignment_id)
             if not original_assignment:
-                raise SuperdeskApiError.badRequestError(_("Assignment related to the coverage does not exists."))
+                raise SuperdeskApiError.badRequestError(_("Assignment related to the coverage does not exist."))
 
             # check if coverage was cancelled
             is_coverage_cancelled = self._cancel_coverage_if_needed(
