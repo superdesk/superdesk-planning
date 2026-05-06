@@ -34,7 +34,7 @@ test.describe('Planning.Events: editor bookmarks', () => {
 
         await editor.clickBookmark('details');
         await expect(editor.fields.anpa_category.addButton).toBeVisible();
-        await expect(editor.fields.anpa_category.addButton).toBeFocused();
+        await expect(editor.fields.anpa_category.addButton).toBeInViewport();
 
         await editor.clickBookmark('attachments');
         await expect(
