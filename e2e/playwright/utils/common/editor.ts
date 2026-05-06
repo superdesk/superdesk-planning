@@ -126,13 +126,11 @@ export class Editor {
     }
 
     async waitLoadingComplete(): Promise<void> {
-        await this.page.waitForTimeout(500);
+        await this.element.waitFor({state: 'visible'});
         await this.element.locator('.sd-loader').waitFor({state: 'detached'});
-        // Wait for any text input to be visible
-        await this.element
-            .getByRole('textbox')
-            .first()
-            .waitFor({state: 'visible'});
+        // In CI some editors don't render a role="textbox" immediately.
+        // The panel is usable once loading is done and controls are enabled.
+        await expect(this.closeButton).toBeEnabled();
     }
 
     async openAllToggleBoxes() {
