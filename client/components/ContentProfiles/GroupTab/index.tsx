@@ -212,11 +212,12 @@ export class GroupTabComponent extends React.Component<IProps, IState> {
     }
 
     saveGroup() {
+        const {gettext} = superdeskApi.localization;
         const {notify} = superdeskApi.ui;
         const errors = this.validateCurrentGroup();
 
         if (Object.keys(errors).length) {
-            notify.error('Failed to save group');
+            notify.error(gettext('Failed to save group'));
         } else {
             const group = this.state.selectedGroup;
             // Make sure to not change the current index of this field

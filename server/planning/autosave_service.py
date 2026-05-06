@@ -2,6 +2,8 @@ import logging
 
 from bson import ObjectId
 
+from quart_babel import gettext as _
+
 from superdesk import get_resource_service
 from superdesk.core.resources import AsyncResourceService
 from superdesk.errors import SuperdeskApiError
@@ -38,10 +40,10 @@ class AutosaveAsyncService(AsyncResourceService):
         """Validate the autosave to ensure it contains user/session"""
 
         if not doc.lock_user:
-            raise SuperdeskApiError.badRequestError(message="Autosave failed, User not supplied")
+            raise SuperdeskApiError.badRequestError(message=_("Autosave failed, User not supplied"))
 
         if not doc.lock_session:
-            raise SuperdeskApiError.badRequestError(message="Autosave failed, User Session not supplied")
+            raise SuperdeskApiError.badRequestError(message=_("Autosave failed, User Session not supplied"))
 
 
 async def on_item_unlocked(resource: str, item: dict, user_id: ObjectId) -> None:

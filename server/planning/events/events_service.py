@@ -18,6 +18,8 @@ from superdesk.notification import push_notification
 from superdesk.core.utils import date_to_str, generate_guid
 
 
+from quart_babel import gettext as _
+
 from planning import signals
 from planning.types import (
     PLANNING_RELATED_EVENT_LINK_TYPE,
@@ -240,7 +242,7 @@ class EventsAsyncService(BasePlanningAsyncService[EventResourceModel]):
                 parent_id = doc.duplicate_from
                 parent_event = await self.find_by_id(parent_id)
                 if not parent_event:
-                    raise SuperdeskApiError.badRequestError("Parent event not found")
+                    raise SuperdeskApiError.badRequestError(_("Parent event not found"))
 
                 await history_service.on_item_updated({"duplicate_id": event_id}, parent_event.to_dict(), "duplicate")
                 await history_service.on_item_updated({"duplicate_id": parent_id}, doc.to_dict(), "duplicate_from")
@@ -289,7 +291,7 @@ class EventsAsyncService(BasePlanningAsyncService[EventResourceModel]):
         str_user_id = str(user.get(ID_FIELD)) if user_id else None
 
         if lock_user and str(lock_user) != str_user_id:
-            raise SuperdeskApiError.forbiddenError("The item was locked by another user")
+            raise SuperdeskApiError.forbiddenError(_("The item was locked by another user"))
 
         # If only the `recurring_rule` was provided, then fill in the rest from the original
         # this can happen, for example, when converting a single Event to a series of Recurring Events
@@ -318,7 +320,7 @@ class EventsAsyncService(BasePlanningAsyncService[EventResourceModel]):
         original_event = await self.find_by_id(event_id)
 
         if original_event is None:
-            raise SuperdeskApiError.badRequestError("Event not found")
+            raise SuperdeskApiError.badRequestError(_("Event not found"))
 
         # Extract the ``embedded_planning`` from the updates
         embedded_planning = get_events_embedded_planning(updates)
@@ -619,7 +621,7 @@ class EventsAsyncService(BasePlanningAsyncService[EventResourceModel]):
         if event.recurrence_id:
             if not mark_complete_validated:
                 if event.dates.start.date() > updates["actioned_date"].date():
-                    raise SuperdeskApiError.badRequestError("Recurring series has not started.")
+                    raise SuperdeskApiError.badRequestError(_("Recurring series has not started."))
 
             # If we are marking an event as completed
             # Update only those which are behind the 'actioned_date'
@@ -812,7 +814,7 @@ class EventsAsyncService(BasePlanningAsyncService[EventResourceModel]):
         planning_item = await planning_service.find_by_id(event.planning_item)
 
         if not planning_item:
-            raise SuperdeskApiError.badRequestError("Planning item not found")
+            raise SuperdeskApiError.badRequestError(_("Planning item not found"))
 
         updates = {"related_events": planning_item.get("related_events") or []}
         event_link_method = get_planning_event_link_method()

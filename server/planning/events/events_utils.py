@@ -12,6 +12,8 @@ from eve.utils import ParsedRequest
 from apps.archive.common import get_auth
 from apps.auth import get_user_id
 
+from quart_babel import gettext as _
+
 from superdesk import get_resource_service, json
 from superdesk.core.types import SortParam, SortListParam
 from superdesk.errors import SuperdeskApiError
@@ -300,10 +302,10 @@ async def validate_event_action(
         raise SuperdeskApiError.notFoundError()
 
     if not await is_valid_event_planning_reason(updates, original):
-        raise SuperdeskApiError.badRequestError(message="Reason is required field.")
+        raise SuperdeskApiError.badRequestError(message=_("Reason is required field."))
 
     if original.get("state") == WORKFLOW_STATE.CANCELLED:
-        raise SuperdeskApiError.badRequestError(message="Aborted. Event is already cancelled")
+        raise SuperdeskApiError.badRequestError(message=_("Aborted. Event is already cancelled"))
 
     if require_lock:
         user_id = get_user_id()
@@ -314,14 +316,14 @@ async def validate_event_action(
         lock_action = original.get(LOCK_ACTION, None)
 
         if not lock_user:
-            raise SuperdeskApiError.badRequestError(message="The event must be locked")
+            raise SuperdeskApiError.badRequestError(message=_("The event must be locked"))
         elif str(lock_user) != str(user_id):
-            raise SuperdeskApiError.badRequestError(message="The event is locked by another user")
+            raise SuperdeskApiError.badRequestError(message=_("The event is locked by another user"))
         elif str(lock_session) != str(session_id):
-            raise SuperdeskApiError.badRequestError(message="The event is locked by you in another session")
+            raise SuperdeskApiError.badRequestError(message=_("The event is locked by you in another session"))
         elif str(lock_action) != ACTION:
             raise SuperdeskApiError.badRequestError(
-                message="The lock must be for the `{}` action".format(ACTION.lower().replace("_", " "))
+                message=_("The lock must be for the `{}` action").format(ACTION.lower().replace("_", " "))
             )
 
     event_service.validate_event(updates, original)

@@ -10,6 +10,8 @@
 
 import logging
 
+from quart_babel import gettext as _
+
 from superdesk import Resource, get_resource_service
 from superdesk.core import get_current_app
 from superdesk.errors import SuperdeskApiError
@@ -68,4 +70,4 @@ class EventsFilesService(AsyncBaseService):
 
     async def on_delete_async(self, doc):
         if await get_resource_service("events").count_async({"files": doc.get("_id")}) > 0:
-            raise SuperdeskApiError.forbiddenError("Delete failed. File still used by other events.")
+            raise SuperdeskApiError.forbiddenError(_("Delete failed. File still used by other events."))

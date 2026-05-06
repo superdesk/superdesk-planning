@@ -10,6 +10,8 @@
 
 import logging
 
+from quart_babel import gettext as _
+
 import superdesk
 from superdesk.resource_fields import ID_FIELD
 from superdesk.errors import SuperdeskApiError
@@ -68,7 +70,7 @@ class LockService(BaseComponent):
 
         # get the lock it not raise forbidden exception
         if not lock(lock_id, expire=5):
-            raise SuperdeskApiError.forbiddenError(message="Item is locked by another user.")
+            raise SuperdeskApiError.forbiddenError(message=_("Item is locked by another user."))
 
         try:
             can_user_lock, error_message = self.can_lock(item, user_id, session_id, resource)

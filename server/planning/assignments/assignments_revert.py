@@ -11,6 +11,8 @@
 from copy import deepcopy
 
 from superdesk.resource_fields import ID_FIELD
+from quart_babel import gettext as _
+
 from superdesk import get_resource_service
 from superdesk.eve_async.service import AsyncBaseService
 from superdesk.notification import push_notification
@@ -52,10 +54,10 @@ class AssignmentsRevertService(AsyncBaseService):
         if not assignment_allows_multiple_content_linked(original) and await assignments_service.is_text_assignment(
             original
         ):
-            raise SuperdeskApiError.forbiddenError("Cannot revert text assignments.")
+            raise SuperdeskApiError.forbiddenError(_("Cannot revert text assignments."))
 
         if assignment_state != ASSIGNMENT_WORKFLOW_STATE.COMPLETED:
-            raise SuperdeskApiError.forbiddenError("Cannot revert an assignment which is not yet confirmed.")
+            raise SuperdeskApiError.forbiddenError(_("Cannot revert an assignment which is not yet confirmed."))
 
         updates["assigned_to"] = deepcopy(original).get("assigned_to")
         updates["assigned_to"]["revert_state"] = None

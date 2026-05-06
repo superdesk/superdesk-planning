@@ -1,5 +1,7 @@
 from typing import Any
 
+from quart_babel import gettext as _
+
 from superdesk import get_resource_service
 from apps.auth import get_auth, get_user
 
@@ -88,19 +90,19 @@ def spike_event(updates: dict[str, Any], original: dict[str, Any]) -> None:
 def validate_event_states(event: dict[str, Any]) -> None:
     # Public Events (except unposted) cannot be spiked
     if event.get("pubstatus") and event.get("state") != WORKFLOW_STATE.KILLED:
-        raise SuperdeskApiError.badRequestError(message="Spike failed. Posted Events cannot be spiked.")
+        raise SuperdeskApiError.badRequestError(message=_("Spike failed. Posted Events cannot be spiked."))
 
     # Posted Events with Planning items cannot be spiked
     elif event.get("pubstatus") and event_has_planning_items(event[ID_FIELD], "primary"):
-        raise SuperdeskApiError.badRequestError(message="Spike failed. Event has an associated Planning item.")
+        raise SuperdeskApiError.badRequestError(message=_("Spike failed. Event has an associated Planning item."))
 
     # Event was created from a 'Reschedule' action or is 'Rescheduled'
     elif event.get("reschedule_from") or event.get(ITEM_STATE) == WORKFLOW_STATE.RESCHEDULED:
-        raise SuperdeskApiError.badRequestError(message="Spike failed. Rescheduled Events cannot be spiked.")
+        raise SuperdeskApiError.badRequestError(message=_("Spike failed. Rescheduled Events cannot be spiked."))
 
     # Event already spiked
     elif event.get(ITEM_STATE) == WORKFLOW_STATE.SPIKED:
-        raise SuperdeskApiError.badRequestError(message="Spike failed. Event is already spiked.")
+        raise SuperdeskApiError.badRequestError(message=_("Spike failed. Event is already spiked."))
 
 
 async def validate_spike_event(event: dict[str, Any]) -> None:
@@ -124,11 +126,11 @@ async def validate_recurring_event(original: dict[str, Any], recurrence_id: str)
             continue
 
         if event.get(LOCK_USER) or event.get(LOCK_SESSION):
-            raise SuperdeskApiError.forbiddenError(message="Spike failed. An event in the series is locked.")
+            raise SuperdeskApiError.forbiddenError(message=_("Spike failed. An event in the series is locked."))
 
     async for planning in await planning_service.find_async({"recurrence_id": recurrence_id}):
         if planning.get(LOCK_USER) or planning.get(LOCK_SESSION):
-            raise SuperdeskApiError.forbiddenError(message="Spike failed. A related planning item is locked.")
+            raise SuperdeskApiError.forbiddenError(message=_("Spike failed. A related planning item is locked."))
 
         first_event_id = get_first_related_event_id_for_planning(planning, "primary")
         if first_event_id not in events_with_plans:

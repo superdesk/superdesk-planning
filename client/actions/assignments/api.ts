@@ -292,7 +292,7 @@ const loadArchiveItem = (assignment) => (
         const assignmentId = get(assignment, '_id', null);
 
         if (!assignmentId) {
-            notify.error('Incorrect Assignment');
+            notify.error(gettext('Incorrect Assignment'));
             return Promise.reject('Incorrect Assignment');
         }
 
@@ -317,7 +317,7 @@ const loadArchiveItem = (assignment) => (
                 const item = get(data, '_items[0]', null);
 
                 if (!item) {
-                    notify.error('Content item not found!');
+                    notify.error(gettext('Content item not found!'));
                     return Promise.reject('Content item not found!');
                 }
 

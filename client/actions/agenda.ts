@@ -40,7 +40,7 @@ const createOrUpdateAgenda = (newAgenda) => (
 
         return api('agenda').save(originalAgenda, diff)
             .then((agenda) => {
-                notify.success('The agenda has been created/updated.');
+                notify.success(gettext('The agenda has been created/updated.'));
                 dispatch(addOrReplaceAgenda(agenda));
             }, (error) => {
                 let errorMessage = get(error, 'data._issues.name.unique') ?
@@ -368,7 +368,7 @@ const deleteAgenda = (agenda) => (
     (dispatch, getState, {api, notify}) => (
         api('agenda').remove(agenda)
             .then(() => {
-                notify.success('The agenda has been deleted.');
+                notify.success(gettext('The agenda has been deleted.'));
             }, (error) => {
                 notify.error(getErrorMessage(
                     error,
