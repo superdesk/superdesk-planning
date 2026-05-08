@@ -18,6 +18,8 @@ from datetime import datetime
 from itertools import chain
 from io import BytesIO
 
+from quart_babel import gettext as _
+
 from lxml import etree
 from bson import ObjectId
 from eve.methods.common import resolve_document_etag
@@ -310,7 +312,7 @@ class PlanningService(AsyncBaseService):
         str_user_id = str(user.get(ID_FIELD)) if user else None
 
         if lock_user and str(lock_user) != str_user_id:
-            raise SuperdeskApiError.forbiddenError("The item was locked by another user")
+            raise SuperdeskApiError.forbiddenError(_("The item was locked by another user"))
 
         await self.validate_planning(updates, original)
 
@@ -320,7 +322,7 @@ class PlanningService(AsyncBaseService):
         if (not original and not updates.get("planning_date")) or (
             "planning_date" in updates and updates["planning_date"] is None
         ):
-            raise SuperdeskApiError(message="Planning item should have a date")
+            raise SuperdeskApiError(message=_("Planning item should have a date"))
 
         sanitize_input_data(updates)
 
@@ -331,10 +333,10 @@ class PlanningService(AsyncBaseService):
         for agenda_id in updates.get("agendas", []):
             agenda = await agenda_service.find_one(req=None, _id=agenda_id)
             if not agenda:
-                raise SuperdeskApiError.forbiddenError("Agenda '{}' does not exist".format(agenda_id))
+                raise SuperdeskApiError.forbiddenError(_("Agenda '{}' does not exist").format(agenda_id))
 
             if not agenda.is_enabled and (original is None or agenda_id not in original.get("agendas", [])):
-                raise SuperdeskApiError.forbiddenError("Agenda '{}' is not enabled".format(agenda.name))
+                raise SuperdeskApiError.forbiddenError(_("Agenda '{}' is not enabled").format(agenda.name))
 
         # Remove duplicate agendas
         if len(updates.get("agendas", [])) > 0:
@@ -674,7 +676,9 @@ class PlanningService(AsyncBaseService):
 
     async def remove_coverage_entity(self, coverage_entity, original_planning, entity_type="coverage"):
         if original_planning.get("state") == WORKFLOW_STATE.CANCELLED:
-            raise SuperdeskApiError.badRequestError("Cannot remove {} of a cancelled planning item".format(entity_type))
+            raise SuperdeskApiError.badRequestError(
+                _("Cannot remove {} of a cancelled planning item").format(entity_type)
+            )
 
         assignment = coverage_entity.get("assigned_to", None)
         if assignment and assignment.get("state") not in [
@@ -973,7 +977,7 @@ class PlanningService(AsyncBaseService):
         planning.update(planning_updates)
         planning_id = planning.get(ID_FIELD)
         if not planning_id:
-            raise SuperdeskApiError.badRequestError("Planning item is required to create assignments.")
+            raise SuperdeskApiError.badRequestError(_("Planning item is required to create assignments."))
 
         assignment_service = get_resource_service("assignments")
         updated_coverage = deepcopy(original)
@@ -1006,7 +1010,7 @@ class PlanningService(AsyncBaseService):
                 if planning_original.get("state") == WORKFLOW_STATE.CANCELLED or updated_coverage.get(
                     "workflow_status"
                 ) not in [WORKFLOW_STATE.CANCELLED, WORKFLOW_STATE.DRAFT]:
-                    raise SuperdeskApiError.badRequestError("Coverage not in correct state to remove assignment.")
+                    raise SuperdeskApiError.badRequestError(_("Coverage not in correct state to remove assignment."))
 
                 # Return now, we will process the assignment after the DB is updated
                 return
@@ -1168,13 +1172,13 @@ class PlanningService(AsyncBaseService):
         planning = await self.find_one_async(req=None, _id=planning_id)
 
         if not planning:
-            raise SuperdeskApiError.badRequestError("Planning does not exist")
+            raise SuperdeskApiError.badRequestError(_("Planning does not exist"))
 
         coverages = planning.get("coverages") or []
         try:
             coverage = next(c for c in coverages if c.get("coverage_id") == coverage_id)
         except StopIteration:
-            raise SuperdeskApiError.badRequestError("Coverage does not exist")
+            raise SuperdeskApiError.badRequestError(_("Coverage does not exist"))
 
         coverage_planning = coverage.get("planning") or {}
         updates_planning = updates.get("planning") or {}
@@ -1198,7 +1202,7 @@ class PlanningService(AsyncBaseService):
         try:
             new_coverage = next(c for c in new_plan["coverages"] if c.get("coverage_id") not in coverage_ids)
         except StopIteration:
-            raise SuperdeskApiError.badRequestError("New coverage was not found!")
+            raise SuperdeskApiError.badRequestError(_("New coverage was not found!"))
 
         planning.update(new_plan)
         return planning, new_coverage
@@ -1214,7 +1218,7 @@ class PlanningService(AsyncBaseService):
         try:
             coverage_item = next(c for c in coverages if c.get("coverage_id") == coverage_id)
         except StopIteration:
-            raise SuperdeskApiError.badRequestError("Coverage does not exist")
+            raise SuperdeskApiError.badRequestError(_("Coverage does not exist"))
 
         if not coverage_item.get("assigned_to"):
             # Assignment was already removed (unposting a planning item scenario)

@@ -11,6 +11,8 @@
 """Superdesk Planning"""
 import logging
 
+from quart_babel import gettext as _
+
 from superdesk.core import get_app_config, get_current_app
 from superdesk.resource_fields import ID_FIELD
 from superdesk.flask import render_template
@@ -184,7 +186,7 @@ class PlanningNotifications:
                             updates["slack_user_id"] = slack_user.get("id")
                             updates["slack_username"] = slack_user.get("name")
                         else:
-                            raise SuperdeskApiError.badRequestError(message="Unable to find matching Slack user")
+                            raise SuperdeskApiError.badRequestError(message=_("Unable to find matching Slack user"))
                 else:
                     updates["slack_user_id"] = None
                     updates["slack_username"] = None

@@ -8,6 +8,8 @@
 # AUTHORS and LICENSE files distributed with this source code, or
 # at https://www.sourcefabric.org/superdesk/license
 
+from quart_babel import gettext as _
+
 from superdesk.eve_async.service import AsyncBaseService
 from superdesk.flask import request
 from superdesk.resource_fields import ID_FIELD
@@ -54,7 +56,7 @@ class PlanningCancelResource(PlanningResource):
 class PlanningCancelService(AsyncBaseService):
     async def on_update_async(self, updates, original):
         if not await is_valid_event_planning_reason(updates, original):
-            raise SuperdeskApiError.badRequestError(message="Reason is required field.")
+            raise SuperdeskApiError.badRequestError(message=_("Reason is required field."))
 
     async def update_async(self, id, updates, original):
         user = get_user(required=True).get(ID_FIELD, "")

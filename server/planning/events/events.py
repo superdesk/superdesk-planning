@@ -23,6 +23,8 @@ from dateutil import parser
 from eve.methods.common import resolve_document_etag
 
 
+from quart_babel import gettext as _
+
 import superdesk
 from superdesk.core import get_app_config, get_current_app
 from superdesk.resource_fields import ID_FIELD
@@ -567,7 +569,7 @@ class EventsService(AsyncBaseService):
         str_user_id = str(user.get(ID_FIELD)) if user_id else None
 
         if lock_user and str(lock_user) != str_user_id:
-            raise SuperdeskApiError.forbiddenError("The item was locked by another user")
+            raise SuperdeskApiError.forbiddenError(_("The item was locked by another user"))
 
         # If only the `recurring_rule` was provided, then fill in the rest from the original
         # This can happen, for example, when converting a single Event to a series of Recurring Events
@@ -765,7 +767,7 @@ class EventsService(AsyncBaseService):
         if event.get("recurrence_id"):
             if not mark_complete_validated:
                 if event["dates"]["start"].date() > updates["actioned_date"].date():
-                    raise SuperdeskApiError.badRequestError("Recurring series has not started.")
+                    raise SuperdeskApiError.badRequestError(_("Recurring series has not started."))
 
             # If we are marking an event as completed
             # Update only those which are behind the 'actioned_date'
@@ -836,7 +838,7 @@ class EventsService(AsyncBaseService):
         planning_item = await planning_service.find_one_async(req=None, _id=plan_id)
 
         if not planning_item:
-            raise SuperdeskApiError.badRequestError("Planning item not found")
+            raise SuperdeskApiError.badRequestError(_("Planning item not found"))
 
         updates = {"related_events": planning_item.get("related_events") or []}
         event_link_method = get_planning_event_link_method()

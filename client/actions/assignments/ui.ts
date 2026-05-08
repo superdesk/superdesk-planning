@@ -492,7 +492,7 @@ const onFulFilAssignment = (assignment) => (
         dispatch(actions.actionInProgress(true));
         return dispatch(assignments.api.link(assignment, newsItem, reassign))
             .then((item) => {
-                notify.success('Assignment is fulfilled.');
+                notify.success(gettext('Assignment is fulfilled.'));
                 $scope.resolve();
                 dispatch(actions.actionInProgress(false));
                 return Promise.resolve(item);
@@ -513,7 +513,7 @@ function complete(item: IAssignmentItem) {
             .then((lockedItem) => {
                 dispatch(assignments.api.complete(lockedItem))
                     .then((lockedItem) => {
-                        notify.success('The assignment has been completed.');
+                        notify.success(gettext('The assignment has been completed.'));
                         return Promise.resolve(lockedItem);
                     }, (error) => {
                         notify.error(getErrorMessage(error, 'Failed to complete the assignment.'));
@@ -783,7 +783,7 @@ function removeAssignment(assignment: IAssignmentItem) {
     return (dispatch, getState, {notify}) => (
         dispatch(assignments.api.removeAssignment(assignment))
             .then(() => {
-                notify.success('Assignment removed');
+                notify.success(gettext('Assignment removed'));
                 return Promise.resolve();
             }, (error) => {
                 notify.error(

@@ -11,6 +11,8 @@
 from copy import deepcopy
 from typing import Any
 
+from quart_babel import gettext as _
+
 from planning.events.events_utils import (
     get_recurring_timeline,
     get_update_method,
@@ -87,7 +89,7 @@ async def cancel_event_plannings(updates: dict[str, Any], original: dict[str, An
 
 def set_event_cancelled(updates: dict[str, Any], original: dict[str, Any], occur_cancel_state):
     if not validate_states(original):
-        raise SuperdeskApiError.badRequestError("Event not in valid state for cancellation")
+        raise SuperdeskApiError.badRequestError(_("Event not in valid state for cancellation"))
 
     remove_lock_information(updates)
     updates.update(

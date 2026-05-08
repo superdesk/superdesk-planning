@@ -13,6 +13,8 @@ from inspect import isawaitable
 import logging
 from datetime import datetime
 
+from quart_babel import gettext as _
+
 from eve.utils import str_to_date as _str_to_date, date_to_str
 
 from superdesk import get_resource_service
@@ -75,7 +77,7 @@ def get_date_params(params: Dict[str, Any]):
                 start_date = date_to_str(start_date)
     except Exception as e:
         logger.exception(e)
-        raise SuperdeskApiError.badRequestError("Invalid value for start date")
+        raise SuperdeskApiError.badRequestError(_("Invalid value for start date"))
 
     try:
         end_date = params.get("end_date")
@@ -92,7 +94,7 @@ def get_date_params(params: Dict[str, Any]):
                 end_date = date_to_str(end_date)
     except Exception as e:
         logger.exception(e)
-        raise SuperdeskApiError.badRequestError("Invalid value for end date")
+        raise SuperdeskApiError.badRequestError(_("Invalid value for end date"))
 
     return date_filter, start_date, end_date, time_zone
 

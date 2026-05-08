@@ -19,6 +19,7 @@ import {appConfig} from 'appConfig';
 
 interface IProps extends ISubNavPanelProps {
     withArchiveItem?: boolean;
+    hideOpenCoverageAction?: boolean;
     archiveItem?: IArticle
     fullText?: string;
     currentView?: PLANNING_VIEW;
@@ -108,7 +109,10 @@ export class PlanningSubNavComponent extends React.PureComponent<IProps> {
         return (
             <React.Fragment>
                 {this.props.withArchiveItem !== true ? null : (
-                    <ArchiveItem item={this.props.archiveItem} />
+                    <ArchiveItem
+                        item={this.props.archiveItem}
+                        hideOpenCoverageAction={this.props.hideOpenCoverageAction}
+                    />
                 )}
                 <SubNav>
                     <MultiSelectActions />

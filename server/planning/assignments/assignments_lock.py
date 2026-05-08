@@ -11,6 +11,8 @@
 import logging
 from copy import deepcopy
 
+from quart_babel import gettext as _
+
 from superdesk.resource_fields import ID_FIELD
 from superdesk.flask import request
 from superdesk import get_resource_service
@@ -76,7 +78,7 @@ class AssignmentsLockService(AsyncBaseService):
             ASSIGNMENT_WORKFLOW_STATE.ASSIGNED,
             ASSIGNMENT_WORKFLOW_STATE.COMPLETED,
         ]:
-            raise SuperdeskApiError.badRequestError(message="Assignment workflow state error.")
+            raise SuperdeskApiError.badRequestError(message=_("Assignment workflow state error."))
 
         if item.get("assigned_to").get("state") == ASSIGNMENT_WORKFLOW_STATE.IN_PROGRESS:
             archive_item = await get_resource_service("archive").find_one_async(
@@ -84,7 +86,7 @@ class AssignmentsLockService(AsyncBaseService):
             )
             if archive_item and archive_item.get("lock_user") and archive_item["lock_user"] != user_id:
                 # archive item it locked by another user
-                raise SuperdeskApiError.badRequestError(message="Archive item is locked by another user.")
+                raise SuperdeskApiError.badRequestError(message=_("Archive item is locked by another user."))
 
 
 class AssignmentsUnlockResource(Resource):

@@ -11,6 +11,8 @@
 from copy import deepcopy
 
 from superdesk.resource_fields import ID_FIELD, VERSION
+from quart_babel import gettext as _
+
 from superdesk.flask import request
 from superdesk import get_resource_service, Resource
 from superdesk.eve_async.service import AsyncBaseService
@@ -180,7 +182,7 @@ class AssignmentsContentService(AsyncBaseService):
                 archive_item = await self.get_latest_news_item_for_coverage(assignment)
 
                 if not archive_item:
-                    raise SuperdeskApiError.badRequestError("Archive item not found to create a rewrite.")
+                    raise SuperdeskApiError.badRequestError(_("Archive item not found to create a rewrite."))
 
                 # create a rewrite
                 request.view_args["original_id"] = archive_item.get(ID_FIELD)
@@ -282,7 +284,7 @@ class AssignmentsContentService(AsyncBaseService):
         assignment_service = get_resource_service("assignments")
         assignment = await assignment_service.find_one_async(req=None, _id=doc.get("assignment_id"))
         if not assignment:
-            raise SuperdeskApiError.badRequestError("Assignment not found.")
+            raise SuperdeskApiError.badRequestError(_("Assignment not found."))
 
         await assignment_service.validate_assignment_action(assignment)
 
@@ -292,22 +294,22 @@ class AssignmentsContentService(AsyncBaseService):
             workflow_state = ASSIGNMENT_WORKFLOW_STATE.DRAFT
 
         if workflow_state == ASSIGNMENT_WORKFLOW_STATE.DRAFT:
-            raise SuperdeskApiError.badRequestError("Cannot create content from a draft Assignment.")
+            raise SuperdeskApiError.badRequestError(_("Cannot create content from a draft Assignment."))
         elif not assignment_allows_multiple_content_linked(assignment):
             if workflow_state != ASSIGNMENT_WORKFLOW_STATE.ASSIGNED:
-                raise SuperdeskApiError.badRequestError("Assignment workflow started. Cannot create content.")
+                raise SuperdeskApiError.badRequestError(_("Assignment workflow started. Cannot create content."))
 
             delivery_service = get_resource_service("delivery")
             if await delivery_service.count_async({"assignment_id": assignment.get(ID_FIELD)}) > 0:
                 raise SuperdeskApiError.badRequestError(
-                    "Content already exists for the assignment. Cannot create content."
+                    _("Content already exists for the assignment. Cannot create content.")
                 )
         elif workflow_state not in [
             ASSIGNMENT_WORKFLOW_STATE.ASSIGNED,
             ASSIGNMENT_WORKFLOW_STATE.IN_PROGRESS,
             ASSIGNMENT_WORKFLOW_STATE.SUBMITTED,
         ]:
-            raise SuperdeskApiError.badRequestError("Assignment workflow completed. Cannot create content.")
+            raise SuperdeskApiError.badRequestError(_("Assignment workflow completed. Cannot create content."))
 
         # Handle schedule_updates validation
         if assignment.get("scheduled_update_id"):
@@ -319,7 +321,7 @@ class AssignmentsContentService(AsyncBaseService):
                 ASSIGNMENT_WORKFLOW_STATE.COMPLETED,
             ]
             if (coverage.get("assigned_to") or {}).get("state") not in allowed_states:
-                raise SuperdeskApiError.badRequestError("Coverage not linked to news item yet.")
+                raise SuperdeskApiError.badRequestError(_("Coverage not linked to news item yet."))
 
             # Since scheduled_updates are cronologically indexed, check all previous scheduled_updates
             for s in coverage.get("scheduled_updates") or []:
@@ -327,7 +329,7 @@ class AssignmentsContentService(AsyncBaseService):
                     break
 
                 if (s.get("assigned_to") or {}).get("state") not in allowed_states:
-                    raise SuperdeskApiError.badRequestError("Previous scheduled update not linked to news item yet.")
+                    raise SuperdeskApiError.badRequestError(_("Previous scheduled update not linked to news item yet."))
 
 
 class AssignmentsContentResource(Resource):

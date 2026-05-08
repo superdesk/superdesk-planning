@@ -15,6 +15,8 @@ from superdesk.eve_async.service import AsyncBaseService
 from superdesk.resource_fields import VERSION
 from superdesk.flask import render_template_string, render_template
 
+from quart_babel import gettext as _
+
 from superdesk.utc import utc_to_local, get_timezone_offset, utcnow
 from superdesk import get_resource_service, Resource
 from superdesk.errors import SuperdeskApiError
@@ -261,7 +263,7 @@ async def enhance_coverage(planning, item, users, desks, text_users, text_desks)
 async def generate_text_item(items, template_name, resource_type):
     template = await get_resource_service("planning_export_templates").get_export_template(template_name, resource_type)
     if not template:
-        raise SuperdeskApiError.badRequestError("Invalid template selected")
+        raise SuperdeskApiError.badRequestError(_("Invalid template selected"))
 
     for item in items:
         # Create list of assignee with preference to coverage_provider, if not, assigned user

@@ -11,6 +11,8 @@
 from copy import deepcopy
 
 from superdesk.resource_fields import ID_FIELD
+from quart_babel import gettext as _
+
 from superdesk import get_resource_service
 from superdesk.eve_async.service import AsyncBaseService
 from superdesk.notification import push_notification
@@ -79,9 +81,9 @@ class AssignmentsCompleteService(AsyncBaseService):
                     ASSIGNMENT_WORKFLOW_STATE.SUBMITTED,
                     ASSIGNMENT_WORKFLOW_STATE.IN_PROGRESS,
                 ]:
-                    raise SuperdeskApiError.forbiddenError("Update Assignment not in correct state.")
+                    raise SuperdeskApiError.forbiddenError(_("Update Assignment not in correct state."))
             elif not original.get("scheduled_update_id") and assignment_state != ASSIGNMENT_WORKFLOW_STATE.IN_PROGRESS:
-                raise SuperdeskApiError.forbiddenError("Assignment not in progress.")
+                raise SuperdeskApiError.forbiddenError(_("Assignment not in progress."))
         elif assignment_state not in [
             ASSIGNMENT_WORKFLOW_STATE.ASSIGNED,
             ASSIGNMENT_WORKFLOW_STATE.SUBMITTED,
@@ -95,7 +97,7 @@ class AssignmentsCompleteService(AsyncBaseService):
         # if the completion is being done by an external application then ensure that it is not locked
         if "proxy_user" in updates:
             if original.get("lock_user"):
-                raise SuperdeskApiError.forbiddenError("Assignment is locked")
+                raise SuperdeskApiError.forbiddenError(_("Assignment is locked"))
             user = updates.pop("proxy_user", None)
             proxy_user = True
         else:

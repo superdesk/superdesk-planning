@@ -42,6 +42,7 @@ export class AddToPlanningUi extends React.PureComponent<IProps> {
                     withArchiveItem: true,
                     archiveItem: addNewsItemToPlanning,
                     createPlanningOnly: true,
+                    hideOpenCoverageAction: true,
                 }}
 
                 ListPanel={PlanningList}

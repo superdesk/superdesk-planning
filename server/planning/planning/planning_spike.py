@@ -1,6 +1,8 @@
 from copy import deepcopy
 from typing import Any
 
+from quart_babel import gettext as _
+
 from superdesk import get_resource_service
 from superdesk.resource_fields import ID_FIELD
 from superdesk.notification import push_notification
@@ -102,7 +104,7 @@ async def process_spike_planning_item(updates: dict[str, Any], original: dict[st
         WORKFLOW_STATE.POSTPONED,
         WORKFLOW_STATE.CANCELLED,
     ]:
-        raise SuperdeskApiError.badRequestError(message="Spike failed. Planning item in invalid state for spiking.")
+        raise SuperdeskApiError.badRequestError(message=_("Spike failed. Planning item in invalid state for spiking."))
 
     user = get_user()
 
@@ -164,7 +166,7 @@ async def process_unspike_planning_item(updates: dict[str, Any], original: dict[
     if first_event_id:
         event = await events_service.find_one_async(req=None, _id=first_event_id)
         if event and event.get("state") == WORKFLOW_STATE.SPIKED:
-            raise SuperdeskApiError.badRequestError(message="Unspike failed. Associated event is spiked.")
+            raise SuperdeskApiError.badRequestError(message=_("Unspike failed. Associated event is spiked."))
 
     updates[ITEM_STATE] = original.get("revert_state", WORKFLOW_STATE.DRAFT)
     updates["revert_state"] = None

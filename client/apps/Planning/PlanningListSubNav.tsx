@@ -268,7 +268,7 @@ class PlanningListSubNavComponent extends React.Component<IProps, IState> {
                                 {this.state.viewSize === 'compact' ? null : (
                                     <React.Fragment>
                                         <IconButton
-                                            ariaValue="back"
+                                            ariaValue={gettext('back')}
                                             onClick={() => this.props.jumpTo('BACK')}
                                             icon="chevron-left-thin"
                                         />
@@ -281,7 +281,7 @@ class PlanningListSubNavComponent extends React.Component<IProps, IState> {
                                             onClick={() => this.props.jumpTo('TODAY')}
                                         />
                                         <IconButton
-                                            ariaValue="forward"
+                                            ariaValue={gettext('forward')}
                                             onClick={() => this.props.jumpTo('FORWARD')}
                                             icon="chevron-right-thin"
                                         />
