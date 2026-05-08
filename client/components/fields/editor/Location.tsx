@@ -16,6 +16,8 @@ export class EditorFieldLocation extends React.PureComponent<IEditorFieldLocatio
         const {gettext} = superdeskApi.localization;
         const field = this.props.field ?? 'location';
         const props = this.props;
+        const error = get(props.errors ?? {}, field);
+        const invalid = props.invalid ?? (error != null && props.showErrors);
 
         const originalValue = get(props.item, field);
         const valueSingle = props.storeAsArray === true ? originalValue?.[0] : originalValue;
@@ -47,6 +49,9 @@ export class EditorFieldLocation extends React.PureComponent<IEditorFieldLocatio
                         onChange={onChange} // overwrites onChange from props spread above
                         field={field}
                         label={props.label ?? gettext('Location')}
+                        required={props.schema?.required}
+                        message={props.showErrors ? error : undefined}
+                        invalid={invalid}
                         value={valueSingle}
                         disableSearch={!props.enableExternalSearch}
                         disableAddLocation={props.disableAddLocation}

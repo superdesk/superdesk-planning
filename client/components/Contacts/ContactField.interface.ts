@@ -4,6 +4,9 @@ import {IContact} from 'superdesk-api';
 interface IBaseProps extends IContactReduxStateProps, IContactReduxDispatchProps {
     field: string;
     label?: string;
+    required?: boolean;
+    message?: string;
+    invalid?: boolean;
     querySearch?: boolean;
     readOnly?: boolean;
     paddingTop?: boolean;
