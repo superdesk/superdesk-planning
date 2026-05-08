@@ -24,6 +24,7 @@ from planning.common import (
     set_original_creator,
     set_actioned_date_to_event,
     get_max_recurrent_events,
+    TO_BE_CONFIRMED_FIELD,
 )
 from planning.events.events_utils import (
     get_recurring_timeline,
@@ -297,7 +298,7 @@ async def reschedule_recurring_event(updates: dict[str, Any], original: dict[str
 
         # Remove fields not required by the new events
         for key in list(new_event.keys()):
-            if key.startswith("_"):
+            if key.startswith("_") and key != TO_BE_CONFIRMED_FIELD:
                 new_event.pop(key)
             elif key.startswith("lock_"):
                 new_event.pop(key)

@@ -261,6 +261,7 @@ export class AdvancedSearch {
                 throw new Error(`Field "${name}" not registered with e2e search helper`);
             } else if (value?.length || isBoolean(value)) {
                 await field.type(value);
+                await this.page.waitForTimeout(100); // Wait for any potential debounce
             } else {
                 await field.clear();
             }

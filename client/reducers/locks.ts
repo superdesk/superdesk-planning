@@ -1,4 +1,4 @@
-import {ILockedItems, ILock, IWebsocketMessageData} from '../interfaces';
+import {ILockedItems, ILock, IWebsocketMessageData, IPlanningItem} from '../interfaces';
 import {createReducer} from './createReducer';
 import {RESET_STORE, INIT_STORE, LOCKS} from '../constants';
 import {getRelatedEventIdsForPlanning} from '../utils/planning';

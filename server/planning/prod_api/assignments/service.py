@@ -29,17 +29,16 @@ from planning.prod_api.events.utils import add_related_event_links
 class AssignmentsService(ProdApiService):
     excluded_fields = ProdApiService.excluded_fields | excluded_lock_fields
 
-    def _process_fetched_object(self, doc: Assignment):
+    async def _process_fetched_object(self, doc: Assignment):
         super()._process_fetched_object(doc)
 
         if doc.get(LINKS):
             doc[LINKS]["planning"] = construct_planning_link(doc["planning_item"])
             _add_related_event_links(doc, doc["planning_item"])
 
-            # TODO-ASYNC[archive]: Uncomment these next 3 lines after ProdAPI base service is upgraded
-            # content_items = await get_news_item_for_assignment(doc[ID_FIELD])
-            # if await content_items.count():
-            #     doc[LINKS]["content"] = [construct_content_link(item) for item in get_docs(content_items.hits)]
+            content_items = await get_news_item_for_assignment(doc[ID_FIELD])
+            if await content_items.count():
+                doc[LINKS]["content"] = [construct_content_link(item) for item in get_docs(content_items.hits)]
 
 
 def on_fetched_resource_archive(docs):

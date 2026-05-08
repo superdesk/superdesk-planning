@@ -1,5 +1,4 @@
 import React from 'react';
-import PropTypes from 'prop-types';
 import {connect} from 'react-redux';
 import {modalType, modalProps} from '../selectors/general';
 import {modalActions} from '../actions';
@@ -46,6 +45,7 @@ interface IModalProps {
     modalType: string;
     modalProps: any;
     handleHide: (itemType?: string) => void;
+    onModalHide?: () => void;
 }
 
 export function Modals({modalType, modalProps, handleHide}: IModalProps) {

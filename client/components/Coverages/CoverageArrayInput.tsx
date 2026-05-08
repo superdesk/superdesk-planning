@@ -205,21 +205,22 @@ class CoverageArrayInputComponent extends React.Component<IProps, IState> {
                 addButtonText={addButtonText}
                 addButtonComponent={CoverageAddButton}
                 addButtonProps={{
-                    contentTypes,
-                    defaultDesk,
-                    onPopupOpen,
-                    onPopupClose,
-                    newsCoverageStatus,
-                    field,
-                    value,
-                    onChange,
-                    createCoverage,
-                    desks,
-                    users,
-                    coverageAddAdvancedMode,
-                    language,
-                    editorType,
-                    disabled,
+                    contentTypes: contentTypes,
+                    defaultDesk: defaultDesk,
+                    onPopupOpen: onPopupOpen,
+                    onPopupClose: onPopupClose,
+                    newsCoverageStatus: newsCoverageStatus,
+                    field: field,
+                    value: value,
+                    onChange: onChange,
+                    createCoverage: createCoverage,
+                    desks: desks,
+                    users: users,
+                    coverageAddAdvancedMode: coverageAddAdvancedMode,
+                    language: language,
+                    editorType: editorType,
+                    eventLanguages: event?.languages ?? [],
+                    disabled: disabled,
                 }}
                 element={CoverageEditor}
                 createCoverage={createCoverage}

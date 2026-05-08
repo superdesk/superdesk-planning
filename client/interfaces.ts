@@ -130,6 +130,7 @@ export enum JUMP_INTERVAL {
  * @spiked is only used in the front-end, to remove items from AdvancedCoverage modal
  */
 export type IPlanningWorkflowStatus = 'draft'
+    | 'active'
     | 'assigned'
     | 'in_progress'
     | 'completed'
@@ -1568,9 +1569,12 @@ export interface ISearchAPIParams {
     featured?: boolean;
     include_scheduled_updates?: boolean;
     event_item?: string;
-    coverage_assignment_status?: ICoverageAssigned['qcode']
+    coverage_assignment_status?: ICoverageAssigned['qcode'];
     description_text?: string;
     headline?: string;
+
+    // Combined Params
+    include_associated_planning?: boolean;
 
     // Pagination
     page?: number;
@@ -1730,7 +1734,6 @@ export interface IEditorFieldProps<T = any> {
 
     popupContainer?(): HTMLElement;
 }
-
 
 export interface IListFieldProps {
     item: any;

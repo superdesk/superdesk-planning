@@ -1,6 +1,9 @@
 import React from 'react';
 import {connect} from 'react-redux';
+
 import {superdeskApi} from '../../superdeskApi';
+import {appConfig} from 'appConfig';
+
 import * as selectors from '../../selectors';
 import * as actions from '../../actions';
 import {ContactEditor} from './ContactEditor';
@@ -26,26 +29,34 @@ class ContactFieldComponent extends React.Component<IContactFieldProps> {
         super(props);
 
         this.onChange = this.onChange.bind(this);
-        this.showEditModal = this.showEditModal.bind(this);
+        this.onContactEdit = this.onContactEdit.bind(this);
         this.removeContact = this.removeContact.bind(this);
     }
 
     /**
      * @param contact optional because on create there's no contact
      */
-    showEditModal(contact?: IContact) {
-        const fullContact = contact || ({public: false, is_active: true}) as IContact;
+    onContactEdit(contact?: IContact) {
+        if (appConfig.external_contacts != null) {
+            const url = contact?._id != null
+                ? `${appConfig.external_contacts.edit_url}/${contact._id}`
+                : appConfig.external_contacts.create_url;
 
-        return showModal(({closeModal}) => (
-            <ContactEditor
-                closeModal={closeModal}
-                currentContact={fullContact}
-                onSave={(contact) => {
-                    this.onChange(contact);
-                    closeModal();
-                }}
-            />
-        ));
+            window.open(url, '_blank');
+        } else {
+            const fullContact = contact || ({public: false, is_active: true}) as IContact;
+
+            return showModal(({closeModal}) => (
+                <ContactEditor
+                    closeModal={closeModal}
+                    currentContact={fullContact}
+                    onSave={(contact) => {
+                        this.onChange(contact);
+                        closeModal();
+                    }}
+                />
+            ));
+        }
     }
 
     removeContact(contact: IContact) {
@@ -122,7 +133,7 @@ class ContactFieldComponent extends React.Component<IContactFieldProps> {
                                 label={label}
                                 onChange={this.onChange}
                                 value={value}
-                                onAdd={privileges.contacts ? this.showEditModal : undefined}
+                                onAdd={privileges.contacts ? this.onContactEdit : undefined}
                                 onAddText={privileges.contacts ? gettext('Add Contact') : null}
                                 onFocus={onFocus}
                                 readOnly={readOnly}
@@ -136,7 +147,7 @@ class ContactFieldComponent extends React.Component<IContactFieldProps> {
                             <div style={{width: '100%'}}>
                                 <ContactsPreviewList
                                     contactIds={value}
-                                    onEditContact={privileges.contacts ? this.showEditModal : null}
+                                    onEditContact={privileges.contacts ? this.onContactEdit : null}
                                     onRemoveContact={this.removeContact}
                                 />
                             </div>

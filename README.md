@@ -195,6 +195,11 @@ Below sections include the config options that can be defined in settings.py.
 * PLANNING_DUPLICATE_RETAIN_COVERAGE_STATUS
     * Default: False (the current behavior where coverage status is reset to default)
     * If true, the `news_coverage_status` field is retained when duplicating planning items with coverages.
+* PLANNING_MANUAL_NEWS_COVERAGE_STATUS
+    * Default: False
+    * If False, a Coverage's `news_coverage_status` will be set to Planned (`ncostat:int`) when a `Desk` is assigned to it,
+      or the Coverage is added to workflow.
+    * If True, a Coverage's `news_coverage_status` will only be changed when a user changes the value.
 
 ### Assignments Config
 * SLACK_BOT_TOKEN

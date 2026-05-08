@@ -61,12 +61,13 @@ from planning.common import (
     POST_STATE,
     get_event_max_multi_day_duration,
     set_original_creator,
-    set_ingested_event_state,
     LOCK_ACTION,
     sanitize_input_data,
     set_ingest_version_datetime,
     is_new_version,
     update_ingest_on_patch,
+    TO_BE_CONFIRMED_FIELD,
+    copy_translated_values_to_root_level_fields,
 )
 from planning.utils import (
     get_planning_event_link_method,
@@ -295,6 +296,7 @@ class EventsService(AsyncBaseService):
 
             set_planning_schedule(event)
             planning_item = event.get("_planning_item")
+            copy_translated_values_to_root_level_fields(event, event["language"])
 
             # validate event
             self.validate_event(event)
@@ -560,7 +562,6 @@ class EventsService(AsyncBaseService):
 
         if user_id:
             updates["version_creator"] = user_id
-            set_ingested_event_state(updates, original)
 
         lock_user = original.get("lock_user", None)
         str_user_id = str(user.get(ID_FIELD)) if user_id else None
@@ -574,6 +575,8 @@ class EventsService(AsyncBaseService):
             new_dates = deepcopy(original["dates"])
             new_dates.update(updates["dates"])
             updates["dates"] = new_dates
+
+        copy_translated_values_to_root_level_fields(updates, updates.get("language", original.get("language")))
 
         # validate event
         self.validate_event(updates, original)
@@ -936,14 +939,14 @@ def setRecurringMode(event):
 
 
 def overwrite_event_expiry_date(event):
-    if "expiry" in event:
-        expiry_minutes = get_app_config("PLANNING_EXPIRY_MINUTES", None)
+    expiry_minutes = get_app_config("PLANNING_EXPIRY_MINUTES", None)
+    if "expiry" in event and expiry_minutes is not None:
         end = event.get("dates", {}).get("end")
         if isinstance(end, str):
             end = parser.isoparse(end)
 
         if end:
-            event["expiry"] = end + timedelta(minutes=expiry_minutes or 0)
+            event["expiry"] = end + timedelta(minutes=expiry_minutes)
 
 
 def generate_recurring_events(event, recurrence_id=None):
@@ -969,7 +972,7 @@ def generate_recurring_events(event, recurrence_id=None):
 
         # Remove fields not required by the new events
         for key in list(new_event.keys()):
-            if key.startswith("_") or key.startswith("lock_"):
+            if (key.startswith("_") and key != TO_BE_CONFIRMED_FIELD) or key.startswith("lock_"):
                 new_event.pop(key)
 
             elif key == "embedded_planning":

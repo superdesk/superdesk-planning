@@ -133,7 +133,7 @@ class ExportAsArticleModalComponent extends React.Component<IProps, IState> {
 
     getFilteredArticleTemplates(deskId: IDesk['_id']): [ITemplate['_id'], Array<ITemplate>] {
         if (deskId === PERSONAL_WORKSPACE._id) {
-            return [null, []];
+            return [this.props.articleTemplates[0]?._id, this.props.articleTemplates];
         }
 
         const desk = this.props.userDesks.find((desk) => desk._id === deskId);

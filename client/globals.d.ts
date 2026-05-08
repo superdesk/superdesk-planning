@@ -193,6 +193,7 @@ declare module 'superdesk-api' {
         planning_allow_freetext_location: boolean;
         planning_allow_scheduled_updates?: boolean;
         planning_auto_assign_to_workflow?: boolean;
+        planning_expand_related_plannings?: boolean;
         planning_check_for_assignment_on_publish?: boolean;
         planning_check_for_assignment_on_send?: boolean;
         planning_fulfil_on_publish_for_desks: Array<string>;
@@ -208,6 +209,11 @@ declare module 'superdesk-api' {
         planning_auto_close_popup_editor?: boolean;
         start_of_week?: number;
         planning_default_view: PLANNING_VIEW;
+
+        external_contacts?: {
+            create_url: string;
+            edit_url: string;
+        };
 
         // Custom vocabularies to exclude from registration as `custom_vocabulary` fields.
         vocabulariesToExcludeAsFields: Array<IVocabulary['_id']>;
@@ -228,6 +234,7 @@ declare module 'superdesk-api' {
             autosave_timeout?: number;
             default_create_planning_series_with_event_series?: boolean;
             event_related_item_search_provider_name?: string;
+            manual_news_coverage_status?: boolean;
 
             // Controls whether planning should have date only
             all_day?: boolean;
@@ -260,6 +267,13 @@ declare module 'superdesk-api' {
 
         coverage?: {
             getDueDateStrategy?(planningItem: IPlanningItem, eventItem?: IEventItem): moment.Moment | null;
+
+            assignments?: {
+                fields?: {
+                    coverageProvider?: boolean;
+                    assignmentPriority?: boolean;
+                };
+            };
         };
     }
 }

@@ -22,6 +22,7 @@ from .common import (
     planning_auto_assign_to_workflow,
     get_long_event_duration_threshold,
     get_planning_allow_scheduled_updates,
+    get_planning_expand_related_plannings,
     event_templates_enabled,
     planning_link_updates_to_coverage,
     get_planning_use_xmp_for_pic_assignments,
@@ -30,6 +31,7 @@ from .common import (
     get_planning_auto_close_popup_editor,
     get_config_default_create_planning_series_with_event_series,
     get_start_of_week,
+    get_manual_news_coverage_status_config,
 )
 from apps.common.components.utils import register_component
 from .item_lock import LockService
@@ -225,6 +227,7 @@ def init_app(app):
     app.client_config["long_event_duration_threshold"] = get_long_event_duration_threshold()
     app.client_config["event_templates_enabled"] = event_templates_enabled()
     app.client_config["planning_allow_scheduled_updates"] = get_planning_allow_scheduled_updates()
+    app.client_config["planning_expand_related_plannings"] = get_planning_expand_related_plannings()
     app.client_config["planning_link_updates_to_coverage"] = planning_link_updates_to_coverage()
     app.client_config["planning_use_xmp_for_pic_assignments"] = get_planning_use_xmp_for_pic_assignments()
     app.client_config["planning_use_xmp_for_pic_slugline"] = get_planning_use_xmp_for_pic_slugline()
@@ -237,8 +240,8 @@ def init_app(app):
         "default_create_planning_series_with_event_series"
     ] = get_config_default_create_planning_series_with_event_series()
     app.client_config["planning"]["all_day"] = bool(app.config.get("PLANNING_PLANNING_ALL_DAY", False))
-
     app.client_config["planning_event_link_method"] = app.config.get(settings.PLANNING_EVENT_LINK_METHOD, "one_primary")
+    app.client_config["planning"]["manual_news_coverage_status"] = get_manual_news_coverage_status_config()
 
     # Set up Celery task options
     if not app.config.get("CELERY_TASK_ROUTES"):

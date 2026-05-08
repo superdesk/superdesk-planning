@@ -40,6 +40,26 @@ def get_translated_fields(translations: List[StringFieldTranslation]) -> Dict[st
     return fields
 
 
+def _field_in_updates(updates: dict, field: str) -> bool:
+    """
+    Determines if a specified field exists in the updates dictionary or among translated fields.
+
+    Checks if the given field is either directly present in the dictionary or indirectly
+    present in the list of translated fields within the dictionary.
+
+    :param updates: A dictionary containing update information.
+                    It may include a list of translated fields under the key 'translations'.
+    :param field: The name of the field to search for within the updates dictionary or the translated fields.
+    :return: True if the specified field exists in the updates dictionary or among the translated fields; otherwise, False.
+    """
+
+    if field in updates:
+        return True
+
+    translated_fields = set([item.get("field") for item in updates.get("translations") or []])
+    return field in translated_fields
+
+
 # TODO-ASYNC: use resource models instead of typed dicts
 async def sync_event_metadata_with_planning_items(
     original: Optional[Event],
@@ -95,7 +115,7 @@ async def sync_event_metadata_with_planning_items(
 
     planning_service = get_resource_service("planning")
     sync_fields_config = get_config_event_fields_to_sync_with_planning()
-    sync_fields = set(field for field in sync_fields_config if field in updates)
+    sync_fields = set(field for field in sync_fields_config if _field_in_updates(updates, field))
 
     if not len(sync_fields):
         # There are no fields to sync with the Event

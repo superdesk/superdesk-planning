@@ -1,6 +1,6 @@
 import {get} from 'lodash';
 
-import {IWebsocketMessageData, ITEM_TYPE, IPlanningAppState, IPlanningItem} from '../../interfaces';
+import {IWebsocketMessageData, ITEM_TYPE, IPlanningAppState, IPlanningItem, IEventItem} from '../../interfaces';
 import {planningApi, superdeskApi} from '../../superdeskApi';
 
 import {gettext, lockUtils} from '../../utils';
@@ -15,6 +15,7 @@ import main from '../main';
 import {showModal, hideModal} from '../index';
 import eventsPlanning from '../eventsPlanning';
 import planningApis from '../planning/api';
+import {appConfig} from 'appConfig';
 
 /**
  * WS Action when a new Planning item is created
@@ -35,6 +36,10 @@ const onPlanningCreated = (_e: {}, data: IWebsocketMessageData['PLANNING_CREATED
         }
 
         dispatch(main.setUnsetLoadingIndicator(true));
+
+        if (data.event_ids != null && data.event_ids.length > 0) {
+            dispatch(self.expandRelatedPlanningsIfNeeded(data.event_ids));
+        }
 
         return dispatch(planning.ui.scheduleRefetch(data.item))
             .then(() => dispatch(eventsPlanning.ui.scheduleRefetch()))
@@ -395,6 +400,28 @@ const onPlanningFilesUpdated = (_e, data) => (
     (dispatch) => (dispatch(planningApis.getFiles([data.item])))
 );
 
+const expandRelatedPlanningsIfNeeded = (eventIds: Array<IEventItem['_id']>) => (
+    (dispatch, getState) => {
+        if (!appConfig.planning_expand_related_plannings) {
+            return;
+        }
+
+        const relatedPlannings = selectors.eventsPlanning.getRelatedPlanningsList(getState());
+
+        for (const eventId of eventIds) {
+            if (relatedPlannings[eventId] != null) {
+                continue;
+            }
+
+            const event = selectors.events.storedEvents(getState())[eventId];
+
+            if (event) {
+                dispatch(eventsPlanning.ui.showRelatedPlannings(event));
+            }
+        }
+    }
+);
+
 // eslint-disable-next-line consistent-this
 const self: any = {
     onPlanningCreated,
@@ -412,6 +439,7 @@ const self: any = {
     onPlanningFeaturedLocked,
     onPlanningFeaturedUnLocked,
     onPlanningFilesUpdated,
+    expandRelatedPlanningsIfNeeded,
 };
 
 // Map of notification name and Action Event to execute

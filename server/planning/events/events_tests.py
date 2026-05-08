@@ -14,7 +14,7 @@ from superdesk.flask import g
 from superdesk.tests import utils as test_utils, fixtures
 
 from planning.tests import TestCase, fixtures as planning_fixtures
-from planning.common import format_address, POST_STATE
+from planning.common import format_address, POST_STATE, TO_BE_CONFIRMED_FIELD
 from planning.item_lock import LockService
 from planning.events.events_utils import generate_recurring_dates
 from planning.types import PlanningRelatedEventLink
@@ -423,6 +423,115 @@ class EventPlanningSchedule(EventsBaseTestCase):
         await self.events_service.patch_async(events[0].get("_id"), {"dates": schedule})
         events = await self._get_all_events_raw()
         self.assertPlanningSchedule(events, 3)
+
+    async def test_tbc_preserved_for_recurring_event_creation(self):
+        service = get_resource_service("events")
+        event = {
+            "name": "TBC Recurring Event",
+            "_time_to_be_confirmed": True,
+            "dates": {
+                "start": datetime(2099, 11, 21, 12, 00, 00, tzinfo=pytz.UTC),
+                "end": datetime(2099, 11, 21, 14, 00, 00, tzinfo=pytz.UTC),
+                "tz": "Australia/Sydney",
+                "recurring_rule": {
+                    "frequency": "DAILY",
+                    "interval": 1,
+                    "count": 3,
+                    "endRepeatMode": "count",
+                },
+            },
+        }
+
+        await service.post_async([event])
+        events = list(service.get_from_mongo(req=None, lookup=None))
+        self.assertPlanningSchedule(events, 3)
+
+        for evt in events:
+            self.assertTrue(
+                evt.get(TO_BE_CONFIRMED_FIELD),
+                f"Event {evt.get('_id')} should have _time_to_be_confirmed=True, "
+                f"got {evt.get(TO_BE_CONFIRMED_FIELD)}",
+            )
+
+    async def test_tbc_preserved_for_update_repetitions(self):
+        service = get_resource_service("events")
+        event = {
+            "name": "TBC Update Repetitions",
+            "_time_to_be_confirmed": True,
+            "dates": {
+                "start": datetime(2099, 11, 21, 12, 00, 00, tzinfo=pytz.UTC),
+                "end": datetime(2099, 11, 21, 14, 00, 00, tzinfo=pytz.UTC),
+                "tz": "Australia/Sydney",
+                "recurring_rule": {
+                    "frequency": "DAILY",
+                    "interval": 1,
+                    "count": 3,
+                    "endRepeatMode": "count",
+                },
+            },
+        }
+
+        await service.post_async([event])
+        events = list(service.get_from_mongo(req=None, lookup=None))
+        self.assertPlanningSchedule(events, 3)
+
+        schedule = deepcopy(events[0].get("dates"))
+        schedule["recurring_rule"]["count"] = 5
+
+        await process_update_repetitions({"dates": schedule}, events[0], require_lock=False)
+
+        events = list(service.get_from_mongo(req=None, lookup=None))
+        self.assertPlanningSchedule(events, 5)
+
+        for evt in events:
+            self.assertTrue(
+                evt.get(TO_BE_CONFIRMED_FIELD),
+                f"Event {evt.get('_id')} should have _time_to_be_confirmed=True, "
+                f"got {evt.get(TO_BE_CONFIRMED_FIELD)}",
+            )
+
+    async def test_tbc_preserved_for_reschedule_event(self):
+        service = get_resource_service("events")
+        event = {
+            "name": "TBC Reschedule Event",
+            "_time_to_be_confirmed": True,
+            "dates": {
+                "start": datetime(2099, 11, 21, 12, 00, 00, tzinfo=pytz.UTC),
+                "end": datetime(2099, 11, 21, 14, 00, 00, tzinfo=pytz.UTC),
+                "tz": "Australia/Sydney",
+                "recurring_rule": {
+                    "frequency": "DAILY",
+                    "interval": 1,
+                    "count": 3,
+                    "endRepeatMode": "count",
+                },
+            },
+        }
+
+        await service.post_async([event])
+        events = list(service.get_from_mongo(req=None, lookup=None))
+        self.assertPlanningSchedule(events, 3)
+
+        for evt in events:
+            self.assertTrue(
+                evt.get(TO_BE_CONFIRMED_FIELD),
+                f"Event {evt.get('_id')} should have _time_to_be_confirmed=True after creation, "
+                f"got {evt.get(TO_BE_CONFIRMED_FIELD)}",
+            )
+
+        schedule = deepcopy(events[0].get("dates"))
+        schedule["start"] = datetime(2099, 11, 21, 12, 00, 00, tzinfo=pytz.UTC) + timedelta(days=5)
+        schedule["end"] = schedule["start"] + timedelta(hours=2)
+
+        await process_reschedule_event({"dates": schedule}, events[0], False)
+
+        events = list(service.get_from_mongo(req=None, lookup=None))
+        for evt in events:
+            self.assertTrue(
+                evt.get(TO_BE_CONFIRMED_FIELD),
+                f"Event {evt.get('_id')} should have _time_to_be_confirmed=True after reschedule, "
+                f"got {evt.get(TO_BE_CONFIRMED_FIELD)}",
+            )
 
 
 def generate_recurring_events(num_events):

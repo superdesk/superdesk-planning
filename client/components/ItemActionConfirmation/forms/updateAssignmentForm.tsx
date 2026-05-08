@@ -19,6 +19,7 @@ import {AssignmentEditor} from '../../Assignments';
 
 import {Row, TextInput, ColouredValueInput} from '../../UI/Form';
 import {AbsoluteDate} from '../..';
+import {assignmentFieldsConfig} from '../../Coverages/assignmentFieldsConfig';
 
 import '../style.scss';
 
@@ -132,24 +133,26 @@ export class UpdateAssignmentComponent extends React.Component<IProps, IState> {
                     />
                 </Row>
 
-                <Row noPadding={!canEditDesk}>
-                    <ColouredValueInput
-                        field="priority"
-                        label={gettext('Priority')}
-                        value={priority}
-                        onChange={(field, value) => {
-                            this.onChange({[field]: value});
-                        }}
-                        options={this.props.priorities}
-                        iconName="priority-label"
-                        noMargin={true}
-                        noValueString="-"
-                        language={getUserInterfaceLanguageFromCV()}
-                        clearable={true}
-                        popupContainer={this.getPopupContainer}
-                        {...infoProps}
-                    />
-                </Row>
+                {assignmentFieldsConfig.assignmentPriority !== true ? null : (
+                    <Row noPadding={!canEditDesk}>
+                        <ColouredValueInput
+                            field="priority"
+                            label={gettext('Priority')}
+                            value={priority}
+                            onChange={(field, value) => {
+                                this.onChange({[field]: value});
+                            }}
+                            options={this.props.priorities}
+                            iconName="priority-label"
+                            noMargin={true}
+                            noValueString="-"
+                            language={getUserInterfaceLanguageFromCV()}
+                            clearable={true}
+                            popupContainer={this.getPopupContainer}
+                            {...infoProps}
+                        />
+                    </Row>
+                )}
 
                 {!canEditDesk && (
                     <Row>

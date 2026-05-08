@@ -35,7 +35,6 @@ from planning.common import (
     get_event_max_multi_day_duration,
     get_max_recurrent_events,
     remove_lock_information,
-    set_ingested_event_state,
     post_required,
     update_post_item,
 )
@@ -224,7 +223,6 @@ class EventsAsyncService(BasePlanningAsyncService[EventResourceModel]):
 
         if user_id:
             updates["version_creator"] = user_id
-            set_ingested_event_state(updates, original.to_dict())
 
         lock_user = original.lock_user or None
         str_user_id = str(user.get(ID_FIELD)) if user_id else None

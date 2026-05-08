@@ -8,6 +8,8 @@ import {getItemType, dispatchUtils, getErrorMessage, gettext} from '../../utils'
 import {getRelatedEventIdsForPlanning} from '../../utils/planning';
 import main from '../main';
 import {showModal} from '../index';
+import {appConfig} from 'appConfig';
+import {planningApis} from '../../api';
 
 /**
  * Action to fetch events and planning based on the params
@@ -134,6 +136,11 @@ const receiveEventsPlanning = (items = []) => (
 
         dispatch(eventsApi.receiveEvents(events));
         dispatch(planningApi.receivePlannings(plannings));
+
+        if (appConfig.planning_expand_related_plannings) {
+            dispatch(self.loadAllRelatedPlannings(items));
+        }
+
         return Promise.resolve();
     }
 );
@@ -174,6 +181,32 @@ const _showRelatedPlannings = (event) => ({
     type: EVENTS_PLANNING.ACTIONS.SHOW_RELATED_PLANNINGS,
     payload: event,
 });
+
+const loadAllRelatedPlannings = (items) => (
+    (dispatch) => {
+        const eventsWithPlannings = items.filter(
+            (item) => getItemType(item) === ITEM_TYPE.EVENT && (item.planning_ids?.length ?? 0) > 0
+        );
+
+        if (eventsWithPlannings.length === 0) {
+            return Promise.resolve();
+        }
+
+        const eventIds = eventsWithPlannings.map((event) => event._id);
+
+        return planningApis.planning.searchGetAll({
+            event_item: eventIds,
+            only_future: false,
+            include_killed: true,
+        }).then((plannings) => {
+            dispatch(planningApi.receivePlannings(plannings));
+            eventsWithPlannings.forEach((event) => {
+                dispatch(self._showRelatedPlannings(event));
+            });
+            return plannings;
+        });
+    }
+);
 
 /**
  * Saves the combined view filter
@@ -326,6 +359,7 @@ const self = {
     clearList,
     showRelatedPlannings,
     _showRelatedPlannings,
+    loadAllRelatedPlannings,
     loadMore,
     requestEventsPlanning,
     refetch,

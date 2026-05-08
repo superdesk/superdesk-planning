@@ -1256,10 +1256,20 @@ class AssignmentsService(AsyncBaseService):
             lock_service = get_component(LockService)
             await lock_service.unlock(assignment, user_id, get_auth()["_id"], "assignments")
 
+    def can_work_on_content(self, _item, _user_id):
+        """Check if user can work on assignment content (lock/unlock for content operations).
+
+        This requires only the archive privilege, as working on content means creating/editing archive items.
+        Used for: start_working action, content_edit action, and unlocking assignments.
+        """
+        if not current_user_has_privilege("archive"):
+            return False, lazy_gettext("User does not have sufficient permissions.")
+        return True, ""
+
     def can_edit(self, item, user_id):
         # Check privileges
         if not current_user_has_privilege("planning_planning_management"):
-            return False, "User does not have sufficient permissions."
+            return False, lazy_gettext("User does not have sufficient permissions.")
         return True, ""
 
     async def is_associated_planning_or_event_locked(self, planning_item):

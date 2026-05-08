@@ -813,6 +813,11 @@ function getPlanningActions(
         () => callBacks[PLANNING.ITEM_ACTIONS.REMOVE_FROM_FEATURED.actionName].bind(null, item, true)(),
     );
 
+    addPlanningItemAction(
+        'ADD_COVERAGE_ADVANCED',
+        () => canModifyPlanning(item, events, privileges, lockedItems) && !isItemExpired(item),
+    );
+
     if (canAddSomeRelatedPlanningsToEventEditor([item], lockedItems)) {
         const action: IItemAction = {
             label: gettext('Add as related planning'),
@@ -1563,7 +1568,9 @@ function defaultPlanningValues(currentAgenda?: IAgenda, defaultPlaceList?: Array
     return self.modifyForClient(newPlanning);
 }
 
-function getDefaultCoverageStatus(newsCoverageStatus: Array<IPlanningNewsCoverageStatus>): IPlanningNewsCoverageStatus {
+function getDefaultCoverageStatus(
+    newsCoverageStatus: Array<IPlanningNewsCoverageStatus>
+): IPlanningNewsCoverageStatus {
     return newsCoverageStatus[0];
 }
 
@@ -1779,7 +1786,9 @@ function getAgendaNames(
     field: string = 'agendas'
 ): Array<IAgenda> {
     return get(item, field, [])
-        .map((agendaId) => agendas.find((agenda) => agenda._id === get(agendaId, '_id', agendaId)))
+        .map((agendaId) => (
+            agendas.find((agenda) => agenda._id === get(agendaId, '_id', agendaId))
+        ))
         .filter((agenda) => agenda && (!onlyEnabled || agenda.is_enabled));
 }
 
@@ -1845,7 +1854,10 @@ function addToWorkflowCommon<T extends IPlanningCoverageItem | ICoverageSchedule
 ): T {
     const next: T = cloneDeep(item);
 
-    next.news_coverage_status = newsCoverageStatus.find((s) => s.qcode === 'ncostat:int');
+    if (appConfig.planning.manual_news_coverage_status !== true) {
+        next.news_coverage_status = newsCoverageStatus.find((s) => s.qcode === 'ncostat:int');
+    }
+
     next.workflow_status = COVERAGES.WORKFLOW_STATE.ACTIVE;
 
     const {nameof} = superdeskApi.helpers;
@@ -1946,7 +1958,10 @@ function duplicateCoverage(
     );
 
     newCoverage.coverage_id = newCoverage.coverage_id + '-duplicate';
-    if (['picture', 'Picture'].includes(newCoverage.planning.g2_content_type) && coverage.planning.xmp_file) {
+    if (
+        ['picture', 'Picture'].includes(newCoverage.planning.g2_content_type) &&
+        coverage.planning.xmp_file
+    ) {
         newCoverage.planning.xmp_file = coverage.planning.xmp_file;
     }
 

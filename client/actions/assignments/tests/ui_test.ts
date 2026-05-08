@@ -481,7 +481,7 @@ describe('actions.assignments.ui', () => {
             restoreSinonStub(assignmentsUi.loadAssignments);
         });
 
-        it('sets the list groups and loads the assignments', () => {
+        it('filters by user when planning_assignments_desk privilege is absent', () => {
             const item = {
                 slugline: 'Olympics',
                 task: {desk: 'desk2'},
@@ -495,12 +495,12 @@ describe('actions.assignments.ui', () => {
 
             expect(assignmentsUi.loadAssignments.callCount).toBe(1);
             expect(assignmentsUi.loadAssignments.args[0]).toEqual([{
-                filterBy: 'Desk',
+                filterBy: 'User',
                 searchQuery: 'planning.slugline.phrase:("Olympics")',
                 orderByField: 'Scheduled',
                 filterByType: 'text',
                 filterByPriority: null,
-                selectedDeskId: ALL_DESKS,
+                selectedDeskId: null,
                 ignoreScheduledUpdates: true,
             }]);
         });
@@ -518,23 +518,24 @@ describe('actions.assignments.ui', () => {
 
             expect(assignmentsUi.loadAssignments.callCount).toBe(1);
             expect(assignmentsUi.loadAssignments.args[0]).toEqual([{
-                filterBy: 'Desk',
+                filterBy: 'User',
                 searchQuery: null,
                 orderByField: 'Scheduled',
                 filterByType: 'text',
                 filterByPriority: null,
-                selectedDeskId: ALL_DESKS,
+                selectedDeskId: null,
                 ignoreScheduledUpdates: true,
             }]);
         });
 
-        it('uses the currently selected desk to all desks', () => {
+        it('filters by desk and uses ALL_DESKS when planning_assignments_desk privilege is present', () => {
+            store.initialState.privileges.planning_assignments_desk = 1;
+
             const item = {
                 slugline: 'Olympics',
                 type: 'text',
             };
 
-            services.desks.active.desk = 'desk3';
             store.dispatch(assignmentsUi.loadFulfillModal(item, ['CURRENT', 'FUTURE']));
 
             expect(assignmentsUi.setListGroups.callCount).toBe(1);

@@ -208,34 +208,34 @@ const assignmentReducer = createReducer(initialState, {
         return draftState;
     }),
 
-    [ASSIGNMENTS.ACTIONS.LOCK_ASSIGNMENT]: produce((draftState, actionPayload) => {
-        if (!(actionPayload.assignment._id in draftState.assignments)) return draftState;
+    [ASSIGNMENTS.ACTIONS.LOCK_ASSIGNMENT]: (state, payload) => {
+        if (!(payload.assignment._id in state.assignments)) return state;
 
-        const assignment = draftState.assignments[actionPayload.assignment._id];
+        return produce(state, (draft) => {
+            const assignment = draft.assignments[payload.assignment._id];
 
-        assignment.lock_action = actionPayload.assignment.lock_action;
-        assignment.lock_user = actionPayload.assignment.lock_user;
-        assignment.lock_time = actionPayload.assignment.lock_time;
-        assignment.lock_session = actionPayload.assignment.lock_session;
-        assignment._etag = actionPayload.assignment._etag;
+            assignment.lock_action = payload.assignment.lock_action;
+            assignment.lock_user = payload.assignment.lock_user;
+            assignment.lock_time = payload.assignment.lock_time;
+            assignment.lock_session = payload.assignment.lock_session;
+            assignment._etag = payload.assignment._etag;
+        });
+    },
 
-        return draftState;
-    }),
+    [ASSIGNMENTS.ACTIONS.UNLOCK_ASSIGNMENT]: (state, payload) => {
+        if (!(payload.assignment._id in state.assignments)) return state;
 
-    [ASSIGNMENTS.ACTIONS.UNLOCK_ASSIGNMENT]: produce((draftState, actionPayload) => {
-        if (!(actionPayload.assignment._id in draftState.assignments)) return draftState;
+        return produce(state, (draft) => {
+            const assignment = draft.assignments[payload.assignment._id];
 
-        const assignment = draftState.assignments[actionPayload.assignment._id];
+            delete assignment.lock_action;
+            delete assignment.lock_user;
+            delete assignment.lock_time;
+            delete assignment.lock_session;
 
-        delete assignment.lock_action;
-        delete assignment.lock_user;
-        delete assignment.lock_time;
-        delete assignment.lock_session;
-
-        assignment._etag = actionPayload.assignment._etag;
-
-        return draftState;
-    }),
+            assignment._etag = payload.assignment._etag;
+        });
+    },
 
     [ASSIGNMENTS.ACTIONS.RECEIVED_ARCHIVE]: produce((draftState, actionPayload) => {
         // Store Archive items by their ID

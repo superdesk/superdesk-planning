@@ -1,10 +1,15 @@
 import React from 'react';
 import {PriorityLabel} from '../../../PriorityLabel';
-import {IAssignmentListItemField} from '../../../../components/Assignments/interfaces';
+import {IAssignmentListItemField} from '../../interfaces';
+import {assignmentFieldsConfig} from '../../../Coverages/assignmentFieldsConfig';
 
 type IProps = IAssignmentListItemField;
 
 export const PriorityComponent = ({assignment, ...props}: IProps) => {
+    if (!assignmentFieldsConfig.assignmentPriority) {
+        return null;
+    }
+
     const priorities = props.fieldsProps.priority.priorities;
 
     return (

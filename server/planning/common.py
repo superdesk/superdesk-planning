@@ -16,7 +16,7 @@ import json
 from bson import ObjectId
 from collections import namedtuple
 from eve.utils import ParsedRequest
-from datetime import timedelta, datetime
+from datetime import timedelta, datetime, timezone
 from werkzeug.datastructures import MultiDict
 from quart_babel import gettext
 
@@ -214,6 +214,10 @@ def get_planning_allow_scheduled_updates():
     return get_app_config("PLANNING_ALLOW_SCHEDULED_UPDATES", True)
 
 
+def get_planning_expand_related_plannings():
+    return get_app_config("PLANNING_EXPAND_RELATED_PLANNINGS", False)
+
+
 def get_planning_use_xmp_for_pic_assignments():
     return get_app_config("PLANNING_USE_XMP_FOR_PIC_ASSIGNMENTS", False)
 
@@ -261,6 +265,10 @@ def get_config_event_fields_to_sync_with_planning() -> Set[str]:
 
 def get_config_event_related_item_search_provider_name() -> Optional[str]:
     return get_app_config("EVENT_RELATED_ITEM_SEARCH_PROVIDER_NAME")
+
+
+def get_manual_news_coverage_status_config() -> bool:
+    return get_app_config("PLANNING_MANUAL_NEWS_COVERAGE_STATUS", False)
 
 
 def remove_lock_information(item: dict) -> dict:
@@ -528,20 +536,6 @@ def unique_items_in_order(input_list: list) -> list:
             unique_list.append(item)
 
     return unique_list
-
-
-def set_ingested_event_state(updates, original):
-    """Set the ingested event state to draft"""
-    if not updates.get("version_creator"):
-        return
-
-    # don't change status to draft when event was duplicated
-    if (
-        original.get(ITEM_STATE) == WORKFLOW_STATE.INGESTED
-        and not updates.get("duplicate_to")
-        and not updates.get(ITEM_STATE)
-    ):
-        updates[ITEM_STATE] = WORKFLOW_STATE.DRAFT
 
 
 def set_actioned_date_to_event(updates, original):
@@ -848,7 +842,14 @@ def is_new_version(new_item: Dict[str, Any], old_item: Dict[str, Any]) -> bool:
 
     # ``versioncreated`` can be updated by users,
     # so test last time the Event was updated
-    return get_ingested_datetime(new_item) > get_ingested_datetime(old_item)
+    return get_naive_utc(get_ingested_datetime(new_item)) > get_naive_utc(get_ingested_datetime(old_item))
+
+
+def get_naive_utc(dt: datetime) -> datetime:
+    """Return a naive UTC datetime from an aware datetime"""
+    if dt.tzinfo:
+        return dt.astimezone(tz=timezone.utc).replace(tzinfo=None)
+    return dt
 
 
 def update_ingest_on_patch(updates: Dict[str, Any], original: Dict[str, Any]):
@@ -862,7 +863,8 @@ def update_ingest_on_patch(updates: Dict[str, Any], original: Dict[str, Any]):
     elif original.get("pubstatus") == updates.get("ingest_pubstatus"):
         # The local version has been published
         # and no change to ``pubstatus`` on ingested item
-        updates.pop("state")
+        if original.get("state") not in {WORKFLOW_STATE.DRAFT}:  # item was manually edited after ingesting
+            updates.pop("state")
 
 
 def get_coverage_from_planning(planning_item: Planning, coverage_id: str) -> Optional[Coverage]:
@@ -882,3 +884,21 @@ def assignment_allows_multiple_content_linked(assignment: dict) -> bool:
         return assignment["planning"]["multiple_content"] is True
     except (KeyError, TypeError):
         return False
+
+
+def copy_translated_values_to_root_level_fields(item: dict, language: str) -> None:
+    """
+    Copies translated values from the 'translations' nested structure to the root level fields
+    in the given item. This ensures that language-specific values are set directly in
+    the item based on the provided language.
+
+    :param item: The item to update
+    :param language: The language code used to filter translations for copying to root level.
+    """
+
+    if not item.get("translations"):
+        return
+
+    for translation in item["translations"]:
+        if translation.get("language") == language:
+            item.setdefault(translation["field"], translation["value"])

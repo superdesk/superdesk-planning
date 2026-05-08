@@ -127,13 +127,13 @@ describe('assignments service', () => {
 
                 expect(actions.assignments.ui.changeListSettings.callCount).toBe(1);
                 expect(actions.assignments.ui.changeListSettings.args[0]).toEqual([{
-                    filterBy: 'Desk',
+                    filterBy: 'User',
                     searchQuery: 'planning.slugline.phrase:("test slugline")',
                     orderByField: 'Scheduled',
                     dayField: null,
                     filterByType: 'text',
                     filterByPriority: null,
-                    selectedDeskId: ALL_DESKS,
+                    selectedDeskId: null,
                     ignoreScheduledUpdates: true,
                 }]);
 
@@ -204,13 +204,13 @@ describe('assignments service', () => {
 
                     expect(actions.assignments.ui.changeListSettings.callCount).toBe(1);
                     expect(actions.assignments.ui.changeListSettings.args[0]).toEqual([{
-                        filterBy: 'Desk',
+                        filterBy: 'User',
                         searchQuery: 'planning.slugline.phrase:("test slugline")',
                         orderByField: 'Scheduled',
                         filterByType: 'text',
                         dayField: null,
                         filterByPriority: null,
-                        selectedDeskId: ALL_DESKS,
+                        selectedDeskId: null,
                         ignoreScheduledUpdates: true,
                     }]);
 

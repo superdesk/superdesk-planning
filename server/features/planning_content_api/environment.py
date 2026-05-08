@@ -11,6 +11,7 @@ from superdesk.tests.environment import (
     before_step,
 )
 from content_api.app import get_app
+from quart_babel import Babel
 
 
 def before_feature(context, feature):
@@ -20,6 +21,10 @@ def before_feature(context, feature):
 async def setup_apps(context, feature):
     config = update_config({}, auto_add_apps=False)
     context.capi = get_app(config)
+
+    # TODO: Move this to the CAPI and PAPI apps
+    babel = Babel(context.capi, configure_jinja=False)
+
     context.capi.test_client_class = TestClient
     context.capi_client = context.capi.test_client()
     await before_feature_async(context, feature)

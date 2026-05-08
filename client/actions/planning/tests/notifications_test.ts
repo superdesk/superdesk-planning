@@ -10,6 +10,7 @@ import {registerNotifications} from '../../../utils';
 import planningNotifications from '../notifications';
 import {getTestActionStore, restoreSinonStub} from '../../../utils/testUtils';
 import {MAIN, PLANNING} from '../../../constants';
+import {appConfig} from 'appConfig';
 
 describe('actions.planning.notifications', () => {
     let store;
@@ -182,6 +183,83 @@ describe('actions.planning.notifications', () => {
 
                     expect(planningUi.scheduleRefetch.callCount).toBe(1);
                     expect(eventsPlanningUi.scheduleRefetch.callCount).toBe(1);
+                    done();
+                })
+                .catch(done.fail);
+        });
+    });
+
+    describe('`planning:created` with planning_expand_related_plannings', () => {
+        let originalExpandSetting;
+
+        beforeEach(() => {
+            originalExpandSetting = appConfig.planning_expand_related_plannings;
+            sinon.stub(eventsPlanningUi, 'scheduleRefetch').callsFake(() => (Promise.resolve()));
+            sinon.stub(eventsPlanningUi, 'showRelatedPlannings').callsFake(() => (Promise.resolve()));
+            sinon.stub(planningUi, 'scheduleRefetch').callsFake(() => (Promise.resolve()));
+            sinon.stub(main, 'setUnsetLoadingIndicator').callsFake(() => (Promise.resolve()));
+        });
+
+        afterEach(() => {
+            appConfig.planning_expand_related_plannings = originalExpandSetting;
+            restoreSinonStub(planningUi.scheduleRefetch);
+            restoreSinonStub(eventsPlanningUi.scheduleRefetch);
+            restoreSinonStub(eventsPlanningUi.showRelatedPlannings);
+            restoreSinonStub(main.setUnsetLoadingIndicator);
+        });
+
+        it('calls showRelatedPlannings for untracked event when config is true', (done) => {
+            appConfig.planning_expand_related_plannings = true;
+            store.initialState.main.filter = MAIN.FILTERS.PLANNING;
+            store.initialState.eventsPlanning = {
+                ...store.initialState.eventsPlanning,
+                relatedPlannings: {},
+            };
+            store.initialState.events.events = {
+                e1: {_id: 'e1', type: 'event', planning_ids: ['p2']},
+            };
+
+            return store.test(done, planningNotifications.onPlanningCreated({}, {
+                item: 'p2',
+                event_ids: ['e1'],
+            }))
+                .then(() => {
+                    expect(eventsPlanningUi.showRelatedPlannings.callCount).toBe(1);
+                    expect(eventsPlanningUi.showRelatedPlannings.args[0][0]._id).toBe('e1');
+                    done();
+                })
+                .catch(done.fail);
+        });
+
+        it('does not call showRelatedPlannings when event is already tracked', (done) => {
+            appConfig.planning_expand_related_plannings = true;
+            store.initialState.main.filter = MAIN.FILTERS.PLANNING;
+            store.initialState.eventsPlanning = {
+                ...store.initialState.eventsPlanning,
+                relatedPlannings: {e1: ['p2']},
+            };
+
+            return store.test(done, planningNotifications.onPlanningCreated({}, {
+                item: 'p2',
+                event_ids: ['e1'],
+            }))
+                .then(() => {
+                    expect(eventsPlanningUi.showRelatedPlannings.callCount).toBe(0);
+                    done();
+                })
+                .catch(done.fail);
+        });
+
+        it('does not call showRelatedPlannings when config is false', (done) => {
+            appConfig.planning_expand_related_plannings = false;
+            store.initialState.main.filter = MAIN.FILTERS.PLANNING;
+
+            return store.test(done, planningNotifications.onPlanningCreated({}, {
+                item: 'p2',
+                event_ids: ['e1'],
+            }))
+                .then(() => {
+                    expect(eventsPlanningUi.showRelatedPlannings.callCount).toBe(0);
                     done();
                 })
                 .catch(done.fail);

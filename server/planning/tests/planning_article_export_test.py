@@ -1,5 +1,7 @@
+from unittest import mock
+
 from planning.tests import TestCase
-from planning.planning_article_export import get_items
+from planning.planning_article_export import get_items, EXPORT_FETCH_PAGE_SIZE
 
 
 class PlanningArticleExportTest(TestCase):
@@ -82,3 +84,29 @@ class PlanningArticleExportTest(TestCase):
             assert items[0]["_id"] == "event2"
             assert items[1]["_id"] == "event1"
             assert items[2]["_id"] == "event3"
+
+    async def test_get_items_uses_export_page_size(self):
+        search_service = mock.AsyncMock()
+
+        async def async_iterator():
+            yield {"_id": "plan1", "type": "planning"}
+
+        search_service.search_repos.return_value = async_iterator()
+        events_service = mock.AsyncMock()
+
+        def get_service(name):
+            if name == "events_planning_search":
+                return search_service
+            if name == "events":
+                return events_service
+            raise AssertionError("Unexpected service requested: {}".format(name))
+
+        with mock.patch("planning.planning_article_export.get_resource_service", side_effect=get_service):
+            items = await get_items(["plan1"], "planning")
+
+        assert items == [{"_id": "plan1", "type": "planning"}]
+        search_service.search_repos.assert_called_once_with(
+            "planning",
+            {"item_ids": "plan1", "only_future": False},
+            page_size=EXPORT_FETCH_PAGE_SIZE,
+        )

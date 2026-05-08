@@ -1,9 +1,11 @@
 import {isNil, zipObject, get} from 'lodash';
+
+import {ITemplate} from 'superdesk-api';
 import {createStore} from '../utils';
 import {COVERAGES, ITEM_TYPE, ASSIGNMENTS} from '../constants';
 import * as selectors from '../selectors';
 import * as actions from '../actions';
-import {planningApi} from '../superdeskApi';
+import {planningApi, superdeskApi} from '../superdeskApi';
 import {isCustomVocabulary} from '../helpers';
 import {PLANNING_EXPORT_TEMPLATES_RESOURCE} from '../constants/exportTemplates';
 
@@ -183,7 +185,7 @@ export class PlanningStoreService {
             this.metadata.initialize(),
             this.userList.getAll(),
             this.desks.initialize(),
-            this.templates.fetchAllTemplates(1, 200, 'create'),
+            this.getAllCreateTemplates(),
             planningApi.contentProfiles.getAll(),
             planningApi.contentProfiles.coverages.getAll(),
             this.desks.fetchCurrentUserDesks(),
@@ -192,6 +194,17 @@ export class PlanningStoreService {
                 page: 1,
             }),
         ]);
+    }
+
+    private getAllCreateTemplates(): Promise<Array<ITemplate>> {
+        return superdeskApi.dataApi.query<ITemplate>(
+            'content_templates',
+            1,
+            {field: 'template_name', direction: 'ascending'},
+            {template_type: 'create'},
+            200,
+        )
+            .then((response) => (response._items));
     }
 
     getInitialState() {
@@ -236,7 +249,7 @@ export class PlanningStoreService {
                     genres: genres,
                     users: users,
                     desks: this.desks.desks._items,
-                    templates: all_templates._items,
+                    templates: all_templates,
                     workspace: {
                         currentDeskId: get(this.desks, 'active.desk'),
                         currentStageId: get(this.desks, 'active.stage'),

@@ -8,12 +8,16 @@
 
 """Superdesk Files"""
 
+import io
 import logging
+import mimetypes
+import os
 
 from superdesk import Resource, get_resource_service
 from superdesk.core import get_current_app
 from superdesk.errors import SuperdeskApiError
 from superdesk.eve_async.service import AsyncBaseService
+from superdesk.media.media_operations import process_file_from_stream
 
 
 logger = logging.getLogger(__name__)
@@ -69,3 +73,58 @@ class EventsFilesService(AsyncBaseService):
     async def on_delete_async(self, doc):
         if await get_resource_service("events").count_async({"files": doc.get("_id")}) > 0:
             raise SuperdeskApiError.forbiddenError("Delete failed. File still used by other events.")
+
+    async def ingest_file(self, content, filename, content_type=None):
+        """Upload binary content to media storage and create an events_files record."""
+
+        media_id = None
+        stream = None
+        app = get_current_app()
+
+        try:
+            if hasattr(content, "read"):
+                stream = content
+            else:
+                stream = io.BytesIO(content)
+
+            if not content_type:
+                guessed_type = mimetypes.guess_type(filename)[0]
+                content_type = guessed_type or "application/octet-stream"
+
+            file_name, content_type, metadata = process_file_from_stream(stream, content_type)
+            stream.seek(0)
+
+            media_id = await app.media.put_async(
+                stream,
+                filename=file_name or os.path.basename(filename),
+                content_type=content_type,
+                metadata=metadata,
+                resource="events_files",
+            )
+
+            payload = {"media": media_id, "mimetype": content_type}
+            if metadata:
+                payload["filemeta"] = metadata
+
+            ids = await self.post_async([payload])
+            saved_id = next(iter(ids or []), None)
+            if saved_id:
+                logger.info("Ingested event file %s as %s", filename, saved_id)
+                return saved_id
+        except Exception as ex:
+            logger.warning("Failed to ingest file %s: %s", filename, ex)
+            if media_id:
+                try:
+                    await app.media.delete_async(media_id)
+                except Exception:
+                    logger.warning("Failed to cleanup media for %s", filename)
+        finally:
+            if stream is not None:
+                close_fn = getattr(stream, "close", None)
+                if callable(close_fn):
+                    try:
+                        close_fn()
+                    except Exception:
+                        logger.warning("Failed to close stream for %s", filename)
+
+        return None

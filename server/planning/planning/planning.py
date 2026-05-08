@@ -82,6 +82,7 @@ from planning.common import (
     UPDATE_FUTURE,
     UPDATE_ALL,
     POST_STATE,
+    copy_translated_values_to_root_level_fields,
 )
 
 from planning.events.events_history_async_service import EventsHistoryAsyncService
@@ -185,6 +186,9 @@ class PlanningService(AsyncBaseService):
             self.set_planning_schedule(doc)
             # set timestamps
             update_dates_for(doc)
+
+            copy_translated_values_to_root_level_fields(doc, doc["language"])
+
             update_method: Optional[UPDATE_METHOD] = doc.pop("update_method", None)
             if first_event and update_method is not None:
                 new_plans = await self._add_planning_to_event_series(doc, first_event, update_method)
@@ -296,6 +300,7 @@ class PlanningService(AsyncBaseService):
 
         await self._set_coverage(updates, original)
         self.set_planning_schedule(updates, original)
+        copy_translated_values_to_root_level_fields(updates, updates.get("language", original.get("language")))
 
         if update_method and update_method != UPDATE_SINGLE:
             await self._update_recurring_planning_items(updates, original, update_method)

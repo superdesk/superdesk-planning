@@ -9,6 +9,7 @@ import {
     IEventOrPlanningItem,
     IPlanningItem,
 } from '../../interfaces';
+import {appConfig} from 'appConfig';
 
 import {onEventCapture} from '../../utils';
 import {KEYCODES} from '../../constants';
@@ -40,7 +41,7 @@ export class EventItemWithPlanning extends React.Component<IProps, IState> {
     constructor(props) {
         super(props);
         this.state = {
-            openPlanningItems: false,
+            openPlanningItems: appConfig.planning_expand_related_plannings,
             activeIndex: -1, // Index of active nested element (-1=None, 0=event, 1....=respective planning item)
         };
         this.toggleRelatedPlanning = this.toggleRelatedPlanning.bind(this);

@@ -608,6 +608,44 @@ describe('assignment', () => {
         }));
     });
 
+    it('SET_LOADING', () => {
+        let result = assignment(initialState, {
+            type: ASSIGNMENTS.ACTIONS.SET_LOADING,
+            payload: {
+                list: 'TODO',
+                isLoading: true,
+            },
+        });
+
+        expect(result.lists).toEqual(jasmine.objectContaining({
+            TODO: {
+                assignmentIds: [],
+                total: 0,
+                lastPage: null,
+                sortOrder: 'Asc',
+                isLoading: true,
+            },
+        }));
+
+        result = assignment(result, {
+            type: ASSIGNMENTS.ACTIONS.SET_LOADING,
+            payload: {
+                list: 'TODO',
+                isLoading: false,
+            },
+        });
+
+        expect(result.lists).toEqual(jasmine.objectContaining({
+            TODO: {
+                assignmentIds: [],
+                total: 0,
+                lastPage: null,
+                sortOrder: 'Asc',
+                isLoading: false,
+            },
+        }));
+    });
+
     it('SET_SORT_FIELD', () => {
         const result = assignment(initialState, {
             type: ASSIGNMENTS.ACTIONS.SET_SORT_FIELD,

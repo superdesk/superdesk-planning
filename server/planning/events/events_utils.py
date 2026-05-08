@@ -29,7 +29,6 @@ from planning.common import (
     TO_BE_CONFIRMED_FIELD,
     get_max_recurrent_events,
     is_valid_event_planning_reason,
-    set_ingested_event_state,
     update_post_item,
 )
 from planning.types import EventResourceModel, UpdateMethods
@@ -111,7 +110,7 @@ def generate_recurring_dates(
                     until = parser.isoparse(until)
                 if until.tzinfo is None:
                     until = pytz.UTC.localize(until)
-                until = until.astimezone(tz).replace(tzinfo=None)
+                until = until.astimezone(tz).replace(tzinfo=None, hour=23, minute=59, second=59, microsecond=999000)
 
     if frequency == "DAILY":
         byday = None
@@ -290,7 +289,6 @@ async def pre_update_event_actions(
     user_id = get_user_id()
     if user_id:
         updates["version_creator"] = user_id
-        set_ingested_event_state(updates, original)
 
     # Perform additional validation for event action
     await validate_event_action(updates, original, ACTION, require_lock)

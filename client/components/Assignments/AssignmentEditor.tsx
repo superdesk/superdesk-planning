@@ -25,6 +25,7 @@ import {ContactsPreviewList} from '../Contacts/ContactsPreviewList';
 import {SelectSearchContactsField} from '../Contacts/SelectSearchContactsField';
 import {superdeskApi} from '../../superdeskApi';
 import {isAssignmentDeskValid} from '../../validators/assignments';
+import {assignmentFieldsConfig} from '../Coverages/assignmentFieldsConfig';
 
 interface IReduxStateProps {
     contactTypes: Array<IContactType>
@@ -148,6 +149,10 @@ export class AssignmentEditorComponent extends React.PureComponent<IProps> {
         const {gettext} = superdeskApi.localization;
         const {SelectUser} = superdeskApi.components;
 
+        const showAssignmentPriority: boolean =
+            assignmentFieldsConfig.assignmentPriority
+            && showPriority; // will be ignored if field itself is disabled
+
         const userId = value.assigned_to?.user ?? null;
 
         const filteredDesks = this.getFilteredDesks(userId);
@@ -181,26 +186,12 @@ export class AssignmentEditorComponent extends React.PureComponent<IProps> {
                             message={isDeskValid ? null : gettext('This field is required')}
                             invalid={!isDeskValid}
                             autoFocus
+                            noMargin
                         />
                     </Row>
                 )}
 
-                <Row noPadding={showDesk}>
-                    <SelectInput
-                        field={this.FIELDS.PROVIDER}
-                        label={gettext('Coverage Provider')}
-                        value={provider}
-                        onChange={(_field, val) => {
-                            this.onProviderChange(val);
-                        }}
-                        options={coverageProviders}
-                        labelField="name"
-                        keyField="qcode"
-                        clearable={true}
-                    />
-                </Row>
-
-                {contactType?.assignable === true ? (
+                {contactType?.assignable === true && contactType?.assignable === true ? (
                     <Row>
                         <Label text={gettext('Assigned Provider')} />
                         {contactId == null ? null : (
@@ -218,7 +209,7 @@ export class AssignmentEditorComponent extends React.PureComponent<IProps> {
                         />
                     </Row>
                 ) : (
-                    <Row style={{padding: '2rem 0', margin: '0 0 1.8em 0'}}>
+                    <Row>
                         <div data-test-id={this.FIELDS.USER}>
                             <SelectUser
                                 key={this.props.value.assigned_to?.desk ?? null}
@@ -233,6 +224,24 @@ export class AssignmentEditorComponent extends React.PureComponent<IProps> {
                                 clearable={true}
                             />
                         </div>
+                    </Row>
+                )}
+
+                {assignmentFieldsConfig.coverageProvider !== true ? null : (
+                    <Row>
+                        <SelectInput
+                            field={this.FIELDS.PROVIDER}
+                            label={gettext('Coverage Provider')}
+                            value={get(value, this.FIELDS.PROVIDER) ?? null}
+                            onChange={(_field, val) => {
+                                this.onProviderChange(val);
+                            }}
+                            options={coverageProviders}
+                            labelField="name"
+                            keyField="qcode"
+                            clearable={true}
+                            noMargin
+                        />
                     </Row>
                 )}
 
