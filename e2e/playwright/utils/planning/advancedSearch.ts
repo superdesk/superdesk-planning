@@ -213,7 +213,25 @@ export class AdvancedSearch {
     }
 
     async waitForSearch(): Promise<void> {
-        await this.page.waitForResponse('**/api/events_planning_search*');
+        await this.page.waitForResponse((response) => (
+            response.url().includes('/api/events_planning_search') &&
+            response.request().method() === 'GET'
+        ));
+    }
+
+    async switchView(view: 'COMBINED' | 'EVENTS' | 'PLANNING'): Promise<void> {
+        const button = this.filtersBar.getByTestId(`view-${view}`);
+        const isSelected = await button.getAttribute('aria-pressed') === 'true';
+
+        if (isSelected) {
+            await this.list.panel.waitFor({state: 'visible'});
+            return;
+        }
+
+        await Promise.all([
+            this.waitForSearch(),
+            button.click(),
+        ]);
     }
 
     async toggleSearchPanel(): Promise<void> {
@@ -223,18 +241,15 @@ export class AdvancedSearch {
     }
 
     async viewEventsAndPlanning(): Promise<void> {
-        await this.filtersBar.getByTestId('view-COMBINED').click();
-        await this.waitForSearch();
+        await this.switchView('COMBINED');
     }
 
     async viewEventsOnly(): Promise<void> {
-        await this.filtersBar.getByTestId('view-EVENTS').click();
-        await this.waitForSearch();
+        await this.switchView('EVENTS');
     }
 
     async viewPlanningOnly(): Promise<void> {
-        await this.filtersBar.getByTestId('view-PLANNING').click();
-        await this.waitForSearch();
+        await this.switchView('PLANNING');
     }
 
     async openAllToggleBoxes(): Promise<void> {
@@ -242,15 +257,21 @@ export class AdvancedSearch {
     }
 
     async clickSearch(): Promise<void> {
-        await this.searchPanelFooter
-            .getByRole('button', {name: 'Search', exact: true})
-            .click();
+        await Promise.all([
+            this.waitForSearch(),
+            this.searchPanelFooter
+                .getByRole('button', {name: 'Search', exact: true})
+                .click(),
+        ]);
     }
 
     async clickClear(): Promise<void> {
-        await this.searchPanelFooter
-            .getByRole('button', {name: 'Clear', exact: true})
-            .click();
+        await Promise.all([
+            this.waitForSearch(),
+            this.searchPanelFooter
+                .getByRole('button', {name: 'Clear', exact: true})
+                .click(),
+        ]);
     }
 
     async enterSearchParams(params: ISearchTest['params']): Promise<void> {

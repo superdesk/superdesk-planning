@@ -117,6 +117,9 @@ test.describe('Planning.Featured', () => {
 
         // 4. Attempt to open -> close the Modal again, this time saving the changes
         await openFeaturedStoriesModal();
+        // Wait until this new Featured Story instance is marked dirty
+        // before closing, otherwise CI can close before the prompt is ready.
+        await modal.expectFooterButtons(['Close', 'Save', 'Post']);
         await modal.footerButton('Close').click();
         await uiFrameworkModal.shouldContainTitle('Unsaved changes');
         await uiFrameworkModal.getFooterButton('Save').click();

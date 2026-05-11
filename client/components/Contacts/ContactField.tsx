@@ -107,6 +107,9 @@ class ContactFieldComponent extends React.Component<IContactFieldProps> {
             onPopupOpen,
             onPopupClose,
             readOnly,
+            required,
+            message,
+            invalid,
         } = this.props;
 
         let value: Array<IContact['_id']>;
@@ -133,8 +136,11 @@ class ContactFieldComponent extends React.Component<IContactFieldProps> {
                                 label={label}
                                 onChange={this.onChange}
                                 value={value}
+                                required={required}
+                                message={message}
+                                invalid={invalid}
                                 onAdd={privileges.contacts ? this.onContactEdit : undefined}
-                                onAddText={privileges.contacts ? gettext('Add Contact') : null}
+                                onAddText={privileges.contacts ? gettext('Add Contact') : undefined}
                                 onFocus={onFocus}
                                 readOnly={readOnly}
                                 onPopupOpen={onPopupOpen}

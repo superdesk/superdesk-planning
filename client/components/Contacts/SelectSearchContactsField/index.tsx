@@ -10,6 +10,8 @@ interface IProps {
     readOnly?: boolean;
     onChange: (contact: IContact) => void;
     required?: boolean;
+    message?: string;
+    invalid?: boolean;
     onAdd?: (...args: any) => void;
     onAddText?: string;
     onFocus?: (...args: any) => void;
@@ -49,13 +51,22 @@ export class SelectSearchContactsField extends React.Component<IProps, {openSele
             minLengthPopup = 1,
             placeholder,
             noMargin,
+            message,
+            invalid,
             ...props
         } = this.props;
 
         const hasLabel = (label ?? '').trim();
 
         return (
-            <LineInput readOnly={readOnly} {...props} noLabel={!hasLabel} noMargin={noMargin}>
+            <LineInput
+                readOnly={readOnly}
+                {...props}
+                message={message}
+                invalid={invalid}
+                noLabel={!hasLabel}
+                noMargin={noMargin}
+            >
                 {hasLabel && (
                     <Label text={label} />
                 )}
