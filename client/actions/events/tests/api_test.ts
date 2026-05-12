@@ -428,7 +428,6 @@ describe('actions.events.api', () => {
                                 tz: 'Australia/Sydney',
                             },
                             update_method: 'single',
-                            _time_to_be_confirmed: false,
                             reason: 'Changing the day',
                         },
                     ]);
