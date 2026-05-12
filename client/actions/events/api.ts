@@ -354,17 +354,19 @@ const cancelEvent = (original, updates) => (
 );
 
 const rescheduleEvent = (original, updates) => (
-    (dispatch, getState, {api}) => (
-        api.update(
-            'events_reschedule',
-            original,
-            {
-                update_method: get(updates, 'update_method.value', EVENTS.UPDATE_METHODS[0].value),
-                dates: updates.dates,
-                reason: get(updates, 'reason', null),
-            }
-        )
-    )
+    (dispatch, getState, {api}) => {
+        const body = {
+            update_method: get(updates, 'update_method.value', EVENTS.UPDATE_METHODS[0].value),
+            dates: updates.dates,
+            reason: get(updates, 'reason', null),
+        };
+
+        if (TO_BE_CONFIRMED_FIELD in updates) {
+            body[TO_BE_CONFIRMED_FIELD] = updates[TO_BE_CONFIRMED_FIELD];
+        }
+
+        return api.update('events_reschedule', original, body);
+    }
 );
 
 const postponeEvent = (original, updates) => (

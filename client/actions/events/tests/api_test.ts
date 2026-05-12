@@ -437,6 +437,70 @@ describe('actions.events.api', () => {
                 .catch(done.fail);
         });
 
+        it('can reschedule an event - setting TBC flag', (done) => {
+            store.test(done, eventsApi.rescheduleEvent(data.events[1], {
+                dates: {
+                    start: '2014-10-16T14:01:11+0000',
+                    end: '2014-10-16T15:01:11+0000',
+                    tz: 'Australia/Sydney',
+                },
+                _time_to_be_confirmed: true,
+                reason: 'Changing the day',
+            }))
+                .then(() => {
+                    expect(services.api.update.callCount).toBe(1);
+                    expect(services.api.update.args[0]).toEqual([
+                        'events_reschedule',
+                        data.events[1],
+                        {
+                            dates: {
+                                start: '2014-10-16T14:01:11+0000',
+                                end: '2014-10-16T15:01:11+0000',
+                                tz: 'Australia/Sydney',
+                            },
+                            update_method: 'single',
+                            _time_to_be_confirmed: true,
+                            reason: 'Changing the day',
+                        },
+                    ]);
+
+                    done();
+                })
+                .catch(done.fail);
+        });
+
+        it('can reschedule an event - unsetting TBC flag', (done) => {
+            store.test(done, eventsApi.rescheduleEvent(data.events[1], {
+                dates: {
+                    start: '2014-10-16T14:01:11+0000',
+                    end: '2014-10-16T15:01:11+0000',
+                    tz: 'Australia/Sydney',
+                },
+                _time_to_be_confirmed: false,
+                reason: 'Changing the day',
+            }))
+                .then(() => {
+                    expect(services.api.update.callCount).toBe(1);
+                    expect(services.api.update.args[0]).toEqual([
+                        'events_reschedule',
+                        data.events[1],
+                        {
+                            dates: {
+                                start: '2014-10-16T14:01:11+0000',
+                                end: '2014-10-16T15:01:11+0000',
+                                tz: 'Australia/Sydney',
+                            },
+                            update_method: 'single',
+                            _time_to_be_confirmed: false,
+                            reason: 'Changing the day',
+                        },
+                    ]);
+
+                    done();
+                })
+                .catch(done.fail);
+        });
+
         it('can send `future` when rescheduling', (done) => {
             store.test(done, eventsApi.rescheduleEvent(data.events[1], {
                 dates: {
