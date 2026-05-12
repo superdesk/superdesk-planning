@@ -26,7 +26,7 @@ def construct_event_link(event_id: str):
 def add_related_event_links(item: Union[ArchiveItem, Assignment, Planning], planning: Planning):
     for related_event in get_related_event_links_for_planning(planning):
         event_link = construct_event_link(related_event["_id"])
-        if related_event["link_type"] == "primary" and not item[LINKS]["event"]:
+        if related_event["link_type"] == "primary" and not item[LINKS].get("event"):
             item[LINKS]["event"] = event_link
         else:
             item[LINKS].setdefault("related_events", []).append(event_link)
