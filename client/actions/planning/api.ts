@@ -676,7 +676,7 @@ const markPlanningPostponed = (plan, reason) => ({
 });
 
 const uploadFiles = (planning) => (
-    (dispatch) => {
+    (dispatch, getState, {upload}) => {
         const clonedPlanning = cloneDeep(planning);
 
         // If no files, do nothing
@@ -695,6 +695,7 @@ const uploadFiles = (planning) => (
 
         return Promise.all(filesToUpload.map((file) => (
             uploadFileWithRetry(
+                upload,
                 '/planning_files/',
                 file,
                 {timeoutMs: 90000, retries: 2},

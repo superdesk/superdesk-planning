@@ -1,8 +1,10 @@
-import ng from 'core/services/ng';
-
 import {appConfig} from 'appConfig';
 
 type IUploadMethod = 'POST' | 'PATCH';
+
+interface IUploadService {
+    start(config: Record<string, any>): Promise<{data: any}>;
+}
 
 export interface IUploadOptions {
     onProgress?: (event: ProgressEvent) => void;
@@ -18,7 +20,7 @@ const DEFAULT_RETRY_DELAY_MS = 500;
 
 function wait(ms: number) {
     return new Promise<void>((resolve) => {
-        window.setTimeout(resolve, ms);
+        setTimeout(resolve, ms);
     });
 }
 
@@ -26,122 +28,83 @@ function createUploadError(message: string, extra: Record<string, unknown> = {})
     return Object.assign(new Error(message), extra);
 }
 
-function getResponseMessage(responseText: string, status: number) {
-    if (!responseText) {
-        return `Upload failed with status ${status}`;
-    }
-
-    try {
-        const parsed = JSON.parse(responseText);
-
-        return parsed?._message ?? parsed?._error?.message ?? parsed?.message ?? `Upload failed with status ${status}`;
-    } catch (_e) {
-        return responseText;
-    }
+function isRetryableUploadError(error: any) {
+    return error?.timeout === true || error?.retryable === true || error?.status >= 500;
 }
 
-function isRetryableUploadError(error: any) {
-    return error?.retryable === true || error?.timeout === true || error?.name === 'ProgressEvent';
+function toUploadError(error: any) {
+    return error;
+}
+
+function buildUploadConfig(endpoint: string, file: File | Array<File>, method: IUploadMethod, etag?: string) {
+    const mediaFile = Array.isArray(file) ? file[0] : file;
+    const headers: Record<string, string> = {'Content-Type': 'multipart/form-data'};
+    const data = {media: [mediaFile]};
+
+    if (method === 'PATCH' && etag != null) {
+        headers['If-Match'] = etag;
+    }
+
+    return {
+        method: method,
+        url: appConfig.server.url + endpoint,
+        headers: headers,
+        data: data,
+        arrayKey: '',
+    };
 }
 
 async function uploadOnce<T>(
-    token: string,
+    upload: IUploadService,
     endpoint: string,
-    data: FormData,
+    file: File | Array<File>,
     options: Required<Pick<IUploadOptions, 'method' | 'timeoutMs'>> & Pick<IUploadOptions, 'onProgress' | 'etag'>,
 ): Promise<T> {
-    return new Promise<T>((resolve, reject) => {
-        const request = new XMLHttpRequest();
-        const url = appConfig.server.url + endpoint;
+    const uploadPromise = upload.start(buildUploadConfig(endpoint, file, options.method, options.etag));
 
-        request.open(options.method, url);
-        request.setRequestHeader('Authorization', token);
-        request.timeout = options.timeoutMs;
+    if (options.onProgress != null) {
+        uploadPromise.then(undefined, undefined, options.onProgress);
+    }
 
-        if (options.method === 'PATCH' && options.etag != null) {
-            request.setRequestHeader('If-Match', options.etag);
-        }
-
-        if (options.onProgress != null) {
-            request.upload.onprogress = options.onProgress;
-        }
-
-        request.onload = function() {
-            const responseText = this.responseText ?? '';
-
-            if (this.status >= 200 && this.status < 300) {
-                if (!responseText) {
-                    resolve(undefined as T);
-                    return;
-                }
-
-                try {
-                    resolve(JSON.parse(responseText));
-                } catch (_e) {
-                    reject(createUploadError('Upload failed: invalid JSON response', {
-                        status: this.status,
-                        responseText: responseText,
-                        retryable: false,
-                    }));
-                }
-            } else {
-                reject(createUploadError(getResponseMessage(responseText, this.status), {
-                    status: this.status,
-                    responseText: responseText,
-                    retryable: this.status >= 500,
-                }));
-            }
-        };
-
-        request.onerror = function() {
-            reject(createUploadError('Upload failed because the network request errored.', {
-                retryable: true,
-            }));
-        };
-
-        request.ontimeout = function() {
+    const timeoutPromise = new Promise<never>((_, reject) => {
+        setTimeout(() => {
             reject(createUploadError('Upload timed out.', {
                 timeout: true,
                 retryable: true,
             }));
-        };
-
-        request.onabort = function() {
-            reject(createUploadError('Upload was aborted.', {
-                aborted: true,
-                retryable: false,
-            }));
-        };
-
-        request.send(data);
+        }, options.timeoutMs);
     });
+
+    const response = await Promise.race([uploadPromise, timeoutPromise]);
+
+    return response.data;
 }
 
 export async function uploadFileWithRetry<T>(
+    upload: IUploadService,
     endpoint: string,
     file: File | Array<File>,
     options: IUploadOptions = {},
 ): Promise<T> {
     const {timeoutMs = DEFAULT_TIMEOUT_MS, retries = 1, retryDelayMs = DEFAULT_RETRY_DELAY_MS} = options;
-    const session = await ng.getService('session');
-    const uploadData = new FormData();
-    const mediaFile = Array.isArray(file) ? file[0] : file;
-
-    uploadData.append('media', mediaFile);
 
     for (let attempt = 0; attempt <= retries; attempt += 1) {
         try {
-            return await uploadOnce<T>(session.token, endpoint, uploadData, {
+            const etag = options.etag;
+
+            return await uploadOnce<T>(upload, endpoint, file, {
                 method: options.method ?? 'POST',
-                etag: options.etag,
+                etag: etag,
                 onProgress: options.onProgress,
                 timeoutMs: timeoutMs,
             });
         } catch (error) {
-            if (attempt < retries && isRetryableUploadError(error)) {
+            const normalizedError = toUploadError(error);
+
+            if (attempt < retries && isRetryableUploadError(normalizedError)) {
                 await wait(retryDelayMs * (attempt + 1));
             } else {
-                throw error;
+                throw normalizedError;
             }
         }
     }

@@ -524,7 +524,7 @@ const fetchEventHistory = (eventId) => (
     ));
 
 const uploadFiles = (event) => (
-    (dispatch) => {
+    (dispatch, getState, {upload}) => {
         const clonedEvent = cloneDeep(event);
 
         // If no files, do nothing
@@ -543,6 +543,7 @@ const uploadFiles = (event) => (
 
         return Promise.all(filesToUpload.map((file) => (
             uploadFileWithRetry<IFile>(
+                upload,
                 '/events_files/',
                 file,
                 {timeoutMs: 90000, retries: 2},
