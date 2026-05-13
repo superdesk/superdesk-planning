@@ -5,6 +5,7 @@ import {
     ISearchSpikeState,
     IEventSearchParams,
     IEventItem,
+    IFile,
     IPlanningItem,
     IEventTemplate,
     IEventUpdateMethod,
@@ -27,6 +28,7 @@ import {
     isPublishedItemId,
     gettext,
 } from '../../utils';
+import {uploadFileWithRetry} from '../../utils/upload';
 
 import planningApis from '../planning/api';
 import eventsUi from './ui';
@@ -522,7 +524,7 @@ const fetchEventHistory = (eventId) => (
     ));
 
 const uploadFiles = (event) => (
-    (dispatch, getState, {upload}) => {
+    (dispatch) => {
         const clonedEvent = cloneDeep(event);
 
         // If no files, do nothing
@@ -540,16 +542,14 @@ const uploadFiles = (event) => (
         }
 
         return Promise.all(filesToUpload.map((file) => (
-            upload.start({
-                method: 'POST',
-                url: appConfig.server.url + '/events_files/',
-                headers: {'Content-Type': 'multipart/form-data'},
-                data: {media: [file]},
-                arrayKey: '',
-            })
+            uploadFileWithRetry<IFile>(
+                '/events_files/',
+                file,
+                {timeoutMs: 90000, retries: 2},
+            )
         )))
             .then((results) => {
-                const files = results.map((res) => res.data);
+                const files = results;
 
                 if (get(files, 'length', 0) > 0) {
                     dispatch({

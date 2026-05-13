@@ -60,9 +60,15 @@ export class EditorModalPanel extends React.Component<IProps, IState> {
 
     onDragEvents(e) {
         e.preventDefault();
-        if (e.target.className.indexOf('basic-drag-block') < 0) {
+        const target = e.target as HTMLElement | null;
+        const insideDropZone = target?.closest?.('.basic-drag-block') != null;
+
+        if (!insideDropZone) {
             e.dataTransfer.effectAllowed = 'none';
             e.dataTransfer.dropEffect = 'none';
+        } else {
+            e.dataTransfer.effectAllowed = 'copy';
+            e.dataTransfer.dropEffect = 'copy';
         }
     }
 

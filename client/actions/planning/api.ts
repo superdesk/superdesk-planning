@@ -1,5 +1,5 @@
 import {get, cloneDeep, pickBy, every} from 'lodash';
-import {IEventItem, IPlanningSearchParams, IPlanningItem} from '../../interfaces';
+import {IEventItem, IPlanningSearchParams, IPlanningItem, IFile} from '../../interfaces';
 import {appConfig} from 'appConfig';
 import {planningApi} from '../../superdeskApi';
 import * as actions from '../../actions';
@@ -25,6 +25,7 @@ import {planningParamsToSearchParams} from '../../utils/search';
 import {getRelatedEventIdsForPlanning} from '../../utils/planning';
 import moment from 'moment';
 import planningUi from './ui';
+import {uploadFileWithRetry} from '../../utils/upload';
 
 /**
  * Action dispatcher that marks a Planning item as spiked
@@ -675,7 +676,7 @@ const markPlanningPostponed = (plan, reason) => ({
 });
 
 const uploadFiles = (planning) => (
-    (dispatch, getState, {upload}) => {
+    (dispatch) => {
         const clonedPlanning = cloneDeep(planning);
 
         // If no files, do nothing
@@ -693,16 +694,14 @@ const uploadFiles = (planning) => (
         }
 
         return Promise.all(filesToUpload.map((file) => (
-            upload.start({
-                method: 'POST',
-                url: appConfig.server.url + '/planning_files/',
-                headers: {'Content-Type': 'multipart/form-data'},
-                data: {media: [file]},
-                arrayKey: '',
-            })
+            uploadFileWithRetry(
+                '/planning_files/',
+                file,
+                {timeoutMs: 90000, retries: 2},
+            )
         )))
             .then((results) => {
-                const files = results.map((res) => res.data);
+                const files: Array<IFile> = results;
 
                 if (get(files, 'length', 0) > 0) {
                     dispatch({
