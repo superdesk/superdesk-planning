@@ -37,11 +37,13 @@ const validateRequiredDates = ({value, errors, messages, diff}) => {
     }
 };
 
-const validateDateRange = ({value, errors, messages}) => {
+const validateDateRange = ({value, errors, messages, diff}) => {
     let startDate = moment(value.start);
     let endDate = moment(value.end);
 
     if (!self.valdiateStartEndDateValues(value, startDate, endDate)) {
+        return;
+    } else if (diff[TO_BE_CONFIRMED_FIELD] === true) {
         return;
     }
 
@@ -168,6 +170,7 @@ const validateDates = ({getState, value, errors, messages, diff}) => {
         value: value,
         errors: newErrors,
         messages: messages,
+        diff: diff,
     });
 
     // we don't have to validate all recurring form update time action
