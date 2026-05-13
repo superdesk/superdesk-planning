@@ -4,6 +4,7 @@ import eventValidators from '../events';
 import moment from 'moment';
 import {initialState} from '../../utils/testData';
 import {cloneDeep} from 'lodash';
+import {TO_BE_CONFIRMED_FIELD} from '../../constants';
 
 describe('eventValidators', () => {
     let event;
@@ -48,6 +49,7 @@ describe('eventValidators', () => {
             value: value,
             errors: errors,
             messages: errorMessages,
+            diff: event,
         });
         expect(errors).toEqual(response);
         expect(errorMessages).toEqual(messages);
@@ -114,6 +116,12 @@ describe('eventValidators', () => {
                 {dates: {end: {date: 'End date should be after start date'}}},
                 ['END DATE should be after START DATE']
             );
+        });
+
+        it('pass if time to be confirmed and end time is after start time', () => {
+            event.dates.end = moment('2094-10-15T11:01:11');
+            event[TO_BE_CONFIRMED_FIELD] = true;
+            testValidate(eventValidators.validateDates, 'dates', {}, []);
         });
     });
 
