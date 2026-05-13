@@ -49,6 +49,7 @@ describe('eventValidators', () => {
             value: value,
             errors: errors,
             messages: errorMessages,
+            diff: event,
         });
         expect(errors).toEqual(response);
         expect(errorMessages).toEqual(messages);

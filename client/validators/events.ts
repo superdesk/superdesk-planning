@@ -43,7 +43,7 @@ const validateDateRange = ({value, errors, messages, diff}) => {
 
     if (!self.valdiateStartEndDateValues(value, startDate, endDate)) {
         return;
-    } else if (diff[TO_BE_CONFIRMED_FIELD] === true) {
+    } else if (diff?.[TO_BE_CONFIRMED_FIELD] === true) {
         return;
     }
 
