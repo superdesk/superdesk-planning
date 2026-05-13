@@ -37,9 +37,8 @@ function toUploadError(error: any) {
 }
 
 function buildUploadConfig(endpoint: string, file: File | Array<File>, method: IUploadMethod, etag?: string) {
-    const mediaFile = Array.isArray(file) ? file[0] : file;
     const headers: Record<string, string> = {'Content-Type': 'multipart/form-data'};
-    const data = {media: [mediaFile]};
+    const data = {media: [file]};
 
     if (method === 'PATCH' && etag != null) {
         headers['If-Match'] = etag;
