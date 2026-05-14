@@ -698,7 +698,7 @@ const uploadFiles = (planning) => (
                 upload,
                 '/planning_files/',
                 file,
-                {timeoutMs: 90000, retries: 2},
+                {retries: 2},
             )
         )))
             .then((results) => {

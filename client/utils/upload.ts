@@ -32,10 +32,6 @@ function isRetryableUploadError(error: any) {
     return error?.timeout === true || error?.retryable === true || error?.status >= 500;
 }
 
-function toUploadError(error: any) {
-    return error;
-}
-
 function buildUploadConfig(endpoint: string, file: File | Array<File>, method: IUploadMethod, etag?: string) {
     const headers: Record<string, string> = {'Content-Type': 'multipart/form-data'};
     const data = {media: [file]};
@@ -67,10 +63,7 @@ async function uploadOnce<T>(
 
     const timeoutPromise = new Promise<never>((_, reject) => {
         setTimeout(() => {
-            reject(createUploadError('Upload timed out.', {
-                timeout: true,
-                retryable: true,
-            }));
+            reject(createUploadError('Upload timed out.'));
         }, options.timeoutMs);
     });
 
@@ -98,12 +91,10 @@ export async function uploadFileWithRetry<T>(
                 timeoutMs: timeoutMs,
             });
         } catch (error) {
-            const normalizedError = toUploadError(error);
-
-            if (attempt < retries && isRetryableUploadError(normalizedError)) {
+            if (attempt < retries && isRetryableUploadError(error)) {
                 await wait(retryDelayMs * (attempt + 1));
             } else {
-                throw normalizedError;
+                throw error;
             }
         }
     }

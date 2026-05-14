@@ -546,7 +546,7 @@ const uploadFiles = (event) => (
                 upload,
                 '/events_files/',
                 file,
-                {timeoutMs: 90000, retries: 2},
+                {retries: 2},
             )
         )))
             .then((results) => {
