@@ -6,6 +6,10 @@ interface IUploadService {
     start(config: Record<string, any>): Promise<{data: any}>;
 }
 
+interface IUploadPromise<T> extends Promise<T> {
+    abort?: () => void;
+}
+
 export interface IUploadOptions {
     onProgress?: (event: ProgressEvent) => void;
     timeoutMs?: number;
@@ -55,21 +59,43 @@ async function uploadOnce<T>(
     file: File | Array<File>,
     options: Required<Pick<IUploadOptions, 'method' | 'timeoutMs'>> & Pick<IUploadOptions, 'onProgress' | 'etag'>,
 ): Promise<T> {
-    const uploadPromise = upload.start(buildUploadConfig(endpoint, file, options.method, options.etag));
+    const uploadPromise = upload.start(
+        buildUploadConfig(endpoint, file, options.method, options.etag)
+    ) as IUploadPromise<{data: any}>;
 
-    if (options.onProgress != null) {
-        uploadPromise.then(undefined, undefined, options.onProgress);
-    }
+    return await new Promise<T>((resolve, reject) => {
+        let settled = false;
 
-    const timeoutPromise = new Promise<never>((_, reject) => {
-        setTimeout(() => {
+        const timeoutId = setTimeout(() => {
+            settled = true;
+
+            if (typeof uploadPromise.abort === 'function') {
+                uploadPromise.abort();
+            }
+
             reject(createUploadError('Upload timed out.'));
         }, options.timeoutMs);
+
+        if (options.onProgress != null) {
+            uploadPromise.then(undefined, undefined, options.onProgress);
+        }
+
+        uploadPromise.then((response) => {
+            if (settled) {
+                return;
+            }
+
+            clearTimeout(timeoutId);
+            resolve(response.data);
+        }, (error) => {
+            if (settled) {
+                return;
+            }
+
+            clearTimeout(timeoutId);
+            reject(error);
+        });
     });
-
-    const response = await Promise.race([uploadPromise, timeoutPromise]);
-
-    return response.data;
 }
 
 export async function uploadFileWithRetry<T>(
