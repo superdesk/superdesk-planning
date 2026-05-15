@@ -73,7 +73,7 @@ async function uploadOnce<T>(
                 uploadPromise.abort();
             }
 
-            reject(createUploadError('Upload timed out.'));
+            reject(createUploadError('Upload timed out.', {timeout: true}));
         }, options.timeoutMs);
 
         if (options.onProgress != null) {
