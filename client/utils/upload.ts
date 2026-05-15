@@ -1,4 +1,5 @@
 import {appConfig} from 'appConfig';
+import {gettext} from './index';
 
 type IUploadMethod = 'POST' | 'PATCH';
 
@@ -73,7 +74,7 @@ async function uploadOnce<T>(
                 uploadPromise.abort();
             }
 
-            reject(createUploadError('Upload timed out.', {timeout: true}));
+            reject(createUploadError(gettext('Upload timed out.'), {timeout: true}));
         }, options.timeoutMs);
 
         if (options.onProgress != null) {
