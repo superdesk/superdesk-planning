@@ -25,7 +25,7 @@ PlanningResource.schema = deepcopy(planning_schema)
 async def prodapi_app_with_data(request):
     """Prod API app with data loaded from this repository's local fixture set."""
 
-    extra_config = getattr(request, "param", {})
+    extra_config = deepcopy(getattr(request, "param", {}))
     extra_config["PRODAPI_AUTH_ENABLED"] = False
     app = await get_test_prodapi_app(extra_config)
 
