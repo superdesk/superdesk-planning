@@ -32,10 +32,8 @@
         ],
         "firstcreated": "2019-08-22T15:50:04.542Z",
         "versioncreated": "2019-08-22T15:50:04.542Z",
-        "ingest_provider": "5d5e99300396129addd2b20b",
         "source": "Google spreadshhet",
         "expiry": "2019-07-19T22:00:00.000Z",
-        "ingest_provider_sequence": "1",
         "completed": false,
         "_planning_schedule": [
             {
@@ -76,10 +74,8 @@
         ],
         "firstcreated": "2019-08-22T15:50:04.582Z",
         "versioncreated": "2019-09-18T09:19:55.000Z",
-        "ingest_provider": "5d5e99300396129addd2b20b",
         "source": "Google spreadshhet",
         "expiry": "2019-07-19T22:00:00.000Z",
-        "ingest_provider_sequence": "2",
         "completed": false,
         "_planning_schedule": [
             {
@@ -138,10 +134,8 @@
         ],
         "firstcreated": "2019-08-22T15:50:04.674Z",
         "versioncreated": "2019-09-18T09:19:56.000Z",
-        "ingest_provider": "5d5e99300396129addd2b20b",
         "source": "Google spreadshhet",
         "expiry": "2019-10-20T21:59:59.000Z",
-        "ingest_provider_sequence": "3",
         "completed": false,
         "_planning_schedule": [
             {
@@ -199,10 +193,8 @@
         ],
         "firstcreated": "2019-08-22T15:50:04.736Z",
         "versioncreated": "2019-08-22T15:50:04.736Z",
-        "ingest_provider": "5d5e99300396129addd2b20b",
         "source": "Google spreadshhet",
         "expiry": "2019-10-20T21:59:59.000Z",
-        "ingest_provider_sequence": "4",
         "completed": false,
         "_planning_schedule": [
             {
@@ -256,10 +248,8 @@
         ],
         "firstcreated": "2019-08-22T15:50:04.827Z",
         "versioncreated": "2019-08-22T15:50:04.827Z",
-        "ingest_provider": "5d5e99300396129addd2b20b",
         "source": "Google spreadshhet",
         "expiry": "2019-10-20T21:59:59.000Z",
-        "ingest_provider_sequence": "5",
         "completed": false,
         "_planning_schedule": [
             {
