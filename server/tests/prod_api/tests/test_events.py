@@ -1,4 +1,5 @@
 import json
+
 from flask import url_for
 
 from superdesk import get_resource_service

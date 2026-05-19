@@ -23,7 +23,7 @@ from planning.utils import get_related_planning_for_events
 class EventsService(ProdApiService):
     excluded_fields = ProdApiService.excluded_fields | excluded_lock_fields
 
-    def _process_fetched_object(self, doc):
+    async def _process_fetched_object(self, doc):
         super()._process_fetched_object(doc)
 
         if not doc.get(LINKS):
@@ -38,8 +38,7 @@ class EventsService(ProdApiService):
             doc[LINKS]["plannings"] = [construct_planning_link(item[ID_FIELD]) for item in plannings]
 
             if len(assignment_ids):
-                # TODO-ASYNC[archive]: Prefix this line with ``await `` after ProdAPI base service is upgraded
-                doc[LINKS]["assignments"] = construct_assignment_links(assignment_ids)
+                doc[LINKS]["assignments"] = await construct_assignment_links(assignment_ids)
 
 
 class EventsHistoryService(ProdApiService):
