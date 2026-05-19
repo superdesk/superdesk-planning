@@ -35,6 +35,6 @@ jobs:
       - name: install
         working-directory: client/planning-extension
         run: npm ci
-      - name: compile
+      - name: typecheck
         working-directory: client/planning-extension
-        run: npm run compile
+        run: npx tsc --noEmit -p src/tsconfig.json
