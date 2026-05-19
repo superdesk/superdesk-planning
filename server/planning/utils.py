@@ -262,6 +262,41 @@ def get_related_event_items_for_planning(
     return events
 
 
+async def get_related_event_items_for_planning_async(
+    plan: Planning, link_type: Optional[PLANNING_RELATED_EVENT_LINK_TYPE] = None
+) -> List[Event]:
+    """
+    Retrieve related event items asynchronously for a given planning object.
+
+    This function retrieves event items related to a specified planning object, optionally filtered
+    by a specific link type. It returns a list of related event objects. If some events are not found
+    in the database, a warning is logged with the relevant details.
+
+    :param plan: The planning item for which related events are being retrieved.
+    :param link_type: An optional link type to filter the related events. If not provided, all related events are retrieved.
+    :return: List of Events related to the given planning object.
+    """
+
+    event_ids = get_related_event_ids_for_planning(plan, link_type)
+    if not len(event_ids):
+        return []
+
+    cursor = await get_resource_service("events").find_async(where={"_id": {"$in": event_ids}})
+    events = await cursor.to_list()
+
+    if len(event_ids) != len(events):
+        logger.warning(
+            "Not all Events were found for the Planning item",
+            extra=dict(
+                plan_id=plan[ID_FIELD],
+                event_ids_requested=event_ids,
+                events_ids_found=[event[ID_FIELD] for event in events],
+            ),
+        )
+
+    return events
+
+
 def get_first_event_item_for_planning_id(
     planning_id: str, link_type: Optional[PLANNING_RELATED_EVENT_LINK_TYPE] = None
 ) -> Optional[Event]:
