@@ -96,7 +96,7 @@
         "expired": false,
         "related_events": [
             {
-                "_id": "urn:newsml:localhost:5000:2019-08-22T15:50:04.266685:64201fdf-7462-4079-b914-60700b2bbf0c",
+                "_id": "urn:newsml:localhost:5000:2019-09-10T15:43:13.722490:5dcea683-fb9b-42ca-a77f-ce1216aef8b1",
                 "link_type": "primary"
             }
         ],
