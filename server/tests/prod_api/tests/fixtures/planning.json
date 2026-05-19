@@ -94,6 +94,12 @@
         "internal_note": "Citroen 100 let",
         "description_text": "Citroen 100 let",
         "expired": false,
+        "related_events": [
+            {
+                "_id": "urn:newsml:localhost:5000:2019-09-10T15:43:13.722490:5dcea683-fb9b-42ca-a77f-ce1216aef8b1",
+                "link_type": "primary"
+            }
+        ],
         "guid": "urn:newsml:localhost:5000:2019-09-10T15:47:04.367097:714ceeb4-c366-48af-b360-e7aefdf9941a",
         "original_creator": "5d385f31fe985ec67a0ca583",
         "_planning_schedule": [
