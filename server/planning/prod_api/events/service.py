@@ -128,15 +128,23 @@ class EventsService(ProdApiService):
             if item.get("event_item"):
                 yield item["event_item"]
 
+    async def _get_related_plannings(self, event_id: str) -> list[dict]:
+        plannings = await get_related_planning_for_events_async([event_id], "primary")
+        if len(plannings):
+            return plannings
+
+        planning_service = get_resource_service("planning")
+        return [item for item in planning_service.find(where={"event_item": event_id})]
+
     async def _process_fetched_object(self, doc):
         super()._process_fetched_object(doc)
 
         if not doc.get(LINKS):
             return
 
-        plannings = await get_related_planning_for_events_async([doc[ID_FIELD]], "primary")
+        assignment_ids = []
+        plannings = await self._get_related_plannings(doc[ID_FIELD])
         if len(plannings):
-            assignment_ids = []
             for plan in plannings:
                 assignment_ids.extend(get_assignment_ids_from_planning(plan))
 
@@ -148,8 +156,8 @@ class EventsService(ProdApiService):
                 for item in plannings
             ]
 
-            if len(assignment_ids) and self._include_assignment_links():
-                doc[LINKS]["assignments"] = await construct_assignment_links(assignment_ids)
+        if self._include_assignment_links():
+            doc[LINKS]["assignments"] = await construct_assignment_links(assignment_ids) if len(assignment_ids) else []
 
 
 class EventsHistoryService(ProdApiService):

@@ -16,9 +16,23 @@ from .resource import EventsResource, EventsHistoryResource, EventsFilesResource
 from .service import EventsService, EventsHistoryService, EventsFilesService
 
 
+def _remove_missing_ingest_provider_data_relation(app: Eve):
+    if "ingest_providers" in app.config.get("DOMAIN", {}):
+        return
+
+    events_schema = ((app.config.get("DOMAIN") or {}).get("events") or {}).get("schema") or {}
+    ingest_provider_field = events_schema.get("ingest_provider")
+    if not isinstance(ingest_provider_field, dict):
+        return
+
+    if "data_relation" in ingest_provider_field:
+        events_schema["ingest_provider"] = {k: v for k, v in ingest_provider_field.items() if k != "data_relation"}
+
+
 def init_app(app: Eve):
     events_service = EventsService(datasource="events", backend=get_backend())
     EventsResource(endpoint_name="events", app=app, service=events_service)
+    _remove_missing_ingest_provider_data_relation(app)
 
     events_history_service = EventsHistoryService(datasource="events_history", backend=get_backend())
     EventsHistoryResource(endpoint_name="events_history", app=app, service=events_history_service)
