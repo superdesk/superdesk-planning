@@ -29,7 +29,12 @@ planning_created = signals.signal("planning:created")
 #: param original: Original Planning item dict (if updating), else None
 planning_ingested = AsyncSignal[dict, dict | None]("planning:ingested")
 
-assignment_content_create = signals.signal("planning:assignment_content_create")
+#: Signal for them content is created from an Assignment
+#: param assignment: The Assignment item dict
+#: param planning: The Planning item dict
+#: param item: The content item to be created
+#: param content_profile: The ContentProfile of the item
+assignment_content_create = AsyncSignal[dict, dict, dict, dict]("planning:assignment_content_create")
 
 
 #: Signal for when an Event is about to be updated in the DB

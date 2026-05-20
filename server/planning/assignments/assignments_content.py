@@ -150,14 +150,7 @@ async def get_item_from_assignment(assignment, template=None):
     if language:
         item["language"] = language
 
-    assignment_content_create.send(
-        None,
-        assignment=assignment,
-        planning=planning,
-        item=item,
-        content_profile=content_profile,
-    )
-
+    await assignment_content_create.send(assignment, planning, item, content_profile)
     return item, translations
 
 
