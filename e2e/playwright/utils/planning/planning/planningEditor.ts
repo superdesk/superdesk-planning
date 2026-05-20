@@ -41,7 +41,7 @@ export class PlanningEditor extends Editor {
 
     /**
      * Returns the dom node for the coverages (for use with the CoverageEditor wrapper)
-     * @returns {Cypress.Chainable<JQuery<HTMLElement>>}
+     * @returns {Locator}
      */
     get coveragesContainer(): Locator {
         return this.element.getByTestId('field-coverages');
@@ -49,7 +49,7 @@ export class PlanningEditor extends Editor {
 
     /**
      * Returns the dom node for the ADD COVERAGES button
-     * @returns {Cypress.Chainable<JQuery<HTMLElement>>}
+     * @returns {Locator}
      */
     get addCoverageButton(): Locator {
         return this.coveragesContainer.getByTestId('create-button');

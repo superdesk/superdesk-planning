@@ -455,7 +455,7 @@
 - [SDESK-4908] Paginate results in contacts selection in Event Form (#1407)
 - [SDNTB-616] fix: update time not working for ingested events. (#1409)
 - [sdesk-4776] Allow a user id to be passed to complete assignment (#1410)
-- [SDESK-4509] Port e2e tests from Protractor to Cypress (#1408)
+- [SDESK-4509] Port e2e tests from Protractor to browser-based e2e tests (#1408)
 - [SDBELGA-262] (EVENT FILES) - Save additional file information. (#1412)
 - fix(e2e): Failing to click on Contacts Close button (#1418)
 - [SDESK-4888] Wrong history entry when creating a Planning item with a coverage (#1414)
