@@ -1006,8 +1006,6 @@ class PlanningService(AsyncBaseService):
                 # Return now, we will process the assignment after the DB is updated
                 return
 
-            await self.set_xmp_file_info(updates, original)
-
             existing_assignment_id = ObjectId(assigned_to["assignment_id"])
             original_assignment = await assignment_service.find_one_async(req=None, _id=existing_assignment_id)
             if not original_assignment:
@@ -1015,10 +1013,12 @@ class PlanningService(AsyncBaseService):
                 # so the user can continue editing the coverage
                 if not updates.get("assigned_to"):
                     updates["assigned_to"] = None
-                    await self.set_xmp_file_info(updates, original)
                 else:
-                    del updates["assigned_to"]
+                    updates["assigned_to"] = deepcopy(updated_coverage.get("assigned_to") or updates["assigned_to"])
+                    updates["assigned_to"].pop("assignment_id", None)
                 return
+
+            await self.set_xmp_file_info(updates, original)
 
             # Check if the coverage was cancelled
             if (
