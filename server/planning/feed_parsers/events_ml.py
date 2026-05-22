@@ -87,6 +87,7 @@ class EventsMLParser(NewsMLTwoFeedParser):
                 GUID_FIELD: guid,
                 ITEM_TYPE: CONTENT_TYPE.EVENT,
                 "state": CONTENT_STATE.INGESTED,
+                "subject": [],
             }
 
             self.set_occur_status(item)
