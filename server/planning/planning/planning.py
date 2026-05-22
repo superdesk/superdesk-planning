@@ -1017,7 +1017,8 @@ class PlanningService(AsyncBaseService):
                     updates["assigned_to"] = None
                     await self.set_xmp_file_info(updates, original)
                 else:
-                    del updates["assigned_to"]
+                    updates["assigned_to"] = deepcopy(updated_coverage.get("assigned_to") or updates["assigned_to"])
+                    updates["assigned_to"].pop("assignment_id", None)
                 return
 
             # Check if the coverage was cancelled
