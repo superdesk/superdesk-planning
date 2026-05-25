@@ -40,6 +40,7 @@ class PlanningDuplicateTestCase(TestCase):
                     "assigned_to": {
                         "user": fixtures.users.ADMIN_USER_ID,
                         "desk": "desk1",
+                        "assignment_id": "assignment1",
                         "state": "completed",
                         "priority": 2,
                     },
@@ -110,6 +111,7 @@ class PlanningDuplicateTestCase(TestCase):
         self.assertEqual(coverage["assigned_to"]["desk"], "desk1")
         self.assertEqual(coverage["assigned_to"]["state"], "completed")
         self.assertEqual(coverage["assigned_to"]["priority"], 2)
+        self.assertIsNone(coverage["assigned_to"].get("assignment_id"))
 
     async def test_duplicate_planning_item_with_both_configs_true(self):
         """Test that both coverage status and assignee details are retained when both configs are True."""
@@ -130,6 +132,7 @@ class PlanningDuplicateTestCase(TestCase):
         self.assertEqual(coverage["news_coverage_status"]["qcode"], "ncostat:onreq")
         self.assertEqual(coverage["assigned_to"]["user"], fixtures.users.ADMIN_USER_ID)
         self.assertEqual(coverage["assigned_to"]["desk"], "desk1")
+        self.assertIsNone(coverage["assigned_to"].get("assignment_id"))
 
         # Workflow status should still be reset to draft regardless of config
         self.assertEqual(coverage["workflow_status"], "draft")
