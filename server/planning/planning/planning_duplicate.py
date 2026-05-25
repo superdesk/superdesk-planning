@@ -106,6 +106,9 @@ def duplicate_planning_item(original: dict[str, Any]) -> dict:
         if not get_config_planning_duplicate_retain_assignee_details():
             cov["assigned_to"] = {}
 
+        # Clear the assignment link so the duplicate gets its own assignment.
+        cov.get("assigned_to", {}).pop("assignment_id", None)
+
     return new_plan
 
 
