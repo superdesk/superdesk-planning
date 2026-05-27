@@ -506,6 +506,11 @@ class PlanningService(AsyncBaseService):
         return len(changed_ids) > 0
 
     async def _process_removed_assignments(self, updates: dict, original: dict) -> None:
+        if "coverages" not in updates:
+            # Non-coverage updates (for example linking related events) must not
+            # be treated as coverage removals.
+            return
+
         assignment_service = get_resource_service("assignments")
         planning_item = deepcopy(original)
         planning_item.update(deepcopy(updates))
