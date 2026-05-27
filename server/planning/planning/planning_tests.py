@@ -93,6 +93,13 @@ class DuplicateCoverageTestCase(TestCase):
 
         self.assertFalse("Failed to raise an exception")
 
+
+class RemovedAssignmentsTestCase(TestCase):
+    async def asyncSetUp(self):
+        await super().asyncSetUp()
+        await test_utils.post_items("users", fixtures.users.all_users())
+        g.user = fixtures.users.admin().to_dict()
+
     async def test_non_coverage_update_does_not_remove_assignment(self):
         planning_service = get_resource_service("planning")
         assignments_service = get_resource_service("assignments")
@@ -100,6 +107,7 @@ class DuplicateCoverageTestCase(TestCase):
 
         original = {
             "_id": "plan_keep_assignment",
+            "slugline": "original slugline",
             "coverages": [
                 {
                     "coverage_id": "coverage_keep_assignment",
@@ -121,9 +129,9 @@ class DuplicateCoverageTestCase(TestCase):
             ],
         )
 
-        await planning_service._process_removed_assignments(
-            {"related_events": [{"_id": "event1", "link_type": "primary"}]},
-            original,
+        await planning_service.patch_async(
+            "plan_keep_assignment",
+            {"slugline": "updated slugline"},
         )
 
         assignment = await assignments_service.find_one_async(req=None, _id=assignment_id)
