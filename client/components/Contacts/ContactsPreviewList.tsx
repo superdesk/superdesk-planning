@@ -34,7 +34,7 @@ const mapDispatchToProps = (dispatch) => ({
     fetchContacts: (ids) => dispatch(actions.contacts.fetchContactsByIds(ids)),
 });
 
-class ContactsPreviewListComponent extends React.Component<IProps, IState> {
+class ContactsPreviewListComponent extends React.PureComponent<IProps, IState> {
     _isMounted: boolean;
 
     constructor(props) {
@@ -55,11 +55,8 @@ class ContactsPreviewListComponent extends React.Component<IProps, IState> {
     fetchContactsRequired() {
         return (
             !this.state.fetchingContacts &&
-            difference(
-                this.props.contactIds || [],
-                Object.keys(this.props.contacts || {})
-            ).length > 0
-        ) || !isEqual(this.state.fetchingIds, this.props.contactIds);
+            !isEqual(this.state.fetchingIds, this.props.contactIds)
+        );
     }
 
     fetchContacts() {
