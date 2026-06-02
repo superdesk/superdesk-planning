@@ -10,10 +10,12 @@
 
 from copy import deepcopy
 
-from eve.utils import config
-from flask import request
+from superdesk.resource_fields import ID_FIELD, VERSION
+from quart_babel import gettext as _
 
-from superdesk import get_resource_service, Resource, Service
+from superdesk.flask import request
+from superdesk import get_resource_service, Resource
+from superdesk.eve_async.service import AsyncBaseService
 from superdesk.errors import SuperdeskApiError
 from superdesk.utc import utcnow
 from superdesk.metadata.item import get_schema
@@ -22,13 +24,14 @@ from apps.archive.common import BYLINE
 from apps.auth import get_user_id, get_user
 from apps.templates.content_templates import get_item_from_template
 
-from planning.planning_article_export import get_desk_template
+from .assignments_history_async import AssignmentsHistoryAsyncService
 from planning.common import (
     ASSIGNMENT_WORKFLOW_STATE,
     get_coverage_type_name,
     get_next_assignment_status,
     get_coverage_for_assignment,
     get_archive_items_for_assignment,
+    assignment_allows_multiple_content_linked,
 )
 from planning.planning_notifications import PlanningNotifications
 from planning.archive import create_item_from_template
@@ -46,7 +49,9 @@ FIELDS_TO_OVERRIDE = [
 ]
 
 
-def get_item_from_assignment(assignment, template=None):
+async def get_item_from_assignment(assignment, template=None):
+    from planning.planning_article_export import get_desk_template
+
     """Get the item from assignment
 
     :param dict assignment: Assignment document
@@ -59,7 +64,7 @@ def get_item_from_assignment(assignment, template=None):
         return item
 
     desk_id = assignment.get("assigned_to").get("desk")
-    desk = get_resource_service("desks").find_one(req=None, _id=desk_id)
+    desk = await get_resource_service("desks").find_one_async(req=None, _id=desk_id)
     if template is not None:
         template = get_resource_service("content_templates").find_one(req=None, template_name=template)
     else:
@@ -83,15 +88,19 @@ def get_item_from_assignment(assignment, template=None):
     planning = None
     # we now merge planning data if they are set
     if planning_item is not None:
-        planning = get_resource_service("planning").find_one(req=None, _id=planning_item)
+        planning = await get_resource_service("planning").find_one_async(req=None, _id=planning_item)
         if planning is not None:
             for field in FIELDS_TO_COPY:
                 if planning.get(field):
                     item[field] = deepcopy(planning[field])
 
-                merge_subject(item, planning)
+                await merge_subject(item, planning)
                 merge_list("place", item, planning)
-                merge_list("anpa_category", item, planning)
+
+                if planning_data.get("anpa_category"):
+                    merge_list("anpa_category", item, planning_data)
+                else:
+                    merge_list("anpa_category", item, planning)
 
             if assignment.get("description_text"):
                 item["abstract"] = "<p>{}</p>".format(assignment["description_text"])
@@ -141,51 +150,46 @@ def get_item_from_assignment(assignment, template=None):
     if language:
         item["language"] = language
 
-    assignment_content_create.send(
-        None,
-        assignment=assignment,
-        planning=planning,
-        item=item,
-        content_profile=content_profile,
-    )
-
+    await assignment_content_create.send(assignment, planning, item, content_profile)
     return item, translations
 
 
-class AssignmentsContentService(Service):
-    def on_create(self, docs):
+class AssignmentsContentService(AsyncBaseService):
+    async def on_create_async(self, docs):
         for doc in docs:
-            self._validate(doc)
+            await self._validate(doc)
 
-    def create(self, docs, **kwargs):
+    async def create_async(self, docs, **kwargs):
         ids = []
         archive_service = get_resource_service("archive")
         assignments_service = get_resource_service("assignments")
         for doc in docs:
-            assignment = assignments_service.find_one(req=None, _id=doc.pop("assignment_id"))
-            item, translations = get_item_from_assignment(assignment, doc.pop("template_name", None))
-            item[config.VERSION] = 1
+            assignment = await assignments_service.find_one_async(req=None, _id=doc.pop("assignment_id"))
+            item, translations = await get_item_from_assignment(assignment, doc.pop("template_name", None))
+            item[VERSION] = 1
             item.setdefault("type", "text")
-            item["assignment_id"] = assignment[config.ID_FIELD]
+            item["assignment_id"] = assignment[ID_FIELD]
 
             if assignment.get("scheduled_update_id"):
                 # get the latest archive item to be updated
-                archive_item = self.get_latest_news_item_for_coverage(assignment)
+                archive_item = await self.get_latest_news_item_for_coverage(assignment)
 
                 if not archive_item:
-                    raise SuperdeskApiError.badRequestError("Archive item not found to create a rewrite.")
+                    raise SuperdeskApiError.badRequestError(_("Archive item not found to create a rewrite."))
 
                 # create a rewrite
-                request.view_args["original_id"] = archive_item.get(config.ID_FIELD)
-                ids = get_resource_service("archive_rewrite").post([{"desk_id": str(item.get("task").get("desk"))}])
-                item = archive_service.find_one(_id=ids[0], req=None)
+                request.view_args["original_id"] = archive_item.get(ID_FIELD)
+                ids = await get_resource_service("archive_rewrite").post_async(
+                    [{"desk_id": str(item.get("task").get("desk"))}]
+                )
+                item = await archive_service.find_one_async(_id=ids[0], req=None)
                 item["task"]["user"] = get_user_id()
 
                 # link the rewrite
-                get_resource_service("assignments_link").post(
+                await get_resource_service("assignments_link").post_async(
                     [
                         {
-                            "assignment_id": assignment[config.ID_FIELD],
+                            "assignment_id": assignment[ID_FIELD],
                             "item_id": ids[0],
                             "reassign": True,
                         }
@@ -193,14 +197,14 @@ class AssignmentsContentService(Service):
                 )
             else:
                 # create content
-                item = create_item_from_template(item, FIELDS_TO_OVERRIDE, translations)
+                item = await create_item_from_template(item, FIELDS_TO_OVERRIDE, translations)
 
                 # create delivery references
-                get_resource_service("delivery").post(
+                await get_resource_service("delivery").post_async(
                     [
                         {
-                            "item_id": item[config.ID_FIELD],
-                            "assignment_id": assignment[config.ID_FIELD],
+                            "item_id": item[ID_FIELD],
+                            "assignment_id": assignment[ID_FIELD],
                             "planning_id": assignment["planning_item"],
                             "coverage_id": assignment["coverage_item"],
                         }
@@ -216,7 +220,7 @@ class AssignmentsContentService(Service):
 
             if not assignment.get("scheduled_update_id"):
                 # set the assignment to in progress
-                assignments_service.patch(assignment[config.ID_FIELD], updates)
+                await assignments_service.patch_async(assignment[ID_FIELD], updates)
 
             doc.update(item)
             ids.append(doc["_id"])
@@ -229,11 +233,11 @@ class AssignmentsContentService(Service):
 
             if str(assignor) != str(item.get("task").get("user")):
                 # Determine the display name of the assignee
-                assigned_to_user = get_resource_service("users").find_one(
+                assigned_to_user = await get_resource_service("users").find_one_async(
                     req=None, _id=str(item.get("task").get("user"))
                 )
                 assignee = assigned_to_user.get("display_name") if assigned_to_user else "Unknown"
-                PlanningNotifications().notify_assignment(
+                await PlanningNotifications().notify_assignment(
                     target_desk=None,
                     target_user=assignor,
                     message="assignment_commenced_msg",
@@ -241,70 +245,84 @@ class AssignmentsContentService(Service):
                     coverage_type=get_coverage_type_name(item.get("type", "")),
                     slugline=item.get("slugline"),
                     omit_user=True,
-                    assignment_id=assignment[config.ID_FIELD],
+                    assignment_id=assignment[ID_FIELD],
                     is_link=True,
                     no_email=True,
                 )
             # Save history
-            get_resource_service("assignments_history").on_item_start_working(updates, assignment)
+            await AssignmentsHistoryAsyncService().on_item_start_working(updates, assignment)
 
         return ids
 
-    def get_latest_news_item_for_coverage(self, assignment):
-        coverage = get_coverage_for_assignment(assignment)
-        previous_items = []
-
+    async def get_latest_news_item_for_coverage(self, assignment):
+        coverage = await get_coverage_for_assignment(assignment)
         assignment_id = (coverage.get("assigned_to") or {}).get("assignment_id")
-        if len(coverage.get("scheduled_updates")) == 0:
-            previous_items = get_archive_items_for_assignment(assignment_id)
+
+        if len(coverage.get("scheduled_updates") or []) == 0:
+            previous_items = await get_archive_items_for_assignment(assignment_id)
         else:
-            previous_items = get_archive_items_for_assignment(assignment_id)
-            for s in coverage.get("scheduled_updates"):
-                new_items = get_archive_items_for_assignment((s.get("assigned_to") or {}).get("assignment_id"))
-                if len(new_items) > 0:
+            previous_items = await get_archive_items_for_assignment(assignment_id)
+            for s in coverage.get("scheduled_updates") or []:
+                new_items = await get_archive_items_for_assignment((s.get("assigned_to") or {}).get("assignment_id"))
+                if await new_items.count() > 0:
                     previous_items = new_items
 
-        if len(previous_items) > 0:
-            return previous_items[0]
+        try:
+            return await previous_items.next()
+        except StopAsyncIteration:
+            return None
 
-        return None
-
-    def _validate(self, doc):
+    async def _validate(self, doc):
         """Validate the doc for content creation"""
         assignment_service = get_resource_service("assignments")
-        assignment = assignment_service.find_one(req=None, _id=doc.get("assignment_id"))
+        assignment = await assignment_service.find_one_async(req=None, _id=doc.get("assignment_id"))
         if not assignment:
-            raise SuperdeskApiError.badRequestError("Assignment not found.")
+            raise SuperdeskApiError.badRequestError(_("Assignment not found."))
 
-        assignment_service.validate_assignment_action(assignment)
-        if assignment.get("assigned_to").get("state") != ASSIGNMENT_WORKFLOW_STATE.ASSIGNED:
-            raise SuperdeskApiError.badRequestError("Assignment workflow started. Cannot create content.")
+        await assignment_service.validate_assignment_action(assignment)
 
-        delivery = get_resource_service("delivery").find_one(req=None, assignment_id=assignment.get(config.ID_FIELD))
-        if delivery:
-            raise SuperdeskApiError.badRequestError(
-                "Content already exists for the assignment. " "Cannot create content."
-            )
+        try:
+            workflow_state = assignment["assigned_to"]["state"]
+        except (KeyError, TypeError):
+            workflow_state = ASSIGNMENT_WORKFLOW_STATE.DRAFT
+
+        if workflow_state == ASSIGNMENT_WORKFLOW_STATE.DRAFT:
+            raise SuperdeskApiError.badRequestError(_("Cannot create content from a draft Assignment."))
+        elif not assignment_allows_multiple_content_linked(assignment):
+            if workflow_state != ASSIGNMENT_WORKFLOW_STATE.ASSIGNED:
+                raise SuperdeskApiError.badRequestError(_("Assignment workflow started. Cannot create content."))
+
+            delivery_service = get_resource_service("delivery")
+            if await delivery_service.count_async({"assignment_id": assignment.get(ID_FIELD)}) > 0:
+                raise SuperdeskApiError.badRequestError(
+                    _("Content already exists for the assignment. Cannot create content.")
+                )
+        elif workflow_state not in [
+            ASSIGNMENT_WORKFLOW_STATE.ASSIGNED,
+            ASSIGNMENT_WORKFLOW_STATE.IN_PROGRESS,
+            ASSIGNMENT_WORKFLOW_STATE.SUBMITTED,
+        ]:
+            raise SuperdeskApiError.badRequestError(_("Assignment workflow completed. Cannot create content."))
 
         # Handle schedule_updates validation
         if assignment.get("scheduled_update_id"):
             # Make sure all previous content is linked
-            coverage = get_coverage_for_assignment(assignment)
+            coverage = await get_coverage_for_assignment(assignment)
 
             allowed_states = [
                 ASSIGNMENT_WORKFLOW_STATE.IN_PROGRESS,
                 ASSIGNMENT_WORKFLOW_STATE.COMPLETED,
             ]
             if (coverage.get("assigned_to") or {}).get("state") not in allowed_states:
-                raise SuperdeskApiError.badRequestError("Coverage not linked to news item yet.")
+                raise SuperdeskApiError.badRequestError(_("Coverage not linked to news item yet."))
 
             # Since scheduled_updates are cronologically indexed, check all previous scheduled_updates
-            for s in coverage.get("scheduled_updates"):
+            for s in coverage.get("scheduled_updates") or []:
                 if s.get("scheduled_update_id") == assignment["scheduled_update_id"]:
                     break
 
                 if (s.get("assigned_to") or {}).get("state") not in allowed_states:
-                    raise SuperdeskApiError.badRequestError("Previous scheduled update not linked to news item yet.")
+                    raise SuperdeskApiError.badRequestError(_("Previous scheduled update not linked to news item yet."))
 
 
 class AssignmentsContentResource(Resource):
@@ -324,13 +342,16 @@ class AssignmentsContentResource(Resource):
     privileges = {"POST": "archive"}
 
 
-def merge_subject(item, planning):
+async def merge_subject(item, planning):
     if not planning.get("subject"):
         return
     subject = item.setdefault("subject", [])
-    vocabularies = get_resource_service("vocabularies").get_from_mongo(
+    vocabularies = []
+    async for vocabulary in await get_resource_service("vocabularies").get_from_mongo_async(
         req=None, lookup={"selection_type": "single selection"}, projection={"_id": 1}
-    )
+    ):
+        vocabularies.append(vocabulary)
+
     single_value_vocabularies = set([v["_id"] for v in vocabularies])
     for s in planning["subject"]:
         if s.get("scheme") in single_value_vocabularies:

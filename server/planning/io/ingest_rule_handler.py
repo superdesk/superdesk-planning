@@ -11,15 +11,15 @@
 from typing import Dict, Any, Optional
 import logging
 
-from eve.utils import config
-from flask_babel import lazy_gettext
+from quart_babel import lazy_gettext
 from bson import ObjectId
 
+from superdesk.resource_fields import ID_FIELD
 from superdesk import get_resource_service
 from superdesk.metadata.item import ITEM_TYPE, CONTENT_TYPE
 from apps.rules.rule_handlers import RoutingRuleHandler, register_routing_rule_handler
 
-from planning.common import POST_STATE, update_post_item
+from planning.common import POST_STATE, update_post_item, WORKFLOW_STATE
 
 logger = logging.getLogger(__name__)
 
@@ -57,10 +57,10 @@ class PlanningRoutingRuleHandler(RoutingRuleHandler):
         },
     }
 
-    def can_handle(self, rule: Dict[str, Any], ingest_item: Dict[str, Any], routing_scheme: Dict[str, Any]):
+    async def can_handle(self, rule: Dict[str, Any], ingest_item: Dict[str, Any], routing_scheme: Dict[str, Any]):
         return ingest_item.get(ITEM_TYPE) in [CONTENT_TYPE.EVENT, CONTENT_TYPE.PLANNING]
 
-    def apply_rule(self, rule: Dict[str, Any], ingest_item: Dict[str, Any], routing_scheme: Dict[str, Any]):
+    async def apply_rule(self, rule: Dict[str, Any], ingest_item: Dict[str, Any], routing_scheme: Dict[str, Any]):
         attributes = (rule.get("actions") or {}).get("extra") or {}
         if not attributes:
             # No need to continue if none of the action attributes are set
@@ -68,7 +68,7 @@ class PlanningRoutingRuleHandler(RoutingRuleHandler):
 
         updates = None
         if ingest_item[ITEM_TYPE] == CONTENT_TYPE.EVENT:
-            updates = self.add_event_calendars(ingest_item, attributes)
+            updates = await self.add_event_calendars(ingest_item, attributes)
         elif ingest_item[ITEM_TYPE] == CONTENT_TYPE.PLANNING:
             updates = self.add_planning_agendas(ingest_item, attributes)
 
@@ -76,15 +76,21 @@ class PlanningRoutingRuleHandler(RoutingRuleHandler):
             ingest_item.update(updates)
 
         if attributes.get("autopost", False):
-            self.process_autopost(ingest_item)
+            await self.process_autopost(ingest_item, updates)
 
     def _is_original_posted(self, ingest_item: Dict[str, Any]):
         service = get_resource_service("events" if ingest_item[ITEM_TYPE] == CONTENT_TYPE.EVENT else "planning")
-        original = service.find_one(req=None, _id=ingest_item.get(config.ID_FIELD))
+        original = service.find_one(req=None, _id=ingest_item.get(ID_FIELD))
 
-        return original is not None and original.get("pubstatus") in [POST_STATE.USABLE, POST_STATE.CANCELLED]
+        return (
+            original is not None
+            and original.get("pubstatus") in [POST_STATE.USABLE, POST_STATE.CANCELLED]
+            and original["pubstatus"] == ingest_item.get("ingest_pubstatus")
+        )
 
-    def add_event_calendars(self, ingest_item: Dict[str, Any], attributes: Dict[str, Any]) -> Optional[Dict[str, Any]]:
+    async def add_event_calendars(
+        self, ingest_item: Dict[str, Any], attributes: Dict[str, Any]
+    ) -> Optional[Dict[str, Any]]:
         """Add Event Calendars from Routing Rule Action onto the ingested item"""
 
         ingest_item.setdefault("calendars", [])
@@ -111,7 +117,7 @@ class PlanningRoutingRuleHandler(RoutingRuleHandler):
             return None
 
         updates = {"calendars": ingest_item["calendars"] + calendars_to_add}
-        updated_item = get_resource_service("events").patch(ingest_item.get(config.ID_FIELD), updates)
+        updated_item = await get_resource_service("events").patch_async(ingest_item.get(ID_FIELD), updates)
         updates["_etag"] = updated_item["_etag"]
 
         return updates
@@ -137,15 +143,16 @@ class PlanningRoutingRuleHandler(RoutingRuleHandler):
             return None
 
         # Get the active agendas from the DB
+        # TODO-ASYNC[AgendasAsyncService] - Convert to use new AgendasAsyncService when function is converted to async
         agendas = get_resource_service("agenda").get(
             req=None,
             lookup={
-                config.ID_FIELD: {"$in": requested_agenda_ids},
+                ID_FIELD: {"$in": requested_agenda_ids},
                 "is_enabled": True,
             },
         )
 
-        new_agenda_ids = [agenda[config.ID_FIELD] for agenda in agendas]
+        new_agenda_ids = [agenda[ID_FIELD] for agenda in agendas]
         if len(requested_agenda_ids) != len(new_agenda_ids):
             missing_ids = ", ".join(
                 [str(agenda_id) for agenda_id in requested_agenda_ids if agenda_id not in new_agenda_ids]
@@ -158,28 +165,36 @@ class PlanningRoutingRuleHandler(RoutingRuleHandler):
 
         # Append Agenda IDs found onto the item
         updates = {"agendas": ingest_item["agendas"] + new_agenda_ids}
-        updated_item = get_resource_service("planning").patch(ingest_item.get(config.ID_FIELD), updates)
+        updated_item = get_resource_service("planning").patch(ingest_item.get(ID_FIELD), updates)
         updates["_etag"] = updated_item["_etag"]
         return updates
 
-    def process_autopost(self, ingest_item: Dict[str, Any]):
+    async def process_autopost(self, ingest_item: dict[str, Any], updates: dict | None):
         """Automatically post this item"""
-
         if self._is_original_posted(ingest_item):
             # No need to autopost this item
             # As the original is already posted
             # And any updates from ingest should automatically re-post this item
             return
 
-        item_id = ingest_item.get(config.ID_FIELD)
-        update_post_item(
+        if not updates:
+            updates = {}
+
+        updates.update(
             {
-                "pubstatus": ingest_item.get("pubstatus") or POST_STATE.USABLE,
+                "pubstatus": get_pubstatus(ingest_item),
                 "_etag": ingest_item.get("_etag"),
-            },
-            ingest_item,
+            }
         )
+
+        item_id = ingest_item.get(ID_FIELD)
+        await update_post_item(updates, ingest_item)
         logger.info(f"Posted item {item_id}")
+
+
+def get_pubstatus(ingest_item: Dict[str, Any]) -> str:
+    """Get the pubstatus from the ingest item"""
+    return ingest_item.get("ingest_pubstatus") or POST_STATE.USABLE
 
 
 register_routing_rule_handler(PlanningRoutingRuleHandler())

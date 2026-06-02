@@ -1,5 +1,5 @@
 import * as React from 'react';
-import {OverlayTrigger, Tooltip} from 'react-bootstrap';
+import {Tooltip} from 'superdesk-ui-framework/react';
 import classNames from 'classnames';
 
 import {EDITOR_TYPE, IBookmarkProps, IG2ContentType, IPlanningCoverageItem, IPlanningItem} from '../../../interfaces';
@@ -52,13 +52,9 @@ export class AddCoverageBookmark extends React.PureComponent<IProps> {
                 target="icon-plus-sign"
                 language={this.props.item.language}
                 button={({toggleMenu}) => (
-                    <OverlayTrigger
+                    <Tooltip
+                        content={gettext('Add Coverage')}
                         placement="right"
-                        overlay={(
-                            <Tooltip id="coverage_links">
-                                {gettext('Add Coverage')}
-                            </Tooltip>
-                        )}
                     >
                         <button
                             data-test-id={`editor--bookmarks__${this.props.bookmark.id}`}
@@ -74,7 +70,7 @@ export class AddCoverageBookmark extends React.PureComponent<IProps> {
                         >
                             <Icon name="plus-sign" />
                         </button>
-                    </OverlayTrigger>
+                    </Tooltip>
                 )}
             />
         );
@@ -108,7 +104,7 @@ export class AddCoverageBookmark extends React.PureComponent<IProps> {
     }
 
     render() {
-        if (this.props.readOnly) {
+        if (this.props.disabled) {
             return null;
         }
 

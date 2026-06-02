@@ -1,11 +1,12 @@
 import React from 'react';
-import {OverlayTrigger, Tooltip} from 'react-bootstrap';
 import PropTypes from 'prop-types';
+import {Tooltip} from 'superdesk-ui-framework/react';
 
 import {TOOLTIPS} from '../../../constants';
 
 import {Column} from './Column';
 import {isNotForPublication} from '../utils';
+import {superdeskApi} from '../../../superdeskApi';
 
 /**
  * @ngdoc react
@@ -15,6 +16,8 @@ import {isNotForPublication} from '../utils';
 export const PubStatus = ({item, isPublic}) => {
     let badge;
     let title = null;
+
+    const {gettext} = superdeskApi.localization;
 
     if (isPublic) {
         title = TOOLTIPS.postedState;
@@ -32,18 +35,17 @@ export const PubStatus = ({item, isPublic}) => {
             />
         );
     } else {
+        title = gettext('Not posted');
+
         badge = <span className="badge badge--light">&nbsp;</span>;
     }
 
     return (
         <Column>
             {title && (
-                <OverlayTrigger
-                    placement="right"
-                    overlay={<Tooltip id="badge_pub_status">{title}</Tooltip>}
-                >
+                <Tooltip content={title} placement="right">
                     {badge}
-                </OverlayTrigger>
+                </Tooltip>
             )}
             {!title && (badge)}
         </Column>

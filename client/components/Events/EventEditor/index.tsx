@@ -1,7 +1,6 @@
 import * as React from 'react';
 import {connect} from 'react-redux';
 import {isEqual} from 'lodash';
-
 import {
     IEventItem,
     IEventFormProfile,
@@ -9,19 +8,17 @@ import {
     IPlanningItem,
     IFormItemManager,
     EDITOR_TYPE,
-    ILocation,
 } from '../../../interfaces';
 import {IVocabularyItem} from 'superdesk-api';
 import {planningApi, superdeskApi} from '../../../superdeskApi';
-
 import * as selectors from '../../../selectors';
 import * as actions from '../../../actions';
-
 import {EditorForm} from '../../Editor/EditorForm';
 import {EventEditorHeader} from './EventEditorHeader';
 import {ContentBlock} from '../../UI/SidePanel';
+import {RepeatEventSummary} from '../RepeatEventSummary';
 import {EventScheduleSummary} from '../EventScheduleSummary';
-import {CreateNewGeoLookup} from '../../GeoLookupInput/CreateNewGeoLookup';
+import {appConfig} from 'appConfig';
 
 interface IProps {
     original?: IEventItem;
@@ -66,8 +63,6 @@ class EventEditorComponent extends React.PureComponent<IProps> {
     constructor(props) {
         super(props);
 
-        this.showAddLocationForm = this.showAddLocationForm.bind(this);
-        this.onCloseAddNewLocation = this.onCloseAddNewLocation.bind(this);
         this.onDatesChanged = this.onDatesChanged.bind(this);
     }
 
@@ -96,30 +91,6 @@ class EventEditorComponent extends React.PureComponent<IProps> {
         }
     }
 
-    getRelatedPlanningsForEvent(): Array<IPlanningItem> {
-        return this.props.plannings?.filter(
-            (plan) => plan.event_item === this.props.item?._id
-        );
-    }
-
-    showAddLocationForm(props: any): Promise<ILocation | undefined> {
-        const editor = planningApi.editor(this.props.editorType);
-
-        return editor.form.showPopupForm(CreateNewGeoLookup, props)
-            .finally(() => {
-                // Re-focus the location text input
-                const editor = planningApi.editor(this.props.editorType);
-
-                editor.form.scrollToBookmarkGroup('location');
-            });
-    }
-
-    onCloseAddNewLocation() {
-        const editor = planningApi.editor(this.props.editorType);
-
-        editor.form.closePopupForm();
-    }
-
     onDatesChanged(value: {[key: string]: any}) {
         const editor = planningApi.editor(this.props.editorType);
 
@@ -127,22 +98,30 @@ class EventEditorComponent extends React.PureComponent<IProps> {
             start: value['dates.start'],
             end: value['dates.end'],
             tz: value['dates.tz'],
+            all_day: value['dates.all_day'],
+            no_end_time: value['dates.no_end_time'],
         });
 
         this.props.onChangeHandler(value);
     }
 
     renderHeader() {
-        return !this.props.itemExists ? null : (
-            <React.Fragment>
-                <EventEditorHeader item={this.props.item} />
-                <ContentBlock padSmall={true}>
+        const {item, itemExists} = this.props;
+
+        if (!itemExists) {
+            return null;
+        }
+
+        return (
+            <>
+                <EventEditorHeader item={item} />
+                <ContentBlock padSmall>
                     <EventScheduleSummary
-                        event={this.props.item}
-                        noPadding={true}
+                        event={item}
+                        noPadding
                     />
                 </ContentBlock>
-            </React.Fragment>
+            </>
         );
     }
 
@@ -173,15 +152,17 @@ class EventEditorComponent extends React.PureComponent<IProps> {
                 schema={this.props.formProfile.schema}
                 fieldProps={{
                     recurring_rules: {
-                        field: 'dates',
+                        field: 'dates.recurring_rule',
                         defaultValue: {},
-                        enabled: !this.props.itemExists,
+                        originalItem: this.props.original,
                     },
                     dates: {
                         required: true,
                         showAllDay: this.props.formProfile.editor.dates.all_day.enabled,
                         showTimeZone: true,
-                        enabled: !this.props.itemExists,
+                        enabled: appConfig.planning_event_link_method === 'many_secondary'
+                            ? true
+                            : !this.props.itemExists,
                         onChange: this.onDatesChanged,
                     },
                     language: {
@@ -195,9 +176,7 @@ class EventEditorComponent extends React.PureComponent<IProps> {
                     },
                     location: {
                         enableExternalSearch: true,
-                        showAddLocationForm: this.showAddLocationForm,
-                        onPopupClose: this.onCloseAddNewLocation,
-                        onCancel: this.onCloseAddNewLocation,
+                        storeAsArray: true,
                     },
                     name: {
                         label: gettext('Event Name'),
@@ -211,9 +190,8 @@ class EventEditorComponent extends React.PureComponent<IProps> {
                             editor.item.events.getRelatedPlanningDomRef(value._id)
                         ),
                         addPlanningItem: editor.item.events.addPlanningItem,
-                        removePlanningItem: editor.item.events.removePlanningItem,
+                        unlinkPlanning: editor.item.events.unlinkPlanning,
                         updatePlanningItem: editor.item.events.updatePlanningItem,
-                        addCoverageToWorkflow: editor.item.events.addCoverageToWorkflow,
                     },
                 }}
             />

@@ -1,6 +1,6 @@
 import {cloneDeep, get, omit, set} from 'lodash';
 
-import {IMainState, LIST_VIEW_TYPE} from '../interfaces';
+import {IMainState, GROUP_LIST_BY} from '../interfaces';
 
 import {MAIN, RESET_STORE, TIME_COMPARISON_GRANULARITY} from '../constants';
 import {createReducer} from './createReducer';
@@ -25,7 +25,7 @@ const initialState: IMainState = {
     },
     loadingIndicator: false,
     itemHistory: [],
-    listViewType: LIST_VIEW_TYPE.SCHEDULE,
+    groupListBy: GROUP_LIST_BY.DATE,
 };
 
 const modifyParams = (state, payload) => {
@@ -99,9 +99,14 @@ export default createReducer<IMainState>(initialState, {
         userInitiatedSearch: payload,
     }),
 
-    [MAIN.ACTIONS.SET_LIST_VIEW_TYPE]: (state, payload) => ({
+    [MAIN.ACTIONS.SET_LIST_GROUP_BY]: (state, payload) => ({
         ...state,
-        listViewType: payload,
+        groupListBy: payload,
+    }),
+
+    [MAIN.ACTIONS.SET_VIEW_TYPE]: (state, payload) => ({
+        ...state,
+        viewType: payload,
     }),
 
     [MAIN.ACTIONS.CLEAR_SEARCH]: (state, payload: keyof IMainState['search']) => ({

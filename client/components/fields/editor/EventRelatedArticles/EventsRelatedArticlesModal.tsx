@@ -1,9 +1,8 @@
 import React from 'react';
 
 import {IArticle, IRestApiResponse, ISuperdeskQuery} from 'superdesk-api';
-import {IPlanningConfig} from '../../../../interfaces';
 import {superdeskApi} from '../../../../superdeskApi';
-import {appConfig as config} from 'appConfig';
+import {appConfig} from 'appConfig';
 
 import {cleanArticlesFields} from './utils';
 
@@ -29,8 +28,6 @@ import {RelatedArticlesListComponent} from './RelatedArticlesListComponent';
 import {PreviewArticle} from './PreviewArticle';
 
 import '../../../../components/Archive/ArchivePreview/style.scss';
-
-const appConfig = config as IPlanningConfig;
 
 interface IProps {
     closeModal: () => void;
@@ -162,8 +159,6 @@ export class EventsRelatedArticlesModal extends React.Component<IProps, IState> 
                             >
                                 <Dropdown
                                     maxHeight={300}
-                                    append
-                                    zIndex={2001}
                                     items={[
                                         {
                                             type: 'group',

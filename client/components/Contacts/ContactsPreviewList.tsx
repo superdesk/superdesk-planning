@@ -1,20 +1,17 @@
 import React from 'react';
 import {connect} from 'react-redux';
 import {difference, isEqual} from 'lodash';
-
-import {IContactItem} from '../../interfaces';
-
+import {IContact} from 'superdesk-api';
+import {ContactMetaData} from './ContactMetaData';
+import {Spacer} from 'superdesk-ui-framework/react';
 import * as selectors from '../../selectors';
 import * as actions from '../../actions';
-
-import {ContactMetaData} from './';
-import './style.scss';
+import {IContactItem} from 'interfaces';
 
 interface IProps {
     contacts?: {[key: string]: IContactItem};
     contactIds: Array<IContactItem['_id']>;
     scrollInView?: boolean;
-    scrollIntoViewOptions: any;
     tabEnabled?: boolean;
     readOnly?: boolean;
     inner?: boolean;
@@ -26,7 +23,7 @@ interface IProps {
 
 interface IState {
     fetchingContacts: boolean;
-    fetchingIds: Array<IContactItem['_id']>;
+    fetchingIds: Array<IContact['_id']>;
 }
 
 const mapStateToProps = (state) => ({
@@ -75,7 +72,7 @@ class ContactsPreviewListComponent extends React.Component<IProps, IState> {
             .then(this.receiveContacts);
     }
 
-    receiveContacts(contacts) {
+    receiveContacts() {
         // This component may have been unmounted while fetching the data
         // So only update the state if this is still mounted
         if (this._isMounted) {
@@ -92,7 +89,7 @@ class ContactsPreviewListComponent extends React.Component<IProps, IState> {
         }
     }
 
-    componentDidUpdate(prevProps) {
+    componentDidUpdate() {
         if (this.fetchContactsRequired()) {
             this.fetchContacts();
         }
@@ -103,34 +100,34 @@ class ContactsPreviewListComponent extends React.Component<IProps, IState> {
     }
 
     render() {
-        // eslint-disable-next-line no-unused-vars
         const {
             contactIds,
             fetchContacts,
             onEditContact,
             onRemoveContact,
             contacts,
-            scrollInView,
             ...props
         } = this.props;
 
         return (
-            <div className="contacts-list__holder">
-                {(contactIds || []).map((contactId) => (contacts[contactId] == null ? null : (
-                    <ContactMetaData
-                        key={contactId}
-                        contact={contacts[contactId]}
-                        {...props}
-                        onEditContact={onEditContact != null ?
-                            onEditContact.bind(null, contacts[contactId] || {}) :
-                            null
-                        }
-                        onRemoveContact={onRemoveContact != null ?
-                            onRemoveContact.bind(null, contacts[contactId] || {}) :
-                            null
-                        }
-                    />
-                )))}
+            <div data-test-id="contacts-preview-list">
+                <Spacer v gap="8" justifyContent="center" alignItems="center">
+                    {(contactIds || []).map((contactId) => (contacts[contactId] == null ? null : (
+                        <ContactMetaData
+                            key={contactId}
+                            contact={contacts[contactId]}
+                            {...props}
+                            onEditContact={onEditContact != null ?
+                                onEditContact.bind(null, contacts[contactId] || {}) :
+                                null
+                            }
+                            onRemoveContact={onRemoveContact != null ?
+                                onRemoveContact.bind(null, contacts[contactId] || {}) :
+                                null
+                            }
+                        />
+                    )))}
+                </Spacer>
             </div>
         );
     }

@@ -1,32 +1,24 @@
 import React from 'react';
-import PropTypes from 'prop-types';
-import classNames from 'classnames';
 
 interface IProps {
-    collapsed?: boolean; // defaults to true
     expanded?: boolean;
     parentItem: React.ReactNode,
-    nestedChildren: React.ReactNodeArray;
+    nestedChildren: React.ReactNode;
     noMarginTop?: boolean;
+    marginBottom?: boolean;
 }
 
 export class NestedItem extends React.PureComponent<IProps> {
     render() {
         return (
-            <div
-                className={classNames(
-                    'sd-list-item-nested',
-                    {
-                        'sd-list-item-nested--collapsed': this.props.collapsed ?? true,
-                        'sd-list-item-nested--expanded': this.props.expanded,
-                        'sd-margin-t--0': this.props.noMarginTop,
-                    }
-                )}
-            >
+            <div data-test-id="has-nested-items">
                 {this.props.parentItem}
-                <div className="sd-list-item-nested__childs sd-shadow--z1">
-                    {this.props.nestedChildren}
-                </div>
+
+                {(this.props.expanded ?? false) && (
+                    <div style={{paddingInlineStart: 'var(--space--1)'}} data-test-id="nested-items">
+                        {this.props.nestedChildren}
+                    </div>
+                )}
             </div>
         );
     }

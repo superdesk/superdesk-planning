@@ -1,4 +1,5 @@
 import sinon from 'sinon';
+import moment from 'moment';
 import * as actions from '../agenda';
 import {createTestStore, registerNotifications} from '../../utils';
 import {cloneDeep} from 'lodash';
@@ -69,7 +70,7 @@ describe('agenda', () => {
                 slugline: 'Slugger',
                 subject: '123',
                 anpa_category: 'abc',
-                dates: {start: '2016-10-15T13:01:11'},
+                dates: {start: '2016-10-15T13:01:11', tz: 'Australia/Sydney'},
                 internal_note: 'internal note',
             }];
 
@@ -336,8 +337,14 @@ describe('agenda', () => {
                                     overide_auto_assign_to_workflow: false,
                                 },
                                 coverages: [],
-                                event_item: events[0]._id,
-                                planning_date: events[0].dates.start,
+                                related_events: [{
+                                    _id: events[0]._id,
+                                }],
+                                planning_date: moment
+                                    .tz(events[0].dates.start, events[0].dates.tz)
+                                    .utc()
+                                    .toISOString(),
+                                all_day: false,
                                 slugline: events[0].slugline,
                                 name: events[0].name,
                                 subject: events[0].subject,

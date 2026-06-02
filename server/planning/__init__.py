@@ -1,19 +1,11 @@
-# -*- coding: utf-8; -*-
-#
-# This file is part of Superdesk.
-#
-#  Copyright 2013, 2014 Sourcefabric z.u. and contributors.
-#
-# For the full copyright and license information, please see the
-# AUTHORS and LICENSE files distributed with this source code, or
-# at https://www.sourcefabric.org/superdesk/license
-
 """Superdesk Planning Plugin."""
 
 import logging
+from importlib.metadata import version
 import superdesk
-from eve.utils import config
-from flask_babel import lazy_gettext
+from quart_babel import lazy_gettext
+
+from . import settings
 from .agendas import AgendasResource, AgendasService
 from .planning_export_templates import (
     PlanningExportTemplatesResource,
@@ -30,6 +22,7 @@ from .common import (
     planning_auto_assign_to_workflow,
     get_long_event_duration_threshold,
     get_planning_allow_scheduled_updates,
+    get_planning_expand_related_plannings,
     event_templates_enabled,
     planning_link_updates_to_coverage,
     get_planning_use_xmp_for_pic_assignments,
@@ -38,6 +31,7 @@ from .common import (
     get_planning_auto_close_popup_editor,
     get_config_default_create_planning_series_with_event_series,
     get_start_of_week,
+    get_manual_news_coverage_status_config,
 )
 from apps.common.components.utils import register_component
 from .item_lock import LockService
@@ -47,7 +41,6 @@ from planning.events import init_app as init_events_app
 from planning.planning import init_app as init_planning_app
 from planning.assignments import init_app as init_assignments_app
 from planning.search import init_app as init_search_app
-from planning.validate import init_app as init_validator_app
 from planning.locations import init_app as init_locations_app
 from superdesk.celery_app import celery
 from .published_planning import PublishedPlanningResource, PublishedPlanningService
@@ -64,21 +57,22 @@ from superdesk import register_jinja_filter
 from .common import get_formatted_address
 
 from .commands import (
-    FlagExpiredItems,
-    DeleteSpikedItems,
+    flag_expired_items_handler,
     DeleteMarkedAssignments,
     ExportScheduledFilters,
+    delete_spiked_items_handler,
 )
 import planning.commands  # noqa
 import planning.feeding_services  # noqa
 import planning.feed_parsers  # noqa
 import planning.output_formatters  # noqa
 import planning.io  # noqa
-from planning.planning_download import init_app as init_planning_download_app
-from planning.planning_locks import init_app as init_planning_locks_app
+import planning.content_api.output_formatters  # noqa  - Included so ContentAPI formatters are registered
 from planning.search.planning_autocomplete import init_app as init_planning_autocomplete_app
 
-__version__ = "2.8.0-dev"
+from .module import module  # noqa
+
+__version__ = version("superdesk-planning")
 
 _SERVER_PATH = os.path.dirname(os.path.realpath(__file__))
 
@@ -112,9 +106,6 @@ def init_app(app):
     init_planning_app(app)
     init_assignments_app(app)
     init_search_app(app)
-    init_validator_app(app)
-    init_planning_download_app(app)
-    init_planning_locks_app(app)
     init_planning_autocomplete_app(app)
 
     superdesk.register_resource(
@@ -151,6 +142,12 @@ def init_app(app):
         name="planning_edit_expired",
         label=lazy_gettext("Planning - Edit Expired Items"),
         description=lazy_gettext("Ability to edit expired Event and Planning items"),
+    )
+
+    superdesk.privilege(
+        name="planning_manage_export_templates",
+        label=lazy_gettext("Planning - Manage Export Templates"),
+        description=lazy_gettext("Ability to manage export templates"),
     )
 
     superdesk.privilege(
@@ -223,24 +220,28 @@ def init_app(app):
         category=lazy_gettext("Planning"),
     )
 
-    app.client_config["max_recurrent_events"] = get_max_recurrent_events(app)
-    app.client_config["street_map_url"] = get_street_map_url(app)
-    app.client_config["max_multi_day_event_duration"] = get_event_max_multi_day_duration(app)
-    app.client_config["planning_auto_assign_to_workflow"] = planning_auto_assign_to_workflow(app)
-    app.client_config["long_event_duration_threshold"] = get_long_event_duration_threshold(app)
-    app.client_config["event_templates_enabled"] = event_templates_enabled(app)
-    app.client_config["planning_allow_scheduled_updates"] = get_planning_allow_scheduled_updates(app)
-    app.client_config["planning_link_updates_to_coverage"] = planning_link_updates_to_coverage(app)
-    app.client_config["planning_use_xmp_for_pic_assignments"] = get_planning_use_xmp_for_pic_assignments(app)
-    app.client_config["planning_use_xmp_for_pic_slugline"] = get_planning_use_xmp_for_pic_slugline(app)
-    app.client_config["planning_auto_close_popup_editor"] = get_planning_auto_close_popup_editor(app)
-    app.client_config["start_of_week"] = get_start_of_week(app)
+    app.client_config["max_recurrent_events"] = get_max_recurrent_events()
+    app.client_config["street_map_url"] = get_street_map_url()
+    app.client_config["max_multi_day_event_duration"] = get_event_max_multi_day_duration()
+    app.client_config["planning_auto_assign_to_workflow"] = planning_auto_assign_to_workflow()
+    app.client_config["long_event_duration_threshold"] = get_long_event_duration_threshold()
+    app.client_config["event_templates_enabled"] = event_templates_enabled()
+    app.client_config["planning_allow_scheduled_updates"] = get_planning_allow_scheduled_updates()
+    app.client_config["planning_expand_related_plannings"] = get_planning_expand_related_plannings()
+    app.client_config["planning_link_updates_to_coverage"] = planning_link_updates_to_coverage()
+    app.client_config["planning_use_xmp_for_pic_assignments"] = get_planning_use_xmp_for_pic_assignments()
+    app.client_config["planning_use_xmp_for_pic_slugline"] = get_planning_use_xmp_for_pic_slugline()
+    app.client_config["planning_auto_close_popup_editor"] = get_planning_auto_close_popup_editor()
+    app.client_config["start_of_week"] = get_start_of_week()
 
     app.client_config.setdefault("planning", {})
-    app.client_config["planning"]["allowed_coverage_link_types"] = get_planning_allowed_coverage_link_types(app)
+    app.client_config["planning"]["allowed_coverage_link_types"] = get_planning_allowed_coverage_link_types()
     app.client_config["planning"][
         "default_create_planning_series_with_event_series"
-    ] = get_config_default_create_planning_series_with_event_series(app)
+    ] = get_config_default_create_planning_series_with_event_series()
+    app.client_config["planning"]["all_day"] = bool(app.config.get("PLANNING_PLANNING_ALL_DAY", False))
+    app.client_config["planning_event_link_method"] = app.config.get(settings.PLANNING_EVENT_LINK_METHOD, "one_primary")
+    app.client_config["planning"]["manual_news_coverage_status"] = get_manual_news_coverage_status_config()
 
     # Set up Celery task options
     if not app.config.get("CELERY_TASK_ROUTES"):
@@ -291,38 +292,12 @@ def init_app(app):
 
     init_scheduled_exports_task(app)
 
-    # Create 'type' required for planning module if not already preset
-    with app.app_context():
-        vocabulary_service = superdesk.get_resource_service("vocabularies")
-        types = vocabulary_service.find_one(req=None, _id="type")
-        if types:
-            items = types.get("items") or []
-            added_types = []
-            type_names = [t["qcode"] for t in items]
+    custom_loaders = jinja2.ChoiceLoader(
+        app.jinja_loader.loaders + [jinja2.FileSystemLoader(os.path.join(_SERVER_PATH, "templates"))]
+    )
+    app.jinja_loader = custom_loaders
 
-            planning_type_list = [
-                {"is_active": True, "name": "Planning item", "qcode": "planning"},
-                {"is_active": True, "name": "Event", "qcode": "event"},
-                {
-                    "is_active": True,
-                    "name": "Featured Stories",
-                    "qcode": "planning_featured",
-                },
-            ]
-
-            for item in planning_type_list:
-                if item["qcode"] not in type_names:
-                    added_types.append(item)
-
-            if len(added_types) > 0:
-                vocabulary_service.patch(types.get(config.ID_FIELD), {"items": (items + added_types)})
-
-        custom_loaders = jinja2.ChoiceLoader(
-            app.jinja_loader.loaders + [jinja2.FileSystemLoader(os.path.join(_SERVER_PATH, "templates"))]
-        )
-        app.jinja_loader = custom_loaders
-
-        register_jinja_filter("formatted_address", get_formatted_address)
+    register_jinja_filter("formatted_address", get_formatted_address)
 
     # add planning translations directory
     app.config["BABEL_TRANSLATION_DIRECTORIES"] += ";" + os.path.join(_SERVER_PATH, "translations")
@@ -343,25 +318,25 @@ def init_scheduled_exports_task(app):
     if not app.config["CELERY_BEAT_SCHEDULE"].get("planning:export_scheduled_filters"):
         app.config["CELERY_BEAT_SCHEDULE"]["planning:export_scheduled_filters"] = {
             "task": "planning.export_scheduled_filters",
-            "schedule": crontab(minute=0),
+            "schedule": crontab(minute="*"),
         }
 
 
 @celery.task(soft_time_limit=600)
-def flag_expired():
-    FlagExpiredItems().run()
+async def flag_expired():
+    await flag_expired_items_handler()
 
 
 @celery.task(soft_time_limit=600)
-def delete_spiked():
-    DeleteSpikedItems().run()
+async def delete_spiked():
+    await delete_spiked_items_handler()
 
 
 @celery.task(soft_time_limit=600)
-def delete_assignments():
-    DeleteMarkedAssignments().run()
+async def delete_assignments():
+    await DeleteMarkedAssignments().run()
 
 
 @celery.task(soft_time_limit=600)
-def export_scheduled_filters():
-    ExportScheduledFilters().run()
+async def export_scheduled_filters():
+    await ExportScheduledFilters().run()

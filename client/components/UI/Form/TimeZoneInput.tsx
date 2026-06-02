@@ -90,6 +90,7 @@ export class TimeZoneInput extends React.Component<IProps, IState> {
                     invalid={invalid}
                     required={required}
                     field={field}
+                    valueKey="qcode"
                     options={this.state.timeZones}
                     onChange={this.onChange}
                     value={value ? [{

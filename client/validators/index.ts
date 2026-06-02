@@ -5,10 +5,26 @@ import {gettext} from '../utils';
 
 import {default as eventValidators} from './events';
 import {default as planningValidators} from './planning';
-import {formProfile, formProfileCustomVocabularies} from './profile';
+import {formProfile} from './profile';
 import {validateAssignment} from './assignments';
+import {getFieldNameTranslated} from '../utils/contentProfiles';
+import {vocabularies} from '../api/vocabularies';
+import {IAssignmentOrPlanningItem, IFormProfileItem} from '../interfaces';
 
 export {eventValidators, formProfile, validateAssignment};
+
+interface IValidateFieldProps {
+    dispatch: () => any;
+    getState: () => any;
+    profileName: string;
+    field: keyof IAssignmentOrPlanningItem;
+    value: any;
+    profile: IFormProfileItem;
+    errors: any;
+    messages: any;
+    diff: any;
+    item: any;
+}
 
 export const validateField = ({
     dispatch,
@@ -21,97 +37,104 @@ export const validateField = ({
     messages,
     diff,
     item,
-}) => {
-    if (get(profile, `schema.${field}.validate_on_post`)) {
+}: IValidateFieldProps) => {
+    if (profile?.schema?.[field]?.validate_on_post) {
         return;
     }
 
-    const funcs = get(validators[profileName], field, []) || [formProfile];
+    const validatorsForField = validators[profileName]?.[field] ?? [formProfile];
 
-    funcs.forEach((func) => func({
-        dispatch,
-        getState,
-        field,
-        value,
-        profile,
-        errors,
-        messages,
-        diff,
-        item,
-    }));
+    validatorsForField.forEach((func) =>
+        func({
+            dispatch,
+            getState,
+            field,
+            value,
+            profile,
+            errors,
+            messages,
+            diff,
+            item,
+        }),
+    );
 };
 
 export const validateItem = ({
     profileName,
     diff,
     item = {},
-    formProfiles,
+    formProfiles = null,
     errors,
     messages = [],
     fields = null,
     ignoreDateValidation = false,
-    fieldsToValidate,
+    fieldsToValidate = null,
 }) => (
     (dispatch, getState) => {
         const profiles = formProfiles ? formProfiles : selectors.forms.profiles(getState());
-
         const getValue = (key) => (
             key !== 'dates' ? get(diff, key) : {
                 ...get(diff, key),
-                _startTime: get(diff, '_startTime'),
-                _endTime: get(diff, '_endTime'),
+                _startTime: diff._startTime,
+                _endTime: diff._endTime,
             }
         );
+        const profile = profiles[profileName];
 
-        const profile = get(profiles, profileName);
+        /*
+        * Custom fields validation
+        */
+        if (profile?.schema) {
+            const vocabularyLabels = new Map(vocabularies.getCustomVocabularies().map((x) => [x._id, x.display_name]));
 
-        if (get(profile, 'schema')) {
-            // validate custom fields
-            Object.keys(profile.schema)
-                .filter((key) => (
-                    !validators[profileName][key] &&
-                    profile.schema[key] != null)
-                )
-                .forEach((key) => {
-                    const schema = profile.schema[key];
+            Object.keys(profile?.schema ?? []).filter((fieldId) => {
+                const hasNoDefinedValidator = !validators[profileName][fieldId] && profile.schema[fieldId] != null;
 
-                    switch (true) {
-                    case schema.required:
-                        if (
-                            ((
-                                schema.type !== 'integer' &&
-                                isEmpty(diff[key])
-                            ) ||
-                            (
-                                schema.type === 'integer' &&
-                                diff[key] == null
-                            )) &&
-                            isEmpty(getSubject(diff, key)) &&
-                            fieldsToValidate == null ||
-                            (
-                                Array.isArray(fieldsToValidate) &&
-                                fieldsToValidate.includes(key)
-                            )
-                        ) {
-                            errors[key] = gettext('This field is required');
-                            messages.push(gettext('{{ key }} is a required field', {key: key.toUpperCase()}));
-                        } else if (errors[key]) {
-                            errors[key] = null;
-                        }
-                        break;
+                return hasNoDefinedValidator;
+            })
+                .forEach((fieldId) => {
+                    const fieldSchema = profile.schema[fieldId];
+                    const isNotIntegerAndEmpty = fieldSchema.type !== 'integer' && isEmpty(diff[fieldId]);
+                    const isIntegerAndEmpty = fieldSchema.type === 'integer' && diff[fieldId] == null;
+                    const isValidSubject = isEmpty(getVocabularyItemsForScheme(diff, fieldId))
+                        && fieldsToValidate == null
+                        || (Array.isArray(fieldsToValidate) && fieldsToValidate.includes(fieldId));
+
+                    if (
+                        fieldSchema.required
+                        && (isNotIntegerAndEmpty || isIntegerAndEmpty)
+                        && isValidSubject
+                    ) {
+                        errors[fieldId] = gettext('This field is required');
+
+                        // Pass a field label matching field label in the editor UI
+                        const fieldLabel = (() => {
+                            if (fieldSchema?.type === 'custom_vocabulary') {
+                                return vocabularyLabels.get(fieldId);
+                            }
+
+                            return getFieldNameTranslated(fieldId);
+                        })();
+
+                        messages.push(gettext('{{ key }} is a required field', {key: fieldLabel}));
+                    } else if (errors[fieldId]) {
+                        errors[fieldId] = null;
                     }
                 });
         }
 
-        return (fields || Object.keys(
-            ignoreDateValidation ? omit(validators[profileName], 'dates') : validators[profileName])).forEach((key) => (
+        const fieldsToBeValidated = (fields || Object.keys(
+            ignoreDateValidation ? omit(validators[profileName], 'dates') : validators[profileName])
+        );
+
+        fieldsToBeValidated.forEach((key) => (
             validateField({
                 dispatch: dispatch,
                 getState: getState,
                 profileName: profileName,
                 field: key,
                 value: key === '_all' ? diff : getValue(key),
-                profile: key !== 'coverages' ? profiles[profileName] : profiles.coverage,
+                profile: key !== 'coverages' ? profiles[profileName] : undefined,
                 errors: errors,
                 messages: messages,
                 diff: diff,
@@ -147,7 +170,6 @@ export const validators = {
         recurring_rules: [eventValidators.validateRecurringRules],
         place: [formProfile],
         reference: [formProfile],
-        custom_vocabularies: [formProfileCustomVocabularies],
         related_plannings: [formProfile],
     },
     planning: {
@@ -162,7 +184,6 @@ export const validators = {
         subject: [formProfile],
         urgency: [formProfile],
         coverages: [planningValidators.validateCoverages],
-        custom_vocabularies: [formProfileCustomVocabularies],
         place: [formProfile],
         name: [formProfile],
     },
@@ -174,16 +195,20 @@ export const validators = {
         internal_note: [formProfile],
         keyword: [formProfile],
         scheduled: [planningValidators.validateCoverageScheduleDate],
-        _scheduledTime: [planningValidators.validateCoverageScheduleDate],
+
+        // FIXME: Removed validation, because now we validate both date and time through `scheduled` field
+        // In the future we will drop _scheduledTime from the whole codebase
+        // _scheduledTime: [planningValidators.validateCoverageScheduleDate],
         slugline: [formProfile],
         scheduled_updates: [planningValidators.validateScheduledUpdatesDate],
+        language: [formProfile],
     },
     assignment: {
         _all: [validateAssignment],
     },
 };
 
-function getSubject(item, scheme) {
-    return get(item, 'subject', [])
+export function getVocabularyItemsForScheme(item, scheme) {
+    return (item?.subject ?? [])
         .filter((subject) => scheme != null ? subject.scheme === scheme : isEmpty(subject.scheme));
 }

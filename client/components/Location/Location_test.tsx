@@ -28,7 +28,9 @@ describe('<Location />', () => {
         );
 
         expect(wrapper.text()).toBe(name);
-        expect(wrapper.html()).toBe('<span class="sd-list-item__location">location_name</span>');
+        expect(wrapper.html()).toBe(
+            '<span style="display: contents;"><span class="sd-list-item__location">location_name</span></span>',
+        );
         wrapper = mount(
             <Provider store={store}>
                 <Location address={address} />
@@ -36,7 +38,9 @@ describe('<Location />', () => {
         );
 
         expect(wrapper.text()).toBe(address);
-        expect(wrapper.html()).toBe('<span class="sd-list-item__location">location_address</span>');
+        expect(wrapper.html()).toBe(
+            '<span style="display: contents;"><span class="sd-list-item__location">location_address</span></span>',
+        );
     });
 
     it('render single line with map', () => {

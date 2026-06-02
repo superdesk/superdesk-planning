@@ -2,9 +2,8 @@ import React from 'react';
 
 import {gettext} from '../utils';
 
-import {Modal} from './index';
-import {ButtonList, Icon} from './UI';
 import {KEYCODES} from '../constants';
+import {Button, ButtonGroup, Modal} from 'superdesk-ui-framework/react';
 
 interface IProps {
     handleHide(itemType?: string): void;
@@ -20,8 +19,18 @@ interface IProps {
         body: React.ReactNode;
         itemType?: string;
         autoClose?: boolean;
-        large?: boolean;
         bodyClassname?: string;
+        size?: 'small' | 'medium' | 'large' | 'x-large';
+        position?:
+            'center'
+            | 'top'
+            | 'bottom'
+            | 'left'
+            | 'right'
+            | 'top-left'
+            | 'top-right'
+            | 'bottom-left'
+            | 'bottom-right';
     };
 }
 
@@ -78,6 +87,12 @@ export class ConfirmationModal extends React.Component<IProps, IState> {
         this.setState({submitting: true});
         const response = func && func();
 
+        if (response && response.catch) {
+            response.catch(() => {
+                this.setState({submitting: false});
+            });
+        }
+
         if (response && response.finally) {
             response.finally(() => {
                 handleHide(modalProps.itemType);
@@ -91,52 +106,60 @@ export class ConfirmationModal extends React.Component<IProps, IState> {
         const {modalProps} = this.props;
         const {submitting} = this.state;
 
-        let buttons = [{
-            type: 'button',
+        const buttons: Array<{
+            type?: 'primary' | 'secondary' | 'tertiary';
+            onClick: () => void;
+            text: string;
+            disabled: boolean;
+            'data-test-id'?: string;
+        }> = [{
+            type: 'secondary',
             onClick: this.onCancel,
             text: modalProps.cancelText || gettext('Cancel'),
             disabled: submitting,
+            'data-test-id': 'cancel-button',
         }];
 
-        if (modalProps.action) {
+        if (modalProps.action != null) {
             buttons.push({
-                color: 'primary',
-                type: 'submit',
+                type: 'primary',
                 onClick: this.onOK,
-                text: modalProps.okText || gettext('Ok'),
+                text: modalProps.okText ?? gettext('Ok'),
                 disabled: submitting,
+                'data-test-id': 'ok-button',
             });
         }
 
-        if (modalProps.showIgnore) {
+        if (modalProps.showIgnore === true) {
             buttons.unshift({
-                type: 'reset',
+                type: 'tertiary',
                 onClick: this.onIgnore,
-                text: modalProps.ignoreText || gettext('Ignore'),
+                text: modalProps.ignoreText ?? gettext('Ignore'),
                 disabled: submitting,
+                'data-test-id': 'ignore-button',
             });
         }
 
         return (
             <Modal
-                show={true}
+                visible
+                position={this.props.modalProps.position}
                 onHide={this.onCancel}
-                large={this.props.modalProps.large}
+                size={this.props.modalProps.size}
+                headerTemplate={modalProps.title ?? gettext('Confirmation')}
+                footerTemplate={(
+                    <ButtonGroup align="end" padded={false} orientation="horizontal" spaces="compact">
+                        {buttons.map((props) => (
+                            <Button
+                                key={props.text}
+                                {...props}
+                            />
+                        ))}
+                    </ButtonGroup>
+                )}
+                className={this.props.modalProps.bodyClassname}
             >
-                <Modal.Header>
-                    <h3 className="modal__heading">{modalProps.title || gettext('Confirmation')}</h3>
-                    <a className="icn-btn" aria-label={gettext('Close')} onClick={this.onCancel}>
-                        <Icon icon="icon-close-small" />
-                    </a>
-                </Modal.Header>
-                <Modal.Body className={this.props.modalProps.bodyClassname}>
-                    <div>
-                        {modalProps.body || gettext('Are you sure ?')}
-                    </div>
-                </Modal.Body>
-                <Modal.Footer>
-                    <ButtonList buttonList={buttons} right={false} />
-                </Modal.Footer>
+                {modalProps.body ?? gettext('Are you sure ?')}
             </Modal>
         );
     }

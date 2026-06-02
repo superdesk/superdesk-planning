@@ -1,14 +1,17 @@
 import * as selectors from '../selectors';
 import {cloneDeep, pick, get, sortBy, findIndex} from 'lodash';
-import {Moment} from 'moment';
+import moment, {Moment} from 'moment';
 
-import {IEventItem, IPlanningItem, IAgenda} from '../interfaces';
+import {IEventItem, IPlanningItem, IAgenda, IPlanningRelatedEventLink} from '../interfaces';
 import {planningApi} from '../superdeskApi';
 
 import {AGENDA, MODALS, EVENTS} from '../constants';
-import {getErrorMessage, gettext, planningUtils} from '../utils';
+import {getErrorMessage, gettext, planningUtils, eventUtils} from '../utils';
 import {planning, showModal, main} from './index';
 import {convertStringFields} from '../utils/strings';
+import planningApis from '../actions/planning/api';
+import eventsApis from '../actions/events/api';
+import {appConfig} from 'appConfig';
 
 const openAgenda = () => (
     (dispatch) => (
@@ -37,7 +40,7 @@ const createOrUpdateAgenda = (newAgenda) => (
 
         return api('agenda').save(originalAgenda, diff)
             .then((agenda) => {
-                notify.success('The agenda has been created/updated.');
+                notify.success(gettext('The agenda has been created/updated.'));
                 dispatch(addOrReplaceAgenda(agenda));
             }, (error) => {
                 let errorMessage = get(error, 'data._issues.name.unique') ?
@@ -212,9 +215,12 @@ const addEventToCurrentAgenda = (
 
             promise = promise.then(() => (
                 Promise.all(
-                    eventsChunk.map((event) => (
-                        dispatch(createPlanningFromEvent(event, planningDate, updatesAgendas))
-                    ))
+                    eventsChunk.map((event, idx) => {
+                        if (!event._sortDate && event.dates?.start) {
+                            event._sortDate = eventUtils.normalizeSortDate(event);
+                        }
+                        return dispatch(createPlanningFromEvent(event, planningDate, updatesAgendas));
+                    })
                 )
                     .then((data) => data.forEach((p) => plannings.push(p)))
                     .then(() => {
@@ -243,12 +249,20 @@ const addEventToCurrentAgenda = (
 export function convertEventToPlanningItem(event: IEventItem): Partial<IPlanningItem> {
     const defaultPlace = selectors.general.defaultPlaceList(planningApi.redux.store.getState());
     const defaultValues = planningUtils.defaultPlanningValues(null, defaultPlace);
+    const eventLink: IPlanningRelatedEventLink = {
+        _id: event._id,
+    };
+
+    if (event.recurrence_id != null) {
+        eventLink.recurrence_id = event.recurrence_id;
+    }
 
     let newPlanningItem: Partial<IPlanningItem> = {
         ...defaultValues,
         type: 'planning',
-        event_item: event._id,
+        related_events: [eventLink],
         planning_date: event._sortDate || event.dates?.start,
+        all_day: appConfig.planning.all_day === true,
         place: event.place || defaultPlace,
         subject: event.subject,
         anpa_category: event.anpa_category,
@@ -256,6 +270,15 @@ export function convertEventToPlanningItem(event: IEventItem): Partial<IPlanning
         language: event.language || defaultValues.language,
         languages: event.languages || defaultValues.languages,
     };
+
+    if (newPlanningItem.all_day && event.dates?.all_day) {
+        // avoid using local _sortDate for all day planning, copy event start date
+        newPlanningItem.planning_date = moment.utc(event.dates?.start);
+    }
+
+    if (event.location) {
+        newPlanningItem.location = event.location;
+    }
 
     newPlanningItem = convertStringFields(
         event,
@@ -302,7 +325,11 @@ const createPlanningFromEvent = (
     newPlanningItem.agendas = newPlanningItem.agendas.concat(agendas);
 
     return (dispatch) => (
-        dispatch(planning.api.save({}, newPlanningItem))
+        dispatch(planningApis.save({}, newPlanningItem))
+            .then((planningResponse) => dispatch(
+                eventsApis.fetchById(event.guid, {force: true, saveToStore: true, loadPlanning: false})
+            )
+                .then(() => planningResponse))
     );
 };
 
@@ -341,7 +368,7 @@ const deleteAgenda = (agenda) => (
     (dispatch, getState, {api, notify}) => (
         api('agenda').remove(agenda)
             .then(() => {
-                notify.success('The agenda has been deleted.');
+                notify.success(gettext('The agenda has been deleted.'));
             }, (error) => {
                 notify.error(getErrorMessage(
                     error,

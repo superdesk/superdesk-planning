@@ -1,5 +1,4 @@
 import {
-    ISuperdeskGlobalConfig,
     IBaseRestApiResponse,
     ISubject,
     IUser,
@@ -10,10 +9,12 @@ import {
     IVocabulary,
     IVocabularyItem,
     RICH_FORMATTING_OPTION,
+    IElasticBoolQueryParams,
 } from 'superdesk-api';
 import {Dispatch, Store} from 'redux';
 import * as moment from 'moment';
 import * as React from 'react';
+import {ILineConfig} from './globals';
 
 export interface IPlanningNewsCoverageStatus {
     qcode: 'ncostat:int' | 'ncostat:notdec' | 'ncostat:notint' | 'ncostat:onreq';
@@ -85,6 +86,11 @@ export interface ILocator {
 export interface ICoverageProvider {
     qcode: string;
     name: string;
+    contact_type?: string;
+}
+
+export interface IContactType extends IVocabularyItem {
+    assignable?: boolean;
 }
 
 export interface IIngestProvider {
@@ -93,8 +99,7 @@ export interface IIngestProvider {
     display_name?: string;
 }
 
-export type IFile = {
-    _id: string;
+export interface IFile extends IBaseRestApiResponse {
     filemeta: {
         content_type: string;
         filename: string;
@@ -108,7 +113,7 @@ export type IFile = {
         name: string;
         _id: string;
     };
-};
+}
 
 export interface IItemUrlParams {
     id: IEventOrPlanningItem['_id'];
@@ -121,15 +126,18 @@ export enum JUMP_INTERVAL {
     MONTH = 'MONTH'
 }
 
+/**
+ * @spiked is only used in the front-end, to remove items from AdvancedCoverage modal
+ */
 export type IPlanningWorkflowStatus = 'draft'
+    | 'active'
     | 'assigned'
     | 'in_progress'
     | 'completed'
     | 'submitted'
     | 'cancelled'
     | 'reverted'
-    // `spiked` is only used in the front-end,
-    // to remove items from AdvancedCoverage modal
+    | 'active'
     | 'spiked';
 
 export type IPlanningPubstatus = 'usable' | 'cancelled';
@@ -150,11 +158,16 @@ export type IPlanningAssignedTo = {
     contact: IContactItem['_id'];
     user: IUser['_id'];
     desk: IDesk['_id'];
+    priority: number;
     coverage_provider: {
         qcode: string;
         name: string;
         contact_type: string;
     };
+    assignor_desk: IDesk['_id'];
+    assignor_user: IUser['_id'];
+    assigned_date_desk: string | Date;
+    assigned_date_user: string | Date;
 };
 
 export type IEventUpdateMethod = 'single' | 'future' | 'all';
@@ -215,7 +228,14 @@ export enum LOCK_STATE {
 
 export type ISearchSpikeState = 'spiked' | 'draft' | 'both';
 
-export type IDateRange = 'today' | 'tomorrow' | 'this_week' | 'next_week' | 'last24' | 'for_date';
+export type IDateRange = 'today'
+    | 'tomorrow'
+    | 'this_week'
+    | 'next_week'
+    | 'last24'
+    | 'for_date'
+    | 'current'
+    | 'future';
 
 export enum SORT_ORDER {
     ASCENDING = 'ascending',
@@ -225,13 +245,16 @@ export enum SORT_ORDER {
 export enum SORT_FIELD {
     SCHEDULE = 'schedule',
     CREATED = 'created',
-    UPDATED = 'updated'
+    UPDATED = 'updated',
+    PRIORITY = 'priority',
 }
 
-export enum LIST_VIEW_TYPE {
-    SCHEDULE = 'schedule',
-    LIST = 'list',
+export enum GROUP_LIST_BY {
+    DATE = 'date',
+    NOT_GROUPED = 'not_grouped',
 }
+
+export type IMainViewType = 'list' | 'list-compact';
 
 export type IPlanningProfile = {
     name: string;
@@ -269,39 +292,6 @@ export type IPlace = {
     location: string;
     rel: string;
 };
-
-export interface IPlanningConfig extends ISuperdeskGlobalConfig {
-    event_templates_enabled?: boolean;
-    long_event_duration_threshold?: number;
-    max_multi_day_event_duration?: number;
-    max_recurrent_events?: number;
-    planning_allow_freetext_location: boolean;
-    planning_allow_scheduled_updates?: boolean;
-    planning_auto_assign_to_workflow?: boolean;
-    planning_check_for_assignment_on_publish?: boolean;
-    planning_check_for_assignment_on_send?: boolean;
-    planning_fulfil_on_publish_for_desks: Array<string>;
-    planning_link_updates_to_coverage?: boolean;
-    planning_use_xmp_for_pic_assignments?: boolean;
-    planning_use_xmp_for_pic_slugline?: boolean;
-    planning_xmp_assignment_mapping?: string;
-    street_map_url?: string;
-    planning_auto_close_popup_editor?: boolean;
-    start_of_week?: number;
-
-    planning?: {
-        dateformat?: string;
-        timeformat?: string;
-        allowed_coverage_link_types?: Array<string>;
-        autosave_timeout?: number;
-        default_create_planning_series_with_event_series?: boolean;
-        event_related_item_search_provider_name?: string;
-    };
-
-    coverage?: {
-        getDueDateStrategy?(planningItem: IPlanningItem, eventItem?: IEventItem): moment.Moment | null;
-    };
-}
 
 export interface ISession {
     sessionId: string;
@@ -377,18 +367,21 @@ export interface IAgenda {
     is_enabled: boolean;
 }
 
+export type IAgendaEntity = IAgenda & IBaseRestApiResponse;
+
 // An Event's Location could also come from an Ingest, not just the Locations DB
 export interface IEventLocation {
     qcode?: string; // qcode may not be provided when the Event is ingested
     name: string;
     address?: Omit<ILocation['address'], 'external'>;
-    details?: ILocation['details'];
     formatted_address?: Readonly<string>; // generated by the server on fetch
     geo?: string;
     location?: {
         lat: number;
         lon: number;
     };
+    translations?: ILocation['translations'];
+    details?: string;
 }
 
 export interface IItemAction {
@@ -398,7 +391,7 @@ export interface IItemAction {
     icon?: string;
     inactive?: boolean;
     text?: string;
-    callback?(...args: Array<any>): void;
+    callback: Array<IItemAction> | (() => void);
 }
 
 export interface IItemSubActions {
@@ -417,8 +410,8 @@ export type IDateTime = moment.MomentInput;
 export interface IEmbeddedCoverageItem {
     coverage_id?: IPlanningCoverageItem['coverage_id'];
     g2_content_type: ICoveragePlanningDetails['g2_content_type'];
-    desk: IPlanningAssignedTo['desk'];
-    user: IPlanningAssignedTo['user'];
+    desk?: IPlanningAssignedTo['desk'];
+    user?: IPlanningAssignedTo['user'];
     language: ICoveragePlanningDetails['language'];
     news_coverage_status: IPlanningNewsCoverageStatus['qcode'];
     scheduled: ICoveragePlanningDetails['scheduled'];
@@ -496,7 +489,7 @@ export interface IEventItem extends IBaseRestApiResponse {
             frequency?: string;
             interval?: number;
             endRepeatMode?: 'count' | 'until';
-            until?: IDateTime;
+            until?: Date | string;
             count?: number;
             bymonth?: string;
             byday?: string;
@@ -511,7 +504,7 @@ export interface IEventItem extends IBaseRestApiResponse {
         ex_rule?: {
             frequency?: string;
             interval?: string;
-            until?: string | Date;
+            until?: Date | string;
             bymonth?: string;
             byday?: string;
             byhour?: string;
@@ -535,7 +528,7 @@ export interface IEventItem extends IBaseRestApiResponse {
     }>;
     subject?: Array<ISubject>;
     slugline?: string;
-    location?: IEventLocation;
+    location?: Array<IEventLocation>;
     participant?: Array<{
         qcode?: string;
         name?: string;
@@ -614,7 +607,7 @@ export interface IEventTemplate extends IBaseRestApiResponse {
 
 export interface ICoveragePlanningDetails {
     ednote: string;
-    g2_content_type: IG2ContentType['qcode'];
+    g2_content_type: ICoverageType;
     coverage_provider: string;
     contact_info: string;
     item_class: string;
@@ -651,13 +644,18 @@ export interface ICoveragePlanningDetails {
     internal_note: string;
     workflow_status_reason: string;
     priority?: number;
+    multiple_content?: boolean;
+    subject?: Array<{name: string; qcode: string; scheme: string}>;
+    anpa_category?: Array<{name: string; qcode: string}>;
+    fields: Array<{field: string; value: string}>;
+    location?: Array<IEventLocation>;
 }
 
 export interface ICoverageScheduledUpdate {
     scheduled_update_id: string;
     coverage_id: string;
     workflow_status: IPlanningWorkflowStatus;
-    assigned_to: IPlanningAssignedTo;
+    assigned_to?: IPlanningAssignedTo;
     previous_status: IPlanningWorkflowStatus;
     news_coverage_status: IPlanningNewsCoverageStatus;
     planning: {
@@ -669,29 +667,45 @@ export interface ICoverageScheduledUpdate {
             name: string;
         }>;
         workflow_status_reason: string;
+        multiple_content?: false;
     };
 }
 
 export interface IPlanningCoverageItem {
     coverage_id: string;
     original_coverage_id: string;
+    scheduled_update_id: never;
     guid: string;
     original_creator: string;
     version_creator: string;
     firstcreated: string;
     versioncreated: string;
-
+    add_coverage_to_workflow: boolean;
+    profile?: string; // coverage profile id
+    subject?: Array<IVocabularyItem>;
     planning: ICoveragePlanningDetails;
 
     news_coverage_status: IPlanningNewsCoverageStatus;
     workflow_status: IPlanningWorkflowStatus;
     previous_status: IPlanningWorkflowStatus;
-    assigned_to: IPlanningAssignedTo;
+    assigned_to?: IPlanningAssignedTo;
     flags: {
         no_content_linking: boolean;
     };
-    _time_to_be_confirmed: boolean;
+
     scheduled_updates: Array<ICoverageScheduledUpdate>;
+    _time_to_be_confirmed: boolean;
+}
+
+// An Event that is linked with 'primary' has side effects with the Planning and vice-versa
+// such as locks, cancelling, postponing etc.
+// Event's linked with a 'secondary' link have no side effects, ever, the link is purely informational.
+export type IPlanningRelatedEventLinkType = 'primary' | 'secondary';
+
+export interface IPlanningRelatedEventLink {
+    _id: string;
+    link_type?: IPlanningRelatedEventLinkType;
+    recurrence_id?: string;
 }
 
 export interface IPlanningItem extends IBaseRestApiResponse {
@@ -701,7 +715,7 @@ export interface IPlanningItem extends IBaseRestApiResponse {
     firstcreated: string;
     versioncreated: string;
     agendas: Array<string>;
-    event_item: string;
+    related_events?: Array<IPlanningRelatedEventLink>;
     recurrence_id: string;
     planning_recurrence_id: string;
     item_class: string;
@@ -747,6 +761,7 @@ export interface IPlanningItem extends IBaseRestApiResponse {
         scheduled: string | Date;
     }>;
     planning_date: IDateTime;
+    all_day?: boolean;
     flags?: {
         marked_for_not_publication?: boolean;
         overide_auto_assign_to_workflow?: boolean;
@@ -762,9 +777,27 @@ export interface IPlanningItem extends IBaseRestApiResponse {
     reason: string;
     _time_to_be_confirmed: boolean;
     _cancelAllCoverage: boolean;
+    location: Array<IEventLocation>;
 
     // Used when showing Associated Planning item for Events
     _agendas: Array<IAgenda>;
+
+    // added by client - should be dropped before sending to server
+    event?: IEventItem;
+
+    // Used for storing and autosaving changes of newly created events with temporary id.
+    // Only sent to the autosave resource, and not to the planning resource since it doesn't
+    // accept related events with temporary id.
+    _unsaved_related_events?: Array<IPlanningRelatedEventLink>;
+    /**
+     * This is for storing UI related data that is not a part of the planning item entity itself,
+     * but is required to be persisted to complete a multi-step workflow.
+     * It will be persisted in /planning_autosave, but not in /planning endpoint
+     */
+    _temporary?: {
+        // is used when linking planning items to an event
+        link_type?: IPlanningRelatedEventLinkType;
+    }
 
     // Attributes added by API (removed via modifyForClient)
     // The `_status` field is available when the item comes from a POST/PATCH request
@@ -858,25 +891,12 @@ export interface IAssignmentItem extends IBaseRestApiResponse {
     accepted: boolean;
     planning: ICoveragePlanningDetails;
 
-    coverage_item: string;
-    planning_item: string;
+    coverage_item: IPlanningCoverageItem['coverage_id'];
+    planning_item: IPlanningItem['_id'];
     scheduled_update_id: string;
 
-    assigned_to: {
-        desk: string;
-        user: string;
-        assignor_desk: string;
-        assignor_user: string;
-        assigned_date_desk: string | Date;
-        assigned_date_user: string | Date;
-        contact: string;
-        state: ASSIGNMENT_STATE;
-        revert_state: ASSIGNMENT_STATE;
-        coverage_provider: {
-            qcode: string;
-            name: string;
-            contact_type: string;
-        };
+    assigned_to: Omit<IPlanningAssignedTo, 'assignment_id' | 'priority'> & {
+        revert_state: IPlanningWorkflowStatus;
     };
 
     original_creator: string;
@@ -889,18 +909,25 @@ export interface IAssignmentItem extends IBaseRestApiResponse {
     lock_session: string;
     lock_action: string;
     _to_delete: boolean;
+    item_ids?: Array<string>; // Populated by API upon response (not stored in DB)
+    linked_items?: Array<{
+        _id: IArticle['_id'];
+        _type: IArticle['_type'];
+        event_id: IArticle['event_id'];
+    }>;
 }
 
 export interface IBaseListItemProps<T> {
     item: T;
+    planningProps?: IPlanningListItemProps;
     lockedItems: ILockedItems;
     session: ISession;
     privileges: {[key: string]: number};
     activeFilter: PLANNING_VIEW;
+    multiSelectDisabled?: boolean;
     multiSelected: boolean;
-    listFields: any;
     active: boolean;
-    listViewType: LIST_VIEW_TYPE;
+    groupListBy: GROUP_LIST_BY;
     sortField: SORT_FIELD;
     minTimeWidth: string;
 
@@ -910,10 +937,17 @@ export interface IBaseListItemProps<T> {
 }
 
 export interface IEventListItemProps extends IBaseListItemProps<IEventItem> {
-    relatedPlanningText?: string;
     calendars: Array<ICalendar>;
     filterLanguage?: string;
-    toggleRelatedPlanning?(event: React.MouseEvent): void;
+    relatedPlanningsCount: number;
+    relatedEventsUI?: {
+        visible: boolean;
+        setVisibility(value: boolean): void;
+    };
+    customTemplate?: {
+        firstLine: Array<ILineConfig>;
+        secondLine?: Array<ILineConfig>;
+    };
 }
 
 export interface IPlanningListItemProps extends IBaseListItemProps<IPlanningItem> {
@@ -922,13 +956,21 @@ export interface IPlanningListItemProps extends IBaseListItemProps<IPlanningItem
     users: Array<IUser>;
     desks: Array<IDesk>;
     filterLanguage?: string;
-    isAgendaEnabled?:boolean;
+    isAgendaEnabled?: boolean;
     // showUnlock?: boolean; // Is this used anymore?
     hideItemActions: boolean;
     showAddCoverage: boolean;
     contentTypes: Array<IG2ContentType>;
     contacts: {[key: string]: IContactItem};
     onAddCoverageClick(): void;
+    relatedEventsUI?: {
+        visible: boolean;
+        setVisibility(value: boolean): void;
+    };
+    customTemplate?: {
+        firstLine: Array<ILineConfig>;
+        secondLine?: Array<ILineConfig>;
+    };
 }
 
 export interface IDateSearchParams {
@@ -943,6 +985,8 @@ export type IAssignmentOrPlanningItem = IEventOrPlanningItem | IAssignmentItem;
 export interface ICommonAdvancedSearchParams {
     anpa_category?: Array<IANPACategory>;
     dates?: IDateSearchParams;
+    created_start_date?: IDateTime;
+    created_end_date?: IDateTime;
     name?: string;
     place?: Array<IPlace>;
     posted?: boolean;
@@ -958,6 +1002,8 @@ export interface ICommonAdvancedSearchParams {
         name?: string;
     }>;
     priority?: Array<number>;
+    internal_note?: string;
+    ednote?: string;
 }
 
 export interface ICommonSearchParams<T extends IEventOrPlanningItem> {
@@ -976,9 +1022,12 @@ export interface ICommonSearchParams<T extends IEventOrPlanningItem> {
     advancedSearch?: ICommonAdvancedSearchParams;
     sortOrder?: SORT_ORDER;
     sortField?: SORT_FIELD;
-    source?:string;
-    coverage_user_id?:string;
-    coverage_assignment_status?:ICoverageAssigned['qcode'];
+    source?: string;
+    coverage_user_id?: string;
+    coverage_assignment_status?: ICoverageAssigned['qcode'];
+    created_start_date?: IDateTime;
+    created_end_date?: IDateTime;
+    include_associated_planning: boolean;
 }
 
 export interface IEventSearchParams extends ICommonSearchParams<IEventItem> {
@@ -989,8 +1038,14 @@ export interface IEventSearchParams extends ICommonSearchParams<IEventItem> {
     advancedSearch?: ICommonAdvancedSearchParams & {
         location?: IEventLocation;
         reference?: string;
+        invitation_details?: string;
+        accreditation_details?: string;
+        registration_details?: string;
+        accreditation_info?: string;
+        definition_short?: string;
+        definition_long?: string;
+        registration?: string;
     };
-
 }
 
 export interface IPlanningSearchParams extends ICommonSearchParams<IPlanningItem> {
@@ -1000,16 +1055,18 @@ export interface IPlanningSearchParams extends ICommonSearchParams<IPlanningItem
     featured?: boolean;
     includeScheduledUpdates?: boolean;
     noAgendaAssigned?: boolean;
-    coverage_assignment_status?:ICoverageAssigned['qcode'];
+    coverage_assignment_status?: ICoverageAssigned['qcode'];
     advancedSearch?: ICommonAdvancedSearchParams & {
         featured?: boolean;
         g2_content_type?: IG2ContentType;
         noCoverage?: boolean;
         urgency?: IUrgency;
+        description_text?: string;
+        headline?: string;
     };
 }
 
-export interface ICombinedSearchParams extends ICommonSearchParams<IEventOrPlanningItem>{
+export interface ICombinedSearchParams extends ICommonSearchParams<IEventOrPlanningItem> {
     advancedSearch?: ICommonAdvancedSearchParams & {
         reference?: string;
     };
@@ -1034,6 +1091,7 @@ interface IProfileEditorDatesField extends IProfileEditorField {
 interface IBaseProfileSchemaType<T> {
     type: T;
     required: boolean;
+    show_in_embedded_editor?: boolean;
     validate_on_post?: boolean;
     minlength?: number;
     maxlength?: number;
@@ -1046,11 +1104,15 @@ export interface IProfileSchemaTypeList extends IBaseProfileSchemaType<'list'> {
     mandatory_in_list?: {[key: string]: any};
     vocabularies?: Array<IVocabulary['_id']>;
     planning_auto_publish?: boolean;
+    cancel_plan_with_event?: boolean;
 }
 
-export interface IProfileSchemaTypeInteger extends IBaseProfileSchemaType<'integer'> {}
-export interface IProfileSchemaTypeDict extends IBaseProfileSchemaType<'dict'> {}
-export interface IProfileSchemaTypeDateTime extends IBaseProfileSchemaType<'datetime'> {}
+export interface IProfileSchemaTypeInteger extends IBaseProfileSchemaType<'integer'> { }
+export interface IProfileSchemaTypeDict extends IBaseProfileSchemaType<'dict'> { }
+export interface IProfileSchemaTypeDateTime extends IBaseProfileSchemaType<'datetime'> { }
+export interface IProfileSchemaTypeBoolean extends IBaseProfileSchemaType<'boolean'> { }
+export interface IProfileSchemaTypeCV extends IBaseProfileSchemaType<'custom_vocabulary'> { }
+export interface IProfileSchemaTypeCustomText extends IBaseProfileSchemaType<'custom_text'> { }
 
 export interface IProfileSchemaTypeString extends IBaseProfileSchemaType<'string'> {
     field_type: 'single_line' | 'multi_line' | 'editor_3';
@@ -1106,12 +1168,6 @@ export interface IEditorProfile {
     // postSchema controls the validation of fields when posting.
     postSchema?: {[key: string]: IProfileSchemaType};
 
-    // list fields config
-    list?: {[key: string]: any};
-
-    // list fields when seeing events/planning when exporting or downloading
-    export_list?: Array<string>;
-
     // list of groups (and their translations) for grouping of fields in the Editor
     groups: {[key: string]: IEditorProfileGroup};
     // groups: Array<IEditorProfileGroup>;
@@ -1125,6 +1181,12 @@ export interface IEditorProfile {
 }
 
 export type IPlanningContentProfile = IBaseRestApiResponse & IEditorProfile;
+
+export type ICoverageType = 'text' | 'picture' | 'video' | 'infographics' | 'audio' | 'liveVideo' | 'liveBlog';
+export type ICoverageContentProfile = IBaseRestApiResponse & Exclude<
+    IEditorProfile,
+    ['created_by', 'updated_by', 'firstcreated', 'versioncreated', 'init_version']
+> & {content_type: ICoverageType};
 
 export interface IEventFormProfile {
     editor: {
@@ -1148,6 +1210,7 @@ export interface IEventFormProfile {
         reference: IProfileEditorField;
         slugline: IProfileEditorField;
         subject: IProfileEditorField;
+        related_plannings: IProfileEditorField;
     };
     name: 'event';
     schema: {
@@ -1171,6 +1234,7 @@ export interface IEventFormProfile {
         reference: IProfileSchemaTypeString;
         slugline: IProfileSchemaTypeString;
         subject: IProfileSchemaTypeList;
+        related_plannings: IProfileSchemaTypeList;
     };
 }
 
@@ -1188,6 +1252,7 @@ export interface IEventSearchProfile {
     start_date_time: IAdvancedSearchFormProfileField,
     end_date_time: IAdvancedSearchFormProfileField,
     date_filter: IAdvancedSearchFormProfileField,
+    creation_date: IAdvancedSearchFormProfileField,
 }
 
 export interface IPlanningFormProfile {
@@ -1242,6 +1307,7 @@ export interface IPlanningSearchProfile {
     start_date_time: IAdvancedSearchFormProfileField;
     end_date_time: IAdvancedSearchFormProfileField;
     date_filter: IAdvancedSearchFormProfileField;
+    creation_date: IAdvancedSearchFormProfileField;
     coverage_assignment_status: IAdvancedSearchFormProfileField;
 }
 
@@ -1260,6 +1326,7 @@ export interface ICoverageFormProfile {
         news_coverage_status: IProfileEditorField;
         scheduled: IProfileEditorField;
         slugline: IProfileEditorField;
+        multiple_content: IProfileEditorField;
     };
     name: 'coverage';
     schema: {
@@ -1276,6 +1343,7 @@ export interface ICoverageFormProfile {
         news_coverage_status: IProfileSchemaTypeList;
         scheduled: IProfileSchemaTypeDateTime;
         slugline: IProfileSchemaTypeString;
+        multiple_content: IProfileSchemaType;
     };
 }
 
@@ -1290,6 +1358,7 @@ export interface ICombinedSearchProfile {
     start_date_time: IAdvancedSearchFormProfileField;
     end_date_time: IAdvancedSearchFormProfileField;
     date_filter: IAdvancedSearchFormProfileField;
+    creation_date: IAdvancedSearchFormProfileField;
 }
 
 export interface IAdvancedSearchFormProfile {
@@ -1318,7 +1387,9 @@ export type IProfileSchemaType = IProfileSchemaTypeList
     | IProfileSchemaTypeInteger
     | IProfileSchemaTypeDict
     | IProfileSchemaTypeDateTime
-    | IProfileSchemaTypeString;
+    | IProfileSchemaTypeString
+    | IProfileSchemaTypeCV
+    | IProfileSchemaTypeCustomText;
 
 export type IFormProfileItem = IEventFormProfile
     | IPlanningFormProfile
@@ -1338,28 +1409,9 @@ export interface IFormNavigation {
 export interface IFormItemManager {
     forceUpdateInitialValues(updates: Partial<IEventOrPlanningItem>): void;
     startPartialSave(updates: Partial<IEventOrPlanningItem>): boolean;
-    addCoverageToWorkflow(
-        planning: IPlanningItem,
-        coverage: IPlanningCoverageItem,
-        index: number
-    ): Promise<IPlanningItem>;
     removeAssignment(
         planning: IPlanningItem,
         coverage: IPlanningCoverageItem,
-        index: number
-    ): Promise<IPlanningItem>;
-    cancelCoverage(
-        planning: IPlanningItem,
-        coverage: IPlanningCoverageItem,
-        index: number,
-        scheduledUpdate: ICoverageScheduledUpdate,
-        scheduledUpdateIndex: number
-    ): Promise<void>;
-    addScheduledUpdateToWorkflow(
-        planning: IPlanningItem,
-        coverage: IPlanningCoverageItem,
-        coverageIndex: number,
-        scheduledUpdate: ICoverageScheduledUpdate,
         index: number
     ): Promise<IPlanningItem>;
     finalisePartialSave(diff: DeepPartial<IEventOrPlanningItem>, updateDirtyFlag: boolean): Promise<void>;
@@ -1386,6 +1438,8 @@ export interface IFormAutosave {
 }
 
 export interface ISearchParams {
+    ednote?: string;
+    advancedSearch?: ICommonAdvancedSearchParams;
     // Common Params
     item_ids?: Array<string>;
     name?: string;
@@ -1406,6 +1460,8 @@ export interface ISearchParams {
     date_filter?: IDateRange;
     start_date?: IDateTime;
     end_date?: IDateTime;
+    created_start_date?: IDateTime;
+    created_end_date?: IDateTime;
     only_future?: boolean;
     start_of_week?: number;
     slugline?: string;
@@ -1419,7 +1475,7 @@ export interface ISearchParams {
         id?: string;
         name?: string;
     }>;
-    coverage_user_id?:string;
+    coverage_user_id?: string;
     priority?: Array<number>;
 
     // Event Params
@@ -1427,6 +1483,14 @@ export interface ISearchParams {
     location?: IEventLocation;
     calendars?: Array<ICalendar>;
     no_calendar_assigned?: boolean;
+    invitation_details?: string;
+    accreditation_details?: string;
+    registration_details?: string;
+    internal_note?: string;
+    accreditation_info?: string;
+    definition_short?: string;
+    definition_long?: string;
+    registration?: string;
 
     // Planning Params
     agendas?: Array<IAgenda['_id']>;
@@ -1440,9 +1504,8 @@ export interface ISearchParams {
     featured?: boolean;
     include_scheduled_updates?: boolean;
     event_item?: Array<IEventItem['_id']>;
-
-    // Combined Params
-    include_associated_planning?: boolean;
+    description_text?: string;
+    headline?: string;
 
     // Pagination
     page?: number;
@@ -1467,6 +1530,8 @@ export interface ISearchAPIParams {
     date_filter?: IDateRange;
     start_date?: string;
     end_date?: string;
+    created_start_date?: string;
+    created_end_date?: string;
     start_of_week?: number;
     slugline?: string;
     lock_state?: LOCK_STATE;
@@ -1474,8 +1539,9 @@ export interface ISearchAPIParams {
     recurrence_id?: string;
     filter_id?: ISearchFilter['_id'];
     source?: string;
-    coverage_user_id?:string;
+    coverage_user_id?: string;
     priority?: string;
+    ednote?: string;
 
     // Event Params
     reference?: string;
@@ -1483,6 +1549,14 @@ export interface ISearchAPIParams {
     calendars?: string;
     no_calendar_assigned?: boolean;
     only_future?: boolean;
+    invitation_details?: string;
+    accreditation_details?: string;
+    registration_details?: string;
+    internal_note?: string;
+    accreditation_info?: string;
+    definition_short?: string;
+    definition_long?: string;
+    registration?: string;
 
     // Planning Params
     agendas?: string;
@@ -1495,7 +1569,9 @@ export interface ISearchAPIParams {
     featured?: boolean;
     include_scheduled_updates?: boolean;
     event_item?: string;
-    coverage_assignment_status?:ICoverageAssigned['qcode']
+    coverage_assignment_status?: ICoverageAssigned['qcode'];
+    description_text?: string;
+    headline?: string;
 
     // Combined Params
     include_associated_planning?: boolean;
@@ -1550,6 +1626,7 @@ export interface ISearchFilterSchedule {
     _last_sent?: string;
     frequency: SCHEDULE_FREQUENCY;
     hour: number;
+    hours?: Array<string>;
     day: number;
     week_days: Array<WEEK_DAY>;
 }
@@ -1561,8 +1638,69 @@ export interface ISearchFilter extends IBaseRestApiResponse {
     schedules?: Array<ISearchFilterSchedule>;
 }
 
-export interface IEditorFieldProps {
-    item: any;
+export interface IAssignmentSearchParams {
+    query?: IElasticBoolQueryParams;
+    deskIds?: Array<string>;
+    userIds?: Array<string>;
+    searchQuery?: string;
+    states?: Array<ASSIGNMENT_STATE>;
+    contentType?: IG2ContentType;
+    priority?: string;
+    ignoreScheduledUpdates?: boolean;
+    dateFilter?: IDateRange;
+    timeZone?: string;
+    startDate?: string;
+    endDate?: string;
+    multipleContent?: boolean;
+    slugline?: string;
+    customText?: {[field: string]: string};
+    genre?: IVocabularyItem;
+    assignmentPriority?: IVocabularyItem;
+
+    anpaCategory?: Array<IANPACategory>;
+    subject?: Array<ISubject>;
+    language?: string;
+
+    maxResults?: number;
+    page?: number;
+    projections?: Array<string>;
+    sortOrder?: SORT_ORDER;
+    sortField?: SORT_FIELD;
+}
+
+export interface IAssignmentSearchAPIParams {
+    query?: IElasticBoolQueryParams;
+    desk_ids?: string;
+    user_ids?: string;
+    search_query?: string;
+    states?: string;
+    g2_content_type?: string;
+    priority?: string;
+    date_filter?: IDateRange;
+    start_date?: string;
+    end_date?: string;
+    time_zone?: string;
+    ignore_scheduled_updates?: boolean;
+    multiple_content?: boolean;
+    slugline?: string;
+    custom_text?: string;
+    genre?: string;
+    assignment_priority?: string;
+
+    anpa_category?: string;
+    subject?: string;
+    language?: string;
+
+    repo: 'assignments';
+    max_results?: number;
+    page?: number;
+    projections?: Array<string>;
+    sort_order?: SORT_ORDER;
+    sort_field?: SORT_FIELD;
+}
+
+export interface IEditorFieldProps<T = any> {
+    item: T;
     field: string;
     label?: string;
     required?: boolean;
@@ -1577,10 +1715,23 @@ export interface IEditorFieldProps {
     schema?: IProfileSchemaType;
     editor?: IProfileEditorField;
     showErrors?: boolean;
-    editorType?: EDITOR_TYPE;
-    profile?: IPlanningContentProfile;
 
-    onChange(field: string | {[key: string]: any}, value: any): void;
+    /**
+     * @deprecated
+     * Do not use in future code and remove from existing usages where possible.
+     * `editorType` is used to access globals which is breaking usage in multiple editors at once.
+     * For example when editing related plannings.
+     * */
+    editorType?: EDITOR_TYPE;
+
+    profile?: IPlanningContentProfile;
+    debounce?: number;
+
+    // overloads don't work in interfaces
+    // onChange(values: {[key: string]: any}): void;
+    // onChange(field: string, value: any): void;
+    onChange(...any: any): void;
+
     popupContainer?(): HTMLElement;
 }
 
@@ -1608,6 +1759,19 @@ export type IEventsPlanningField =
     | 'subjects'
     | 'state';
 
+export interface IPreviewTool {
+    icon: string;
+    onClick: (event?: React.MouseEvent<HTMLElement>) => void;
+    title: string;
+}
+
+export interface IPreviewTab {
+    label: string;
+    render: any;
+    enabled: boolean;
+    tabProps?: any;
+}
+
 export interface IEventsPlanningContentPanelProps {
     filter?: Partial<ISearchFilter>;
     onClose(): void;
@@ -1616,6 +1780,7 @@ export interface IEventsPlanningContentPanelProps {
     editFilterSchedule(filter: ISearchFilter): void;
     deleteFilterSchedule(filter: ISearchFilter): void;
     previewFilter(filter: ISearchFilter): void;
+    onPristineChange?(pristine: boolean): void;
 }
 
 export interface IPlanningExportTemplate extends IBaseRestApiResponse {
@@ -1648,7 +1813,12 @@ export interface IContentTemplate extends IBaseRestApiResponse {
 
 export interface IFieldsProps {
     item: IEventOrPlanningItem;
-    language?: string;
+    language: string;
+    fieldsProps: {
+        // field specific props may be passed
+        [key: string]: any;
+    };
+    fieldOptions?: ILineConfig['fieldOptions'];
 }
 
 interface IMainStateSearch<T> {
@@ -1662,7 +1832,8 @@ interface IMainStateSearch<T> {
 export interface IMainState {
     previewId?: IEventItem['_id'] | IPlanningItem['_id'];
     previewType?: IEventItem['type'] | IPlanningItem['type'];
-    listViewType: LIST_VIEW_TYPE;
+    groupListBy: GROUP_LIST_BY;
+    viewType: IMainViewType;
     loadingPreview: boolean;
     filter?: PLANNING_VIEW;
     loadingIndicator: boolean;
@@ -1706,6 +1877,10 @@ export interface IEditorFormState {
     diff?: DeepPartial<IEventOrPlanningItem>;
     popupFormComponent?: React.ComponentClass;
     popupFormProps?: any;
+}
+
+export interface ICoverageProfilesState {
+    profiles: Array<ICoverageContentProfile>;
 }
 
 export interface IFormState {
@@ -1909,7 +2084,7 @@ export type IEditorAction = 'read' | 'create' | 'edit';
 
 export interface IEditorState {
     tab: number;
-    diff: DeepPartial<IEventOrPlanningItem>;
+    diff: Partial<IEventOrPlanningItem>;
     errors: {[key: string]: string};
     errorMessages: Array<string>;
     dirty: boolean;
@@ -1918,7 +2093,7 @@ export interface IEditorState {
     partialSave: boolean;
     itemReady: boolean;
     loading: boolean;
-    initialValues: DeepPartial<IEventOrPlanningItem>;
+    initialValues: Partial<IEventOrPlanningItem>;
     mainLanguage?: IVocabularyItem['qcode'];
     showAllLanguages: boolean;
 
@@ -1929,7 +2104,7 @@ export interface IEditorState {
 export interface IEditorProps {
     item?: IEventOrPlanningItem;
     itemId?: IEventOrPlanningItem['_id'];
-    itemType: string;
+    itemType: 'event' | 'planning';
     itemAction?: IEditorAction;
     session: ISession;
     privileges: IPrivileges;
@@ -1951,12 +2126,12 @@ export interface IEditorProps {
     inModalView: boolean;
     hideExternalEdit: boolean;
     defaultDesk: IDesk;
-    preferredCoverageDesks: {[key: string]: string};
     associatedPlannings?: Array<IPlanningItem>;
-    associatedEvent?: IEventItem;
+    associatedEvents?: Array<IEventItem>;
     currentWorkspace: string;
     editorType: EDITOR_TYPE;
     groups: Array<IEditorFormGroup>;
+    initialValues?: IEventOrPlanningItem;
 
     minimize(): void;
     openCancelModal(modalProps: {
@@ -2010,7 +2185,7 @@ export interface IBookmarkProps {
     editorType: EDITOR_TYPE;
     index: number;
     item?: DeepPartial<IEventOrPlanningItem>;
-    readOnly: boolean;
+    disabled: boolean;
 }
 
 export interface IEditorBookmarkCustom extends IEditorBookmarkBase {
@@ -2034,7 +2209,7 @@ export interface IEditorFormGroup {
 }
 
 export abstract class IEditorRefComponent {
-    abstract scrollIntoView(): void;
+    abstract scrollIntoView(options?: {focus?: boolean}): void;
     abstract getBoundingClientRect(): DOMRect | undefined;
     abstract focus(): void;
 }
@@ -2043,27 +2218,100 @@ export abstract class IEditorHeaderComponent {
     abstract unregisterKeyBoardShortcuts(): void;
 }
 
+export interface IInputArrayHocModeOptions {
+    itemsElement: React.ReactNode;
+    addButtonElement: React.ReactNode;
+    errorMessageElement: React.ReactNode;
+    labelElement: React.ReactNode;
+    emptyValueElement: React.ReactNode;
+}
+
+export type ISoftLockItemData = {
+    type: IEventItem['type'];
+    item: IEventItem;
+    plan_ids?: Array<IPlanningItem['_id']>;
+} | {
+    type: IPlanningItem['type'];
+    item: IPlanningItem;
+    event_ids?: Array<IEventItem['_id']>;
+}
+
 export interface IWebsocketMessageData {
     ITEM_UNLOCKED: {
         item: IEventOrPlanningItem['_id'];
         etag: IEventOrPlanningItem['_etag'];
         from_ingest: boolean;
+        event_ids?: Array<string>;
+        plan_ids?: Array<string>;
         user?: IEventOrPlanningItem['lock_user'];
         lock_session?: IEventOrPlanningItem['lock_session'];
         recurrence_id?: IEventItem['recurrence_id'];
-        event_item?: IEventItem['_id'];
         type: IEventOrPlanningItem['type'] | IAssignmentItem['type'];
+        clientId?: string;
     };
     ITEM_LOCKED: {
         item: IEventOrPlanningItem['_id'];
         etag: IEventOrPlanningItem['_etag'];
         user: IEventOrPlanningItem['lock_user'];
+        event_ids?: Array<string>;
+        plan_ids?: Array<string>;
         lock_session: IEventOrPlanningItem['lock_session'];
         lock_action: IEventOrPlanningItem['lock_action'];
         lock_time: IEventOrPlanningItem['lock_time'];
         recurrence_id?: IEventOrPlanningItem['recurrence_id'];
         type: IEventOrPlanningItem['type'] | IAssignmentItem['type'];
-        event_item?: IEventItem['_id'];
+        clientId?: string;
+    };
+
+    PLANNING_CREATED: {
+        item: IPlanningItem['_id'];
+        user: IUser['_id'];
+        added_agendas: Array<IAgenda['_id']>;
+        removed_agendas: Array<IAgenda['_id']>;
+        session: ISession['sessionId'];
+        event_ids: Array<IEventItem['_id']>;
+    };
+    PLANNING_UPDATED: {
+        item: IPlanningItem['_id'];
+        user: IUser['_id'];
+        added_agendas: Array<IAgenda['_id']>;
+        removed_agendas: Array<IAgenda['_id']>;
+        session: ISession['sessionId'];
+        event_ids: Array<IEventItem['_id']>;
+        related_events_changed?: boolean;
+    };
+    EVENT_LINK_UPDATED: {
+        action: string;
+        event: IEventItem['_id'];
+        planning: IPlanningItem['_id'];
+        links: Array<IPlanningItem['_id']>;
+        _created: string; // ISO 8601 datetime
+    };
+    ASSIGNMENT_UPDATED: {
+        item: IAssignmentItem['_id'];
+        etag: IAssignmentItem['_etag'];
+        coverage: IAssignmentItem['coverage_item'];
+        planning: IAssignmentItem['planning_item'];
+        assigned_user: IAssignmentItem['assigned_to']['user'];
+        assigned_date_user: IAssignmentItem['assigned_to']['assigned_date_user'];
+        assigned_desk: IAssignmentItem['assigned_to']['desk'];
+        assigned_date_desk: IAssignmentItem['assigned_to']['assigned_date_desk'];
+        assigned_contact: IAssignmentItem['assigned_to']['contact'];
+        user: IUser['_id'];
+        original_assigned_desk: IAssignmentItem['assigned_to']['desk'];
+        original_assigned_user: IAssignmentItem['assigned_to']['user'];
+        assignment_state: IAssignmentItem['assigned_to']['state'];
+        lock_user: IAssignmentItem['lock_user'];
+        session: ISession['sessionId'];
+    };
+    ASSIGNMENT_REMOVED: {
+        item: IAssignmentItem['_id'];
+        session: ISession['sessionId'];
+        assignments: Array<IAssignmentItem['_id']>;
+        planning: IAssignmentItem['planning_item'];
+        coverage: IAssignmentItem['coverage_item'];
+        planning_etag: IPlanningItem['_etag'];
+        event_ids: Array<IEventItem['_id']>;
     };
 }
 
@@ -2106,7 +2354,7 @@ export interface IEditorAPI {
         ): Promise<void>;
 
         scrollToTop(): void;
-        scrollToBookmarkGroup(bookmarkId: IEditorBookmarkGroup['group_id']): void;
+        scrollToBookmarkGroup(bookmarkId: IEditorBookmarkGroup['group_id'], options?: {focus?: boolean}): void;
         waitForScroll(): Promise<void>;
 
         getAction(): IEditorAction;
@@ -2123,6 +2371,7 @@ export interface IEditorAPI {
     item: {
         getItemType(): string;
         getItemId(): IEventOrPlanningItem['_id'];
+        getItemAction(): IEditorProps['itemAction'];
         getAssociatedPlannings(): Array<IPlanningItem>;
         events: {
             getGroupsForItem(item: Partial<IEventItem>): {
@@ -2130,14 +2379,18 @@ export interface IEditorAPI {
                 groups: Array<IEditorFormGroup>;
             };
             getRelatedPlanningDomRef(planId: IPlanningItem['_id']): React.RefObject<any>;
-            addPlanningItem(): void;
-            removePlanningItem(item: DeepPartial<IPlanningItem>): void;
+            addPlanningItem(
+                item?: IPlanningItem,
+                options?: {
+                    scrollIntoViewAndFocus?: boolean;
+                },
+            ): Promise<Partial<IPlanningItem>>;
+            unlinkPlanning(item: DeepPartial<IPlanningItem>): Promise<void>;
             updatePlanningItem(
                 original: DeepPartial<IPlanningItem>,
                 updates: DeepPartial<IPlanningItem>,
                 scrollOnChange: boolean
-            ): void;
-            addCoverageToWorkflow(original: IPlanningItem, coverage: IPlanningCoverageItem, index: number): void;
+            ): Promise<void>;
             onEventDatesChanged(updates: Partial<IEventItem['dates']>): void;
         };
         planning: {
@@ -2145,11 +2398,20 @@ export interface IEditorAPI {
                 bookmarks: Array<IEditorBookmark>;
                 groups: Array<IEditorFormGroup>;
             };
-            getCoverageFields(): ISearchProfile;
+            updateEventItem(item: IEventItem, updates: IEventItem, scrollOnChange: boolean): Promise<void>;
+            unlinkEvent(item: DeepPartial<IEventItem>): void;
+            getRelatedEventsDomRef(eventId: IEventItem['_id']): React.RefObject<any>;
+            getCoverageFields(
+                type: ICoverageType,
+            ): {searchProfile: ISearchProfile; profile: ICoverageContentProfile};
             getCoverageFieldDomRef(coverageId: IPlanningCoverageItem['coverage_id']): React.RefObject<any>;
             addCoverages(coverages: Array<DeepPartial<IPlanningCoverageItem>>): void;
         };
     };
+}
+
+export interface IGetRequestParams {
+    cache?: boolean;
 }
 
 export interface IPlanningAPI {
@@ -2159,12 +2421,13 @@ export interface IPlanningAPI {
     events: {
         search(params: ISearchParams): Promise<IRestApiResponse<IEventItem>>;
         searchGetAll(params: ISearchParams): Promise<Array<IEventItem>>;
-        getById(eventId: IEventItem['_id']): Promise<IEventItem>;
+        getById(eventId: IEventItem['_id'], params?: IGetRequestParams): Promise<IEventItem>;
         getByIds(eventIds: Array<IEventItem['_id']>, spikeState?: ISearchSpikeState): Promise<Array<IEventItem>>;
         getEditorProfile(): IEventFormProfile;
         getSearchProfile(): IEventSearchProfile;
         create(updates: Partial<IEventItem>): Promise<Array<IEventItem>>;
         update(original: IEventItem, updates: Partial<IEventItem>): Promise<Array<IEventItem>>;
+        getLinkedPlanningItems(eventId: string): Promise<Array<IPlanningItem>>;
     };
     planning: {
         search(params: ISearchParams): Promise<IRestApiResponse<IPlanningItem>>;
@@ -2186,13 +2449,16 @@ export interface IPlanningAPI {
             setDefaultValues(
                 item: DeepPartial<IPlanningItem>,
                 event?: IEventItem,
-                g2contentType?: IG2ContentType['qcode']
+                g2contentType?: IG2ContentType['qcode'],
             ): DeepPartial<IPlanningCoverageItem>;
             addCoverageToWorkflow(
-                plan: IPlanningItem,
-                coverage: IPlanningCoverageItem,
-                index: number
-            ): Promise<IPlanningItem>;
+                coverages: Array<IPlanningCoverageItem>,
+                coverageToAddToWorkflow: IPlanningCoverageItem,
+            ): Array<IPlanningCoverageItem>;
+            addScheduledUpdateToWorkflow(
+                updates: Array<ICoverageScheduledUpdate>,
+                updateToAddToWorkflow: ICoverageScheduledUpdate,
+            ): Array<ICoverageScheduledUpdate>;
             bulkAddCoverageToWorkflow(planingItems: Array<IPlanningItem>): Promise<Array<IPlanningItem>>;
         }
         create(updates: Partial<IPlanningItem>): Promise<IPlanningItem>;
@@ -2201,11 +2467,22 @@ export interface IPlanningAPI {
     };
     assignments: {
         getById(assignmentId: IAssignmentItem['_id']): Promise<IAssignmentItem>;
+        createAndOpenArticleFromTemplate(assignmentId: IAssignmentItem['_id'], templateName: string): Promise<void>;
+        search(params: IAssignmentSearchParams): Promise<IRestApiResponse<IAssignmentItem>>;
     };
     coverages: {
-        getEditorProfile(): ICoverageFormProfile;
+        cancelCoverage(
+            items: Array<IPlanningCoverageItem | ICoverageScheduledUpdate>,
+            itemToCancel: IPlanningCoverageItem | ICoverageScheduledUpdate,
+        ): Promise<Array<IPlanningCoverageItem | ICoverageScheduledUpdate>>;
+
+        cancelScheduledUpdate(
+            items: Array<ICoverageScheduledUpdate>,
+            itemToCancel: ICoverageScheduledUpdate,
+        ): Promise<Array<ICoverageScheduledUpdate>>;
     };
     combined: {
+        searchAndStore(params: ISearchParams): Promise<IRestApiResponse<IEventOrPlanningItem>>;
         search(params: ISearchParams): Promise<IRestApiResponse<IEventOrPlanningItem>>;
         searchGetAll(params: ISearchParams): Promise<Array<IEventOrPlanningItem>>;
         getRecurringEventsAndPlanningItems(
@@ -2234,7 +2511,8 @@ export interface IPlanningAPI {
             search(params: ISearchParams): Promise<any>;
             clearSearch(): Promise<any>;
             clearList(): void;
-            setViewType(viewType: LIST_VIEW_TYPE): Promise<any>;
+            setGroupListBy(value: GROUP_LIST_BY): Promise<any>;
+            setViewType(value: IMainViewType): Promise<any>;
             changeCurrentView(view: PLANNING_VIEW): Promise<any>;
         };
     };
@@ -2275,17 +2553,33 @@ export interface IPlanningAPI {
             getFields(profile: IPlanningContentProfile): Array<keyof IEventOrPlanningItem>;
             getConfig(contentType: string): IProfileMultilingualDetails;
         };
-        getDefaultLanguage(profile: IPlanningContentProfile): IVocabularyItem['qcode'];
+        getDefaultLanguage(
+            profile: IPlanningContentProfile | Partial<ICoverageContentProfile>,
+        ): IVocabularyItem['qcode'];
         getDefaultValues(profile: IPlanningContentProfile): DeepPartial<IEventOrPlanningItem | IPlanningCoverageItem>;
-        patch(original: IPlanningContentProfile, updates: IPlanningContentProfile): Promise<IPlanningContentProfile>;
+        patch(
+            original: IPlanningContentProfile,
+            updates: IPlanningContentProfile,
+        ): Promise<IPlanningContentProfile>;
+        coverages: {
+            patch(
+                original: Partial<ICoverageContentProfile>,
+                updates: Partial<ICoverageContentProfile>,
+            ): Promise<ICoverageContentProfile>;
+            getAll(): Promise<Array<ICoverageContentProfile>>;
+        }
         showManagePlanningProfileModal(): Promise<void>;
         showManageEventProfileModal(): Promise<void>;
         updateProfilesInStore(): Promise<void>;
     };
     locks: {
+        unlockEmbeddedItem<T extends IEventOrPlanningItem>(item: T, softOnly?: boolean): Promise<T>;
         loadLockedItems(types?: Array<'events_and_planning' | 'featured_planning' | 'assignments'>): Promise<void>;
         setItemAsLocked(data: IWebsocketMessageData['ITEM_LOCKED']): void;
+        softLockItem(item: ISoftLockItemData): void;
         setItemAsUnlocked(data: IWebsocketMessageData['ITEM_UNLOCKED']): void;
+        reloadSoftLocksForRelatedEvents(planning: IPlanningItem): void;
+        reloadSoftLocksForAssociatedPlannings(event: IEventItem): void;
         lockItem<T extends IAssignmentOrPlanningItem>(item: T, action: string): Promise<T>;
         lockItemById<T extends IAssignmentOrPlanningItem>(
             itemId: T['_id'],
@@ -2299,3 +2593,5 @@ export interface IPlanningAPI {
         unlockFeaturedPlanning(): Promise<void>;
     };
 }
+
+export type ISearchQueryOperator = 'must' | 'must_not' | 'should';

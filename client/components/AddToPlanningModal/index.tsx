@@ -2,15 +2,23 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import {connect} from 'react-redux';
 
-import {Modal} from '../index';
+import {Modal} from 'superdesk-ui-framework/react';
 import {Button} from '../UI';
 import {AddToPlanningApp} from '../../apps';
 
 import * as selectors from '../../selectors';
 import {gettext} from '../../utils';
 import {KEYCODES} from '../../constants';
+import {IArticle} from 'superdesk-api';
 
-export class AddToPlanningComponent extends React.Component {
+interface IProps {
+    handleHide(): void,
+    modalProps: {newsItem: IArticle, $scope: ng.IScope},
+    currentWorkspace?: string,
+    actionInProgress?: boolean,
+}
+
+export class AddToPlanningComponent extends React.Component<IProps> {
     constructor(props) {
         super(props);
 
@@ -55,53 +63,34 @@ export class AddToPlanningComponent extends React.Component {
 
         return (
             <Modal
-                show={true}
-                onHide={handleHide}
-                fill={true}
-            >
-                <Modal.Header>
+                visible={true}
+                onHide={actionInProgress ? null : handleCancel}
+                size="x-large"
+                contentPadding="none"
+                headerTemplate={(
                     <h3 className="modal__heading">
-                        {gettext('Select an existing Planning Item or create a new one')}
+                        {gettext('Add article to Planning - select an existing Planning Item or create a new one')}
                     </h3>
-                    {actionInProgress ? null : (
-                        <a className="icn-btn" onClick={handleCancel}>
-                            <i className="icon-close-small" />
-                        </a>
-                    )}
-                </Modal.Header>
-
-                <Modal.Body noPadding fullHeight noScroll>
-                    <div className="planning-app__modal AddToPlanning">
-                        <AddToPlanningApp
-                            addNewsItemToPlanning={newsItem}
-                            popupContainer={() => this.dom.popupContainer}
-                            onCancel={handleCancel}
-                        />
-                    </div>
-                </Modal.Body>
-
-                <Modal.Footer>
+                )}
+                footerTemplate={(
                     <Button
-                        text={gettext('Ignore')}
+                        text={gettext('Don\'t add')}
                         disabled={actionInProgress}
                         onClick={handleCancel}
                     />
-                </Modal.Footer>
-                <div ref={(node) => this.dom.popupContainer = node} />
+                )}
+            >
+                <div className="planning-app__modal AddToPlanning">
+                    <AddToPlanningApp
+                        addNewsItemToPlanning={newsItem}
+                        popupContainer={() => this.dom.popupContainer}
+                        onCancel={handleCancel}
+                    />
+                </div>
             </Modal>
         );
     }
 }
-
-AddToPlanningComponent.propTypes = {
-    handleHide: PropTypes.func.isRequired,
-    modalProps: PropTypes.shape({
-        newsItem: PropTypes.object,
-        $scope: PropTypes.object,
-    }),
-    currentWorkspace: PropTypes.string,
-    actionInProgress: PropTypes.bool,
-};
 
 const mapStateToProps = (state) => ({
     currentWorkspace: selectors.general.currentWorkspace(state),

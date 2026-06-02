@@ -3,10 +3,11 @@ import {get, set, isEmpty, isEqual, pick} from 'lodash';
 
 import {appConfig} from 'appConfig';
 
-import {gettext, eventUtils} from '../utils';
+import {gettext, eventUtils, timeUtils} from '../utils';
 import * as selectors from '../selectors';
 import {formProfile} from './profile';
 import {PRIVILEGES, EVENTS, TO_BE_CONFIRMED_FIELD} from '../constants';
+import {isSameDay} from './../helpers';
 
 const validateRequiredDates = ({value, errors, messages, diff}) => {
     if (!get(value, 'start')) {
@@ -19,18 +20,21 @@ const validateRequiredDates = ({value, errors, messages, diff}) => {
         messages.push(gettext('END DATE is a required field'));
     }
 
-    if (!get(value, 'tz')) {
+    if (value.tz === undefined && value.all_day !== true) {
         set(errors, 'tz', gettext('This field is required'));
         messages.push(gettext('TIMEZONE is a required field'));
     }
 
     if (!get(diff, TO_BE_CONFIRMED_FIELD)) {
-        if (!get(value, '_startTime')) {
+        if (value.start != null && value._endTime != null && value._startTime == null) {
+            set(errors, '_startTime', gettext('This field is required'));
+            messages.push(gettext('START TIME is required when END TIME is set'));
+        } else if (!value._startTime && value.all_day !== true) {
             set(errors, '_startTime', gettext('This field is required'));
             messages.push(gettext('START TIME is a required field'));
         }
 
-        if (!get(value, '_endTime')) {
+        if (!value._endTime && value.all_day !== true && value.no_end_time !== true) {
             set(errors, '_endTime', gettext('This field is required'));
             messages.push(gettext('END TIME is a required field'));
         }
@@ -41,12 +45,12 @@ const validateDateRange = ({value, errors, messages}) => {
     let startDate = moment(value.start);
     let endDate = moment(value.end);
 
-    if (!self.valdiateStartEndDateValues(value, startDate, endDate)) {
+    if (!self.validateStartEndDateValues(value, startDate, endDate)) {
         return;
     }
 
-    if (endDate.isSameOrBefore(startDate, 'minutes')) {
-        if (eventUtils.isEventSameDay(value.start, value.end)) {
+    if (endDate.isSameOrBefore(startDate, 'minutes') && !value.all_day && !value.no_end_time) {
+        if (isSameDay(value.start, value.end)) {
             set(errors, '_endTime', gettext('End time should be after start time'));
             messages.push(gettext('END TIME should be after START TIME'));
         } else {
@@ -56,13 +60,15 @@ const validateDateRange = ({value, errors, messages}) => {
     }
 };
 
+const getDateOnly = (date: moment.Moment) => moment(date.format('YYYY-MM-DD'));
+
 const validateDateInPast = ({getState, value, errors, messages}) => {
     const privileges = selectors.general.privileges(getState());
     const canCreateInPast = !!privileges[PRIVILEGES.CREATE_IN_PAST];
     const today = moment();
 
-    const startDate = get(value, 'start');
-    const endDate = get(value, 'end');
+    const startDate = value.start && value.all_day ? getDateOnly(value.start) : value.start;
+    const endDate = value.end && (value.all_day || value.no_end_time) ? getDateOnly(value.end) : value.end;
 
     if (moment.isMoment(startDate) && startDate.isBefore(today, 'day')) {
         set(errors, 'start.date', gettext('Start date is in the past'));
@@ -85,12 +91,12 @@ const validateRecurringRules = ({value, errors, messages}) => {
     const frequency = get(value, 'recurring_rule.frequency');
     const byday = get(value, 'recurring_rule.byday');
     const endRepeatMode = get(value, 'recurring_rule.endRepeatMode');
-    const until = get(value, 'recurring_rule.until');
+    const until = timeUtils.dateToMomentDate(value?.recurring_rule?.until, value?.tz);
     const startDate = get(value, 'start');
     let count = get(value, 'recurring_rule.count');
     let recurringErrors = {};
 
-    if (until && startDate > until) {
+    if (until != null && moment.isMoment(startDate) && startDate.isAfter(until)) {
         recurringErrors.until = gettext('Must be greater than starting date');
         messages.push(gettext('RECURRING ENDS ON must be greater than START DATE'));
     }
@@ -135,7 +141,7 @@ const validateMultiDayDuration = ({value, errors, messages}) => {
     let startDate = moment(value.start);
     let endDate = moment(value.end);
 
-    if (!self.valdiateStartEndDateValues(value, startDate, endDate)) {
+    if (!self.validateStartEndDateValues(value, startDate, endDate)) {
         return;
     }
 
@@ -291,10 +297,14 @@ const validateLinks = ({dispatch, getState, field, value, profile, errors, messa
     }
 };
 
-const valdiateStartEndDateValues = (value, startDate, endDate) => {
+const validStartTime = (value) => value.all_day || (value._startTime && moment.isMoment(value._startTime));
+const validEndTime = (value) => value.all_day || value.no_end_time || (
+    value._endTime && moment.isMoment(value._endTime)
+);
+
+const validateStartEndDateValues = (value, startDate, endDate) => {
     if (!get(value, 'start') || !get(value, 'end') || !moment.isMoment(value.start) || !moment.isMoment(value.end) ||
-        !get(value, '_startTime') || !get(value, '_endTime') || !moment.isMoment(value._startTime) ||
-        !moment.isMoment(value._endTime)) {
+        !validStartTime(value) || !validEndTime(value)) {
         return false;
     }
 
@@ -319,7 +329,7 @@ const self = {
     validateFiles,
     validateLinks,
     validateMultiDayDuration,
-    valdiateStartEndDateValues,
+    validateStartEndDateValues,
 };
 
 export default self;

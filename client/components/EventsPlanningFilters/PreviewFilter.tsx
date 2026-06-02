@@ -37,11 +37,11 @@ export class PreviewFilter extends React.PureComponent<IEventsPlanningContentPan
                     </h3>
                     <SidePanel.Tools
                         tools={[{
-                            icon: 'icon-pencil',
+                            icon: 'pencil',
                             onClick: this.editFilter,
                             title: gettext('Edit'),
                         }, {
-                            icon: 'icon-close-small',
+                            icon: 'close-small',
                             onClick: this.props.onClose,
                             title: gettext('Close'),
                         }]}
@@ -115,6 +115,26 @@ export class PreviewFilter extends React.PureComponent<IEventsPlanningContentPan
                                         date_filter: {enabled: true, index: 1},
                                         start_date: {enabled: true, index: 2},
                                         end_date: {enabled: true, index: 3},
+                                    },
+                                    {
+                                        item: this.props.filter.params,
+                                        language: language,
+                                    },
+                                    {
+                                    }
+                                )}
+                            </ul>
+
+                            <Label
+                                text={gettext('Creation Date')}
+                                row={true}
+                            />
+                            <ul className="simple-list simple-list--dotted">
+                                {renderFieldsForPanel(
+                                    'simple-preview',
+                                    {
+                                        created_start_date: {enabled: true, index: 1},
+                                        created_end_date: {enabled: true, index: 2},
                                     },
                                     {
                                         item: this.props.filter.params,

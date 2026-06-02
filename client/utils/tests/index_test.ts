@@ -250,7 +250,7 @@ describe('Utils', () => {
 
 
         it('cancelled item is readOnly even if it has edit lock', () => {
-            expect(utils.isItemReadOnly(item, session, privilages, lockedItems)).toBe(true);
+            expect(utils.isItemReadOnly(item, session, privilages, lockedItems, [])).toBe(true);
         });
     });
 
@@ -259,5 +259,12 @@ describe('Utils', () => {
 
         expect(utils.getDateTimeElasticFormat(t1)).toBe('2022-11-28T23:00:00+0000');
         expect(utils.getDateTimeElasticFormat(t1, false)).toBe('2022-11-29T10:00:00+0000');
+    });
+
+    it('serializes created dates using local day boundaries in UTC', () => {
+        const value = moment.parseZone('2026-04-13T12:00:00+0200');
+
+        expect(utils.getCreatedStartDateElasticFormat(value)).toBe('2026-04-12T22:00:00+0000');
+        expect(utils.getCreatedEndDateElasticFormat(value)).toBe('2026-04-13T21:59:59+0000');
     });
 });

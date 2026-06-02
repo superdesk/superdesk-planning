@@ -2,11 +2,11 @@ Feature: Event Search
     Background: Initial setup
         Given "agenda"
         """
-            [
-                {"name": "sports", "_id": "sports", "is_enabled": true},
-                {"name": "finance", "_id": "finance", "is_enabled": true},
-                {"name": "entertainment", "_id": "entertainment", "is_enabled": true}
-            ]
+        [
+            {"name": "sports", "_id": "68e5df45ac0f6c8b678c17b1", "is_enabled": true},
+            {"name": "finance", "_id": "68e5df45ac0f6c8b678c17b2", "is_enabled": true},
+            {"name": "entertainment", "_id": "68e5df45ac0f6c8b678c17b3", "is_enabled": true}
+        ]
         """
         And "events"
             """
@@ -76,7 +76,7 @@ Feature: Event Search
                     "unique_id": "786",
                     "unique_name": "name",
                     "name": "event 786",
-                    "state": "published",
+                    "state": "active",
                     "pubstatus": "usable",
                     "slugline": "test3 slugline",
                     "definition_short": "short value",
@@ -88,7 +88,7 @@ Feature: Event Search
                         "end": "2016-01-03T00:00:00+0000"
                     },
                     "subject": [{"qcode": "test qcode 2", "name": "test name"}],
-                    "lock_session": "ident1",
+                    "lock_session": "683459ee32f5061cba2138b0",
                     "priority": 7
                 }
             ]
@@ -102,7 +102,7 @@ Feature: Event Search
                 "headline": "test headline",
                 "slugline": "slug123",
                 "planning_date": "2016-01-02T12:00:00+0000",
-                "agendas": ["sports"]
+                "agendas": ["68e5df45ac0f6c8b678c17b1"]
             }
         ]
         """
@@ -315,6 +315,7 @@ Feature: Event Search
 
     @auth
     Scenario: Users can only see their events without the planning_global_filters privilege
+        Given empty "events"
         Given "events"
         """
         [{
@@ -368,3 +369,53 @@ Feature: Event Search
         ]}
         """
 
+    @auth
+    Scenario: Filter by date using America/Toronto timezone
+        Given "events"
+        """
+        [{
+            "guid": "all_day_multi",
+            "name": "all day event multiday",
+            "dates": {"start": "2024-07-14T00:00:00+0000", "end": "2024-07-16T00:00:00+0000", "all_day": true}
+        }, {
+            "guid": "all_day_single",
+            "name": "all day single day",
+            "dates": {"start": "2024-07-15T00:00:00+0000", "end": "2024-07-15T00:00:00+0000", "all_day": true}
+        }, {
+            "guid": "no_end_time_multi",
+            "name": "no end time multiday",
+            "dates": {"start": "2024-07-13T10:00:00+0000", "end": "2024-07-15T00:00:00+0000", "no_end_time": true}
+        }, {
+            "guid": "no_end_time_single",
+            "name": "no end time single day",
+            "dates": {"start": "2024-07-15T10:00:00+0000", "end": "2024-07-15T10:00:00+0000", "no_end_time": true}
+        }, {
+            "guid": "matching",
+            "name": "regular",
+            "dates": {"start": "2024-07-15T10:00:00+0000", "end": "2024-07-16T00:00:00+0000"}
+        },
+        {
+            "guid": "not matching",
+            "name": "not matching",
+            "dates": {"start": "2024-07-01T10:00:00+0000", "end": "2024-07-02T00:00:00+0000"}
+        }
+        ]
+        """
+        When we get "/events_planning_search?repo=events&only_future=false&time_zone=America/Toronto&start_date=2024-07-15T04:00:00"
+        Then we get list with 5 items
+        """
+        {"_items": [
+            {"guid": "all_day_multi"},
+            {"guid": "all_day_single"},
+            {"guid": "no_end_time_multi"},
+            {"guid": "no_end_time_single"},
+            {"guid": "matching"}
+        ]}
+        """
+        When we get "/events_planning_search?repo=events&only_future=false&time_zone=America/Toronto&start_date=2024-07-16T04:00:00"
+        Then we get list with 1 items
+        """
+        {"_items": [
+            {"guid": "all_day_multi"}
+        ]}
+        """

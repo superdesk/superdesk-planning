@@ -9,20 +9,21 @@ import {
     IEditorBookmark,
     IEditorFormGroup,
     IEventItem,
+    IPlanningAppState,
     IPlanningCoverageItem,
     IPlanningItem,
     IProfileSchemaTypeList,
 } from '../../interfaces';
 import {planningApi, superdeskApi} from '../../superdeskApi';
 
-import {generateTempId} from '../../utils';
+import {generateTempId, isTemporaryId} from '../../utils';
 import {getBookmarksFromFormGroups, getEditorFormGroupsFromProfile} from '../../utils/contentProfiles';
-import {TEMP_ID_PREFIX} from '../../constants';
 
 import {AddPlanningBookmark, AssociatedPlanningsBookmark} from '../../components/Editor/bookmarks';
 import {RelatedPlanningItem} from '../../components/fields/editor/EventRelatedPlannings/RelatedPlanningItem';
 import {convertEventToPlanningItem} from '../../actions';
-
+import {addRelatedPlannings} from '../../utils/planning';
+import {confirmAddingRelatedItems} from '../../utils/confirmAddingRelatedItems';
 
 export function getEventsInstance(type: EDITOR_TYPE): IEditorAPI['item']['events'] {
     function getGroupsForItem(_item: Partial<IEventItem>): {
@@ -37,7 +38,8 @@ export function getEventsInstance(type: EDITOR_TYPE): IEditorAPI['item']['events
             delete groups['related_plannings'];
         }
 
-        const canCreatePlanningItems = hasPrivilege('planning_planning_management');
+        const canCreatePlanningItems = hasPrivilege('planning_planning_management')
+            && isTemporaryId(_item._id) === false;
         const isRelatedPlanningReadOnly = (profile.schema.related_plannings as IProfileSchemaTypeList)?.read_only;
         const bookmarks = getBookmarksFromFormGroups(groups);
         let index = bookmarks.length;
@@ -64,60 +66,87 @@ export function getEventsInstance(type: EDITOR_TYPE): IEditorAPI['item']['events
         };
     }
 
-    function getRelatedPlanningDomRef(planId: IPlanningItem['_id']): RefObject<RelatedPlanningItem> {
-        const editor = planningApi.editor(type);
-        const field = `planning-item--${planId}`;
+    function getRelatedPlanningDomRef(planId: IPlanningItem['_id']): RefObject<HTMLDivElement> {
+        const embeddedEditorRef = planningApi.editor(type)
+            .dom.fields.related_plannings?.current as {relatedItemRefs: Array<RelatedPlanningItem>};
 
-        if (editor.dom.fields[field] == null) {
-            editor.dom.fields[field] = createRef();
-        }
-
-        return editor.dom.fields[field];
+        return Object.values(embeddedEditorRef.relatedItemRefs ?? [])
+            .find((x) => x != null && x.props.item._id === planId)?.containerNode;
     }
 
-    function addPlanningItem() {
+    function addPlanningItem(
+        item?: IPlanningItem,
+        options?: {
+            scrollIntoViewAndFocus?: boolean;
+        },
+    ): Promise<Partial<IPlanningItem>> {
         const editor = planningApi.editor(type);
         const event = editor.form.getDiff<IEventItem>();
         const plans = cloneDeep(event.associated_plannings || []);
-        const id = generateTempId();
 
-        const newPlanningItem: Partial<IPlanningItem> = {
-            _id: id,
-            ...convertEventToPlanningItem(event as IEventItem),
-        };
+        const newPlanningItem = (() => {
+            if (item == null) {
+                const newPlanningItem: Partial<IPlanningItem> = {
+                    _id: generateTempId(),
+                    ...convertEventToPlanningItem(event as IEventItem),
+                };
 
-        plans.push(newPlanningItem);
+                return newPlanningItem;
+            } else {
+                return item;
+            }
+        })();
 
-        editor.form.changeField('associated_plannings', plans)
-            .then(() => {
-                const node = getRelatedPlanningDomRef(id);
+        const state: IPlanningAppState = planningApi.redux.store.getState();
 
-                if (node.current != null) {
-                    node.current.scrollIntoView();
-                    editor.form.waitForScroll().then(() => {
-                        node.current.focus();
-                    });
-                }
-            });
+        const toAdd = [newPlanningItem as IPlanningItem];
+
+        const result = addRelatedPlannings(
+            event._id,
+            new Set(plans.map(({_id}) => _id)),
+            toAdd,
+            state.locks,
+        );
+
+        const toAddConfirmed = result.warnings.length > 0
+            ? confirmAddingRelatedItems(result.warnings, toAdd.length, result.canBeAdded.length)
+            : Promise.resolve();
+
+        return toAddConfirmed.then(() => {
+            for (const item of result.canBeAdded) {
+                plans.push(item.planning);
+            }
+
+            return editor.form.changeField('associated_plannings', plans)
+                .then(() => {
+                    if (options?.scrollIntoViewAndFocus ?? true) {
+                        const node = getRelatedPlanningDomRef(newPlanningItem._id);
+
+                        if (node?.current != null) {
+                            node.current.scrollIntoView();
+                            editor.form.waitForScroll().then(() => {
+                                node.current.focus();
+                            });
+                        }
+                    }
+
+                    return newPlanningItem;
+                });
+        });
     }
 
-    function removePlanningItem(item: DeepPartial<IPlanningItem>) {
-        if (!item._id.startsWith(TEMP_ID_PREFIX)) {
-            // We don't support removing existing Planning items
-            return;
-        }
-
+    function unlinkPlanning(item: DeepPartial<IPlanningItem>) {
         const editor = planningApi.editor(type);
         const event = editor.form.getDiff<IEventItem>();
         const plans = (event.associated_plannings || []).filter(
             (plan) => plan._id !== item._id
         );
 
-        editor.form.changeField('associated_plannings', plans)
+        return editor.form.changeField('associated_plannings', plans)
             .then(() => {
                 const lastPlan = plans[plans.length - 1];
 
-                getRelatedPlanningDomRef(lastPlan?._id).current?.scrollIntoView();
+                getRelatedPlanningDomRef(lastPlan?._id)?.current?.scrollIntoView?.();
             });
     }
 
@@ -143,18 +172,12 @@ export function getEventsInstance(type: EDITOR_TYPE): IEditorAPI['item']['events
         };
 
 
-        editor.form.changeField('associated_plannings', plans)
+        return editor.form.changeField('associated_plannings', plans)
             .then(() => {
                 if (scrollOnChange) {
-                    getRelatedPlanningDomRef(original._id).current?.scrollIntoView();
+                    getRelatedPlanningDomRef(original._id)?.current?.scrollIntoView?.();
                 }
             });
-    }
-
-    function addCoverageToWorkflow(original: IPlanningItem, coverage: IPlanningCoverageItem, index: number): void {
-        planningApi.planning.coverages.addCoverageToWorkflow(original, coverage, index).then((updatedPlan) => {
-            updatePlanningItem(original, updatedPlan, false);
-        });
     }
 
     function onEventDatesChanged(updates: Partial<IEventItem['dates']>) {
@@ -195,9 +218,8 @@ export function getEventsInstance(type: EDITOR_TYPE): IEditorAPI['item']['events
         getGroupsForItem,
         getRelatedPlanningDomRef,
         addPlanningItem,
-        removePlanningItem,
+        unlinkPlanning,
         updatePlanningItem,
         onEventDatesChanged,
-        addCoverageToWorkflow,
     };
 }

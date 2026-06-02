@@ -1,5 +1,5 @@
 import {get, set, map, cloneDeep, forEach, pickBy, includes, isEqual, pick, partition, sortBy, isNil} from 'lodash';
-import moment from 'moment-timezone';
+import moment, {isMoment} from 'moment-timezone';
 import {createStore as _createStore, applyMiddleware, compose} from 'redux';
 import thunkMiddleware from 'redux-thunk';
 import {createLogger} from 'redux-logger';
@@ -11,8 +11,13 @@ import {
     IPlanningCoverageItem,
     IIngestProvider,
     IFeaturedPlanningItem,
+    IEventItem,
+    IPlanningItem,
+    ICommonSearchParams,
+    JUMP_INTERVAL,
+    ICoverageScheduledUpdate,
 } from '../interfaces';
-import {IUser} from 'superdesk-api';
+import {IArticle, IUser} from 'superdesk-api';
 import {superdeskApi} from '../superdeskApi';
 
 import planningApp from '../reducers';
@@ -30,10 +35,11 @@ import {
     QUEUE_ITEM_PREFIX,
     FEATURED_PLANNING,
     TO_BE_CONFIRMED_FIELD,
+    INITIAL_STATE,
 } from '../constants';
 import * as testData from './testData';
 import {default as lockUtils} from './locks';
-import {default as planningUtils} from './planning';
+import {pickRelatedEventsForPlanning, default as planningUtils} from './planning';
 import {default as eventUtils} from './events';
 import {default as timeUtils} from './time';
 import {default as eventPlanningUtils} from './eventsplanning';
@@ -234,11 +240,15 @@ export const createStore = (params = {}, app = planningApp) => {
     }
 
     // return the store
-    return _createStore(
+    const _store = _createStore(
         app,
         initialState,
         _compose(applyMiddleware(...middlewares))
     );
+
+    _store.dispatch({type: INITIAL_STATE});
+
+    return _store;
 };
 
 /**
@@ -285,7 +295,7 @@ export const notifyError = (notify, error, defaultMessage) => {
  * @return {object} The user object found or ingest provider id, otherwise nothing is returned
  */
 export function getCreator(
-    item: IEventOrPlanningItem | IPlanningCoverageItem | IFeaturedPlanningItem,
+    item: IEventOrPlanningItem | IPlanningCoverageItem | IFeaturedPlanningItem | ICoverageScheduledUpdate | IArticle,
     creator: string,
     users: Array<IUser>
 ): IUser | IIngestProvider['id'] | undefined {
@@ -316,20 +326,6 @@ export const isItemPostponed = (item) => getItemWorkflowState(item) === WORKFLOW
 export const isExistingItem = (item, field = '_id') => !!get(item, field) && !item[field].startsWith(TEMP_ID_PREFIX);
 export const isTemporaryId = (itemId) => itemId && itemId.startsWith(TEMP_ID_PREFIX);
 export const isPublishedItemId = (itemId) => itemId && itemId.startsWith(QUEUE_ITEM_PREFIX);
-
-export const getItemActionedStateLabel = (item) => {
-    const {gettext} = superdeskApi.localization;
-
-    // Currently will cater for 'rescheduled from' scenario.
-    // If we need to use this for 'duplicate from' or any other, we can extend it
-    if (item.reschedule_from) {
-        return {
-            label: gettext('Rescheduled Event'),
-            iconType: 'primary',
-            tooltip: {text: gettext('View original event'), flow: 'right'},
-        };
-    }
-};
 
 // eslint-disable-next-line complexity
 export const getItemWorkflowStateLabel = (item, field = 'state') => {
@@ -446,12 +442,12 @@ export const isItemPosted = (item) => [POST_STATE.USABLE, POST_STATE.CANCELLED].
 export const isItemSpiked = (item) => item ?
     getItemWorkflowState(item) === WORKFLOW_STATE.SPIKED : false;
 
-export const isEvent = (item) => getItemType(item) === ITEM_TYPE.EVENT;
-export const isPlanning = (item) => getItemType(item) === ITEM_TYPE.PLANNING;
+export const isEvent = (item): item is IEventItem => getItemType(item) === ITEM_TYPE.EVENT;
+export const isPlanning = (item): item is IPlanningItem => getItemType(item) === ITEM_TYPE.PLANNING;
 export const isAssignment = (item) => getItemType(item) === ITEM_TYPE.ASSIGNMENT;
 export const isItemExpired = (item) => get(item, 'expired') || false;
 
-export const isItemReadOnly = (item, session, privileges, lockedItems, associatedEvent) => {
+export const isItemReadOnly = (item, session, privileges, lockedItems, associatedEvents: Array<IEventItem>) => {
     const existingItem = isExistingItem(item);
     const itemLock = lockUtils.getLock(item, lockedItems);
     const isLockRestricted = lockUtils.isLockRestricted(
@@ -471,7 +467,7 @@ export const isItemReadOnly = (item, session, privileges, lockedItems, associate
     } else if (itemType === ITEM_TYPE.PLANNING) {
         canEdit = planningUtils.canEditPlanning(
             item,
-            associatedEvent,
+            pickRelatedEventsForPlanning(item, associatedEvents, 'logic'),
             session,
             privileges,
             lockedItems
@@ -658,6 +654,14 @@ export function getDateTimeElasticFormat(date: moment.Moment | string, convertTo
     );
 }
 
+export function getCreatedStartDateElasticFormat(date: moment.Moment | string): string {
+    return getDateTimeElasticFormat(moment(date).startOf('day'));
+}
+
+export function getCreatedEndDateElasticFormat(date: moment.Moment | string): string {
+    return getDateTimeElasticFormat(moment(date).endOf('day'));
+}
+
 export const isEmptyActions = (actions) => {
     if (get(actions, 'length', 0) < 1) {
         return true;
@@ -675,9 +679,19 @@ export const onEventCapture = (event) => {
     }
 };
 
-export const isDateInRange = (inputDate, startDate, endDate) => {
+export const isDateInRange = (inputDate, startDate, endDate, allDay = false) => {
     if (!inputDate) {
         return false;
+    }
+
+    if (allDay) {
+        if (startDate && inputDate.isBefore(startDate, 'day') ||
+            endDate && inputDate.isAfter(endDate, 'day') // when allDay is true, endDate should be inclusive
+        ) {
+            return false;
+        }
+
+        return true;
     }
 
     if (startDate && moment(inputDate).isBefore(startDate, 'millisecond') ||
@@ -688,43 +702,63 @@ export const isDateInRange = (inputDate, startDate, endDate) => {
     return true;
 };
 
-export const getSearchDateRange = (currentSearch, startOfWeek) => {
-    const dates = get(currentSearch, 'advancedSearch.dates', {});
+interface IDateRange {
+    startDate: moment.Moment;
+    endDate: moment.Moment;
+}
+
+const INTERVAL_UNIT_MAPPING = {
+    [JUMP_INTERVAL.DAY]: 'day',
+    [JUMP_INTERVAL.WEEK]: 'week',
+    [JUMP_INTERVAL.MONTH]: 'month',
+};
+
+export const getSearchDateRange = (
+    currentSearch: ICommonSearchParams<any>,
+    startOfWeek: number,
+    viewInterval?: JUMP_INTERVAL,
+): IDateRange => {
+    const dates = currentSearch.advancedSearch?.dates ?? {};
     const dateRange = {startDate: null, endDate: null};
+    const jumpUnit = viewInterval ? INTERVAL_UNIT_MAPPING[viewInterval] : 'month';
 
-    if (!get(dates, 'start') && !get(dates, 'end') && !get(dates, 'range')) {
-        dateRange.startDate = moment(moment().format('YYYY-MM-DD'), 'YYYY-MM-DD', true);
-        dateRange.endDate = moment().add(999, 'years');
-    } else if (get(dates, 'range')) {
-        let range = get(dates, 'range');
+    if (dates.range) {
+        if (dates.range === MAIN.DATE_RANGE.TODAY) {
+            dateRange.startDate = moment().startOf('day');
+            dateRange.endDate = dateRange.startDate.clone()
+                .add(1, 'day');
+        } else if (dates.range === MAIN.DATE_RANGE.TOMORROW) {
+            const tomorrow = moment().add(1, 'day')
+                .startOf('day');
 
-        if (range === MAIN.DATE_RANGE.TODAY) {
-            dateRange.startDate = moment(moment().format('YYYY-MM-DD'), 'YYYY-MM-DD', true);
-            dateRange.endDate = dateRange.startDate.clone().add('86399', 'seconds');
-        } else if (range === MAIN.DATE_RANGE.TOMORROW) {
-            const tomorrow = moment().add(1, 'day');
-
-            dateRange.startDate = moment(tomorrow.format('YYYY-MM-DD'), 'YYYY-MM-DD', true);
+            dateRange.startDate = tomorrow;
             dateRange.endDate = tomorrow.clone().add('86399', 'seconds');
-        } else if (range === MAIN.DATE_RANGE.LAST_24) {
+        } else if (dates.range === MAIN.DATE_RANGE.LAST_24) {
             dateRange.endDate = moment();
             dateRange.startDate = dateRange.endDate.clone().subtract('86400', 'seconds');
-        } else if (range === MAIN.DATE_RANGE.THIS_WEEK) {
+        } else if (dates.range === MAIN.DATE_RANGE.THIS_WEEK) {
             dateRange.endDate = timeUtils.getStartOfNextWeek(null, startOfWeek);
             dateRange.startDate = dateRange.endDate.clone().subtract(7, 'days');
-        } else if (range === MAIN.DATE_RANGE.NEXT_WEEK) {
+        } else if (dates.range === MAIN.DATE_RANGE.NEXT_WEEK) {
             dateRange.endDate = timeUtils.getStartOfNextWeek(null, startOfWeek).add(7, 'days');
             dateRange.startDate = dateRange.endDate.clone().subtract(7, 'days');
         }
+    } else if (dates.start && dates.end) {
+        dateRange.startDate = moment(dates.start);
+        dateRange.endDate = moment(dates.end);
+    } else if (dates.start) {
+        dateRange.startDate = moment(dates.start);
+        dateRange.endDate = dateRange.startDate.clone().add(1, jumpUnit)
+            .subtract(1, 'second'); // remove 1s not to display additional day
+    } else if (dates.end) {
+        dateRange.endDate = moment(dates.end);
+        dateRange.startDate = dateRange.endDate.clone().subtract(1, jumpUnit);
     } else {
-        if (get(dates, 'start')) {
-            dateRange.startDate = moment(get(dates, 'start'));
-        }
-
-        if (get(dates, 'end')) {
-            dateRange.endDate = moment(get(dates, 'end'));
-        }
+        dateRange.startDate = moment().startOf('day');
+        dateRange.endDate = dateRange.startDate.clone().add(1, jumpUnit)
+            .subtract(1, 'second'); // remove 1s not to display additional day
     }
+
     return dateRange;
 };
 
@@ -778,12 +812,16 @@ export function generateTempId(): string {
  * @param {boolean} stripLockFields - Strip lock fields from the item
  * @return {object} Autosave item with fields stripped
  */
-export const removeAutosaveFields = (item, stripLockFields = false, keepTime = false) => {
+export const removeAutosaveFields = (item, stripLockFields = false, keepTime = false, keepRelatedEvents = false) => {
     let fieldsToKeep = ['_id', '_planning_item', TO_BE_CONFIRMED_FIELD];
     let fieldsToIgnore = [...AUTOSAVE.IGNORE_FIELDS];
 
     if (keepTime) {
         fieldsToKeep = [...fieldsToKeep, '_startTime', '_endTime'];
+    }
+
+    if (keepRelatedEvents) {
+        fieldsToKeep.push('_unsaved_related_events');
     }
 
     if (stripLockFields) {
@@ -855,12 +893,14 @@ export const itemsEqual = (nextItem, currentItem) => {
 
     get(lhs, 'coverages', []).forEach(
         (coverage) => {
+            delete coverage.planning._scheduledTime;
             formatDate(coverage, 'planning.scheduled');
         }
     );
 
     get(rhs, 'coverages', []).forEach(
         (coverage) => {
+            delete coverage.planning._scheduledTime;
             formatDate(coverage, 'planning.scheduled');
         }
     );
@@ -921,12 +961,36 @@ export const getTBCDateString = (event, separator = ' @ ', dateOnly = false) => 
     const dateFormat = appConfig.planning.dateformat;
     const TO_BE_CONFIRMED_SHORT_TEXT = gettext('TBC');
 
-    if (get(event.dates, 'start', moment()).isSame(get(event.dates, 'end', moment()), 'day')) {
-        return (get(event.dates, 'start').format(dateFormat) + ' @ ' + TO_BE_CONFIRMED_SHORT_TEXT);
+    const startConverted = event.dates?.start ? (() => {
+        const start = event.dates.start;
+
+        if (start != null && isMoment(start)) {
+            return start;
+        } else if (start != null && isMoment(start) === false) {
+            return moment(start);
+        }
+
+        return moment();
+    })() : undefined;
+
+    const endConverted = event.dates?.end ? (() => {
+        const end = event.dates.end;
+
+        if (end != null && isMoment(end)) {
+            return end;
+        } else if (end != null && isMoment(end) === false) {
+            return moment(end);
+        }
+
+        return moment();
+    })() : undefined;
+
+    if (startConverted.isSame(endConverted, 'day')) {
+        return (startConverted.format(dateFormat) + ' @ ' + TO_BE_CONFIRMED_SHORT_TEXT);
     }
 
-    return (get(event.dates, 'start').format(dateFormat) + ' @ ' + TO_BE_CONFIRMED_SHORT_TEXT) + ' - ' +
-        (get(event.dates, 'end').format(dateFormat) + ' @ ' + TO_BE_CONFIRMED_SHORT_TEXT);
+    return (startConverted.format(dateFormat) + ' @ ' + TO_BE_CONFIRMED_SHORT_TEXT) + ' - ' +
+        (endConverted.format(dateFormat) + ' @ ' + TO_BE_CONFIRMED_SHORT_TEXT);
 };
 
 

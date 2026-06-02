@@ -1,12 +1,12 @@
 import * as React from 'react';
 import {connect} from 'react-redux';
-import {cloneDeep, get, isEqual} from 'lodash';
+import {cloneDeep, get, isEqual, uniqBy} from 'lodash';
 
 import {appConfig} from 'appConfig';
 import {
     EDITOR_TYPE,
     IAgenda,
-    ICoverageScheduledUpdate,
+    ICoverageContentProfile,
     IEventItem,
     IFile,
     IFormItemManager,
@@ -16,6 +16,7 @@ import {
     IPlanningItem,
     IPlanningNewsCoverageStatus,
     ILockedItems,
+    ICoverageType,
 } from '../../../interfaces';
 import {IArticle, IDesk, IUser, IVocabularyItem} from 'superdesk-api';
 import {planningApi} from '../../../superdeskApi';
@@ -26,7 +27,7 @@ import {planningUtils, eventUtils, lockUtils} from '../../../utils';
 
 import {EditorForm} from '../../Editor/EditorForm';
 import {PlanningEditorHeader} from './PlanningEditorHeader';
-import {COVERAGES} from '../../../constants';
+import planningActions from '../../../actions/planning/api';
 
 interface IProps {
     original?: IPlanningItem;
@@ -40,13 +41,16 @@ interface IProps {
     submitFailed: boolean;
     itemManager: IFormItemManager;
 
-    event?: IEventItem;
+    event?: IEventItem; // TAG: MULTIPLE_PRIMARY_EVENTS
+    events?: Array<IEventItem>;
     addNewsItemToPlanning?: IArticle;
     inModalView: boolean;
     activeNav?: string;
     editorType: EDITOR_TYPE;
     showAllLanguages: boolean;
     language: IVocabularyItem['qcode'];
+
+    coverageProfilesMap: Record<ICoverageType, ICoverageContentProfile>;
 
     // State
     newsCoverageStatus: Array<IPlanningNewsCoverageStatus>;
@@ -55,7 +59,6 @@ interface IProps {
     user: IUser['_id'];
     contentTypes: Array<IG2ContentType>;
     defaultDesk?: IDesk;
-    preferredCoverageDesks: {[key: string]: string};
     files: Array<IFile>;
     lockedItems: ILockedItems;
 
@@ -74,8 +77,6 @@ interface IProps {
     fetchPlanningFiles(item: IPlanningItem): Promise<void>;
     uploadFiles(files: Array<Array<File>>): Promise<Array<IFile>>;
     removeFile(file: IFile): Promise<void>;
-    setCoverageDefaultDesk(coverage: IPlanningCoverageItem): void;
-    setCoverageAddAdvancedMode(enabled: boolean): Promise<void>;
 }
 
 interface IState {
@@ -83,12 +84,13 @@ interface IState {
 }
 
 const mapStateToProps = (state) => ({
+    coverageProfilesMap: selectors.coverageProfiles.getCoverageProfilesMap(state),
+    events: selectors.events.storedEvents(state),
     newsCoverageStatus: selectors.general.newsCoverageStatus(state),
     currentAgenda: selectors.planning.currentAgenda(state),
     desk: selectors.general.currentDeskId(state),
     user: selectors.general.currentUserId(state),
     defaultDesk: selectors.general.defaultDesk(state),
-    preferredCoverageDesks: get(selectors.general.preferredCoverageDesks(state), 'desks'),
     files: selectors.general.files(state),
     contentTypes: selectors.general.contentTypes(state),
     formProfile: selectors.forms.planningProfile(state),
@@ -97,11 +99,9 @@ const mapStateToProps = (state) => ({
 
 const mapDispatchToProps = (dispatch) => ({
     fetchEventFiles: (event) => dispatch(actions.events.api.fetchEventFiles(event)),
-    fetchPlanningFiles: (planning) => dispatch(actions.planning.api.fetchPlanningFiles(planning)),
-    uploadFiles: (files) => dispatch(actions.planning.api.uploadFiles({files: files})),
-    removeFile: (file) => dispatch(actions.planning.api.removeFile(file)),
-    setCoverageDefaultDesk: (coverage) => dispatch(actions.users.setCoverageDefaultDesk(coverage)),
-    setCoverageAddAdvancedMode: (advancedMode) => dispatch(actions.users.setCoverageAddAdvancedMode(advancedMode)),
+    fetchPlanningFiles: (planning) => dispatch(planningActions.fetchPlanningFiles(planning)),
+    uploadFiles: (files) => dispatch(planningActions.uploadFiles({files: files})),
+    removeFile: (file) => dispatch(planningActions.removeFile(file)),
 });
 
 class PlanningEditorComponent extends React.Component<IProps, IState> {
@@ -115,11 +115,6 @@ class PlanningEditorComponent extends React.Component<IProps, IState> {
         this.onCoverageChange = this.onCoverageChange.bind(this);
         this.onPlanningDateChange = this.onPlanningDateChange.bind(this);
         this.onTimeToBeConfirmed = this.onTimeToBeConfirmed.bind(this);
-        this.onDuplicateCoverage = this.onDuplicateCoverage.bind(this);
-        this.onCancelCoverage = this.onCancelCoverage.bind(this);
-        this.onAddCoverageToWorkflow = this.onAddCoverageToWorkflow.bind(this);
-        this.onAddScheduledUpdateToWorkflow = this.onAddScheduledUpdateToWorkflow.bind(this);
-        this.onRemoveAssignment = this.onRemoveAssignment.bind(this);
     }
 
     componentDidMount() {
@@ -153,61 +148,13 @@ class PlanningEditorComponent extends React.Component<IProps, IState> {
             this.props.fetchEventFiles(this.props.event);
         }
 
-        // No need for partial save features if the editor is in read-only mode
-        if (this.props.readOnly) {
-            return;
-        } else if (
+        if (
+            !this.props.readOnly &&
             this.props.addNewsItemToPlanning &&
             !this.props.itemExists &&
             this.props.diff?.coverages?.length === 0
         ) {
             this.handleAddToPlanningLoading();
-            return;
-        } else if (currentItemId !== prevItemId || this.props.submitting) {
-            return;
-        }
-
-        // If the assignment associated with the planning item are modified
-        const originalCoverages = prevProps.original?.coverages || [];
-        const updatedCoverages = this.props.original?.coverages || [];
-
-        if (!originalCoverages.length) {
-            return;
-        }
-
-        let updates: {[key: string]: any} = {};
-
-        originalCoverages.forEach((original) => {
-            // Push notification updates from 'assignment' workflow changes
-            const index = updatedCoverages.findIndex(
-                (c) => c.coverage_id === original.coverage_id
-            );
-            const covUpdates = index >= 0 ?
-                updatedCoverages[index] :
-                null;
-
-            if (covUpdates == null) {
-                return;
-            }
-
-            if (isEqual(covUpdates.assigned_to, original.assigned_to)) {
-                // If assignment has not changed
-                return;
-            }
-
-            updates[`coverages[${index}]`] = covUpdates;
-        });
-
-        if (prevProps.original?._etag != null &&
-            this.props.original?._etag != null &&
-            prevProps.original._etag !== this.props.original._etag
-        ) {
-            // Update the `_etag` if it has changed
-            updates._etag = this.props.original._etag;
-        }
-
-        if (Object.keys(updates).length) {
-            this.props.itemManager.finalisePartialSave(updates, false);
         }
     }
 
@@ -227,8 +174,8 @@ class PlanningEditorComponent extends React.Component<IProps, IState> {
                 this.props.addNewsItemToPlanning,
                 this.props.newsCoverageStatus,
                 this.props.desk,
-                this.props.addNewsItemToPlanning?.version_creator,
-                this.props.contentTypes
+                this.props.contentTypes,
+                this.props.coverageProfilesMap,
             );
 
             this.fillCurrentAgenda(updatedPlanning);
@@ -240,8 +187,8 @@ class PlanningEditorComponent extends React.Component<IProps, IState> {
                     this.props.addNewsItemToPlanning,
                     this.props.newsCoverageStatus,
                     this.props.desk,
-                    this.props.user,
-                    this.props.contentTypes
+                    this.props.contentTypes,
+                    this.props.coverageProfilesMap,
                 )
             );
         }
@@ -258,53 +205,8 @@ class PlanningEditorComponent extends React.Component<IProps, IState> {
         }
     }
 
-    onDuplicateCoverage(coverage: IPlanningCoverageItem, duplicateAs: IG2ContentType['qcode']) {
-        const coverages = planningUtils.duplicateCoverage(
-            this.props.diff,
-            coverage,
-            duplicateAs,
-            this.props.event
-        );
-
-        this.props.onChangeHandler('coverages', coverages);
-    }
-
     onCoverageChange(field: string, value: any, planningFormEdited: boolean = true) {
-        let valueToUpdate = value;
-
-        if (field.match(/^coverages\[/)) {
-            const {newsCoverageStatus} = this.props;
-            const coverage = value as IPlanningCoverageItem;
-
-            // If there is an assignment and coverage status not planned,
-            // change it to 'planned'
-            if (newsCoverageStatus.length > 0 &&
-                coverage?.news_coverage_status?.qcode !== newsCoverageStatus[0].qcode &&
-                coverage?.assigned_to?.desk != null
-            ) {
-                valueToUpdate = {
-                    ...coverage,
-                    news_coverage_status: this.props.newsCoverageStatus[0],
-                };
-            }
-
-            if (field.match(/g2_content_type$/) &&
-                value === 'text' &&
-                this.props.defaultDesk?._id != null
-            ) {
-                const coverageStr = field.substr(0, field.indexOf('.'));
-                let existingCoverage = {...get(this.props, `diff.${coverageStr}`)};
-
-                if (get(existingCoverage, 'assigned_to.desk') !== this.props.defaultDesk._id) {
-                    existingCoverage.planning.g2_content_type = value;
-                    this.assignCoverageToDefaultDesk(existingCoverage);
-                    this.props.onChangeHandler(coverageStr, existingCoverage);
-                    return;
-                }
-            }
-        }
-
-        this.props.onChangeHandler(field, valueToUpdate, planningFormEdited);
+        this.props.onChangeHandler(field, value, planningFormEdited);
 
         if (field === 'coverages') {
             // Flush the autosave so the Redux Store get's updated with the
@@ -314,123 +216,22 @@ class PlanningEditorComponent extends React.Component<IProps, IState> {
         }
     }
 
-    onPlanningDateChange(field, value) {
-        let changes: Partial<IPlanningItem> = {planning_date: value};
+    onPlanningDateChange(fieldOrValue: string | {[key: string]: any}, value?: any) {
+        if (typeof fieldOrValue === 'string') {
+            let changes: Partial<IPlanningItem> = {planning_date: value};
 
-        if (field.indexOf('.time') >= 0) {
-            changes._time_to_be_confirmed = false;
+            if (fieldOrValue.indexOf('.time') >= 0) {
+                changes._time_to_be_confirmed = false;
+            }
+
+            this.props.onChangeHandler(changes, null);
+        } else {
+            this.props.onChangeHandler(fieldOrValue, value);
         }
-
-        this.props.onChangeHandler(changes, null);
     }
 
     onTimeToBeConfirmed() {
         this.props.onChangeHandler('_time_to_be_confirmed', true);
-    }
-
-    assignCoverageToDefaultDesk(coverage: DeepPartial<IPlanningCoverageItem>) {
-        if (!Object.keys(coverage.assigned_to ?? {}).length) {
-            coverage.assigned_to = {desk: this.props.defaultDesk._id};
-        } else {
-            // TODO: Fix IDesk['members'] type in client-core
-            // @ts-ignore
-            const deskMembers = (this.props.defaultDesk?.members ?? []).map((m) => m.user);
-
-            coverage.assigned_to.desk = this.props.defaultDesk._id;
-
-            // If the user does not belong to default desk, remove the user
-            if (coverage.assigned_to.user && !deskMembers.includes(coverage.assigned_to.user)) {
-                coverage.assigned_to.user = null;
-            }
-        }
-    }
-
-    onCancelCoverage(
-        coverage: IPlanningCoverageItem,
-        index: number,
-        scheduledUpdate?: ICoverageScheduledUpdate,
-        scheduledUpdateIndex?: number
-    ) {
-        this.onPartialSave(
-            coverage,
-            index,
-            COVERAGES.PARTIAL_SAVE.CANCEL_COVERAGE,
-            scheduledUpdate,
-            scheduledUpdateIndex
-        );
-    }
-
-    onAddCoverageToWorkflow(coverage: IPlanningCoverageItem, index: number) {
-        this.onPartialSave(coverage, index, COVERAGES.PARTIAL_SAVE.ADD_TO_WORKFLOW);
-    }
-
-    onAddScheduledUpdateToWorkflow(
-        coverage: IPlanningCoverageItem,
-        coverageIndex: number,
-        scheduledUpdate: ICoverageScheduledUpdate,
-        index: number
-    ) {
-        this.onPartialSave(
-            coverage,
-            coverageIndex,
-            COVERAGES.PARTIAL_SAVE.SCHEDULED_UPDATES_ADD_TO_WORKFLOW,
-            scheduledUpdate,
-            index
-        );
-    }
-
-    onRemoveAssignment(
-        coverage: IPlanningCoverageItem,
-        index: number,
-        scheduledUpdate: ICoverageScheduledUpdate,
-        scheduledUpdateIndex: number
-    ) {
-        const forScheduledUpdate = get(scheduledUpdate, 'scheduled_update_id');
-        const toRemove = !forScheduledUpdate ? coverage : scheduledUpdate;
-
-        if (!get(toRemove, 'assigned_to.assignment_id')) {
-            // Non existing assignment, just remove from autosave
-            if (!forScheduledUpdate) {
-                this.onCoverageChange(`coverages[${index}].assigned_to`, {});
-            } else {
-                this.onCoverageChange(`coverages[${index}].scheduled_updates[${scheduledUpdateIndex}].assigned_to`, {});
-            }
-        } else {
-            delete toRemove.assigned_to;
-            this.onPartialSave(coverage, index, COVERAGES.PARTIAL_SAVE.REMOVE_ASSIGNMENT);
-        }
-    }
-
-    onPartialSave(
-        coverage: IPlanningCoverageItem,
-        index: number,
-        action: string,
-        scheduledUpdate?: ICoverageScheduledUpdate,
-        scheduledUpdateIndex?: number
-    ) {
-        const updates = cloneDeep(this.props.item);
-
-        updates.coverages[index] = coverage;
-
-        // Let the ItemEditor component know we're about to perform a partial save
-        // This is way the 'save' buttons are disabled while we perform our partial save
-        if (!this.props.itemManager.startPartialSave(updates)) {
-            return;
-        }
-
-        let partialSaveAction;
-
-        if (action === COVERAGES.PARTIAL_SAVE.ADD_TO_WORKFLOW) {
-            partialSaveAction = this.props.itemManager.addCoverageToWorkflow;
-        } else if (action === COVERAGES.PARTIAL_SAVE.REMOVE_ASSIGNMENT) {
-            partialSaveAction = this.props.itemManager.removeAssignment;
-        } else if (action == COVERAGES.PARTIAL_SAVE.CANCEL_COVERAGE) {
-            partialSaveAction = this.props.itemManager.cancelCoverage;
-        } else if (action == COVERAGES.PARTIAL_SAVE.SCHEDULED_UPDATES_ADD_TO_WORKFLOW) {
-            partialSaveAction = this.props.itemManager.addScheduledUpdateToWorkflow;
-        }
-
-        partialSaveAction(this.props.item, coverage, index, scheduledUpdate, scheduledUpdateIndex);
     }
 
     renderHeader() {
@@ -451,6 +252,21 @@ class PlanningEditorComponent extends React.Component<IProps, IState> {
                 1 :
                 (this.props.item?.coverages?.length ?? 0) + 1;
         }
+
+        const allRelatedEvents = uniqBy([
+            ...(this.props.diff._unsaved_related_events ?? []),
+            ...(this.props.diff.related_events ?? []),
+        ], (x) => x._id);
+
+        const fullEvents = allRelatedEvents.map((x) => {
+            const fromEventsResource = this.props.events[x._id];
+
+            if (fromEventsResource != null) {
+                return fromEventsResource;
+            }
+
+            return x;
+        });
 
         return (
             <EditorForm
@@ -499,7 +315,14 @@ class PlanningEditorComponent extends React.Component<IProps, IState> {
                         files: this.props.files,
                     },
                     associated_event: {
-                        event: this.props.event,
+                        updateEventItem: editor.item.planning.updateEventItem,
+                        unlinkEvent: editor.item.planning.unlinkEvent,
+                        field: 'related_events',
+                        events: fullEvents,
+                    },
+                    location: {
+                        enableExternalSearch: true,
+                        storeAsArray: true,
                     },
                     coverages: {
                         onChange: this.onCoverageChange,
@@ -507,18 +330,11 @@ class PlanningEditorComponent extends React.Component<IProps, IState> {
                         useLocalNavigation: !this.props.inModalView,
                         navigation: this.props.navigation,
                         maxCoverageCount: maxCoverageCount,
+                        disabled: this.props.readOnly,
                         addOnly: this.props.addNewsItemToPlanning != null,
                         originalCount: this.props.item?.coverages?.length ?? 0,
                         message: this.props.message,
-                        event: this.props.event,
-                        preferredCoverageDesks: this.props.preferredCoverageDesks,
-                        setCoverageDefaultDesk: this.props.setCoverageDefaultDesk,
-                        setCoverageAddAdvancedMode: this.props.setCoverageAddAdvancedMode,
-                        onDuplicateCoverage: this.onDuplicateCoverage,
-                        onCancelCoverage: this.onCancelCoverage,
-                        onAddCoverageToWorkflow: this.onAddCoverageToWorkflow,
-                        onAddScheduledUpdateToWorkflow: this.onAddScheduledUpdateToWorkflow,
-                        onRemoveAssignment: this.onRemoveAssignment,
+                        event: this.props.event, // TAG: MULTIPLE_PRIMARY_EVENTS
                         defaultValue: [],
                         files: this.props.files,
                         uploadFiles: this.props.uploadFiles,

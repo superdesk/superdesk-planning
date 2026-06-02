@@ -1,10 +1,6 @@
-import {get, isEmpty} from 'lodash';
-
-import {IVocabularyItem, ISubject} from 'superdesk-api';
-import {IEditorProfile, IProfileSchemaTypeList, IEventOrPlanningItem} from '../interfaces';
-import {planningApi} from '../superdeskApi';
-
+import {get, isDate, isEmpty} from 'lodash';
 import {gettext} from '../utils';
+import {isValid} from 'date-fns';
 
 export const formProfile = ({field, value, profile, errors, messages, diff}) => {
     // If the field is not enabled or no schema defined, then simply return
@@ -13,10 +9,9 @@ export const formProfile = ({field, value, profile, errors, messages, diff}) => 
     }
 
     const schema = get(profile, `schema.${field}`) || {};
-
     const fieldValue = (typeof value === 'string') ? value.trim() : value;
 
-    if (!schema.required && get(fieldValue, length, 0) < 1) {
+    if (!schema.required && typeof value === 'string' && get(fieldValue, length, 0) < 1) {
         return;
     }
 
@@ -32,6 +27,32 @@ export const formProfile = ({field, value, profile, errors, messages, diff}) => 
 
     fieldLabel = gettext(fieldLabel).toUpperCase();
 
+    const hasValidValue = (() => {
+        if (typeof fieldValue === 'number') {
+            return isNaN(fieldValue) === false;
+        } else if (isDate(fieldValue)) {
+            return isValid(fieldValue);
+        }
+
+        return isEmpty(fieldValue) === false;
+    })();
+
+    if (field == 'recurring_rules' && value.recurring_rule != null) {
+        if ((value.recurring_rule?.endRepeatMode === 'count' || value.recurring_rule?.endRepeatMode == null)
+            && value.recurring_rules?.count == null
+        ) {
+            errors[field] = gettext('Repeat must be set');
+            messages.push(gettext('Repeat must be set'));
+        }
+
+        if (value.recurring_rule?.endRepeatMode === 'until' && value.recurring_rule?.until == null) {
+            errors[field] = gettext('End date must be set');
+            messages.push(gettext('End date must be set'));
+        }
+
+        return;
+    }
+
     if (get(schema, 'maxlength', 0) > 0 && get(fieldValue, 'length', 0) > schema.maxlength) {
         if (get(schema, 'type', 'string') === 'list') {
             errors[field] = gettext('Too many {{ name }}', {name: field});
@@ -40,8 +61,7 @@ export const formProfile = ({field, value, profile, errors, messages, diff}) => 
             errors[field] = gettext('Too long');
             messages.push(gettext('{{ name }} is too long', {name: fieldLabel}));
         }
-    } else if (schema.required && !schema.multilingual && (
-        typeof fieldValue === 'number' ? !fieldValue : isEmpty(fieldValue))) {
+    } else if (schema.required && !schema.multilingual && !hasValidValue) {
         errors[field] = gettext('This field is required');
         messages.push(gettext('{{ name }} is a required field', {name: fieldLabel}));
     } else if (schema.required && schema.multilingual && field !== 'language') {
@@ -69,7 +89,7 @@ export const formProfile = ({field, value, profile, errors, messages, diff}) => 
         Object.keys(errors).forEach((fieldError) => {
             const [fieldName, lang] = fieldError.split('.');
 
-            if (fieldName === field && diff.languages.includes(lang)) {
+            if (fieldName === field && diff.languages?.includes(lang)) {
                 if (!missingLangs.includes(lang) && !emptyValues.some((obj) => obj.language === lang)) {
                     delete errors[fieldError];
                 }
@@ -90,39 +110,3 @@ export const formProfile = ({field, value, profile, errors, messages, diff}) => 
         delete errors[field];
     }
 };
-
-interface IValidateCustomCVArgs {
-    field: string;
-    value: undefined; // Value is `undefined`, as there is no field called `custom_vocabularies`
-    profile: IEditorProfile;
-    errors: {[field: string]: string};
-    messages: Array<string>;
-    diff: Partial<IEventOrPlanningItem>;
-}
-
-export function formProfileCustomVocabularies({field, value, profile, errors, messages, diff}: IValidateCustomCVArgs) {
-    const schema = profile.schema?.[field];
-
-    if (schema == null || schema.type !== 'list' || profile.editor[field]?.enabled !== true) {
-        return;
-    } else if (schema.required !== true || (schema.vocabularies || []).length === 0) {
-        return;
-    }
-
-    planningApi.vocabularies.getCustomVocabularies()
-        .filter((cv) => schema.vocabularies.includes(cv._id))
-        .forEach((cv) => {
-            const values = ((diff[cv.schema_field || 'subject'] || []) as Array<ISubject>).filter((item) => (
-                item.scheme === cv._id
-            ));
-            const fieldName = `custom_vocabularies.${cv._id}`;
-            const fieldLabel = cv.display_name.toUpperCase();
-
-            if (!values.length) {
-                errors[fieldName] = gettext('This field is required');
-                messages.push(gettext('{{ name }} is a required field', {name: fieldLabel}));
-            } else {
-                delete errors[fieldName];
-            }
-        });
-}

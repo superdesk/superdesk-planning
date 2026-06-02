@@ -1,20 +1,21 @@
 import {get, keyBy} from 'lodash';
 import {createSelector} from 'reselect';
 
-import {IAgenda, IPlanningAppState} from '../interfaces';
+import {IAgenda, IG2ContentType, IPlanningAppState, ISession} from '../interfaces';
 import {getEnabledAgendas, getDisabledAgendas, getItemInArrayById} from '../utils';
 import {ITEM_TYPE, COVERAGES, ASSIGNMENTS} from '../constants/index';
+import {Dictionary} from 'superdesk-api';
 
 export const currentWorkspace = (state) => get(state, 'workspace.currentWorkspace', null);
 export const ingestProviders = (state) => get(state, 'ingest.providers');
-export const privileges = (state) => get(state, 'privileges');
+export const privileges = (state): Dictionary<string, number> => get(state, 'privileges');
 export const users = (state) => get(state, 'users', []);
 export const keywords = (state) => get(state, 'vocabularies.keywords', []);
 export const newsCoverageStatus = (state) => get(state, 'vocabularies.newscoveragestatus', []);
 export const regions = (state) => get(state, 'vocabularies.regions', []);
 export const countries = (state) => get(state, 'vocabularies.countries', []);
 
-export const contentTypes = (state) => get(state, 'vocabularies.g2_content_type', []);
+export const contentTypes = (state: any): Array<IG2ContentType> => state?.vocabularies.g2_content_type ?? [];
 export const preferredVocabularies = (state) => get(state, 'session.userPreferences.cvs:preferred_items.value');
 
 export const currentDeskId = (state) => get(state, 'workspace.currentDeskId', null);
@@ -70,7 +71,7 @@ export const preferredCountry = createSelector(
     (vocab) => get(vocab, 'countries[0]', null)
 );
 
-export const session = (state) => get(state, 'session');
+export const session = (state): ISession => get(state, 'session');
 export const sessionId = (state) => get(state, 'session.sessionId');
 export const userPreferences = (state) => get(state, 'session.userPreferences') || {};
 export const defaultPlaceList = (state) => get(state, 'session.userPreferences.article:default:place.place', []);

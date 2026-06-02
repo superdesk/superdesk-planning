@@ -18,22 +18,22 @@ import {getVocabularyItemFieldTranslated} from '../../utils/vocabularies';
 import {getUserInterfaceLanguageFromCV} from '../../utils/users';
 
 import {Item, Column, Row, Border, ActionMenu} from '../UI/List';
-import {StateLabel, InternalNoteLabel} from '../../components';
+import {InternalNoteLabel} from '../../components';
 import {CoverageIcons} from './CoverageIcons';
-import {Label} from 'superdesk-ui-framework';
+import {Label} from 'superdesk-ui-framework/react';
 
 interface IProps {
     coverage: IPlanningCoverageItem;
     users: Array<IUser>;
     desks: Array<IDesk>;
-    itemActionComponent: React.ReactNode;
+    itemActionComponent?: React.ReactNode;
     contentTypes: Array<IG2ContentType>;
     isPreview?: boolean;
     active?: boolean;
     item: DeepPartial<IPlanningItem>;
     index: number;
     workflowStateReasonPrefix?: string;
-    showBackground: boolean;
+    showBackground?: boolean;
     shadow?: number;
     getContactById(contactId: IContactItem['_id']): Promise<IContactItem>;
     onClick?(): void;
@@ -47,7 +47,6 @@ interface IState {
     displayContentType?: string;
     coverageDateText?: string;
     internalNoteFieldPrefix?: string;
-    coverageInWorkflow?: boolean;
 }
 
 const mapStateToProps = (state) => ({
@@ -71,7 +70,6 @@ export class CoverageItemComponent extends React.Component<IProps, IState> {
             displayContentType: '',
             coverageDateText: '',
             internalNoteFieldPrefix: '',
-            coverageInWorkflow: false,
             addedToWorkflow: false,
         };
 
@@ -155,7 +153,6 @@ export class CoverageItemComponent extends React.Component<IProps, IState> {
             planningUtils.getCoverageDateTimeText(coverage);
 
         newState.internalNoteFieldPrefix = workflowStateReasonPrefix || `coverages[${index}]`;
-        newState.coverageInWorkflow = planningUtils.isCoverageInWorkflow(coverage);
         newState.coverageProvider = get(coverage, 'assigned_to.coverage_provider.name', '');
 
         this.setState(newState);
@@ -235,16 +232,29 @@ export class CoverageItemComponent extends React.Component<IProps, IState> {
                         showHeaderText={false}
                     />
                     {this.state.addedToWorkflow && (
-                        <div>
-                            <Label
-                                text={gettext('Added to workflow')}
-                                type="success"
-                            />
-                        </div>
+                        <Label
+                            text={gettext('Added to workflow')}
+                            type="success"
+                        />
                     )}
-                    <StateLabel
-                        item={this.state.coverageInWorkflow ? get(coverage, 'assigned_to', {}) : coverage}
-                        fieldName={this.state.coverageInWorkflow ? 'state' : 'workflow_status'}
+                    <Label
+                        text={this.props.coverage.workflow_status}
+                        style="hollow"
+                        type={(() => {
+                            const {coverage} = this.props;
+
+                            if (coverage.workflow_status === 'draft') {
+                                return 'default';
+                            } else if (coverage.workflow_status === 'assigned') {
+                                return 'primary';
+                            } else if (coverage.workflow_status === 'spiked') {
+                                return 'alert';
+                            } else if (coverage.workflow_status === 'active') {
+                                return 'success';
+                            } else {
+                                return 'warning';
+                            }
+                        })()}
                     />
                 </span>
             </Row>

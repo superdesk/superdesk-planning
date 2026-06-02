@@ -7,14 +7,18 @@ import {
     IEditorBookmark,
     IEditorFormGroup,
     IEditorState,
+    IEventItem,
     IEventOrPlanningItem,
     IFormAutosave,
     IFormItemManager,
+    IPlanningItem,
 } from '../../interfaces';
 import {planningApi} from '../../superdeskApi';
 
 import * as actions from '../../actions';
 import {editorSelectors} from '../../selectors/editors';
+import {convertEventDatesForTimezone} from '../../utils/events';
+import {convertPlanningDatesForTimezone} from '../../utils/planning';
 
 export function getEventsInstance(type: EDITOR_TYPE): IEditorAPI['events'] {
     function resetDom() {
@@ -94,32 +98,54 @@ export function getEventsInstance(type: EDITOR_TYPE): IEditorAPI['events'] {
     function registerFormComponents(newState: Partial<IEditorState>) {
         const editor = planningApi.editor(type);
         const parts = newState.diff.type === 'event' ?
-            editor.item.events.getGroupsForItem(newState.diff) :
-            editor.item.planning.getGroupsForItem(newState.diff);
+            editor.item.events.getGroupsForItem(newState.diff as Partial<IEventItem>) :
+            editor.item.planning.getGroupsForItem(newState.diff as Partial<IPlanningItem>);
 
         registerFormGroups(newState, parts.groups);
         registerFormBookmarks(newState, parts.bookmarks);
     }
 
     function setEventsPlanningsToAdd(newState: Partial<IEditorState>) {
+        const associatedPlannings = planningApi.editor(type).item.getAssociatedPlannings();
+
         if (newState.diff.type === 'event' && newState.diff.associated_plannings == null) {
-            newState.diff.associated_plannings = planningApi.editor(type).item.getAssociatedPlannings();
+            newState.diff.associated_plannings = associatedPlannings;
+        }
+
+        // needs to be set on initial values as well for correct computation of state.dirty
+        if (newState.initialValues.type === 'event' && newState.initialValues.associated_plannings == null) {
+            newState.initialValues.associated_plannings = associatedPlannings;
+        }
+    }
+
+    function setDatesAndTimesToItemTimezone(newState: Partial<IEditorState>) {
+        switch (newState.diff.type) {
+        case 'event':
+            // Make sure the Editor is using date/time fields in the timezone of the Event and not the browser
+            convertEventDatesForTimezone(newState.diff, newState.diff.dates.tz);
+            return;
+        case 'planning':
+            // Make sure the Editor is using UTC date/time if the Planning is `all_day`, otherwise leave as is
+            convertPlanningDatesForTimezone(newState.diff);
         }
     }
 
     function onOpenForCreate(newState: Partial<IEditorState>) {
         registerFormComponents(newState);
         setEventsPlanningsToAdd(newState);
+        setDatesAndTimesToItemTimezone(newState);
     }
 
     function onOpenForEdit(newState: Partial<IEditorState>) {
         registerFormComponents(newState);
         setEventsPlanningsToAdd(newState);
+        setDatesAndTimesToItemTimezone(newState);
     }
 
     function onOpenForRead(newState: Partial<IEditorState>) {
         registerFormComponents(newState);
         setEventsPlanningsToAdd(newState);
+        setDatesAndTimesToItemTimezone(newState);
     }
 
     function onOriginalChanged(item: IEventOrPlanningItem) {

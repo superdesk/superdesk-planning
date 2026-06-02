@@ -45,10 +45,13 @@ Feature: Coverage Content Profiles
             "xmp_file": {"enabled": false},
             "headline": {"enabled": false},
             "keyword": {"enabled": false},
-            "files": {"enabled": false},
-            "no_content_linking": {"enabled": false}
+            "files": {"enabled": false}
         },
         "schema": {
+            "add_coverage_to_workflow": {
+                "required": false,
+                "type": "boolean"
+            },
             "contact_info": {
                 "required": false,
                 "type": "string"
@@ -101,10 +104,6 @@ Feature: Coverage Content Profiles
                 "required": false,
                 "type": "dict"
             },
-            "no_content_linking": {
-                "required": false,
-                "type": "boolean"
-            },
             "scheduled_updates": {
                 "required": false,
                 "type": "list"
@@ -118,7 +117,7 @@ Feature: Coverage Content Profiles
     Given "planning_types"
     """
     [{
-        "_id": 1,
+        "_id": "coverage",
         "name": "coverage",
         "editor": {
             "language": {
@@ -129,31 +128,38 @@ Feature: Coverage Content Profiles
             "headline": {
                 "enabled": true,
                 "index": 3
-            }
+            },
+            "no_content_linking": {"enabled": true}
         },
         "schema": {
             "language": {"required": true},
-            "headline": {"required": true}
+            "headline": {"required": true},
+            "no_content_linking": {
+                "required": false,
+                "type": "boolean"
+            }
         }
     }]
     """
-    When we get "/planning_types"
+    When we get "/planning_types/coverage"
     Then we get existing resource
     """
-    {"_items": [{
+    {
         "name": "coverage",
         "editor": {
             "language": {
                 "enabled": true,
                 "index": 1
             },
-            "slugline": {
-                "enabled": false,
-                "index": 3
+            "g2_content_type": {
+                "enabled": true
             },
             "headline": {
                 "enabled": true,
                 "index": 3
+            },
+            "slugline": {
+                "enabled": false
             }
         },
         "schema": {
@@ -166,5 +172,129 @@ Feature: Coverage Content Profiles
                 "required": true
             }
         }
-    }]}
+    }
     """
+
+    @auth
+    Scenario: no_content_linking only available if PLANNING_LINK_UPDATES_TO_COVERAGES is enabled
+        # Test with default values
+        When we get "/planning_types"
+        Then we get existing resource
+        """
+        {"_items": [{
+            "name": "coverage",
+            "editor": {
+                "no_content_linking": "__no_value__"
+            },
+            "schema": {
+                "no_content_linking": "__no_value__"
+            }
+        }]}
+        """
+        Given config update
+        """
+        {"PLANNING_LINK_UPDATES_TO_COVERAGES": true}
+        """
+        When we get "/planning_types"
+        Then we get existing resource
+        """
+        {"_items": [{
+            "name": "coverage",
+            "editor": {
+                "no_content_linking": {"enabled": false}
+            },
+            "schema": {
+                "no_content_linking": {"required": false, "type": "boolean"}
+            }
+        }]}
+        """
+        # Now test with custom config
+        Given config update
+        """
+        {"PLANNING_LINK_UPDATES_TO_COVERAGES": false}
+        """
+        Given "planning_types"
+        """
+        [{
+            "_id": "coverage",
+            "name": "coverage",
+            "editor": {
+                "no_content_linking": {"enabled": true}
+            },
+            "schema": {
+                "no_content_linking": {"required": false, "type": "boolean"}
+            }
+        }]
+        """
+        When we get "/planning_types"
+        Then we get existing resource
+        """
+        {"_items": [{
+            "name": "coverage",
+            "editor": {
+                "no_content_linking": "__no_value__"
+            },
+            "schema": {
+                "no_content_linking": "__no_value__"
+            }
+        }]}
+        """
+        Given config update
+        """
+        {"PLANNING_LINK_UPDATES_TO_COVERAGES": true}
+        """
+        When we get "/planning_types"
+        Then we get existing resource
+        """
+        {"_items": [{
+            "name": "coverage",
+            "editor": {
+                "no_content_linking": {"enabled": true}
+            },
+            "schema": {
+                "no_content_linking": {"required": false, "type": "boolean"}
+            }
+        }]}
+        """
+
+    @auth
+    Scenario: Coverage profiles per type
+        Given empty "coverage_profiles"
+        When we post to "coverage_profiles"
+        """
+        {
+            "content_type": "text",
+            "editor": {
+                "language": {
+                    "enabled": true,
+                    "index": 1
+                },
+                "slugline": {"enabled": false},
+                "headline": {
+                    "enabled": true,
+                    "index": 3
+                },
+                "no_content_linking": {"enabled": true}
+            },
+            "schema": {
+                "language": {"required": true},
+                "headline": {"required": true},
+                "no_content_linking": {
+                    "required": false,
+                    "type": "boolean"
+                }
+            }
+        }
+        """
+        Then we get new resource
+        When we get "coverage_profiles"
+        Then we get list with 1 item
+
+        # SKIP (mongo indexes are not set)
+        #When we post to "coverage_profiles"
+        #"""
+        #{
+            #"content_type": "text"
+        #}
+        #"""
+        #Then we get error 409

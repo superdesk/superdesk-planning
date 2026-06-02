@@ -4,7 +4,7 @@
 [![Coverage Status](https://coveralls.io/repos/github/superdesk/superdesk-planning/badge.svg?branch=master)](https://coveralls.io/github/superdesk/superdesk-planning?branch=master)
 
 ## Overview
-This is a plugin for [superdesk](https://github.com/superdesk/superdesk).  
+This is a plugin for [superdesk](https://github.com/superdesk/superdesk).
 It allows to ingest and manage events, to create planning within agenda, and to link coverages to them.
 
 ## Table of contents
@@ -18,6 +18,7 @@ It allows to ingest and manage events, to create planning within agenda, and to 
     * [Planning](#planning-config)
     * [Assignments](#assignments-config)
     * [Authoring](#authoring-config)
+    * [Search Filters](#search-filters-config)
 * [Slack Integration](#slack-integration)
 * [Celery Tasks](#celery-tasks)
     * [Expire Items](#celery-tasks-expire-items)
@@ -26,13 +27,13 @@ It allows to ingest and manage events, to create planning within agenda, and to 
 * [Testing](#running-tests)
     * [Client](#tests-client)
     * [Server](#tests-server)
-    
+
 
 ## Installation
 In order for Superdesk to expose the Planning module, you must configure it in both the client and server config files.
 
 ### Install Client
-Add the dependency to your instance of superdesk.  
+Add the dependency to your instance of superdesk.
 In `superdesk/client/package.json` add `superdesk-planning` to the dependencies
 (replacing `#a79d428` with the specific commit you require):
 ```js
@@ -83,7 +84,7 @@ In `superdesk/server/requirements.txt` add `superdesk-planning` to the dependenc
 git+git://github.com/superdesk/superdesk-planning.git@a5b14c23e#egg=superdesk-planning
 ```
 
-Last thing you need to configure is to add `planning` to the list of installed apps.  
+Last thing you need to configure is to add `planning` to the list of installed apps.
 In `superdesk/server/settings.py` add the following:
 ```python
 INSTALLED_APPS.extend([
@@ -100,20 +101,21 @@ pip install -r requirements.txt
 ### Install for Development
 After performing the above steps, you can enable editing of your local copy for use with development.
 
-First you will need to clone the repo from GitHub.  
+First you will need to clone the repo from GitHub.
 In the root folder where your current superdesk folder is, run the following:
 ```
 git clone git@github.com:superdesk/superdesk-planning.git
 ```
 
 #### Client
-Running the following will link the superdesk-planning module in development mode:
-```
+To link this package into a Superdesk client, use [`npx link`](https://github.com/privatenumber/link):
+
+```sh
 cd superdesk/client
-npm install
-npm link ../../superdesk-planning
-cd ../..
+npx link /path/to/superdesk-planning
 ```
+
+A fresh `npm install` in the client will restore the published version.
 
 #### Server
 Run the following to install the python module in development mode:
@@ -187,6 +189,17 @@ Below sections include the config options that can be defined in settings.py.
       * language (includes `languages` if multilingual is enabled)
       * definition_short (copies to Planning item's `Description Text`)
       * priority
+* PLANNING_DUPLICATE_RETAIN_ASSIGNEE_DETAILS
+    * Default: False (the current behavior where assignee details are removed)
+    * If true, the `assigned_to` field (assignee details) is retained when duplicating planning items with coverages.
+* PLANNING_DUPLICATE_RETAIN_COVERAGE_STATUS
+    * Default: False (the current behavior where coverage status is reset to default)
+    * If true, the `news_coverage_status` field is retained when duplicating planning items with coverages.
+* PLANNING_MANUAL_NEWS_COVERAGE_STATUS
+    * Default: False
+    * If False, a Coverage's `news_coverage_status` will be set to Planned (`ncostat:int`) when a `Desk` is assigned to it,
+      or the Coverage is added to workflow.
+    * If True, a Coverage's `news_coverage_status` will only be changed when a user changes the value.
 
 ### Assignments Config
 * SLACK_BOT_TOKEN
@@ -201,6 +214,9 @@ Below sections include the config options that can be defined in settings.py.
 * PLANNING_JSON_ASSIGNED_INFO_EXTENDED
     * Defaults to `false`
     * If `true`, it will add to planning JSON output additional info for coverages like assigned desk name/email and assigned user name/email.
+* ASSIGNMENT_MANUAL_REASSIGNMENT_ONLY
+    * Default: False (preserves the current behavior where automatic user assignment occurs)
+    * If true, Disables automatic user assignment for coverage, ensuring that assignments are updated only through explicit manual reassignment
 
 ### Authoring Config
 * PLANNING_CHECK_FOR_ASSIGNMENT_ON_PUBLISH
@@ -221,6 +237,179 @@ Below sections include the config options that can be defined in settings.py.
     * If this option is not defined, or is an empty array, then all content types can be linked
     * Otherwise only the content types in the list are allowed to be linked to a coverage
     * This includes fulfilment of an Assignment
+* ASSIGNMENT_LINK_DUPLICATE_CONTENT
+    * Default to false
+    * When duplicating content that is linked to an Assignment with multiple content enabled,
+    * this setting determines whether the newly created duplicate item retains the Assignment link (if true)
+    * or removes the assignment_id from the duplicate item (if false).
+
+### Search Filters Config
+
+The search filters in the Planning module can be configured using the `planning_types` resource, using a document
+with an `_id` of `advanced_search`.
+
+Managing this config is currently not available from the front-end, but instead can be managed using the
+`data/planning_types.json` file in the application github repo.
+
+Extract of an example `data/planning_types.json` file:
+```json
+{
+    "_id": "advanced_search",
+    "name": "advanced_search",
+    "init_version": 1,
+    "schema": {},
+    "editor": {
+        "event": {
+            "full_text": {
+                "enabled": true,
+                "index": 1,
+                "group": "common",
+                "search_enabled": false,
+                "filter_enabled": true
+            }
+        },
+        "planning": {
+            "slugline": {
+                "enabled": true,
+                "index": 1,
+                "group": "common",
+                "search_enabled": true,
+                "filter_enabled": true
+            }
+        },
+        "combined": {
+            "anpa_category": {
+                "enabled": true,
+                "index": 2,
+                "group": "vocabularies",
+                "search_enabled": true,
+                "filter_enabled": true
+            }
+        },
+        "assignments": {
+            "user": {
+                "enabled": true,
+                "index": 8,
+                "group": "planning"
+            }
+        }
+    }
+}
+```
+
+#### Field Attributes
+Each field defined in the config have the following attributes:
+* `enabled`
+* `index` - The position of this field in the filters panel
+* `group` - The group to place this field with, can be one of:
+  * `"no_group"` _(Will be placed at the top of the filters panel, without a group box)_
+  * `"common"`
+  * `"vocabularies"`
+  * `"states"`
+  * `"dates"`
+  * `"events"`
+  * `"planning"`
+  * `"details"`
+* `search_enabled` - If enabled, this field will be available in the `Advanced filters` panel
+* `filter_enabled` - If enabled, this field will be available in the `Events & Planning Filters` modal
+
+> [!NOTE]
+> The group name must be one of the provided options above, custom group names are not supported.
+> This is so that we can provide translations for these group names in the front-end for different user
+> languages.
+
+> [!NOTE]
+> `"search_enabled"` and `"filter_enabled"` attributes are not supported for the Assignment filter config.
+
+#### Available Filter Fields:
+The following table outlines the available fields, and for which filter panel they're supported in.
+
+| Field                             | Events  | Planning | Combined | Assignments |
+|-----------------------------------|:-------:|:--------:|:--------:|:-----------:|
+| full_text                         | &check; | &check;  | &check;  |             |
+| name                              | &check; | &check;  | &check;  |             |
+| slugline                          | &check; | &check;  | &check;  |   &check;   |
+| langauge                          | &check; | &check;  | &check;  |   &check;   |
+| anpa_category                     | &check; | &check;  | &check;  |   &check;   |
+| place                             | &check; | &check;  | &check;  |             |
+| subject                           | &check; | &check;  | &check;  |   &check;   |
+| state                             | &check; | &check;  | &check;  |             |
+| posted                            | &check; | &check;  | &check;  |             |
+| spike_state                       | &check; | &check;  | &check;  |             |
+| include_killed                    | &check; | &check;  | &check;  |             |
+| lock_state                        | &check; | &check;  | &check;  |             |
+| source                            | &check; | &check;  | &check;  |             |
+| start_date                        | &check; | &check;  | &check;  |             |
+| end_date                          | &check; | &check;  | &check;  |             |
+| date_filter                       | &check; | &check;  | &check;  |             |
+| calendars                         | &check; |          | &check;  |             |
+| no_calendar_assigned              | &check; |          |          |             |
+| reference                         | &check; |          | &check;  |             |
+| location                          | &check; |          |          |             |
+| exclude_rescheduled_and_cancelled |         | &check;  |          |             |
+| agendas                           |         | &check;  | &check;  |             |
+| no_agenda_assigned                |         | &check;  |          |             |
+| no_coverage                       |         | &check;  |          |             |
+| g2_content_type                   |         | &check;  |          |             |
+| urgency                           |         | &check;  |          |             |
+| coverage_assignment_status        |         | &check;  |          |             |
+| ad_hoc_planning                   |         | &check;  |          |             |
+| featured                          |         | &check;  |          |             |
+| include_scheduled_updates         |         | &check;  |          |             |
+| user                              |         |          |          |   &check;   |
+| content_type                      |         |          |          |   &check;   |
+| assignment_priority               |         |          |          |   &check;   |
+| multiple_content                  |         |          |          |   &check;   |
+| priority                          |         |          |          |   &check;   |
+| genre                             |         |          |          |   &check;   |
+
+#### Custom Vocabulary & Custom Text Filters
+
+Custom vocabulary and custom text fields can be added to the filter panels.
+This can be achieved by using the `_id` of the vocabulary you would like to add.
+
+Example: Add a custom vocabulary with `_id` of `topics` to the Events filter panel
+```json
+{
+    "_id": "advanced_search",
+    "name": "advanced_search",
+    "init_version": 1,
+    "schema": {},
+    "editor": {
+        "event": {
+            "topics": {
+                "enabled": true,
+                "index": 1,
+                "group": "common",
+                "search_enabled": true,
+                "filter_enabled": true
+            }
+        }
+    }
+}
+```
+
+Example: Add a custom text field with `_id` of `sttregistrationinfo` to Assignments filter panel
+```json
+{
+    "_id": "advanced_search",
+    "name": "advanced_search",
+    "init_version": 1,
+    "schema": {},
+    "editor": {
+        "assignments": {
+            "sttregistrationinfo": {
+                "enabled": true,
+                "index": 1,
+                "group": "common"
+            }
+        }
+    }
+}
+```
+
+> [!NOTE]
+> Custom text field filters is currently only supported in the Assignments filters panel.
 
 ### Development tools config
 
@@ -242,7 +431,7 @@ There are a couple of steps to take to enable slack for assignment notifications
     * `SLACK USERNAME` in the `Overview` of each user
 
 ## Celery Tasks
-The following are celery tasks configured to perform periodic tasks specific to Planning. 
+The following are celery tasks configured to perform periodic tasks specific to Planning.
 
 ### Celery Tasks: Expire Items
 There is a Celery Task to expire items after a configured amount of time.
@@ -326,7 +515,6 @@ To run the same tests that is used in Travis, run the following:
 ```
 cd superdesk-planning
 make test
-cd ..
 ```
 
 Or you can run them individually as below.
@@ -336,21 +524,37 @@ Code Style
 ```
 cd superdesk-planning
 npm run hint
-cd ..
 ```
 
 Unit Tests
 ```
 cd superdesk-planning
-npm run unit_test
+npm test
+```
+
+Run tests with verbose output
+```
+cd superdesk-planning
+npm test --reporter=verbose
+```
+
+Run tests for specific files
+```
+cd superdesk-planning
+npm test --file=AddToPlanningController
 cd ..
 ```
 
-Coverage Report
+Combine options (verbose + specific file)
 ```
 cd superdesk-planning
-npm run coveralls
-cd ..
+npm test --reporter=verbose --file=AddToPlanningController
+```
+
+Debug tests in Chrome browser
+```
+cd superdesk-planning
+npm run debug_unit_tests
 ```
 
 ### Tests: Server

@@ -1,14 +1,12 @@
 import React from 'react';
 import {connect} from 'react-redux';
-import {get, forEach} from 'lodash';
+import {get, forEach, partition} from 'lodash';
 import moment from 'moment';
-
 import {appConfig} from 'appConfig';
-import {superdeskApi, planningApi} from '../../../superdeskApi';
-import {IArticle, IDesk, IVocabularyItem} from 'superdesk-api';
+import {planningApi, superdeskApi} from '../../../superdeskApi';
+import {Dictionary, IArticle, IDesk, IVocabularyItem} from 'superdesk-api';
 import {
     EDITOR_TYPE,
-    ICoverageFormProfile,
     ICoverageScheduledUpdate,
     IPlanningCoverageItem,
     IPlanningItem,
@@ -17,28 +15,30 @@ import {
     IGenre,
     IKeyword,
     IFile,
+    ICoverageType,
+    IPlanningContentProfile,
+    IProfileSchemaTypeList,
 } from '../../../interfaces';
-
 import * as selectors from '../../../selectors';
-import * as actions from '../../../actions';
-import {planningUtils, generateTempId, assignmentUtils} from '../../../utils';
-
+import {planningUtils, generateTempId, assignmentUtils, isItemExpired} from '../../../utils';
 import {WORKFLOW_STATE} from '../../../constants';
 import {EditorFieldSelect} from '../../fields/editor/base/select';
-import {getUsersDefaultLanguage} from '../../../utils/users';
 import {renderFieldsForPanel} from '../../fields';
+import {getCoverageFields} from '../../../api/editor/item_planning';
+import {coverageProfiles} from '../../../selectors/coverageProfiles';
 
 import '../style.scss';
+import {VOCABULARIES_TO_BE_EXCLUDED} from '../../../utils/contentProfiles';
+import {isCustomVocabulary} from '../../../helpers';
+import {isCoverageAssigned, isCoverageDraft} from '../../../utils/planning';
 
-interface IProps {
-    // Values
+interface IOwnProps {
     field: string;
     value: IPlanningCoverageItem;
-    readOnly: boolean;
+    disabled: boolean;
     message: string | {[key: string]: any};
     item: IPlanningItem;
     diff: Partial<IPlanningItem>;
-    formProfile: ICoverageFormProfile;
     errors: {[key: string]: any}
     showErrors: boolean;
     hasAssignment: boolean;
@@ -49,41 +49,27 @@ interface IProps {
     includeScheduledUpdates?: boolean;
     editorType: EDITOR_TYPE;
     language: IVocabularyItem['qcode'];
+    coverages: Array<IPlanningCoverageItem>;
+    profile: IPlanningContentProfile;
 
     // Functions
     onChange(field: string, value: any): void;
-    popupContainer(): HTMLElement;
     onFieldFocus(): void;
     onPopupOpen(): void;
     onPopupClose(): void;
-    onRemoveAssignment(
-        coverage: IPlanningCoverageItem,
-        index: number,
-        scheduledUpdate: any,
-        scheduledUpdateIndex: number
-    ): void;
-    onCancelCoverage(
-        coverage: IPlanningCoverageItem,
-        index: number,
-        scheduledUpdate?: ICoverageScheduledUpdate,
-        scheduledUpdateIndex?: number
-    ): void;
     uploadFiles(files: Array<Array<File>>): Promise<Array<IFile>>;
-    createUploadLink(file: IFile): void;
+    createUploadLink?(file: IFile): void;
     removeFile(file: IFile): Promise<void>;
-    notifyValidationErrors(errors: Array<string>): void;
+    notifyValidationErrors?(errors: Array<string>): void;
+}
 
-    // Redux States
+interface IReduxStateProps {
     newsCoverageStatus: Array<IPlanningNewsCoverageStatus>;
     contentTypes: Array<IG2ContentType>;
     languages: Array<string>;
     genres: Array<IGenre>;
     keywords: Array<IKeyword>;
     preferredCoverageDesks: {[key: string]: string};
-    planningAllowScheduledUpdates: boolean;
-
-    // Redux Dispatches
-    setCoverageDefaultDesk(coverage: IPlanningCoverageItem): void;
 }
 
 interface IState {
@@ -98,13 +84,9 @@ const mapStateToProps = (state) => ({
     genres: state.genres,
     keywords: selectors.general.keywords(state),
     preferredCoverageDesks: selectors.general.preferredCoverageDesks(state)?.desks ?? {},
-    planningAllowScheduledUpdates: selectors.forms.getPlanningAllowScheduledUpdates(state),
-    formProfile: selectors.forms.coverageProfile(state),
 });
 
-const mapDispatchToProps = (dispatch) => ({
-    setCoverageDefaultDesk: (coverage) => dispatch(actions.users.setCoverageDefaultDesk(coverage)),
-});
+type IProps = IOwnProps & IReduxStateProps;
 
 export class CoverageFormComponent extends React.Component<IProps, IState> {
     fullFilePath: string;
@@ -128,14 +110,19 @@ export class CoverageFormComponent extends React.Component<IProps, IState> {
         this.onAddXmpFile = this.onAddXmpFile.bind(this);
         this.onRemoveXmpFile = this.onRemoveXmpFile.bind(this);
         this.onContentTypeChange = this.onContentTypeChange.bind(this);
+        this.toggleAddToWorkflow = this.toggleAddToWorkflow.bind(this);
+        this.onAnpaCategoryChange = this.onAnpaCategoryChange.bind(this);
+
         this.dom = {
             contentType: React.createRef(),
             popupContainer: null,
         };
+
         this.state = {
             openScheduledUpdates: [],
             uploading: false,
         };
+
         this.fullFilePath = 'planning.files';
         this.xmpFullFilePath = 'planning.xmp_file';
     }
@@ -147,8 +134,10 @@ export class CoverageFormComponent extends React.Component<IProps, IState> {
     }
 
     onChange(field: string, value: any) {
-        this.props.onChange(
-            `${this.props.field}.${field}`,
+        const {onChange, index} = this.props;
+
+        onChange(
+            `coverages.${index}.${field}`,
             value
         );
     }
@@ -163,52 +152,28 @@ export class CoverageFormComponent extends React.Component<IProps, IState> {
 
     onScheduleChanged(field: string, newValue: moment.Moment) {
         const {value, onChange, index} = this.props;
-        const hasSchedule = value?.planning?.scheduled != null;
-        let finalValue = newValue;
-        let fieldStr: string;
-        let relatedFieldStr: string;
 
-        // We will be updating scheduled and _scheduledTime together
-        // relatedFieldStr will be '_scheduledTime' if date gets changed and vice versa
-        // Update time only if date is already set
-        if (field.endsWith('.date')) {
-            fieldStr = field.slice(0, -5);
-            relatedFieldStr = field.replace('scheduled.date', '_scheduledTime');
-            // If there is no current scheduled date, then set the time value to end of the day
-            if (!get(value, 'planning.scheduled')) {
-                finalValue = newValue.add(1, 'hour').startOf('hour');
-                relatedFieldStr = null;
-            }
-        } else if (field.endsWith('._scheduledTime')) {
-            // If there is no current scheduled date, then set the date to today
-            relatedFieldStr = field.replace('_scheduledTime', 'scheduled');
-            fieldStr = field;
+        if (field.includes('scheduled_updates')) {
+            // Handles scheduled updates `field` might look like `scheduled_updates[0].schedule.time`,
+            // we now support date and time in a single field
+            const preparedField = `coverages.${0}.${field.replace('.time', '').replace('.date', '')}`;
 
-            this.onChange('_time_to_be_confirmed', false);
-
-            if (!get(value, 'planning.scheduled')) {
-                finalValue = moment().hour(newValue.hour())
-                    .minute(newValue.minute());
-            } else {
-                // Set the date from the original date
-                finalValue = moment(value.planning.scheduled)
-                    .clone()
-                    .hour(newValue.hour())
-                    .minute(newValue.minute());
-            }
+            onChange(preparedField, newValue);
         } else {
-            this.onChange(field, newValue);
-            return;
-        }
-
-        this.onChange(fieldStr, finalValue);
-        if (relatedFieldStr) {
-            this.onChange(relatedFieldStr, finalValue);
+            onChange(`coverages.${index}`,
+                {
+                    ...value,
+                    planning: {
+                        ...value.planning,
+                        scheduled: newValue,
+                    },
+                } satisfies IPlanningCoverageItem,
+            );
         }
     }
 
     onAddScheduledUpdate() {
-        let defaultScheduledUpdate = {
+        const defaultScheduledUpdate: any = {
             coverage_id: get(this.props, 'value.coverage_id'),
             scheduled_update_id: generateTempId(),
             planning: {
@@ -265,7 +230,7 @@ export class CoverageFormComponent extends React.Component<IProps, IState> {
         const {gettext} = superdeskApi.localization;
 
         if (get(fileList, 'length', 0) > 1) {
-            this.props.notifyValidationErrors([gettext('You can associate only one XMP file')]);
+            this.props.notifyValidationErrors?.([gettext('You can associate only one XMP file')]);
             return;
         }
 
@@ -279,7 +244,7 @@ export class CoverageFormComponent extends React.Component<IProps, IState> {
         });
 
         if (error) {
-            this.props.notifyValidationErrors([gettext('Only one XMP files are accepted')]);
+            this.props.notifyValidationErrors?.([gettext('Only one XMP files are accepted')]);
             return;
         }
 
@@ -295,7 +260,7 @@ export class CoverageFormComponent extends React.Component<IProps, IState> {
         const changeFullFilePath = xmpFile ? this.xmpFullFilePath : this.fullFilePath;
 
         this.setState({uploading: true});
-        return this.props.uploadFiles(files)
+        return this.props.uploadFiles?.(files)
             .then((newFiles) => {
                 const value = xmpFile ? get(newFiles, '[0]._id') :
                     [
@@ -321,23 +286,96 @@ export class CoverageFormComponent extends React.Component<IProps, IState> {
         promise.then(() => this.onChange(changeFullFilePath, value));
     }
 
-    onContentTypeChange(field: string, value: IG2ContentType['qcode']) {
-        if (this.props.value.planning?.g2_content_type !== value) {
-            this.onChange(field, value);
-            this.onChange('planning.genre', null);
+    onContentTypeChange(_field: string, value: ICoverageType) {
+        if (this.props.value.planning?.g2_content_type == value) {
+            return;
         }
+
+        const withoutUpdated = this.props.coverages.filter((x) => x.coverage_id !== this.props.value.coverage_id);
+        const allProfiles = coverageProfiles(planningApi.redux.store.getState());
+        const profile = allProfiles.find((x) => x.content_type === value);
+
+        this.props.onChange(
+            'coverages',
+            [
+                ...withoutUpdated,
+                {
+                    ...this.props.value,
+                    planning: {
+                        ...this.props.value.planning,
+                        g2_content_type: value,
+                        genre: null,
+                    },
+                    profile: profile._id,
+                },
+            ],
+        );
+    }
+
+    toggleAddToWorkflow() {
+        const {vocabulary} = superdeskApi.entities;
+        const coverageStatuses = vocabulary
+            .getAll()
+            .get('newscoveragestatus').items as Array<IPlanningNewsCoverageStatus>;
+        const updatedCoverage = planningUtils.addCoverageToWorkflow(this.props.value, coverageStatuses);
+        const coveragesWithoutUpdated =
+            this.props.coverages.filter((x) => x.coverage_id !== updatedCoverage.coverage_id);
+        const {workflow_status, news_coverage_status, assigned_to, add_coverage_to_workflow} = updatedCoverage;
+
+        if (updatedCoverage.add_coverage_to_workflow) {
+            this.props.onChange(
+                'coverages',
+                [
+                    ...coveragesWithoutUpdated,
+                    {
+                        ...this.props.value,
+                        workflow_status: workflow_status,
+                        news_coverage_status: news_coverage_status,
+                        assigned_to: {
+                            ...assigned_to,
+                            state: assigned_to.state,
+                        },
+                        add_coverage_to_workflow: add_coverage_to_workflow,
+                    },
+                ],
+            );
+        } else {
+            planningApi.coverages.cancelCoverage(this.props.coverages, this.props.value)
+                .then((nextCoverages) => {
+                    this.props.onChange('coverages', nextCoverages);
+                });
+        }
+    }
+
+    onAnpaCategoryChange(_field, nextValue?: Array<IVocabularyItem>) {
+        const coveragesWithoutUpdates =
+            this.props.coverages.filter((x) => x.coverage_id !== this.props.value.coverage_id);
+
+        this.props.onChange(
+            'coverages',
+            [
+                ...coveragesWithoutUpdates,
+                {
+                    ...this.props.value,
+                    planning: {
+                        ...this.props.value.planning,
+                        anpa_category: (nextValue ?? []).map((x) => ({qcode: x.qcode, name: x.name})),
+                    },
+                },
+            ],
+        );
     }
 
     render() {
         const contentTypeQcode = this.props.value.planning?.g2_content_type;
+        const {searchProfile, profile} = getCoverageFields(contentTypeQcode);
+
         const defaultGenre = (appConfig.default_genre || [{}])[0];
         const showXmpFileInput = planningUtils.showXMPFileUIControl(this.props.value);
         const hideXmpFileInput = this.props.value.planning?.xmp_file != null;
-        const editor = planningApi.editor(this.props.editorType);
-
         const readOnlyFields = planningUtils.getCoverageReadOnlyFields(
             this.props.value,
-            this.props.readOnly,
+            this.props.disabled,
             this.props.newsCoverageStatus,
             this.props.addNewsItemToPlanning
         );
@@ -346,19 +384,59 @@ export class CoverageFormComponent extends React.Component<IProps, IState> {
             language: this.props.value.planning?.language ?? this.props.language,
             onChange: this.onChange,
             errors: this.props.errors,
-            readOnly: this.props.readOnly,
-            disabled: this.props.readOnly,
-            profile: this.props.formProfile,
+            readOnly: this.props.disabled,
+            disabled: this.props.disabled,
+            profile: profile,
             editorType: this.props.editorType,
         };
-        const fieldProps = {
+
+        const allVocabularies = superdeskApi.entities.vocabulary.getAll().toArray();
+        const [_, restOfVocabularies] = partition(
+            allVocabularies,
+            (vocabulary) => vocabulary?.field_type === 'text'
+        );
+
+        const customCVFields = restOfVocabularies
+            .filter((x) =>
+                !VOCABULARIES_TO_BE_EXCLUDED.has(x._id)
+                && isCustomVocabulary(x),
+            )
+            .reduce((prev, curr) => ({
+                ...prev,
+                [curr._id]: {
+                    field: curr._id,
+                    storageField: 'planning.subject',
+                }
+            }), {});
+
+        const textFieldConfigs = Object.keys(profile.schema)
+            .filter((field) => profile.schema[field]?.type === 'custom_text')
+            .reduce((prev, field) => ({
+                ...prev,
+                [field]: {
+                    field: field,
+                    storageField: 'planning.fields',
+                    valueStoredAsArray: true,
+                },
+            }), {});
+
+        const allProfiles = coverageProfiles(planningApi.redux.store.getState());
+        const coverageProfile = allProfiles.find((x) => x._id === this.props.value.profile);
+
+        const fieldProps: Dictionary<keyof IPlanningCoverageItem, any> = {
+            ...customCVFields,
+            ...textFieldConfigs,
             contact_info: {
                 field: 'planning.contact_info',
                 assignmentField: 'assigned_to.contact',
                 label: assignmentUtils.getContactLabel(this.props.value),
             },
+            anpa_category: {
+                field: 'planning.anpa_category',
+                onChange: this.onAnpaCategoryChange,
+            },
             g2_content_type: {
-                readOnly: this.props.readOnly || readOnlyFields.g2_content_type,
+                readOnly: this.props.disabled || readOnlyFields.g2_content_type,
                 field: 'planning.g2_content_type',
                 onChange: this.onContentTypeChange,
                 clearable: false,
@@ -370,7 +448,7 @@ export class CoverageFormComponent extends React.Component<IProps, IState> {
                 clearable: false,
             },
             xmp_file: {
-                readOnly: this.props.readOnly || readOnlyFields.xmp_file,
+                readOnly: this.props.disabled || readOnlyFields.xmp_file,
                 field: 'planning.xmp_file',
                 enabled: showXmpFileInput,
                 hideInput: hideXmpFileInput,
@@ -380,57 +458,69 @@ export class CoverageFormComponent extends React.Component<IProps, IState> {
                 onRemoveFile: this.onRemoveXmpFile,
             },
             genre: {
-                readOnly: this.props.readOnly || readOnlyFields.genre,
+                readOnly: this.props.disabled || readOnlyFields.genre,
                 field: 'planning.genre',
                 defaultValue: contentTypeQcode === 'text' ? defaultGenre : null,
                 clearable: true,
             },
             slugline: {
-                readOnly: this.props.readOnly || readOnlyFields.slugline,
+                readOnly: this.props.disabled || readOnlyFields.slugline,
                 field: 'planning.slugline',
             },
             headline: {
-                readOnly: this.props.readOnly || readOnlyFields.headline,
+                readOnly: this.props.disabled || readOnlyFields.headline,
                 field: 'planning.headline',
             },
             ednote: {
-                readOnly: this.props.readOnly || readOnlyFields.ednote,
+                readOnly: this.props.disabled || readOnlyFields.ednote,
                 field: 'planning.ednote',
             },
+            location: {
+                readOnly: this.props.disabled || readOnlyFields.location,
+                enableExternalSearch: !(this.props.disabled || readOnlyFields.location),
+                field: 'planning.location',
+                storeAsArray: true,
+            },
             keyword: {
-                readOnly: this.props.readOnly || readOnlyFields.keyword,
+                readOnly: this.props.disabled || readOnlyFields.keyword,
                 field: 'planning.keyword',
             },
             internal_note: {
-                readOnly: this.props.readOnly || readOnlyFields.internal_note,
+                readOnly: this.props.disabled || readOnlyFields.internal_note,
                 field: 'planning.internal_note',
             },
             files: {
-                readOnly: this.props.readOnly || readOnlyFields.files,
+                readOnly: this.props.disabled || readOnlyFields.files,
                 field: 'planning.files',
                 uploadFiles: this.props.uploadFiles,
                 removeFile: this.props.removeFile,
                 files: this.props.files,
             },
+            multiple_content: {
+                disabled: this.props.disabled
+                    ?? (coverageProfile?.schema?.['multiple_content'] as IProfileSchemaTypeList)?.read_only
+                    ?? false,
+                field: 'planning.multiple_content',
+                defaultValue: (coverageProfile?.schema?.['multiple_content'] as IProfileSchemaTypeList)?.default_value,
+            },
             news_coverage_status: {
-                readOnly: this.props.readOnly || readOnlyFields.newsCoverageStatus,
+                readOnly: this.props.disabled || readOnlyFields.newsCoverageStatus,
                 field: 'news_coverage_status',
             },
             scheduled: {
-                readOnly: this.props.readOnly || readOnlyFields.scheduled,
+                readOnly: this.props.disabled || readOnlyFields.scheduled,
                 field: 'planning.scheduled',
-                timeField: 'planning._scheduledTime',
+                timeField: 'planning.scheduled',
                 toBeConfirmed: this.props.value?._time_to_be_confirmed,
                 onToBeConfirmed: this.onTimeToBeConfirmed,
                 onChange: this.onScheduleChanged,
+                canClearTime: false,
             },
             no_content_linking: {
-                readOnly: this.props.readOnly || readOnlyFields.flags,
+                readOnly: this.props.disabled || readOnlyFields.flags,
                 field: 'flags.no_content_linking',
             },
             scheduled_updates: {
-                onRemoveAssignment: this.props.onRemoveAssignment,
-                setCoverageDefaultDesk: this.props.setCoverageDefaultDesk,
                 onRemoveScheduledUpdate: this.onRemoveScheduledUpdate,
                 onScheduleChanged: this.onScheduleChanged,
                 onScheduledUpdateClose: this.onScheduledUpdateClose,
@@ -440,7 +530,6 @@ export class CoverageFormComponent extends React.Component<IProps, IState> {
                     this.props.addNewsItemToPlanning == null &&
                     !get(this.props.diff, `${this.props.field}.flags.no_content_linking`)
                 ),
-                onCancelCoverage: this.props.onCancelCoverage,
                 index: this.props.index,
                 openScheduledUpdates: this.state.openScheduledUpdates,
                 planning: this.props.diff,
@@ -448,28 +537,63 @@ export class CoverageFormComponent extends React.Component<IProps, IState> {
                     this.props.includeScheduledUpdates &&
                     this.props.value.planning?.g2_content_type === 'text'
                 ),
+                scheduledUpdates: this.props.value.scheduled_updates ?? [],
+                canClearTime: false,
             },
             priority: {field: 'planning.priority'},
         };
 
-        const profile = editor.item.planning.getCoverageFields();
+        const isAutoAddToWorkflowOn = appConfig.planning_auto_assign_to_workflow;
+        const shouldDisableToggle = () => {
+            const {value, diff} = this.props;
+
+            return this.props.disabled
+                || !(isCoverageDraft(value) && isCoverageAssigned(value) && !isItemExpired(diff));
+        };
+
+        fieldProps.add_coverage_to_workflow = {
+            onChange: this.toggleAddToWorkflow,
+            planningItem: this.props.item,
+
+            /**
+             * A coverage can be added to workflow if it is in draft state,
+             * is assigned and the associated planning item is not expired.
+             */
+            disabled: shouldDisableToggle(),
+        };
+
+        /**
+         * `editor.dom.fields` aren't being passed anymore because we no longer have access to it
+         * after decoupling this component from `IEditorAPI`.
+         */
+        const editorDomFields = {};
+
+        /**
+         * If auto add to workflow is off, show the field, and make sure it's always first in the editor
+         */
+        if (!isAutoAddToWorkflowOn) {
+            searchProfile['add_coverage_to_workflow'] = {
+                enabled: true,
+                index: -1,
+            };
+        }
 
         return (
             <div className="coverage-editor">
                 {renderFieldsForPanel(
                     'editor',
-                    profile,
+                    searchProfile,
                     globalProps,
                     fieldProps,
                     null,
                     null,
                     'enabled',
-                    editor.dom.fields,
-                    this.props.formProfile.schema
+                    editorDomFields,
+                    profile.schema,
                 )}
             </div>
         );
     }
 }
 
-export const CoverageForm = connect(mapStateToProps, mapDispatchToProps)(CoverageFormComponent);
+export const CoverageForm = connect<IReduxStateProps, {}, IOwnProps>(mapStateToProps)(CoverageFormComponent);

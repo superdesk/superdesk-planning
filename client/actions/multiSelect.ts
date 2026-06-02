@@ -1,14 +1,17 @@
+import moment from 'moment';
+
 import {appConfig} from 'appConfig';
+import {planningApi, superdeskApi} from '../superdeskApi';
+import {IEventOrPlanningItem} from '../interfaces';
 
 import * as selectors from '../selectors';
-import {get} from 'lodash';
-import moment from 'moment';
+import {MULTISELECT, ITEM_TYPE, MODALS, PERSONAL_WORKSPACE} from '../constants';
+
+import {getItemType, getItemInArrayById, getErrorMessage} from '../utils';
+
 import {showModal} from './index';
-import {MULTISELECT, ITEM_TYPE, MODALS} from '../constants';
 import eventsUi from './events/ui';
 import planningUi from './planning/ui';
-import {getItemType, gettext, getItemInArrayById, getErrorMessage, lockUtils} from '../utils';
-import {planningApi} from '../superdeskApi';
 
 /**
  * Action Dispatcher to select an/all Event(s)
@@ -41,7 +44,8 @@ const selectEvents = (eventId, all = false, multi = false, name = '') => (
 
         return dispatch({
             type: MULTISELECT.ACTIONS.SELECT_EVENT,
-            payload: {eventId: eventId,
+            payload: {
+                eventId: eventId,
                 name: name,
             },
         });
@@ -89,7 +93,8 @@ const selectPlannings = (planningId, all = false, multi = false, name = '') => (
 
         return dispatch({
             type: MULTISELECT.ACTIONS.SELECT_PLANNING,
-            payload: {planningId: planningId,
+            payload: {
+                planningId: planningId,
                 name: name,
             },
         });
@@ -112,6 +117,7 @@ const deSelectPlannings = (planningId, all = false) => (
 // Bulk actions on items
 const itemBulkSpikeModal = (items) => (
     (dispatch) => {
+        const {gettext} = superdeskApi.localization;
         const itemType = getItemType(items[0]);
         const itemSpikeDispatch = itemType === ITEM_TYPE.EVENT ?
             eventsUi.spike : planningUi.spike;
@@ -131,6 +137,7 @@ const itemBulkSpikeModal = (items) => (
 
 const itemBulkUnSpikeModal = (items) => (
     (dispatch) => {
+        const {gettext} = superdeskApi.localization;
         const itemType = getItemType(items[0]);
         const itemUnSpikeDispatch = itemType === ITEM_TYPE.EVENT ?
             eventsUi.unspike : planningUi.unspike;
@@ -156,7 +163,7 @@ const downloadEvents = (url, data) => {
     req.responseType = 'blob';
     req.setRequestHeader('Content-Type', 'application/json;charset=UTF-8');
 
-    req.onload = function(event) {
+    req.onload = (event) => {
         var blob = req.response;
         var fileName = '';
 
@@ -188,51 +195,20 @@ const bulkAddPlanningCoveragesToWorkflow = (items) => (
         }))
 );
 
-const exportAsArticle = (items = [], download) => (
-    (dispatch, getState, {api, notify, gettext, superdesk, $location, $interpolate, desks}) => {
-        if (get(items, 'length', 0) <= 0) {
+const exportAsArticle = (items: Array<IEventOrPlanningItem>, download: boolean = false) => (
+    (dispatch, getState, {api, desks}) => {
+        const {gettext} = superdeskApi.localization;
+        const {notify} = superdeskApi.ui;
+
+        const selectedItems = items.filter(
+            (item) => item.type === 'event' || item.flags.marked_for_not_publication !== true
+        );
+
+        if (selectedItems.length === 0) {
+            notify.warning(gettext('No items selected.'));
             return Promise.resolve;
         }
 
-        const itemType = getItemType(items[0]);
-        const isPlanning = itemType === ITEM_TYPE.PLANNING;
-        const state = getState();
-        const sortableItems = [];
-        const label = (item) => item.headline || item.slugline || item.description_text || item.name;
-        const locks = selectors.locks.getLockedItems(state);
-
-        items.forEach((item) => {
-            const isLocked = lockUtils.isItemLocked(item, locks);
-            const isNotForPublication = get(item, 'flags.marked_for_not_publication');
-
-            if (isLocked || isNotForPublication) {
-                return;
-            }
-
-            sortableItems.push({
-                ...item,
-                label: label(item),
-            });
-        });
-
-        if (sortableItems.length < items.length) {
-            const count = items.length - sortableItems.length;
-
-            if (count === 1) {
-                notify.warning(gettext('1 item was not included in the export.'));
-            } else {
-                const message = gettext('{{ count }} items were not included in the export.');
-
-                notify.warning($interpolate(message)({count}));
-            }
-        }
-
-        if (!sortableItems.length) { // nothing to sort, stop
-            return;
-        }
-
-        const templates = isPlanning ? selectors.general.getPlanningExportTemplates(getState()) :
-            selectors.general.getEventExportTemplates(getState());
         const exportArticlesDispatch = (items, desk, template, type, download, articleTemplate) => {
             const itemIds = items.map((item) => item._id);
 
@@ -241,7 +217,7 @@ const exportAsArticle = (items = [], download) => (
                 let queryString = `${appConfig.server.url}/planning_download/events?tz=${timeZoneOffsetSecs}`;
 
                 if (template) {
-                    queryString = `${queryString}&template=${template}`;
+                    queryString += `&template=${template}`;
                 }
 
                 downloadEvents(queryString, itemIds);
@@ -250,7 +226,7 @@ const exportAsArticle = (items = [], download) => (
                 return Promise.resolve();
             } else {
                 return api.save('planning_article_export', {
-                    desk: desk === 'personal-workspace' ? null : desk,
+                    desk: desk === PERSONAL_WORKSPACE._id ? null : desk,
                     items: itemIds,
                     template: template,
                     type: type,
@@ -261,8 +237,7 @@ const exportAsArticle = (items = [], download) => (
                             button: {
                                 label: gettext('Open'),
                                 onClick: () => {
-                                    $location.url('/workspace/monitoring');
-                                    superdesk.intent('edit', 'item', item);
+                                    superdeskApi.ui.article.edit(item._id);
                                 },
                             },
                         });
@@ -283,28 +258,16 @@ const exportAsArticle = (items = [], download) => (
                     });
             }
         };
-        const personalWorkspace = {_id: 'personal-workspace', name: 'Personal Workspace'};
-        const articleTemplates = getState().templates;
-        const defaultDesk = getItemInArrayById(selectors.general.userDesks(getState()), desks.getCurrentDeskId())
-            || personalWorkspace;
+        const defaultDeskId = desks.getCurrentDeskId() ?? PERSONAL_WORKSPACE._id;
 
         return dispatch(showModal({
             modalType: MODALS.EXPORT_AS_ARTICLE,
             modalProps: {
-                items: sortableItems,
+                items: selectedItems,
                 action: exportArticlesDispatch,
-                desks: [...selectors.general.userDesks(getState()), personalWorkspace],
-                templates: templates.filter((t) => download ? t.download : !t.download),
-                defaultTemplate: templates.find((t) =>
-                    (isPlanning && t.name === 'default_planning') || (!isPlanning && t.name === 'default_event')),
-                defaultDesk: defaultDesk,
-                type: itemType,
+                defaultDeskId: defaultDeskId,
+                type: selectedItems[0].type,
                 download: download,
-                articleTemplates: articleTemplates,
-                defaultArticleTemplate: articleTemplates.find((t) =>
-                    t._id === get(defaultDesk, 'default_content_template')) || articleTemplates[0],
-                exportListFields: selectors.forms.exportListFields(getState()),
-                agendas: selectors.general.agendas(state),
             },
         }));
     }

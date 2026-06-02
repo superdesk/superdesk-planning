@@ -1,5 +1,5 @@
 import {superdeskApi} from '../../../superdeskApi';
-import {IPlanningCoverageItem, IPlanningItem} from '../../../interfaces';
+import {IPlanningCoverageItem} from '../../../interfaces';
 
 import {IPreviewHocOptions, previewHoc} from './base/PreviewHoc';
 import {PreviewSimpleListItem} from './base/PreviewSimpleListItem';
@@ -148,6 +148,14 @@ const fieldOptions: {[key: string]: IPreviewHocOptions} = {
     },
     start_date: {
         props: () => ({label: superdeskApi.localization.gettext('From')}),
+        getValue: getDateTimeValue,
+    },
+    created_start_date: {
+        props: () => ({label: superdeskApi.localization.gettext('Created From')}),
+        getValue: getDateTimeValue,
+    },
+    created_end_date: {
+        props: () => ({label: superdeskApi.localization.gettext('Created To')}),
         getValue: getDateTimeValue,
     },
     subject: {

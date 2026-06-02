@@ -1,5 +1,4 @@
 import React from 'react';
-import PropTypes from 'prop-types';
 import {connect} from 'react-redux';
 
 import {get} from 'lodash';
@@ -12,9 +11,51 @@ import {PreviewContentTab, PreviewHeader} from './index';
 import {Tabs} from '../../UI/Nav';
 import {SidePanel, Header, Tools, Content} from '../../UI/SidePanel';
 import {ITEM_TYPE, TOOLTIPS} from '../../../constants';
+import {
+    IEventItem,
+    IPlanningItem,
+    IEventOrPlanningItem,
+    ILockedItems,
+    IPreviewTool,
+    IPrivileges,
+    ISession,
+    IPreviewTab,
+} from '../../../interfaces';
 
-export class PreviewPanelComponent extends React.Component {
-    constructor(props) {
+interface IPreviewPanelProps {
+    item?: IEventOrPlanningItem;
+    itemId?: string;
+    itemType?: string;
+    previewLoading?: boolean;
+    inPlanning?: boolean;
+    loadPreviewItem?: (itemId: string, itemType: string) => void;
+    edit: (item: IEventOrPlanningItem, modal?: boolean) => void;
+    closePreview?: () => void;
+    initialLoad?: boolean;
+    showUnlock?: boolean;
+    hideItemActions?: boolean;
+    hideEditIcon?: boolean;
+    session?: ISession;
+    privileges?: IPrivileges;
+    lockedItems?: ILockedItems;
+    hideRelatedItems?: boolean;
+    hideHistory?: boolean;
+}
+
+interface IPreviewPanelState {
+    tab: number;
+}
+
+export class PreviewPanelComponent extends React.Component<IPreviewPanelProps, IPreviewPanelState> {
+    tools: Array<IPreviewTool>;
+    tabs: Array<IPreviewTab>;
+    dom: {panel: HTMLElement | null};
+
+    static defaultProps: Partial<IPreviewPanelProps> = {
+        initialLoad: false
+    };
+
+    constructor(props: IPreviewPanelProps) {
         super(props);
         this.state = {tab: 0};
 
@@ -23,9 +64,9 @@ export class PreviewPanelComponent extends React.Component {
 
         this.tools = [
             {
-                icon: 'icon-close-small',
+                icon: 'close-small',
                 onClick: (event) => {
-                    this.props.closePreview();
+                    this.props.closePreview?.();
 
                     document.dispatchEvent(
                         new CustomEvent(
@@ -60,11 +101,11 @@ export class PreviewPanelComponent extends React.Component {
 
     componentDidMount() {
         if (this.props.itemId && this.props.itemType) {
-            this.props.loadPreviewItem(this.props.itemId, this.props.itemType);
+            this.props.loadPreviewItem?.(this.props.itemId, this.props.itemType);
         }
     }
 
-    componentWillReceiveProps(nextProps) {
+    componentWillReceiveProps(nextProps: IPreviewPanelProps) {
         if (get(nextProps, 'initialLoad') && this.props.initialLoad !== nextProps.initialLoad) {
             this.setActiveTab(0);
         }
@@ -77,7 +118,7 @@ export class PreviewPanelComponent extends React.Component {
         if (nextProps.itemId !== null && nextProps.itemId !== this.props.itemId) {
             // Using setTimeout allows the PreviewPanel to clear before displaying the new item
             setTimeout(() => {
-                this.props.loadPreviewItem(nextProps.itemId, nextProps.itemType);
+                this.props.loadPreviewItem?.(nextProps.itemId!, nextProps.itemType!);
             }, 0);
         }
 
@@ -85,33 +126,37 @@ export class PreviewPanelComponent extends React.Component {
             gettext('Event Details') :
             gettext('Planning Details');
 
-        if (!this.props.hideEditIcon && get(nextProps, 'item')) {
-            if ((nextProps.itemType === ITEM_TYPE.EVENT && eventUtils.canEditEvent(
-                nextProps.item,
+        if (!this.props.hideEditIcon && nextProps.item != null) {
+            const isEditableEvent = (nextProps.itemType === ITEM_TYPE.EVENT) && eventUtils.canEditEvent(
+                nextProps.item as IEventItem,
                 nextProps.session,
                 nextProps.privileges,
                 nextProps.lockedItems
-            )) || (nextProps.itemType === ITEM_TYPE.PLANNING) && planningUtils.canEditPlanning(
-                nextProps.item,
+            );
+
+            const isEditablePlanningItem = (nextProps.itemType === ITEM_TYPE.PLANNING) && planningUtils.canEditPlanning(
+                nextProps.item as IPlanningItem,
                 null,
                 nextProps.session,
                 nextProps.privileges,
                 nextProps.lockedItems
-            )) {
-                if (this.tools[0].icon !== 'icon-pencil') {
+            );
+
+            if (isEditableEvent || isEditablePlanningItem) {
+                if (this.tools[0].icon !== 'pencil') {
                     this.tools.unshift(
                         {
-                            icon: 'icon-pencil',
+                            icon: 'pencil',
                             onClick: this.openEditPanel.bind(this, false),
                             title: gettext(TOOLTIPS.edit),
                         },
                         {
-                            icon: 'icon-external',
+                            icon: 'external',
                             onClick: this.openEditPanel.bind(this, true),
                             title: gettext(TOOLTIPS.editModal),
                         });
                 }
-            } else if (this.tools[0].icon === 'icon-pencil') {
+            } else if (this.tools[0].icon === 'pencil') {
                 this.tools.shift();
                 this.tools.shift();
             }
@@ -119,10 +164,10 @@ export class PreviewPanelComponent extends React.Component {
     }
 
     openEditPanel(modal = false) {
-        this.props.edit(this.props.item, modal);
+        this.props.edit(this.props.item!, modal);
     }
 
-    setActiveTab(tab) {
+    setActiveTab(tab: number) {
         this.setState({tab});
     }
 
@@ -136,6 +181,7 @@ export class PreviewPanelComponent extends React.Component {
                 className="content"
                 shadowRight={true}
                 bg00={true}
+                style={{insetBlockStart: 0}}
             >
                 <Header darkBlue={isEvent} darker={!isEvent}>
                     <Tools tools={this.tools} />
@@ -171,28 +217,6 @@ export class PreviewPanelComponent extends React.Component {
     }
 }
 
-PreviewPanelComponent.propTypes = {
-    item: PropTypes.object,
-    itemId: PropTypes.string,
-    itemType: PropTypes.string,
-    previewLoading: PropTypes.bool,
-    inPlanning: PropTypes.bool,
-    loadPreviewItem: PropTypes.func,
-    edit: PropTypes.func.isRequired,
-    closePreview: PropTypes.func,
-    initialLoad: PropTypes.bool,
-    showUnlock: PropTypes.bool,
-    hideItemActions: PropTypes.bool,
-    hideEditIcon: PropTypes.bool,
-    session: PropTypes.object,
-    privileges: PropTypes.object,
-    lockedItems: PropTypes.object,
-    hideRelatedItems: PropTypes.bool,
-    hideHistory: PropTypes.bool,
-};
-
-PreviewPanelComponent.defaultProps = {initialLoad: false};
-
 const mapStateToProps = (state) => ({
     item: selectors.main.getPreviewItem(state),
     itemId: selectors.main.previewId(state),
@@ -204,12 +228,9 @@ const mapStateToProps = (state) => ({
 });
 
 const mapDispatchToProps = (dispatch) => ({
-    loadPreviewItem: (itemId, itemType) => dispatch(actions.main.loadItem(itemId, itemType, 'preview')),
-    edit: (item, modal = false) => dispatch(actions.main.openForEdit(item, !modal, modal)),
+    loadPreviewItem: (itemId: string, itemType: string) => dispatch(actions.main.loadItem(itemId, itemType, 'preview')),
+    edit: (item: IEventItem | IPlanningItem, modal = false) => dispatch(actions.main.openForEdit(item, !modal, modal)),
     closePreview: () => dispatch(actions.main.closePreview()),
 });
 
-export const PreviewPanel = connect(
-    mapStateToProps,
-    mapDispatchToProps
-)(PreviewPanelComponent);
+export const PreviewPanel = connect(mapStateToProps, mapDispatchToProps)(PreviewPanelComponent);

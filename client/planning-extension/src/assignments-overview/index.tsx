@@ -8,9 +8,9 @@ import {
     IUser,
     IVocabulary,
 } from 'superdesk-api';
-import {IAssignmentItem} from '../../../interfaces';
+import {ASSIGNMENT_STATE, IAssignmentItem} from '../../../interfaces';
 import {superdesk} from '../superdesk';
-import {Badge} from 'superdesk-ui-framework';
+import {Badge} from 'superdesk-ui-framework/react';
 import {AssignmentsOverviewListItem} from './assignments-overview-list-item';
 
 const DropdownTree = superdesk.components.getDropdownTree<IAssignmentItem>();
@@ -27,16 +27,16 @@ interface IState {
     currentUser: IUser;
 }
 
-function getAssignmentsQuery(userId: IUser['_id']): ISuperdeskQuery {
+export function getAssignmentsQuery(userId: IUser['_id'], assignmentToState: Array<ASSIGNMENT_STATE>): ISuperdeskQuery {
     const query: ISuperdeskQuery = {
         filter: {
             $and: [
                 {'assigned_to.user': {$eq: userId}},
-                {'assigned_to.state': {$in: ['assigned', 'submitted', 'in_progress']}},
+                {'assigned_to.state': {$in: assignmentToState}},
             ],
         },
         sort: [{'planning.scheduled': 'asc'}],
-        page: 0,
+        page: 1,
         max_results: 100,
     };
 
@@ -68,11 +68,21 @@ export class AssignmentsList extends React.PureComponent<IProps, {loading: true}
         const {currentUser} = this.state;
 
         return (
-            <LiveAssignmentsHOC resource="assignments" query={getAssignmentsQuery(currentUser._id)}>
+            <LiveAssignmentsHOC
+                resource="assignments"
+                query={getAssignmentsQuery(
+                    currentUser._id,
+                    [ASSIGNMENT_STATE.ASSIGNED, ASSIGNMENT_STATE.SUBMITTED, ASSIGNMENT_STATE.IN_PROGRESS],
+                )}
+            >
                 {
-                    (data) => {
-                        const assignments = data._items;
-                        const itemsCount = data._meta.total;
+                    (res) => {
+                        if (res.loading) {
+                            return null;
+                        }
+
+                        const assignments = res.data._items;
+                        const itemsCount = res.data._meta.total;
                         const grouped = groupBy(assignments, (item) => item.assigned_to.desk);
 
                         superdesk.dispatchEvent(

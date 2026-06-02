@@ -1,10 +1,8 @@
 import React from 'react';
-import PropTypes from 'prop-types';
 import {InternalNoteLabel} from '../../../InternalNoteLabel';
+import {IAssignmentListItemField} from '../../../../components/Assignments/interfaces';
 
-interface IProps {
-    assignment: any;
-}
+type IProps = IAssignmentListItemField;
 
 export const InternalComponent = ({assignment}: IProps) => (
     <InternalNoteLabel

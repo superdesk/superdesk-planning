@@ -1,0 +1,121 @@
+import React from 'react';
+import {List} from '../../../components/UI';
+import {Label, IconButton} from 'superdesk-ui-framework/react';
+import {superdeskApi} from '../../../superdeskApi';
+import AddFieldsMenu from './AddFieldsMenu';
+import {IEditorProfileGroup, IProfileFieldEntry} from 'interfaces';
+import {IVocabulary} from 'superdesk-api';
+
+interface IProps {
+    selectedField?: string;
+    group?: IEditorProfileGroup;
+    fieldEntry: IProfileFieldEntry;
+    fields: Array<IProfileFieldEntry>;
+    systemRequiredFields?: Array<IProfileFieldEntry['name']>;
+    onClick(item: IProfileFieldEntry): void;
+    unusedFields: Array<IProfileFieldEntry>;
+    removeField(item: IProfileFieldEntry): void;
+    vocabularies: Array<IVocabulary>;
+    insertField(item: IProfileFieldEntry, groupId: IEditorProfileGroup['_id'], index: number): void;
+    getFieldName(fieldEntry: IProfileFieldEntry): JSX.Element;
+}
+
+export default class ProfileFieldTemplate extends React.PureComponent<IProps> {
+    render(): React.ReactNode {
+        const {gettext} = superdeskApi.localization;
+        const {notify} = superdeskApi.ui;
+        const {querySelectorParent} = superdeskApi.utilities;
+        const {fields, fieldEntry} = this.props;
+
+        const isLastField = fieldEntry.name === fields[fields.length - 1]?.name;
+        const getAddFieldMenuItems = (offset) => this.props.unusedFields.map(
+            (itemToAdd) => ({
+                value: itemToAdd,
+                onSelect: () => {
+                    this.props.insertField(itemToAdd, this.props.group?._id, fieldEntry.field.index + offset);
+                },
+            })
+        );
+        const menuItems = {
+            before: getAddFieldMenuItems(-0.1),
+            after: getAddFieldMenuItems(0.1),
+        };
+
+        return (
+            <List.Item
+                zIndex={2000}
+                flexRow
+                testId={`content-list--field-${fieldEntry.name}`}
+                shadow={1}
+                activated={this.props.selectedField === fieldEntry.name}
+                className={`mt-1 ${this.props.selectedField === fieldEntry.name ? 'sd-list-item--selected' : ''}`}
+                onClick={(e) => {
+                    // don't trigger editor if click went to a three dot menu
+                    // or other button inside the list item
+                    if (
+                        e.target instanceof HTMLElement &&
+                        querySelectorParent(e.target, 'button', {self: true})
+                    ) {
+                        return;
+                    }
+                    this.props.onClick(fieldEntry);
+                }}
+            >
+                {!menuItems.before.length ? null : (
+                    <div className="profile-item__add-btn">
+                        <AddFieldsMenu
+                            vocabularies={this.props.vocabularies}
+                            options={menuItems.before}
+                            buttonLabel={gettext('Add field before')}
+                            getFieldName={this.props.getFieldName}
+                        />
+                    </div>
+                )}
+                <List.Column
+                    border={false}
+                    grow={true}
+                >
+                    <List.Row>
+                        <span className="sd-text__strong">
+                            {this.props.getFieldName(fieldEntry)}
+                        </span>
+                    </List.Row>
+                </List.Column>
+                {!fieldEntry.schema?.required ? null : (
+                    <List.Column border={false}>
+                        <List.Row>
+                            <Label
+                                text={gettext('Required')}
+                                type="alert"
+                                style="translucent"
+                            />
+                        </List.Row>
+                    </List.Column>
+                )}
+                <List.ActionMenu>
+                    <IconButton
+                        icon="trash"
+                        ariaValue={gettext('Remove field')}
+                        onClick={() => {
+                            if (this.props.systemRequiredFields?.includes(fieldEntry.name)) {
+                                notify.error(gettext('Delete failed! Field is required by the system'));
+                            } else {
+                                this.props.removeField(fieldEntry);
+                            }
+                        }}
+                    />
+                </List.ActionMenu>
+                {(!isLastField || !menuItems.after.length) ? null : (
+                    <div className="profile-item__add-btn profile-item__add-btn--bottom">
+                        <AddFieldsMenu
+                            vocabularies={this.props.vocabularies}
+                            options={menuItems.after}
+                            buttonLabel={gettext('Add field after')}
+                            getFieldName={this.props.getFieldName}
+                        />
+                    </div>
+                )}
+            </List.Item>
+        );
+    }
+}

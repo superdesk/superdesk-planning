@@ -3,8 +3,7 @@ import requests
 
 from typing import Optional
 from datetime import timedelta, datetime
-from flask import current_app as app
-from flask_babel import lazy_gettext
+from quart_babel import lazy_gettext
 from superdesk.io.registry import register_feeding_service_parser
 from superdesk.io.feeding_services.http_base_service import HTTPFeedingServiceBase
 from superdesk.timer import timer
@@ -72,7 +71,7 @@ class OnclusiveApiService(HTTPFeedingServiceBase):
     HTTP_AUTH = False
     timeout = (5, 60)
 
-    def _update(self, provider, update):
+    async def _update(self, provider, update):
         """
         Fetch events from external API.
 
@@ -86,7 +85,7 @@ class OnclusiveApiService(HTTPFeedingServiceBase):
         LIMIT = 2000
         self.session = requests.Session()
         self.language = "en-CA"  # make sure there is some default
-        parser = self.get_feed_parser(provider)
+        parser = await self.get_feed_parser(provider)
         update["tokens"] = provider.get("tokens") or {}
         with timer("onclusive:update"):
             self.authenticate(provider, update["tokens"])
@@ -151,7 +150,7 @@ class OnclusiveApiService(HTTPFeedingServiceBase):
                     params[iterations_param] = i
                     logger.info("Onclusive PARAMS %s", params)
                     content = self._fetch(url, params, provider, update["tokens"])
-                    items = parser.parse(content, provider)
+                    items = await parser.parse(content, provider)
                     logger.info("Onclusive returned %d items", len(items))
                     for item in items:
                         item.setdefault("language", self.language)
@@ -177,8 +176,8 @@ class OnclusiveApiService(HTTPFeedingServiceBase):
 
             if response.status_code == 400:
                 logger.error("error from api %s", response.text)
+                break
 
-        logger.error("could not fetch data from api params=%s", params)
         raise ProviderError.ingestError()
 
     @property
@@ -220,7 +219,7 @@ class OnclusiveApiService(HTTPFeedingServiceBase):
             renew_response.raise_for_status()
         except Exception as e:
             logger.error("error %s body %s", e, renew_response.content)
-        if renew_response.status_code == 400:
+        if renew_response.status_code in (400, 401):
             tokens[REFRESH_TOKEN_KEY] = None
             return
         if renew_response.status_code == 200:

@@ -8,11 +8,13 @@ import {
     IPlanningContentProfile,
     IProfileFieldEntry,
     IEditorFormGroup,
+    ICoverageContentProfile,
 } from '../interfaces';
-import {superdeskApi} from '../superdeskApi';
+import {planningApi, superdeskApi} from '../superdeskApi';
 
 import {getVocabularyItemFieldTranslated} from './vocabularies';
 import {getUserInterfaceLanguageFromCV} from './users';
+import {appConfig} from 'appConfig';
 
 export function getProfileGroupIdsSorted(profile: IEditorProfile): Array<IEditorProfileGroup['_id']> {
     return Object.keys(profile.groups ?? {})
@@ -61,9 +63,10 @@ export function getGroupFieldsSorted(
     profile: IEditorProfile,
     groupId?: IEditorProfileGroup['_id']
 ): Array<IProfileFieldEntry> {
+    const fieldsForGroup = getEnabledProfileGroupFields(profile, groupId);
     const fields = (groupId == null ?
         getEnabledProfileFields(profile) :
-        getEnabledProfileGroupFields(profile, groupId)
+        fieldsForGroup
     ).sort(
         (a, b) => a.field.index - b.field.index
     );
@@ -76,20 +79,127 @@ export function getGroupFieldsSorted(
     return fields;
 }
 
+/**
+ * Used to determine which custom vocabularies should not be registered as field
+ * of type `custom_vocabulary`.
+ */
+export const VOCABULARIES_TO_BE_EXCLUDED = new Set([
+    /**
+     * Client specific vocabularies to be excluded:
+     */
+    ...(appConfig.vocabulariesToExcludeAsFields ?? []),
+
+    /**
+     * Coverage specific vocabularies:
+     */
+    'news_coverage_status',
+    'g2_content_type',
+    'genre',
+    'categories',
+
+    /**
+     * Fields that are manually registered in `client/components/fields/resources` and use a specific custom vocabulary
+     */
+    'priority',
+
+    /**
+     * coverage language field with id `language` uses languages vocabulary for values,
+     * so it doesn't make sense to register it again as a vocabulary field
+     */
+    'languages',
+
+    /**
+     * coverage language field id is `language`, so if user configures vocabulary with `language` id,
+     * they'll collide and a wrong field config will be applied.
+     */
+    'language',
+]);
+
 export function getUnusedProfileFields(
     profile: IEditorProfile,
+    isProfileCoverage?: boolean,
     includeGroupCheck: boolean = true
 ): Array<IProfileFieldEntry> {
+    const customVocabularies = planningApi.vocabularies.getCustomVocabularies()
+        .filter(({_id}) => VOCABULARIES_TO_BE_EXCLUDED.has(_id) === false);
+    const vocabularyIds = new Set(customVocabularies.map(({_id}) => _id));
+
+    /*
+        Includes vocabularies configured in metadata settings, excluding
+        specific coverage fields that use a custom vocabulary as source.
+    */
+    const vocabularyFields: Array<IProfileFieldEntry> = customVocabularies
+        .map(({_id}, i) => ({
+            field: {
+                enabled: false,
+                group: undefined,
+                index: i,
+            },
+            name: _id,
+            schema: {
+                type: 'custom_vocabulary',
+                required: false,
+            }
+        }));
+
+    const profileFields = getProfileFields(profile).filter((field) => field.name !== 'add_coverage_to_workflow');
+
+    const usedVocabularies = new Set(
+        profileFields
+            .filter((fieldEntry) =>
+                fieldEntry.schema?.type === 'custom_vocabulary'
+                && vocabularyIds.has(fieldEntry.name)
+                && fieldEntry.field.enabled
+            )
+            .map(({name}) => name),
+    );
+    const unusedVocabularies = vocabularyFields.filter((field) => {
+        const isCustomVocabulary = field.schema.type === 'custom_vocabulary';
+        const isUnused = !usedVocabularies.has(field.name);
+
+        return isCustomVocabulary && isUnused;
+    });
+
+    const unusedVocabularyFields = unusedVocabularies;
+
+    // Add custom text fields only for coverage profiles
+    if (isProfileCoverage) {
+        const profileFieldIds = profileFields.map((x) => x.name);
+        const unusedCustomTextFields = superdeskApi.entities.vocabulary.getAll().toArray()
+            .filter((x) => x.field_type === 'text')
+            .filter((x) => profileFieldIds.includes(x._id) === false);
+
+        const usedCustomTextFields: Array<IProfileFieldEntry> = unusedCustomTextFields.map(({_id}, i) => ({
+            field: {
+                enabled: false,
+                group: undefined,
+                index: i,
+            },
+            name: _id,
+            schema: {
+                type: 'custom_text',
+                required: false,
+            }
+        }));
+
+        unusedVocabularyFields.push(...usedCustomTextFields);
+    }
+
     return orderBy(
-        getProfileFields(profile).filter(
-            (item) => (includeGroupCheck && item.field.group == null) || !item.field.enabled
-        ),
-        'name'
+        profileFields
+            .filter((field) => {
+                const isUnused = (includeGroupCheck && field.field.group == null) || !field.field.enabled;
+                const isVocabulary = field.schema?.type === 'custom_vocabulary' || vocabularyIds.has(field.name);
+
+                return isUnused && !isVocabulary;
+            })
+            .concat(unusedVocabularyFields),
+        superdeskApi.helpers.nameof<IProfileFieldEntry>('name')
     );
 }
 
 export function isProfileFieldEnabled(
-    profile: IPlanningContentProfile,
+    profile: IPlanningContentProfile | Partial<ICoverageContentProfile>,
     field: string,
     includeGroupCheck: boolean
 ): boolean {
@@ -174,7 +284,7 @@ export function getFieldNameTranslated(field: string): string {
     case 'event_contact_info':
         return gettext('Contacts');
     case 'anpa_category':
-        return gettext('ANPA Category');
+        return superdeskApi.entities.vocabulary.getVocabulary('categories').display_name ?? gettext('ANPA Category');
     case 'subject':
         return gettext('Subject');
     case 'definition_long':
@@ -205,12 +315,12 @@ export function getFieldNameTranslated(field: string): string {
         return gettext('Associated Event');
     case 'coverages':
         return gettext('Coverages');
-    case 'custom_vocabularies':
-        return gettext('Custom Vocabularies');
     case 'headline':
         return gettext('Headline');
     case 'g2_content_type':
         return gettext('Content Type');
+    case 'add_coverage_to_workflow':
+        return gettext('Add Coverage To Workflow');
     case 'genre':
         return gettext('Genre');
     case 'news_coverage_status':
@@ -239,6 +349,8 @@ export function getFieldNameTranslated(field: string): string {
         return gettext('Priority');
     case 'related_items':
         return gettext('Related Articles');
+    case 'multiple_content':
+        return gettext('Multiple Content');
     }
 
     return field;

@@ -1,7 +1,7 @@
 import * as React from 'react';
-import {cloneDeep, isEqual, set} from 'lodash';
+import {cloneDeep, get, isEqual, set} from 'lodash';
 
-import {IIgnoreCancelSaveResponse} from 'superdesk-api';
+import {IIgnoreCancelSaveResponse, IVocabulary} from 'superdesk-api';
 import {
     IEditorProfile,
     IProfileFieldEntry,
@@ -20,11 +20,13 @@ import {
 
 import {FieldList} from './FieldList';
 import {FieldEditor} from './FieldEditor';
+import {arrayInsertAtIndex} from '@sourcefabric/common';
 
 interface IProps {
     profile: IEditorProfile;
+    isProfileCoverage?: boolean;
     groupFields: boolean;
-    systemRequiredFields: Array<Array<string>>;
+    systemRequiredFields: Array<string>;
     disableMinMaxFields?: Array<string>;
     disableRequiredFields?: Array<string>;
     updateField(field: IProfileFieldEntry): void;
@@ -36,6 +38,8 @@ interface IState {
 }
 
 export class FieldTab extends React.Component<IProps, IState> {
+    private customVocabularies: Array<IVocabulary>;
+
     constructor(props) {
         super(props);
 
@@ -50,6 +54,9 @@ export class FieldTab extends React.Component<IProps, IState> {
         this.updateFieldOrder = this.updateFieldOrder.bind(this);
         this.insertField = this.insertField.bind(this);
         this.removeField = this.removeField.bind(this);
+        this.getFieldName = this.getFieldName.bind(this);
+
+        this.customVocabularies = superdeskApi.entities.vocabulary.getAll().toArray();
     }
 
     openEditor(field: IProfileFieldEntry) {
@@ -153,34 +160,36 @@ export class FieldTab extends React.Component<IProps, IState> {
     }
 
     updateFieldOrder(fields: Array<IProfileFieldEntry>) {
-        fields.forEach((item, index) => {
-            item.field.index = index;
-        });
-
         this.props.updateFields(fields);
     }
 
-    insertField(itemToAdd: IProfileFieldEntry, groupId: IEditorProfileGroup['_id'] | undefined, index: number) {
+    insertField(
+        fieldToAdd: IProfileFieldEntry,
+        groupId: IEditorProfileGroup['_id'] | undefined,
+        index: number,
+    ) {
         const fields = this.props.groupFields ?
             getEnabledProfileGroupFields(this.props.profile, groupId) :
             getEnabledProfileFields(this.props.profile);
 
-        fields.push({
-            ...itemToAdd,
-            field: {
-                ...itemToAdd.field,
-                enabled: true,
-                group: groupId,
-                index: index,
+        const withNewField = arrayInsertAtIndex(
+            fields,
+            {
+                ...fieldToAdd,
+                field: {
+                    ...fieldToAdd.field,
+                    enabled: true,
+                    group: groupId,
+                    index: index,
+                },
             },
-        });
+            index,
+        );
 
-        fields.sort((a, b) => a.field.index - b.field.index);
-        fields.forEach((item, index) => {
-            item.field.index = index;
-        });
 
-        this.props.updateFields(fields);
+        withNewField.sort((a, b) => a.field.index - b.field.index);
+
+        this.props.updateFields(withNewField);
     }
 
     removeField(item: IProfileFieldEntry) {
@@ -188,18 +197,25 @@ export class FieldTab extends React.Component<IProps, IState> {
         const {confirm} = superdeskApi.ui;
 
         confirm(
-            gettext('Are you sure you want to delete this field?', {field: item.name}),
-            gettext('Delete Field "{{field}}"?', {
+            gettext('Field "{{field}}" will be permanently deleted.', {
                 field: getFieldNameTranslated(item.name),
-            })
-        ).then((response) => {
-            if (response) {
+            }),
+            gettext('Delete Item?'),
+            gettext('Delete'),
+        ).then((confirmed) => {
+            if (confirmed) {
                 if (this.state.selectedField?.name === item.name) {
                     this.setState({selectedField: undefined});
                 }
 
                 this.props.updateFields([{
                     ...item,
+
+                    // If field is custom_vocabulary, schema should also be removed, on field remove
+                    // otherwise if required is set to true UI issues will occur.
+                    // We check for schema.type === 'custom_vocabulary' because some field names might have ids
+                    // of a custom vocabulary, while registered as static fields
+                    schema: item.schema.type === 'custom_vocabulary' ? undefined : item.schema,
                     field: {
                         ...item.field,
                         enabled: false,
@@ -211,19 +227,40 @@ export class FieldTab extends React.Component<IProps, IState> {
         });
     }
 
-    getSystemRequiredFields() {
-        if (this.props.systemRequiredFields.length) {
-            return this.props.systemRequiredFields
-                .filter((fields) => fields.length === 1)
-                .map((fields) => fields[0]);
+
+    private getFieldName(fieldEntry: IProfileFieldEntry): JSX.Element {
+        const {gettext} = superdeskApi.localization;
+        const fieldType = fieldEntry.schema?.type;
+
+        if (fieldType === 'custom_vocabulary' || fieldType === 'custom_text') {
+            const fieldTypeLabel = fieldType === 'custom_text'
+                ? gettext('(custom text field)')
+                : gettext('(custom vocabulary)');
+
+            return (
+                <>
+                    {this.customVocabularies.find((x) => x._id === fieldEntry.name)?.display_name}
+                        &nbsp;
+                    <span className="sd-text--italic sd-text--light">
+                        {fieldTypeLabel}
+                    </span>
+                </>
+            );
         }
 
-        return [];
+        return (
+            <>
+                {getFieldNameTranslated(fieldEntry.name)}
+            </>
+        );
     }
 
     render() {
-        const unusedFields = getUnusedProfileFields(this.props.profile, this.props.groupFields);
-        const systemRequiredFields = this.getSystemRequiredFields();
+        const unusedFields = getUnusedProfileFields(
+            this.props.profile,
+            this.props.isProfileCoverage,
+            this.props.groupFields,
+        );
 
         return (
             <div className="sd-column-box--2">
@@ -233,28 +270,39 @@ export class FieldTab extends React.Component<IProps, IState> {
                             <FieldList
                                 profile={this.props.profile}
                                 group={undefined}
-                                fields={getGroupFieldsSorted(this.props.profile)}
+                                fields={getGroupFieldsSorted(this.props.profile)
+                                    .filter((field) => field.name !== 'add_coverage_to_workflow')
+                                }
                                 unusedFields={unusedFields}
-                                systemRequiredFields={systemRequiredFields}
+                                systemRequiredFields={this.props.systemRequiredFields}
                                 onSortChange={this.updateFieldOrder}
                                 insertField={this.insertField}
                                 removeField={this.removeField}
                                 onClick={this.openEditor}
                                 selectedField={this.state.selectedField?.name}
+                                getFieldName={this.getFieldName}
+                                customVocabularies={this.customVocabularies}
                             />
                         ) : (
                             getProfileGroupsSorted(this.props.profile).map((group) => (
                                 <FieldList
+                                    // systemRequiredFields aren't passed because we want to allow users to
+                                    // move fields from one group to another,
+                                    // validation for systemRequiredFields runs on save
                                     key={group._id}
                                     profile={this.props.profile}
                                     group={group}
-                                    fields={getGroupFieldsSorted(this.props.profile, group._id)}
+                                    fields={getGroupFieldsSorted(this.props.profile, group._id)
+                                        .filter((field) => field.name !== 'add_coverage_to_workflow')
+                                    }
                                     unusedFields={unusedFields}
                                     onSortChange={this.updateFieldOrder}
                                     insertField={this.insertField}
                                     removeField={this.removeField}
                                     onClick={this.openEditor}
                                     selectedField={this.state.selectedField?.name}
+                                    getFieldName={this.getFieldName}
+                                    customVocabularies={this.customVocabularies}
                                 />
                             ))
                         )}
@@ -263,15 +311,25 @@ export class FieldTab extends React.Component<IProps, IState> {
                 {this.state.selectedField == null ? null : (
                     <FieldEditor
                         key={this.state.selectedField?.name}
-                        item={this.state.selectedField}
+                        item={(() => {
+                            const profileRes = cloneDeep(this.state.selectedField);
+
+                            if (profileRes.schema?.required === true) {
+                                profileRes.schema.show_in_embedded_editor = true;
+                            }
+
+                            return profileRes;
+                        })()}
+                        isProfileCoverage={this.props.isProfileCoverage}
                         profile={this.props.profile}
                         isDirty={this.isEditorDirty()}
                         disableMinMax={this.props.disableMinMaxFields?.includes(this.state.selectedField.name)}
                         disableRequired={this.props.disableRequiredFields?.includes(this.state.selectedField.name)}
-                        systemRequired={systemRequiredFields.includes(this.state.selectedField.name)}
+                        systemRequired={this.props.systemRequiredFields.includes(this.state.selectedField.name)}
                         closeEditor={this.closeEditor}
                         saveField={this.saveField}
                         updateField={this.updateField}
+                        getFieldName={this.getFieldName}
                     />
                 )}
             </div>

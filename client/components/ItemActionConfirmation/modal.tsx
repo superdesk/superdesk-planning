@@ -157,14 +157,6 @@ export class ItemActionConfirmationModal extends React.Component {
                 },
                 form: CancelPlanningCoveragesForm,
             },
-            [COVERAGES.ITEM_ACTIONS.CANCEL_COVERAGE.actionName]: {
-                title: modalProps.scheduledUpdate ?
-                    gettext('Cancel Scheduled Update') :
-                    COVERAGES.ITEM_ACTIONS.CANCEL_COVERAGE.label,
-                saveText: modalProps.scheduledUpdate ? gettext('Cancel Scheduled Update') :
-                    gettext('Cancel Coverage'),
-                form: CancelCoverageForm,
-            },
             [ASSIGNMENTS.ITEM_ACTIONS.REASSIGN.actionName]: {
                 title: ASSIGNMENTS.ITEM_ACTIONS.REASSIGN.label,
                 form: UpdateAssignmentForm,

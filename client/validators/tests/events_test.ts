@@ -89,13 +89,37 @@ describe('eventValidators', () => {
         });
 
         it('fails if timezone is not defined', () => {
-            event.dates.tz = null;
+            event.dates.tz = undefined;
             testValidate(eventValidators.validateDates, 'dates',
                 {
                     dates: {tz: 'This field is required'},
                 },
                 ['TIMEZONE is a required field']
             );
+        });
+
+        it('does not fail timezone if all day is true', () => {
+            event.dates.tz = undefined;
+            event.dates.all_day = true;
+            testValidate(eventValidators.validateDates, 'dates', {});
+        });
+
+        it('fails if end time is set but start time is not', () => {
+            const value = {
+                ...event.dates,
+                _startTime: null,
+                _endTime: event.dates.end,
+            };
+
+            eventValidators.validateRequiredDates({
+                value: value,
+                errors: errors,
+                messages: errorMessages,
+            });
+            expect(errors).toEqual({_startTime: 'This field is required'});
+            expect(errorMessages).toEqual([
+                'START TIME is required when END TIME is set',
+            ]);
         });
     });
 
@@ -209,7 +233,7 @@ describe('eventValidators', () => {
         it('fail if until date is before start date', () => {
             event.dates.recurring_rule.endRepeatMode = 'until';
             event.dates.recurring_rule.count = null;
-            event.dates.recurring_rule.until = moment('2013-10-15T14:01:11');
+            event.dates.recurring_rule.until = new Date('2013-10-15');
             testValidate(eventValidators.validateDates, 'dates',
                 {dates: {recurring_rule: {until: 'Must be greater than starting date'}}},
                 ['RECURRING ENDS ON must be greater than START DATE']

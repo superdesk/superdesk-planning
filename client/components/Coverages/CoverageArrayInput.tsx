@@ -5,31 +5,34 @@ import {isEmpty} from 'lodash';
 import {
     EDITOR_TYPE,
     IAssignmentPriority,
-    ICoverageFormProfile,
-    ICoverageProvider, ICoverageScheduledUpdate, IEventItem, IFile,
+    ICoverageProvider,
+    ICoverageType,
+    IEventItem,
+    IFile,
     IG2ContentType,
     IGenre,
-    IKeyword,
-    IPlanningCoverageItem, IPlanningItem,
+    IInputArrayHocModeOptions,
+    IPlanningCoverageItem,
+    IPlanningItem,
     IPlanningNewsCoverageStatus,
 } from '../../interfaces';
 import {IArticle, IDesk, IUser} from 'superdesk-api';
-import {superdeskApi} from '../../superdeskApi';
+import {superdeskApi, planningApi} from '../../superdeskApi';
 
-import {planningUtils} from '../../utils';
 import * as selectors from '../../selectors';
 
 import {InputArray} from '../UI/Form';
-import {CoverageEditor} from './CoverageEditor';
+import {CoverageEditor, CoverageEditorComponent} from './CoverageEditor';
 import {CoverageAddButton} from './CoverageAddButton';
+import planningActions from '../../actions/planning/api';
 
 
-interface IProps {
+interface IOwnProps {
     field: string;
     addButtonText?: string; // defaults to 'Add a coverage'
     item: IPlanningItem;
     value: Array<IPlanningCoverageItem>;
-    readOnly: boolean;
+    disabled: boolean;
     addNewsItemToPlanning?: IArticle;
     useLocalNavigation?: boolean;
     navigation?: any;
@@ -38,61 +41,44 @@ interface IProps {
     originalCount?: number;
     message: string | {[key: string]: any};
     event?: IEventItem;
-    preferredCoverageDesks: {[key: string]: string};
-    getRef?(field: string, value: IPlanningCoverageItem): React.RefObject<CoverageEditor>;
+    getRef?(field: string, value: IPlanningCoverageItem): React.RefObject<CoverageEditorComponent>;
     testId?: string;
     editorType: EDITOR_TYPE;
 
-    // Redux state
-    users: Array<IUser>;
-    desks: Array<IDesk>;
-    genres: Array<IGenre>;
-    coverageProviders: Array<ICoverageProvider>;
-    priorities: Array<IAssignmentPriority>;
-    keywords: Array<IKeyword>;
-    contentTypes: Array<IG2ContentType>;
-    newsCoverageStatus: Array<IPlanningNewsCoverageStatus>;
-    formProfile: ICoverageFormProfile;
-    planningAllowScheduledUpdates: boolean;
-    coverageAddAdvancedMode: boolean;
-    defaultDesk: IDesk;
+    // HOC mode - optional; added to support "add button" as mini toolbar in authoring-react
+    children?: (options: IInputArrayHocModeOptions) => React.ReactNode;
 
     onChange(field: string, value: any): void;
     popupContainer(): HTMLElement;
     onPopupOpen(): void;
     onPopupClose(): void;
-    setCoverageDefaultDesk(coverage: IPlanningCoverageItem): void;
-    setCoverageAddAdvancedMode(enabled: boolean): Promise<void>;
     createUploadLink(file: IFile): void;
-    onDuplicateCoverage(coverage: IPlanningCoverageItem, duplicateAs: IG2ContentType['qcode']): void;
-    onCancelCoverage(
-        coverage: IPlanningCoverageItem,
-        index: number,
-        scheduledUpdate?: ICoverageScheduledUpdate,
-        scheduledUpdateIndex?: number,
-    ): void;
-    onAddCoverageToWorkflow(coverage: IPlanningCoverageItem, index: number): void;
-    onAddScheduledUpdateToWorkflow(
-        coverage: IPlanningCoverageItem,
-        index: number,
-        scheduledUpdate?: ICoverageScheduledUpdate,
-        scheduledUpdateIndex?: number
-    ): void;
-    onRemoveAssignment(
-        coverage: IPlanningCoverageItem,
-        index: number,
-        scheduledUpdate?: ICoverageScheduledUpdate,
-        scheduledUpdateIndex?: number
-    ): void;
-    uploadFiles(files: Array<Array<File>>): Promise<Array<IFile>>;
     notifyValidationErrors(errors: Array<string>): void;
 }
+
+interface IReduxStateProps {
+    users: Array<IUser>;
+    desks: Array<IDesk>;
+    genres: Array<IGenre>;
+    coverageProviders: Array<ICoverageProvider>;
+    priorities: Array<IAssignmentPriority>;
+    contentTypes: Array<IG2ContentType>;
+    newsCoverageStatus: Array<IPlanningNewsCoverageStatus>;
+    coverageAddAdvancedMode: boolean;
+    defaultDesk: IDesk;
+}
+
+interface IReduxDispatchProps {
+    uploadFiles(files: Array<Array<File>>): Promise<Array<IFile>>;
+}
+
+type IProps = IOwnProps & IReduxStateProps & IReduxDispatchProps;
 
 interface IState {
     openCoverageIds: Array<IPlanningCoverageItem['coverage_id']>;
 }
 
-const mapStateToProps = (state) => ({
+const mapStateToProps = (state): IReduxStateProps => ({
     users: selectors.general.users(state),
     desks: selectors.general.desks(state),
     genres: state.genres,
@@ -100,10 +86,12 @@ const mapStateToProps = (state) => ({
     priorities: selectors.getAssignmentPriorities(state),
     contentTypes: selectors.general.contentTypes(state),
     newsCoverageStatus: selectors.general.newsCoverageStatus(state),
-    formProfile: selectors.forms.coverageProfile(state),
-    planningAllowScheduledUpdates: selectors.forms.getPlanningAllowScheduledUpdates(state),
     coverageAddAdvancedMode: selectors.general.coverageAddAdvancedMode(state),
     defaultDesk: selectors.general.defaultDesk(state),
+});
+
+const mapDispatchToProps = (dispatch): IReduxDispatchProps => ({
+    uploadFiles: (files) => dispatch(planningActions.uploadFiles({files: files})),
 });
 
 class CoverageArrayInputComponent extends React.Component<IProps, IState> {
@@ -125,7 +113,7 @@ class CoverageArrayInputComponent extends React.Component<IProps, IState> {
         const prevCount = prevProps.value?.length ?? 0;
 
         if (currentCount > prevCount &&
-            (!this.props.readOnly || this.props.addNewsItemToPlanning != null) &&
+            (!this.props.disabled || this.props.addNewsItemToPlanning != null) &&
             currentCount - prevCount === 1
         ) {
             const coverageId = this.props.value[this.props.value.length - 1].coverage_id;
@@ -160,6 +148,14 @@ class CoverageArrayInputComponent extends React.Component<IProps, IState> {
         }
     }
 
+    createCoverage = (coverageType: ICoverageType): DeepPartial<IPlanningCoverageItem> => {
+        return planningApi.planning.coverages.setDefaultValues(
+            this.props.item,
+            this.props.event,
+            coverageType
+        );
+    }
+
     render() {
         const {gettext} = superdeskApi.localization;
         const {
@@ -173,19 +169,18 @@ class CoverageArrayInputComponent extends React.Component<IProps, IState> {
             maxCoverageCount = 0,
             addOnly,
             originalCount,
-            readOnly,
+            disabled,
             message,
             popupContainer,
             onPopupOpen,
             onPopupClose,
-            setCoverageDefaultDesk,
-            preferredCoverageDesks,
             item,
             navigation,
             useLocalNavigation,
             event,
             testId,
             editorType,
+            children,
             ...props
         } = this.props;
 
@@ -194,15 +189,9 @@ class CoverageArrayInputComponent extends React.Component<IProps, IState> {
             onItemClose: this.onCoverageClose,
         };
 
-        const createCoverage = planningUtils.defaultCoverageValues.bind(
-            null,
-            newsCoverageStatus,
-            item,
-            event
-        );
-
-        const {desks, users, coverageAddAdvancedMode, setCoverageAddAdvancedMode} = this.props;
+        const {desks, users, coverageAddAdvancedMode} = this.props;
         const language = this.props.item.language;
+        const createCoverage = this.createCoverage;
 
         return (
             <InputArray
@@ -211,53 +200,56 @@ class CoverageArrayInputComponent extends React.Component<IProps, IState> {
                 labelClassName="side-panel__heading side-panel__heading--big"
                 field={field}
                 value={value}
+                coverages={value}
                 onChange={onChange}
                 addButtonText={addButtonText}
                 addButtonComponent={CoverageAddButton}
                 addButtonProps={{
-                    contentTypes,
-                    defaultDesk,
-                    onPopupOpen,
-                    onPopupClose,
-                    preferredCoverageDesks,
-                    newsCoverageStatus,
-                    field,
-                    value,
-                    onChange,
-                    createCoverage,
-                    desks,
-                    users,
-                    coverageAddAdvancedMode,
-                    setCoverageAddAdvancedMode,
-                    language,
-                    editorType,
+                    contentTypes: contentTypes,
+                    defaultDesk: defaultDesk,
+                    onPopupOpen: onPopupOpen,
+                    onPopupClose: onPopupClose,
+                    newsCoverageStatus: newsCoverageStatus,
+                    field: field,
+                    value: value,
+                    onChange: onChange,
+                    createCoverage: createCoverage,
+                    desks: desks,
+                    users: users,
+                    coverageAddAdvancedMode: coverageAddAdvancedMode,
+                    language: language,
+                    editorType: editorType,
+                    eventLanguages: event?.languages ?? [],
+                    disabled: disabled,
                 }}
                 element={CoverageEditor}
-                defaultElement={createCoverage}
-                readOnly={readOnly}
+                createCoverage={createCoverage}
+                disabled={disabled}
                 maxCount={maxCoverageCount}
                 addOnly={addOnly}
                 originalCount={originalCount}
                 message={message}
-                row={false}
                 buttonWithLabel
                 popupContainer={popupContainer}
                 onPopupOpen={onPopupOpen}
                 onPopupClose={onPopupClose}
-                setCoverageDefaultDesk={setCoverageDefaultDesk}
                 contentTypes={contentTypes}
                 defaultDesk={defaultDesk}
                 newsCoverageStatus={newsCoverageStatus}
                 diff={item}
                 navigation={coverageNavigation}
                 openCoverageIds={this.state.openCoverageIds}
-                preferredCoverageDesks={preferredCoverageDesks}
                 getRef={this.props.getRef}
                 editorType={editorType}
                 {...props}
-            />
+            >
+                {children}
+            </InputArray>
         );
     }
 }
 
-export const CoverageArrayInput = connect(mapStateToProps)(CoverageArrayInputComponent);
+export const CoverageArrayInput = connect<IReduxStateProps, IReduxDispatchProps, IOwnProps>(
+    mapStateToProps,
+    mapDispatchToProps,
+)(CoverageArrayInputComponent);

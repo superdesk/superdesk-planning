@@ -72,6 +72,113 @@ Feature: Events Recurring
         """
 
     @auth
+    Scenario: Create all day recurring events using until in America/Toronto timezone
+        When we post to "events"
+        """
+        [{
+            "name": "Toronto Daily All Day",
+            "dates": {
+                "end": "2026-03-22T00:00:00.000Z",
+                "start": "2026-03-22T00:00:00.000Z",
+                "tz": "America/Toronto",
+                "recurring_rule": {
+                    "frequency": "DAILY",
+                    "interval": 1,
+                    "endRepeatMode": "until",
+                    "until": "2026-03-25T03:59:59.999Z"
+                },
+                "all_day": true
+            }
+        }]
+        """
+        Then we get OK response
+        And we store "EVENT1" with first item
+        And we store "EVENT2" with 2 item
+        And we store "EVENT3" with 3 item
+        When we get "/events"
+        Then we get list with 3 items
+        """
+        {"_items": [
+            {
+                "_id": "#EVENT1._id#",
+                "dates": {
+                    "start": "2026-03-22T00:00:00+0000",
+                    "end": "2026-03-22T00:00:00+0000",
+                    "all_day": true
+                }
+            }, {
+                "_id": "#EVENT2._id#",
+                "dates": {
+                    "start": "2026-03-23T00:00:00+0000",
+                    "end": "2026-03-23T00:00:00+0000",
+                    "all_day": true
+                }
+            }, {
+                "_id": "#EVENT3._id#",
+                "dates": {
+                    "start": "2026-03-24T00:00:00+0000",
+                    "end": "2026-03-24T00:00:00+0000",
+                    "all_day": true
+                }
+            }
+        ]}
+        """
+
+    @auth
+    Scenario: Create all day recurring events using until in Australia/Sydney timezone
+        When we post to "events"
+        """
+        [{
+            "name": "Sydney Daily All Day",
+            "dates": {
+                "end": "2026-03-22T00:00:00.000Z",
+                "start": "2026-03-22T00:00:00.000Z",
+                "tz": "Australia/Sydney",
+                "recurring_rule": {
+                    "frequency": "DAILY",
+                    "interval": 1,
+                    "endRepeatMode": "until",
+                    "until": "2026-03-24T12:59:59.999Z"
+                },
+                "all_day": true
+            }
+        }]
+        """
+        Then we get OK response
+        And we store "EVENT1" with first item
+        And we store "EVENT2" with 2 item
+        And we store "EVENT3" with 3 item
+        When we get "/events"
+        Then we get list with 3 items
+        """
+        {"_items": [
+            {
+                "_id": "#EVENT1._id#",
+                "dates": {
+                    "start": "2026-03-22T00:00:00+0000",
+                    "end": "2026-03-22T00:00:00+0000",
+                    "all_day": true
+                }
+            }, {
+                "_id": "#EVENT2._id#",
+                "dates": {
+                    "start": "2026-03-23T00:00:00+0000",
+                    "end": "2026-03-23T00:00:00+0000",
+                    "all_day": true
+                }
+            }, {
+                "_id": "#EVENT3._id#",
+                "dates": {
+                    "start": "2026-03-24T00:00:00+0000",
+                    "end": "2026-03-24T00:00:00+0000",
+                    "all_day": true
+                }
+            }
+        ]}
+        """
+
+
+    @auth
     @notification
     Scenario: Convert a single event to be a recurring event with invalid data
         When we post to "events"
@@ -349,7 +456,7 @@ Feature: Events Recurring
             "_id": "plan1",
             "guid": "plan1",
             "slugline": "TestPlan",
-            "event_item": "event1",
+            "related_events": [{"_id": "event1", "link_type": "primary"}],
             "state": "scheduled",
             "pubstatus": "usable",
             "ednote": "We planned this.",
@@ -458,7 +565,7 @@ Feature: Events Recurring
         {
             "slugline": "TestPlan",
             "state": "rescheduled",
-            "event_item": "event1",
+            "related_events": [{"_id": "event1", "recurrence_id": "event1", "link_type": "primary"}],
             "recurrence_id": "event1"
         }
         """
@@ -1085,7 +1192,7 @@ Feature: Events Recurring
         """
         {
             "slugline": "TestPlanning",
-            "event_item": "#EVENT1._id#",
+            "related_events": [{"_id": "#EVENT1._id#", "link_type": "primary"}],
             "recurrence_id": "#EVENT1.recurrence_id#"
         }
         """

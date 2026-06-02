@@ -24,8 +24,6 @@ interface IState {
 }
 
 export class EditFilter extends React.Component<IEventsPlanningContentPanelProps, IState> {
-    private popupContainer: React.RefObject<HTMLDivElement>;
-
     constructor(props) {
         super(props);
         const filter = this.props.filter != null ?
@@ -39,19 +37,9 @@ export class EditFilter extends React.Component<IEventsPlanningContentPanelProps
             errors: {},
             profile: this.getProfile(filter.item_type),
         };
-
-        this.onFilterChange = this.onFilterChange.bind(this);
-        this.onParamChange = this.onParamChange.bind(this);
-        this.onMultiParamChange = this.onMultiParamChange.bind(this);
-        this.onSaveHandler = this.onSaveHandler.bind(this);
-        this.isPristine = this.isPristine.bind(this);
-        this.getPopupContainer = this.getPopupContainer.bind(this);
-        this.onTypeChanged = this.onTypeChanged.bind(this);
-
-        this.popupContainer = React.createRef();
     }
 
-    getProfile(itemType: FILTER_TYPE = FILTER_TYPE.COMBINED) {
+    getProfile = (itemType: FILTER_TYPE = FILTER_TYPE.COMBINED) => {
         switch (itemType) {
         case FILTER_TYPE.EVENTS:
             return planningApi.events.getSearchProfile();
@@ -62,23 +50,19 @@ export class EditFilter extends React.Component<IEventsPlanningContentPanelProps
         }
     }
 
-    onTypeChanged(field: string, value: FILTER_TYPE) {
+    onTypeChanged = (field: string, value: FILTER_TYPE) => {
         this.setState({profile: this.getProfile(value)});
         this.onFilterChange(field, value);
     }
 
-    getPopupContainer() {
-        return this.popupContainer.current;
-    }
-
-    isPristine(updates: Partial<ISearchFilter> = null) {
+    isPristine = (updates: Partial<ISearchFilter> = null) => {
         return this.props.filter != null &&
             this.props.filter.name == updates?.name &&
             this.props.filter.item_type == updates?.item_type &&
             isEqual(this.props.filter.params ?? {}, updates?.params);
     }
 
-    onFilterChange(field: string, value: any) {
+    onFilterChange = (field: string, value: any) => {
         const updates = cloneDeep(this.state.filter);
         let newValue = value;
 
@@ -102,10 +86,12 @@ export class EditFilter extends React.Component<IEventsPlanningContentPanelProps
             pristine: pristine,
             invalid: invalid,
             errors: errors,
+        }, () => {
+            this.props.onPristineChange?.(pristine);
         });
     }
 
-    onParamChange(field: string, value: any) {
+    onParamChange = (field: string, value: any) => {
         let newValue = value;
 
         if (typeof value === 'string') {
@@ -116,20 +102,20 @@ export class EditFilter extends React.Component<IEventsPlanningContentPanelProps
                 newValue = null;
             }
         } else if (Array.isArray(value) && value.length === 0) {
-            newValue = null;
+            newValue = [];
         }
 
         this.onFilterChange(`params.${field}`, newValue);
     }
 
-    onMultiParamChange(updates: ISearchParams) {
+    onMultiParamChange = (updates: ISearchParams) => {
         const filter = cloneDeep(this.state.filter);
 
         Object.keys(updates).forEach((field) => {
             const value = get(updates, field);
 
             if (Array.isArray(value) && value.length === 0) {
-                set(filter.params, field, null);
+                set(filter.params, field, []);
             } else {
                 set(filter.params, field, value);
             }
@@ -147,10 +133,12 @@ export class EditFilter extends React.Component<IEventsPlanningContentPanelProps
             pristine,
             invalid,
             errors,
+        }, () => {
+            this.props.onPristineChange?.(pristine);
         });
     }
 
-    isInValid(updates) {
+    isInValid = (updates) => {
         const errors: {[key: string]: string} = {};
 
         if ((get(updates, 'name') || '').replace(/^\s+/, '').length === 0) {
@@ -163,7 +151,7 @@ export class EditFilter extends React.Component<IEventsPlanningContentPanelProps
         };
     }
 
-    onSaveHandler() {
+    onSaveHandler = () => {
         const {onClose, onSave, filter} = this.props;
         const updates = pick(this.state.filter, ['name', 'item_type', 'params']);
         const updateFilter: Partial<ISearchFilter> = {
@@ -220,7 +208,6 @@ export class EditFilter extends React.Component<IEventsPlanningContentPanelProps
                                 },
                                 {
                                     onChange: this.onFilterChange,
-                                    popupContainer: this.getPopupContainer,
                                     language: getUserInterfaceLanguageFromCV(),
                                     item: this.state.filter,
                                 },
@@ -237,17 +224,16 @@ export class EditFilter extends React.Component<IEventsPlanningContentPanelProps
                                 }
                             )}
                             <AdvancedSearch
+                                type="event_planning"
                                 params={this.state.filter.params}
                                 onChange={this.onParamChange}
                                 onChangeMultiple={this.onMultiParamChange}
                                 searchProfile={profile}
-                                popupContainer={this.getPopupContainer}
                                 enabledField="filter_enabled"
                             />
                         </SidePanel.ContentBlockInner>
                     </SidePanel.ContentBlock>
                 </SidePanel.Content>
-                <div ref={this.popupContainer} />
             </React.Fragment>
         );
     }

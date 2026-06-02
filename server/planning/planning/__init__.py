@@ -8,15 +8,13 @@
 # AUTHORS and LICENSE files distributed with this source code, or
 # at https://www.sourcefabric.org/superdesk/license
 
+from planning import signals
+from quart_babel import lazy_gettext
+
 import superdesk
-from flask_babel import lazy_gettext
-from .planning import PlanningResource, PlanningService, coverage_schema  # noqa
-from .planning_spike import (
-    PlanningSpikeResource,
-    PlanningSpikeService,
-    PlanningUnspikeResource,
-    PlanningUnspikeService,
-)
+
+from .planning import PlanningResource, PlanningService  # noqa
+from .planning_schema import coverage_schema  # noqa
 from .planning_history import PlanningHistoryResource, PlanningHistoryService
 from .planning_lock import (
     PlanningLockResource,
@@ -25,19 +23,39 @@ from .planning_lock import (
     PlanningUnlockService,
 )
 from .planning_post import PlanningPostService, PlanningPostResource
-from .planning_duplicate import PlanningDuplicateService, PlanningDuplicateResource
 from .planning_cancel import PlanningCancelService, PlanningCancelResource
 from .planning_reschedule import PlanningRescheduleService, PlanningRescheduleResource
-from .planning_postpone import PlanningPostponeService, PlanningPostponeResource
-from .planning_autosave import PlanningAutosaveResource, PlanningAutosaveService
 from .planning_featured_lock import (
     PlanningFeaturedLockResource,
     PlanningFeaturedLockService,
     PlanningFeaturedUnlockResource,
     PlanningFeaturedUnlockService,
 )
-from .planning_featured import PlanningFeaturedResource, PlanningFeaturedService
 from .planning_files import PlanningFilesResource, PlanningFilesService
+
+from .module import (
+    planning_resource_config,
+    planning_resource_config,
+    planning_history_resource_config,
+    planning_featured_resource_config,
+    planning_autosave_resource_config,
+)
+from .planning_service import PlanningAsyncService
+from .planning_history_async_service import PlanningHistoryAsyncService
+from .planning_featured_async_service import PlanningFeaturedAsyncService
+from .planning_autosave_service import PlanningAutosaveAsyncService
+
+
+__all__ = [
+    "planning_resource_config",
+    "PlanningAsyncService",
+    "PlanningHistoryAsyncService",
+    "planning_history_resource_config",
+    "PlanningFeaturedAsyncService",
+    "planning_featured_resource_config",
+    "PlanningAutosaveAsyncService",
+    "planning_autosave_resource_config",
+]
 
 
 def init_app(app):
@@ -54,17 +72,8 @@ def init_app(app):
     planning_unlock_service = PlanningUnlockService("planning_unlock", backend=superdesk.get_backend())
     PlanningUnlockResource("planning_unlock", app=app, service=planning_unlock_service)
 
-    planning_spike_service = PlanningSpikeService("planning_spike", backend=superdesk.get_backend())
-    PlanningSpikeResource("planning_spike", app=app, service=planning_spike_service)
-
-    planning_unspike_service = PlanningUnspikeService("planning_unspike", backend=superdesk.get_backend())
-    PlanningUnspikeResource("planning_unspike", app=app, service=planning_unspike_service)
-
     planning_post_service = PlanningPostService("planning_post", backend=superdesk.get_backend())
     PlanningPostResource("planning_post", app=app, service=planning_post_service)
-
-    planning_duplicate_service = PlanningDuplicateService("planning_duplicate", backend=superdesk.get_backend())
-    PlanningDuplicateResource("planning_duplicate", app=app, service=planning_duplicate_service)
 
     files_service = PlanningFilesService("planning_files", backend=superdesk.get_backend())
     PlanningFilesResource("planning_files", app=app, service=files_service)
@@ -81,15 +90,6 @@ def init_app(app):
         PlanningRescheduleResource.endpoint_name,
         app=app,
         service=planning_reschedule_service,
-    )
-
-    planning_postpone_service = PlanningPostponeService(
-        PlanningPostponeResource.endpoint_name, backend=superdesk.get_backend()
-    )
-    PlanningPostponeResource(
-        PlanningPostponeResource.endpoint_name,
-        app=app,
-        service=planning_postpone_service,
     )
 
     planning_history_service = PlanningHistoryService("planning_history", backend=superdesk.get_backend())
@@ -113,23 +113,21 @@ def init_app(app):
         service=planning_featured_unlock_service,
     )
 
-    planning_featured_service = PlanningFeaturedService("planning_featured", backend=superdesk.get_backend())
-    PlanningFeaturedResource("planning_featured", app=app, service=planning_featured_service)
+    planning_history_async_service = PlanningHistoryAsyncService()
 
-    planning_autosave_service = PlanningAutosaveService("planning_autosave", superdesk.get_backend())
-    PlanningAutosaveResource("planning_autosave", app=app, service=planning_autosave_service)
+    # listen to async signals
+    signals.planning_updated.connect(planning_history_async_service.on_item_updated)
+    signals.planning_spiked.connect(planning_history_async_service.on_spike)
+    signals.planning_unspiked.connect(planning_history_async_service.on_unspike)
+    signals.planning_postponed.connect(planning_history_async_service.on_postpone)
 
+    # Still include the old signals
     app.on_inserted_planning += planning_history_service.on_item_created
     app.on_updated_planning += planning_history_service.on_item_updated
-    app.on_updated_planning_spike += planning_history_service.on_spike
-    app.on_updated_planning_unspike += planning_history_service.on_unspike
     app.on_updated_planning_cancel += planning_history_service.on_cancel
     app.on_updated_planning_reschedule += planning_history_service.on_reschedule
-    app.on_updated_planning_postpone += planning_history_service.on_postpone
 
-    app.on_locked_planning += planning_service.on_locked_planning
-
-    app.on_session_end += planning_autosave_service.on_session_end
+    app.on_updated_assignments += PlanningAutosaveAsyncService().on_assignment_updated
 
     superdesk.privilege(
         name="planning_planning_management",

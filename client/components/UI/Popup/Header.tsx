@@ -1,15 +1,19 @@
 import React from 'react';
-import PropTypes from 'prop-types';
 import classNames from 'classnames';
-
 import Label from './Label';
 
-/**
- * @ngdoc react
- * @name Header
- * @description Header Component of a popup
- */
-const Header = ({text, onClose, children, className, noBorder, noPadding, centerText, testId}) => (
+interface IProps {
+    text: string;
+    onClose(): void;
+    children?: React.ReactChildren;
+    className: string;
+    noBorder: boolean;
+    noPadding: boolean;
+    centerText: boolean;
+    testId: string;
+}
+
+const Header = ({text, onClose, children, className, noBorder, noPadding, centerText, testId}: IProps) => (
     <div
         className={classNames(
             'popup__menu-header',
@@ -33,16 +37,5 @@ const Header = ({text, onClose, children, className, noBorder, noPadding, center
         {children}
     </div>
 );
-
-Header.propTypes = {
-    text: PropTypes.string,
-    onClose: PropTypes.func,
-    children: PropTypes.node,
-    className: PropTypes.string,
-    noBorder: PropTypes.bool,
-    noPadding: PropTypes.bool,
-    centerText: PropTypes.bool,
-    testId: PropTypes.string,
-};
 
 export default Header;

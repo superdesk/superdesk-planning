@@ -5,7 +5,7 @@ import {superdeskApi} from '../../../superdeskApi';
 import {IListFieldProps} from '../../../interfaces';
 
 import {PreviewFormItem} from './base/PreviewFormItem';
-import {ContactsPreviewList} from '../../Contacts';
+import {ContactsPreviewList} from '../../Contacts/ContactsPreviewList';
 
 export class PreviewFieldContacts extends React.PureComponent<IListFieldProps> {
     render() {
@@ -14,9 +14,6 @@ export class PreviewFieldContacts extends React.PureComponent<IListFieldProps> {
         const children = !contactIds?.length ? null : (
             <ContactsPreviewList
                 contactIds={contactIds}
-                scrollInView={true}
-                scrollIntoViewOptions={{block: 'center'}}
-                tabEnabled={true}
             />
         );
 

@@ -1,9 +1,9 @@
 import * as React from 'react';
 import moment from 'moment-timezone';
 import {getCustomAvatarContent, getUserInitials} from './../../components/UserAvatar';
-import * as config from 'appConfig';
-import {IPlanningCoverageItem, IG2ContentType, IContactItem, IPlanningConfig} from '../../interfaces';
-import {IUser, IDesk} from 'superdesk-api';
+import {appConfig} from 'appConfig';
+import {IPlanningCoverageItem, IG2ContentType, IContactItem} from '../../interfaces';
+import {IUser, IDesk, Dictionary} from 'superdesk-api';
 import {superdeskApi} from '../../superdeskApi';
 import {
     AvatarGroup,
@@ -17,7 +17,7 @@ import {
 import {IPropsAvatarPlaceholder} from 'superdesk-ui-framework/react/components/avatar/avatar-placeholder';
 import {IPropsAvatar} from 'superdesk-ui-framework/react/components/avatar/avatar';
 import {trimStartExact} from 'superdesk-core/scripts/core/helpers/utils';
-import {getItemWorkflowStateLabel, gettext, planningUtils} from '../../utils';
+import {getItemWorkflowStateLabel, planningUtils} from '../../utils';
 import {getVocabularyItemFieldTranslated} from '../../utils/vocabularies';
 import {getUserInterfaceLanguageFromCV} from '../../utils/users';
 import './coverage-icons.scss';
@@ -34,8 +34,6 @@ interface IProps {
     iconWrapper?(children: React.ReactNode): React.ReactNode;
 }
 
-const appConfig = config.appConfig as IPlanningConfig;
-
 export function isAvatarPlaceholder(
     item: Omit<IPropsAvatar, 'size'> | Omit<IPropsAvatarPlaceholder, 'size'>
 ): item is Omit<IPropsAvatarPlaceholder, 'size'> {
@@ -49,6 +47,7 @@ export function getAvatarForCoverage(
     noIcon: boolean = false,
 ): Omit<IPropsAvatar, 'size'> | Omit<IPropsAvatarPlaceholder, 'size'> {
     const user = users.find((u) => u._id === coverage.assigned_to?.user);
+    const statusDotColor = planningUtils.getNewsCoverageStatusDotColor(coverage);
 
     const icon: {name: string; color: string} | undefined =
         noIcon === true || coverage.planning?.g2_content_type == null ? undefined : {
@@ -66,10 +65,12 @@ export function getAvatarForCoverage(
         };
 
     if (user == null) {
-        const placeholder: Omit<IPropsAvatarPlaceholder, 'size'> = {
-            kind: 'user-icon',
+        const placeholder: Omit<IPropsAvatar, 'size'> = {
+            initials: null,
+            imageUrl: null,
+            displayName: 'Unassigned',
             icon: icon,
-            tooltip: gettext('Unassigned'),
+            statusDot: statusDotColor != null ? {color: statusDotColor} : null,
         };
 
         return placeholder;
@@ -80,6 +81,7 @@ export function getAvatarForCoverage(
             displayName: user.display_name,
             icon: icon,
             customContent: getCustomAvatarContent(user),
+            statusDot: statusDotColor != null ? {color: statusDotColor} : null,
         };
 
         return avatar;
@@ -93,8 +95,7 @@ export class CoverageIcons extends React.PureComponent<IProps> {
 
         return (
             <WithPopover
-                placement="bottom-end"
-                zIndex={1051}
+                placement="auto-end"
                 component={() => (
                     <div className="coverages-popup">
                         <Spacer v gap="16">
@@ -240,10 +241,10 @@ export class CoverageIcons extends React.PureComponent<IProps> {
                                             {
                                                 isAvatarPlaceholder(maybeAvatar)
                                                     ? (
-                                                        <AvatarPlaceholder {...maybeAvatar} size="medium" />
+                                                        <AvatarPlaceholder {...maybeAvatar} size="x-small" />
                                                     )
                                                     : (
-                                                        <Avatar {...maybeAvatar} size="medium" />
+                                                        <Avatar {...maybeAvatar} size="x-small" />
                                                     )
                                             }
                                         </div>
@@ -263,7 +264,7 @@ export class CoverageIcons extends React.PureComponent<IProps> {
                         }}
                     >
                         <AvatarGroup
-                            size="small"
+                            size="x-small"
                             items={coverages.map(
                                 (coverage) => getAvatarForCoverage(coverage, users, this.props.contentTypes),
                             )}

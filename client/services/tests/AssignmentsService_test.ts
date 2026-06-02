@@ -1,6 +1,7 @@
 import sinon from 'sinon';
 
 import {appConfig} from 'superdesk-core/scripts/appConfig';
+import {superdeskApi} from '../../superdeskApi';
 
 import {ALL_DESKS} from '../../constants';
 import {getTestActionStore, restoreSinonStub} from '../../utils/testUtils';
@@ -67,39 +68,28 @@ describe('assignments service', () => {
 
         it('returns if no matching assignments found', (done) => {
             appConfig.planning_fulfil_on_publish_for_desks = [];
-            services.api('assignments').query = sinon.spy(() => Promise.resolve({
+            superdeskApi.dataApi.queryRawJson = sinon.spy(() => Promise.resolve({
                 _items: [],
                 _meta: {total: 0},
             }));
 
             assignmentService.onPublishFromAuthoring(testData.archive[0])
                 .then(() => {
-                    expect(services.api('assignments').query.callCount).toBe(1);
-                    expect(services.api('assignments').query.args[0]).toEqual([{
-                        source: JSON.stringify({
-                            query: {
-                                bool: {
-                                    must: [
-                                        {terms: {'assigned_to.state': ['assigned']}},
-                                        {term: {'planning.g2_content_type': 'text'}},
-                                        {query_string: {query: 'planning.slugline.phrase:("test slugline")'}},
-                                        {
-                                            range: {
-                                                'planning.scheduled': {
-                                                    gte: 'now/d',
-                                                    lte: 'now/d',
-                                                    time_zone: getTimeZoneOffset(),
-                                                },
-                                            },
-                                        },
-                                    ],
-                                },
-                            },
-                            size: 0,
-                        }),
-                        page: 1,
-                        sort: '[("planning.scheduled", 1)]',
-                    }]);
+                    expect(superdeskApi.dataApi.queryRawJson.callCount).toBe(1);
+                    expect(superdeskApi.dataApi.queryRawJson.args[0]).toEqual([
+                        'events_planning_search',
+                        {
+                            states: 'assigned',
+                            date_filter: 'today',
+                            time_zone: 'Australia/Sydney',
+                            slugline: 'test slugline',
+                            repo: 'assignments',
+                            max_results: 0,
+                            page: 1,
+                            sort_order: 'ascending',
+                            sort_field: 'schedule',
+                        }
+                    ]);
 
                     expect(services.sdPlanningStore.initWorkspace.callCount).toBe(0);
                     expect(services.modal.createCustomModal.callCount).toBe(0);
@@ -115,7 +105,7 @@ describe('assignments service', () => {
             store.initialState.assignment.lists.TODAY.assignmentIds = ['as1'];
             store.initialState.assignment.assignments = {as1: testData.assignments[0]};
 
-            services.api('assignments').query = sinon.spy(() => Promise.resolve({
+            superdeskApi.dataApi.queryRawJson = sinon.spy(() => Promise.resolve({
                 _items: [testData.assignments[0]],
                 _meta: {total: 1},
             }));
@@ -125,7 +115,7 @@ describe('assignments service', () => {
 
             // Use a setTimeout as the promise is resolved/rejected in the modal
             setTimeout(() => {
-                expect(services.api('assignments').query.callCount).toBe(1);
+                expect(superdeskApi.dataApi.queryRawJson.callCount).toBe(1);
                 expect(services.sdPlanningStore.initWorkspace.callCount).toBe(1);
                 expect(services.modal.createCustomModal.callCount).toBe(1);
                 expect(services.modal.openModal.callCount).toBe(1);
@@ -137,13 +127,13 @@ describe('assignments service', () => {
 
                 expect(actions.assignments.ui.changeListSettings.callCount).toBe(1);
                 expect(actions.assignments.ui.changeListSettings.args[0]).toEqual([{
-                    filterBy: 'Desk',
+                    filterBy: 'User',
                     searchQuery: 'planning.slugline.phrase:("test slugline")',
                     orderByField: 'Scheduled',
                     dayField: null,
                     filterByType: 'text',
                     filterByPriority: null,
-                    selectedDeskId: ALL_DESKS,
+                    selectedDeskId: null,
                     ignoreScheduledUpdates: true,
                 }]);
 
@@ -192,7 +182,7 @@ describe('assignments service', () => {
                 store.initialState.assignment.lists.TODAY.assignmentIds = ['as1'];
                 store.initialState.assignment.assignments = {as1: testData.assignments[0]};
 
-                services.api('assignments').query = sinon.spy(() => Promise.resolve({
+                superdeskApi.dataApi.queryRawJson = sinon.spy(() => Promise.resolve({
                     _items: [testData.assignments[0]],
                     _meta: {total: 1},
                 }));
@@ -202,7 +192,7 @@ describe('assignments service', () => {
 
                 // Use a setTimeout as the promise is resolved/rejected in the modal
                 setTimeout(() => {
-                    expect(services.api('assignments').query.callCount).toBe(1);
+                    expect(superdeskApi.dataApi.queryRawJson.callCount).toBe(1);
                     expect(services.sdPlanningStore.initWorkspace.callCount).toBe(1);
                     expect(services.modal.createCustomModal.callCount).toBe(1);
                     expect(services.modal.openModal.callCount).toBe(1);
@@ -214,13 +204,13 @@ describe('assignments service', () => {
 
                     expect(actions.assignments.ui.changeListSettings.callCount).toBe(1);
                     expect(actions.assignments.ui.changeListSettings.args[0]).toEqual([{
-                        filterBy: 'Desk',
+                        filterBy: 'User',
                         searchQuery: 'planning.slugline.phrase:("test slugline")',
                         orderByField: 'Scheduled',
                         filterByType: 'text',
                         dayField: null,
                         filterByPriority: null,
-                        selectedDeskId: ALL_DESKS,
+                        selectedDeskId: null,
                         ignoreScheduledUpdates: true,
                     }]);
 

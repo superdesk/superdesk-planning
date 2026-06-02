@@ -34,7 +34,6 @@ describe('actions.planning.ui', () => {
         sinon.stub(planningUi, 'addToList').callsFake(() => ({type: 'addToList'}));
         sinon.stub(planningUi, 'fetchToList').callsFake(() => (Promise.resolve()));
         sinon.stub(planningUi, 'loadMore').callsFake(() => (Promise.resolve()));
-        sinon.stub(planningUi, 'refetch').callsFake(() => (Promise.resolve()));
         sinon.stub(assignmentApi, 'link').callsFake(() => (Promise.resolve()));
         sinon.stub(planningUi, 'saveFromAuthoring').callsFake(() => (Promise.resolve()));
 
@@ -55,7 +54,6 @@ describe('actions.planning.ui', () => {
         restoreSinonStub(planningUi.setInList);
         restoreSinonStub(planningUi.addToList);
         restoreSinonStub(planningUi.fetchToList);
-        restoreSinonStub(planningUi.refetch);
         restoreSinonStub(assignmentApi.link);
         restoreSinonStub(planningUi.saveFromAuthoring);
         restoreSinonStub(planningUi.loadMore);
@@ -65,11 +63,6 @@ describe('actions.planning.ui', () => {
     });
 
     describe('spike', () => {
-        afterEach(() => {
-            restoreSinonStub(planningApis.refetch);
-            restoreSinonStub(planningUi.refetch);
-        });
-
         it('ui.spike notifies end user on successful spike', (done) => (
             store.test(done, planningUi.spike(data.plannings[1]))
                 .then((item) => {
@@ -105,7 +98,9 @@ describe('actions.planning.ui', () => {
             restoreSinonStub(planningApis.spike);
             sinon.stub(planningApis, 'spike').callsFake(() => (Promise.reject(errorMessage)));
             return store.test(done, planningUi.spike(data.plannings[1]))
-                .then(() => { /* no-op */ }, (error) => {
+                .then(() => {
+                    /* no-op */
+                }, (error) => {
                     expect(error).toEqual(errorMessage);
 
                     // Notifies end user of failure
@@ -120,10 +115,6 @@ describe('actions.planning.ui', () => {
     });
 
     describe('unspike', () => {
-        afterEach(() => {
-            restoreSinonStub(planningUi.refetch);
-        });
-
         it('ui.unspike notifies end user on successful unspike', (done) => (
             store.test(done, planningUi.unspike(data.plannings[1]))
                 .then((item) => {
@@ -149,7 +140,9 @@ describe('actions.planning.ui', () => {
             restoreSinonStub(planningApis.unspike);
             sinon.stub(planningApis, 'unspike').callsFake(() => (Promise.reject(errorMessage)));
             return store.test(done, planningUi.unspike(data.plannings[1]))
-                .then(() => { /* no-op */ }, (error) => {
+                .then(() => {
+                    /* no-op */
+                }, (error) => {
                     expect(error).toEqual(errorMessage);
 
                     // Notifies end user of failure
@@ -190,7 +183,9 @@ describe('actions.planning.ui', () => {
             );
 
             return store.test(done, planningUi.save(data.plannings[1], {}))
-                .then(() => { /* no-op */ }, (error) => {
+                .then(() => {
+                    /* no-op */
+                }, (error) => {
                     expect(error).toEqual(errorMessage);
 
                     done();
@@ -235,7 +230,10 @@ describe('actions.planning.ui', () => {
             () => (Promise.resolve(data.plannings))
         );
 
-        const params = store.initialState.planning.lastRequestParams;
+        const params = {
+            ...store.initialState.planning.lastRequestParams,
+            page: 1,
+        };
 
         store.test(done, planningUi.fetchToList(params))
             .then(() => {
@@ -276,7 +274,7 @@ describe('actions.planning.ui', () => {
 
         store.test(done, planningUi.loadMore())
             .then(() => {
-                expect(planningUi.requestPlannings.callCount).toBe(0);
+                expect(planningUi.requestPlannings.callCount).toBe(1);
 
                 expect(planningApis.fetch.callCount).toBe(1);
                 expect(planningApis.fetch.args[0]).toEqual([expectedParams]);
@@ -418,7 +416,9 @@ describe('actions.planning.ui', () => {
             sinon.stub(planningApis, 'save').callsFake(() => Promise.reject(errorMessage));
 
             store.test(done, planningUi.saveFromAuthoring(data.plannings[0]))
-                .then(() => { /* no-op */ }, () => {
+                .then(() => {
+                    /* no-op */
+                }, () => {
                     expect(services.notify.error.callCount).toBe(1);
                     expect(services.notify.error.args[0]).toEqual(['Failed!']);
 
@@ -437,8 +437,10 @@ describe('actions.planning.ui', () => {
             );
 
             store.test(done, planningUi.saveFromAuthoring(data.plannings[0]))
-                .then(() => { /* no-op */ }, () => {
-                    expect(services.notify.error.callCount).toBe(1);
+                .then(() => {
+                    /* no-op */
+                }, () => {
+                    expect(services.notify.error.callCount).toBe(2);
                     expect(services.notify.error.args[0]).toEqual(['Failed!']);
 
                     expect(modalProps.$scope.resolve.callCount).toBe(0);

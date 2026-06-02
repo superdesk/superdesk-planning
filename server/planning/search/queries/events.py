@@ -13,6 +13,7 @@ from typing import Any, Dict, List, Callable
 from planning.search.queries import elastic
 from .common import (
     get_date_params,
+    get_created_date_params,
     COMMON_SEARCH_FILTERS,
     COMMON_PARAMS,
     strtobool,
@@ -21,6 +22,8 @@ from .common import (
     get_sort_field,
     get_sort_order,
     search_text_field,
+    FilterFunctionType,
+    Params,
 )
 
 
@@ -255,16 +258,7 @@ def search_date_start(params: Dict[str, Any], query: elastic.ElasticQuery):
 
     if not date_filter and start_date and not end_date:
         query.filter.append(
-            elastic.bool_or(
-                [
-                    elastic.date_range(
-                        elastic.ElasticRangeParams(field="dates.start", gte=start_date, time_zone=time_zone)
-                    ),
-                    elastic.date_range(
-                        elastic.ElasticRangeParams(field="dates.end", gte=start_date, time_zone=time_zone)
-                    ),
-                ]
-            )
+            elastic.date_range(elastic.ElasticRangeParams(field="dates.end", gte=start_date, time_zone=time_zone)),
         )
 
 
@@ -273,10 +267,23 @@ def search_date_end(params: Dict[str, Any], query: elastic.ElasticQuery):
 
     if not date_filter and not start_date and end_date:
         query.filter.append(
-            elastic.bool_or(
+            elastic.date_range(elastic.ElasticRangeParams(field="dates.start", lte=end_date, time_zone=time_zone)),
+        )
+
+
+def search_date_range(params: Dict[str, Any], query: elastic.ElasticQuery):
+    date_filter, start_date, end_date, time_zone = get_date_params(params)
+
+    if not date_filter and start_date and end_date:
+        query.filter.append(
+            elastic.bool_and(
                 [
                     elastic.date_range(
-                        elastic.ElasticRangeParams(field="dates.start", lte=end_date, time_zone=time_zone)
+                        elastic.ElasticRangeParams(
+                            field="dates.start",
+                            gte=start_date,
+                            time_zone=time_zone,
+                        ),
                     ),
                     elastic.date_range(
                         elastic.ElasticRangeParams(field="dates.end", lte=end_date, time_zone=time_zone)
@@ -286,69 +293,12 @@ def search_date_end(params: Dict[str, Any], query: elastic.ElasticQuery):
         )
 
 
-def search_date_range(params: Dict[str, Any], query: elastic.ElasticQuery):
-    date_filter, start_date, end_date, time_zone = get_date_params(params)
-
-    if not date_filter and start_date and end_date:
-        query.filter.append(
-            elastic.bool_or(
-                [
-                    elastic.bool_and(
-                        [
-                            elastic.date_range(
-                                elastic.ElasticRangeParams(
-                                    field="dates.start",
-                                    gte=start_date,
-                                    time_zone=time_zone,
-                                )
-                            ),
-                            elastic.date_range(
-                                elastic.ElasticRangeParams(field="dates.end", lte=end_date, time_zone=time_zone)
-                            ),
-                        ]
-                    ),
-                    elastic.bool_and(
-                        [
-                            elastic.date_range(
-                                elastic.ElasticRangeParams(
-                                    field="dates.start",
-                                    lt=start_date,
-                                    time_zone=time_zone,
-                                )
-                            ),
-                            elastic.date_range(
-                                elastic.ElasticRangeParams(field="dates.end", gt=end_date, time_zone=time_zone)
-                            ),
-                        ]
-                    ),
-                    elastic.bool_or(
-                        [
-                            elastic.date_range(
-                                elastic.ElasticRangeParams(
-                                    field="dates.start",
-                                    gte=start_date,
-                                    lte=end_date,
-                                    time_zone=time_zone,
-                                )
-                            ),
-                            elastic.date_range(
-                                elastic.ElasticRangeParams(
-                                    field="dates.end",
-                                    gte=start_date,
-                                    lte=end_date,
-                                    time_zone=time_zone,
-                                )
-                            ),
-                        ]
-                    ),
-                ]
-            )
-        )
-
-
 def search_date_default(params: Dict[str, Any], query: elastic.ElasticQuery):
     date_filter, start_date, end_date, time_zone = get_date_params(params)
     only_future = strtobool(params.get("only_future", True))
+
+    if params.get("created_start_date") or params.get("created_end_date"):
+        return
 
     if not date_filter and not start_date and not end_date and only_future:
         query.filter.append(
@@ -373,6 +323,21 @@ def search_dates(params: Dict[str, Any], query: elastic.ElasticQuery):
         search_date_default(params, query)
 
 
+def search_created_date(params: Dict[str, Any], query: elastic.ElasticQuery):
+    created_start_date, created_end_date = get_created_date_params(params)
+
+    if created_start_date or created_end_date:
+        base_query = elastic.ElasticRangeParams(field="_created")
+
+        if created_start_date:
+            base_query.gte = created_start_date
+
+        if created_end_date:
+            base_query.lte = created_end_date
+
+        query.filter.append(elastic.date_range(base_query))
+
+
 def set_search_sort(params: Dict[str, Any], query: elastic.ElasticQuery):
     field = get_sort_field(params, "schedule")
     order = get_sort_order(params, "ascending")
@@ -383,7 +348,31 @@ def set_search_sort(params: Dict[str, Any], query: elastic.ElasticQuery):
     query.sort.append({field: {"order": order}})
 
 
-EVENT_SEARCH_FILTERS: List[Callable[[Dict[str, Any], elastic.ElasticQuery], None]] = [
+def search_definition_short(params: Params, query: elastic.ElasticQuery):
+    search_text_field(params, query, "definition_short")
+
+
+def search_definition_long(params: Params, query: elastic.ElasticQuery):
+    search_text_field(params, query, "definition_long")
+
+
+def search_registration_details(params: Params, query: elastic.ElasticQuery):
+    search_text_field(params, query, "registration_details")
+
+
+def search_invitation_details(params: Params, query: elastic.ElasticQuery):
+    search_text_field(params, query, "invitation_details")
+
+
+def search_accreditation_info(params: Params, query: elastic.ElasticQuery):
+    search_text_field(params, query, "accreditation_info")
+
+
+def search_registration(params: Params, query: elastic.ElasticQuery):
+    search_text_field(params, query, "registration")
+
+
+EVENT_SEARCH_FILTERS: list[FilterFunctionType] = [
     search_events,
     search_slugline,
     search_reference,
@@ -391,16 +380,30 @@ EVENT_SEARCH_FILTERS: List[Callable[[Dict[str, Any], elastic.ElasticQuery], None
     search_calendars,
     search_no_calendar_assigned,
     search_dates,
+    search_created_date,
     set_search_sort,
+    search_definition_short,
+    search_definition_long,
+    search_registration_details,
+    search_accreditation_info,
+    search_invitation_details,
+    search_registration,
 ]
 
 EVENT_SEARCH_FILTERS.extend(COMMON_SEARCH_FILTERS)
 
-EVENT_PARAMS: List[str] = [
+EVENT_PARAMS = [
     "reference",
     "location",
     "calendars",
     "no_calendar_assigned",
+    "definition_short",
+    "definition_long",
+    "registration_details",
+    "invitation_details",
+    "accreditation_info",
+    "reference",
+    "registration",
 ]
 
 EVENT_PARAMS.extend(COMMON_PARAMS)

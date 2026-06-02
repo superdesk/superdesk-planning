@@ -123,24 +123,6 @@ Feature: Events Reschedule
           ]
         }]
         """
-        Given "assignments"
-        """
-        [{
-            "_id": "aaaaaaaaaaaaaaaaaaaaaaaa",
-            "planning": {
-                "ednote": "test coverage, I want 250 words",
-                "headline": "test headline",
-                "slugline": "test slugline",
-                "g2_content_type": "text",
-                "scheduled": "2029-11-21T12:00:00.000Z"
-            },
-            "assigned_to": {
-                "desk": "#desks._id#",
-                "user": "#CONTEXT_USER_ID#",
-                "state": "assigned"
-            }
-        }]
-        """
         Given "events"
         """
         [{
@@ -160,13 +142,13 @@ Feature: Events Reschedule
             "lock_time": "#DATE#"
         }]
         """
-        Given "planning"
+        When we post to "planning"
         """
         [{
             "_id": "plan1",
             "guid": "plan1",
             "slugline": "TestEvent",
-            "event_item": "event1",
+            "related_events": [{"_id": "event1", "link_type": "primary"}],
             "state": "scheduled",
             "pubstatus": "usable",
             "ednote": "We planned this.",
@@ -179,7 +161,7 @@ Feature: Events Reschedule
                 "assigned_to": {
                     "desk": "#desks._id#",
                     "user": "#CONTEXT_USER_ID#",
-                    "assignment_id": "aaaaaaaaaaaaaaaaaaaaaaaa"
+                    "state": "assigned"
                 },
                 "news_coverage_status" : {
                 "qcode" : "ncostat:int",
@@ -190,6 +172,8 @@ Feature: Events Reschedule
             "planning_date": "2016-01-02"
         }]
         """
+        Then we get OK response
+        And we store assignment id in "ASSIGNMENT_1_ID" from coverage 0
         When we reset notifications
         When we perform reschedule on events "event1"
         """
@@ -245,7 +229,7 @@ Feature: Events Reschedule
             }]
         }
         """
-        When we get "/assignments/aaaaaaaaaaaaaaaaaaaaaaaa"
+        When we get "/assignments/#ASSIGNMENT_1_ID#"
         Then we get existing resource
         """
         {
@@ -310,7 +294,7 @@ Feature: Events Reschedule
         [{
             "slugline": "Weekly Meetings",
             "headline": "Friday Club",
-            "event_item": "#EVENT1._id#",
+            "related_events": [{"_id": "#EVENT1._id#", "link_type": "primary"}],
             "state": "draft",
             "planning_date": "2016-01-02"
         }]
@@ -397,7 +381,7 @@ Feature: Events Reschedule
         {"_items": [{
             "slugline": "Weekly Meetings",
             "headline": "Friday Club",
-            "event_item": "#EVENT1._id#",
+            "related_events": [{"_id": "#EVENT1._id#", "link_type": "primary"}],
             "state": "rescheduled"
         }]}
         """
@@ -410,8 +394,8 @@ Feature: Events Reschedule
         [{
             "name": "Friday Club",
             "dates": {
-                "start": "2025-11-20T12:00:00.000Z",
-                "end": "2025-11-20T14:00:00.000Z",
+                "start": "2035-11-20T12:00:00.000Z",
+                "end": "2035-11-20T14:00:00.000Z",
                 "tz": "Australia/Sydney",
                 "recurring_rule": {
                     "frequency": "WEEKLY",
@@ -434,8 +418,8 @@ Feature: Events Reschedule
             {
                 "name": "Friday Club",
                 "dates": {
-                    "start": "2025-11-21T12:00:00+0000",
-                    "end": "2025-11-21T14:00:00+0000",
+                    "start": "2035-11-23T12:00:00+0000",
+                    "end": "2035-11-23T14:00:00+0000",
                     "tz": "Australia/Sydney",
                     "recurring_rule": {
                         "frequency": "WEEKLY",
@@ -448,8 +432,8 @@ Feature: Events Reschedule
             }, {
                 "name": "Friday Club",
                 "dates": {
-                    "start": "2025-11-28T12:00:00+0000",
-                    "end": "2025-11-28T14:00:00+0000",
+                    "start": "2035-11-30T12:00:00+0000",
+                    "end": "2035-11-30T14:00:00+0000",
                     "tz": "Australia/Sydney",
                     "recurring_rule": {
                         "frequency": "WEEKLY",
@@ -462,8 +446,8 @@ Feature: Events Reschedule
             }, {
                 "name": "Friday Club",
                 "dates": {
-                    "start": "2025-12-05T12:00:00+0000",
-                    "end": "2025-12-05T14:00:00+0000",
+                    "start": "2035-12-07T12:00:00+0000",
+                    "end": "2035-12-07T14:00:00+0000",
                     "tz": "Australia/Sydney",
                     "recurring_rule": {
                         "frequency": "WEEKLY",
@@ -486,8 +470,8 @@ Feature: Events Reschedule
         {
             "reason": "Extending number of occurrences",
             "dates": {
-                "start": "2025-11-21T12:00:00.000Z",
-                "end": "2025-11-21T14:00:00.000Z",
+                "start": "2035-11-23T12:00:00.000Z",
+                "end": "2035-11-23T14:00:00.000Z",
                 "tz": "Australia/Sydney",
                 "recurring_rule": {
                     "frequency": "WEEKLY",
@@ -508,8 +492,8 @@ Feature: Events Reschedule
             {
                 "name": "Friday Club",
                 "dates": {
-                    "start": "2025-11-21T12:00:00+0000",
-                    "end": "2025-11-21T14:00:00+0000",
+                    "start": "2035-11-23T12:00:00+0000",
+                    "end": "2035-11-23T14:00:00+0000",
                     "tz": "Australia/Sydney",
                     "recurring_rule": {
                         "frequency": "WEEKLY",
@@ -522,8 +506,8 @@ Feature: Events Reschedule
             }, {
                 "name": "Friday Club",
                 "dates": {
-                    "start": "2025-11-28T12:00:00+0000",
-                    "end": "2025-11-28T14:00:00+0000",
+                    "start": "2035-11-30T12:00:00+0000",
+                    "end": "2035-11-30T14:00:00+0000",
                     "tz": "Australia/Sydney",
                     "recurring_rule": {
                         "frequency": "WEEKLY",
@@ -536,8 +520,8 @@ Feature: Events Reschedule
             }, {
                 "name": "Friday Club",
                 "dates": {
-                    "start": "2025-12-05T12:00:00+0000",
-                    "end": "2025-12-05T14:00:00+0000",
+                    "start": "2035-12-07T12:00:00+0000",
+                    "end": "2035-12-07T14:00:00+0000",
                     "tz": "Australia/Sydney",
                     "recurring_rule": {
                         "frequency": "WEEKLY",
@@ -550,8 +534,8 @@ Feature: Events Reschedule
             }, {
                 "name": "Friday Club",
                 "dates": {
-                    "start": "2025-12-12T12:00:00+0000",
-                    "end": "2025-12-12T14:00:00+0000",
+                    "start": "2035-12-14T12:00:00+0000",
+                    "end": "2035-12-14T14:00:00+0000",
                     "tz": "Australia/Sydney",
                     "recurring_rule": {
                         "frequency": "WEEKLY",
@@ -573,8 +557,8 @@ Feature: Events Reschedule
             {"operation": "create", "event_id": "#EVENT3._id#"},
             {"operation": "reschedule", "event_id": "#EVENT1._id#", "update": {
                 "dates": {
-                    "start": "2025-11-21T12:00:00+0000",
-                    "end": "2025-11-21T14:00:00+0000",
+                    "start": "2035-11-23T12:00:00+0000",
+                    "end": "2035-11-23T14:00:00+0000",
                     "tz": "Australia/Sydney",
                     "recurring_rule": {
                         "frequency": "WEEKLY",
@@ -587,8 +571,8 @@ Feature: Events Reschedule
             }},
             {"operation": "reschedule", "event_id": "#EVENT2._id#", "update": {
                 "dates": {
-                    "start": "2025-11-28T12:00:00+0000",
-                    "end": "2025-11-28T14:00:00+0000",
+                    "start": "2035-11-30T12:00:00+0000",
+                    "end": "2035-11-30T14:00:00+0000",
                     "tz": "Australia/Sydney",
                     "recurring_rule": {
                         "frequency": "WEEKLY",
@@ -601,8 +585,8 @@ Feature: Events Reschedule
             }},
             {"operation": "reschedule", "event_id": "#EVENT3._id#", "update": {
                 "dates": {
-                    "start": "2025-12-05T12:00:00+0000",
-                    "end": "2025-12-05T14:00:00+0000",
+                    "start": "2035-12-07T12:00:00+0000",
+                    "end": "2035-12-07T14:00:00+0000",
                     "tz": "Australia/Sydney",
                     "recurring_rule": {
                         "frequency": "WEEKLY",
@@ -615,8 +599,8 @@ Feature: Events Reschedule
             }},
             {"operation": "create", "event_id": "__any_value__", "update": {
                 "dates": {
-                    "start": "2025-12-12T12:00:00+0000",
-                    "end": "2025-12-12T14:00:00+0000",
+                    "start": "2035-12-14T12:00:00+0000",
+                    "end": "2035-12-14T14:00:00+0000",
                     "tz": "Australia/Sydney",
                     "recurring_rule": {
                         "frequency": "WEEKLY",
@@ -791,8 +775,8 @@ Feature: Events Reschedule
         [{
             "name": "Friday Club",
             "dates": {
-                "start": "2025-11-21T12:00:00.000Z",
-                "end": "2025-11-21T14:00:00.000Z",
+                "start": "2035-11-21T12:00:00.000Z",
+                "end": "2035-11-21T14:00:00.000Z",
                 "tz": "Australia/Sydney",
                 "recurring_rule": {
                     "frequency": "WEEKLY",
@@ -814,8 +798,8 @@ Feature: Events Reschedule
         """
         {
             "dates": {
-                "start": "2025-11-21T12:00:00.000Z",
-                "end": "2025-11-21T18:00:00.000Z",
+                "start": "2035-11-23T12:00:00.000Z",
+                "end": "2035-11-23T18:00:00.000Z",
                 "tz": "Australia/Sydney",
                 "recurring_rule": {
                     "frequency": "WEEKLY",
@@ -836,8 +820,8 @@ Feature: Events Reschedule
             {
                 "name": "Friday Club",
                 "dates": {
-                    "start": "2025-11-21T12:00:00+0000",
-                    "end": "2025-11-21T18:00:00+0000",
+                    "start": "2035-11-23T12:00:00+0000",
+                    "end": "2035-11-23T18:00:00+0000",
                     "tz": "Australia/Sydney",
                     "recurring_rule": {
                         "frequency": "WEEKLY",
@@ -850,8 +834,8 @@ Feature: Events Reschedule
             }, {
                 "name": "Friday Club",
                 "dates": {
-                    "start": "2025-11-28T12:00:00+0000",
-                    "end": "2025-11-28T18:00:00+0000",
+                    "start": "2035-11-30T12:00:00+0000",
+                    "end": "2035-11-30T18:00:00+0000",
                     "tz": "Australia/Sydney",
                     "recurring_rule": {
                         "frequency": "WEEKLY",
@@ -864,8 +848,8 @@ Feature: Events Reschedule
             }, {
                 "name": "Friday Club",
                 "dates": {
-                    "start": "2025-12-05T12:00:00+0000",
-                    "end": "2025-12-05T18:00:00+0000",
+                    "start": "2035-12-07T12:00:00+0000",
+                    "end": "2035-12-07T18:00:00+0000",
                     "tz": "Australia/Sydney",
                     "recurring_rule": {
                         "frequency": "WEEKLY",
@@ -887,8 +871,8 @@ Feature: Events Reschedule
         [{
             "name": "Friday Club",
             "dates": {
-                "start": "2025-11-21T12:00:00.000Z",
-                "end": "2025-11-21T14:00:00.000Z",
+                "start": "2035-11-23T12:00:00.000Z",
+                "end": "2035-11-23T14:00:00.000Z",
                 "tz": "Australia/Sydney",
                 "recurring_rule": {
                     "frequency": "WEEKLY",
@@ -912,26 +896,26 @@ Feature: Events Reschedule
                 "guid": "plan1",
                 "slugline": "Weekly Meetings",
                 "headline": "Friday Club",
-                "event_item": "#EVENT2._id#",
+                "related_events": [{"_id": "#EVENT2._id#", "link_type": "primary"}],
                 "coverages": [{
                     "planning": {
                         "internal_note": "test coverage, 250 words",
                         "headline": "test headline",
                         "slugline": "test slugline",
-                        "scheduled": "2025-11-21T14:00:00.000Z",
+                        "scheduled": "2035-11-23T14:00:00.000Z",
                         "g2_content_type": "text"
                     },
                     "news_coverage_status": {"qcode": "ncostat:int"},
                     "workflow_status" : "draft"
                 }],
-                "planning_date": "2025-01-02"
+                "planning_date": "2035-01-04"
             },
             {
                 "guid": "plan2",
                 "slugline": "Weekly Meetings",
                 "headline": "Friday Club",
-                "event_item": "#EVENT3._id#",
-                "planning_date": "2025-01-02"
+                "related_events": [{"_id": "#EVENT3._id#", "link_type": "primary"}],
+                "planning_date": "2035-01-04"
             }
         ]
         """
@@ -944,12 +928,12 @@ Feature: Events Reschedule
         {"_items": [
             {
                 "_id": "#PLAN1._id#",
-                "event_item": "#EVENT2._id#",
+                "related_events": [{"_id": "#EVENT2._id#", "link_type": "primary"}],
                 "state": "draft"
             },
             {
                 "_id": "#PLAN2._id#",
-                "event_item": "#EVENT3._id#",
+                "related_events": [{"_id": "#EVENT3._id#", "link_type": "primary"}],
                 "state": "draft"
             }
         ]}
@@ -1014,7 +998,7 @@ Feature: Events Reschedule
         {"_items": [
             {
                 "_id": "#PLAN1._id#",
-                "event_item": "#EVENT2._id#",
+                "related_events": [{"_id": "#EVENT2._id#", "link_type": "primary"}],
                 "state": "postponed",
                 "state_reason": "Postponed this event!",
                 "coverages": [{
@@ -1023,7 +1007,7 @@ Feature: Events Reschedule
                         "workflow_status_reason": "Postponed this event!",
                         "headline": "test headline",
                         "slugline": "test slugline",
-                        "scheduled": "2025-11-21T14:00:00+0000",
+                        "scheduled": "2035-11-23T14:00:00+00:00",
                         "g2_content_type": "text"
                     },
                     "news_coverage_status": { "qcode": "ncostat:int" }
@@ -1031,7 +1015,7 @@ Feature: Events Reschedule
             },
             {
                 "_id": "#PLAN2._id#",
-                "event_item": "#EVENT3._id#",
+                "related_events": [{"_id": "#EVENT3._id#", "link_type": "primary"}],
                 "state": "postponed",
                 "state_reason": "Postponed this event!"
             }
@@ -1046,8 +1030,8 @@ Feature: Events Reschedule
         {
             "reason": "Event back on at original date and time",
             "dates": {
-                "start": "2025-11-21T12:00:00.000Z",
-                "end": "2025-11-21T14:00:00.000Z",
+                "start": "2035-11-23T12:00:00.000Z",
+                "end": "2035-11-23T14:00:00.000Z",
                 "tz": "Australia/Sydney",
                 "recurring_rule": {
                     "frequency": "WEEKLY",
@@ -1068,8 +1052,8 @@ Feature: Events Reschedule
             {
                 "name": "Friday Club",
                 "dates": {
-                    "start": "2025-11-21T12:00:00+0000",
-                    "end": "2025-11-21T14:00:00+0000",
+                    "start": "2035-11-23T12:00:00+0000",
+                    "end": "2035-11-23T14:00:00+0000",
                     "tz": "Australia/Sydney",
                     "recurring_rule": {
                         "frequency": "WEEKLY",
@@ -1085,8 +1069,8 @@ Feature: Events Reschedule
             {
                 "name": "Friday Club",
                 "dates": {
-                    "start": "2025-11-28T12:00:00+0000",
-                    "end": "2025-11-28T14:00:00+0000",
+                    "start": "2035-11-30T12:00:00+0000",
+                    "end": "2035-11-30T14:00:00+0000",
                     "tz": "Australia/Sydney",
                     "recurring_rule": {
                         "frequency": "WEEKLY",
@@ -1102,8 +1086,8 @@ Feature: Events Reschedule
             {
                 "name": "Friday Club",
                 "dates": {
-                    "start": "2025-12-05T12:00:00+0000",
-                    "end": "2025-12-05T14:00:00+0000",
+                    "start": "2035-12-07T12:00:00+0000",
+                    "end": "2035-12-07T14:00:00+0000",
                     "tz": "Australia/Sydney",
                     "recurring_rule": {
                         "frequency": "WEEKLY",
@@ -1119,8 +1103,8 @@ Feature: Events Reschedule
             {
                 "name": "Friday Club",
                 "dates": {
-                    "start": "2025-12-12T12:00:00+0000",
-                    "end": "2025-12-12T14:00:00+0000",
+                    "start": "2035-12-14T12:00:00+0000",
+                    "end": "2035-12-14T14:00:00+0000",
                     "tz": "Australia/Sydney",
                     "recurring_rule": {
                         "frequency": "WEEKLY",
@@ -1141,7 +1125,7 @@ Feature: Events Reschedule
         {"_items": [
             {
                 "_id": "#PLAN1._id#",
-                "event_item": "#EVENT2._id#",
+                "related_events": [{"_id": "#EVENT2._id#", "link_type": "primary"}],
                 "state": "draft",
                 "state_reason": "Event back on at original date and time",
                 "coverages": [{
@@ -1150,7 +1134,7 @@ Feature: Events Reschedule
                         "workflow_status_reason": "Event back on at original date and time",
                         "headline": "test headline",
                         "slugline": "test slugline",
-                        "scheduled": "2025-11-21T14:00:00+0000",
+                        "scheduled": "2035-11-23T14:00:00+0000",
                         "g2_content_type": "text"
                     },
                     "news_coverage_status": { "qcode": "ncostat:int" }
@@ -1158,7 +1142,7 @@ Feature: Events Reschedule
             },
             {
                 "_id": "#PLAN2._id#",
-                "event_item": "#EVENT3._id#",
+                "related_events": [{"_id": "#EVENT3._id#", "link_type": "primary"}],
                 "state": "scheduled",
                 "state_reason": "Event back on at original date and time"
             }
@@ -1228,7 +1212,7 @@ Feature: Events Reschedule
         """
         Then we get error 400
         """
-        {"_issues": {"validator exception": "403: The event must be locked"}, "_status": "ERR"}
+        {"_message": "The event must be locked", "_status": "ERR"}
         """
         When we perform reschedule on events "event2"
         """
@@ -1242,7 +1226,7 @@ Feature: Events Reschedule
         """
         Then we get error 400
         """
-        {"_issues": {"validator exception": "403: The event is locked by you in another session"}, "_status": "ERR"}
+        {"_message": "The event is locked by you in another session", "_status": "ERR"}
         """
         When we perform reschedule on events "event3"
         """
@@ -1256,7 +1240,7 @@ Feature: Events Reschedule
         """
         Then we get error 400
         """
-        {"_issues": {"validator exception": "403: The event is locked by another user"}, "_status": "ERR"}
+        {"_message": "The event is locked by another user", "_status": "ERR"}
         """
         When we perform reschedule on events "event4"
         """
@@ -1270,7 +1254,7 @@ Feature: Events Reschedule
         """
         Then we get error 400
         """
-        {"_issues": {"validator exception": "403: The lock must be for the `reschedule` action"}, "_status": "ERR"}
+        {"_message": "The lock must be for the `reschedule` action", "_status": "ERR"}
         """
 
     @auth
@@ -1501,7 +1485,7 @@ Feature: Events Reschedule
         """
         Then we get error 400
         """
-        {"_status": "ERR", "_issues": {"validator exception": "400: Event duration is greater than 7 days."}}
+        {"_status": "ERR", "_message": "Event duration is greater than 7 days."}
         """
 
     @auth
@@ -1701,5 +1685,89 @@ Feature: Events Reschedule
                 "reschedule_from": "event1"
             }},
             {"operation": "post", "event_id": "event1"}
+        ]}
+        """
+
+    @auth
+    @vocabulary
+    Scenario: Rescheduling an Event does not modify Planning item with secondary link
+        Given config update
+        """
+        {"PLANNING_EVENT_LINK_METHOD": "one_primary_many_secondary"}
+        """
+        Given we have sessions "/sessions"
+        And "events"
+        """
+        [{
+            "guid": "event1",
+            "name": "Event1",
+            "dates": {
+                "start": "2029-05-29T12:00:00+0000",
+                "end": "2029-05-29T14:00:00+0000",
+                "tz": "Australia/Sydney"
+            },
+            "lock_user": "#CONTEXT_USER_ID#",
+            "lock_session": "#SESSION_ID#",
+            "lock_action": "reschedule",
+            "lock_time": "#DATE#"
+        }]
+        """
+        And "planning"
+        """
+        [{
+            "guid": "plan1",
+            "slugline": "test-plan",
+            "planning_date": "2029-05-29T12:00:00+0000",
+            "related_events": [{"_id": "event1", "link_type": "primary"}],
+            "coverages": [{
+                "coverage_id": "plan1_cov1",
+                "workflow_status": "draft",
+                "news_coverage_status": {"qcode" : "ncostat:int"}
+            }]
+        }, {
+            "guid": "plan2",
+            "slugline": "test-plan",
+            "planning_date": "2029-05-29T12:00:00+0000",
+            "related_events": [{"_id": "event1", "link_type": "secondary"}],
+            "coverages": [{
+                "coverage_id": "plan2_cov1",
+                "workflow_status": "draft",
+                "news_coverage_status": {"qcode" : "ncostat:int"}
+            }]
+        }]
+        """
+        When we perform reschedule on events "event1"
+        """
+        {
+            "reason": "Changing to June 1",
+            "dates": {
+                "start": "2029-06-01T12:00:00+0000",
+                "end": "2029-06-01T14:00:00+0000"
+            }
+        }
+        """
+        Then we get OK response
+        When we get "/planning"
+        Then we get list with 2 items
+        """
+        {"_items": [
+            {
+                "_id": "plan1",
+                "state": "rescheduled",
+                "state_reason": "Changing to June 1",
+                "coverages": [{
+                    "coverage_id": "plan1_cov1",
+                    "planning": {"workflow_status_reason": "Changing to June 1"}
+                }]
+            },
+            {
+                "_id": "plan2",
+                "state": "draft",
+                "state_reason": "__no_value__",
+                "coverages": [{
+                    "coverage_id": "plan2_cov1",
+                    "planning": {"workflow_status_reason": "__no_value__"}
+                }]
+            }
         ]}
         """

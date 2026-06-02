@@ -1,7 +1,7 @@
 import {get, includes, isNil, find} from 'lodash';
 import moment from 'moment';
 
-import {IVocabularyItem} from 'superdesk-api';
+import {IArticle, IVocabularyItem} from 'superdesk-api';
 import {
     IAssignmentItem,
     ISession,
@@ -10,6 +10,9 @@ import {
     ILockedItems,
     IG2ContentType,
     IItemAction,
+    IPlanningItem,
+    IPlanningCoverageItem,
+    ICoverageScheduledUpdate,
 } from '../interfaces';
 
 import {ASSIGNMENTS, PRIVILEGES} from '../constants';
@@ -18,10 +21,13 @@ import * as selectors from '../selectors';
 import {gettext, planningUtils, lockUtils, getCreator, getItemInArrayById, isExistingItem} from './index';
 import {getUserInterfaceLanguageFromCV} from './users';
 import {getVocabularyItemFieldTranslated} from './vocabularies';
+import {editPlanningParam} from '../constants/assignments';
+import {superdeskApi} from '../superdeskApi';
+import {assignmentFieldsConfig} from '../components/Coverages/assignmentFieldsConfig';
 
 const isNotLockRestricted = (assignment, session, lockedItems) => (
     !get(assignment, 'lock_user') ||
-        lockUtils.isItemLockedInThisSession(assignment, session, lockedItems)
+    lockUtils.isItemLockedInThisSession(assignment, session, lockedItems)
 );
 
 const isTextAssignment = (assignment, contentTypes = []) => {
@@ -43,9 +49,15 @@ function canEditPriorityOrReassignAssignment(
     privilege: string,
     lockedItems: ILockedItems,
 ) {
-    return !!privileges[privilege] &&
-        self.isNotLockRestricted(assignment, session, lockedItems) &&
-        self.isAssignmentInEditableState(assignment);
+    return !!privileges[privilege]
+        && self.isNotLockRestricted(assignment, session, lockedItems)
+        && (
+            self.isAssignmentInEditableState(assignment)
+            || (
+                assignment.planning?.multiple_content === true
+                && assignment.assigned_to?.state !== ASSIGNMENTS.WORKFLOW_STATE.CANCELLED
+            )
+        );
 }
 
 function canRemoveAssignment(
@@ -60,17 +72,40 @@ function canRemoveAssignment(
         self.isAssignmentInEditableState(assignment);
 }
 
-const canStartWorking = (assignment, session, privileges, contentTypes) => (
-    !!privileges[PRIVILEGES.ARCHIVE] &&
-        !get(assignment, 'lock_user') &&
-        self.isTextAssignment(assignment, contentTypes) &&
-        get(assignment, 'assigned_to.state') === ASSIGNMENTS.WORKFLOW_STATE.ASSIGNED &&
-        (
-            !get(assignment, 'assigned_to.user') ||
-            assignment.assigned_to.user === get(session, 'identity._id')
-        ) &&
-        !isAssignedToProvider(assignment)
-);
+function canStartWorking(
+    assignment: IAssignmentItem,
+    session: ISession,
+    privileges: IPrivileges,
+    contentTypes: Array<IG2ContentType>
+): boolean {
+    if (
+        !privileges[PRIVILEGES.ARCHIVE]
+        || isAssignedToProvider(assignment)
+        || !self.isTextAssignment(assignment, contentTypes)
+    ) {
+        return false;
+    }
+
+    if (assignment.planning?.multiple_content) {
+        // If this Assignment allows multiple content linked,
+        // make sure the Assignment is not in a completed state
+        return (
+            [
+                ASSIGNMENTS.WORKFLOW_STATE.ASSIGNED,
+                ASSIGNMENTS.WORKFLOW_STATE.IN_PROGRESS,
+                ASSIGNMENTS.WORKFLOW_STATE.SUBMITTED,
+            ].includes(assignment.assigned_to?.state)
+        );
+    } else {
+        // Otherwise if this Assignment only allows 1 content linked, then make sure the Assignment
+        // is not locked and assigned to the current user (or not assigned to anyone)
+        return (
+            assignment.assigned_to?.state === ASSIGNMENTS.WORKFLOW_STATE.ASSIGNED
+            && !assignment.lock_user
+            && (!assignment.assigned_to?.user || assignment.assigned_to?.user === session.identity._id)
+        );
+    }
+}
 
 function canFulfilAssignment(
     assignment: IAssignmentItem,
@@ -80,13 +115,27 @@ function canFulfilAssignment(
 ) {
     return !!privileges[PRIVILEGES.ARCHIVE] &&
         isNotLockRestricted(assignment, session, lockedItems) &&
-        get(assignment, 'assigned_to.state') === ASSIGNMENTS.WORKFLOW_STATE.ASSIGNED;
+        (
+            assignment.assigned_to?.state === ASSIGNMENTS.WORKFLOW_STATE.ASSIGNED ||
+            (
+                assignment.planning?.multiple_content &&
+                [
+                    ASSIGNMENTS.WORKFLOW_STATE.SUBMITTED,
+                    ASSIGNMENTS.WORKFLOW_STATE.IN_PROGRESS,
+                ].includes(assignment.assigned_to?.state)
+            )
+        );
 }
 
 const isAssignmentInEditableState = (assignment) => (
-    (includes([ASSIGNMENTS.WORKFLOW_STATE.SUBMITTED, ASSIGNMENTS.WORKFLOW_STATE.ASSIGNED,
-        ASSIGNMENTS.WORKFLOW_STATE.IN_PROGRESS],
-    get(assignment, 'assigned_to.state')))
+    includes(
+        [
+            ASSIGNMENTS.WORKFLOW_STATE.SUBMITTED,
+            ASSIGNMENTS.WORKFLOW_STATE.ASSIGNED,
+            ASSIGNMENTS.WORKFLOW_STATE.IN_PROGRESS,
+        ],
+        get(assignment, 'assigned_to.state'),
+    )
 );
 
 function canCompleteAssignment(
@@ -137,17 +186,21 @@ function canRevertAssignment(
         get(assignment, 'assigned_to.state') === ASSIGNMENTS.WORKFLOW_STATE.COMPLETED;
 }
 
+function canEditPlanning(privileges: IPrivileges) {
+    return !!privileges[PRIVILEGES.PLANNING] && !!privileges[PRIVILEGES.PLANNING_MANAGEMENT];
+}
+
 const assignmentHasContent = (assignment) => (
     get(assignment, 'item_ids.length', 0) > 0
 );
 
 const isDue = (assignment) => (
     get(assignment, 'planning.scheduled') &&
-        moment().isAfter(moment(assignment.planning.scheduled)) &&
-        [
-            ASSIGNMENTS.WORKFLOW_STATE.COMPLETED,
-            ASSIGNMENTS.WORKFLOW_STATE.CANCELLED,
-        ].indexOf(get(assignment, 'assigned_to.state')) < 0
+    moment().isAfter(moment(assignment.planning.scheduled)) &&
+    [
+        ASSIGNMENTS.WORKFLOW_STATE.COMPLETED,
+        ASSIGNMENTS.WORKFLOW_STATE.CANCELLED,
+    ].indexOf(get(assignment, 'assigned_to.state')) < 0
 );
 
 const isAssignedToProvider = (assignment) => (
@@ -160,6 +213,13 @@ const getContactLabel = (assignment) => (
         gettext('Coverage Contact')
 );
 
+function getArticleNameForOpenCoverageAction(item: IArticle): string {
+    const name = item.headline || item.slugline;
+    const genre = item?.genre?.[0]?.name;
+
+    return genre != null ? `${genre} - ${name}` : name;
+}
+
 function getAssignmentActions(
     assignment: IAssignmentItem,
     session: ISession,
@@ -167,6 +227,7 @@ function getAssignmentActions(
     lockedItems: ILockedItems,
     contentTypes: Array<IG2ContentType>,
     callBacks: {[key: string]: (...args: Array<any>) => any},
+    archiveItems: {[itemId: string]: IArticle},
 ) {
     if (!isExistingItem(assignment) || lockUtils.isLockRestricted(assignment, session, lockedItems)) {
         return [];
@@ -178,70 +239,98 @@ function getAssignmentActions(
         switch (callBackName) {
         case ASSIGNMENTS.ITEM_ACTIONS.START_WORKING.actionName:
             callBacks[callBackName] &&
-                    actions.push({
-                        ...ASSIGNMENTS.ITEM_ACTIONS.START_WORKING,
-                        callback: callBacks[callBackName].bind(null, assignment),
-                    });
+                actions.push({
+                    ...ASSIGNMENTS.ITEM_ACTIONS.START_WORKING,
+                    callback: callBacks[callBackName].bind(null, assignment),
+                });
+            break;
+
+        case ASSIGNMENTS.ITEM_ACTIONS.EDIT_PLANNING.actionName:
+            callBacks[callBackName] &&
+                actions.push({
+                    ...ASSIGNMENTS.ITEM_ACTIONS.EDIT_PLANNING,
+                    callback: callBacks[callBackName].bind(null, assignment.planning_item),
+                });
             break;
 
         case ASSIGNMENTS.ITEM_ACTIONS.EDIT_PRIORITY.actionName:
-            callBacks[callBackName] &&
-                    actions.push({
-                        ...ASSIGNMENTS.ITEM_ACTIONS.EDIT_PRIORITY,
-                        callback: callBacks[callBackName].bind(null, assignment),
-                    });
+            if (assignmentFieldsConfig.assignmentPriority) {
+                callBacks[callBackName] &&
+                actions.push({
+                    ...ASSIGNMENTS.ITEM_ACTIONS.EDIT_PRIORITY,
+                    callback: callBacks[callBackName].bind(null, assignment),
+                });
+            }
+
             break;
 
         case ASSIGNMENTS.ITEM_ACTIONS.COMPLETE.actionName:
             callBacks[callBackName] &&
-                    actions.push({
-                        ...ASSIGNMENTS.ITEM_ACTIONS.COMPLETE,
-                        callback: callBacks[callBackName].bind(null, assignment),
-                        label: get(assignment, 'scheduled_update_id') ?
-                            gettext('Mark as completed') :
-                            ASSIGNMENTS.ITEM_ACTIONS.COMPLETE.label,
-                    });
+                actions.push({
+                    ...ASSIGNMENTS.ITEM_ACTIONS.COMPLETE,
+                    callback: callBacks[callBackName].bind(null, assignment),
+                    label: get(assignment, 'scheduled_update_id') ?
+                        gettext('Mark as completed') :
+                        ASSIGNMENTS.ITEM_ACTIONS.COMPLETE.label,
+                });
             break;
 
         case ASSIGNMENTS.ITEM_ACTIONS.REASSIGN.actionName:
             callBacks[callBackName] &&
-                    actions.push({
-                        ...ASSIGNMENTS.ITEM_ACTIONS.REASSIGN,
-                        callback: callBacks[callBackName].bind(null, assignment),
-                    });
+                actions.push({
+                    ...ASSIGNMENTS.ITEM_ACTIONS.REASSIGN,
+                    callback: callBacks[callBackName].bind(null, assignment),
+                });
             break;
 
         case ASSIGNMENTS.ITEM_ACTIONS.REMOVE.actionName:
             callBacks[callBackName] &&
-                    actions.push({
-                        ...ASSIGNMENTS.ITEM_ACTIONS.REMOVE,
-                        callback: callBacks[callBackName].bind(null, assignment),
-                    });
+                actions.push({
+                    ...ASSIGNMENTS.ITEM_ACTIONS.REMOVE,
+                    callback: callBacks[callBackName].bind(null, assignment),
+                });
             break;
 
         case ASSIGNMENTS.ITEM_ACTIONS.PREVIEW_ARCHIVE.actionName:
-            callBacks[callBackName] &&
+            if (callBacks[callBackName] != null) {
+                const linkedItems = (assignment.linked_items ?? [])
+                    // FIXME: filtering is a temporary workaround to prevent the entire assignments view from crashing
+                    // proper fix would be to find out why certain items do not get loaded into `archiveItems`
+                    .filter((linkedItem) => archiveItems[linkedItem._id] != null);
+
+                if (linkedItems.length > 1) {
+                    actions.push({
+                        ...ASSIGNMENTS.ITEM_ACTIONS.PREVIEW_ARCHIVE,
+                        callback: linkedItems.map((linkedItem) => ({
+                            label: getArticleNameForOpenCoverageAction(archiveItems[linkedItem._id]),
+                            callback: superdeskApi.ui.article.edit.bind(null, linkedItem._id),
+                        })),
+
+                    });
+                } else {
                     actions.push({
                         ...ASSIGNMENTS.ITEM_ACTIONS.PREVIEW_ARCHIVE,
                         callback: callBacks[callBackName].bind(null, assignment),
                     });
+                }
+            }
             break;
 
         case ASSIGNMENTS.ITEM_ACTIONS.REVERT_AVAILABILITY.actionName:
             callBacks[callBackName] &&
-                    actions.push({
-                        ...ASSIGNMENTS.ITEM_ACTIONS.REVERT_AVAILABILITY,
-                        callback: callBacks[callBackName].bind(null, assignment),
-                    });
+                actions.push({
+                    ...ASSIGNMENTS.ITEM_ACTIONS.REVERT_AVAILABILITY,
+                    callback: callBacks[callBackName].bind(null, assignment),
+                });
             break;
 
 
         case ASSIGNMENTS.ITEM_ACTIONS.CONFIRM_AVAILABILITY.actionName:
             callBacks[callBackName] &&
-                    actions.push({
-                        ...ASSIGNMENTS.ITEM_ACTIONS.CONFIRM_AVAILABILITY,
-                        callback: callBacks[callBackName].bind(null, assignment),
-                    });
+                actions.push({
+                    ...ASSIGNMENTS.ITEM_ACTIONS.CONFIRM_AVAILABILITY,
+                    callback: callBacks[callBackName].bind(null, assignment),
+                });
             break;
         }
     });
@@ -269,6 +358,8 @@ function getAssignmentItemActions(
             self.canEditPriorityOrReassignAssignment(assignment, session, privileges, PRIVILEGES.ARCHIVE, lockedItems),
         [ASSIGNMENTS.ITEM_ACTIONS.START_WORKING.actionName]: () =>
             self.canStartWorking(assignment, session, privileges, contentTypes),
+        [ASSIGNMENTS.ITEM_ACTIONS.EDIT_PLANNING.actionName]: () =>
+            self.canEditPlanning(privileges),
         [ASSIGNMENTS.ITEM_ACTIONS.REMOVE.actionName]: () =>
             self.canRemoveAssignment(assignment, session, privileges, PRIVILEGES.PLANNING_MANAGEMENT, lockedItems),
         [ASSIGNMENTS.ITEM_ACTIONS.PREVIEW_ARCHIVE.actionName]: () =>
@@ -281,7 +372,7 @@ function getAssignmentItemActions(
 
     actions.forEach((action) => {
         if (actionsValidator[action.actionName] &&
-                !actionsValidator[action.actionName]()) {
+            !actionsValidator[action.actionName]()) {
             return;
         }
 
@@ -318,12 +409,16 @@ const getAssignmentGroupsByStates = (groups, states) => {
     return groupKeys;
 };
 
-const canEditDesk = (assignment) => {
-    const state = get(assignment, 'assigned_to.state');
-
-    return state !== ASSIGNMENTS.WORKFLOW_STATE.SUBMITTED &&
-        state !== ASSIGNMENTS.WORKFLOW_STATE.IN_PROGRESS;
-};
+function canEditDesk(assignment: IAssignmentItem | IPlanningCoverageItem | ICoverageScheduledUpdate): boolean {
+    return (
+        assignment.planning?.multiple_content === true
+        || assignment.assigned_to?.state == null
+        || [
+            ASSIGNMENTS.WORKFLOW_STATE.DRAFT,
+            ASSIGNMENTS.WORKFLOW_STATE.ASSIGNED,
+        ].includes(assignment.assigned_to.state)
+    );
+}
 
 const isAssignmentLocked = (assignment, locks) =>
     !isNil(assignment) && (
@@ -332,7 +427,7 @@ const isAssignmentLocked = (assignment, locks) =>
 
 const isAssignmentLockRestricted = (assignment, session, locks) =>
     isAssignmentLocked(assignment, locks) &&
-        !lockUtils.isItemLockedInThisSession(assignment, session, locks);
+    !lockUtils.isItemLockedInThisSession(assignment, session, locks);
 
 const getAssignmentInfo = (assignment, users, desks) => {
     const assignedTo = get(assignment, 'assigned_to');
@@ -431,6 +526,12 @@ export function getAssignmentTypeInfo(assignment: IAssignmentItem, contentTypes:
     return {tooltip, className};
 }
 
+export const editPlanningInNewTab = (planningItemId: IPlanningItem['_id']) => {
+    window.open(window.origin + `/#/planning?${editPlanningParam}=${planningItemId}`, '_blank').focus();
+};
+
+export const getPlanningItemToEdit = (): string => superdeskApi.browser.location.urlParams.getString(editPlanningParam);
+
 // eslint-disable-next-line consistent-this
 const self = {
     isNotLockRestricted,
@@ -441,6 +542,7 @@ const self = {
     getAssignmentActions,
     canStartWorking,
     canFulfilAssignment,
+    canEditPlanning,
     getAssignmentGroupsByStates,
     canEditDesk,
     assignmentHasContent,

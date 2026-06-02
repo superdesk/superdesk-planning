@@ -5,15 +5,20 @@ import {IPlanningItem, IG2ContentType, ILockedItems, IAgenda} from '../../../int
 import {IDesk, IUser} from 'superdesk-api';
 import {superdeskApi} from '../../../superdeskApi';
 
-import {lockUtils, getItemWorkflowStateLabel} from '../../../utils';
+import {lockUtils} from '../../../utils';
 import * as selectors from '../../../selectors';
 
-import {Label} from 'superdesk-ui-framework/react';
 import * as List from '../../UI/List';
-import {AgendaNameList} from '../../Agendas';
-import {CoverageIcons} from '../../Coverages/CoverageIcons';
+import {ICON_COLORS} from '../../../constants';
+import {ItemIcon} from '../../../components/ItemIcon';
+import {LineItems} from '../../../components/UI/List/LineItems';
+import {getPlanningSecondLineConfig, planningFirstLineConfig} from '../../../config';
+import {getUserInterfaceLanguageFromCV} from '../../../utils/users';
+import {renderFields} from '../../../components/fields';
+import {ILineConfig} from 'globals';
+import {Checkbox} from 'superdesk-ui-framework/react';
 
-interface IOwnProps {
+interface IBaseProps {
     item: DeepPartial<IPlanningItem>;
     active?: boolean;
     noBg?: boolean;
@@ -22,8 +27,23 @@ interface IOwnProps {
     shadow?: number;
     editPlanningComponent?: React.ReactNode;
     isAgendaEnabled: boolean;
+    noColumnPadding?: boolean;
     onClick?(): void;
 }
+
+interface IWithoutCheckboxProps extends IBaseProps {
+    showCheckbox?: never;
+    checked?: never;
+    onCheckToggle?: never;
+}
+
+interface IWithCheckboxProps extends IBaseProps {
+    showCheckbox: true;
+    checked: boolean;
+    onCheckToggle(value: boolean): void;
+}
+
+type IOwnProps = IWithoutCheckboxProps | IWithCheckboxProps;
 
 interface IStateProps {
     users: Array<IUser>;
@@ -50,84 +70,73 @@ class RelatedPlanningListItemComponent extends React.PureComponent<IProps> {
             this.props.item,
             this.props.lockedItems
         );
-        const stateLabel = getItemWorkflowStateLabel(this.props.item);
-        const agendas = (this.props.item.agendas ?? [])
-            .map((agendaId) => this.props.agendas[agendaId])
-            .filter((agenda) => agenda != null);
-        const itemDescription = this.props.item.name || this.props.item.description_text || '';
+        const language = this.props.item.language || getUserInterfaceLanguageFromCV();
+
+        const renderFieldsWithProps = (fields: Array<ILineConfig>) => renderFields(
+            fields,
+            this.props.item,
+            {
+                fieldsProps: {
+                    // no field specific config needed yet
+                },
+            },
+            language,
+        );
 
         return (
-            <List.Group spaceBetween={true} className="m-0">
-                <List.Item
-                    noBg={this.props.noBg}
-                    activated={this.props.active}
-                    shadow={this.props.shadow}
-                    onClick={this.props.onClick}
-                >
-                    {!(this.props.showBorder && isItemLocked) ? null : (
-                        <List.Border state="locked" />
-                    )}
-                    <List.Column
-                        grow={true}
-                        border={false}
-                    >
-                        <List.Row>
-                            {this.props.showIcon !== true ? null : (
-                                <i
-                                    role="presentation"
-                                    className="icon-calendar icon--light-blue"
-                                />
-                            )}
-                            {(this.props.item.slugline?.length ?? 0) === 0 ? null : (
-                                <span className="sd-list-item__slugline">
-                                    {this.props.item.slugline}
-                                </span>
-                            )}
-                            {itemDescription.length === 0 ? null : (
-                                <span className="sd-overflow-ellipsis sd-list-item--element-grow">
-                                    {this.props.item.name || this.props.item.description_text}
-                                </span>
-                            )}
-                        </List.Row>
-                        <List.Row
-                            classes="sd-list-item__row--overflow-visible me-1"
-                            style={{overflow: 'visible'}} // Adding static style here, so it works with Superdesk 2.7
-                        >
-                            <Label
-                                text={stateLabel.label}
-                                style="translucent"
-                                type={stateLabel.iconType}
-                            />
-                            {this.props.isAgendaEnabled === false ? null : (
-                                <div className="sd-display--flex">
-                                    <span className="sd-list-item__text-label">
-                                        {gettext('Agenda:')}
-                                    </span>
-                                    <span
-                                        className="ms-0-5 sd-overflow--ellipsis
-                                        sd-list-item__text-strong sd-list-item--element-grow"
-                                    >
-                                        <AgendaNameList agendas={agendas} />
-                                    </span>
-                                </div>
-                            )}
-                            <span className="sd-margin-s--auto">
-                                <CoverageIcons
-                                    coverages={(this.props.item.coverages ?? [])}
-                                    users={this.props.users}
-                                    desks={this.props.desks}
-                                    contentTypes={this.props.contentTypes}
-                                />
-                            </span>
-                        </List.Row>
+            <List.Item
+                noBg={this.props.noBg}
+                activated={this.props.active}
+                shadow={this.props.shadow}
+                onClick={this.props.onClick}
+            >
+                {!(this.props.showBorder && isItemLocked) ? null : (
+                    <List.Border state="locked" />
+                )}
+
+                {!this.props.showCheckbox ? null : (
+                    <List.Column>
+                        <Checkbox
+                            label={{
+                                text: gettext('Selected'),
+                                hidden: true,
+                            }}
+                            checked={this.props.checked}
+                            onChange={this.props.onCheckToggle}
+                        />
                     </List.Column>
-                    {this.props.editPlanningComponent == null ? null : (
-                        <List.ActionMenu>
-                            {this.props.editPlanningComponent}
-                        </List.ActionMenu>
-                    )}
-                </List.Item>
-            </List.Group>
+                )}
+
+                {!this.props.showIcon ? null : (
+                    <List.Column>
+                        <ItemIcon
+                            item={this.props.item}
+                            color={ICON_COLORS.DARK_BLUE_GREY}
+                        />
+                    </List.Column>
+                )}
+
+                <List.Column
+                    grow={true}
+                    border={false}
+                    style={this.props.noColumnPadding ? undefined : {paddingBlock: 'var(--space--1)'}}
+                >
+                    <LineItems
+                        firstLine={planningFirstLineConfig.filter(({fieldId}) => fieldId !== 'related_events')}
+                        secondLine={
+                            getPlanningSecondLineConfig({isAgendaEnabled: this.props.isAgendaEnabled})
+                                .filter(({fieldId}) => fieldId !== 'related_events')
+                        }
+                        renderFieldsWithProps={renderFieldsWithProps}
+                    />
+                </List.Column>
+
+                {this.props.editPlanningComponent == null ? null : (
+                    <List.ActionMenu>
+                        {this.props.editPlanningComponent}
+                    </List.ActionMenu>
+                )}
+            </List.Item>
         );
     }
 }

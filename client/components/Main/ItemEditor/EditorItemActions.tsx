@@ -1,20 +1,35 @@
 import React from 'react';
-import PropTypes from 'prop-types';
 import {connect} from 'react-redux';
 
 import {superdeskApi} from '../../../superdeskApi';
 import {ITEM_TYPE, EVENTS, PLANNING} from '../../../constants';
-import {getItemType, eventUtils, planningUtils} from '../../../utils';
+import {getItemType, eventUtils, planningUtils, isEvent, isPlanning} from '../../../utils';
 import eventsApi from '../../../actions/events/api';
 import * as allActions from '../../../actions';
 
 import {ItemActionsMenu} from '../../index';
+import {IEventItem, IEventOrPlanningItem, ILockedItems, IPrivileges, ISession} from 'interfaces';
+import {ItemManager} from './ItemManager';
+import {AutoSave} from './AutoSave';
 
-const EditorItemActionsComponent = (props) => {
+interface IProps {
+    item: IEventOrPlanningItem;
+    events: Array<IEventItem>;
+    session: ISession;
+    privileges: IPrivileges;
+    lockedItems: ILockedItems;
+    itemActions: any;
+    contentTypes: Array<any>;
+    itemManager: ItemManager;
+    autoSave: AutoSave;
+    dispatch(action: any): any;
+}
+
+const EditorItemActionsComponent = (props: IProps) => {
     const {gettext} = superdeskApi.localization;
     const {
         item,
-        event,
+        events,
         session,
         privileges,
         lockedItems,
@@ -29,7 +44,7 @@ const EditorItemActionsComponent = (props) => {
     const withMultiPlanningDate = true;
     let actions = [], callBacks;
 
-    if (itemType === ITEM_TYPE.EVENT) {
+    if (isEvent(item)) {
         callBacks = {
             [EVENTS.ITEM_ACTIONS.DUPLICATE.actionName]:
                 itemActions[EVENTS.ITEM_ACTIONS.DUPLICATE.actionName].bind(null, item),
@@ -112,7 +127,7 @@ const EditorItemActionsComponent = (props) => {
         });
     }
 
-    if (itemType === ITEM_TYPE.PLANNING) {
+    if (isPlanning(item)) {
         callBacks = {
             [PLANNING.ITEM_ACTIONS.ADD_COVERAGE.actionName]: itemManager.addCoverage,
             [PLANNING.ITEM_ACTIONS.DUPLICATE.actionName]: itemActions[PLANNING.ITEM_ACTIONS.DUPLICATE.actionName],
@@ -149,7 +164,7 @@ const EditorItemActionsComponent = (props) => {
         };
         actions = planningUtils.getPlanningActions({
             item,
-            event,
+            events,
             session,
             privileges,
             lockedItems,
@@ -166,19 +181,6 @@ const EditorItemActionsComponent = (props) => {
             wide={itemType === ITEM_TYPE.EVENT}
         />
     );
-};
-
-EditorItemActionsComponent.propTypes = {
-    item: PropTypes.object,
-    event: PropTypes.object,
-    session: PropTypes.object,
-    privileges: PropTypes.object,
-    lockedItems: PropTypes.object,
-    itemActions: PropTypes.object,
-    contentTypes: PropTypes.array,
-    itemManager: PropTypes.object,
-    autoSave: PropTypes.object,
-    dispatch: PropTypes.func,
 };
 
 export const EditorItemActions = connect()(EditorItemActionsComponent);

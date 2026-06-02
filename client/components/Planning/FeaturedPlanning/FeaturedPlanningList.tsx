@@ -42,8 +42,8 @@ interface IProps {
     lockedItems: ILockedItems;
     currentSearchDate: moment.Moment;
     highlights: Array<IPlanningItem['_id']>;
-    onAddToSelectedFeaturedPlanning(item: IPlanningItem, event: any): void;
-    onRemoveFromSelectedFeaturedPlanning(item: IPlanningItem, event: any): void;
+    onAddToSelectedFeaturedPlanning(item: IPlanningItem, event: React.MouseEvent): void;
+    onRemoveFromSelectedFeaturedPlanning(item: IPlanningItem, event: React.MouseEvent): void;
     onClick(item: IPlanningItem, event: React.MouseEvent<HTMLLIElement>): void;
     onSortChange?(items: Array<IPlanningItem>): void;
 }
@@ -60,17 +60,13 @@ class FeaturedPlanningListComponent extends React.PureComponent<IProps> {
             <FeaturedPlanningItem
                 key={item._id}
                 item={item}
-                date={this.props.currentSearchDate}
                 readOnly={this.props.readOnly}
                 lockedItems={this.props.lockedItems}
                 selectedPlanningIds={this.props.selectedPlanningIds || []}
-                desks={this.props.desks}
-                users={this.props.users}
                 onAddToSelectedFeaturedPlanning={this.props.onAddToSelectedFeaturedPlanning}
                 onRemoveFromSelectedFeaturedPlanning={this.props.onRemoveFromSelectedFeaturedPlanning}
                 onClick={this.props.onClick}
                 withMargin={this.props.withMargin}
-                contentTypes={this.props.contentTypes}
                 activated={this.props.highlights.includes(item._id)}
                 disabled={this.props.disabled}
             />

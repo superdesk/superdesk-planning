@@ -1,17 +1,23 @@
 import React from 'react';
-import PropTypes from 'prop-types';
+import {IAssignmentListItemField} from '../../../../components/Assignments/interfaces';
+import {IArticle} from 'superdesk-api';
 
-interface IProps {
-    assignment: any;
-    archiveItemForAssignment: {[assignmentId: string]: any}
-}
+type IProps = IAssignmentListItemField;
 
-export const HeadlineComponent = ({assignment, archiveItemForAssignment}: IProps) => {
-    const item = archiveItemForAssignment?.[assignment._id];
+export const HeadlineComponent = ({assignment, ...props}: IProps) => {
+    const archiveItems: {[_id: IArticle['_id']]: IArticle} = props.fieldsProps.headline.archiveItems ?? {};
+    const archiveItem: IArticle = Object.values(archiveItems)
+        .find((item: IArticle) => item.assignment_id === assignment._id);
 
-    if (!item) {
-        return null;
+    const coverageHeadline = assignment.planning?.headline;
+
+    if ((archiveItem?.headline ?? '').trim().length > 0) {
+        return <span className="sd-overflow-ellipsis">{archiveItem.headline}</span>;
     }
 
-    return <span>{item.headline}</span>;
+    if ((coverageHeadline ?? '').trim().length > 0) {
+        return <span className="sd-overflow-ellipsis">{coverageHeadline}</span>;
+    }
+
+    return null;
 };

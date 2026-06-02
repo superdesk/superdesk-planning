@@ -1,23 +1,20 @@
 import React from 'react';
 import {get, range} from 'lodash';
-import moment from 'moment';
 
 import {IEventItem} from '../../../interfaces';
 import {superdeskApi} from '../../../superdeskApi';
 
-import {Row, LineInput, Label, Select, DateInput, Input} from '../../UI/Form';
 import {DaysOfWeekInput} from './DaysOfWeekInput';
+import {Spacer, Select, Option, DatePicker, Input} from 'superdesk-ui-framework/react';
+import {appConfig} from 'appConfig';
 
 interface IProps {
-    schedule: Partial<IEventItem['dates']>;
+    recurring_rule: NonNullable<IEventItem['dates']>['recurring_rule'];
     readOnly?: boolean;
     errors?: {[key: string]: any};
     onlyUpdateRepetitions?: boolean;
     testId?: string;
     onChange(field: string, value: any): void;
-    popupContainer(): HTMLElement;
-    onPopupOpen?(): void;
-    onPopupClose?(): void;
 }
 
 export class RecurringRulesInput extends React.PureComponent<IProps> {
@@ -49,17 +46,17 @@ export class RecurringRulesInput extends React.PureComponent<IProps> {
         this.props.onChange(field, parseInt(value, 10));
     }
 
-    onEndRepeatModeChange(field, value) {
+    onEndRepeatModeChange(value) {
         this.props.onChange('dates.recurring_rule', {
-            ...this.props.schedule.recurring_rule,
+            ...this.props.recurring_rule,
             count: null,
             until: null,
             endRepeatMode: value,
         });
     }
 
-    onFrequencyChange(field, value) {
-        const recurringRule = get(this.props, 'schedule.recurring_rule') || {};
+    onFrequencyChange(value) {
+        const recurringRule = this.props.recurring_rule ?? {};
 
         this.props.onChange('dates.recurring_rule', {
             ...recurringRule,
@@ -73,11 +70,8 @@ export class RecurringRulesInput extends React.PureComponent<IProps> {
         const {
             onChange,
             readOnly,
-            errors,
-            popupContainer,
+            errors = {},
             onlyUpdateRepetitions,
-            onPopupOpen,
-            onPopupClose,
         } = this.props;
 
         const {
@@ -87,124 +81,99 @@ export class RecurringRulesInput extends React.PureComponent<IProps> {
             count,
             byday,
             interval,
-        } = this.props.schedule?.recurring_rule ?? {};
+        } = this.props.recurring_rule ?? {};
 
         return (
             <div
-                className="recurring-rules"
+                style={{paddingBlockEnd: '2rem', display: 'flex', flexDirection: 'column', gap: 8}}
                 data-test-id={this.props.testId}
             >
-                <Row noPadding>
-                    <div className="flex-grid">
-                        {onlyUpdateRepetitions ? null : (
-                            <React.Fragment>
-                                <Label row text={gettext('Every')} noMinWidth padding />
-                                <LineInput
-                                    {...this.props}
-                                    isSelect={true}
-                                    readOnly={readOnly}
-                                    noMargin={true}
-                                    className="form__row form__row--max-width-35"
-                                >
-                                    <Select
-                                        field="dates.recurring_rule.interval"
-                                        options={range(0, 30).map((n) => ({
-                                            key: n + 1,
-                                            label: (n + 1).toString(10),
-                                        }))}
-                                        onChange={this.onIntervalChange}
-                                        value={interval}
-                                        readOnly={readOnly}
-                                    />
-                                </LineInput>
-                                <LineInput
-                                    {...this.props}
-                                    isSelect={true}
-                                    readOnly={readOnly}
-                                    noMargin={frequency === 'WEEKLY'}
-                                    className="form__row form__row--max-width-80"
-                                >
-                                    <Select
-                                        field="dates.recurring_rule.frequency"
-                                        options={[...this.repeatChoices]}
-                                        onChange={this.onFrequencyChange}
-                                        value={frequency}
-                                        readOnly={readOnly}
-                                    />
-                                </LineInput>
-                            </React.Fragment>
-                        )}
-                        <Label
-                            row={true}
-                            text={gettext('ends')}
-                            noMinWidth
-                            padding
-                            marginLeft={!onlyUpdateRepetitions}
-                        />
-                        <LineInput
-                            {...this.props}
-                            isSelect={true}
-                            readOnly={readOnly}
-                            noMargin={true}
-                            className="form__row form__row--max-width-80"
-                        >
+                <Spacer h gap="32" justifyContent="center" alignItems="start">
+                    {onlyUpdateRepetitions ? null : (
+                        <Spacer h gap="4">
                             <Select
-                                field="dates.recurring_rule.endRepeatMode"
-                                options={[...this.endsChoices]}
-                                onChange={this.onEndRepeatModeChange}
-                                value={endRepeatMode}
-                                readOnly={readOnly}
-                            />
-                        </LineInput>
-                        {endRepeatMode !== 'until' ? null : (
-                            <DateInput
-                                field="dates.recurring_rule.until"
-                                placeholder=""
-                                value={until != null ? moment(until) : null}
-                                onChange={onChange}
-                                readOnly={readOnly}
-                                invalid={!!get(errors, 'until')}
-                                message={get(errors, 'until', '')}
-                                popupContainer={popupContainer}
-                                noMargin={frequency === 'WEEKLY'}
-                                onPopupOpen={onPopupOpen}
-                                onPopupClose={onPopupClose}
-                            />
-                        )}
-                        {endRepeatMode !== 'count' ? null : (
-                            <div className="form__row form__row--flex">
-                                <LineInput
-                                    {...this.props}
-                                    readOnly={readOnly}
-                                    noMargin={true}
-                                    invalid={!!get(errors, 'count')}
-                                    message={get(errors, 'count', '')}
-                                >
-                                    <Input
-                                        field="dates.recurring_rule.count"
-                                        value={count || ''}
-                                        onChange={onChange}
-                                        type="number"
-                                        readOnly={readOnly}
-                                    />
-                                </LineInput>
-                                <Label row={true} text={gettext('Repeats')} noMinWidth />
-                            </div>
-                        )}
-                    </div>
-                    {frequency === 'WEEKLY' && (
-                        <Row>
-                            <DaysOfWeekInput
-                                value={byday}
-                                onChange={onChange}
-                                readOnly={readOnly}
-                                invalid={!!get(errors, 'byday', false)}
-                                message={get(errors, 'byday', '')}
-                                label={gettext('On Days')}
-                            />
-                        </Row>
+                                disabled={readOnly}
+                                value={interval?.toString()}
+                                onChange={(newValue) => {
+                                    this.onIntervalChange('dates.recurring_rule.interval', parseInt(newValue, 10));
+                                }}
+                                label={superdeskApi.localization.gettext('Every')}
+                                error={errors.interval}
+                                invalid={!!errors.interval}
+                            >
+                                {range(0, 30).map((n) => ({
+                                    key: n + 1,
+                                    label: (n + 1).toString(10),
+                                }))
+                                    .map((x) => (
+                                        <Option key={x.key} value={`${x.key}`}>{x.label}</Option>
+                                    ))}
+                            </Select>
+                            <Select
+                                onChange={(value) => {
+                                    this.onFrequencyChange(value);
+                                }}
+                                value={frequency}
+                                disabled={readOnly}
+                                error={errors.frequency}
+                                invalid={!!errors.frequency}
+                            >
+                                {this.repeatChoices.map((x) => (
+                                    <Option key={x.key} value={x.key}>{x.label}</Option>
+                                ))}
+                            </Select>
+                        </Spacer>
                     )}
-                </Row>
+                    <Spacer h gap="4" justifyContent="center" alignItems="start">
+                        <Select
+                            onChange={this.onEndRepeatModeChange}
+                            value={endRepeatMode}
+                            disabled={readOnly}
+                            label={superdeskApi.localization.gettext('Ends')}
+                            error={errors.endRepeatMode}
+                            invalid={!!errors.endRepeatMode}
+                            data-test-id="dates.recurring_rule.endRepeatMode"
+                        >
+                            {this.endsChoices.map((x) => (<Option key={x.key} value={x.key}>{x.label}</Option>))}
+                        </Select>
+                        {endRepeatMode === 'until' ? (
+                            <DatePicker
+                                value={until}
+                                onChange={(next) => {
+                                    onChange('dates.recurring_rule.until', next);
+                                }}
+                                dateFormat={appConfig.view.dateformat}
+                                disabled={readOnly}
+                                invalid={!!errors.until}
+                                error={errors.until}
+                                data-test-id="dates.recurring_rule.until"
+                            />
+                        ) : (
+                            <Input
+                                value={count}
+                                onChange={(nextValue) => {
+                                    onChange('dates.recurring_rule.count', nextValue);
+                                }}
+                                type="number"
+                                disabled={readOnly}
+                                label={superdeskApi.localization.gettext('Repeats')}
+                                error={errors.count}
+                                data-test-id="dates.recurring_rule.count"
+                            />
+                        )}
+                    </Spacer>
+                </Spacer>
+                {frequency === 'WEEKLY' && (
+                    <DaysOfWeekInput
+                        noMargin
+                        value={byday}
+                        onChange={onChange}
+                        readOnly={readOnly}
+                        invalid={!!get(errors, 'byday', false)}
+                        message={get(errors, 'byday', '')}
+                        label={gettext('On Days')}
+                    />
+                )}
             </div>
         );
     }

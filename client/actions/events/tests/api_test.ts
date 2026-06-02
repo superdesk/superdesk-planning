@@ -107,7 +107,7 @@ describe('actions.events.api', () => {
             store.test(done, eventsApi.fetchById('e2'))
                 .then(() => {
                     expect(planningApis.events.getById.callCount).toBe(1);
-                    expect(planningApis.events.getById.args[0]).toEqual(['e2']);
+                    expect(planningApis.events.getById.args[0]).toEqual(['e2', undefined]);
 
                     expect(eventsApi.receiveEvents.callCount).toBe(1);
                     expect(eventsApi.receiveEvents.args[0]).toEqual([[data.events[1]]]);
@@ -138,13 +138,14 @@ describe('actions.events.api', () => {
         it('returns the Event from the API if force = true', (done) => (
             store.test(done, eventsApi.fetchById('e2', {force: true}))
                 .then((event) => {
-                    expect(event).toEqual(eventUtils.modifyForClient(data.events[1]));
+                    const mockedEventResult = data.events[1];
 
+                    expect(event).toEqual(mockedEventResult);
                     expect(planningApis.events.getById.callCount).toBe(1);
-                    expect(planningApis.events.getById.args[0]).toEqual(['e2']);
+                    expect(planningApis.events.getById.args[0]).toEqual(['e2', {cache: false}]);
 
                     expect(eventsApi.receiveEvents.callCount).toBe(1);
-                    expect(eventsApi.receiveEvents.args[0]).toEqual([[data.events[1]]]);
+                    expect(eventsApi.receiveEvents.args[0]).toEqual([[mockedEventResult]]);
                     expect(eventsApi.loadAssociatedPlannings.callCount).toBe(1);
 
                     done();
@@ -691,38 +692,6 @@ describe('actions.events.api', () => {
         });
     });
 
-    describe('duplicate', () => {
-        let apiSave;
-
-        beforeEach(() => {
-            services.api = sinon.spy((resource, item) => ({save: apiSave}));
-        });
-
-        xit('duplicate calls `events_duplicate` endpoint', (done) => {
-            apiSave = sinon.spy((args) => Promise.resolve(data.events[0]));
-            store.test(done, eventsApi.duplicate(data.events[0]))
-                .then((item) => {
-                    expect(item).toEqual(data.events[0]);
-
-                    expect(services.api.callCount).toBe(1);
-                    expect(services.api.args[0]).toEqual(['events_duplicate', data.events[0]]);
-
-                    expect(apiSave.callCount).toBe(1);
-                    expect(apiSave.args[0]).toEqual([{}]);
-
-                    done();
-                });
-        });
-
-        xit('duplicate returns Promise.reject on error', (done) => {
-            apiSave = sinon.spy((args) => Promise.reject(errorMessage));
-            store.test(done, eventsApi.duplicate(data.events[0]))
-                .then(null, (error) => {
-                    expect(error).toEqual(errorMessage);
-                    done();
-                });
-        });
-    });
 
     it('updateRepetitions', (done) => (
         store.test(done, eventsApi.updateRepetitions(data.events[0], {dates: {}}))

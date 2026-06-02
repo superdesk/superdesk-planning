@@ -1,9 +1,8 @@
 import moment from 'moment-timezone';
 
-import {IPlanningConfig} from './interfaces';
+import {PLANNING_VIEW} from './interfaces';
 import {appConfig} from 'appConfig';
-
-appConfig = appConfig as IPlanningConfig;
+import {ILineConfig} from 'globals';
 
 // Set the default values for Planning config entries
 
@@ -67,6 +66,10 @@ if (appConfig?.planning_auto_close_popup_editor == null) {
     appConfig.planning_auto_close_popup_editor = true;
 }
 
+if (appConfig.planning_expand_related_plannings == null) {
+    appConfig.planning_expand_related_plannings = false;
+}
+
 // Configured start of the week (0=Sunday, 1=Monday, ..., 6=Saturday)
 if (appConfig.start_of_week == null) {
     appConfig.start_of_week = 0;
@@ -80,6 +83,10 @@ if (appConfig.planning == null) {
 
 if (appConfig.coverage == null) {
     appConfig.coverage = {};
+}
+
+if (appConfig.planning_default_view == null) {
+    appConfig.planning_default_view = PLANNING_VIEW.COMBINED;
 }
 
 export function updateConfigAfterLoad() {
@@ -98,6 +105,51 @@ export function updateConfigAfterLoad() {
     if (appConfig?.planning?.autosave_timeout == null) {
         appConfig.planning.autosave_timeout = 1500;
     }
+
+    if (appConfig?.planning?.manual_news_coverage_status == null) {
+        appConfig.planning.manual_news_coverage_status = false;
+    }
 }
 
-export const planningConfig = appConfig as IPlanningConfig;
+
+const eventFirstLineConfigDefaults: Array<ILineConfig> = [
+    {fieldId: 'slugline'},
+    {fieldId: 'internalnote'},
+    {fieldId: 'name'},
+    {fieldId: 'calendars'},
+    {fieldId: 'location'},
+    {fieldId: 'event_datetime', position: 'end'},
+];
+
+const eventSecondLineConfigDefaults: Array<ILineConfig> = [
+    {fieldId: 'state'},
+    {fieldId: 'related_plannings'},
+    {fieldId: 'location'},
+];
+
+export const eventFirstLineConfig: Array<ILineConfig> =
+    appConfig.planning?.event_list_item?.firstLine ?? eventFirstLineConfigDefaults;
+
+export const eventSecondLineConfig: Array<ILineConfig> =
+    appConfig.planning?.event_list_item?.secondLine ?? eventSecondLineConfigDefaults;
+
+const planningFirstLineDefaults: Array<ILineConfig> = [
+    {fieldId: 'slugline'},
+    {fieldId: 'internalnote'},
+    {fieldId: 'description'},
+];
+
+const planningSecondLineDefaults: Array<ILineConfig> = [
+    {fieldId: 'state'},
+    {fieldId: 'featured'},
+    {fieldId: 'agendas'},
+    {fieldId: 'related_events'},
+    {fieldId: 'coverages', position: 'end'},
+];
+
+export const planningFirstLineConfig: Array<ILineConfig> =
+    appConfig.planning?.planning_list_item?.firstLine ?? planningFirstLineDefaults;
+
+export const getPlanningSecondLineConfig = ({isAgendaEnabled}: {isAgendaEnabled: boolean}): Array<ILineConfig> =>
+    (appConfig.planning?.planning_list_item?.secondLine ?? planningSecondLineDefaults)
+        .filter(({fieldId}: ILineConfig) => isAgendaEnabled ? true : fieldId !== 'agendas');

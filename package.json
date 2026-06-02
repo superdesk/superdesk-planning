@@ -1,6 +1,6 @@
 {
   "name": "superdesk-planning",
-  "version": "2.8.0-dev",
+  "version": "3.5.0-dev",
   "license": "AGPL-3.0",
   "description": "",
   "repository": {
@@ -13,15 +13,19 @@
     "fix": "eslint client --ext=jsx --ext=js --ext=tsx --ext=ts --ext=spec --fix",
     "hint": "eslint client --ext=jsx --ext=js --ext=tsx --ext=ts --ext=spec",
     "lint": "eslint client --ext=jsx --ext=js --ext=tsx --ext=ts --ext=spec --quiet",
-    "test": "karma start karma.conf.js --log-level debug --display-error-details --single-run",
+    "test": "KARMA_REPORTER=$npm_config_reporter TEST_FILE_PATTERN=$npm_config_file karma start karma.conf.js --log-level error --display-error-details --single-run",
     "karma": "karma start karma.conf.js",
-    "debug_unit_test": "karma start karma.conf.js --browsers=Chrome"
+    "debug_unit_tests": "karma start karma.conf.js --browsers=Chrome"
   },
   "author": "Edouard Richard",
   "dependencies": {
-    "dompurify": "^1.0.11",
-    "moment": "^2.30.1",
-    "moment-timezone": "^0.5.45",
+    "@sourcefabric/common": "0.0.69",
+    "@sourcefabric/draft-js": "^0.11.5",
+    "date-fns": "^4.1.0",
+    "dompurify": "^3.2.4",
+    "immer": "^10.1.1",
+    "moment": "^2.29.4",
+    "moment-timezone": "^0.5.41",
     "nominatim-browser": "~2.0.2",
     "react-bootstrap": "0.32.1",
     "react-debounce-input": "3.3.0",
@@ -32,17 +36,16 @@
     "react-sortable-hoc": "2.0.0",
     "reselect": "~3.0.1",
     "rrule": "~2.2.9",
-    "ts-loader": "3.5.0",
-    "typescript": "~4.9.5",
     "whatwg-fetch": "~2.0.4"
   },
   "devDependencies": {
     "@types/jasmine": "^3.10.18",
-    "@types/lodash": "4.17.0",
+    "@types/lodash": "^4.17.0",
     "@types/react": "16.8.23",
     "@types/react-dom": "16.8.0",
     "@types/sinon": "^9.0.4",
     "@typescript-eslint/parser": "5.57.0",
+    "angular-mocks": "1.6.9",
     "btoa": "^1.1.2",
     "cheerio": "1.0.0-rc.10",
     "csstype": "2.6.17",
@@ -51,6 +54,7 @@
     "eslint": "6.6.0",
     "eslint-plugin-react": "7.16.0",
     "jasmine": "^2.99.0",
+    "jasmine-core": "~2.99.0",
     "jasmine-reporters": "^2.5.2",
     "karma": "^6.4.2",
     "karma-chrome-launcher": "2.2.0",
@@ -59,16 +63,18 @@
     "karma-junit-reporter": "^1.1.0",
     "karma-sourcemap-loader": "^0.3.7",
     "karma-verbose-reporter": "0.0.6",
-    "karma-webpack": "^2.0.13",
+    "karma-webpack": "^5.0.0",
     "react-test-renderer": "16.2.0",
     "redux": "^4.2.1",
     "redux-logger": "^3.0.6",
     "redux-thunk": "^2.4.2",
     "simulant": "^0.2.2",
     "sinon": "^4.5.0",
+    "style-loader": "^2.0.0",
     "superdesk-code-style": "1.5.0",
     "superdesk-core": "github:superdesk/superdesk-client-core#develop",
-    "superdesk-ui-framework": "^3.1.15",
+    "superdesk-ui-framework": "6.1.3",
+    "ts-loader": "^8.4.0",
     "ts-node": "~7.0.1",
     "tslint": "5.11.0",
     "typescript-eslint-parser": "^18.0.0"
@@ -78,10 +84,18 @@
     "lodash": "^4.17.19",
     "moment": "^2.29.4",
     "moment-timezone": "^0.5.41",
-    "react": "^16.9.0",
+    "react": "^16.14.0",
+    "react-dom": "^16.14.0",
     "redux": "^4.2.1",
     "redux-logger": "^3.0.6",
     "redux-thunk": "^2.3.0",
-    "superdesk-ui-framework": "*"
+    "superdesk-ui-framework": "*",
+    "typescript": "*"
+  },
+  "overrides": {
+    "sass": "^1.94.2"
+  },
+  "volta": {
+    "node": "22.22.0"
   }
 }

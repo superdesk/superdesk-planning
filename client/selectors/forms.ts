@@ -1,11 +1,10 @@
 import {createSelector} from 'reselect';
 import {get, filter} from 'lodash';
 
-import {appConfig} from 'appConfig';
-
 import {ITEM_TYPE, MAIN} from '../constants';
 import {sessionId as getSessionId} from './general';
 import {isExistingItem} from '../utils';
+import {EDITOR_TYPE} from '../interfaces';
 
 // Helper function
 const getcurrentItem = (itemId, itemType, events, plannings, values, modal = false) => {
@@ -25,7 +24,6 @@ const getcurrentItem = (itemId, itemType, events, plannings, values, modal = fal
 /** Profiles **/
 export const activeFilter = (state) => get(state, 'main.filter', MAIN.FILTERS.COMBINED);
 export const profiles = (state) => get(state, 'forms.profiles', {});
-export const coverageProfile = createSelector([profiles], (p) => get(p, 'coverage', {}));
 export const eventProfile = createSelector([profiles], (p) => get(p, 'event', {}));
 export const planningProfile = createSelector([profiles], (p) => get(p, 'planning', {}));
 export const eventPostponeProfile = createSelector([profiles], (p) => get(p, 'event_postpone', {}));
@@ -65,26 +63,10 @@ export const planningSearchProfile = createSelector(
     [profiles],
     (p) => get(p, 'advanced_search.editor.planning', {})
 );
-
-export const listFields = createSelector([profiles], (p) => {
-    const fields = {};
-
-    Object.keys(p).forEach((type) => {
-        fields[type] = get(p[type], 'list', {});
-    });
-
-    return fields;
-});
-
-export const exportListFields = createSelector([profiles], (p) => {
-    const fields = {};
-
-    Object.keys(p).forEach((type) => {
-        fields[type] = get(p[type], 'export_list', {});
-    });
-
-    return fields;
-});
+export const assignmentSearchProfile = createSelector(
+    [profiles],
+    (p) => get(p, 'advanced_search.editor.assignments', {})
+);
 
 export const defaultEventDuration = createSelector(
     [eventProfile],
@@ -131,6 +113,16 @@ export const currentItem = createSelector(
 
 
 /** Forms - Modal Editor */
+
+export const currentEditorType = (state): EDITOR_TYPE | null => {
+    if (state?.forms?.editors?.modal?.itemId != null) {
+        return EDITOR_TYPE.POPUP;
+    } else if (state?.forms?.editors?.panel?.itemId != null) {
+        return EDITOR_TYPE.INLINE;
+    } else {
+        return null;
+    }
+};
 export const currentItemIdModal = (state) => get(state, 'forms.editors.modal.itemId', null);
 export const currentItemTypeModal = (state) => get(state, 'forms.editors.modal.itemType', null);
 export const currentItemActionModal = (state) => get(state, 'forms.editors.modal.action', null);
@@ -148,10 +140,4 @@ export const currentAutosaveModal = createSelector(
     (autosaveItems, itemId) => (
         autosaveItems.event[itemId] ?? autosaveItems.planning[itemId]
     )
-);
-
-export const getPlanningAllowScheduledUpdates = createSelector(
-    [coverageProfile],
-    (cp) => get(cp, 'editor.flags') &&
-        appConfig.planning_allow_scheduled_updates
 );

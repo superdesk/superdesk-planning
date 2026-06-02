@@ -11,10 +11,103 @@
 from typing import TypedDict, Dict, Any, Literal
 from datetime import datetime
 
-from .content_profiles import ContentFieldSchema, ContentFieldEditor, ContentProfile  # noqa
+from .content_profiles import ContentFieldSchema, ContentFieldEditor, BaseProfile, ContentProfile, CoverageProfile
+
+from .base import BasePlanningModel
+from .common import (
+    PlanningSchedule,
+    PlanningCoverage,
+    CoverageAssignedTo,
+    SubjectListType,
+    SlugLineField,
+    Place,
+    NewsCoverageStatus,
+    MatchingProduct,
+    KeywordQCodeName,
+)
+from .delivery import DeliveryResourceModel
+from .event import EventResourceModel
+from .history import (
+    HistoryResourceModel,
+    EventsHistoryResourceModel,
+    PlanningHistoryResourceModel,
+    AssignmentsHistoryResourceModel,
+)
+from .planning import PlanningResourceModel
+from .assignment import AssignmentResourceModel, CoverageProvider
+from .published import PublishedPlanningModel
+from .enums import (
+    PostStates,
+    UpdateMethods,
+    WorkflowState,
+    LockState,
+    SpikedState,
+    SearchItemType,
+    SearchScheduleFrequency,
+    SearchWeekDay,
+    SearchDateRange,
+    LinkType,
+)
+from .agendas import AgendasResourceModel, AgendaItem
+from .planning_types import PlanningTypesResourceModel
+from .planning_featured import PlanningFeaturedResourceModel
+from .autosave import EventAutosaveResourceModel, PlanningAutosaveResourceModel
+from .locations import LocationResourceModel
+from .filters import EventPlanningFilter
+from . import ninjs3
+
+
+__all__ = [
+    "BasePlanningModel",
+    "DeliveryResourceModel",
+    "EventResourceModel",
+    "EventsHistoryResourceModel",
+    "HistoryResourceModel",
+    "PlanningResourceModel",
+    "PlanningHistoryResourceModel",
+    "AssignmentResourceModel",
+    "CoverageProvider",
+    "PublishedPlanningModel",
+    "PlanningTypesResourceModel",
+    "PlanningSchedule",
+    "PlanningCoverage",
+    "CoverageAssignedTo",
+    "SubjectListType",
+    "SlugLineField",
+    "Place",
+    "NewsCoverageStatus",
+    "MatchingProduct",
+    "KeywordQCodeName",
+    "PostStates",
+    "UpdateMethods",
+    "WorkflowState",
+    "LockState",
+    "SpikedState",
+    "SearchItemType",
+    "SearchScheduleFrequency",
+    "SearchWeekDay",
+    "SearchDateRange",
+    "ContentFieldSchema",
+    "ContentFieldEditor",
+    "BaseProfile",
+    "ContentProfile",
+    "CoverageProfile",
+    "PlanningRelatedEventLink",
+    "AgendasResourceModel",
+    "AgendaItem",
+    "PlanningFeaturedResourceModel",
+    "EventAutosaveResourceModel",
+    "PlanningAutosaveResourceModel",
+    "LocationResourceModel",
+    "EventPlanningFilter",
+    "AssignmentsHistoryResourceModel",
+    "ninjs3",
+]
 
 
 UPDATE_METHOD = Literal["single", "future", "all"]
+PLANNING_RELATED_EVENT_LINK_TYPE = Literal["primary", "secondary"]
+PLANNING_EVENT_LINK_METHOD = Literal["one_primary", "many_secondary", "one_primary_many_secondary"]
 
 
 class StringFieldTranslation(TypedDict):
@@ -37,15 +130,17 @@ class EmbeddedCoverageItem(TypedDict, total=False):
     ednote: str
     internal_note: str
     priority: int
+    coverage_provider: Dict[str, Any]
 
 
-class EmbeddedPlanning(TypedDict, total=False):
+class EmbeddedPlanningDict(TypedDict, total=False):
     planning_id: str
     update_method: UPDATE_METHOD
     coverages: Dict[str, EmbeddedCoverageItem]
 
 
-# TODO: Implement proper types for these next 3
+# TODO: Implement proper types for the following
+ArchiveItem = Dict[str, Any]
 Event = Dict[str, Any]
 Planning = Dict[str, Any]
 Coverage = Dict[str, Any]
@@ -65,3 +160,12 @@ class EventRelatedItem(TypedDict, total=False):
     pubstatus: str
     language: str
     word_count: int
+
+
+class PlanningRelatedEventLinkBase(TypedDict):
+    _id: str
+    link_type: PLANNING_RELATED_EVENT_LINK_TYPE
+
+
+class PlanningRelatedEventLink(PlanningRelatedEventLinkBase, total=False):
+    recurrence_id: str

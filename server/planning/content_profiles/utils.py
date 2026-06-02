@@ -8,41 +8,53 @@
 # AUTHORS and LICENSE files distributed with this source code, or
 # at https://www.sourcefabric.org/superdesk/license
 
-from typing import Set
+from bson import ObjectId
+
 from superdesk import get_resource_service
-from planning.types import ContentProfile
+from planning.types import BaseProfile, ContentProfile, CoverageProfile
 
 
-def get_planning_schema(resource: str) -> ContentProfile:
-    return get_resource_service("planning_types").find_one(req=None, name=resource)
+async def get_planning_schema(resource: str) -> ContentProfile:
+    return await get_resource_service("planning_types").find_one_async(req=None, name=resource)
 
 
-def is_field_enabled(field: str, profile: ContentProfile) -> bool:
+async def get_coverage_schema(schema_id: ObjectId | str) -> CoverageProfile | None:
+    return await get_resource_service("coverage_profiles").find_one_async(req=None, _id=ObjectId(schema_id))
+
+
+def is_field_enabled(field: str, profile: BaseProfile) -> bool:
     try:
         return profile["editor"][field]["enabled"]
     except (KeyError, TypeError):
         return False
 
 
-def get_enabled_fields(profile: ContentProfile) -> Set[str]:
+def get_enabled_fields(profile: BaseProfile) -> set[str]:
     return set(field for field in profile["editor"].keys() if is_field_enabled(field, profile))
 
 
-def is_field_editor_3(field: str, profile: ContentProfile) -> bool:
+def is_field_editor_3(field: str, profile: BaseProfile) -> bool:
     try:
         return is_field_enabled(field, profile) and profile["schema"][field]["field_type"] == "editor_3"
     except (KeyError, TypeError):
         return False
 
 
-def is_multilingual_enabled(field: str, profile: ContentProfile) -> bool:
+def is_field_custom_vocabulary(field: str, profile: BaseProfile) -> bool:
+    try:
+        return is_field_enabled(field, profile) and profile["schema"][field]["type"] == "custom_vocabulary"
+    except (KeyError, TypeError):
+        return False
+
+
+def is_multilingual_enabled(field: str, profile: BaseProfile) -> bool:
     try:
         return profile["schema"][field]["multilingual"]
     except (KeyError, TypeError):
         return False
 
 
-def get_multilingual_fields_from_profile(profile: ContentProfile) -> Set[str]:
+def get_multilingual_fields_from_profile(profile: BaseProfile) -> set[str]:
     return (
         set()
         if not is_multilingual_enabled("language", profile)
@@ -58,26 +70,33 @@ def get_multilingual_fields_from_profile(profile: ContentProfile) -> Set[str]:
     )
 
 
-def get_multilingual_fields(resource: str) -> Set[str]:
-    return get_multilingual_fields_from_profile(get_planning_schema(resource))
+def get_custom_vocabulary_fields_from_profile(profile: BaseProfile) -> set[str]:
+    return set(field_name for field_name in profile["schema"].keys() if is_field_custom_vocabulary(field_name, profile))
 
 
-def get_editor3_fields(resource: str) -> Set[str]:
-    profile = get_planning_schema(resource)
+async def get_multilingual_fields(resource: str) -> set[str]:
+    return get_multilingual_fields_from_profile(await get_planning_schema(resource))
+
+
+async def get_editor3_fields(resource: str) -> set[str]:
+    profile = await get_planning_schema(resource)
     return set(field_name for field_name in profile["schema"].keys() if is_field_editor_3(field_name, profile))
 
 
 class ContentProfileData:
-    profile: ContentProfile
+    profile: BaseProfile
     is_multilingual: bool
-    multilingual_fields: Set[str]
-    enabled_fields: Set[str]
+    multilingual_fields: set[str]
+    enabled_fields: set[str]
 
-    def __init__(self, resource: str):
-        self.profile = get_planning_schema(resource)
+    @classmethod
+    async def get(cls, resource: str):
+        self = cls()
+        self.profile = await get_planning_schema(resource)
         self.enabled_fields = get_enabled_fields(self.profile)
         self.is_multilingual = is_multilingual_enabled("language", self.profile)
         self.multilingual_fields = get_multilingual_fields_from_profile(self.profile)
+        return self
 
 
 class AllContentProfileData:
@@ -85,14 +104,24 @@ class AllContentProfileData:
     planning: ContentProfileData
     coverages: ContentProfileData
 
-    def __init__(self):
-        self.events = ContentProfileData("event")
-        self.planning = ContentProfileData("planning")
-        self.coverages = ContentProfileData("coverage")
+    @classmethod
+    async def get(cls):
+        self = cls()
+        self.events = await ContentProfileData.get("event")
+        self.planning = await ContentProfileData.get("planning")
+        self.coverages = await ContentProfileData.get("coverage")
+        return self
 
 
-def is_post_planning_with_event_enabled() -> bool:
+async def is_post_planning_with_event_enabled() -> bool:
     try:
-        return get_planning_schema("event")["schema"]["related_plannings"]["planning_auto_publish"] is True
+        return (await get_planning_schema("event"))["schema"]["related_plannings"]["planning_auto_publish"] is True
     except (KeyError, TypeError):
         return False
+
+
+async def is_cancel_planning_with_event_enabled() -> bool:
+    try:
+        return (await get_planning_schema("event"))["schema"]["related_plannings"]["cancel_plan_with_event"] is True
+    except (KeyError, TypeError):
+        return True

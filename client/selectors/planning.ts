@@ -2,15 +2,20 @@ import {createSelector} from 'reselect';
 import {cloneDeep, get} from 'lodash';
 
 import {appConfig} from 'appConfig';
-import {IPlanningAppState, IPlanningItem, LIST_VIEW_TYPE} from '../interfaces';
+import {IPlanningAppState, IPlanningItem, JUMP_INTERVAL, GROUP_LIST_BY} from '../interfaces';
 
 import {session, userPreferences} from './general';
 import {getSearchDateRange, lockUtils, planningUtils} from '../utils';
 import {AGENDA, SPIKED_STATE} from '../constants';
 
-function getCurrentListViewType(state?: IPlanningAppState) {
-    return state?.main?.listViewType ?? LIST_VIEW_TYPE.SCHEDULE;
+function getCurrentListGrouping(state?: IPlanningAppState) {
+    return state?.main?.groupListBy ?? GROUP_LIST_BY.DATE;
 }
+
+function getCurrentViewInterval(state?: IPlanningAppState): JUMP_INTERVAL {
+    return state?.main?.search?.PLANNING?.jumpInterval ?? JUMP_INTERVAL.WEEK;
+}
+
 const storedEvents = (state) => get(state, 'events.events', {});
 
 export const planningHistory = (state) => get(state, 'planning.planningHistoryItems');
@@ -18,6 +23,8 @@ export function storedPlannings(state: IPlanningAppState): {[key: string]: IPlan
     return state.planning?.plannings ?? {};
 }
 export const planIdsInList = (state) => get(state, 'planning.planningsInList', []);
+export const lastDayGroup: (state: any) => Array<IPlanningItem> | null =
+    (state) => state.planning?.lastDayGroup;
 export const agendas = (state) => get(state, 'agenda.agendas', []);
 export const currentPlanningId = (state) => get(state, 'planning.currentPlanningId');
 export const currentSearch = (state) => get(state, 'main.search.PLANNING.currentSearch');
@@ -71,18 +78,25 @@ export const plansInList = createSelector(
 );
 
 export const orderedPlanningList = createSelector(
-    [currentAgenda, plansInList, storedEvents, currentSearch, getCurrentListViewType],
-    (currentAgenda, plansInList, events, search, viewType) => {
+    [
+        currentAgenda,
+        plansInList,
+        storedEvents,
+        currentSearch,
+        getCurrentListGrouping,
+        getCurrentViewInterval,
+    ],
+    (currentAgenda, plansInList, events, search, groupListBy, viewInterval) => {
         if (!plansInList?.length) {
             return [];
-        } if (viewType === LIST_VIEW_TYPE.LIST) {
+        } if (groupListBy === GROUP_LIST_BY.NOT_GROUPED) {
             return [{
                 date: null,
                 events: plansInList,
             }];
         }
 
-        const dateRange = getSearchDateRange(search, appConfig.start_of_week);
+        const dateRange = getSearchDateRange(search, appConfig.start_of_week, viewInterval);
 
         return planningUtils.getPlanningByDate(
             plansInList, events, dateRange.startDate, dateRange.endDate

@@ -128,6 +128,13 @@ DEFAULT_ADVANCED_SEARCH_PROFILE = {
                 "search_enabled": True,
                 "filter_enabled": True,
             },
+            "creation_date": {
+                "enabled": True,
+                "index": 4,
+                "group": "dates",
+                "search_enabled": True,
+                "filter_enabled": True,
+            },
             # Events
             "no_calendar_assigned": {
                 "enabled": True,
@@ -278,6 +285,13 @@ DEFAULT_ADVANCED_SEARCH_PROFILE = {
             "date_filter": {
                 "enabled": True,
                 "index": 3,
+                "group": "dates",
+                "search_enabled": True,
+                "filter_enabled": True,
+            },
+            "creation_date": {
+                "enabled": True,
+                "index": 4,
                 "group": "dates",
                 "search_enabled": True,
                 "filter_enabled": True,
@@ -464,6 +478,13 @@ DEFAULT_ADVANCED_SEARCH_PROFILE = {
                 "search_enabled": True,
                 "filter_enabled": True,
             },
+            "creation_date": {
+                "enabled": True,
+                "index": 4,
+                "group": "dates",
+                "search_enabled": True,
+                "filter_enabled": True,
+            },
             # Events
             "calendars": {
                 "enabled": True,
@@ -487,6 +508,22 @@ DEFAULT_ADVANCED_SEARCH_PROFILE = {
                 "search_enabled": True,
                 "filter_enabled": True,
             },
+        },
+        "assignments": {
+            # Common Fields
+            "slugline": {"enabled": True, "index": 1, "group": "common"},
+            # Vocabularies
+            "genre": {"enabled": True, "index": 2, "group": "vocabularies"},
+            # Planning Fields
+            "user": {"enabled": True, "index": 3, "group": "planning"},
+            "content_type": {"enabled": True, "index": 4, "group": "planning"},
+            "multiple_content": {"enabled": True, "index": 5, "group": "planning"},
+            "assignment_priority": {"enabled": True, "index": 6, "group": "planning"},
+            # Fields disabled by default
+            "language": {"enabled": False},
+            "anpa_category": {"enabled": False},
+            "priority": {"enabled": False},
+            "subject": {"enabled": False},
         },
     },
     "schema": {},

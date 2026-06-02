@@ -9,9 +9,15 @@
 # at https://www.sourcefabric.org/superdesk/license
 
 from bson import ObjectId
+from datetime import datetime, timedelta
+
+from superdesk import get_resource_service
 from superdesk.metadata.item import ITEM_TYPE, CONTENT_TYPE
+from superdesk.flask import g
+from superdesk.tests import utils as test_utils, fixtures
+
+from planning.tests import TestCase, fixtures as planning_fixtures
 from .ingest_rule_handler import PlanningRoutingRuleHandler
-from planning.tests import TestCase
 
 
 TEST_RULE = {
@@ -30,6 +36,8 @@ TEST_RULE = {
     },
 }
 
+AUTOPOST_RULE = {"actions": {"extra": {"autopost": True}}}
+
 
 class IngestRuleHandlerTestCase(TestCase):
     calendars = [
@@ -44,10 +52,11 @@ class IngestRuleHandlerTestCase(TestCase):
         {
             "_id": "event1",
             "dates": {
-                "start": "2022-07-02T14:00:00+0000",
-                "end": "2022-07-03T14:00:00+0000",
+                "start": datetime.fromisoformat("2022-07-02T14:00:00+00:00"),
+                "end": datetime.fromisoformat("2022-07-03T14:00:00+00:00"),
             },
             "type": "event",
+            "pubstatus": "usable",
         },
         {
             "_id": "event2",
@@ -73,16 +82,20 @@ class IngestRuleHandlerTestCase(TestCase):
         },
     ]
 
-    def setUp(self):
-        super(IngestRuleHandlerTestCase, self).setUp()
+    async def asyncSetUp(self):
+        await super().asyncSetUp()
+        await test_utils.post_items("users", fixtures.users.all_users())
+        g.user = fixtures.users.admin().to_dict()
+        await test_utils.post_items("desks", fixtures.desks.all_desks())
+        await planning_fixtures.publish_config.configure_planning_publishing()
         self.handler = PlanningRoutingRuleHandler()
 
-    def test_can_handle_content(self):
-        self.assertTrue(self.handler.can_handle({}, {ITEM_TYPE: CONTENT_TYPE.EVENT}, {}))
-        self.assertTrue(self.handler.can_handle({}, {ITEM_TYPE: CONTENT_TYPE.PLANNING}, {}))
-        self.assertFalse(self.handler.can_handle({}, {ITEM_TYPE: CONTENT_TYPE.TEXT}, {}))
+    async def test_can_handle_content(self):
+        self.assertTrue(await self.handler.can_handle({}, {ITEM_TYPE: CONTENT_TYPE.EVENT}, {}))
+        self.assertTrue(await self.handler.can_handle({}, {ITEM_TYPE: CONTENT_TYPE.PLANNING}, {}))
+        self.assertFalse(await self.handler.can_handle({}, {ITEM_TYPE: CONTENT_TYPE.TEXT}, {}))
 
-    def test_adds_event_calendars(self):
+    async def test_adds_event_calendars(self):
         self.app.data.insert(
             "vocabularies",
             [
@@ -96,7 +109,7 @@ class IngestRuleHandlerTestCase(TestCase):
         self.app.data.insert("events", [event])
         original = self.app.data.find_one("events", req=None, _id=event["_id"])
 
-        self.handler.apply_rule({"actions": {"extra": {"calendars": [self.calendars[0]["qcode"]]}}}, event, {})
+        await self.handler.apply_rule({"actions": {"extra": {"calendars": [self.calendars[0]["qcode"]]}}}, event, {})
 
         updated = self.app.data.find_one("events", req=None, _id=event["_id"])
         self.assertNotEqual(original["_etag"], updated["_etag"])
@@ -105,7 +118,7 @@ class IngestRuleHandlerTestCase(TestCase):
         self.assertEqual(len(calendars), 1)
         self.assertEqual(calendars[0], "sports")
 
-    def test_skips_disabled_and_existing_calendars(self):
+    async def test_skips_disabled_and_existing_calendars(self):
         self.app.data.insert(
             "vocabularies",
             [
@@ -119,8 +132,10 @@ class IngestRuleHandlerTestCase(TestCase):
         self.app.data.insert("events", [event])
         original = self.app.data.find_one("events", req=None, _id=event["_id"])
 
-        self.handler.apply_rule(
-            {"actions": {"extra": {"calendars": [self.calendars[0]["qcode"], self.calendars[1]["qcode"]]}}}, event, {}
+        await self.handler.apply_rule(
+            {"actions": {"extra": {"calendars": [self.calendars[0]["qcode"], self.calendars[1]["qcode"]]}}},
+            event,
+            {},
         )
 
         updated = self.app.data.find_one("events", req=None, _id=event["_id"])
@@ -130,13 +145,13 @@ class IngestRuleHandlerTestCase(TestCase):
         self.assertEqual(len(calendars), 1)
         self.assertEqual(calendars[0], "sports")
 
-    def test_adds_planning_agendas(self):
+    async def test_adds_planning_agendas(self):
         self.app.data.insert("agenda", self.agendas)
         plan = self.planning_items[0]
         self.app.data.insert("planning", [plan])
         original = self.app.data.find_one("planning", req=None, _id=plan["_id"])
 
-        self.handler.apply_rule({"actions": {"extra": {"agendas": [self.agendas[0]["_id"]]}}}, plan, {})
+        await self.handler.apply_rule({"actions": {"extra": {"agendas": [self.agendas[0]["_id"]]}}}, plan, {})
 
         updated = self.app.data.find_one("planning", req=None, _id=plan["_id"])
         self.assertNotEqual(original["_etag"], updated["_etag"])
@@ -144,13 +159,13 @@ class IngestRuleHandlerTestCase(TestCase):
         self.assertEqual(len(updated["agendas"]), 1)
         self.assertEqual(updated["agendas"][0], self.agendas[0]["_id"])
 
-    def test_skips_disabled_and_existing_agendas(self):
+    async def test_skips_disabled_and_existing_agendas(self):
         self.app.data.insert("agenda", self.agendas)
         plan = self.planning_items[1]
         self.app.data.insert("planning", [plan])
         original = self.app.data.find_one("planning", req=None, _id=plan["_id"])
 
-        self.handler.apply_rule(
+        await self.handler.apply_rule(
             {"actions": {"extra": {"agendas": [self.agendas[0]["_id"], self.agendas[1]["_id"]]}}}, plan, {}
         )
 
@@ -159,3 +174,99 @@ class IngestRuleHandlerTestCase(TestCase):
 
         self.assertEqual(len(updated["agendas"]), 1)
         self.assertEqual(updated["agendas"][0], self.agendas[0]["_id"])
+
+    async def test_autopost(self):
+        event = self.event_items[0].copy()
+        events_service = get_resource_service("events")
+        await events_service.post_in_mongo([event])
+
+        history = self.get_event_history()
+        assert len(history) == 1
+        assert history[0]["operation"] == "ingested"
+
+        await self.handler.apply_rule(AUTOPOST_RULE, event, {})
+
+        history = self.get_event_history()
+        assert len(history) == 2
+        assert history[-1]["operation"] == "post"
+
+        original = await events_service.find_one_async(req=None, _id=event["_id"])
+        assert original["pubstatus"] == "usable"
+
+        event["pubstatus"] = "cancelled"
+        event["versioncreated"] = datetime.now()
+        await events_service.patch_in_mongo(event["_id"], event, original)
+
+        await self.handler.apply_rule(AUTOPOST_RULE, event, {})
+
+        history = self.get_event_history()
+        assert len(history) == 4
+        assert history[-2]["operation"] == "ingested"
+        assert history[-1]["operation"] == "post"
+
+        original = await events_service.find_one_async(req=None, _id=event["_id"])
+        assert original["pubstatus"] == "cancelled"
+
+    async def test_autopost_cancelled(self):
+        event = self.event_items[0].copy()
+        event["pubstatus"] = "cancelled"
+        events_service = get_resource_service("events")
+        await events_service.post_in_mongo([event])
+
+        await self.handler.apply_rule(AUTOPOST_RULE, event, {})
+
+        history = self.get_event_history()
+        assert len(history) == 2
+        assert history[-1]["operation"] == "post"
+
+        original = await events_service.find_one_async(req=None, _id=event["_id"])
+        assert original["pubstatus"] == "cancelled"
+
+    def get_event_history(self):
+        return list(self.app.data.find_all("events_history"))
+
+    async def test_autopost_with_calendars(self):
+        event = self.event_items[0].copy()
+        events_service = get_resource_service("events")
+        await events_service.post_in_mongo([event])
+
+        self.app.data.insert(
+            "vocabularies",
+            [
+                {
+                    "_id": "event_calendars",
+                    "items": self.calendars,
+                }
+            ],
+        )
+
+        calendars_rule = {"actions": {"extra": {"autopost": True, "calendars": ["sports"]}}}
+        await self.handler.apply_rule(calendars_rule, event, {})
+
+        history = self.get_event_history()
+        assert len(history) == 2
+        assert history[-1]["operation"] == "post"
+
+        original = await events_service.find_one_async(req=None, _id=event["_id"])
+        assert original["pubstatus"] == "usable"
+        assert original["state"] == "scheduled"
+
+    async def test_autopost_draft_event(self):
+        event = self.event_items[0].copy()
+        event["versioncreated"] = datetime.now() - timedelta(minutes=10)
+        events_service = get_resource_service("events")
+        await events_service.post_async([event])
+
+        original = events_service.find_one(req=None, _id=event["_id"])
+        assert original["pubstatus"] == "usable"
+        assert original["state"] == "draft"
+
+        event.pop("state")
+        event["name"] = "updated name"
+        event["pubstatus"] = "usable"
+        event["versioncreated"] = datetime.now()
+        await events_service.patch_in_mongo(event["_id"], event, original)
+
+        original = events_service.find_one(req=None, _id=event["_id"])
+        assert original["pubstatus"] == "usable"
+        assert original["state"] == "ingested"

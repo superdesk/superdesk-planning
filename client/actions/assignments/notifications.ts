@@ -1,17 +1,18 @@
 import {get, cloneDeep} from 'lodash';
 
-import {IWebsocketMessageData} from '../../interfaces';
+import {IWebsocketMessageData, IPlanningAppState} from '../../interfaces';
 
-import {planningApi} from '../../superdeskApi';
+import {planningApi, superdeskApi} from '../../superdeskApi';
 import {ASSIGNMENTS, WORKSPACE, MODALS} from '../../constants';
 import {lockUtils, assignmentUtils, gettext, isExistingItem} from '../../utils';
 
 import * as selectors from '../../selectors';
 import assignments from './index';
 import main from '../main';
-import planning from '../planning';
 import {hideModal, showModal} from '../index';
-import * as actions from '../../actions';
+import planningApis from '../planning/api';
+
+type GetStateFunc = () => IPlanningAppState;
 
 const _notifyAssignmentEdited = (assignmentId) => (
     (dispatch, getState, {notify}) => {
@@ -56,9 +57,10 @@ const onAssignmentCreated = (_e, data) => (
             )
         );
 
-        if (querySearchSettings.deskId === null || currentDesk &&
-            (currentDesk === data.assigned_desk || currentDesk === data.original_assigned_desk)) {
-            dispatch(assignments.ui.reloadAssignments([data.assignment_state]));
+        if (querySearchSettings.deskIds == null || querySearchSettings.deskIds.length > 0 &&
+            (currentDesk === data.assigned_desk || currentDesk === data.original_assigned_desk)
+        ) {
+            dispatch(assignments.ui.reloadAssignments([data.assignment_state], false));
         }
 
         return Promise.resolve();
@@ -71,8 +73,12 @@ const onAssignmentCreated = (_e, data) => (
  * @param {object} _e - Event object
  * @param {object} data - Assignment, User, Desk IDs
  */
-const onAssignmentUpdated = (_e, data) => (
+const onAssignmentUpdated = (_e: any, data: IWebsocketMessageData['ASSIGNMENT_UPDATED']) => (
     (dispatch, getState, {desks}) => {
+        window.dispatchEvent(
+            new CustomEvent<IWebsocketMessageData['ASSIGNMENT_UPDATED']>('assignments:updated', {detail: data}),
+        );
+
         // If this planning item was updated by this user in AddToPlanning Modal
         // Then ignore this notification
         if (selectors.general.sessionId(getState()) === data.session && (
@@ -85,7 +91,7 @@ const onAssignmentUpdated = (_e, data) => (
         const currentDesk = assignmentUtils.getCurrentSelectedDeskId(desks, getState());
         let querySearchSettings = selectors.getAssignmentSearch(getState());
 
-        dispatch(_updatePlannigRelatedToAssignment(data));
+        dispatch(updatePlanningRelatedToAssignment(data));
 
         // Updates my assignments count
         dispatch(
@@ -97,12 +103,12 @@ const onAssignmentUpdated = (_e, data) => (
             )
         );
 
-        if (querySearchSettings.deskId === null ||
+        if ((querySearchSettings.deskIds?.length ?? 0) === 0 ||
             currentDesk === data.assigned_desk ||
             currentDesk === data.original_assigned_desk
         ) {
             dispatch(assignments.api.fetchAssignmentHistory({_id: data.item}));
-            dispatch(assignments.ui.reloadAssignments([data.assignment_state]));
+            dispatch(assignments.ui.reloadAssignments([data.assignment_state], false));
 
             dispatch(assignments.api.fetchAssignmentById(data.item))
                 .then((assignmentInStore) => {
@@ -121,24 +127,29 @@ const onAssignmentUpdated = (_e, data) => (
 
                         if (newGroups[0] !== originalGroups[0]) {
                             dispatch(assignments.ui.reloadAssignments(
-                                [assignmentInStore.assigned_to.state])
-                            );
+                                [assignmentInStore.assigned_to.state],
+                                false,
+                            ));
                         }
                     }
                 });
 
+            const state = getState();
+
             if (data.assignment_state === ASSIGNMENTS.WORKFLOW_STATE.CANCELLED ||
-                 data.assignment_state === ASSIGNMENTS.WORKFLOW_STATE.IN_PROGRESS) {
+                data.assignment_state === ASSIGNMENTS.WORKFLOW_STATE.IN_PROGRESS
+            ) {
                 // If we are in authoring workspace (fulfilment) and assignment is previewed,
                 // close it
-                if (selectors.general.currentWorkspace(getState()) === WORKSPACE.AUTHORING &&
-                        selectors.getCurrentAssignmentId(getState()) === data.item) {
+                if (selectors.general.currentWorkspace(state) === WORKSPACE.AUTHORING
+                    && selectors.getCurrentAssignmentId(state) === data.item
+                ) {
                     dispatch(assignments.ui.closePreview());
                 }
             }
         }
 
-        if (!get(data, 'lock_user')) {
+        if (data.lock_user == null) {
             // Assignment was completed on editor but context was a different desk
             return dispatch(assignments.api.fetchAssignmentById(data.item, false))
                 .then((assignmentInStore) => {
@@ -170,36 +181,39 @@ const onAssignmentUpdated = (_e, data) => (
     }
 );
 
-const _updatePlannigRelatedToAssignment = (data) => (
-    (dispatch, getState) => {
-        const plans = selectors.planning.storedPlannings(getState());
+/**
+ * Updates planning item when its related assignment changes
+ * Reloads the planning item's coverages from the server and synchronizes them with the editor
+ * if the planning item is currently being edited. Also updates the item history.
+ * @param {object} data - Assignment notification data containing planning and coverage IDs
+ * @returns {Function} Thunk action that performs the update
+ */
+const updatePlanningRelatedToAssignment = (data) => (
+    async(dispatch, getState: GetStateFunc) => {
+        const state = getState();
+        const plans = selectors.planning.storedPlannings(state);
 
-        if (!get(data, 'planning')) {
-            return Promise.resolve();
-        }
+        if (!get(data, 'planning')) return;
 
-        let planningItem = cloneDeep(get(plans, data.planning, {}));
+        const planningItem = cloneDeep(get(plans, data.planning, {}));
 
-        if (!isExistingItem(planningItem)) {
-            return Promise.resolve();
-        }
+        if (!isExistingItem(planningItem)) return;
 
         let coverages = get(planningItem, 'coverages') || [];
         let coverage = coverages.find((cov) => cov.coverage_id === data.coverage);
 
-        if (!coverage) {
-            return Promise.resolve();
-        }
+        if (!coverage) return;
 
-        dispatch(planning.api.loadPlanningByIds([data.planning]));
-        dispatch(main.fetchItemHistory(planningItem));
+        await dispatch(planningApis.loadPlanningByIds([data.planning]));
+        await dispatch(main.fetchItemHistory(planningItem));
     }
 );
 
 function onAssignmentLocked(_e, data: IWebsocketMessageData['ITEM_LOCKED']) {
     return (dispatch) => {
-        if (get(data, 'item')) {
+        if (get(data, 'item') && data.clientId !== superdeskApi.session.getUniqueClientId()) {
             planningApi.locks.setItemAsLocked(data);
+
             return dispatch(assignments.api.fetchAssignmentById(data.item, false))
                 .then((assignmentInStore) => {
                     let item = {
@@ -234,7 +248,7 @@ function onAssignmentLocked(_e, data: IWebsocketMessageData['ITEM_LOCKED']) {
  */
 function onAssignmentUnlocked(_e, data: IWebsocketMessageData['ITEM_UNLOCKED']) {
     return (dispatch, getState) => {
-        if (get(data, 'item')) {
+        if (get(data, 'item') && data.clientId !== superdeskApi.session.getUniqueClientId()) {
             planningApi.locks.setItemAsUnlocked(data);
             return dispatch(assignments.api.fetchAssignmentById(data.item, false))
                 .then((assignmentInStore) => {
@@ -259,8 +273,8 @@ function onAssignmentUnlocked(_e, data: IWebsocketMessageData['ITEM_UNLOCKED']) 
 
                     // If this is the planning item currently being edited, show popup notification
                     if (itemLock !== null &&
-                    data.lock_session !== sessionId &&
-                    itemLock.session === sessionId
+                        data.lock_session !== sessionId &&
+                        itemLock.session === sessionId
                     ) {
                         const user = selectors.general.users(getState()).find((u) => u._id === data.user);
 
@@ -270,7 +284,7 @@ function onAssignmentUnlocked(_e, data: IWebsocketMessageData['ITEM_UNLOCKED']) 
                             modalProps: {
                                 title: 'Item Unlocked',
                                 body: 'The assignment item you were editing was unlocked by "' +
-                                user.display_name + '"',
+                                    user.display_name + '"',
                             },
                         }));
                     }
@@ -286,54 +300,61 @@ function onAssignmentUnlocked(_e, data: IWebsocketMessageData['ITEM_UNLOCKED']) 
  * @param {object} _e - Event object
  * @param {object} data - IDs for the Assignment, Planning and Coverage items
  */
-const onAssignmentRemoved = (_e, data) => (
-    (dispatch, getState, {notify}) => {
-        if (get(data, 'assignments')) {
-            dispatch({
-                type: ASSIGNMENTS.ACTIONS.REMOVE_ASSIGNMENT,
-                payload: data,
-            });
-
-            data.assignments.forEach((a) => {
-                dispatch(_notifyAssignmentEdited(a));
-                // Though assignment is removed, this is to remove the orphan lock in the store
-                dispatch({
-                    type: ASSIGNMENTS.ACTIONS.UNLOCK_ASSIGNMENT,
-                    payload: {assignment: {_id: a}},
-                });
-            });
-
-            // Updates my assignment count
-            dispatch(
-                assignments.ui.queryAndGetMyAssignments(
-                    [
-                        ASSIGNMENTS.WORKFLOW_STATE.ASSIGNED,
-                        ASSIGNMENTS.WORKFLOW_STATE.SUBMITTED,
-                    ]
-                )
-            );
-
-            return dispatch(_updatePlannigRelatedToAssignment(data));
+const onAssignmentRemoved = (_e: any, data: IWebsocketMessageData['ASSIGNMENT_REMOVED']) => (
+    (dispatch) => {
+        if (data.assignments == null) {
+            return Promise.resolve();
         }
 
-        return Promise.resolve();
+        window.dispatchEvent(
+            new CustomEvent<IWebsocketMessageData['ASSIGNMENT_REMOVED']>('assignments:removed', {detail: data}),
+        );
+
+        dispatch({
+            type: ASSIGNMENTS.ACTIONS.REMOVE_ASSIGNMENT,
+            payload: data,
+        });
+
+        data.assignments.forEach((a) => {
+            dispatch(_notifyAssignmentEdited(a));
+            // Though assignment is removed, this is to remove the orphan lock in the store
+            dispatch({
+                type: ASSIGNMENTS.ACTIONS.UNLOCK_ASSIGNMENT,
+                payload: {assignment: {_id: a}},
+            });
+        });
+
+        // Updates my assignment count
+        dispatch(
+            assignments.ui.queryAndGetMyAssignments(
+                [
+                    ASSIGNMENTS.WORKFLOW_STATE.ASSIGNED,
+                    ASSIGNMENTS.WORKFLOW_STATE.SUBMITTED,
+                ]
+            )
+        );
+
+        return dispatch(updatePlanningRelatedToAssignment(data));
     }
 );
 
 const onAssignmentDeleteFailed = (_e, data) => (
-    (dispatch, getState, {notify}) => {
+    (_dispatch, getState, {notify}) => {
         const currentUserId = selectors.general.currentUserId(getState());
         const sessionId = selectors.general.sessionId(getState());
 
-        if (get(data, 'items.length', 0) > 0 &&
-                get(data, 'user') === currentUserId &&
-                get(data, 'session') === sessionId) {
-            const msg = data.items.map((i) => gettext('There is a {{ type }} assignment \'{{ slugline }}\' {{ state }}',
+        if ((data.items?.length ?? 0) > 0 &&
+            data.user === currentUserId &&
+            data.session === sessionId
+        ) {
+            const msg = data.items.map((i) => gettext(
+                'There is a {{ type }} assignment \'{{ slugline }}\' {{ state }}',
                 {
                     state: get(i, 'state'),
                     type: get(i, 'type'),
                     slugline: get(i, 'slugline'),
-                })).join('\n');
+                }
+            )).join('\n');
 
             notify.warning(msg);
         }
@@ -366,30 +387,6 @@ const onAssignmentDeleted = (_e, data) => (
     }
 );
 
-export const onContentUpdate = (_e, data) => (
-    (dispatch, getState) => {
-        const updatedItems = Object.keys(data.items);
-        const currentItems = Object.values(selectors.getStoredArchiveItems(getState()));
-        const refetchAssignments = [];
-
-        for (const itemId of updatedItems) {
-            const updatedItemInState = currentItems.find((i) => i._id === itemId);
-
-            if (updatedItemInState != null) {
-                refetchAssignments.push(updatedItemInState.assignment_id);
-                break;
-            }
-        }
-
-        if (refetchAssignments.length > 0) {
-            const assignments = Object.values(getState().assignment.assignments);
-            const updateAssignments = assignments.filter((a) => refetchAssignments.includes(a._id));
-
-            dispatch(actions.assignments.api.loadArchiveItems(updateAssignments));
-        }
-    }
-);
-
 // eslint-disable-next-line consistent-this
 const self = {
     onAssignmentCreated,
@@ -399,7 +396,6 @@ const self = {
     onAssignmentRemoved,
     onAssignmentDeleteFailed,
     onAssignmentDeleted,
-    onContentUpdate,
 };
 
 // Map of notification name and Action Event to execute
@@ -414,7 +410,6 @@ self.events = {
     'assignments:delete:fail': () => (self.onAssignmentDeleteFailed),
     'assignments:delete': () => (self.onAssignmentDeleted),
     'assignments:accepted': () => (self.onAssignmentUpdated),
-    'content:update': () => (self.onContentUpdate),
 };
 
 export default self;

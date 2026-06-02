@@ -2,6 +2,7 @@ export const PRIVILEGES = {
     ARCHIVE: 'archive',
     AGENDA_MANAGEMENT: 'planning_agenda_management',
     DELETE_AGENDA: 'planning_agenda_delete',
+    PLANNING: 'planning',
     PLANNING_MANAGEMENT: 'planning_planning_management',
     SPIKE_PLANNING: 'planning_planning_spike',
     UNSPIKE_PLANNING: 'planning_planning_unspike',
@@ -20,4 +21,5 @@ export const PRIVILEGES = {
     LOCATIONS_MANAGEMENT: 'planning_locations_management',
     GLOBAL_FILTERS: 'planning_global_filters',
     MANAGE_CONTENT_PROFILES: 'planning_manage_content_profiles',
+    MANAGE_EXPORT_TEMPLATES: 'planning_manage_export_templates',
 };

@@ -12,8 +12,12 @@ import {SluglineComponent} from './Slugline';
 import {StateComponent} from './State';
 import {LanguageComponent} from './Language';
 import {appConfig} from 'appConfig';
+import {ILineConfig} from 'globals';
+import {IAssignmentListItemField} from '../../../../components/Assignments/interfaces';
+import {VocabularyComponent} from './Vocabulary';
+import {AnpaCategory} from './AnpaCategory';
 
-type AssignmentViewField =
+export type AssignmentViewField =
     | 'accepted'
     | 'content'
     | 'description_text'
@@ -26,10 +30,12 @@ type AssignmentViewField =
     | 'priority'
     | 'slugline'
     | 'state'
-    | 'language';
+    | 'language'
+    | 'anpa_category'
+    | 'vocabulary';
 
 // Returns the React component to render for the given 'field' of an assignment
-export const getComponentForField = (field: AssignmentViewField) => {
+export const getComponentForField = (field: AssignmentViewField): React.ComponentType<IAssignmentListItemField> => {
     switch (field) {
     case 'accepted':
         return AcceptedComponent;
@@ -57,6 +63,10 @@ export const getComponentForField = (field: AssignmentViewField) => {
         return StateComponent;
     case 'language':
         return LanguageComponent;
+    case 'vocabulary':
+        return VocabularyComponent;
+    case 'anpa_category':
+        return AnpaCategory;
     default:
         console.warn(
             `There's no component for assignment field '${field}'`
@@ -65,32 +75,43 @@ export const getComponentForField = (field: AssignmentViewField) => {
     }
 };
 
-const DEFAULT_ASSSIGNMENTS_LIST_VIEW: {
-    firstLine: Array<AssignmentViewField>
-    secondLine: Array<AssignmentViewField>
+const DEFAULT_ASSIGNMENTS_LIST_VIEW: {
+    firstLine: Array<ILineConfig>
+    secondLine: Array<ILineConfig>
 } = {
-    firstLine: ['slugline', 'description_text'],
+    firstLine: [
+        {fieldId: 'slugline'},
+        {fieldId: 'description_text'},
+    ],
     secondLine: [
-        'priority',
-        'state',
-        'accepted',
-        'content',
-        'internal',
-        'due_date',
-        'desk',
-        'genre',
-        'language',
+        {fieldId: 'priority'},
+        {fieldId: 'state'},
+        {fieldId: 'accepted'},
+        {fieldId: 'content'},
+        {fieldId: 'internal'},
+        {fieldId: 'due_date'},
+        {fieldId: 'desk'},
+        {fieldId: 'genre'},
+        {fieldId: 'language'},
     ],
 };
 
-// Get fields config for a single assignment view
-export const getAssignmentsListView = () =>
-    appConfig.assignmentsList || DEFAULT_ASSSIGNMENTS_LIST_VIEW;
+const getOldConfigFormat = (): {
+    firstLine: Array<ILineConfig>
+    secondLine: Array<ILineConfig>
+} => {
+    if (appConfig.assignmentsList == null) {
+        return undefined;
+    }
 
-// Returns true if assignments list view requrires archive items data
-export const assignmentsViewRequiresArchiveItems = (): boolean => {
-    const listViewConfig = getAssignmentsListView();
-    const fields = [...listViewConfig.firstLine, ...listViewConfig.secondLine];
-
-    return fields.includes('headline');
+    return {
+        firstLine: appConfig.assignmentsList.firstLine.map((fieldId: string) => ({fieldId})),
+        secondLine: appConfig.assignmentsList.secondLine.map((fieldId: string) => ({fieldId}))
+    };
 };
+
+// Get fields config for a single assignment view
+export const getAssignmentsListView = (): {
+    firstLine: Array<ILineConfig>
+    secondLine: Array<ILineConfig>
+} => appConfig.planning?.assignment_list_item ?? getOldConfigFormat() ?? DEFAULT_ASSIGNMENTS_LIST_VIEW;

@@ -12,7 +12,7 @@ describe('assignment', () => {
 
     beforeEach(() => {
         initialState = cloneDeep(testData.assignmentInitialState);
-        state = assignment({}, {type: null});
+        state = assignment(initialState, {type: null});
         assignments = cloneDeep(testData.assignments);
     });
 
@@ -362,13 +362,17 @@ describe('assignment', () => {
         it('PREVIEW_ASSIGNMENT', () => {
             const result = assignment(state, {
                 type: 'PREVIEW_ASSIGNMENT',
-                payload: 'as1',
+                payload: {
+                    assignmentId: 'as1',
+                    initialTab: 'ASSIGNMENT',
+                },
             });
 
             expect(result).toEqual({
                 ...initialState,
                 previewOpened: true,
                 currentAssignmentId: 'as1',
+                initialTab: 'ASSIGNMENT',
                 readOnly: true,
             });
         });
@@ -401,7 +405,7 @@ describe('assignment', () => {
                 // Checks to see if IN_PROGRESS list is set back to empty
                 let result = assignment(initialState, {
                     type: 'RECEIVED_ASSIGNMENTS',
-                    payload: [assignments[0]],
+                    payload: [cloneDeep(assignments)[0]],
                 });
 
                 result = assignment(result, {
@@ -424,7 +428,7 @@ describe('assignment', () => {
                 // Checks to see if TO_DO list is set back to empty
                 result = assignment(initialState, {
                     type: 'RECEIVED_ASSIGNMENTS',
-                    payload: [assignments[0]],
+                    payload: [cloneDeep(assignments)[0]],
                 });
 
                 result = assignment(result, {
@@ -447,7 +451,7 @@ describe('assignment', () => {
                 // Checks to see if COMPLETED list is set back to empty
                 result = assignment(initialState, {
                     type: 'RECEIVED_ASSIGNMENTS',
-                    payload: [assignments[0]],
+                    payload: [cloneDeep(assignments)[0]],
                 });
 
                 result = assignment(result, {
@@ -471,7 +475,7 @@ describe('assignment', () => {
             it('REMOVE_ASSIGNMENT closes the preview', () => {
                 let result = assignment(initialState, {
                     type: 'RECEIVED_ASSIGNMENTS',
-                    payload: [assignments[0]],
+                    payload: [cloneDeep(assignments)[0]],
                 });
 
                 result = assignment(result, {
@@ -481,7 +485,10 @@ describe('assignment', () => {
 
                 result = assignment(result, {
                     type: 'PREVIEW_ASSIGNMENT',
-                    payload: 'as1',
+                    payload: {
+                        assignmentId: 'as1',
+                        initialTab: 'ASSIGNMENT',
+                    },
                 });
 
                 result = assignment(result, {
@@ -498,7 +505,7 @@ describe('assignment', () => {
             it('REMOVE_ASSIGNMENT doesnt close the preview if not viewing', () => {
                 let result = assignment(initialState, {
                     type: 'RECEIVED_ASSIGNMENTS',
-                    payload: [assignments[0]],
+                    payload: [cloneDeep(assignments)[0]],
                 });
 
                 result = assignment(result, {
@@ -508,7 +515,10 @@ describe('assignment', () => {
 
                 result = assignment(result, {
                     type: 'PREVIEW_ASSIGNMENT',
-                    payload: 'as2',
+                    payload: {
+                        assignmentId: 'as2',
+                        initialTab: 'ASSIGNMENT',
+                    },
                 });
 
                 result = assignment(result, {
@@ -594,6 +604,44 @@ describe('assignment', () => {
                 total: 0,
                 lastPage: null,
                 sortOrder: 'Desc',
+            },
+        }));
+    });
+
+    it('SET_LOADING', () => {
+        let result = assignment(initialState, {
+            type: ASSIGNMENTS.ACTIONS.SET_LOADING,
+            payload: {
+                list: 'TODO',
+                isLoading: true,
+            },
+        });
+
+        expect(result.lists).toEqual(jasmine.objectContaining({
+            TODO: {
+                assignmentIds: [],
+                total: 0,
+                lastPage: null,
+                sortOrder: 'Asc',
+                isLoading: true,
+            },
+        }));
+
+        result = assignment(result, {
+            type: ASSIGNMENTS.ACTIONS.SET_LOADING,
+            payload: {
+                list: 'TODO',
+                isLoading: false,
+            },
+        });
+
+        expect(result.lists).toEqual(jasmine.objectContaining({
+            TODO: {
+                assignmentIds: [],
+                total: 0,
+                lastPage: null,
+                sortOrder: 'Asc',
+                isLoading: false,
             },
         }));
     });

@@ -1,9 +1,15 @@
 import React from 'react';
-import PropTypes from 'prop-types';
 import classNames from 'classnames';
 import {pickBy} from 'lodash';
 
-export default function ModalDialog({dialogClassName, children, style, className, ...props}) {
+interface IProps {
+    dialogClassName?: string;
+    children: React.ReactNode;
+    style?: any;
+    className?: string;
+}
+
+export default function ModalDialog({dialogClassName, children, style, className, ...props}: IProps) {
     const modalStyle = {
         display: 'block',
         ...style,
@@ -19,7 +25,6 @@ export default function ModalDialog({dialogClassName, children, style, className
     return (
         <div
             {...elementProps}
-            tabIndex="-1"
             role="dialog"
             style={modalStyle}
             className={className}
@@ -32,13 +37,3 @@ export default function ModalDialog({dialogClassName, children, style, className
         </div>
     );
 }
-
-ModalDialog.propTypes = {
-    children: PropTypes.oneOfType([
-        PropTypes.element,
-        PropTypes.arrayOf(PropTypes.element),
-    ]),
-    style: PropTypes.object,
-    className: PropTypes.string,
-    dialogClassName: PropTypes.string,
-};

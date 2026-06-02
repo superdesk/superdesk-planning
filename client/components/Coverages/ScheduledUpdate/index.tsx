@@ -5,7 +5,8 @@ import moment from 'moment';
 import {IArticle, IDesk, IUser} from 'superdesk-api';
 import {
     IAssignmentPriority,
-    ICoverageProvider, ICoverageScheduledUpdate,
+    ICoverageProvider,
+    ICoverageScheduledUpdate,
     IGenre,
     IPlanningCoverageItem,
     IPlanningItem,
@@ -13,7 +14,7 @@ import {
 } from '../../../interfaces';
 import {superdeskApi} from '../../../superdeskApi';
 
-import {ContactsPreviewList} from '../../Contacts';
+import {ContactsPreviewList} from '../../Contacts/ContactsPreviewList';
 import {Row as PreviewRow} from '../../UI/Preview';
 import {ItemActionsMenu} from '../../index';
 import {CollapseBox} from '../../UI';
@@ -23,11 +24,13 @@ import {CoverageFormHeader} from '../CoverageEditor/CoverageFormHeader';
 import {CoveragePreviewTopBar} from '../CoveragePreview/CoveragePreviewTopBar';
 
 import {planningUtils, stringUtils, assignmentUtils} from '../../../utils';
-import {PLANNING, COVERAGES} from '../../../constants';
+import {PLANNING} from '../../../constants';
+import {planningApis} from '../../../api';
 
 interface IProps {
     diff: IPlanningCoverageItem;
     planning: IPlanningItem;
+    scheduledUpdates: Array<ICoverageScheduledUpdate>;
     index: number;
     field: string;
     value: ICoverageScheduledUpdate;
@@ -37,7 +40,7 @@ interface IProps {
     newsCoverageStatus: Array<IPlanningNewsCoverageStatus>;
     coverageProviders: Array<ICoverageProvider>;
     priorities: Array<IAssignmentPriority>;
-    readOnly: boolean;
+    disabled: boolean;
     addNewsItemToPlanning?: IArticle;
     openCoverageIds: Array<IPlanningCoverageItem['coverage_id']>;
     autoAssignToWorkflow: boolean;
@@ -48,33 +51,15 @@ interface IProps {
     testId: string;
 
     onRemove(): void;
-    onChange(field: string, value: any): void;
-    onRemoveAssignment(
-        coverage: IPlanningCoverageItem,
-        coverageIndex: number,
-        scheduledUpdate: ICoverageScheduledUpdate,
-        scheduledIndex: number
-    ): void;
+    onChange(field: string, value: any): void
     popupContainer?(): HTMLElement;
     onPopupOpen?(): void;
     onPopupClose?(): void;
-    setCoverageDefaultDesk(coverage: IPlanningCoverageItem): void;
     onFocus?(): void;
     onScheduleChanged(field: string, value: moment.Moment | undefined, coverage: ICoverageScheduledUpdate): void;
     onOpen?(coverage: ICoverageScheduledUpdate): void;
     onClose?(coverage: ICoverageScheduledUpdate): void;
-    onAddScheduledUpdateToWorkflow(
-        coverage: IPlanningCoverageItem,
-        coverageIndex: number,
-        scheduledUpdate: ICoverageScheduledUpdate,
-        scheduledIndex: number
-    ): void;
-    onCancelCoverage(
-        coverage: IPlanningCoverageItem,
-        coverageIndex: number,
-        scheduledUpdate: ICoverageScheduledUpdate,
-        scheduledIndex: number
-    ): void;
+    onCancelScheduledUpdate?(): void;
 }
 
 export class ScheduledUpdate extends React.PureComponent<IProps> {
@@ -85,28 +70,8 @@ export class ScheduledUpdate extends React.PureComponent<IProps> {
     constructor(props: IProps) {
         super(props);
 
-        this.cancelCoverage = this.cancelCoverage.bind(this);
-        this.addScheduledUpdateToWorkflow = this.addScheduledUpdateToWorkflow.bind(this);
         this.onOpen = this.onOpen.bind(this);
         this.onClose = this.onClose.bind(this);
-    }
-
-    cancelCoverage() {
-        this.props.onCancelCoverage(
-            this.props.diff,
-            this.props.coverageIndex,
-            this.props.value,
-            this.props.index
-        );
-    }
-
-    addScheduledUpdateToWorkflow() {
-        this.props.onAddScheduledUpdateToWorkflow(
-            this.props.diff,
-            this.props.coverageIndex,
-            this.props.value,
-            this.props.index
-        );
     }
 
     onOpen() {
@@ -133,13 +98,11 @@ export class ScheduledUpdate extends React.PureComponent<IProps> {
             onChange,
             coverageProviders,
             priorities,
-            onRemoveAssignment,
-            readOnly,
+            disabled,
             addNewsItemToPlanning,
             popupContainer,
             onPopupOpen,
             onPopupClose,
-            setCoverageDefaultDesk,
             openCoverageIds,
             autoAssignToWorkflow,
             onFocus,
@@ -150,8 +113,6 @@ export class ScheduledUpdate extends React.PureComponent<IProps> {
             onOpen,
             onClose,
             message,
-            onAddScheduledUpdateToWorkflow,
-            onCancelCoverage,
             testId,
             ...props
         } = this.props;
@@ -159,13 +120,15 @@ export class ScheduledUpdate extends React.PureComponent<IProps> {
         // Coverage item actions
         let itemActions = [];
 
-        if (!readOnly && !addNewsItemToPlanning) {
+        if (!disabled && !addNewsItemToPlanning) {
             // To be done in the next iteration
             if (planningUtils.canCancelCoverage(value, planning, 'scheduled_update_id')) {
                 itemActions.push({
-                    ...COVERAGES.ITEM_ACTIONS.CANCEL_COVERAGE,
                     label: gettext('Cancel Scheduled Update'),
-                    callback: this.cancelCoverage,
+                    icon: 'icon-close-small',
+                    callback: () => {
+                        this.props.onCancelScheduledUpdate();
+                    },
                 });
             }
 
@@ -174,7 +137,15 @@ export class ScheduledUpdate extends React.PureComponent<IProps> {
                     id: 'addToWorkflow',
                     label: gettext('Add to workflow'),
                     icon: 'icon-assign',
-                    callback: this.addScheduledUpdateToWorkflow,
+                    callback: () => {
+                        this.props.onChange(
+                            'scheduled_updates',
+                            planningApis.planning.coverages.addScheduledUpdateToWorkflow(
+                                this.props.scheduledUpdates,
+                                this.props.value,
+                            ),
+                        );
+                    },
                 });
             }
 
@@ -207,7 +178,7 @@ export class ScheduledUpdate extends React.PureComponent<IProps> {
                 index={index}
                 coverage={value}
                 itemActionComponent={itemActionComponent}
-                readOnly={readOnly}
+                readOnly={disabled}
                 isPreview={forPreview}
                 workflowStateReasonPrefix={`coverages[${coverageIndex}].scheduled_updates[${index}]`}
             />
@@ -223,16 +194,14 @@ export class ScheduledUpdate extends React.PureComponent<IProps> {
             />
         ) : (
             <CoverageFormHeader
+                coverages={[]}
                 field={fieldName}
                 value={value}
                 onChange={onChange}
                 users={users}
                 desks={desks}
-                readOnly={readOnly}
+                disabled={disabled}
                 addNewsItemToPlanning={addNewsItemToPlanning}
-                onRemoveAssignment={!onRemoveAssignment ? null :
-                    onRemoveAssignment.bind(null, diff, coverageIndex, value, index)}
-                setCoverageDefaultDesk={setCoverageDefaultDesk}
             />
         );
 
@@ -246,8 +215,6 @@ export class ScheduledUpdate extends React.PureComponent<IProps> {
                     <ContactsPreviewList
                         contactIds={get(value, 'planning.contact_info.length', 0) > 0 ?
                             [value.planning.contact_info] : []}
-                        scrollInView={true}
-                        scrollIntoViewOptions={{block: 'center'}}
                     />
                 </PreviewRow>
                 <PreviewRow
@@ -278,8 +245,7 @@ export class ScheduledUpdate extends React.PureComponent<IProps> {
                 coverageIndex={coverageIndex}
                 newsCoverageStatus={newsCoverageStatus}
                 genres={genres}
-                readOnly={readOnly}
-                invalid={componentInvalid}
+                disabled={disabled}
                 hasAssignment={planningUtils.isCoverageAssigned(value)}
                 addNewsItemToPlanning={addNewsItemToPlanning}
                 onFieldFocus={onFocus}

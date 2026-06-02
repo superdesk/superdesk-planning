@@ -101,7 +101,7 @@ Feature: Events Locking
         """
         [{
             "slugline": "TestPlan",
-            "event_item": "123",
+            "related_events": [{"_id": "123", "link_type": "primary"}],
             "planning_date": "2016-01-02"
         }]
         """
@@ -113,7 +113,7 @@ Feature: Events Locking
         """
         {
           "slugline": "TestPlan",
-          "event_item": "123",
+          "related_events": [{"_id": "123", "link_type": "primary"}],
           "lock_user": "#CONTEXT_USER_ID#"
         }
 
@@ -236,7 +236,7 @@ Feature: Events Locking
             {
                 "item_class": "item class value",
                 "headline": "test headline",
-                "event_item": "#EVENT3._id#",
+                "related_events": [{"_id": "#EVENT3._id#", "link_type": "primary"}],
                 "planning_date": "2016-01-02"
             }
         ]
@@ -251,7 +251,7 @@ Feature: Events Locking
         {
           "item_class": "item class value",
           "headline": "test headline",
-          "event_item": "#EVENT3._id#",
+          "related_events": [{"_id": "#EVENT3._id#", "link_type": "primary"}],
           "lock_user": "#CONTEXT_USER_ID#"
         }
         """

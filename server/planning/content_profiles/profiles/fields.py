@@ -27,6 +27,17 @@ class DateTimeField(schema.SchemaField):
         self.schema["required"] = required
 
 
+class DateOptionalTimeField(schema.SchemaField):
+    def __repr__(self):
+        return "string"
+
+    def __init__(self, required=False, schema=None):
+        """Initialize"""
+        super().__init__()
+        self.schema["type"] = "string"
+        self.schema["required"] = required
+
+
 class BooleanField(schema.SchemaField):
     """Boolean schema field"""
 
@@ -120,10 +131,22 @@ subjectField = schema.ListField(
                 "type": "string",
                 "required": True,
                 "nullable": True,
-                "allowed": [],
             },
             "service": {"nullable": True},
             "parent": {"nullable": True},
         },
     },
 )
+
+
+class MultipleContentField(BooleanField):
+    def __init__(
+        self,
+        required: bool = False,
+        default_value: bool = False,
+        read_only: bool = False,
+    ):
+        super().__init__(required=required)
+        self.schema["default_value"] = default_value
+        self.schema["read_only"] = read_only
+        self.schema["required"] = required

@@ -1,13 +1,31 @@
 import React from 'react';
-import PropTypes from 'prop-types';
 import classNames from 'classnames';
 
+interface IProps {
+    label?: string,
+    value?: string | number | React.ReactNode,
+    className?: string,
+    children?: React.ReactNode,
+    noPadding?: boolean,
+    enabled?: boolean,
+    flex?: boolean,
+    rowItem?: boolean,
+    dataTestId?: string,
+}
 /**
- * @ngdoc react
- * @name Row
- * @description Row Component to be used in an item preview to show an item's detail
+ * Row Component to be used in an item preview to show an item's detail
  */
-export const Row = ({label, value, className, children, noPadding, enabled, flex, rowItem, dataTestId}) => (
+export const Row: React.FunctionComponent<IProps> = ({
+    label,
+    value,
+    className,
+    children,
+    noPadding,
+    enabled = true,
+    flex,
+    rowItem,
+    dataTestId,
+}) => (
     enabled ? (
         <div
             className={classNames(
@@ -28,26 +46,3 @@ export const Row = ({label, value, className, children, noPadding, enabled, flex
     ) :
         null
 );
-
-Row.propTypes = {
-    label: PropTypes.string,
-    value: PropTypes.oneOfType([
-        PropTypes.string,
-        PropTypes.number,
-        PropTypes.node,
-    ]),
-    className: PropTypes.string,
-    children: PropTypes.node,
-    noPadding: PropTypes.bool,
-    enabled: PropTypes.bool,
-    flex: PropTypes.bool,
-    rowItem: PropTypes.bool,
-    dataTestId: PropTypes.string,
-};
-
-Row.defaultProps = {
-    noPadding: false,
-    enabled: true,
-    flex: false,
-    rowItem: false,
-};

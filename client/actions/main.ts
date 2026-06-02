@@ -2,6 +2,7 @@ import {get, isEmpty, isEqual, isNil, omit} from 'lodash';
 import moment from 'moment';
 
 import {appConfig} from 'appConfig';
+
 import {IUser} from 'superdesk-api';
 import {planningApi, superdeskApi} from '../superdeskApi';
 import {
@@ -12,7 +13,7 @@ import {
     IItemUrlParams,
     ISearchFilter,
     ISearchParams,
-    LIST_VIEW_TYPE,
+    GROUP_LIST_BY,
     PLANNING_VIEW,
     IWebsocketMessageData,
     ITEM_TYPE,
@@ -68,6 +69,7 @@ import eventsPlanningUi from './eventsPlanning/ui';
 import * as selectors from '../selectors';
 import {validateItem} from '../validators';
 import {searchParamsToOld} from '../utils/search';
+import {searchAndStore} from '../api/combined';
 
 function openForEdit(item: IEventOrPlanningItem, updateUrl: boolean = true, modal: boolean = false) {
     return (dispatch, getState) => {
@@ -702,21 +704,25 @@ const openIgnoreCancelSaveModal = ({
             itemId
         ) || {};
 
-        if (itemId && isItemSameAsAutosave(
-            {
-                _id: itemId,
-                type: itemType,
-            },
-            autosaveData,
-            selectors.events.storedEvents(getState()),
-            selectors.planning.storedPlannings(getState()))) {
+        if (
+            itemId
+            && isItemSameAsAutosave(
+                {
+                    _id: itemId,
+                    type: itemType,
+                },
+                autosaveData,
+                selectors.events.storedEvents(getState()),
+                selectors.planning.storedPlannings(getState()),
+            )
+        ) {
             return onIgnore();
         }
 
         const storedItems = itemType === ITEM_TYPE.EVENT ?
             selectors.events.storedEvents(getState()) :
             selectors.planning.storedPlannings(getState());
-        const item = get(storedItems, itemId) || {};
+        const item = storedItems[itemId] ?? {};
 
         if (!isExistingItem(item)) {
             delete item._id;
@@ -725,19 +731,16 @@ const openIgnoreCancelSaveModal = ({
         let promise = Promise.resolve(item);
 
         if (itemType === ITEM_TYPE.EVENT && eventUtils.isEventRecurring(item)) {
-            const originalEvent = get(storedItems, itemId, {});
-
-            promise = dispatch(eventsApi.query({
-                recurrenceId: originalEvent.recurrence_id,
-                maxResults: appConfig.max_recurrent_events,
-                onlyFuture: false,
-            }))
-                .then((relatedEvents) => ({
-                    ...item,
-                    _recurring: relatedEvents || [item],
-                    _events: [],
-                    _originalEvent: originalEvent,
-                }));
+            promise = searchAndStore({
+                recurrence_id: item.recurrence_id,
+                max_results: appConfig.max_recurrent_events,
+                only_future: false,
+            }).then((relatedEvents) => ({
+                ...item,
+                _recurring: relatedEvents.filter((item) => item.type === 'event') ?? [item],
+                _events: [],
+                _originalEvent: item,
+            }));
         }
 
         return promise.then((itemWithAssociatedData) => (
@@ -811,12 +814,11 @@ function filter(ftype?: PLANNING_VIEW) {
     return (dispatch, getState) => {
         const {urlParams} = superdeskApi.browser.location;
         const isNewSearch = urlParams.getBoolean('isNewSearch', false);
-        const listViewType = (urlParams.getString('listViewType') as LIST_VIEW_TYPE) ||
-            LIST_VIEW_TYPE.SCHEDULE;
+        const groupListBy = (urlParams.getString('groupListBy') as GROUP_LIST_BY) ||
+            GROUP_LIST_BY.DATE;
         const filterType = ftype ||
             (urlParams.getString('filter') as PLANNING_VIEW) ||
-            activeFilter(getState()) ||
-            PLANNING_VIEW.COMBINED;
+            activeFilter(getState());
 
         // Set the Redux/URL params for `filter`
         dispatch({
@@ -825,12 +827,12 @@ function filter(ftype?: PLANNING_VIEW) {
         });
         urlParams.setString('filter', filterType);
 
-        // Set the Redux/URL params for `listViewType`
+        // Set the Redux/URL params for `groupListBy`
         dispatch({
-            type: MAIN.ACTIONS.SET_LIST_VIEW_TYPE,
-            payload: listViewType,
+            type: MAIN.ACTIONS.SET_LIST_GROUP_BY,
+            payload: groupListBy,
         });
-        urlParams.setString('listViewType', listViewType);
+        urlParams.setString('groupListBy', groupListBy);
 
         const previousParams = omit(lastRequestParams(getState()) || {}, 'page');
         const searchParams = omit(urlParams.getJson('searchParams', {}), 'page');
@@ -1197,11 +1199,13 @@ const openFromLockActions = () => (
                 PLANNING.ITEM_ACTIONS,
                 EVENTS.ITEM_ACTIONS)).filter((a) => a.lock_action == sessionLastLock.action);
 
-            if (action) {
+            if (action.length > 0) {
                 /* get the item we're operating on */
                 dispatch(self.fetchById(sessionLastLock.item_id, sessionLastLock.item_type)).then((item) => {
-                    actionUtils.getActionDispatches({dispatch: dispatch, eventOnly: false,
-                        planningOnly: false})[action[0].actionName](item, false, false);
+                    actionUtils.getActionDispatches({
+                        dispatch: dispatch, eventOnly: false,
+                        planningOnly: false
+                    })[action[0].actionName](item, false, false);
                 });
             }
         }
@@ -1233,23 +1237,28 @@ const openFromURLOrRedux = (action) => (
         }
 
         if (item.id && item.type) {
-            const baseItem = {
-                _id: item.id,
-                type: item.type,
-            };
+            const isNewItem = isTemporaryId(item.id);
 
-            if (action === MAIN.EDIT) {
+            // Make sure the item is loaded into the redux store
+            // before loading the preview or editor
+            if (isNewItem && action === MAIN.EDIT) {
+                const baseItem = {
+                    _id: item.id,
+                    type: item.type,
+                };
+
                 dispatch(self.openForEdit(baseItem));
-
                 return Promise.resolve(baseItem);
-            } else if (action === MAIN.PREVIEW) {
-                // Make sure the item is loaded into the redux store
-                // and store the entire item in the forms initialValues
+            } else if (!isNewItem) {
                 return dispatch(self.fetchById(item.id, item.type))
                     .then((loadedItem) => {
-                        dispatch(self.openPreview(loadedItem || baseItem));
+                        if (action === MAIN.EDIT) {
+                            dispatch(self.openForEdit(loadedItem));
+                        } else if (action === MAIN.PREVIEW) {
+                            dispatch(self.openPreview(loadedItem));
+                        }
 
-                        return Promise.resolve(loadedItem || baseItem);
+                        return Promise.resolve(loadedItem);
                     });
             }
         }
@@ -1460,7 +1469,7 @@ function onItemUnlocked(
             }));
 
             if (getItemType(item) === ITEM_TYPE.PLANNING && selectors.general.currentWorkspace(state)
-                    === WORKSPACE.AUTHORING) {
+                === WORKSPACE.AUTHORING) {
                 dispatch(self.closePreviewAndEditorForItems([item]));
             }
         }

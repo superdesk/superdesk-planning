@@ -15,7 +15,8 @@ from .utils import get_multilingual_fields, ContentProfileData
 
 
 class ContentProfilesTestCase(TestCase):
-    def setUp(self):
+    async def asyncSetUp(self):
+        await super().asyncSetUp()
         self.app.data.insert(
             "vocabularies",
             [
@@ -35,83 +36,85 @@ class ContentProfilesTestCase(TestCase):
             ],
         )
 
-    def test_get_multilingual_fields(self):
-        schema = {
-            "language": {
-                "languages": ["en", "de"],
-                "default_language": "en",
-                "multilingual": True,
-                "required": True,
-            },
-            "name": {"multilingual": True},
-            "slugline": {"multilingual": True},
-            "definition_short": {"multilingual": True},
-        }
-        self.app.data.insert(
-            "planning_types",
-            [
-                {
-                    "_id": "event",
-                    "name": "event",
-                    "editor": {
-                        "language": {"enabled": True},
-                    },
-                    "schema": schema,
-                }
-            ],
-        )
-
-        fields = get_multilingual_fields("event")
-        self.assertIn("name", fields)
-        self.assertIn("slugline", fields)
-        self.assertIn("definition_short", fields)
-        self.assertNotIn("definition_long", fields)
-
-        schema["language"]["multilingual"] = False
-        self.app.data.update(
-            "planning_types",
-            "event",
-            {"schema": schema},
-            self.app.data.find_one("planning_types", req=None, _id="event"),
-        )
-
-        fields = get_multilingual_fields("event")
-        self.assertNotIn("name", fields)
-        self.assertNotIn("slugline", fields)
-        self.assertNotIn("definition_short", fields)
-        self.assertNotIn("definition_long", fields)
-
-    def test_content_profile_data(self):
-        self.app.data.insert(
-            "planning_types",
-            [
-                {
-                    "_id": "event",
-                    "name": "event",
-                    "editor": {
-                        "language": {"enabled": True},
-                    },
-                    "schema": {
-                        "language": {
-                            "languages": ["en", "de"],
-                            "default_language": "en",
-                            "multilingual": True,
-                            "required": True,
+    async def test_get_multilingual_fields(self):
+        async with self.app.app_context():
+            schema = {
+                "language": {
+                    "languages": ["en", "de"],
+                    "default_language": "en",
+                    "multilingual": True,
+                    "required": True,
+                },
+                "name": {"multilingual": True},
+                "slugline": {"multilingual": True},
+                "definition_short": {"multilingual": True},
+            }
+            self.app.data.insert(
+                "planning_types",
+                [
+                    {
+                        "_id": "event",
+                        "name": "event",
+                        "editor": {
+                            "language": {"enabled": True},
                         },
-                        "name": {"multilingual": True},
-                        "slugline": {"multilingual": True},
-                        "definition_short": {"multilingual": True},
-                        "anpa_category": {"required": True},
-                    },
-                }
-            ],
-        )
+                        "schema": schema,
+                    }
+                ],
+            )
 
-        data = ContentProfileData("event")
-        self.assertTrue(data.profile["_id"] == data.profile["name"] == "event")
-        self.assertTrue(data.is_multilingual)
-        self.assertEqual(data.multilingual_fields, {"name", "slugline", "definition_short"})
-        self.assertIn("name", data.enabled_fields)
-        self.assertIn("slugline", data.enabled_fields)
-        self.assertIn("definition_short", data.enabled_fields)
-        self.assertIn("anpa_category", data.enabled_fields)
+            fields = await get_multilingual_fields("event")
+            self.assertIn("name", fields)
+            self.assertIn("slugline", fields)
+            self.assertIn("definition_short", fields)
+            self.assertNotIn("definition_long", fields)
+
+            schema["language"]["multilingual"] = False
+            self.app.data.update(
+                "planning_types",
+                "event",
+                {"schema": schema},
+                self.app.data.find_one("planning_types", req=None, _id="event"),
+            )
+
+            fields = await get_multilingual_fields("event")
+            self.assertNotIn("name", fields)
+            self.assertNotIn("slugline", fields)
+            self.assertNotIn("definition_short", fields)
+            self.assertNotIn("definition_long", fields)
+
+    async def test_content_profile_data(self):
+        async with self.app.app_context():
+            self.app.data.insert(
+                "planning_types",
+                [
+                    {
+                        "_id": "event",
+                        "name": "event",
+                        "editor": {
+                            "language": {"enabled": True},
+                        },
+                        "schema": {
+                            "language": {
+                                "languages": ["en", "de"],
+                                "default_language": "en",
+                                "multilingual": True,
+                                "required": True,
+                            },
+                            "name": {"multilingual": True},
+                            "slugline": {"multilingual": True},
+                            "definition_short": {"multilingual": True},
+                            "anpa_category": {"required": True},
+                        },
+                    }
+                ],
+            )
+
+            data = await ContentProfileData.get("event")
+            self.assertTrue(data.profile["_id"] == data.profile["name"] == "event")
+            self.assertTrue(data.is_multilingual)
+            self.assertEqual(data.multilingual_fields, {"name", "slugline", "definition_short"})
+            self.assertIn("name", data.enabled_fields)
+            self.assertIn("slugline", data.enabled_fields)
+            self.assertIn("definition_short", data.enabled_fields)
+            self.assertIn("anpa_category", data.enabled_fields)

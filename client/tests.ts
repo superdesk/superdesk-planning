@@ -20,9 +20,22 @@ Object.assign(appConfig, {
     planning_auto_assign_to_workflow: true,
 });
 
-moment.tz.setDefault('Australia/Sydney');
 updateConfigAfterLoad();
 
-var testsContext = require.context('.', true, /_test.[j|t]sx?$/);
+beforeEach(() => {
+    moment.tz.setDefault('Australia/Sydney');
+});
 
-testsContext.keys().forEach(testsContext);
+var testsContext = require.context('.', true, /_test\.[jt]sx?$/);
+
+if (process.env.TEST_FILE_PATTERN) {
+    // Allow running specific test files via TEST_FILE_PATTERN env variable
+    // Usage: npm run test:file --file=AddToPlanningController
+    const testPattern = new RegExp(process.env.TEST_FILE_PATTERN + '_test\\.[jt]sx?$');
+
+    testsContext.keys()
+        .filter((path) => testPattern.test(path))
+        .forEach(testsContext);
+} else {
+    testsContext.keys().forEach(testsContext);
+}

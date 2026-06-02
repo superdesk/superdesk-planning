@@ -44,7 +44,7 @@ class EventHTTPFeedingService(HTTPFeedingServiceBase):
     ]
     HTTP_AUTH = False
 
-    def _update(self, provider, update):
+    async def _update(self, provider, update):
         """
         Fetch events from external API.
 
@@ -55,16 +55,16 @@ class EventHTTPFeedingService(HTTPFeedingServiceBase):
         :return: a list of events which can be saved.
         """
 
-        response = self.get_url(self.config["url"])
-        parser = self.get_feed_parser(provider)
+        response = await self.get_url(self.config["url"])
+        parser = await self.get_feed_parser(provider)
 
         logger.info("Ingesting events with {} parser".format(parser.__class__.__name__))
         logger.info("Ingesting content: {} ...".format(str(response.content)[:4000]))
 
         if hasattr(parser, "parse_http"):
-            items = parser.parse_http(response.content, provider)
+            items = await parser.parse_http(response.content, provider)
         else:
-            items = parser.parse(response.content)
+            items = await parser.parse(response.content)
 
         if isinstance(items, list):
             yield items

@@ -10,22 +10,33 @@
 
 from typing import List, Iterator, Tuple, Dict
 from copy import deepcopy
+from flask import current_app as app
 import logging
 
 from superdesk import get_resource_service
 
-from planning.types import Event, EmbeddedPlanning, EmbeddedCoverageItem, Planning, Coverage, StringFieldTranslation
+from planning.types import (
+    Event,
+    EmbeddedPlanningDict,
+    EmbeddedCoverageItem,
+    Planning,
+    Coverage,
+    StringFieldTranslation,
+    PlanningRelatedEventLink,
+    PLANNING_RELATED_EVENT_LINK_TYPE,
+)
 from planning.content_profiles.utils import AllContentProfileData
+from planning.utils import get_planning_event_link_method
 
-from .common import VocabsSyncData
+from .common import VocabsSyncData, get_enabled_subjects
 
 logger = logging.getLogger(__name__)
 
 
-def create_new_plannings_from_embedded_planning(
+async def create_new_plannings_from_embedded_planning(
     event: Event,
     event_translations: Dict[str, Dict[str, str]],
-    embedded_planning: List[EmbeddedPlanning],
+    embedded_planning: List[EmbeddedPlanningDict],
     profiles: AllContentProfileData,
     vocabs: VocabsSyncData,
 ):
@@ -47,8 +58,6 @@ def create_new_plannings_from_embedded_planning(
         ]
         if field in profiles.planning.enabled_fields
     )
-
-    planning_fields.add("subject")
 
     multilingual_enabled = profiles.events.is_multilingual and profiles.planning.is_multilingual
     translations: List[StringFieldTranslation] = []
@@ -75,6 +84,13 @@ def create_new_plannings_from_embedded_planning(
             )
         ]
 
+    event_link_method = get_planning_event_link_method()
+    link_type: PLANNING_RELATED_EVENT_LINK_TYPE = "secondary" if event_link_method == "many_secondary" else "primary"
+    related_event = PlanningRelatedEventLink(_id=event["_id"], link_type=link_type)
+
+    if event.get("recurrence_id"):
+        related_event["recurrence_id"] = event["recurrence_id"]
+
     for plan in embedded_planning:
         if plan.get("planning_id"):
             # Skip this item, as it's an existing Planning item
@@ -86,7 +102,8 @@ def create_new_plannings_from_embedded_planning(
             "state": "draft",
             "type": "planning",
             "planning_date": event["dates"]["start"],
-            "event_item": event["_id"],
+            "all_day": app.config.get("PLANNING_PLANNING_ALL_DAY") or False,
+            "related_events": [related_event],
             "coverages": [],
         }
 
@@ -102,6 +119,8 @@ def create_new_plannings_from_embedded_planning(
             if event.get(field):
                 # The Event item contains a value for this field (excluding ``None``), use that
                 new_planning[field] = event.get(field)
+
+        new_planning["subject"] = get_enabled_subjects(event, profiles.planning)
 
         if "description_text" in profiles.planning.enabled_fields and event.get("definition_short"):
             new_planning["description_text"] = event.get("definition_short")
@@ -119,7 +138,7 @@ def create_new_plannings_from_embedded_planning(
         new_plannings.append(new_planning)
 
     if len(new_plannings):
-        get_resource_service("planning").post(new_plannings)
+        await get_resource_service("planning").post_async(new_plannings)
 
 
 def create_new_coverage_from_event_and_planning(
@@ -150,12 +169,14 @@ def create_new_coverage_from_event_and_planning(
         "planning": {},
     }
 
-    if coverage.get("desk") or coverage.get("user"):
+    if coverage.get("desk") or coverage.get("user") or coverage.get("coverage_provider"):
         new_coverage["assigned_to"] = {}
         if coverage.get("desk"):
             new_coverage["assigned_to"]["desk"] = coverage["desk"]
         if coverage.get("user"):
             new_coverage["assigned_to"]["user"] = coverage["user"]
+        if coverage.get("coverage_provider"):
+            new_coverage["assigned_to"]["coverage_provider"] = coverage["coverage_provider"]
 
     if "language" in profiles.coverages.enabled_fields:
         # If ``language`` is enabled for Coverages but not defined in ``embedded_planning``
@@ -223,7 +244,7 @@ def create_new_coverage_from_event_and_planning(
 def get_existing_plannings_from_embedded_planning(
     event: Event,
     event_translations: Dict[str, Dict[str, str]],
-    embedded_planning: List[EmbeddedPlanning],
+    embedded_planning: List[EmbeddedPlanningDict],
     profiles: AllContentProfileData,
     vocabs: VocabsSyncData,
 ) -> Iterator[Tuple[Planning, Planning, bool]]:
@@ -353,6 +374,16 @@ def get_existing_plannings_from_embedded_planning(
                 if existing_coverage.get("assigned_to", {}).get("user") != embedded_coverage["user"]:
                     existing_coverage.setdefault("assigned_to", {})
                     existing_coverage["assigned_to"]["user"] = embedded_coverage["user"]
+                    update_required = True
+            except KeyError:
+                pass
+
+            try:
+                if (
+                    existing_coverage.get("assigned_to", {}).get("coverage_provider")
+                    != embedded_coverage["coverage_provider"]
+                ):
+                    existing_coverage["assigned_to"]["coverage_provider"] = embedded_coverage["coverage_provider"]
                     update_required = True
             except KeyError:
                 pass

@@ -137,9 +137,9 @@ export function formatLocationToAddress(item: Partial<ILocation> | IEventLocatio
         formattedAddress;
 }
 
-export function getLocationsShortName(location: Partial<ILocation>) {
+export function getLocationsShortName(location: Partial<ILocation>, languageCode?: string) {
     const formattedAddress = formatLocationToAddress(location);
-    const title = location.address?.title ?? location.name;
+    const title = location.translations?.name?.[`name:${languageCode}`] ?? location.address?.title ?? location.name;
 
     return title ?
         `${title}, ${formattedAddress}` :

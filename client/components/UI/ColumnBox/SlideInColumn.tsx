@@ -1,5 +1,4 @@
 import React from 'react';
-import PropTypes from 'prop-types';
 
 /**
  * @ngdoc react
@@ -7,10 +6,8 @@ import PropTypes from 'prop-types';
  * @description Vertical sliding panel component which can be used inside a column box
  */
 
-export const SlideInColumn = ({children}) => (
+export const SlideInColumn = ({children}: {children: React.ReactNode}) => (
     <div className="sd-column-box__slide-in-column">
         {children}
     </div>
 );
-
-SlideInColumn.propTypes = {children: PropTypes.node};

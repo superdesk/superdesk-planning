@@ -9,11 +9,18 @@
 # at https://www.sourcefabric.org/superdesk/license
 
 import superdesk
-from flask_babel import lazy_gettext
-from superdesk.services import BaseService
+from quart_babel import lazy_gettext
+
+from superdesk.signals import item_duplicate_async, item_duplicated_async
+from planning import signals
 from .assignments import AssignmentsResource, AssignmentsService
 from .assignments_content import AssignmentsContentResource, AssignmentsContentService
-from .assignments_link import AssignmentsLinkResource, AssignmentsLinkService
+from .assignments_link import (
+    AssignmentsLinkResource,
+    AssignmentsLinkService,
+    on_archive_item_duplicate,
+    on_archive_item_duplicated,
+)
 from .assignments_unlink import AssignmentsUnlinkResource, AssignmentsUnlinkService
 from .assignments_complete import (
     AssignmentsCompleteResource,
@@ -26,8 +33,21 @@ from .assignments_lock import (
     AssignmentsUnlockResource,
     AssignmentsUnlockService,
 )
-from .assignments_history import AssignmentsHistoryResource, AssignmentsHistoryService
-from .delivery import DeliveryResource
+from .delivery import DeliveryResource, DeliveryService
+
+from .service import AssignmentsAsyncService
+from .delivery_service import DeliveryAsyncService
+from .assignments_history_async import AssignmentsHistoryAsyncService
+from .module import assignments_resource_config, delivery_resource_config, assignments_history_resource_config
+
+__all__ = [
+    "assignments_resource_config",
+    "AssignmentsAsyncService",
+    "delivery_resource_config",
+    "DeliveryAsyncService",
+    "assignments_history_resource_config",
+    "AssignmentsHistoryAsyncService",
+]
 
 
 def init_app(app):
@@ -80,13 +100,17 @@ def init_app(app):
         service=assignments_revert_service,
     )
 
-    assignments_history_service = AssignmentsHistoryService("assignments_history", backend=superdesk.get_backend())
-    AssignmentsHistoryResource("assignments_history", app=app, service=assignments_history_service)
+    assignments_history_service = AssignmentsHistoryAsyncService()
+    signals.assignments_updated.connect(assignments_history_service.on_item_updated)
+    signals.assignments_deleted.connect(assignments_history_service.on_item_deleted)
     app.on_updated_assignments += assignments_history_service.on_item_updated
     app.on_deleted_item_assignments += assignments_history_service.on_item_deleted
 
-    delivery_service = BaseService("delivery", backend=superdesk.get_backend())
+    delivery_service = DeliveryService("delivery", backend=superdesk.get_backend())
     DeliveryResource("delivery", app=app, service=delivery_service)
+
+    # listen to async signals
+    signals.events_update.connect(assignments_publish_service.on_events_updated)
 
     # Updating data/lock on assignments based on content item updates from authoring
     app.on_updated_archive += assignments_publish_service.update_assignment_on_archive_update
@@ -94,7 +118,6 @@ def init_app(app):
     app.on_item_lock += assignments_publish_service.validate_assignment_lock
     app.on_item_locked += assignments_publish_service.sync_assignment_lock
     app.on_item_unlocked += assignments_publish_service.sync_assignment_unlock
-    app.on_updated_events += assignments_publish_service.on_events_updated
 
     # Track updates for an assignment if it's news story was updated
     if app.config.get("PLANNING_LINK_UPDATES_TO_COVERAGES", True):
@@ -127,6 +150,9 @@ def init_app(app):
     app.on_fetched_item_published += assignments_publish_service.on_fetched_resource_archive
     app.on_updated_archive_spike += assignments_unlink_service.on_spike_item
 
+    item_duplicate_async.connect(on_archive_item_duplicate)
+    item_duplicated_async.connect(on_archive_item_duplicated)
+
     # Privileges
     superdesk.intrinsic_privilege(AssignmentsUnlockResource.endpoint_name, method=["POST"])
 
@@ -136,15 +162,4 @@ def init_app(app):
         {"type": "dict", "sort": {}, "default": None},
         label=lazy_gettext("Default sort preferences for Assignment lists"),
         category=lazy_gettext("Assignments"),
-    )
-
-    superdesk.register_default_user_preference(
-        "assignment:notification",
-        {
-            "type": "bool",
-            "enabled": True,
-            "default": True,
-        },
-        label=lazy_gettext("Send Assignment notifications via email"),
-        category=lazy_gettext("notifications"),
     )

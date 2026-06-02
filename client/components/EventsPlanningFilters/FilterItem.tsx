@@ -11,17 +11,21 @@ import {renderFieldsForPanel} from '../fields';
 
 interface IProps {
     filter: ISearchFilter;
+    agendas: Array<IAgenda>;
+    calendars: Array<ICalendar>;
     privileges: {[key: string]: number};
+    activeFilterId?: ISearchFilter['_id'];
     editFilter(filter: ISearchFilter): void;
     deleteFilter(filter: ISearchFilter): void;
-    calendars: Array<ICalendar>;
-    agendas: Array<IAgenda>;
     previewFilter(filter: ISearchFilter): void;
     editFilterSchedule(filter: ISearchFilter): void;
     deleteFilterSchedule(filter: ISearchFilter): void;
 }
 
 export class FilterItem extends React.PureComponent<IProps> {
+    private clickTimeout: number | null = null;
+    private clickDelay: number = 250;
+
     constructor(props: IProps) {
         super(props);
 
@@ -29,14 +33,48 @@ export class FilterItem extends React.PureComponent<IProps> {
         this.editFilter = this.editFilter.bind(this);
         this.deleteFilter = this.deleteFilter.bind(this);
         this.editFilterSchedule = this.editFilterSchedule.bind(this);
+        this.handleClick = this.handleClick.bind(this);
+        this.handleDoubleClick = this.handleDoubleClick.bind(this);
+    }
+
+    componentWillUnmount() {
+        if (this.clickTimeout != null) {
+            window.clearTimeout(this.clickTimeout);
+            this.clickTimeout = null;
+        }
+    }
+
+    handleClick(event: React.MouseEvent<HTMLLIElement>) {
+        event.preventDefault();
+
+        if (this.clickTimeout != null) {
+            window.clearTimeout(this.clickTimeout);
+            this.clickTimeout = null;
+        }
+
+        this.clickTimeout = window.setTimeout(() => {
+            this.clickTimeout = null;
+            this.previewFilter();
+        }, this.clickDelay);
+    }
+
+    handleDoubleClick(event: React.MouseEvent<HTMLLIElement>) {
+        event.preventDefault();
+
+        if (this.clickTimeout != null) {
+            window.clearTimeout(this.clickTimeout);
+            this.clickTimeout = null;
+        }
+
+        this.editFilter();
     }
 
     previewFilter() {
-        this.props.previewFilter(this.props.filter);
+        this.props.previewFilter?.(this.props.filter);
     }
 
     editFilter() {
-        this.props.editFilter(this.props.filter);
+        this.props.editFilter?.(this.props.filter);
     }
 
     deleteFilter() {
@@ -50,9 +88,10 @@ export class FilterItem extends React.PureComponent<IProps> {
     render() {
         const {gettext} = superdeskApi.localization;
         const language = getUserInterfaceLanguageFromCV();
-        const actions = !this.props.privileges[PRIVILEGES.EVENTS_PLANNING_FILTERS_MANAGEMENT] ?
-            [] :
-            [{
+        let actions = [];
+
+        if (this.props.privileges[PRIVILEGES.EVENTS_PLANNING_FILTERS_MANAGEMENT]) {
+            actions = [{
                 icon: 'icon-pencil',
                 label: gettext('Edit Filter'),
                 callback: this.editFilter,
@@ -67,6 +106,7 @@ export class FilterItem extends React.PureComponent<IProps> {
                     gettext('Edit Scheduled Export'),
                 callback: this.editFilterSchedule,
             }];
+        }
 
         if (actions.length && this.props.filter.schedules?.length) {
             actions.push({
@@ -77,10 +117,12 @@ export class FilterItem extends React.PureComponent<IProps> {
         }
 
         return (
-            <List.Item shadow={1} onClick={this.previewFilter}>
-                <List.Column>
-                    <i className="icon-filter-large" />
-                </List.Column>
+            <List.Item
+                shadow={1}
+                onClick={this.handleClick}
+                onDoubleClick={this.handleDoubleClick}
+                activated={this.props.activeFilterId === this.props.filter._id}
+            >
                 <List.Column grow={true} border={false}>
                     <List.Row>
                         {renderFieldsForPanel(
@@ -126,7 +168,7 @@ export class FilterItem extends React.PureComponent<IProps> {
                             {}
                         )}
                     </List.Row>
-                    {!this.props.filter.schedules?.length ? null : (
+                    {(this.props.filter.schedules?.length ?? 0) > 0 && (
                         <List.Row>
                             {renderFieldsForPanel(
                                 'list',

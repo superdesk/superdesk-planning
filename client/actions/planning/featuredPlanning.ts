@@ -132,13 +132,15 @@ function movePlanningToUnselectedList(item: IPlanningItem) {
 function getAndUpdateStoredPlanningItem(itemId: IPlanningItem['_id']) {
     return (dispatch, getState) => {
         if (selectors.featuredPlanning.inUse(getState())) {
-            planningApi.planning.getById(itemId, false, true).then((item) => {
+            return planningApi.planning.getById(itemId, false, true).then((item) => {
                 dispatch({
                     type: FEATURED_PLANNING.ACTIONS.UPDATE_PLANNING_AND_LISTS,
                     payload: item,
                 });
             });
         }
+
+        return Promise.resolve();
     };
 }
 
@@ -491,26 +493,22 @@ function closeFeaturedStoriesModal() {
             dispatch(unsetFeaturePlanningInUse());
         } else {
             const {gettext} = superdeskApi.localization;
+            const {showIgnoreCancelSaveDialog} = superdeskApi.ui;
 
-            dispatch(showModal({
-                modalType: MODALS.IGNORE_CANCEL_SAVE,
-                modalProps: {
-                    bodyText: gettext(
-                        'There are unsaved changes. Are you sure you want to exit Manging Featured Stories?'
-                    ),
-                    onIgnore: () => {
-                        dispatch(unsetFeaturePlanningInUse());
-                    },
-                    onSave: () => {
-                        // Use `setTimeout` otherwise the second `IgnoreCancelSave` modal will not show
-                        // If the FeaturedStory has been posted
-                        setTimeout(() => {
-                            dispatch(saveFeaturedStory(true));
-                        });
-                    },
-                    autoClose: true,
-                },
-            }));
+            showIgnoreCancelSaveDialog({
+                title: gettext('Unsaved changes'),
+                body: gettext('Your changes will be lost if you close now. What would you like to do?'),
+            }).then((response) => {
+                if (response === 'ignore') {
+                    dispatch(unsetFeaturePlanningInUse());
+                } else if (response === 'save') {
+                    // Use `setTimeout` otherwise the second `IgnoreCancelSave` modal will not show
+                    // If the FeaturedStory has been posted
+                    setTimeout(() => {
+                        dispatch(saveFeaturedStory(true));
+                    });
+                }
+            });
         }
     };
 }

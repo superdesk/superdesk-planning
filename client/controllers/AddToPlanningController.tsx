@@ -1,25 +1,38 @@
 import * as actions from '../actions';
-import {currentItem, currentItemType, planningProfile} from '../selectors/forms';
+import {currentItem, currentItemType} from '../selectors/forms';
 import React from 'react';
 import ReactDOM from 'react-dom';
 import {Provider} from 'react-redux';
 import {ModalsContainer} from '../components';
-import {locks} from '../actions';
 import {planning} from '../actions';
-import {get, isEmpty, isNumber} from 'lodash';
 import {registerNotifications, getErrorMessage, isExistingItem} from '../utils';
-import {WORKSPACE, MODALS, MAIN} from '../constants';
-import {GET_LABEL_MAP} from 'superdesk-core/scripts/apps/workspace/content/constants';
+import {WORKSPACE, MODALS, PLANNING} from '../constants';
+import {IArticle} from 'superdesk-api';
+import {authoringReactViewEnabled} from 'appConfig';
 import {planningApi} from '../superdeskApi';
+import {PLANNING_VIEW} from '../interfaces';
 
-const DEFAULT_PLANNING_SCHEMA = {
-    anpa_category: {required: true},
-    subject: {required: true},
-    slugline: {required: true},
-    urgency: {required: true},
-};
+const ADD_TO_PLANNING_LOCK = PLANNING.ITEM_ACTIONS.ADD_TO_PLANNING.lock_action;
 
 export class AddToPlanningController {
+    $scope: any;
+    notify: {error: (message: string) => void};
+    gettext: (
+        value: string,
+        params?: {[placeholder: string]: string | number | React.ComponentType},
+    ) => string;
+    api: any;
+    lock: any;
+    session: any;
+    userList: any;
+    $timeout: any;
+    superdeskFlags: any;
+    $element: any;
+    store: any;
+    newsItem: any;
+    item: any;
+    rendered: boolean;
+
     constructor(
         $element,
         $scope,
@@ -51,24 +64,24 @@ export class AddToPlanningController {
 
         this.store = null;
         this.newsItem = null;
-        this.item = get($scope, 'locals.data.item', {});
+        this.item = $scope.locals?.data?.item ?? {};
         this.rendered = false;
 
-        if (get(this.item, 'archive_item')) {
+        if (this.item.archive_item) {
             this.item = this.item.archive_item;
         }
 
         $scope.$on('$destroy', this.onDestroy);
         $scope.$on('item:unlock', this.onItemUnlock);
 
-        if (get(this.item, 'archive_item')) {
+        if (this.item.archive_item) {
             this.item = this.item.archive_item;
         }
 
         return sdPlanningStore.initWorkspace(WORKSPACE.AUTHORING, this.loadWorkspace)
             .then(
                 this.render,
-                this.$scope.resolve
+                !authoringReactViewEnabled ? this.$scope.resolve : noop
             );
     }
 
@@ -87,16 +100,16 @@ export class AddToPlanningController {
 
         ReactDOM.render(
             <Provider store={this.store}>
-                <ModalsContainer />
+                <ModalsContainer onModalHide={this.unlockAddToPlanningItem} />
             </Provider>,
-            this.$element.get(0)
+            this.$element
         );
 
         this.rendered = true;
         return Promise.resolve();
     }
 
-    loadWorkspace(store, workspaceChanged) {
+    loadWorkspace(store) {
         this.store = store;
 
         return this.loadArchiveItem()
@@ -111,7 +124,7 @@ export class AddToPlanningController {
                 registerNotifications(this.$scope, this.store);
 
                 return Promise.all([
-                    this.store.dispatch(actions.main.filter(MAIN.FILTERS.PLANNING)),
+                    this.store.dispatch(actions.main.filter(PLANNING_VIEW.PLANNING)),
                     planningApi.locks.loadLockedItems(),
                     this.store.dispatch(actions.fetchAgendas()),
                 ]);
@@ -140,7 +153,7 @@ export class AddToPlanningController {
             }
 
             // update the scope item.
-            if (this.item && get(this.newsItem, 'assignment_id')) {
+            if (this.item && this.newsItem.assignment_id) {
                 this.item.assignment_id = this.newsItem.assignment_id;
             }
 
@@ -150,27 +163,36 @@ export class AddToPlanningController {
             }, 1000);
         }
 
-        // Only unlock the item if it was locked when launching this modal
-        if (get(this.newsItem, 'lock_session', null) !== null &&
-            get(this.newsItem, 'lock_action', 'edit') === 'add_to_planning') {
-            this.lock.unlock(this.newsItem);
-        }
+        this.unlockAddToPlanningItem();
 
         if (this.rendered) {
             ReactDOM.unmountComponentAtNode(this.$element.get(0));
         }
     }
 
+    /**
+     * Unlocks item locked due to `add_to_planning` action
+     */
+    unlockAddToPlanningItem = () => {
+        const {lock_session, lock_action} = this.newsItem || {};
+
+        if (lock_session && lock_action === ADD_TO_PLANNING_LOCK) {
+            this.lock.unlock(this.newsItem);
+        }
+    };
+
     onItemUnlock(_e, data) {
         if (this.store &&
-            data.item === this.newsItem._id &&
+            data.item === this.newsItem?._id &&
             data.lock_session !== this.session.sessionId
         ) {
             this.store.dispatch(actions.hideModal());
             this.store.dispatch(actions.resetStore());
 
             if (this.superdeskFlags.flags.authoring || !this.rendered) {
-                this.$scope.resolve();
+                if (!authoringReactViewEnabled) {
+                    this.$scope.resolve();
+                }
                 return;
             }
 
@@ -185,41 +207,49 @@ export class AddToPlanningController {
                         body: this.gettext('The item was unlocked by "{{ username }}"', {username}),
                         action: () => {
                             this.newsItem.lock_session = null;
-                            this.$scope.resolve();
+                            if (!authoringReactViewEnabled) {
+                                this.$scope.resolve();
+                            }
                         },
                     },
                 })));
         }
     }
 
-    loadArchiveItem() {
+    getArchiveItemAndProfile(): Promise<{
+        newsItem: IArticle
+    }> {
         return this.api.find('archive', this.item._id)
-            .then((newsItem) => {
-                const errMessages = [];
-                const profile = planningProfile(this.store.getState());
-                const schema = get(profile, 'schema') || DEFAULT_PLANNING_SCHEMA;
-                const requiredError = (field) => this.gettext('[{{ field }}] is a required field')
-                    .replace('{{ field }}', field);
-                const labels = GET_LABEL_MAP(this.gettext);
+            .then((newsItem: IArticle) => {
+                return {
+                    newsItem
+                };
+            }, (error) => {
+                this.notify.error(
+                    getErrorMessage(error, this.gettext('Failed to load the item.'))
+                );
+                this.$scope.resolve(error);
+                return Promise.reject(error);
+            });
+    }
 
-                if (get(newsItem, 'assignment_id')) {
+    loadArchiveItem() {
+        return this.getArchiveItemAndProfile()
+            .then(({newsItem}) => {
+                const errMessages = [];
+
+                if (newsItem.assignment_id) {
                     errMessages.push(this.gettext('Item already linked to a Planning item'));
                 }
-
-                Object.keys(schema)
-                    .filter((field) => get(schema[field], 'required') &&
-                        isEmpty(get(newsItem, field)) &&
-                        !isNumber(get(newsItem, field)))
-                    .forEach((field) => {
-                        errMessages.push(requiredError(labels[field] || field));
-                    });
 
                 if (errMessages.length) {
                     errMessages.forEach((err) => {
                         this.notify.error(err);
                     });
 
-                    this.$scope.resolve('foo');
+                    if (!authoringReactViewEnabled) {
+                        this.$scope.resolve('foo');
+                    }
                     return Promise.reject('foo');
                 }
 
@@ -227,20 +257,24 @@ export class AddToPlanningController {
                     this.notify.error(
                         this.gettext('Item already locked.')
                     );
-                    this.$scope.resolve('bar');
+                    if (!authoringReactViewEnabled) {
+                        this.$scope.resolve('bar');
+                    }
                     return Promise.reject('bar');
                 }
 
                 if (!this.lock.isLockedInCurrentSession(newsItem)) {
                     newsItem._editable = true;
-                    return this.lock.lock(newsItem, false, 'add_to_planning')
+                    return this.lock.lock(newsItem, false, ADD_TO_PLANNING_LOCK)
                         .then(
                             (lockedItem) => Promise.resolve(lockedItem),
                             (error) => {
                                 this.notify.error(
                                     getErrorMessage(error, this.gettext('Failed to lock the item.'))
                                 );
-                                this.$scope.resolve(error);
+                                if (!authoringReactViewEnabled) {
+                                    this.$scope.resolve(error);
+                                }
                                 return Promise.reject(error);
                             }
                         );
@@ -251,7 +285,9 @@ export class AddToPlanningController {
                 this.notify.error(
                     getErrorMessage(error, this.gettext('Failed to load the item.'))
                 );
-                this.$scope.resolve(error);
+                if (!authoringReactViewEnabled) {
+                    this.$scope.resolve(error);
+                }
                 return Promise.reject(error);
             });
     }

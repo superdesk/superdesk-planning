@@ -1,5 +1,4 @@
 import React from 'react';
-import PropTypes from 'prop-types';
 import moment from 'moment-timezone';
 import {Popup, Content, Header, Footer} from '../../Popup';
 import {Button} from '../../';
@@ -11,14 +10,35 @@ import {gettext} from '../../utils';
 
 import './style.scss';
 
+interface IProps {
+    value?: string | moment.Moment;
+    onChange(value: moment.Moment): void;
+    close(): void;
+    target: string;
+    maxMode?: string;
+    yearRange?: number;
+    popupContainer(): HTMLElement;
+    onPopupOpen?(): void;
+    onPopupClose?(): void;
+    remoteTimeZone?: string;
+}
+
+interface IState {
+    mode: 'day' | 'month' | 'year';
+    modeTitle: string;
+    currentDate: moment.Moment;
+    selectedDate: moment.Moment;
+}
+
 /**
  * @ngdoc react
  * @name DateInputPopup
  * @description Main Popup Component of DatePicker
  */
-export class DateInputPopup extends React.Component {
+export class DateInputPopup extends React.Component<IProps, IState> {
     constructor(props) {
         super(props);
+
         const currentDate = props.remoteTimeZone ?
             moment.tz(props.remoteTimeZone) :
             moment();
@@ -27,7 +47,7 @@ export class DateInputPopup extends React.Component {
             mode: 'day',
             modeTitle: this.getModeTitle(currentDate, 'day'),
             currentDate: currentDate,
-            selectedDate: currentDate,
+            selectedDate: currentDate.clone(),
         };
 
         this.handleModeChange = this.handleModeChange.bind(this);
@@ -148,7 +168,7 @@ export class DateInputPopup extends React.Component {
     * @description handleSelectChange changes mode from days-months-year
     */
     handleSelectChange(newDate) {
-        let nextMode = '';
+        let nextMode;
 
         switch (this.state.mode) {
         case 'month':
@@ -254,19 +274,3 @@ export class DateInputPopup extends React.Component {
         );
     }
 }
-
-DateInputPopup.propTypes = {
-    value: PropTypes.oneOfType([
-        PropTypes.string,
-        PropTypes.instanceOf(moment),
-    ]),
-    onChange: PropTypes.func.isRequired,
-    close: PropTypes.func.isRequired,
-    target: PropTypes.string.isRequired,
-    maxMode: PropTypes.string,
-    yearRange: PropTypes.number,
-    popupContainer: PropTypes.func,
-    onPopupOpen: PropTypes.func,
-    onPopupClose: PropTypes.func,
-    remoteTimeZone: PropTypes.string,
-};

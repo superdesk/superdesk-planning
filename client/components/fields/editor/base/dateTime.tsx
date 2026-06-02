@@ -1,9 +1,9 @@
 import * as React from 'react';
 import moment from 'moment';
-import {get} from 'lodash';
 
 import {IEditorFieldProps} from '../../../../interfaces';
 import {DateTimeInput} from '../../../UI/Form';
+import {get} from 'lodash';
 
 interface IProps extends IEditorFieldProps {
     canClear?: boolean;
@@ -13,8 +13,14 @@ interface IProps extends IEditorFieldProps {
     remoteTimeZone?: string;
     singleValue?: boolean;
     onToBeConfirmed?(field: string): void;
+    allDay?: boolean;
+    hideTime?: boolean;
 }
 
+
+/**
+ * @deprecated use EditorFieldDateTimeUIFramework from client/components/fields/editor/base/dateTimeUIFramework.tsx
+ */
 export class EditorFieldDateTime extends React.PureComponent<IProps> {
     node: HTMLInputElement;
 
@@ -30,7 +36,7 @@ export class EditorFieldDateTime extends React.PureComponent<IProps> {
         }
     }
 
-    onChange(field: string, value: moment.Moment) {
+    onChange(field: string, value: Date) {
         // `field` is appended with `.date` or `.time` depending on what changed
         // Not all usages of this component requires this, so use `this.props.field` instead
         if (this.props.singleValue === true) {
@@ -43,9 +49,6 @@ export class EditorFieldDateTime extends React.PureComponent<IProps> {
     render() {
         const field = this.props.field;
         const value = get(this.props.item, field, this.props.defaultValue);
-        const momentValue = value != null ?
-            moment(value) :
-            null;
         const error = get(this.props.errors ?? {}, field);
 
         return (
@@ -53,7 +56,7 @@ export class EditorFieldDateTime extends React.PureComponent<IProps> {
                 {...this.props}
                 diff={this.props.item}
                 field={field}
-                value={momentValue}
+                value={value}
                 message={error}
                 invalid={error?.length > 0 && this.props.invalid}
                 testId={this.props.testId}
@@ -63,6 +66,7 @@ export class EditorFieldDateTime extends React.PureComponent<IProps> {
                 refNode={(node) => {
                     this.node = node;
                 }}
+                allDay={this.props.allDay}
             />
         );
     }

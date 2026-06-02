@@ -2,11 +2,11 @@ Feature: Planning Search
     Background: Initial setup
         Given "agenda"
         """
-            [
-                {"name": "sports", "_id": "sports", "is_enabled": true},
-                {"name": "finance", "_id": "finance", "is_enabled": true},
-                {"name": "entertainment", "_id": "entertainment", "is_enabled": true}
-            ]
+        [
+            {"name": "sports", "_id": "68e5df45ac0f6c8b678c17b1", "is_enabled": true},
+            {"name": "finance", "_id": "68e5df45ac0f6c8b678c17b2", "is_enabled": true},
+            {"name": "entertainment", "_id": "68e5df45ac0f6c8b678c17b3", "is_enabled": true}
+        ]
         """
         And "events"
             """
@@ -79,7 +79,7 @@ Feature: Planning Search
                 "slugline": "slug123",
                 "name": "name123",
                 "planning_date": "2016-01-01T12:00:00+0000",
-                "agendas": ["sports"],
+                "agendas": ["#agenda_0._id#"],
                 "subject": [{"qcode": "test qcode 1", "name": "test name"}],
                 "coverages": [
                     {
@@ -97,7 +97,7 @@ Feature: Planning Search
                 "headline": "test headline",
                 "slugline": "slug123",
                 "name": "name456",
-                "event_item": "event_123",
+                "related_events": [{"_id": "event_123", "link_type": "primary"}],
                 "planning_date": "2016-01-02T13:00:00+0000",
                 "anpa_category": [
                     {"name": "Overseas Sport", "qcode": "s"}
@@ -117,15 +117,15 @@ Feature: Planning Search
             {
                 "guid": "planning_3",
                 "item_class": "item class value",
-                "state": "published",
+                "state": "active",
                 "pubstatus": "usable",
                 "headline": "test headline",
                 "slugline": "slug456",
                 "name": "name789",
-                "event_item": "event_456",
+                "related_events": [{"_id": "event_456", "link_type": "primary", "recurrence_id": "recur1"}],
                 "recurrence_id": "recur1",
                 "planning_date": "2016-01-03T14:00:00+0000",
-                "agendas": ["finance"],
+                "agendas": ["#agenda_1._id#"],
                 "subject": [{"qcode": "test qcode 2", "name": "test name"}],
                 "coverages": [
                     {
@@ -147,10 +147,10 @@ Feature: Planning Search
                 "headline": "test headline",
                 "slugline": "slug456",
                 "name": "name012",
-                "event_item": "event_456",
+                "related_events": [{"_id": "event_456", "link_type": "primary", "recurrence_id": "recur1"}],
                 "recurrence_id": "recur1",
                 "planning_date": "2016-01-04T14:00:00+0000",
-                "agendas": ["entertainment"],
+                "agendas": ["#agenda_2._id#"],
                 "anpa_category": [
                     {"name": "Overseas Sport", "qcode": "s"},
                     {"name": "International News", "qcode": "i"}
@@ -164,9 +164,9 @@ Feature: Planning Search
                 "headline": "test headline",
                 "slugline": "slug789",
                 "name": "name345",
-                "event_item": "event_786",
+                "related_events": [{"_id": "event_786", "link_type": "primary"}],
                 "planning_date": "2016-01-05T14:00:00+0000",
-                "agendas": ["sports", "finance"],
+                "agendas": ["#agenda_0._id#", "#agenda_1._id#"],
                 "language": "fr-CA",
                 "place": [
                     {
@@ -178,7 +178,7 @@ Feature: Planning Search
                         "country": ""
                     }
                 ],
-                "lock_session": "ident1"
+                "lock_session": "683459ee32f5061cba2138b0"
             },
             {
                 "guid": "planning_6",
@@ -188,7 +188,7 @@ Feature: Planning Search
                 "slugline": "slug789",
                 "name": "name678",
                 "planning_date": "2016-01-06T14:00:00+0000",
-                "agendas": ["entertainment"]
+                "agendas": ["#agenda_2._id#"]
             }
         ]
         """
@@ -316,7 +316,7 @@ Feature: Planning Search
 
     @auth
     Scenario: Search by planning specific parameters
-        When we get "/events_planning_search?repo=planning&only_future=false&agendas=sports,finance"
+        When we get "/events_planning_search?repo=planning&only_future=false&agendas=68e5df45ac0f6c8b678c17b1,68e5df45ac0f6c8b678c17b2"
         Then we get list with 3 items
         """
         {"_items": [
@@ -518,6 +518,73 @@ Feature: Planning Search
         ]}
         """
 
+        # All day
+        Given empty "planning"
+        When we post to "/planning"
+        """
+        [{
+            "guid": "planning_all_day",
+            "slugline": "slug123",
+            "name": "name123",
+            "planning_date": "2025-11-06T00:00:00+0000",
+            "all_day": true
+        }, {
+            "guid": "planning_with_time",
+            "slugline": "slug123",
+            "name": "name123",
+            "planning_date": "2025-11-06T00:00:00+0000"
+        },
+        {
+            "guid": "planning_with_coverage",
+            "slugline": "slug123",
+            "name": "name123",
+            "planning_date": "2025-11-06T00:00:00+0000",
+            "coverages": [
+                {
+                    "coverage_id": "c1",
+                    "planning": {"scheduled": "2025-11-06T08:00:00+0000"}
+                }
+            ]
+        },
+        {
+            "guid": "scheduled_updated",
+            "slugline": "slug123",
+            "name": "name123",
+            "all_day": true,
+            "planning_date": "2025-11-01T00:00:00+0000",
+            "coverages": [
+                {
+                    "coverage_id": "c1",
+                    "planning": {
+                        "scheduled": "2025-11-01T00:00:00+0000"
+                    },
+                    "scheduled_updates": [
+                        {
+                            "coverage_id": "c2",
+                            "planning": {
+                                "scheduled": "2025-11-06T08:00:00+0000"
+                            }
+                        }
+                    ]
+                }
+            ]
+        }]
+        """
+        When we get "/events_planning_search?repo=planning&only_future=false&start_date=2025-11-06T05:00:00%2B0000&time_zone=Europe/Prague"
+        Then we get list with 2 item
+        """
+        {"_items": [{"guid": "planning_all_day"}, {"guid": "planning_with_coverage"}]}
+        """
+        # include scheduled
+        When we get "/events_planning_search?repo=planning&only_future=false&start_date=2025-11-06T05:00:00%2B0000&time_zone=Europe/Prague&include_scheduled_updates=1"
+        Then we get list with 3 items
+        """
+        {"_items": [{"guid": "planning_all_day"}, {"guid": "scheduled_updated"}]}
+        """
+        # default params
+        When we get "/events_planning_search?repo=planning&time_zone=Europe/Prague"
+        Then we get list with 0 items
+
     @auth
     Scenario: Search planning by coverage dates
         Given empty "planning"
@@ -642,6 +709,7 @@ Feature: Planning Search
 
     @auth
     Scenario: Users can only see their planning items without the planning_global_filters privilege
+        Given empty "planning"
         Given "planning"
         """
         [{

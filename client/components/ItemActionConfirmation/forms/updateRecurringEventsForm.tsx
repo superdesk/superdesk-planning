@@ -64,7 +64,7 @@ function eventWasUpdated(original: IEventItem, updates: Partial<IEventItem>): bo
     const originalItem = eventUtils.modifyForServer(cloneDeep(original));
     const eventUpdates = eventUtils.getEventDiff(originalItem, updates);
     const eventFields = Object.keys(eventUpdates).filter(
-        (field) => !['update_method', 'dates', 'associated_plannings'].includes(field)
+        (field) => !['update_method', 'associated_plannings'].includes(field)
     );
 
     return eventFields.length > 0;
@@ -75,7 +75,7 @@ function getRecurringPlanningToUpdate(
     updates: Partial<IEventItem>,
     plannings: {[planningId: string]: IPlanningItem}
 ): Array<IPlanningItem['_id']> {
-    const originalCoverages: IPlanningEmbeddedCoverageMap = (original.planning_ids || [])
+    const originalCoverages: IPlanningEmbeddedCoverageMap = (original.planning_ids ?? [])
         .map((planningId) => plannings[planningId])
         .reduce((planningItems, planningItem) => {
             planningItems[planningItem._id] = (planningItem.coverages ?? []).reduce(
@@ -348,7 +348,7 @@ export class UpdateRecurringEventsComponent extends React.Component<IProps, ISta
                 {this.state.eventModified === false ? null : (
                     <React.Fragment>
                         <Text size="small" className="mb-1 mt-0-5">
-                            <strong>{gettext('This is a recurring event.')}</strong>
+                            <strong>{gettext('This is a recurring event.')}</strong>&nbsp;
                             {gettext('Update all recurring events or just this one?')}
                         </Text>
                         <Select

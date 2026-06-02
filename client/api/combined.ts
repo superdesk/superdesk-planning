@@ -8,11 +8,11 @@ import {
     IEventOrPlanningItem,
 } from '../interfaces';
 import {IRestApiResponse} from 'superdesk-api';
-import {searchRaw, searchRawGetAll, convertCommonParams, cvsToString, arrayToString} from './search';
+import {searchRaw, searchRawGetAll, convertCommonParams, cvsToString, arrayToString, searchRawAndStore} from './search';
 import {eventUtils, planningUtils} from '../utils';
 import {planningApi} from '../superdeskApi';
 import {combinedSearchProfile} from '../selectors/forms';
-import {searchPlanningGetAll} from './planning';
+import {searchPlanningGetAll, convertPlanningParams} from './planning';
 import {searchEventsGetAll} from './events';
 
 type IResponse = IRestApiResponse<IEventOrPlanningItem>;
@@ -23,7 +23,6 @@ function convertCombinedParams(params: ISearchParams): Partial<ISearchAPIParams>
         slugline: params.slugline,
         calendars: cvsToString(params.calendars),
         agendas: arrayToString(params.agendas),
-        include_associated_planning: params.include_associated_planning,
         source: cvsToString(params.source, 'id'),
         coverage_user_id: params.coverage_user_id,
         priority: arrayToString(params.priority),
@@ -67,6 +66,18 @@ export function searchCombinedGetAll(params: ISearchParams): Promise<Array<IEven
         });
 }
 
+export function searchAndStore(params: ISearchParams) {
+    return searchRawAndStore<IEventOrPlanningItem>({
+        ...convertCommonParams(params),
+        ...convertPlanningParams(params),
+        repo: FILTER_TYPE.COMBINED,
+    }).then((res) => {
+        res._items.forEach(modifyItemForClient);
+
+        return res._items;
+    });
+}
+
 export function getEventsAndPlanning(params: ISearchParams): Promise<{
     events: Array<IEventItem>;
     plannings: Array<IPlanningItem>;
@@ -106,7 +117,6 @@ function getRecurringEventsAndPlanningItems(
             item_ids: event.recurrence_id != null ? null : [event._id],
             spike_state: 'both',
             only_future: false,
-            include_associated_planning: true,
         });
     } else if (!loadEvents) {
         return searchPlanningGetAll({
@@ -145,5 +155,6 @@ export const combined: IPlanningAPI['combined'] = {
     getRecurringEventsAndPlanningItems: getRecurringEventsAndPlanningItems,
     getEventsAndPlanning: getEventsAndPlanning,
     getSearchProfile: getCombinedSearchProfile,
+    searchAndStore: searchAndStore,
 };
 

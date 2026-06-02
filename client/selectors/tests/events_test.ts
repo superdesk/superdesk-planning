@@ -2,6 +2,7 @@ import * as selectors from '../index';
 import moment from 'moment';
 import {keyBy} from 'lodash';
 
+const ids = (day) => day.events.map((e) => e._id);
 
 describe('selectors', () => {
     const dateFormat = 'YYYY-MM-DDTHH:mm:ss';
@@ -32,13 +33,31 @@ describe('selectors', () => {
                         end: moment('2017-01-17T14:00:00', dateFormat),
                     },
                 },
+                event4: {
+                    _id: 'event4',
+                    name: 'event4',
+                    dates: {
+                        start: moment('2024-07-16T13:00:00+0000'),
+                        end: moment('2024-07-17T00:00:00+0000'),
+                        no_end_time: true,
+                    },
+                },
+                event5: {
+                    _id: 'event5',
+                    name: 'event5',
+                    dates: {
+                        start: moment('2024-07-15T00:00:00+0000'),
+                        end: moment('2024-07-18T00:00:00+0000'),
+                        all_day: true,
+                    },
+                }
             },
-            eventsInList: ['event1', 'event2', 'event3'],
+            eventsInList: ['event1', 'event2', 'event3', 'event4', 'event5'],
         },
         session: {identity: {_id: 'user1'}},
     });
 
-    const setAdvancedSearchDates = (state, startDate, endate) => {
+    const setAdvancedSearchDates = (state, startDate, endate?) => {
         state.main = {
             filter: 'EVENTS',
             search: {
@@ -46,8 +65,8 @@ describe('selectors', () => {
                     currentSearch: {
                         advancedSearch: {
                             dates: {
-                                start: startDate ? moment(startDate, dateFormat) : null,
-                                end: endate ? moment(endate, dateFormat) : null,
+                                start: startDate ? moment(startDate) : null,
+                                end: endate ? moment(endate) : null,
                             },
                         },
                     },
@@ -60,7 +79,7 @@ describe('selectors', () => {
         it('all events', () => {
             const state = getState();
 
-            setAdvancedSearchDates(state, '2017-01-10T00:00:00');
+            setAdvancedSearchDates(state, '2017-01-10T00:00:00+0000');
             const events = keyBy(selectors.events.orderedEvents(state), 'date');
 
             expect(Object.keys(events)).toEqual([
@@ -87,7 +106,7 @@ describe('selectors', () => {
 
             state.events.events.event2.dates.start = moment('2017-01-17T08:00:00', dateFormat);
             state.events.events.event2.dates.end = moment('2017-01-17T14:00:00', dateFormat);
-            setAdvancedSearchDates(state, '2017-01-10T00:00:00');
+            setAdvancedSearchDates(state, '2017-01-10T00:00:00+0000');
             const events = keyBy(selectors.events.orderedEvents(state), 'date');
 
             expect(Object.keys(events)).toEqual([
@@ -112,7 +131,7 @@ describe('selectors', () => {
         it('for today 2017-01-15', () => {
             const state = getState();
 
-            setAdvancedSearchDates(state, '2017-01-15T00:00:00+0000', '2017-01-15T23:59:59+0000');
+            setAdvancedSearchDates(state, '2017-01-15T00:00:00', '2017-01-15T23:59:59');
             const events = keyBy(selectors.events.orderedEvents(state), 'date');
 
             expect(Object.keys(events)).toEqual([
@@ -126,7 +145,7 @@ describe('selectors', () => {
         it('from 2017-01-15 11:00 to 2017-01-16T14:00:00+0000', () => {
             const state = getState();
 
-            setAdvancedSearchDates(state, '2017-01-15T11:00:00+0000', '2017-01-16T14:00:00+0000');
+            setAdvancedSearchDates(state, '2017-01-15T11:00:00', '2017-01-16T14:00:00');
             const events = keyBy(selectors.events.orderedEvents(state), 'date');
 
             expect(Object.keys(events)).toEqual([
@@ -145,21 +164,7 @@ describe('selectors', () => {
         it('from 2017-01-16T06:00:00+0000 to 2017-01-16T07:00:00+0000', () => {
             const state = getState();
 
-            setAdvancedSearchDates(state, '2017-01-16T06:00:00+0000', '2017-01-16T07:00:00+0000');
-            const events = keyBy(selectors.events.orderedEvents(state), 'date');
-
-            expect(Object.keys(events)).toEqual([
-                '2017-01-16',
-            ]);
-
-            expect(events['2017-01-16'].events.length).toBe(1);
-            expect(events['2017-01-16'].events[0]._id).toBe('event3');
-        });
-
-        it('from 2017-01-16T06:00:00+0000 to 2017-01-16T10:00:00+0000', () => {
-            const state = getState();
-
-            setAdvancedSearchDates(state, '2017-01-16T06:00:00+0000', '2017-01-16T10:00:00+0000');
+            setAdvancedSearchDates(state, '2017-01-16T06:00:00', '2017-01-16T07:00:00');
             const events = keyBy(selectors.events.orderedEvents(state), 'date');
 
             expect(Object.keys(events)).toEqual([
@@ -171,10 +176,25 @@ describe('selectors', () => {
             expect(events['2017-01-16'].events[1]._id).toBe('event2');
         });
 
-        it('from 2017-01-16T13:59:59+0000 to 2017-01-17T08:00:00+0000', () => {
+        it('from 2017-01-16T06:00:00+0000 to 2017-01-16T10:00:00+0000', () => {
             const state = getState();
 
-            setAdvancedSearchDates(state, '2017-01-16T13:59:59+0000', '2017-01-17T08:00:00+0000');
+            setAdvancedSearchDates(state, '2017-01-16T06:00:00', '2017-01-16T10:00:00');
+            const events = keyBy(selectors.events.orderedEvents(state), 'date');
+
+            expect(Object.keys(events)).toEqual([
+                '2017-01-16',
+            ]);
+
+            expect(events['2017-01-16'].events.length).toBe(2);
+            expect(events['2017-01-16'].events[0]._id).toBe('event3');
+            expect(events['2017-01-16'].events[1]._id).toBe('event2');
+        });
+
+        it('from 2017-01-16T13:59:59 to 2017-01-17T08:00:00', () => {
+            const state = getState();
+
+            setAdvancedSearchDates(state, '2017-01-16T13:59:59', '2017-01-17T08:00:00');
             const events = keyBy(selectors.events.orderedEvents(state), 'date');
 
             expect(Object.keys(events)).toEqual(['2017-01-16', '2017-01-17']);
@@ -187,7 +207,7 @@ describe('selectors', () => {
         it('from 2017-01-17T06:00:00+0000', () => {
             const state = getState();
 
-            setAdvancedSearchDates(state, '2017-01-17T06:00:00+0000');
+            setAdvancedSearchDates(state, '2017-01-17T06:00:00');
             const events = keyBy(selectors.events.orderedEvents(state), 'date');
 
             expect(Object.keys(events)).toEqual([
@@ -198,13 +218,79 @@ describe('selectors', () => {
             expect(events['2017-01-17'].events[0]._id).toBe('event3');
         });
 
-        it('from 2017-01-17T14:00:01+0000', () => {
+        it('from 2017-01-18T00:00:00+0000', () => {
             const state = getState();
 
-            setAdvancedSearchDates(state, '2017-01-17T14:00:01+0000');
+            setAdvancedSearchDates(state, '2017-01-18T00:00:00');
             const events = keyBy(selectors.events.orderedEvents(state), 'date');
 
             expect(Object.keys(events).length).toBe(0);
+        });
+
+        it('from 2024-07-14', () => {
+            const state = getState();
+
+            setAdvancedSearchDates(state, '2024-07-14T12:00:00');
+            const events = keyBy(selectors.events.orderedEvents(state), 'date');
+
+            expect(Object.keys(events)).toEqual([
+                '2024-07-15',
+                '2024-07-16',
+                '2024-07-17',
+                '2024-07-18',
+            ]);
+
+            expect(ids(events['2024-07-15'])).toEqual(['event5']);
+            expect(ids(events['2024-07-16'])).toEqual(['event5', 'event4']);
+            expect(ids(events['2024-07-17'])).toEqual(['event5', 'event4']);
+            expect(ids(events['2024-07-18'])).toEqual(['event5']);
+        });
+
+        it('from 2024-07-17', () => {
+            const state = getState();
+
+            setAdvancedSearchDates(state, '2024-07-17T12:00:00');
+            const events = keyBy(selectors.events.orderedEvents(state), 'date');
+
+            expect(Object.keys(events)).toEqual([
+                '2024-07-17',
+                '2024-07-18',
+            ]);
+
+            expect(ids(events['2024-07-17'])).toEqual(['event5', 'event4']);
+        });
+
+        it('from 2024-07-14 Toronto timezone', () => {
+            moment.tz.setDefault('America/Toronto');
+            const state = getState();
+
+            setAdvancedSearchDates(state, '2024-07-14T12:00:00');
+            const events = keyBy(selectors.events.orderedEvents(state), 'date');
+
+            expect(Object.keys(events)).toEqual([
+                '2024-07-15',
+                '2024-07-16',
+                '2024-07-17',
+                '2024-07-18',
+            ]);
+
+            expect(ids(events['2024-07-15'])).toEqual(['event5']);
+            expect(ids(events['2024-07-16'])).toEqual(['event5', 'event4']);
+            expect(ids(events['2024-07-17'])).toEqual(['event5', 'event4']);
+            expect(ids(events['2024-07-18'])).toEqual(['event5']);
+        });
+
+        it('from 2024-07-17 Toronto timezone', () => {
+            moment.tz.setDefault('America/Toronto');
+            const state = getState();
+
+            setAdvancedSearchDates(state, '2024-07-17T05:00:00');
+            const events = keyBy(selectors.events.orderedEvents(state), 'date');
+
+            expect(Object.keys(events)).toEqual([
+                '2024-07-17',
+                '2024-07-18',
+            ]);
         });
     });
 });

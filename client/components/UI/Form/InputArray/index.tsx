@@ -1,12 +1,21 @@
-/* eslint-disable react/no-multi-comp */
 import React from 'react';
 import classNames from 'classnames';
-import {get} from 'lodash';
+import {get, noop} from 'lodash';
 
 import {Button} from '../../';
 import {Row, LineInput} from '../';
 import './style.scss';
 import {superdeskApi} from '../../../../superdeskApi';
+import {
+    EDITOR_TYPE,
+    ICoverageType,
+    IG2ContentType,
+    IInputArrayHocModeOptions,
+    IPlanningCoverageItem,
+    IPlanningNewsCoverageStatus,
+} from 'interfaces';
+import {IDesk} from 'superdesk-api';
+import {Spacer} from 'superdesk-ui-framework/react';
 
 interface IProps {
     field: string;
@@ -18,12 +27,11 @@ interface IProps {
     maxCount: number;
     addOnly: boolean;
     originalCount: number;
-    element: React.ComponentClass;
-    defaultElement: any;
-    readOnly: boolean;
+    element: React.ComponentClass<any>;
+    createCoverage: (coverageType: ICoverageType) => DeepPartial<IPlanningCoverageItem>;
+    disabled: boolean;
     message: any;
     invalid: boolean;
-    row: boolean;
     buttonWithLabel: boolean;
     label: string;
     labelClassName: string;
@@ -37,8 +45,19 @@ interface IProps {
     errors: {[key: string]: any};
     showErrors: boolean;
     testId?: string;
-
     getRef?(field: string, value: any): React.RefObject<any>;
+    popupContainer(): HTMLElement;
+    onPopupOpen(): void;
+    onPopupClose(): void;
+    contentTypes: Array<IG2ContentType>;
+    defaultDesk: IDesk;
+    newsCoverageStatus: Array<IPlanningNewsCoverageStatus>;
+    navigation: any;
+    openCoverageIds: Array<string>;
+    editorType: EDITOR_TYPE;
+
+    // HOC mode - optional; added to support "add button" as mini toolbar in authoring-react
+    children?: (options: IInputArrayHocModeOptions) => React.ReactNode;
 }
 
 export class InputArray extends React.PureComponent<IProps> {
@@ -49,13 +68,12 @@ export class InputArray extends React.PureComponent<IProps> {
         this.remove = this.remove.bind(this);
     }
 
-    onAdd(...args) {
-        let currentValue = this.props.value ?? [];
-        const newElement = typeof this.props.defaultElement === 'function' ?
-            this.props.defaultElement(...args) :
-            this.props.defaultElement;
+    onAdd(coverageType: ICoverageType) {
+        const currentValue = this.props.value ?? [];
 
-        this.props.onChange(this.props.field, [...currentValue, newElement]);
+        const newItem = this.props.createCoverage(coverageType);
+
+        this.props.onChange(this.props.field, [...currentValue, newItem]);
     }
 
     remove(index: number) {
@@ -63,7 +81,9 @@ export class InputArray extends React.PureComponent<IProps> {
         const {confirm, notify} = superdeskApi.ui;
 
         confirm(
-            gettext('Remove Coverage')
+            gettext('Remove Coverage'),
+            undefined,
+            gettext('Delete'),
         ).then((response) => {
             if (response) {
                 this.props.onChange(
@@ -89,10 +109,7 @@ export class InputArray extends React.PureComponent<IProps> {
             );
         }
 
-        const props = this.props.row ? {
-            onAdd: this.onAdd,
-            text: this.props.addButtonText,
-        } : {
+        const props = {
             onAdd: this.onAdd,
             text: this.props.addButtonText,
             tabIndex: 0,
@@ -114,11 +131,9 @@ export class InputArray extends React.PureComponent<IProps> {
             addOnly,
             originalCount,
             element,
-            defaultElement = {},
-            readOnly,
+            disabled,
             message,
             invalid,
-            row = true,
             buttonWithLabel,
             label,
             labelClassName,
@@ -127,47 +142,78 @@ export class InputArray extends React.PureComponent<IProps> {
         } = this.props;
 
         const Component = element;
-        const showAddButton = (maxCount ? value.length < maxCount : true) && !readOnly;
-        const isIndexReadOnly = (index) => (addOnly && index === originalCount) ? false : readOnly;
+        const showAddButton = (maxCount ? value.length < maxCount : true) && !disabled;
+        const isIndexReadOnly = (index) => (addOnly && index === originalCount) ? false : disabled;
         const addButton = this.renderButton();
 
-        return (
-            <Row
-                noPadding={!!message}
-                testId={testId}
-            >
-                {!label?.length ? null : (
-                    <div>
-                        <div className={classNames('InputArray__label', labelClassName)}>{label}</div>
-                        {buttonWithLabel && showAddButton && addButton}
-                    </div>
-                )}
-                {get(message, field) && (
-                    <LineInput
-                        invalid={true}
-                        message={get(message, field)}
-                        readOnly
-                        noLabel
-                    />
-                )}
-                {(value || []).map((val, index) => (
-                    <Component
-                        {...props}
-                        key={index}
-                        ref={this.props.getRef == null ? null : this.props.getRef(field, val)}
-                        testId={`${testId}[${index}]`}
-                        index={index}
-                        field={`${field}[${index}]`}
-                        onChange={onChange}
-                        value={val}
-                        remove={() => this.remove(index)}
-                        readOnly={isIndexReadOnly(index)}
-                        message={get(message, `[${index}]`)}
-                        invalid={!!get(message, `[${index}]`)}
-                    />
-                ))}
-                {!buttonWithLabel && showAddButton && addButton}
-            </Row>
+        const hasLabel = (label ?? '').length > 0;
+        const addButtonElement = showAddButton && addButton;
+        const labelElement = !hasLabel ? null : (
+            <Spacer h gap="0" justifyContent="space-between" alignItems="center" noWrap style={{paddingBlockStart: 8}}>
+                <div className={classNames('InputArray__label', labelClassName)}>{label}</div>
+                <div>
+                    {buttonWithLabel && addButtonElement}
+                </div>
+            </Spacer>
         );
+        const itemsElement = (value || []).map((val, index) => (
+            <Component
+                {...props}
+                key={index}
+                ref={this.props.getRef == null ? null : this.props.getRef(field, val)}
+                testId={`${testId}[${index}]`}
+                index={index}
+                field={`${field}[${index}]`}
+                onChange={onChange}
+                value={val}
+                remove={() => this.remove(index)}
+                disabled={isIndexReadOnly(index)}
+                message={get(message, `[${index}]`)}
+                invalid={!!get(message, `[${index}]`)}
+            />
+        ));
+
+        const errorMessageElement = get(message, field) && (
+            <LineInput
+                invalid={true}
+                message={get(message, field)}
+                readOnly
+                noLabel
+            />
+        );
+
+        const {DropZone} = superdeskApi.components;
+        const {gettext} = superdeskApi.localization;
+
+        const emptyValueElement = (
+            <DropZone disabled canDrop={() => false} onDrop={noop}>
+                {gettext('No Coverages Yet')}
+            </DropZone>
+        );
+
+        if (typeof this.props.children === 'function') {
+            return this.props.children({
+                itemsElement,
+                addButtonElement,
+                errorMessageElement,
+                labelElement,
+                emptyValueElement,
+            });
+        } else {
+            return (
+                <>
+                    <Row
+                        noPadding={Object.keys(message ?? {}).length < 1}
+                        testId={testId}
+                    >
+                        {labelElement}
+                        {errorMessageElement}
+                        {itemsElement}
+                        {!buttonWithLabel && addButtonElement}
+                    </Row>
+                    {(this.props.value?.length ?? 0) < 1 && emptyValueElement}
+                </>
+            );
+        }
     }
 }

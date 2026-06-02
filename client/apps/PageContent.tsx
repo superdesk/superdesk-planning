@@ -145,6 +145,7 @@ export class PageContent<T> extends React.Component<IProps<T>, IState> {
 
                         {ListPanel && (
                             <div
+                                data-test-id="planning-list-panel"
                                 className={classNames(
                                     'sd-column-box__main-column',
                                     'sd-column-box__main-column__listpanel',

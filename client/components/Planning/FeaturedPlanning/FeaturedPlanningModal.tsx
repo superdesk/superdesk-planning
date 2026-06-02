@@ -45,7 +45,7 @@ interface IProps {
     postFeaturedStory(): void;
 }
 
-export class FeaturedPlanningModalComponent extends React.Component<IProps, any> {
+export class FeaturedPlanningModalComponent extends React.Component<IProps> {
     constructor(props) {
         super(props);
 
@@ -99,8 +99,9 @@ export class FeaturedPlanningModalComponent extends React.Component<IProps, any>
         const canPost = (
             !this.props.readOnly &&
             !this.props.featuredPlanningItem?.posted &&
-            this.props.selectedPlanningIds?.length
+            (this.props.selectedPlanningIds?.length ?? 0) != 0
         );
+
         const itemUpdatedAfterPosting = planningUtils.isFeaturedPlanningUpdatedAfterPosting(
             this.props.featuredPlanningItem
         );
@@ -148,7 +149,7 @@ export class FeaturedPlanningModalComponent extends React.Component<IProps, any>
                     noScroll={true}
                 >
                     <FeaturedPlanningModalSubnav itemUpdatedAfterPosting={itemUpdatedAfterPosting} />
-                    <div className="grid">
+                    <div className="sd-d-flex sd-flex-wrap">
                         {(this.props.isLockedForCurrentUser) ? null : (
                             <div className="sd-loader" />
                         )}
@@ -206,7 +207,8 @@ export class FeaturedPlanningModalComponent extends React.Component<IProps, any>
                 </Modal.Body>
                 <Modal.Footer>
                     <Button
-                        text={this.props.dirty ? gettext('Cancel') : gettext('Close')}
+                        text={gettext('Close')}
+                        type="tertiary"
                         onClick={this.props.closeFeaturedStoriesModal}
                     />
                     {!canPost ? null : (

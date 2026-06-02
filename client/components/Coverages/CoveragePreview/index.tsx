@@ -4,7 +4,7 @@ import {get} from 'lodash';
 import {IDesk, IUser} from 'superdesk-api';
 import {superdeskApi} from '../../../superdeskApi';
 import {
-    ICoverageFormProfile,
+    IEditorProfile,
     IFile,
     IPlanningCoverageItem,
     IPlanningItem,
@@ -16,8 +16,8 @@ import {Row as PreviewRow} from '../../UI/Preview';
 import {CollapseBox, FileReadOnlyList} from '../../UI';
 import {assignmentUtils, planningUtils} from '../../../utils';
 import {getUserInterfaceLanguageFromCV} from '../../../utils/users';
-import {ContactsPreviewList} from '../../Contacts';
-import {PLANNING, WORKFLOW_STATE} from '../../../constants';
+import {ContactsPreviewList} from '../../Contacts/ContactsPreviewList';
+import {WORKFLOW_STATE} from '../../../constants';
 import {CoverageItem} from '../';
 import {CoveragePreviewTopBar} from './CoveragePreviewTopBar';
 import {ScheduledUpdate} from '../ScheduledUpdate';
@@ -32,7 +32,7 @@ interface IProps {
     users: Array<IUser>;
     desks: Array<IDesk>;
     newsCoverageStatus: Array<IPlanningNewsCoverageStatus>;
-    formProfile: ICoverageFormProfile;
+    formProfile: IEditorProfile;
     noOpen?: boolean;
     active?: boolean;
     scrollInView: boolean;
@@ -40,7 +40,7 @@ interface IProps {
     inner: boolean;
     index: number;
     item: IPlanningItem;
-    planningAllowScheduledUpdates: boolean;
+    canScheduleUpdates: boolean;
     createLink(file: IFile): string;
     files: Array<IFile>;
 }
@@ -61,18 +61,10 @@ export class CoveragePreview extends React.PureComponent<IProps> {
             active,
             scrollInView,
             inner,
-            planningAllowScheduledUpdates,
+            canScheduleUpdates,
             files,
             createLink,
         } = this.props;
-
-        const coverageStatus = get(coverage, 'news_coverage_status.qcode', '') ===
-            PLANNING.NEWS_COVERAGE_CANCELLED_STATUS.qcode ? PLANNING.NEWS_COVERAGE_CANCELLED_STATUS :
-            newsCoverageStatus.find((s) => s.qcode === get(coverage, 'news_coverage_status.qcode', '')) || {};
-
-        const coverageDateText = !get(coverage, 'planning.scheduled') ?
-            gettext('Not scheduled yet') :
-            planningUtils.getCoverageDateTimeText(coverage);
 
         const coverageListItem = (
             <CoverageItem
@@ -114,8 +106,6 @@ export class CoveragePreview extends React.PureComponent<IProps> {
                     >
                         <ContactsPreviewList
                             contactIds={contactId ? [contactId] : []}
-                            scrollInView={true}
-                            scrollIntoViewOptions={{block: 'center'}}
                         />
                     </PreviewRow>
                 )}
@@ -140,6 +130,7 @@ export class CoveragePreview extends React.PureComponent<IProps> {
                         item: coverage,
                         language: coverage.planning.language ?? getUserInterfaceLanguageFromCV(),
                         renderEmpty: true,
+                        schema: formProfile?.schema,
                     },
                     {
                         language: {field: 'planning.language', enabled: false},
@@ -150,6 +141,8 @@ export class CoveragePreview extends React.PureComponent<IProps> {
                         g2_content_type: {field: 'planning.g2_content_type'},
                         genre: {field: 'planning.genre'},
                         flags: {field: 'planning.flags'},
+                        location: {field: 'planning.location'},
+                        anpa_category: {field: 'planning.anpa_category'},
                     }
                 )}
 
@@ -181,7 +174,7 @@ export class CoveragePreview extends React.PureComponent<IProps> {
                     </PreviewRow>
                 )}
 
-                {planningAllowScheduledUpdates && (
+                {canScheduleUpdates && (
                     <PreviewRow label={gettext('SCHEDULED UPDATES')}>
                         {(coverage.scheduled_updates || []).map((s, i) => (
                             <ScheduledUpdate
@@ -193,7 +186,7 @@ export class CoveragePreview extends React.PureComponent<IProps> {
                                 desks={desks}
                                 newsCoverageStatus={newsCoverageStatus}
                                 forPreview
-                                readOnly
+                                disabled
                             />
                         ))}
                     </PreviewRow>

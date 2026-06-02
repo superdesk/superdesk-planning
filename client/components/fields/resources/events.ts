@@ -11,6 +11,7 @@ import {EditorFieldDateTime} from '../editor/base/dateTime';
 import {EditorFieldEventLinks} from '../editor/EventLinks';
 import {EditorFieldEventRelatedItems} from '../editor/EventRelatedArticles/EditorFieldEventRelatedItems';
 import {EditorFieldTreeSelect, IEditorFieldTreeSelectProps} from '../editor/base/treeSelect';
+import {EditorFieldDateTimeUIFramework} from '../editor/base/dateTimeUIFramework';
 
 registerEditorField(
     'definition_long',
@@ -68,6 +69,17 @@ registerEditorField(
 );
 
 registerEditorField(
+    'registration',
+    EditorFieldMultilingualText,
+    () => ({
+        label: superdeskApi.localization.gettext('Registration'),
+        field: 'registration',
+    }),
+    null,
+    false,
+);
+
+registerEditorField(
     'invitation_details',
     EditorFieldMultilingualText,
     () => ({
@@ -91,7 +103,7 @@ registerEditorField(
 
 registerEditorField(
     'accreditation_deadline',
-    EditorFieldDateTime,
+    EditorFieldDateTimeUIFramework,
     () => ({
         label: superdeskApi.localization.gettext('Accreditation Deadline'),
         field: 'accreditation_deadline',

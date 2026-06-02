@@ -8,7 +8,6 @@ import {EditorFieldToggle} from '../editor/base/toggle';
 import {EditorFieldSelect} from '../editor/base/select';
 import {EditorFieldCheckbox} from '../editor/base/checkbox';
 import {EditorFieldTreeSelect, IEditorFieldTreeSelectProps} from '../editor/base/treeSelect';
-import {SelectCustomVocabulariesList} from '../editor/SelectCustomVocabulariesList';
 import {ProfileFieldDefaultValue} from '../editor/ProfileFieldDefaultValue';
 
 import {getLanguagesForTreeSelectInput} from '../../../selectors/vocabs';
@@ -25,11 +24,34 @@ registerEditorField(
 );
 
 registerEditorField(
+    'schema.show_in_embedded_editor',
+    EditorFieldCheckbox,
+    (props) => ({
+        label: superdeskApi.localization.gettext('Show in embedded form'),
+        field: 'schema.show_in_embedded_editor',
+        disabled: props.item.schema?.required ?? true,
+    }),
+    null,
+    true
+);
+
+registerEditorField(
     'schema.read_only',
     EditorFieldCheckbox,
     () => ({
         label: superdeskApi.localization.gettext('Read Only'),
         field: 'schema.read_only',
+    }),
+    null,
+    true
+);
+
+registerEditorField(
+    'schema.cancel_plan_with_event',
+    EditorFieldCheckbox,
+    () => ({
+        label: superdeskApi.localization.gettext('Cancel planning items with Event'),
+        field: 'schema.cancel_plan_with_event',
     }),
     null,
     true
@@ -102,17 +124,6 @@ registerEditorField(
             {qcode: 'editor_3', label: superdeskApi.localization.gettext('Editor 3')},
         ],
         valueAsString: true,
-    }),
-    null,
-    true
-);
-
-registerEditorField(
-    'schema.vocabularies',
-    SelectCustomVocabulariesList,
-    () => ({
-        label: superdeskApi.localization.gettext('Vocabularies'),
-        field: 'schema.vocabularies',
     }),
     null,
     true
@@ -193,7 +204,7 @@ registerEditorField<IEditorFieldTreeSelectProps, {options: Array<{value: IVocabu
 registerEditorField(
     'schema.default_value',
     ProfileFieldDefaultValue,
-    (props) => ({
+    () => ({
         label: superdeskApi.localization.gettext('Default Value'),
         field: 'schema.default_value',
     }),

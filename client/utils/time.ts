@@ -107,14 +107,14 @@ function isEventInDifferentTimeZone(event: Partial<IEventItem>): boolean {
     const dateInEventTimeZone = getDateInRemoteTimeZone(event?.dates?.start, event?.dates?.tz);
     const dateInLocalTimeZone = getDateInRemoteTimeZone(event?.dates?.start);
 
-    return dateInEventTimeZone.format('Z') !== dateInLocalTimeZone.format('Z');
+    return dateInEventTimeZone.format('Z') !== dateInLocalTimeZone.format('Z') && !event?.dates?.all_day;
 }
 
 function localTimeZone(): string {
     return moment.tz.guess();
 }
 
-function getDateInRemoteTimeZone(date: moment.Moment, tz: string = self.localTimeZone()): moment.Moment {
+function getDateInRemoteTimeZone(date: moment.MomentInput, tz: string = self.localTimeZone()): moment.Moment {
     let dateToCheck;
 
     if (!date) {
@@ -174,6 +174,66 @@ function getDateAsString(value: string | Date | moment.Moment): string {
     }
 }
 
+/**
+ * Converts a given date or string representation of a date to a Moment.js date object.
+ * If a timezone is provided, the resulting Moment.js object will have the specified timezone.
+ *
+ * Note: This function ignores any time attributes from the provided value.
+ *
+ * @param {Date | string | null} value - The date value to convert. Can be a Date object, a string, or null.
+ * @param {string | null} [tz=null] - The optional timezone to use when creating the Moment.js object.
+ * @return {moment.Moment | null} A Moment.js date object, or null if the input value is null.
+ */
+function dateToMomentDate(value: Date | string | null, tz: string | null = null): moment.Moment | null {
+    if (value == null) {
+        return null;
+    }
+
+    const jsDate = typeof value === 'string' ? new Date(value) : value;
+
+    const year = jsDate.getFullYear();
+    const month = jsDate.getMonth();
+    const day = jsDate.getDate();
+
+    return tz == null ? moment([year, month, day]) : moment.tz([year, month, day], tz);
+}
+
+/**
+ * Converts a given value of type moment.Moment, Date, string, or null into a JavaScript Date object.
+ * If a timezone is provided, the resulting JavaScript Date object will be in the specified timezone.
+ *
+ * Note: This function ignores any time attributes from the provided value.
+ *
+ * @param {moment.Moment | Date | string | null} value - The input value to be converted into a JavaScript Date object.
+ * @param {string | null} [tz=null] - The optional timezone to use when interpreting the value.
+ * @return {Date | null} The resulting JavaScript Date object, or null if the input value is null.
+ */
+function dateToJsDate(value: moment.Moment | Date | string | null, tz: string | null = null): Date | null {
+    if (value == null) {
+        return null;
+    } else if (value instanceof Date) {
+        return value;
+    }
+
+    const momentDate = tz == null ? moment(value) : moment.tz(value, tz);
+
+    return new Date(momentDate.year(), momentDate.month(), momentDate.date());
+}
+
+/**
+ * Converts a UTC all-day date to a local date-only moment instance.
+ *
+ * This normalizes the value to a `YYYY-MM-DD` string in UTC and then
+ * creates a local moment from that date-only representation to avoid
+ * timezone offsets shifting the displayed day.
+ *
+ * @param {moment.MomentInput} value - The UTC date value for an all-day event.
+ * @return {moment.Moment} A local moment representing the same calendar day.
+ */
+function allDayDateToLocalDate(value: moment.MomentInput): moment.Moment {
+    return moment(moment.utc(value).format('YYYY-MM-DD'));
+}
+
 // eslint-disable-next-line consistent-this
 const self = {
     getStartOfNextWeek,
@@ -187,6 +247,9 @@ const self = {
     getTimeZoneAbbreviation,
     getDateForVersionInList,
     getDateAsString,
+    dateToMomentDate,
+    dateToJsDate,
+    allDayDateToLocalDate,
 };
 
 export default self;

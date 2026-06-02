@@ -1,23 +1,24 @@
 /* eslint-disable react/no-multi-comp */
 
-import React, {Fragment} from 'react';
+import React from 'react';
+import {connect} from 'react-redux';
 import {get} from 'lodash';
-import {OverlayTrigger, Tooltip} from 'react-bootstrap';
-import {ICalendar} from '../../interfaces';
+import {Spacer, Tooltip} from 'superdesk-ui-framework/react';
+import {ICalendar, IFieldsProps, IPlanningAppState} from '../../interfaces';
 import {superdeskApi} from '../../superdeskApi';
 import {getVocabularyItemFieldTranslated} from '../../utils/vocabularies';
+import * as selectors from '../../selectors';
 
-interface IProps {
-    item: any;
+interface IReduxStateProps {
     calendars: Array<ICalendar>;
-    field?: string;
-    language?: string;
 }
 
-export class calendars extends React.PureComponent<IProps> {
+type IProps = IFieldsProps & IReduxStateProps;
+
+class CalendarsComponent extends React.PureComponent<IProps> {
     render() {
         const {gettext} = superdeskApi.localization;
-        const field = this.props.field ?? 'calendars';
+        const field = 'calendars';
         const qcodes: Array<ICalendar['qcode']> = (get(this.props.item, field) || [])
             .map((calendar) => calendar.qcode);
         const calendars: Array<{
@@ -33,7 +34,7 @@ export class calendars extends React.PureComponent<IProps> {
                 const name = getVocabularyItemFieldTranslated(
                     calendar,
                     'name',
-                    this.props.language
+                    this.props.language,
                 );
 
                 calendars.push({
@@ -47,24 +48,21 @@ export class calendars extends React.PureComponent<IProps> {
             });
 
         return (
-            <Fragment>
+            <Spacer h gap="4" justifyContent="start" noWrap noGrow style={{whiteSpace: 'nowrap'}}>
                 <span className="sd-list-item__text-label">{gettext('Calendar:')}</span>
-                {<span className="sd-overflow-ellipsis sd-list-item__text-strong sd-list-item--element-rm-10">
+                {<span className="sd-list-item__text-strong sd-list-item--element-rm-10">
                     {calendars.length > 0 ? (
-                        <OverlayTrigger
-                            placement="left"
-                            overlay={(
-                                <Tooltip
-                                    id="location_tooltip"
-                                    className="tooltip--text-left"
-                                >
+                        <Tooltip
+                            content={() => (
+                                <>
                                     {calendars.map((calendar) => (
                                         <div key={calendar.qcode}>
                                             {calendar.tooltip}
                                         </div>
                                     ))}
-                                </Tooltip>
+                                </>
                             )}
+                            placement="left"
                         >
                             <span>
                                 {calendars.map((calendar, index, array) => (
@@ -76,14 +74,22 @@ export class calendars extends React.PureComponent<IProps> {
                                     </span>
                                 ))}
                             </span>
-                        </OverlayTrigger>
+                        </Tooltip>
                     ) : (
                         <span>
                             {gettext('No calendars assigned')}
                         </span>
                     )}
                 </span>}
-            </Fragment>
+            </Spacer>
         );
     }
 }
+
+const mapStateToProps = (state: IPlanningAppState): IReduxStateProps => ({
+    calendars: selectors.events.calendars(state),
+});
+
+export const calendars = connect(
+    mapStateToProps,
+)(CalendarsComponent);

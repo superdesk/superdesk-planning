@@ -1,74 +1,98 @@
 import React from 'react';
-import PropTypes from 'prop-types';
 import {connect} from 'react-redux';
 import {get, set, isEqual, cloneDeep} from 'lodash';
 
-import {IAssignmentItem} from '../../../interfaces';
+import type {IDesk} from 'superdesk-api';
+import type {IAssignmentItem, IAssignmentPriority, ICoverageProvider} from '../../../interfaces';
+import {superdeskApi} from '../../../superdeskApi';
 
 import * as actions from '../../../actions';
 import * as selectors from '../../../selectors';
 
 import {ASSIGNMENTS} from '../../../constants';
-import {gettext, getItemInArrayById, assignmentUtils} from '../../../utils';
+import {getItemInArrayById, assignmentUtils} from '../../../utils';
 import {getUserInterfaceLanguageFromCV} from '../../../utils/users';
 import {onItemActionModalHide} from './utils';
+import {isAssignmentDeskValid} from '../../../validators/assignments';
 
 import {AssignmentEditor} from '../../Assignments';
 
 import {Row, TextInput, ColouredValueInput} from '../../UI/Form';
 import {AbsoluteDate} from '../..';
+import {assignmentFieldsConfig} from '../../Coverages/assignmentFieldsConfig';
 
 import '../style.scss';
 
-export class UpdateAssignmentComponent extends React.Component {
-    constructor(props) {
+interface IReduxStateProps {
+    priorities: Array<IAssignmentPriority>;
+    desks: Array<IDesk>;
+}
+
+interface IReduxDispatchProps {
+    onSubmit(original: IAssignmentItem, updates: IAssignmentItem): void;
+    onHide(original: IAssignmentItem, modalProps: any): void; // TODO-PR
+}
+
+interface IOwnProps {
+    original: IAssignmentItem;
+    enableSaveInModal(): void;
+    disableSaveInModal(): void;
+}
+
+type IProps = IOwnProps & IReduxStateProps & IReduxDispatchProps;
+
+interface IState {
+    diff: IAssignmentItem;
+    valid: boolean;
+}
+
+export class UpdateAssignmentComponent extends React.Component<IProps, IState> {
+    dom: {popupContainer: HTMLDivElement | null};
+
+    constructor(props: IProps) {
         super(props);
         this.state = {
-            diff: {},
-            valid: true,
+            diff: cloneDeep(this.props.original),
+            valid: isAssignmentDeskValid(this.props.original.assigned_to?.desk),
         };
 
         this.dom = {popupContainer: null};
-        this.onChange = this.onChange.bind(this);
-        this.setValid = this.setValid.bind(this);
     }
 
-    componentWillMount() {
-        const diff = cloneDeep(this.props.original);
+    onChange = (updates: {[field: string]: string | ICoverageProvider | null}) => {
+        this.setState((prevState) => {
+            const diff = cloneDeep(prevState.diff);
 
-        this.setState({diff});
+            for (const [field, value] of Object.entries(updates)) {
+                set(diff, field, value);
+            }
+
+            return {
+                diff: diff,
+                valid: isAssignmentDeskValid(diff.assigned_to?.desk),
+            };
+        }, () => {
+            if (isEqual(this.state.diff, this.props.original) || this.state.valid !== true) {
+                this.props.disableSaveInModal();
+            } else {
+                this.props.enableSaveInModal();
+            }
+        });
     }
 
-    onChange(field, value) {
-        const diff = cloneDeep(this.state.diff);
-
-        set(diff, field, value);
-
-        this.setState({diff});
-
-        if (isEqual(diff, this.props.original) || !this.state.valid) {
-            this.props.disableSaveInModal();
-        } else {
-            this.props.enableSaveInModal();
-        }
-    }
-
-    submit() {
+    submit = () => {
         return this.props.onSubmit(
             this.props.original,
             this.state.diff
         );
     }
 
-    setValid(valid) {
-        this.setState({valid});
-
-        if (!valid) {
-            this.props.disableSaveInModal();
-        }
+    getPopupContainer = () => {
+        return this.dom.popupContainer;
     }
 
     render() {
+        const {gettext} = superdeskApi.localization;
         const slugline = get(this.props, 'original.planning.slugline') || '';
         const scheduled = get(this.props, 'original.planning.scheduled') || '';
 
@@ -89,7 +113,7 @@ export class UpdateAssignmentComponent extends React.Component {
         };
 
         return (
-            <div className="update-assignment">
+            <div data-test-id="update-assignment-form" className="update-assignment">
                 <Row noPadding={true}>
                     <TextInput
                         label={gettext('Slugline:')}
@@ -109,21 +133,26 @@ export class UpdateAssignmentComponent extends React.Component {
                     />
                 </Row>
 
-                <Row noPadding={!canEditDesk}>
-                    <ColouredValueInput
-                        field="priority"
-                        label={gettext('Priority')}
-                        value={priority}
-                        onChange={this.onChange}
-                        options={this.props.priorities}
-                        iconName="priority-label"
-                        noMargin={true}
-                        noValueString="-"
-                        language={getUserInterfaceLanguageFromCV()}
-                        clearable={true}
-                        {...infoProps}
-                    />
-                </Row>
+                {assignmentFieldsConfig.assignmentPriority !== true ? null : (
+                    <Row noPadding={!canEditDesk}>
+                        <ColouredValueInput
+                            field="priority"
+                            label={gettext('Priority')}
+                            value={priority}
+                            onChange={(field, value) => {
+                                this.onChange({[field]: value});
+                            }}
+                            options={this.props.priorities}
+                            iconName="priority-label"
+                            noMargin={true}
+                            noValueString="-"
+                            language={getUserInterfaceLanguageFromCV()}
+                            clearable={true}
+                            popupContainer={this.getPopupContainer}
+                            {...infoProps}
+                        />
+                    </Row>
+                )}
 
                 {!canEditDesk && (
                     <Row>
@@ -139,14 +168,9 @@ export class UpdateAssignmentComponent extends React.Component {
                     className="update-assignment__form"
                     value={this.state.diff}
                     onChange={this.onChange}
-                    users={this.props.users}
-                    desks={this.props.desks}
-                    coverageProviders={this.props.coverageProviders}
-                    priorities={this.props.priorities}
                     showDesk={canEditDesk}
                     showPriority={false}
-                    popupContainer={() => this.dom.popupContainer}
-                    setValid={this.setValid}
+                    popupContainer={this.getPopupContainer}
                 />
 
                 <div ref={(node) => this.dom.popupContainer = node} />
@@ -155,22 +179,9 @@ export class UpdateAssignmentComponent extends React.Component {
     }
 }
 
-UpdateAssignmentComponent.propTypes = {
-    original: PropTypes.object,
-    onSubmit: PropTypes.func,
-    enableSaveInModal: PropTypes.func,
-    disableSaveInModal: PropTypes.func,
-    priorities: PropTypes.array,
-    desks: PropTypes.array,
-    users: PropTypes.array,
-    coverageProviders: PropTypes.array,
-};
-
 const mapStateToProps = (state) => ({
     priorities: selectors.getAssignmentPriorities(state),
     desks: selectors.general.desks(state),
-    users: selectors.general.users(state),
-    coverageProviders: selectors.vocabs.coverageProviders(state),
 });
 
 const mapDispatchToProps = (dispatch) => ({
@@ -189,7 +200,7 @@ const mapDispatchToProps = (dispatch) => ({
     ),
 });
 
-export const UpdateAssignmentForm = connect(
+export const UpdateAssignmentForm = connect<IReduxStateProps, IReduxDispatchProps, IOwnProps>(
     mapStateToProps,
     mapDispatchToProps,
     null,

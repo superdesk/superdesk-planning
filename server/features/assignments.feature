@@ -17,14 +17,16 @@ Feature: Assignments
         }
         ]
         """
-        And "desks"
-        """
-        [{"name": "Sports", "content_expiry": 60, "members": [{"user": "#CONTEXT_USER_ID#"}]}]
-        """
         And "users"
         """
         [{"_id": "507f191e810c19729de87034", "name":"testfoo", "email":"foo@122d.com", "username":"johnfoo"}]
         """
+        When we post to "desks"
+        """
+        [{"name": "Sports", "content_expiry": 60, "members": [{"user": "#CONTEXT_USER_ID#"}]}]
+        """
+        Then we get OK response
+        And we store "SPORTS_DESK_ID" with value "#desks._id#" to context
 
     @auth
     Scenario: Empty planning list
@@ -646,6 +648,152 @@ Feature: Assignments
                 "message": "{{coverage_type}} coverage \"{{slugline}}\" has been reassigned to you on desk ({{desk}})"
             }
         ]}
+        """
+
+    @auth
+    Scenario: Assignment update syncs coverage assigned_to
+        Given empty "assignments"
+        When we post to "/planning"
+        """
+        [
+            {
+                "item_class": "item class value",
+                "description_text": "test description",
+                "headline": "test headline",
+                "slugline": "test slugline",
+                "planning_date": "2016-01-02",
+                "coverages": [
+                    {
+                        "planning": {
+                            "ednote": "test coverage",
+                            "headline": "test headline",
+                            "slugline": "test slugline",
+                            "g2_content_type": "text"
+                        },
+                        "assigned_to": {
+                            "desk": "desk1",
+                            "user": "507f191e810c19729de87034"
+                        },
+                        "workflow_status": "active"
+                    }
+                ]
+            }
+        ]
+        """
+        Then we get OK response
+        Then we store coverage id in "coverage" from coverage 0
+        Then we store assignment id in "assignment" from coverage 0
+        When we patch "/assignments/#assignment#"
+        """
+        {
+            "assigned_to": {
+                "desk": "desk2",
+                "user": "507f1f77bcf86cd799439011",
+                "coverage_provider": {"qcode": "agencies", "name": "Agencies"}
+            }
+        }
+        """
+        Then we get OK response
+        When we get "/planning/#planning._id#"
+        Then we get OK response
+        Then we get existing resource
+        """
+        {
+            "_id": "#planning._id#",
+            "coverages": [
+                {
+                    "coverage_id": "#coverage#",
+                    "assigned_to": {
+                        "assignment_id": "#assignment#",
+                        "desk": "desk2",
+                        "user": "507f1f77bcf86cd799439011",
+                        "coverage_provider": {"name": "Agencies"}
+                    }
+                }
+            ]
+        }
+        """
+
+    @auth
+    @notification
+    Scenario: Notification is sent when coverage is reassigned to another desk and user
+        Given empty "assignments"
+        Given empty "assignments_history"
+        When we post to "/planning"
+        """
+        [
+            {
+                "item_class": "item class value",
+                "description_text": "test description",
+                "headline": "test headline",
+                "slugline": "test slugline",
+                "planning_date": "2016-01-02",
+                "coverages": [
+                    {
+                        "planning": {
+                            "ednote": "test coverage",
+                            "headline": "test headline",
+                            "slugline": "test slugline",
+                            "g2_content_type": "text"
+                        },
+                        "assigned_to": {
+                            "desk": "desk1",
+                            "user": "507f191e810c19729de87034"
+                        },
+                        "workflow_status": "active"
+                    }
+                ]
+            }
+        ]
+        """
+        Then we get OK response
+        Then we store coverage id in "coverage" from coverage 0
+        Then we store assignment id in "assignment" from coverage 0
+
+        # Verify initial assignment
+        When we get "/assignments/#assignment#"
+        Then we get OK response
+        Then we get existing resource
+        """
+        {
+            "_id": "#assignment#",
+            "assigned_to": {
+                "desk": "desk1",
+                "user": "507f191e810c19729de87034",
+                "state": "assigned"
+            }
+        }
+        """
+
+        # Reassign to new desk and user
+        When we reset notifications
+        When we patch "/assignments/#assignment#"
+        """
+        {
+            "assigned_to": {
+                "desk": "desk2",
+                "user": "507f1f77bcf86cd799439011"
+            }
+        }
+        """
+        Then we get OK response
+
+        # Verify notifications
+        And we get notifications
+        """
+        [
+            {
+                "event": "assignments:updated",
+                "extra": {
+                    "item": "#assignment#",
+                    "assignment_state": "assigned",
+                    "assigned_user": "507f1f77bcf86cd799439011",
+                    "assigned_desk": "desk2",
+                    "original_assigned_desk": "desk1",
+                    "original_assigned_user": "507f191e810c19729de87034"
+                }
+            }
+        ]
         """
 
     @auth
@@ -1376,7 +1524,10 @@ Feature: Assignments
                 "desk": "#desks._id#",
                 "user": "#CONTEXT_USER_ID#",
                 "state": "completed"
-            }
+            },
+            "linked_items": [
+                {"_id": "#archive._id#", "_type": "published"}
+            ]
         }
         """
 
@@ -2083,4 +2234,577 @@ Feature: Assignments
                 }
             ]
         }
+        """
+
+    @auth
+    @vocabularies
+    Scenario: Reassignment to In-Progress but User Restricted by Manual Config instead of null
+        When we post to "/archive"
+        """
+        [{
+            "type": "text",
+            "headline": "test headline",
+            "slugline": "test slugline",
+            "task": {
+                "desk": "#desks._id#",
+                "stage": "#desks.incoming_stage#"
+            }
+        }]
+        """
+        When we post to "/planning"
+        """
+        [{
+            "item_class": "item class value",
+            "slugline": "test slugline",
+            "planning_date": "2016-01-02"
+        }]
+        """
+        Then we get OK response
+        When we patch "/planning/#planning._id#"
+        """
+        {
+            "coverages": [{
+                "planning": {
+                    "ednote": "test coverage, I want 250 words",
+                    "slugline": "test slugline"
+                },
+                "assigned_to": {
+                    "desk": "#desks._id#",
+                    "user": "#CONTEXT_USER_ID#",
+                    "assignor_user": "#CONTEXT_USER_ID#"
+                },
+                "workflow_status": "active"
+            }]
+        }
+        """
+        Then we get OK response
+        Then we store assignment id in "firstassignment" from coverage 0
+        When we post to "assignments/link"
+        """
+        [{
+            "assignment_id": "#firstassignment#",
+            "item_id": "#archive._id#",
+            "reassign": true
+        }]
+        """
+        Then we get OK response
+        When we get "/archive/#archive._id#"
+        When we get "/assignments/#firstassignment#"
+        Then we get OK response
+        Then we get existing resource
+        """
+        {
+            "_id": "#firstassignment#",
+            "planning": {
+                "ednote": "test coverage, I want 250 words",
+                "slugline": "test slugline"
+            },
+            "assigned_to": {
+                "desk": "#desks._id#",
+                "user": "#CONTEXT_USER_ID#",
+                "state": "in_progress",
+                "assignor_user": "#CONTEXT_USER_ID#"
+            }
+        }
+        """
+        When we post to "/desks" with "FINANCE_DESK_ID" and success
+        """
+        [{"name": "Finance", "desk_type": "production" }]
+        """
+        And we set config assignment manual reassignment only to True
+        And we post to "/archive/#archive._id#/move"
+        """
+        [{"task": {"desk": "#desks._id#", "stage": "#desks.incoming_stage#"}}]
+        """
+        Then we get OK response
+        When we get "/assignments/#firstassignment#"
+        Then we get OK response
+        Then we get existing resource
+        """
+        {
+            "_id": "#firstassignment#",
+            "planning": {
+                "ednote": "test coverage, I want 250 words",
+                "slugline": "test slugline"
+            },
+            "assigned_to": {
+                "desk": "#desks._id#",
+                "user": "#CONTEXT_USER_ID#",
+                "state": "submitted",
+                "assignor_user": "#CONTEXT_USER_ID#"
+            }
+        }
+        """
+
+    @auth
+    @vocabularies
+    @notification
+    Scenario: Assignee can not changed as the author of content changes based on Manual config
+        Given empty "assignments_history"
+        When we post to "/archive"
+        """
+        [{
+            "type": "text",
+            "headline": "test headline",
+            "slugline": "test slugline",
+            "task": {
+                "desk": "#desks._id#",
+                "stage": "#desks.incoming_stage#"
+            }
+        }]
+        """
+        When we post to "/planning"
+        """
+        [{
+            "item_class": "item class value",
+            "slugline": "test slugline",
+            "planning_date": "2016-01-02"
+        }]
+        """
+        Then we get OK response
+        When we reset notifications
+        When we patch "/planning/#planning._id#"
+        """
+        {
+            "coverages": [{
+                "planning": {
+                    "ednote": "test coverage, I want 250 words",
+                    "slugline": "test slugline"
+                },
+                "assigned_to": {
+                    "desk": "#desks._id#",
+                    "user": "#CONTEXT_USER_ID#"
+                },
+                "workflow_status": "active"
+            }]
+        }
+        """
+        Then we get OK response
+        Then we store coverage id in "firstcoverage" from coverage 0
+        Then we store assignment id in "firstassignment" from coverage 0
+        And we get notifications
+        """
+        [{
+            "event": "assignments:created",
+            "extra": {
+                "item": "#firstassignment#",
+                "coverage": "#firstcoverage#",
+                "planning": "#planning._id#",
+                "assignment_state": "assigned",
+                "assigned_user": "#CONTEXT_USER_ID#",
+                "assigned_desk": "#desks._id#",
+                "lock_user": null,
+                "user": "#CONTEXT_USER_ID#",
+                "original_assigned_desk": null,
+                "original_assigned_user": null
+            }
+        }]
+        """
+        Then we store assignment id in "firstassignment" from coverage 0
+        When we patch "/archive/#archive._id#"
+        """
+        {"headline": "test headline 2"}
+        """
+        Then we get OK response
+        When we reset notifications
+        When we post to "assignments/link"
+        """
+        [{
+            "assignment_id": "#firstassignment#",
+            "item_id": "#archive._id#",
+            "reassign": true
+        }]
+        """
+        Then we get OK response
+        And we get notifications
+        """
+        [{
+            "event": "assignments:updated",
+            "extra": {
+                "item": "#firstassignment#",
+                "coverage": "#firstcoverage#",
+                "planning": "#planning._id#",
+                "assignment_state": "in_progress",
+                "assigned_user": "#CONTEXT_USER_ID#",
+                "assigned_desk": "#desks._id#",
+                "lock_user": null,
+                "user": "#CONTEXT_USER_ID#",
+                "original_assigned_desk": "#desks._id#",
+                "original_assigned_user": "#CONTEXT_USER_ID#"
+            }
+        }]
+        """
+        When we get "/archive/#archive._id#"
+        Then we get existing resource
+        """
+        {
+            "assignment_id": "#firstassignment#"
+        }
+        """
+        When we get "/assignments/#firstassignment#"
+        Then we get OK response
+        Then we get existing resource
+        """
+        {
+            "_id": "#firstassignment#",
+            "planning": {
+                "ednote": "test coverage, I want 250 words",
+                "slugline": "test slugline"
+            },
+            "assigned_to": {
+                "desk": "#desks._id#",
+                "user": "#CONTEXT_USER_ID#",
+                "state": "in_progress"
+            }
+        }
+        """
+        When we set config assignment manual reassignment only to True
+        Then we store "old_assignee_id" with value "#CONTEXT_USER_ID#" to context
+        When we switch user
+        When we patch "/archive/#archive._id#"
+        """
+        {"slugline": "I'm changing the user"}
+        """
+        Then we get OK response
+        When we get "/assignments/#firstassignment#"
+        Then we get OK response
+        Then we get existing resource
+        """
+        {
+            "_id": "#firstassignment#",
+            "planning": {
+                "ednote": "test coverage, I want 250 words",
+                "slugline": "test slugline"
+            },
+            "assigned_to": {
+                "desk": "#desks._id#",
+                "state": "in_progress",
+                "user": "#old_assignee_id#"
+            }
+        }
+        """
+
+    @auth
+    @planning_cvs
+    Scenario: Coverage assignee details copied to Assignment
+        When we post to "planning"
+        """
+        [{
+            "slugline": "test slugline",
+            "planning_date": "2042-06-30",
+            "coverages": [{
+                "planning": {
+                    "slugline": "test-cov-1",
+                    "g2_content_type": "text"
+                },
+                "assigned_to": {
+                    "desk": "#desks._id#",
+                    "user": "#CONTEXT_USER_ID#",
+                    "priority": 1
+                },
+                "news_coverage_status": {"qcode": "ncostat:int"},
+                "workflow_status": "assigned"
+            }, {
+                "planning": {
+                    "slugline": "test-cov-2",
+                    "g2_content_type": "text"
+                },
+                "assigned_to": {
+                    "desk": "#desks._id#",
+                    "priority": 3,
+                    "coverage_provider": {
+                        "qcode": "stringer",
+                        "name": "Stringer"
+                    }
+                },
+                "news_coverage_status": {"qcode": "ncostat:int"},
+                "workflow_status": "assigned"
+            }]
+        }]
+        """
+        Then we get OK response
+        And we store coverage id in "COVERAGE_1_ID" from coverage 0
+        And we store coverage id in "COVERAGE_2_ID" from coverage 1
+        And we store assignment id in "ASSIGNMENT_1_ID" from coverage 0
+        And we store assignment id in "ASSIGNMENT_2_ID" from coverage 1
+        When we get "/assignments"
+        Then we get list with 2 items
+        """
+        {"_items": [
+            {
+                "_id": "#ASSIGNMENT_1_ID#",
+                "priority": 1,
+                "assigned_to": {
+                    "desk": "#desks._id#",
+                    "user": "#CONTEXT_USER_ID#",
+                    "coverage_provider": null
+                }
+            },
+            {
+                "_id": "#ASSIGNMENT_2_ID#",
+                "priority": 3,
+                "assigned_to": {
+                    "desk": "#desks._id#",
+                    "user": null,
+                    "coverage_provider": {
+                        "qcode": "stringer",
+                        "name": "Stringer"
+                    }
+                }
+            }
+        ]}
+        """
+        When we patch "/planning/#planning._id#"
+        """
+        {"coverages": [{
+            "coverage_id": "#COVERAGE_1_ID#",
+            "planning": {
+                "slugline": "test-cov-1",
+                "g2_content_type": "text"
+            },
+            "assigned_to": {
+                "assignment_id": "#ASSIGNMENT_1_ID#",
+                "desk": "#desks._id#",
+                "user": null,
+                "coverage_provider": {
+                    "qcode": "stringer",
+                    "name": "Stringer"
+                },
+                "priority": 3
+            },
+            "news_coverage_status": {"qcode": "ncostat:int"},
+            "workflow_status": "assigned"
+        }, {
+            "coverage_id": "#COVERAGE_2_ID#",
+            "planning": {
+                "slugline": "test-cov-2",
+                "g2_content_type": "text"
+            },
+            "assigned_to": {
+                "assignment_id": "#ASSIGNMENT_2_ID#",
+                "desk": "#desks._id#",
+                "user": "#CONTEXT_USER_ID#",
+                "priority": 2
+            },
+            "news_coverage_status": {"qcode": "ncostat:int"},
+            "workflow_status": "assigned"
+        }]}
+        """
+        Then we get OK response
+        When we get "/planning/#planning._id#"
+        Then we get existing resource
+        """
+        {"coverages": [{
+            "coverage_id": "#COVERAGE_1_ID#",
+            "planning": {
+                "slugline": "test-cov-1",
+                "g2_content_type": "text"
+            },
+            "assigned_to": {
+                "assignment_id": "#ASSIGNMENT_1_ID#",
+                "desk": "#desks._id#",
+                "user": null,
+                "coverage_provider": {
+                    "qcode": "stringer",
+                    "name": "Stringer"
+                },
+                "priority": 3
+            },
+            "news_coverage_status": {"qcode": "ncostat:int"},
+            "workflow_status": "assigned"
+        }, {
+            "coverage_id": "#COVERAGE_2_ID#",
+            "planning": {
+                "slugline": "test-cov-2",
+                "g2_content_type": "text"
+            },
+            "assigned_to": {
+                "assignment_id": "#ASSIGNMENT_2_ID#",
+                "desk": "#desks._id#",
+                "user": "#CONTEXT_USER_ID#",
+                "priority": 2
+            },
+            "news_coverage_status": {"qcode": "ncostat:int"},
+            "workflow_status": "assigned"
+        }]}
+        """
+        When we get "/assignments"
+        Then we get list with 2 items
+        """
+        {"_items": [{
+            "_id": "#ASSIGNMENT_1_ID#",
+            "priority": 3,
+            "assigned_to": {
+                "desk": "#desks._id#",
+                "user": null,
+                "coverage_provider": {
+                    "qcode": "stringer",
+                    "name": "Stringer"
+                }
+            }
+        },
+        {
+            "_id": "#ASSIGNMENT_2_ID#",
+            "priority": 2,
+            "assigned_to": {
+                "desk": "#desks._id#",
+                "user": "#CONTEXT_USER_ID#"
+            }
+        }]}
+        """
+
+    @auth
+    @planning_cvs
+    Scenario: Assignment reassign also update Planning autosave
+        Given we have sessions "/sessions"
+        When we post to "desks"
+        """
+        [{"name": "News", "content_expiry": 60, "members": [{"user": "#CONTEXT_USER_ID#"}]}]
+        """
+        Then we get OK response
+        And we store "NEWS_DESK_ID" with value "#desks._id#" to context
+        When we post to "planning"
+        """
+        [{
+            "item_class": "item class value",
+            "headline": "test headline",
+            "slugline": "test slugline",
+            "planning_date": "2016-01-02",
+            "coverages": [{
+                "planning": {
+                    "ednote": "test coverage, I want 250 words",
+                    "headline": "test headline",
+                    "slugline": "test slugline",
+                    "g2_content_type" : "text"
+                },
+                "assigned_to": {
+                    "desk": "#SPORTS_DESK_ID#",
+                    "user": "#CONTEXT_USER_ID#",
+                    "state": "assigned"
+                },
+                "workflow_status": "active"
+            }]
+        }]
+        """
+        Then we get OK response
+        Then we store coverage id in "coverageId" from coverage 0
+        Then we store assignment id in "assignmentId" from coverage 0
+        When we post to "/planning/#planning._id#/lock"
+        """
+        {"lock_action": "edit"}
+        """
+        Then we get OK response
+        When we post to "planning_autosave"
+        """
+        {
+            "_id": "#planning._id#",
+            "item_class": "item class value",
+            "headline": "test headline",
+            "slugline": "test slugline",
+            "planning_date": "2016-01-02",
+            "coverages": [{
+                "coverage_id": "#coverageId#",
+                "planning": {
+                    "ednote": "test coverage, I want 250 words",
+                    "headline": "test headline",
+                    "slugline": "test slugline",
+                    "g2_content_type" : "text"
+                },
+                "assigned_to": {
+                    "desk": "#SPORTS_DESK_ID#",
+                    "user": "#CONTEXT_USER_ID#",
+                    "state": "assigned",
+                    "assignment_id": "#assignmentId#"
+                },
+                "workflow_status": "active"
+            }],
+            "lock_user": "#CONTEXT_USER_ID#",
+            "lock_session": "#SESSION_ID#",
+            "lock_action": "edit",
+            "lock_time": "#DATE#"
+        }
+        """
+        Then we get OK response
+        When we post to "/assignments/#assignmentId#/lock"
+        """
+        {"lock_action": "reassign"}
+        """
+        Then we get OK response
+        When we patch "/assignments/#assignmentId#"
+        """
+        {"assigned_to": {
+            "desk": "#NEWS_DESK_ID#",
+            "user": "507f191e810c19729de87034"
+        }}
+        """
+        Then we get OK response
+        When we get "/planning_autosave/#planning._id#"
+        Then we get existing resource
+        """
+        {"coverages": [{
+            "coverage_id": "#coverageId#",
+            "assigned_to": {
+                "assignment_id": "#assignmentId#",
+                "desk": "#NEWS_DESK_ID#",
+                "user": "507f191e810c19729de87034"
+            }
+        }]}
+        """
+
+    @auth
+    @planning_cvs
+    Scenario: Assignments enhanced with Archive details
+        When we post to "/archive" with success
+        """
+        [{
+            "type": "text",
+            "headline": "test headline",
+            "slugline": "test slugline",
+            "task": {
+                "desk": "#desks._id#",
+                "stage": "#desks.incoming_stage#"
+            }
+        }]
+        """
+        When we post to "/planning" with success
+        """
+        [{
+            "item_class": "item class value",
+            "slugline": "test slugline",
+            "planning_date": "2016-01-02",
+            "coverages": [{
+                "planning": {
+                    "ednote": "test coverage, I want 250 words",
+                    "slugline": "test slugline"
+                },
+                "assigned_to": {
+                    "desk": "#desks._id#",
+                    "user": "#CONTEXT_USER_ID#"
+                },
+                "workflow_status": "active"
+            }]
+        }]
+        """
+        Then we store assignment id in "assignmentId" from coverage 0
+        When we post to "assignments/link" with success
+        """
+        [{
+            "assignment_id": "#assignmentId#",
+            "item_id": "#archive._id#",
+            "reassign": true
+        }]
+        """
+        When we get "assignments"
+        Then we get list with 1 items
+        """
+        {"_items": [{
+            "_id": "#assignmentId#",
+            "item_ids": ["#archive._id#"],
+            "linked_items": [{
+                "_id": "#archive._id#",
+                "_type": "#archive._type#",
+                "event_id": "#archive.event_id#",
+                "body_html": "__no_value__"
+            }]
+        }]}
         """

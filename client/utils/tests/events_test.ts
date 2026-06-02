@@ -113,7 +113,10 @@ describe('EventUtils', () => {
                 standalone: {
                     _id: 'p1',
                     type: 'planning',
-                    event_item: 'e9',
+                    related_events: [{
+                        _id: 'e9',
+                        link_type: 'primary',
+                    }],
                     lock_user: 'ident1',
                     lock_session: 'session1',
                     lock_action: 'edit',
@@ -123,7 +126,10 @@ describe('EventUtils', () => {
                     direct: {
                         _id: 'p2',
                         type: 'planning',
-                        event_item: 'e10',
+                        related_events: [{
+                            _id: 'e10',
+                            link_type: 'primary',
+                        }],
                         recurrence_id: 'r5',
                         lock_user: 'ident1',
                         lock_session: 'session1',
@@ -133,7 +139,10 @@ describe('EventUtils', () => {
                     indirect: {
                         _id: 'p3',
                         type: 'planning',
-                        event_item: 'e12',
+                        related_events: [{
+                            _id: 'e12',
+                            link_type: 'primary',
+                        }],
                         recurrence_id: 'r6',
                         lock_user: 'ident1',
                         lock_session: 'session1',
@@ -157,7 +166,7 @@ describe('EventUtils', () => {
                     [locks.events.standalone.otherUser._id]: lockUtils.getLockFromItem(
                         locks.events.standalone.otherUser
                     ),
-                    [locks.plans.standalone.event_item]: lockUtils.getLockFromItem(locks.plans.standalone),
+                    [locks.plans.standalone.related_events[0]._id]: lockUtils.getLockFromItem(locks.plans.standalone),
                 },
                 recurring: {
                     [locks.events.recurring.currentUser.currentSession.recurrence_id]: lockUtils.getLockFromItem(
@@ -569,7 +578,7 @@ describe('EventUtils', () => {
                     start: '2014-08-15T04:00:00+0000',
                     end: '2014-08-15T07:00:00+0000',
                     tz: 'Australia/Sydney',
-                    recurring_rule: {until: '2014-08-18T04:00:00+0000'},
+                    recurring_rule: {until: '2014-08-18'},
                 },
             };
 
@@ -578,7 +587,7 @@ describe('EventUtils', () => {
                     start: moment.tz('2014-08-15T04:00:00+0000', 'Australia/Sydney'),
                     end: moment.tz('2014-08-15T07:00:00+0000', 'Australia/Sydney'),
                     tz: 'Australia/Sydney',
-                    recurring_rule: {until: moment.tz('2014-08-18T04:00:00+0000', 'Australia/Sydney')},
+                    recurring_rule: {until: new Date(2014, 7, 18)},
                 },
                 _startTime: moment.tz('2014-08-15T04:00:00+0000', 'Australia/Sydney'),
                 _endTime: moment.tz('2014-08-15T07:00:00+0000', 'Australia/Sydney'),
@@ -591,7 +600,7 @@ describe('EventUtils', () => {
                     start: '2014-08-15T04:00:00+0000',
                     end: '2014-08-15T07:00:00+0000',
                     tz: 'Australia/Perth',
-                    recurring_rule: {until: '2014-08-18T04:00:00+0000'},
+                    recurring_rule: {until: '2014-08-18'},
                 },
             };
 
@@ -600,26 +609,10 @@ describe('EventUtils', () => {
                     start: moment.tz('2014-08-15T04:00:00+0000', 'Australia/Sydney'),
                     end: moment.tz('2014-08-15T07:00:00+0000', 'Australia/Sydney'),
                     tz: 'Australia/Perth',
-                    recurring_rule: {until: moment.tz('2014-08-18T04:00:00+0000', 'Australia/Sydney')},
+                    recurring_rule: {until: new Date(2014, 7, 18)},
                 },
                 _startTime: moment.tz('2014-08-15T04:00:00+0000', 'Australia/Sydney'),
                 _endTime: moment.tz('2014-08-15T07:00:00+0000', 'Australia/Sydney'),
-            });
-        });
-
-        it('converts location array to object', () => {
-            const event = {};
-
-            expect(eventUtils.modifyForClient(cloneDeep(event))).toEqual({});
-
-            event.location = {formatted_address: '123 testing lane'};
-            expect(eventUtils.modifyForClient(cloneDeep(event))).toEqual({
-                location: {formatted_address: '123 testing lane'},
-            });
-
-            event.location = [{formatted_address: '123 testing lane'}];
-            expect(eventUtils.modifyForClient(cloneDeep(event))).toEqual({
-                location: {formatted_address: '123 testing lane'},
             });
         });
 

@@ -4,7 +4,6 @@ import {connect} from 'react-redux';
 import {IDesk, IUser, IVocabularyItem} from 'superdesk-api';
 import {
     IPlanningNewsCoverageStatus,
-    IPlanningConfig,
     IPlanningContentProfile,
     IEventItem,
     ISearchProfile
@@ -12,14 +11,13 @@ import {
 import {ICoverageDetails} from './CoverageRowForm';
 import {superdeskApi, planningApi} from '../../../../superdeskApi';
 import {getDesksForUser, getUsersForDesk} from '../../../../utils';
+import {getNewsCoverageStatusPlanned} from '../../../../utils/vocabularies';
 import {Select, Option} from 'superdesk-ui-framework/react';
 import * as List from '../../../UI/List';
 import {Row} from '../../../UI/Form';
 import {EditorFieldNewsCoverageStatus} from '../NewsCoverageStatus';
-import * as config from 'appConfig';
+import {appConfig} from 'appConfig';
 import {getLanguagesForTreeSelectInput} from '../../../../selectors/vocabs';
-
-const appConfig = config.appConfig as IPlanningConfig;
 
 interface IProps {
     coverage: ICoverageDetails;
@@ -65,7 +63,7 @@ function getLanguagesForCoverage(
 
     const language = (() => {
         if (isMultilingual) {
-            return event.languages.find((qcode) => (
+            return (event.languages ?? []).find((qcode) => (
                 coverageLanguage?.value?.qcode === qcode
             ));
         } else {
@@ -104,14 +102,32 @@ export class EmbeddedCoverageFormComponent extends React.PureComponent<IProps, I
             ? null
             : this.props.desks.find((desk) => desk._id === deskId);
 
+        const coverageLanguage = this.props.coverage.language;
+        const deskLanguage = newDesk?.desk_language;
+
         const updates: Partial<ICoverageDetails> = {
             desk: newDesk,
             filteredUsers: getUsersForDesk(newDesk, this.props.users),
             user: null,
         };
 
-        if ((this.props.coverage.language ?? '').length < 1) {
-            updates.language = newDesk?.desk_language ?? null;
+        if (appConfig.planning.manual_news_coverage_status !== true) {
+            // If there is an assignment and coverage status not planned,
+            // change it to 'planned'
+            const plannedStatus = getNewsCoverageStatusPlanned();
+
+            if (this.props.coverage.status?.qcode !== plannedStatus.qcode && newDesk != null) {
+                updates.status = plannedStatus;
+            }
+        }
+
+        const hasDeskLanguage = deskLanguage != null;
+        const noCoverageLanguageSet = coverageLanguage == null;
+        const matchesPreviousDeskLanguage =
+            coverageLanguage === this.props.coverage.desk?.desk_language;
+
+        if (hasDeskLanguage && (noCoverageLanguageSet || matchesPreviousDeskLanguage)) {
+            updates.language = deskLanguage;
         }
 
         this.props.update(updates);
@@ -185,6 +201,7 @@ export class EmbeddedCoverageFormComponent extends React.PureComponent<IProps, I
                             style={{padding: '2rem 0'}}
                         >
                             <SelectUser
+                                key={coverage.desk?._id}
                                 deskId={coverage.desk?._id}
                                 onSelect={(user) => {
                                     this.onUserChange(null, user);

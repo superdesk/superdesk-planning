@@ -1,7 +1,14 @@
 import React from 'react';
-import {cloneDeep, isEqual} from 'lodash';
+import {cloneDeep, isEqual, omit} from 'lodash';
 
-import {EDITOR_TYPE, IEditorAPI, IEditorProps, IEditorState} from '../../../interfaces';
+import {
+    EDITOR_TYPE,
+    IEditorAPI,
+    IEditorProps,
+    IEditorState,
+    IEventOrPlanningItem,
+    IPlanningItem,
+} from '../../../interfaces';
 import {planningApi, superdeskApi} from '../../../superdeskApi';
 import {ITEM_TYPE, UI} from '../../../constants';
 
@@ -12,12 +19,14 @@ import {EventEditor} from '../../Events';
 import {PlanningEditor} from '../../Planning';
 import {Tabs as NavTabs} from '../../UI/Nav';
 import {Content, SidePanel} from '../../UI/SidePanel';
-import {EditorHeader} from './index';
 import {HistoryTab} from '../index';
 import {EditorPopupForm} from '../../Editor/EditorPopupForm';
 
 import {ItemManager} from './ItemManager';
 import {AutoSave} from './AutoSave';
+import {EditorHeader} from './EditorHeader';
+import {pickRelatedEventsForPlanning} from './../../../utils/planning';
+import {areEmbeddedItemsDirty} from '../../../components/editor-standalone/utils';
 
 export class EditorComponent extends React.Component<IEditorProps, IEditorState> {
     autoSave: AutoSave;
@@ -57,7 +66,8 @@ export class EditorComponent extends React.Component<IEditorProps, IEditorState>
                 tabProps: {
                     forEditor: !this.props.inModalView,
                     forEditorModal: this.props.inModalView,
-                }},
+                }
+            },
         ];
 
         if (this.props.addNewsItemToPlanning) {
@@ -155,8 +165,19 @@ export class EditorComponent extends React.Component<IEditorProps, IEditorState>
             });
     }
 
-    isDirty(initialValues, diff) {
-        return !itemsEqual(diff, initialValues);
+    isDirty(
+        initialValues: Partial<IEventOrPlanningItem>,
+        diff: Partial<IEventOrPlanningItem>,
+        checkRelatedItemsChanges = true,
+    ) {
+        const embeddedItemsAreDirty = checkRelatedItemsChanges ? areEmbeddedItemsDirty(initialValues, diff) : false;
+        const fieldsToOmit = ['associated_plannings', '_unsaved_related_events', 'embedded_planning'];
+
+        if (!checkRelatedItemsChanges) {
+            fieldsToOmit.push('related_events');
+        }
+
+        return embeddedItemsAreDirty || !itemsEqual(omit(diff, fieldsToOmit), omit(initialValues, fieldsToOmit));
     }
 
     updateTabLabels(nextProps) {
@@ -194,68 +215,55 @@ export class EditorComponent extends React.Component<IEditorProps, IEditorState>
             return;
         }
 
-        this.autoSave.flushAutosave()
-            .then(() => {
-                const {
-                    openCancelModal,
-                    itemId,
-                    itemType,
-                    addNewsItemToPlanning,
-                } = this.props;
-                const {dirty, errorMessages, initialValues} = this.state;
+        this.autoSave.flushAutosave().then(() => {
+            const {openCancelModal, itemId, itemType, addNewsItemToPlanning} = this.props;
+            const {errorMessages, initialValues, diff} = this.state;
+            const updateStates = !addNewsItemToPlanning;
 
-                this.setState({submitting: true});
+            this.setState({submitting: true});
 
-                const updateStates = !addNewsItemToPlanning;
+            const isDirty = this.isDirty(initialValues, diff, false);
 
-                if (!dirty) {
-                    this.onCancel();
-                } else {
-                    const hasErrors = !isEqual(errorMessages, []);
-                    const isKilled = isItemKilled(initialValues);
+            if (isDirty) {
+                const hasErrors = !isEqual(errorMessages, []);
+                const isKilled = isItemKilled(initialValues);
+                const onSave = (isKilled || hasErrors) ? null : (withConfirmation, updateMethod) => (
+                    this.itemManager.save(
+                        withConfirmation,
+                        {name: updateMethod, value: updateMethod},
+                        true,
+                        updateStates,
+                    )
+                );
+                const onSaveAndPost = (!isKilled || hasErrors) ? null : (withConfirmation, updateMethod) => (
+                    this.itemManager.saveAndPost(
+                        withConfirmation,
+                        updateMethod,
+                        true,
+                        updateStates,
+                    )
+                );
 
-                    const onCancel = () => {
+                openCancelModal({
+                    itemId: itemId,
+                    itemType: itemType,
+                    onCancel: () => {
                         if (updateStates) {
                             this.setState({submitting: false});
                         }
-                    };
-
-                    const onIgnore = () => {
+                    },
+                    onIgnore: () => {
                         this.itemManager.unlockAndCancel();
-                    };
-
-                    const onSave = (isKilled || hasErrors) ? null :
-                        (withConfirmation, updateMethod, planningUpdateMethods) => (
-                            this.itemManager.save(
-                                withConfirmation,
-                                {name: updateMethod, value: updateMethod},
-                                true,
-                                updateStates,
-                                planningUpdateMethods
-                            )
-                        );
-
-                    const onSaveAndPost = (!isKilled || hasErrors) ? null :
-                        (withConfirmation, updateMethod, planningUpdateMethods) => (
-                            this.itemManager.saveAndPost(
-                                withConfirmation,
-                                updateMethod,
-                                true,
-                                updateStates,
-                                planningUpdateMethods
-                            )
-                        );
-
-                    openCancelModal({
-                        itemId: itemId,
-                        itemType: itemType,
-                        onCancel: onCancel,
-                        onIgnore: onIgnore,
-                        onSave: onSave,
-                        onSaveAndPost: onSaveAndPost,
-                    });
-                }
-            });
+                    },
+                    onSave: onSave,
+                    onSaveAndPost: onSaveAndPost,
+                });
+            } else {
+                this.itemManager.unlockAndCancel().then(() => {
+                    this.onCancel();
+                });
+            }
+        });
     }
 
     onCancel(updateStates = true) {
@@ -368,7 +376,13 @@ export class EditorComponent extends React.Component<IEditorProps, IEditorState>
                         {...currentTab.tabProps}
                         inModalView={this.props.inModalView}
                         plannings={this.props.associatedPlannings}
-                        event={this.props.associatedEvent}
+                        event={
+                            pickRelatedEventsForPlanning(
+                                this.props.item as IPlanningItem,
+                                (this.props.associatedEvents ?? []),
+                                'logic',
+                            )?.[0] ?? undefined // TAG: MULTIPLE_PRIMARY_EVENTS
+                        }
                         itemManager={this.itemManager}
                         activeNav={this.state.activeNav}
                         groups={this.props.groups ?? []}
@@ -422,7 +436,7 @@ export class EditorComponent extends React.Component<IEditorProps, IEditorState>
                     hideItemActions={this.props.hideItemActions}
                     hideMinimize={this.props.hideMinimize}
                     hideExternalEdit={this.props.hideExternalEdit}
-                    associatedEvent={this.props.associatedEvent}
+                    associatedEvents={this.props.associatedEvents}
                     associatedPlannings={this.props.associatedPlannings}
                     loading={this.state.loading}
                     itemManager={this.itemManager}

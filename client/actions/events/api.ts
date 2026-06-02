@@ -1,7 +1,15 @@
-import {get, isEqual, cloneDeep, pickBy, has, find, every, take} from 'lodash';
+import {get, cloneDeep, has, find, every, take} from 'lodash';
 
-import {planningApi} from '../../superdeskApi';
-import {ISearchSpikeState, IEventSearchParams, IEventItem, IPlanningItem, IEventTemplate} from '../../interfaces';
+import {planningApi, superdeskApi} from '../../superdeskApi';
+import {
+    ISearchSpikeState,
+    IEventSearchParams,
+    IEventItem,
+    IPlanningItem,
+    IEventTemplate,
+    IEventUpdateMethod,
+    IPlanningRelatedEventLinkType,
+} from '../../interfaces';
 import {appConfig} from 'appConfig';
 
 import {
@@ -17,15 +25,16 @@ import {
     isExistingItem,
     isValidFileInput,
     isPublishedItemId,
-    isTemporaryId,
     gettext,
-    getTimeZoneOffset,
 } from '../../utils';
 
 import planningApis from '../planning/api';
 import eventsUi from './ui';
 import main from '../main';
 import {eventParamsToSearchParams} from '../../utils/search';
+import {getRelatedEventIdsForPlanning} from '../../utils/planning';
+import {planning} from '../../api/planning';
+import {areEmbeddedItemsDirty} from '../../components/editor-standalone/utils';
 
 /**
  * Action dispatcher to load a series of recurring events into the local store.
@@ -213,7 +222,7 @@ function loadEventDataForAction(
             _relatedPlannings: loadEveryRecurringPlanning ?
                 items.plannings :
                 items.plannings.filter(
-                    (item) => item.event_item === event._id
+                    (item) => getRelatedEventIdsForPlanning(item, 'primary').includes(event._id)
                 ),
         }));
 }
@@ -316,7 +325,7 @@ const fetchById = (eventId, {force = false, saveToStore = true, loadPlanning = t
         if (has(storedEvents, eventId) && !force) {
             promise = Promise.resolve(storedEvents[eventId]);
         } else {
-            promise = planningApi.events.getById(eventId)
+            promise = planningApi.events.getById(eventId, force ? {cache: false} : undefined)
                 .then((event) => {
                     if (saveToStore) {
                         dispatch(self.receiveEvents([event]));
@@ -329,10 +338,13 @@ const fetchById = (eventId, {force = false, saveToStore = true, loadPlanning = t
         return promise.then((event) => {
             if (loadPlanning) {
                 return dispatch(self.loadAssociatedPlannings(event))
-                    .then(
-                        () => Promise.resolve(event),
-                        (error) => Promise.reject(error)
-                    );
+                    .then((plannings) => {
+                        return Promise.resolve({
+                            ...event,
+                            associated_plannings: plannings,
+                        });
+                    })
+                    .catch((error) => Promise.reject(error));
             }
 
             return Promise.resolve(event);
@@ -438,7 +450,11 @@ const updateEventTime = (original, updates) => (
             original,
             {
                 update_method: get(updates, 'update_method.value', EVENTS.UPDATE_METHODS[0].value),
-                dates: updates.dates,
+                dates: {
+                    ...updates.dates,
+                    no_end_time: false,
+                    all_day: false,
+                },
                 [TO_BE_CONFIRMED_FIELD]: false,
             }
         );
@@ -479,11 +495,11 @@ function markEventPostponed(event: IEventItem, reason: string, actionedDate: str
     };
 }
 
-const markEventHasPlannings = (event, planning) => ({
-    type: EVENTS.ACTIONS.MARK_EVENT_HAS_PLANNINGS,
+const setEventPlannings = (event_id, planning_ids) => ({
+    type: EVENTS.ACTIONS.SET_EVENT_PLANNINGS,
     payload: {
-        event_item: event,
-        planning_item: planning,
+        event_id,
+        planning_ids,
     },
 });
 
@@ -546,6 +562,67 @@ const uploadFiles = (event) => (
     }
 );
 
+function updateLinkedPlanningsForEvent(
+    eventId: IEventItem['_id'],
+
+    /**
+     * these must be final values
+     * missing items will be linked, extra items unlinked
+     */
+    associatedPlannings: Array<IPlanningItem>,
+
+    linkTypeMap: Map<string, IPlanningRelatedEventLinkType>,
+): Promise<Array<IPlanningItem>> {
+    return planningApi.events.getLinkedPlanningItems(eventId).then((currentlyLinked) => {
+        const currentLinkedIds = new Set(currentlyLinked.map((item) => item._id));
+        const toLink: Array<IPlanningItem> = associatedPlannings
+            .filter(({_id}) => currentLinkedIds.has(_id) !== true);
+        const toUnlink: Array<IPlanningItem> = currentlyLinked
+            .filter((item) => associatedPlannings.find(({_id}) => _id === item._id) == null);
+        const associatedPlanningIds = associatedPlannings.map(({_id}) => _id);
+
+        return planningApi.planning.getByIds(associatedPlanningIds, undefined)
+            .then((allPlanningItems) => Promise.all([
+                ...toLink.map((oldPlanning) => {
+                    const planningItem = allPlanningItems.find((x) => x._id === oldPlanning._id);
+                    // TODO: does not handle one primary many secondary
+                    const linkType = oldPlanning._temporary?.link_type ?? linkTypeMap.get(oldPlanning._id);
+
+                    const patch: Partial<IPlanningItem> = {
+                        related_events: [
+                            ...(planningItem.related_events ?? []),
+                            {_id: eventId, link_type: linkType},
+                        ],
+                    };
+
+                    return planning.update(planningItem, patch);
+                }),
+                ...toUnlink.map((planningItem) => {
+                    const patch: Partial<IPlanningItem> = {
+                        related_events: (planningItem.related_events ?? [])
+                            .filter((item) => item._id !== eventId),
+                    };
+
+                    return planning.update(planningItem, patch);
+                }),
+            ]).then((updatedPlanningItems) => {
+                planningApi.redux.store.dispatch<any>(planningApis.receivePlannings(updatedPlanningItems));
+
+                if (associatedPlanningIds.length > 0) {
+                    const updatedPlanningIds = updatedPlanningItems.map((x) => x._id);
+
+                    // In cases there's no new links, we still want to return all
+                    // related planning items. Existing link data doesn't change here
+                    // (besides new links and ones to be removed), // but this result is used to update the UI.
+                    return [
+                        ...associatedPlannings.filter((x) => !updatedPlanningIds.includes(x._id)),
+                        ...updatedPlanningItems.filter((x) => associatedPlanningIds.includes(x._id)),
+                    ];
+                }
+            }));
+    });
+}
+
 const save = (original, updates) => (
     (dispatch) => {
         let promise;
@@ -564,18 +641,71 @@ const save = (original, updates) => (
             const originalItem = eventUtils.modifyForServer(cloneDeep(originalEvent), true);
             const eventUpdates = eventUtils.getEventDiff(originalItem, updates);
 
-            if (get(originalItem, 'lock_action') === EVENTS.ITEM_ACTIONS.EDIT_EVENT.lock_action &&
-                !isTemporaryId(originalItem._id)
-            ) {
-                delete eventUpdates.dates;
-            }
-            eventUpdates.update_method = eventUpdates.update_method == null ?
-                EVENTS.UPDATE_METHODS[0].value :
-                eventUpdates.update_method?.value ?? eventUpdates.update_method;
+            eventUpdates.update_method = eventUpdates.update_method == null
+                ? EVENTS.UPDATE_METHODS[0].value as IEventUpdateMethod
+                : eventUpdates.update_method ?? eventUpdates.update_method;
 
-            return originalEvent?._id != null ?
-                planningApi.events.update(originalItem, eventUpdates) :
-                planningApi.events.create(eventUpdates);
+            const createOrUpdatePromise = originalEvent?._id != null
+                ? planningApi.events.update(originalItem, eventUpdates)
+                : planningApi.events.create(eventUpdates);
+
+            return createOrUpdatePromise.then(([updatedEvent]: Array<IEventItem>) => {
+                const haveLinksChanged = updatedEvent?._id
+                    ? areEmbeddedItemsDirty(
+                        originalEvent,
+                        // `embedded_planning` is returned from server. In the UI we interact with associated_plannings.
+                        // to keep `areEmbeddedItemsDirty` reusable we convert the updatedEvent
+                        // to the expected input of the function
+                        {
+                            ...updatedEvent,
+                            associated_plannings: (updatedEvent.embedded_planning ?? []).map((x) =>
+                                ({_id: x.planning_id})
+                            ),
+                        } satisfies IEventItem,
+                    )
+                    : false;
+
+                if (!haveLinksChanged) {
+                    return [updatedEvent];
+                } else {
+                    // Build a map of planning IDs to their link types for new links
+                    const linkTypeMap = new Map<string, IPlanningRelatedEventLinkType>();
+                    const originalPlanningIds = new Set(
+                        (originalEvent.associated_plannings ?? []).map((p) => p._id)
+                    );
+
+                    // Only calculate link type for newly added planning items
+                    let primaryCount = 0;
+
+                    (updates.associated_plannings ?? []).forEach((planning) => {
+                        const isNewLink = !originalPlanningIds.has(planning._id);
+
+                        if (isNewLink) {
+                            // For methods that support primary links, make the first new one primary
+                            if ((appConfig.planning_event_link_method === 'one_primary' ||
+                                appConfig.planning_event_link_method === 'one_primary_many_secondary') &&
+                                primaryCount === 0) {
+                                linkTypeMap.set(planning._id, 'primary');
+                                primaryCount++;
+                            } else {
+                                linkTypeMap.set(planning._id, 'secondary');
+                            }
+                        }
+                    });
+
+                    return updateLinkedPlanningsForEvent(
+                        updatedEvent._id,
+                        updates.associated_plannings,
+                        linkTypeMap,
+                    ).then((updatedPlannings) => {
+                        // Update associated events, so if a link has been added/removed etags are updated
+                        // after the change in planning items
+                        updatedEvent.associated_plannings = updatedPlannings;
+
+                        return [updatedEvent];
+                    });
+                }
+            });
         });
     }
 );
@@ -682,8 +812,8 @@ const createEventTemplate = (item: IEventItem) => (dispatch, getState, {api, mod
                                 coverages: planning.coverages.map((coverage) => ({
                                     coverage_id: coverage.coverage_id,
                                     g2_content_type: coverage.planning.g2_content_type,
-                                    desk: coverage.assigned_to.desk,
-                                    user: coverage.assigned_to.user,
+                                    desk: coverage.assigned_to?.desk,
+                                    user: coverage.assigned_to?.user,
                                     language: coverage.planning.language,
                                     news_coverage_status: coverage.news_coverage_status.qcode,
                                     scheduled: coverage.planning.scheduled,
@@ -756,7 +886,7 @@ const self = {
     silentlyFetchEventsById,
     cancelEvent,
     markEventCancelled,
-    markEventHasPlannings,
+    setEventPlannings,
     rescheduleEvent,
     updateEventTime,
     markEventPostponed,

@@ -8,11 +8,16 @@
 
 """Superdesk Files"""
 
-from superdesk import Resource, get_resource_service
-from planning.history import HistoryService
 import logging
-from eve.utils import config
 from copy import deepcopy
+from typing import Any, TypedDict
+
+from planning.types.event import EventResourceModel
+
+from superdesk.resource_fields import ID_FIELD
+from superdesk import Resource
+from planning.utils import get_related_planning_for_events
+from planning.history import HistoryService
 from planning.item_lock import LOCK_ACTION
 
 logger = logging.getLogger(__name__)
@@ -22,12 +27,25 @@ class EventsHistoryResource(Resource):
     endpoint_name = "events_history"
     resource_methods = ["GET"]
     item_methods = ["GET"]
+
     schema = {
         "event_id": {"type": "string"},
         "user_id": Resource.rel("users", True),
         "operation": {"type": "string"},
         "update": {"type": "dict", "nullable": True},
     }
+    internal_resource = True
+
+    mongo_indexes = {
+        "event_id_1": ([("event_id", 1)], {"background": True}),
+    }
+
+
+class EventHistoryRecord(TypedDict):
+    event_id: str
+    user_id: str
+    operation: str
+    update: dict[str, Any]
 
 
 class EventsHistoryService(HistoryService):
@@ -35,8 +53,11 @@ class EventsHistoryService(HistoryService):
         created_from_planning = []
         regular_events = []
         for item in items:
-            planning_items = get_resource_service("events").get_plannings_for_event(item)
-            if planning_items.count() > 0:
+            if isinstance(item, EventResourceModel):
+                item = item.to_dict()
+
+            planning_items = get_related_planning_for_events([item[ID_FIELD]], "primary")
+            if len(planning_items) > 0:
                 item["created_from_planning"] = planning_items[0].get("_id")
                 created_from_planning.append(item)
             else:
@@ -46,7 +67,7 @@ class EventsHistoryService(HistoryService):
         super().on_item_created(regular_events)
 
     def on_item_deleted(self, doc):
-        lookup = {"event_id": doc[config.ID_FIELD]}
+        lookup = {"event_id": doc[ID_FIELD]}
         self.delete(lookup=lookup)
 
     def on_item_updated(self, updates, original, operation=None):
@@ -65,7 +86,7 @@ class EventsHistoryService(HistoryService):
 
     def _save_history(self, event, update, operation):
         history = {
-            "event_id": event[config.ID_FIELD],
+            "event_id": event[ID_FIELD],
             "user_id": self.get_user_id(),
             "operation": operation,
             "update": update,
@@ -85,3 +106,15 @@ class EventsHistoryService(HistoryService):
 
     def on_update_time(self, updates, original):
         self.on_item_updated(updates, original, "update_time")
+
+    def get_by_id(self, _id: str) -> list[EventHistoryRecord]:
+        records = self.find(where={"event_id": _id})
+        return [
+            {
+                "event_id": record.get("event_id"),
+                "user_id": record.get("user_id"),
+                "operation": record.get("operation"),
+                "update": record.get("update"),
+            }
+            for record in records
+        ]

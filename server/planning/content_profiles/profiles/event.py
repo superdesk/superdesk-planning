@@ -10,7 +10,7 @@
 
 import superdesk.schema as schema
 
-from .fields import BaseSchema, subjectField, TextField, StringField, LanguageField, DateTimeField
+from .fields import BaseSchema, subjectField, TextField, StringField, LanguageField, DateOptionalTimeField
 
 
 class EventSchema(BaseSchema):
@@ -30,7 +30,7 @@ class EventSchema(BaseSchema):
     internal_note = TextField(field_type="multi_line", expandable=True)
     language = LanguageField()
     links = schema.ListField()
-    location = schema.StringField()
+    location = schema.ListField()
     name = TextField(required=True, field_type="single_line")
     occur_status = schema.DictField()
     occur_status.schema["schema"] = {
@@ -47,11 +47,13 @@ class EventSchema(BaseSchema):
     related_plannings = schema.ListField()
     related_plannings.schema["read_only"] = False
     related_plannings.schema["planning_auto_publish"] = False
+    related_plannings.schema["cancel_plan_with_event"] = True
     registration_details = TextField(field_type="multi_line")
     invitation_details = TextField(field_type="multi_line")
     accreditation_info = TextField(field_type="single_line")
-    accreditation_deadline = DateTimeField()
+    accreditation_deadline = DateOptionalTimeField()
     priority = schema.IntegerField()
+    urgency = schema.IntegerField()
     related_items = schema.ListField()
 
 
@@ -117,6 +119,11 @@ DEFAULT_EVENT_PROFILE = {
             "group": "description",
             "index": 9,
         },
+        "urgency": {
+            "enabled": False,
+            "group": "description",
+            "index": 10,
+        },
         # Location Group
         "location": {
             "enabled": True,
@@ -172,8 +179,6 @@ DEFAULT_EVENT_PROFILE = {
             "group": "related_plannings",
             "index": 1,
         },
-        # Fields disabled by default
-        "custom_vocabularies": {"enabled": False},
         "registration_details": {"enabled": False},
         "invitation_details": {"enabled": False},
         "accreditation_info": {"enabled": False},

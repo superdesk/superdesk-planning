@@ -1,40 +1,16 @@
-# -*- coding: utf-8; -*-
-#
-# This file is part of Superdesk.
-#
-# Copyright 2013, 2014, 2015, 2016, 2017, 2018 Sourcefabric z.u. and contributors.
-#
-# For the full copyright and license information, please see the
-# AUTHORS and LICENSE files distributed with this source code, or
-# at https://www.sourcefabric.org/superdesk/license
-
-from typing import List
-
-from superdesk import Resource, Service, get_resource_service
-from superdesk.metadata.item import ITEM_TYPE
-from superdesk.logging import logger
-
-from apps.validate.validate import SchemaValidator as Validator
-
+import logging
 from copy import deepcopy
+from typing import Any
 
+from superdesk import get_resource_service
+from apps.validate.validate import SchemaValidator as Validator
+from superdesk.metadata.item import ITEM_TYPE
+from planning.content_profiles.utils import get_enabled_fields
+from planning.content_profiles import PlanningTypesAsyncService
+from planning.types import Event
+
+logger = logging.getLogger(__name__)
 REQUIRED_ERROR = "{} is a required field"
-
-
-def get_validator_schema(schema):
-    """Get schema for given data that will work with validator.
-
-    - if field is required without minlength set make sure it's not empty
-    - if there are keys with None value - remove them
-
-    :param schema
-    """
-    validator_schema = {key: val for key, val in schema.items() if val is not None}
-
-    if validator_schema.get("required") and not validator_schema.get("minlength"):
-        validator_schema.setdefault("empty", False)
-
-    return validator_schema
 
 
 class SchemaValidator(Validator):
@@ -84,6 +60,12 @@ class SchemaValidator(Validator):
         """
         pass
 
+    def _validate_cancel_plan_with_event(self, cancel_plan_with_event, field, value):
+        """
+        {'type': 'boolean', 'nullable': True}
+        """
+        pass
+
     def _validate_default_language(self, default_language, field, value):
         """
         {'type': string, 'nullable': True}
@@ -102,71 +84,109 @@ class SchemaValidator(Validator):
         """
         pass
 
+    def _validate_vocabularies(self, vocabularies, field, value):
+        """
+        {'type': 'list', 'nullable': True}
+        """
+        pass
 
-class PlanningValidateResource(Resource):
-    endpoint_name = "planning_validator"
-    schema = {
-        "validate_on_post": {"type": "boolean", "default": False},
-        "type": {"type": "string", "required": True},
-        "validate": {"type": "dict", "required": True},
+    def _validate_show_in_embedded_editor(self, show_in_embedded_editor, field, value):
+        """
+        {'type': 'boolean', 'nullable': True}
+        """
+
+        # Ignore this profile as it's for the front-end embedded editor
+        pass
+
+
+def get_validator_schema(schema) -> dict:
+    """Get schema for given data that will work with validator.
+
+    - if field is required without minlength set make sure it's not empty
+    - if there are keys with None value - remove them
+
+    :param schema
+    """
+    validator_schema = {key: val for key, val in schema.items() if val is not None}
+
+    if validator_schema.get("required") and not validator_schema.get("minlength"):
+        validator_schema.setdefault("empty", False)
+
+    return validator_schema
+
+
+def get_filtered_validator_schema(validator, validate_on_post: bool) -> dict:
+    """
+    Get schema for a given validator, excluding fields with None values,
+    and only include fields that are in enabled_fields.
+    When no editor configuration is present, all schema fields are considered enabled.
+    """
+
+    enabled_fields = get_enabled_fields(validator) if validator.get("editor") else None
+    return {
+        field: get_validator_schema(field_schema)
+        for field, field_schema in validator["schema"].items()
+        if (enabled_fields is None or field in enabled_fields)
+        and field_schema
+        and field_schema.get("validate_on_post", False) == validate_on_post
     }
 
-    resource_methods = ["POST"]
-    item_methods: List[str] = []
+
+async def get_validator(item: dict, item_type: str) -> Event | None:
+    """Get validators from planning types service."""
+    if item_type == "coverage" and item.get("profile"):
+        profile = get_resource_service("coverage_profiles").find_one(req=None, _id=item["profile"])
+        if profile:
+            return profile
+
+    validator = await PlanningTypesAsyncService().find_one(req=None, name=item_type)
+
+    return validator.to_dict() if validator else None
 
 
-class PlanningValidateService(Service):
-    def create(self, docs, **kwargs):
-        for doc in docs:
-            test_doc = deepcopy(doc)
-            doc["errors"] = self._validate(test_doc)
+async def validate_doc(item: dict, item_type: str, validate_on_post: bool = False) -> list:
+    validator = await get_validator(item, item_type)
 
-        return [doc["errors"] for doc in docs]
+    if validator is None:
+        logger.warn("Validator was not found for type:{}".format(item_type))
+        return []
 
-    def _get_validator(self, doc):
-        """Get validators."""
-        return get_resource_service("planning_types").find_one(req=None, name=doc[ITEM_TYPE])
+    validation_schema = get_filtered_validator_schema(validator, validate_on_post)
 
-    def _get_validator_schema(self, validator, validate_on_post):
-        """Get schema for given validator.
+    v = SchemaValidator()
+    v.allow_unknown = True
 
-        And make sure there is no `None` value which would raise an exception.
-        """
-        return {
-            field: get_validator_schema(schema)
-            for field, schema in validator["schema"].items()
-            if schema and schema.get("validate_on_post", False) == validate_on_post
-        }
+    try:
+        v.validate(item, validation_schema)
+    except TypeError as e:
+        logger.exception('Invalid validator schema value "%s" for ' % str(e))
 
-    def _validate(self, doc):
-        validator = self._get_validator(doc)
+    error_list = v.errors
+    response = []
+    for field in error_list:
+        error = error_list[field]
 
-        if validator is None:
-            logger.warn("Validator was not found for type:{}".format(doc[ITEM_TYPE]))
-            return []
+        # If error is a list, only return the first error
+        if isinstance(error, list):
+            error = error[0]
 
-        validation_schema = self._get_validator_schema(validator, doc.get("validate_on_post"))
+        if error == "empty values not allowed" or error == "required field":
+            response.append(REQUIRED_ERROR.format(field.upper()))
+        else:
+            response.append("{} {}".format(field.upper(), error))
 
-        v = SchemaValidator()
-        v.allow_unknown = True
+    return response
 
-        try:
-            v.validate(doc["validate"], validation_schema)
-        except TypeError as e:
-            logger.exception('Invalid validator schema value "%s" for ' % str(e))
 
-        error_list = v.errors
-        response = []
-        for field in error_list:
-            error = error_list[field]
+async def validate_docs(docs: list[dict[str, Any]]) -> list:
+    """
+    Validate a list of documents asynchronously and returns a list of
+    validation errors
+    """
+    for doc in docs:
+        test_doc = deepcopy(doc)
+        doc["errors"] = await validate_doc(
+            test_doc["validate"], test_doc[ITEM_TYPE], test_doc.get("validate_on_post", False)
+        )
 
-            # If error is a list, only return the first error
-            if isinstance(error, list):
-                error = error[0]
-
-            if error == "empty values not allowed" or error == "required field":
-                response.append(REQUIRED_ERROR.format(field.upper()))
-            else:
-                response.append("{} {}".format(field.upper(), error))
-
-        return response
+    return [doc["errors"] for doc in docs]

@@ -1,6 +1,7 @@
 import React, {Fragment} from 'react';
+import {format} from 'date-fns';
 import {superdeskApi} from '../../superdeskApi';
-import {DatePicker, SubNav, Tooltip} from 'superdesk-ui-framework/react';
+import {DatePicker, SubNav, Tooltip, NavButton, ButtonGroup} from 'superdesk-ui-framework/react';
 import {StretchBar, Spacer} from '../UI/SubNav';
 import {Checkbox} from '../UI/Form';
 import {OrderFieldInput} from '../OrderBar';
@@ -21,6 +22,8 @@ interface IProps {
     showDeskSelection?: boolean;
     showAllDeskOption?: boolean;
     showDeskAssignmentView?: boolean;
+    filtersOpen: boolean;
+    toggleFilterPanel(): void;
 }
 
 export const FiltersBar = ({
@@ -37,12 +40,23 @@ export const FiltersBar = ({
     showDeskSelection = false,
     showAllDeskOption = false,
     showDeskAssignmentView = false,
+    filtersOpen = false,
+    toggleFilterPanel,
 }: IProps) => {
     const {gettext} = superdeskApi.localization;
 
     return (
-        <SubNav zIndex={2}>
+        <SubNav>
+            <ButtonGroup align="inline">
+                <NavButton
+                    icon="filter-large"
+                    onClick={toggleFilterPanel}
+                    text={gettext('Toggle advanced Filters')}
+                    type={filtersOpen ? 'primary' : 'default'}
+                />
+            </ButtonGroup>
             <StretchBar>
+
                 {!showDeskSelection ? (
                     <Fragment>
                         {showDeskAssignmentView && (
@@ -89,6 +103,11 @@ export const FiltersBar = ({
                     {days: 1, label: gettext('Tomorrow')},
                     {days: 2, label: gettext('In 2 days')},
                 ]}
+                fullWidth={false}
+                locale={{
+                    type: 'full',
+                    payload: superdeskApi.ui.framework.getLocaleForDatePicker(),
+                }}
                 label={gettext('Filter by day:')}
                 inlineLabel
                 value={dayField != null ? new Date(dayField) : null}
@@ -96,7 +115,7 @@ export const FiltersBar = ({
                     if (val == null) {
                         changeDayField(null);
                     } else {
-                        changeDayField(val.toString());
+                        changeDayField(format(val, 'yyyy-MM-dd'));
                     }
                 }}
                 dateFormat={appConfig.view.dateformat}

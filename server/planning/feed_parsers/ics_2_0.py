@@ -12,6 +12,7 @@ from typing import Dict, Union
 import logging
 import datetime
 
+from superdesk.core import get_app_config
 from superdesk.errors import ParserError
 from superdesk.io.feed_parsers import FileFeedParser
 from superdesk.metadata.utils import generate_guid
@@ -25,7 +26,6 @@ from superdesk.metadata.item import (
     CONTENT_STATE,
 )
 from superdesk.utc import utcnow, local_to_utc
-from eve.utils import config
 from icalendar import vRecur, vCalAddress, vGeo
 from icalendar.parser import tzid_from_dt
 from superdesk import get_resource_service
@@ -51,23 +51,23 @@ class IcsTwoFeedParser(FileFeedParser):
     def can_parse(self, cal):
         return isinstance(cal, Calendar)
 
-    def parse_email(self, content, content_type, provider):
+    async def parse_email(self, content, content_type, provider):
         if content_type != "text/calendar":
             raise ParserError.parseMessageError("Not supported content type.")
 
         content.seek(0)
         cal = Calendar.from_ical(content.read())
-        return self.parse(cal, provider)
+        return await self.parse(cal, provider)
 
-    def parse_file(self, fstream, provider):
+    async def parse_file(self, fstream, provider):
         cal = Calendar.from_ical(fstream.read())
-        return self.parse(cal, provider)
+        return await self.parse(cal, provider)
 
-    def parse_http(self, content, provider):
+    async def parse_http(self, content, provider):
         cal = Calendar.from_ical(content)
-        return self.parse(cal, provider)
+        return await self.parse(cal, provider)
 
-    def parse(self, cal, provider=None):
+    async def parse(self, cal, provider=None):
         try:
             items = []
 
@@ -170,7 +170,7 @@ class IcsTwoFeedParser(FileFeedParser):
         )
 
         if not dates_start.tzinfo:
-            dates_start = local_to_utc(config.DEFAULT_TIMEZONE, dates_start)
+            dates_start = local_to_utc(get_app_config("DEFAULT_TIMEZONE"), dates_start)
 
         try:
             dtend = component.get("dtend").dt
@@ -181,7 +181,7 @@ class IcsTwoFeedParser(FileFeedParser):
                     datetime.datetime.combine(dtend, datetime.datetime.max.time()) - datetime.timedelta(days=1)
                 ).replace(microsecond=0)
             if not dates_end.tzinfo:
-                dates_end = local_to_utc(config.DEFAULT_TIMEZONE, dates_end)
+                dates_end = local_to_utc(get_app_config("DEFAULT_TIMEZONE"), dates_end)
         except AttributeError:
             dates_end = None
 

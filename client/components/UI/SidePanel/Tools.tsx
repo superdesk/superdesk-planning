@@ -1,16 +1,26 @@
 import React from 'react';
-import PropTypes from 'prop-types';
 import classNames from 'classnames';
+import {IconButton} from 'superdesk-ui-framework/react';
 
-import {IconButton} from '../';
+interface ITool {
+    icon: string;
+    onClick: () => void;
+    title: string;
+}
 
+interface IToolsProps {
+    className?: string;
+    tools?: Array<ITool>;
+    children?: React.ReactNode;
+    topTools?: boolean;
+}
 
-/**
- * @ngdoc react
- * @name Tools
- * @description Header tools of a side panel
- */
-export const Tools = ({className, tools, children, topTools}) => (
+export const Tools: React.FC<IToolsProps> = ({
+    className,
+    tools = [],
+    children,
+    topTools = false,
+}: IToolsProps) => (
     <div
         className={classNames(
             {
@@ -22,30 +32,13 @@ export const Tools = ({className, tools, children, topTools}) => (
     >
         {tools.map((tool) => (
             <IconButton
+                toolTipFlow="left"
                 key={tool.icon}
                 icon={tool.icon}
                 onClick={tool.onClick}
-                data-sd-tooltip={tool.title}
-                data-flow="left"
-                aria-label={tool.title}
+                ariaValue={tool.title}
             />
         ))}
         {children}
     </div>
 );
-
-Tools.propTypes = {
-    children: PropTypes.node,
-    className: PropTypes.string,
-    tools: PropTypes.arrayOf(PropTypes.shape({
-        icon: PropTypes.string,
-        onClick: PropTypes.func,
-        title: PropTypes.string,
-    })).isRequired,
-    topTools: PropTypes.bool,
-};
-
-Tools.defaultProps = {
-    tools: [],
-    topTools: false,
-};

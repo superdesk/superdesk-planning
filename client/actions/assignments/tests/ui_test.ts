@@ -6,6 +6,7 @@ import assignmentsApi from '../api';
 import {getTestActionStore, restoreSinonStub} from '../../../utils/testUtils';
 import * as testData from '../../../utils/testData';
 import {ASSIGNMENTS, ALL_DESKS} from '../../../constants';
+import {noop} from 'lodash';
 
 describe('actions.assignments.ui', () => {
     let store;
@@ -62,7 +63,7 @@ describe('actions.assignments.ui', () => {
             restoreSinonStub(assignmentsApi.link);
             sinon.stub(assignmentsApi, 'link').callsFake(() => (Promise.reject(errorMessage)));
             store.test(done, assignmentsUi.onFulFilAssignment({_id: 'as1'}))
-                .then(() => { /* no-op */ }, (error) => {
+                .then(noop, (error) => {
                     expect(assignmentsApi.link.callCount).toBe(1);
                     expect(assignmentsApi.link.args[0]).toEqual([{_id: 'as1'}, {_id: 'item1'}, true]);
                     expect(error).toEqual(errorMessage);
@@ -103,15 +104,15 @@ describe('actions.assignments.ui', () => {
                         states: ['assigned', 'submitted'],
                         page: 1,
                         dateFilter: undefined,
-                        deskId: '',
-                        userId: null,
+                        deskIds: null,
+                        userIds: null,
                         searchQuery: null,
-                        orderByField: 'Scheduled',
-                        orderDirection: 'Asc',
-                        type: null,
+                        sortField: 'Scheduled',
+                        sortOrder: 'Asc',
+                        contentTypes: null,
                         priority: null,
                         ignoreScheduledUpdates: false,
-                        max_results: 100,
+                        maxResults: 100,
                     }]);
 
                     expect(assignmentsApi.receivedAssignments.callCount).toBe(1);
@@ -140,7 +141,7 @@ describe('actions.assignments.ui', () => {
         });
 
         it('adds to the list items if the query is for the first page', (done) => {
-            store.test(done, assignmentsUi.queryAndSetAssignmentListGroups('COMPLETED', 2))
+            store.test(done, assignmentsUi.queryAndSetAssignmentListGroups('COMPLETED', false, 2))
                 .then(() => {
                     expect(assignmentsUi.setAssignmentListGroup.callCount).toBe(0);
 
@@ -180,6 +181,7 @@ describe('actions.assignments.ui', () => {
             expect(assignmentsUi.queryAndSetAssignmentListGroups.callCount).toBe(1);
             expect(assignmentsUi.queryAndSetAssignmentListGroups.args[0]).toEqual([
                 'IN_PROGRESS',
+                true,
                 1,
             ]);
         });
@@ -197,6 +199,7 @@ describe('actions.assignments.ui', () => {
             expect(assignmentsUi.queryAndSetAssignmentListGroups.callCount).toBe(1);
             expect(assignmentsUi.queryAndSetAssignmentListGroups.args[0]).toEqual([
                 'TODO',
+                true,
                 2,
             ]);
         });
@@ -228,8 +231,8 @@ describe('actions.assignments.ui', () => {
                     // Updates the lists
                     expect(assignmentsUi.queryAndSetAssignmentListGroups.callCount).toBe(2);
                     expect(assignmentsUi.queryAndSetAssignmentListGroups.args).toEqual([
-                        ['TODAY'],
-                        ['CURRENT'],
+                        ['TODAY', true],
+                        ['CURRENT', true],
                     ]);
 
                     done();
@@ -251,7 +254,7 @@ describe('actions.assignments.ui', () => {
                     // Updates the lists
                     expect(assignmentsUi.queryAndSetAssignmentListGroups.callCount).toBe(1);
                     expect(assignmentsUi.queryAndSetAssignmentListGroups.args).toEqual([
-                        ['TODO'],
+                        ['TODO', true],
                     ]);
 
                     done();
@@ -274,8 +277,8 @@ describe('actions.assignments.ui', () => {
                     // Updates the lists
                     expect(assignmentsUi.queryAndSetAssignmentListGroups.callCount).toBe(2);
                     expect(assignmentsUi.queryAndSetAssignmentListGroups.args).toEqual([
-                        ['TODAY'],
-                        ['CURRENT'],
+                        ['TODAY', true],
+                        ['CURRENT', true],
                     ]);
 
                     done();
@@ -290,86 +293,6 @@ describe('actions.assignments.ui', () => {
                 .then(() => {
                     // Resets the page counts
                     expect(assignmentsUi.changeLastAssignmentLoadedPage.callCount).toBe(0);
-
-                    done();
-                })
-                .catch(done.fail);
-        });
-    });
-
-    describe('showRemoveAssignmentModal', () => {
-        it('locks only Assignment and displays the confirmation dialog', (done) => (
-            store.test(done, assignmentsUi.showRemoveAssignmentModal(data.assignments[0]))
-                .then((item) => {
-                    expect(item).toEqual(data.assignments[0]);
-
-                    expect(planningApi.locks.lockItem.callCount).toBe(1);
-                    expect(planningApi.locks.lockItem.args[0]).toEqual([
-                        data.assignments[0],
-                        'remove_assignment'
-                    ]);
-
-                    expect(store.dispatch.callCount).toBe(1);
-                    expect(store.dispatch.args[0]).toEqual([{
-                        type: 'SHOW_MODAL',
-                        modalType: 'CONFIRMATION',
-                        modalProps: jasmine.objectContaining(
-                            {body: 'This will also remove other linked assignments (if any, for story updates). '
-                                + 'Are you sure?'}
-                        ),
-                    }]);
-
-                    done();
-                })
-        ).catch(done.fail));
-
-        it('returns Promise.reject on locking error', (done) => {
-            restoreSinonStub(planningApi.locks.lockItem);
-            sinon.stub(planningApi.locks, 'lockItem').returns(Promise.reject(errorMessage));
-
-            return store.test(done, assignmentsUi.showRemoveAssignmentModal(data.assignments[0]))
-                .then(() => { /* no-op */ }, (error) => {
-                    expect(error).toEqual(errorMessage);
-                    done();
-                })
-                .catch(done.fail);
-        });
-    });
-
-    describe('_removeAssignment', () => {
-        beforeEach(() => {
-            sinon.stub(assignmentsApi, 'removeAssignment').callsFake(
-                (item) => Promise.resolve(item)
-            );
-        });
-
-        afterEach(() => {
-            restoreSinonStub(assignmentsApi.removeAssignment);
-        });
-
-        it('Executes api.removeAssignment and notifies user of success', (done) => (
-            store.test(done, assignmentsUi.removeAssignment(data.assignments[0]))
-                .then(() => {
-                    expect(assignmentsApi.removeAssignment.callCount).toBe(1);
-                    expect(assignmentsApi.removeAssignment.args[0]).toEqual([data.assignments[0]]);
-
-                    expect(services.notify.success.callCount).toBe(1);
-                    expect(services.notify.success.args[0]).toEqual(['Assignment removed']);
-
-                    done();
-                })
-        ).catch(done.fail));
-
-        it('Notifies user if removeAssignment fails', (done) => {
-            restoreSinonStub(assignmentsApi.removeAssignment);
-            sinon.stub(assignmentsApi, 'removeAssignment').returns(Promise.reject(errorMessage));
-
-            return store.test(done, assignmentsUi.removeAssignment(data.assignments[0]))
-                .then(() => { /* no-op */ }, (error) => {
-                    expect(error).toEqual(errorMessage);
-
-                    expect(services.notify.error.callCount).toBe(1);
-                    expect(services.notify.error.args[0]).toEqual(['Failed!']);
 
                     done();
                 })
@@ -422,7 +345,7 @@ describe('actions.assignments.ui', () => {
             sinon.stub(assignmentsApi, 'loadArchiveItem').returns(Promise.reject(errorMessage));
             data.assignments[0].item_ids = ['item1'];
             return store.test(done, assignmentsUi.openArchivePreview(data.assignments[0]))
-                .then(() => { /* no-op */ }, (error) => {
+                .then(noop, (error) => {
                     expect(error).toEqual(errorMessage);
 
                     expect(assignmentsApi.loadArchiveItem.callCount).toBe(1);
@@ -558,7 +481,7 @@ describe('actions.assignments.ui', () => {
             restoreSinonStub(assignmentsUi.loadAssignments);
         });
 
-        it('sets the list groups and loads the assignments', () => {
+        it('filters by user when planning_assignments_desk privilege is absent', () => {
             const item = {
                 slugline: 'Olympics',
                 task: {desk: 'desk2'},
@@ -572,12 +495,12 @@ describe('actions.assignments.ui', () => {
 
             expect(assignmentsUi.loadAssignments.callCount).toBe(1);
             expect(assignmentsUi.loadAssignments.args[0]).toEqual([{
-                filterBy: 'Desk',
+                filterBy: 'User',
                 searchQuery: 'planning.slugline.phrase:("Olympics")',
                 orderByField: 'Scheduled',
                 filterByType: 'text',
                 filterByPriority: null,
-                selectedDeskId: ALL_DESKS,
+                selectedDeskId: null,
                 ignoreScheduledUpdates: true,
             }]);
         });
@@ -595,23 +518,24 @@ describe('actions.assignments.ui', () => {
 
             expect(assignmentsUi.loadAssignments.callCount).toBe(1);
             expect(assignmentsUi.loadAssignments.args[0]).toEqual([{
-                filterBy: 'Desk',
+                filterBy: 'User',
                 searchQuery: null,
                 orderByField: 'Scheduled',
                 filterByType: 'text',
                 filterByPriority: null,
-                selectedDeskId: ALL_DESKS,
+                selectedDeskId: null,
                 ignoreScheduledUpdates: true,
             }]);
         });
 
-        it('uses the currently selected desk to all desks', () => {
+        it('filters by desk and uses ALL_DESKS when planning_assignments_desk privilege is present', () => {
+            store.initialState.privileges.planning_assignments_desk = 1;
+
             const item = {
                 slugline: 'Olympics',
                 type: 'text',
             };
 
-            services.desks.active.desk = 'desk3';
             store.dispatch(assignmentsUi.loadFulfillModal(item, ['CURRENT', 'FUTURE']));
 
             expect(assignmentsUi.setListGroups.callCount).toBe(1);

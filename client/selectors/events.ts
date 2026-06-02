@@ -2,17 +2,32 @@ import {createSelector} from 'reselect';
 import {get, sortBy} from 'lodash';
 
 import {appConfig} from 'appConfig';
-import {IEventItem, IEventState, IEventTemplate, IPlanningAppState, LIST_VIEW_TYPE} from '../interfaces';
+import {
+    IEventItem,
+    IEventOrPlanningItem,
+    IEventState,
+    IEventTemplate,
+    IPlanningAppState,
+    IPlanningItem,
+    GROUP_LIST_BY,
+    JUMP_INTERVAL
+} from '../interfaces';
 
 import {currentPlanning, storedPlannings} from './planning';
 import {agendas, userPreferences} from './general';
 import {currentItem, currentItemModal} from './forms';
 import {eventUtils, getSearchDateRange} from '../utils';
+import {pickRelatedEventsForPlanning} from '../utils/planning';
 import {EVENTS, MAIN, SPIKED_STATE} from '../constants';
 
-function getCurrentListViewType(state?: IPlanningAppState) {
-    return state?.main?.listViewType ?? LIST_VIEW_TYPE.SCHEDULE;
+function getCurrentListGrouping(state?: IPlanningAppState) {
+    return state?.main?.groupListBy ?? GROUP_LIST_BY.DATE;
 }
+
+function getCurrentViewInterval(state?: IPlanningAppState): JUMP_INTERVAL {
+    return state?.main?.search?.EVENTS?.jumpInterval ?? JUMP_INTERVAL.WEEK;
+}
+
 export const storedEvents = (state) => get(state, 'events.events', {});
 export const eventIdsInList = (state) => get(state, 'events.eventsInList', []);
 export const eventHistory = (state) => get(state, 'events.eventHistoryItems');
@@ -36,18 +51,18 @@ export const eventsInList = createSelector(
 * the associated events.
 */
 export const orderedEvents = createSelector(
-    [eventsInList, currentSearch, getCurrentListViewType],
-    (events, search, viewType) => {
+    [eventsInList, currentSearch, getCurrentListGrouping, getCurrentViewInterval],
+    (events, search, groupListBy, viewInterval) => {
         if (!events?.length) {
             return [];
-        } else if (viewType === LIST_VIEW_TYPE.LIST) {
+        } else if (groupListBy === GROUP_LIST_BY.NOT_GROUPED) {
             return [{
                 date: null,
                 events: events,
             }];
         }
 
-        const dateRange = getSearchDateRange(search, appConfig.start_of_week);
+        const dateRange = getSearchDateRange(search, appConfig.start_of_week, viewInterval);
 
         return eventUtils.getEventsByDate(events, dateRange.startDate, dateRange.endDate);
     }
@@ -123,19 +138,58 @@ export const getRelatedPlanningsForModalEvent = createSelector(
     (itemId, events, plannings, agendas) => getRelatedPlanningsForEvent(itemId, events, plannings, agendas)
 );
 
-export const planningWithEventDetails = createSelector(
+export const getRelatedEventsForPlanning = createSelector<
+    IPlanningAppState,
+    IPlanningItem | null,
+    {[eventId: string]: IEventItem},
+    Array<IEventItem> | null
+>(
     [currentPlanning, storedEvents],
-    (item, events) => item && events[item.event_item]
+    (item, events) => {
+        if (item == null) {
+            return null;
+        }
+
+        const pickedEvents = pickRelatedEventsForPlanning(item, Object.values(events ?? {}), 'display');
+
+        return pickedEvents.length < 1 ? null : pickedEvents;
+    }
 );
 
-export const planningEditAssociatedEvent = createSelector(
+export const planningEditAssociatedEvents = createSelector<
+    IPlanningAppState,
+    IEventOrPlanningItem | null,
+    {[eventId: string]: IEventItem},
+    Array<IEventItem> | null
+>(
     [currentItem, storedEvents],
-    (item, events) => item && events[item.event_item]
+    (item, events) => {
+        if (item == null || item.type === 'event') {
+            return null;
+        }
+
+        const pickedEvents = pickRelatedEventsForPlanning(item, Object.values(events ?? {}), 'logic');
+
+        return pickedEvents.length < 1 ? null : pickedEvents;
+    }
 );
 
-export const planningEditAssociatedEventModal = createSelector(
+export const planningEditAssociatedEventsModal = createSelector<
+    IPlanningAppState,
+    IEventOrPlanningItem | null,
+    {[eventId: string]: IEventItem},
+    Array<IEventItem> | null
+>(
     [currentItemModal, storedEvents],
-    (item, events) => item && events[item.event_item]
+    (item, events) => {
+        if (item == null || item.type === 'event') {
+            return null;
+        }
+
+        const pickedEvents = pickRelatedEventsForPlanning(item, Object.values(events ?? {}), 'logic');
+
+        return pickedEvents.length < 1 ? null : pickedEvents;
+    }
 );
 
 export const currentCalendarId = (state) => get(state, 'events.currentCalendarId');

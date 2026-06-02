@@ -1,14 +1,26 @@
 import {get} from 'lodash';
 import {createSelector} from 'reselect';
 
+import {IDesk, IUser} from 'superdesk-api';
+import {
+    IEventItem,
+    IPlanningAppState,
+    IPlanningItem,
+    IAssignmentSearchParams,
+    IAssignmentItem,
+    SORT_ORDER,
+    SORT_FIELD,
+} from '../interfaces';
 import {storedEvents} from './events';
 import {storedPlannings} from './planning';
-import {currentDeskId, currentUserId, currentWorkspace} from './general';
+import {currentUserId} from './general';
+import {coverageProfiles} from './coverageProfiles';
 import {getItemsById} from '../utils';
-import {ASSIGNMENTS, SORT_DIRECTION} from '../constants';
+import {ASSIGNMENTS, SORT_DIRECTION, ALL_DESKS} from '../constants';
 
 export const getStoredAssignments = (state) => get(state, 'assignment.assignments', {});
 export const getStoredArchiveItems = (state) => get(state, 'assignment.archive', {});
+export const getDayField = (state) => get(state, 'assignment.dayField', null);
 
 export const getAssignmentGroups = (state) => get(
     state,
@@ -27,6 +39,12 @@ const getList = (state, list) => get(state, `assignment.lists.${list}`, {
     isLoading: false,
 });
 
+// filtering on server now, no need to filter here
+const selectAssignmentsByDay = (getListSelector) =>
+    createSelector([getListSelector, getStoredAssignments],
+        (list, storedAssignments) => getListItems(list, storedAssignments),
+    );
+
 const getListIds = (list) => get(list, 'assignmentIds', []);
 const getListCount = (list) => get(list, 'total', 0);
 const getListLastPage = (list) => get(list, 'lastPage', 1);
@@ -42,10 +60,7 @@ export const getAssignmentsInTodoList = createSelector([getAssignmentsTodo], get
 export const getAssignmentsToDoListCount = createSelector([getAssignmentsTodo], getListCount);
 export const getAssignmentTodoListPage = createSelector([getAssignmentsTodo], getListLastPage);
 export const getAssignmentTodoListSortOrder = createSelector([getAssignmentsTodo], getListSortOrder);
-export const getTodoAssignments = createSelector(
-    [getAssignmentsTodo, getStoredAssignments],
-    getListItems
-);
+export const getTodoAssignments = selectAssignmentsByDay(getAssignmentsTodo);
 
 // IN PROGRESS Assignments
 export const getAssignmentsInProgress = (state) => getList(state, ASSIGNMENTS.LIST_GROUPS.IN_PROGRESS.id);
@@ -53,10 +68,7 @@ export const getAssignmentsInInProgressList = createSelector([getAssignmentsInPr
 export const getAssignmentsInProgressListCount = createSelector([getAssignmentsInProgress], getListCount);
 export const getAssignmentInProgressPage = createSelector([getAssignmentsInProgress], getListLastPage);
 export const getAssignmentInProgressListSortOrder = createSelector([getAssignmentsInProgress], getListSortOrder);
-export const getInProgressAssignments = createSelector(
-    [getAssignmentsInProgress, getStoredAssignments],
-    getListItems
-);
+export const getInProgressAssignments = selectAssignmentsByDay(getAssignmentsInProgress);
 
 // COMPLETED Assignments
 export const getAssignmentsCompleted = (state) => getList(state, ASSIGNMENTS.LIST_GROUPS.COMPLETED.id);
@@ -64,10 +76,7 @@ export const getAssignmentsInCompletedList = createSelector([getAssignmentsCompl
 export const getAssignmentsCompletedListCount = createSelector([getAssignmentsCompleted], getListCount);
 export const getAssignmentCompletedPage = createSelector([getAssignmentsCompleted], getListLastPage);
 export const getAssignmentCompletedListSortOrder = createSelector([getAssignmentsCompleted], getListSortOrder);
-export const getCompletedAssignments = createSelector(
-    [getAssignmentsCompleted, getStoredAssignments],
-    getListItems
-);
+export const getCompletedAssignments = selectAssignmentsByDay(getAssignmentsCompleted);
 
 // TO DO / CURRENT Assignments
 export const getAssignmentsCurrent = (state) => getList(state, ASSIGNMENTS.LIST_GROUPS.CURRENT.id);
@@ -75,10 +84,7 @@ export const getAssignmentsCurrentList = createSelector([getAssignmentsCurrent],
 export const getAssignmentsCurrentListCount = createSelector([getAssignmentsCurrent], getListCount);
 export const getAssignmentCurrentPage = createSelector([getAssignmentsCurrent], getListLastPage);
 export const getAssignmentCurrentListSortOrder = createSelector([getAssignmentsCurrent], getListSortOrder);
-export const getCurrentAssignments = createSelector(
-    [getAssignmentsCurrent, getStoredAssignments],
-    getListItems
-);
+export const getCurrentAssignments = selectAssignmentsByDay(getAssignmentsCurrent);
 
 // TO DO / TODAY Assignments
 export const getAssignmentsToday = (state) => getList(state, ASSIGNMENTS.LIST_GROUPS.TODAY.id);
@@ -86,10 +92,7 @@ export const getAssignmentsTodayList = createSelector([getAssignmentsToday], get
 export const getAssignmentsTodayListCount = createSelector([getAssignmentsToday], getListCount);
 export const getAssignmentTodayPage = createSelector([getAssignmentsToday], getListLastPage);
 export const getAssignmentTodayListSortOrder = createSelector([getAssignmentsToday], getListSortOrder);
-export const getTodayAssignments = createSelector(
-    [getAssignmentsToday, getStoredAssignments],
-    getListItems
-);
+export const getTodayAssignments = selectAssignmentsByDay(getAssignmentsToday);
 
 // TO DO / FUTURE Assignments
 export const getAssignmentsFuture = (state) => getList(state, ASSIGNMENTS.LIST_GROUPS.FUTURE.id);
@@ -97,10 +100,7 @@ export const getAssignmentsFutureList = createSelector([getAssignmentsFuture], g
 export const getAssignmentsFutureListCount = createSelector([getAssignmentsFuture], getListCount);
 export const getAssignmentFuturePage = createSelector([getAssignmentsFuture], getListLastPage);
 export const getAssignmentFutureListSortOrder = createSelector([getAssignmentsFuture], getListSortOrder);
-export const getFutureAssignments = createSelector(
-    [getAssignmentsFuture, getStoredAssignments],
-    getListItems
-);
+export const getFutureAssignments = selectAssignmentsByDay(getAssignmentsFuture);
 
 export const getAssignmentGroupCounts = createSelector([
     getAssignmentsToDoListCount,
@@ -122,7 +122,6 @@ export const getAssignmentGroupCounts = createSelector([
 export const getFilterBy = (state) => get(state, 'assignment.filterBy', 'Desk');
 export const getSearchQuery = (state) => get(state, 'assignment.searchQuery', null);
 export const getOrderByField = (state) => get(state, 'assignment.orderByField', 'Scheduled');
-export const getDayField = (state) => get(state, 'assignment.dayField', null);
 export const getOrderDirection = (state) => get(state, 'assignment.orderDirection', 'Asc');
 export const getAssignmentFilterByState = (state) => get(state, 'assignment.filterByState', null);
 export const getAssignmentFilterByType = (state) => get(state, 'assignment.filterByType', null);
@@ -149,6 +148,8 @@ export const getAssignmentListSingleGroupView = (state) => get(state,
 
 export const getPreviewAssignmentOpened = (state) => !!get(state, 'assignment.previewOpened');
 export const getCurrentAssignmentId = (state) => get(state, 'assignment.currentAssignmentId');
+export const getSelectedArchiveItemId = (state) => get(state, 'assignment.selectedArchiveItemId');
+export const getInitialTab = (state) => get(state, 'assignment.initialTab');
 export const getAssignmentPriorities = (state) => get(state, 'vocabularies.assignment_priority', []);
 export const getArchivePriorities = (state) => get(state, 'vocabularies.priority', []);
 export const getUrgencies = (state) => get(state, 'vocabularies.urgency', []);
@@ -164,31 +165,70 @@ export const getCurrentAssignment = createSelector(
     )
 );
 
-export const getAssignmentSearch = createSelector(
-    [getAssignmentListSettings, currentDeskId, currentUserId,
-        currentWorkspace, getAssignmentFilterByType,
-        getAssignmentFilterByPriority],
-    (listSettings, deskId,
-        currentUserId, workspace, filterByType, filterByPriority) => {
-        let searchDeskId = null;
+export const getAssignmentSearchParams = (state) => state.assignment?.searchParams ?? {};
 
-        if (get(listSettings, 'filterBy') === 'Desk') {
-            searchDeskId = get(listSettings, 'selectedDeskId', null);
+export const getAssignmentSearch = createSelector<
+    IPlanningAppState,
+    string,
+    string,
+    SORT_FIELD,
+    SORT_ORDER,
+    boolean,
+    IDesk['_id'] | null,
+    IUser['_id'],
+    string | null,
+    string | null,
+    string | null,
+    IAssignmentSearchParams,
+    IAssignmentSearchParams
+>(
+    [
+        getFilterBy,
+        getSearchQuery,
+        getOrderByField,
+        getOrderDirection,
+        getIgnoreScheduledUpdates,
+        getSelectedDeskId,
+        currentUserId,
+        getAssignmentFilterByType,
+        getAssignmentFilterByPriority,
+        getDayField,
+        getAssignmentSearchParams,
+    ],
+    (
+        filterBy,
+        searchQuery,
+        orderByField,
+        orderDirection,
+        ignoreScheduledUpdates,
+        deskId,
+        userId,
+        filterByType,
+        filterByPriority,
+        dayField,
+        params,
+    ) => {
+        const searchParams: IAssignmentSearchParams = {
+            deskIds: filterBy === 'Desk' && (deskId?.length ?? 0) > 0 && deskId !== ALL_DESKS ? [deskId] : null,
+            userIds: filterBy === 'User' ? [userId] : null,
+            searchQuery: searchQuery,
+            sortField: orderByField ?? SORT_FIELD.UPDATED,
+            sortOrder: orderDirection ?? 'Desc',
+            page: 1,
+            contentTypes: filterByType ? [filterByType] : null,
+            priority: filterByPriority ? filterByPriority : null,
+            ignoreScheduledUpdates: ignoreScheduledUpdates,
+            ...params,
+        };
+
+        // Add day field as server-side date filter
+        if (dayField != null) {
+            searchParams.startDate = dayField;
+            searchParams.endDate = dayField;
         }
 
-        return {
-            deskId: searchDeskId,
-            userId: (get(listSettings, 'filterBy') === 'User') ? currentUserId : null,
-            searchQuery: get(listSettings, 'searchQuery', ''),
-            orderByField: get(listSettings, 'orderByField', 'Updated'),
-            orderDirection: get(listSettings, 'orderDirection', 'Desc'),
-            page: 1,
-            states: null,
-            type: filterByType,
-            priority: filterByPriority,
-            ignoreScheduledUpdates: get(listSettings, 'ignoreScheduledUpdates', false),
-        };
-    }
+        return searchParams;
+    },
 );
 
 export const getCurrentAssignmentPlanningItem = createSelector(
@@ -200,13 +240,39 @@ export const getCurrentAssignmentPlanningItem = createSelector(
     )
 );
 
-export const getCurrentAssignmentEventItem = createSelector(
+/**
+ * Returns the coverage profile that was used when creating the assignment.
+ * This profile would include any user modifications to the schema not just
+ * the default values
+ */
+export const getCurrentAssignmentCoverageProfile = createSelector(
+    [getCurrentAssignment, getCurrentAssignmentPlanningItem, coverageProfiles],
+    (assignment, planningItem, profiles) => {
+        if (assignment == null || planningItem == null || profiles.length === 0) {
+            return null;
+        }
+
+        const coverageItem = planningItem.coverages?.find(
+            (coverage) => coverage.coverage_id === assignment.coverage_item
+        );
+
+        if (coverageItem?.profile == null)
+            return null;
+
+        return profiles.find((profile) => profile._id === coverageItem.profile) ?? null;
+    }
+);
+
+export const getRelatedEventsForCurrentAssignment = createSelector<
+    IPlanningAppState,
+    IPlanningItem | null,
+    {[eventId: string]: IEventItem},
+    Array<IEventItem>
+>(
     [getCurrentAssignmentPlanningItem, storedEvents],
-    (planning, events) => (
-        planning ?
-            get(events, planning.event_item) :
-            null
-    )
+    (planning, events) => {
+        return (planning?.related_events ?? []).map(({_id}) => events[_id]).filter((event) => event != null);
+    }
 );
 
 export const getCurrentAssignmentArchiveItem = createSelector(

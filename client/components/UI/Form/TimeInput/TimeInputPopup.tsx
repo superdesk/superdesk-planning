@@ -1,5 +1,4 @@
 import React from 'react';
-import PropTypes from 'prop-types';
 import moment from 'moment';
 import {range} from 'lodash';
 
@@ -10,12 +9,35 @@ import {Button} from '../../';
 
 import './style.scss';
 
+interface IProps {
+    value: any;
+    onChange(value: string | null): void;
+    close(): void;
+    target: string;
+    popupContainer(): void;
+    onPopupOpen(): void;
+    onPopupClose(): void;
+    canClear?: boolean;
+    showToBeConfirmed: boolean;
+    onToBeConfirmed(): void;
+    toBeConfirmedText: string;
+}
+
+interface IState {
+    currentTime: moment.Moment;
+    selectedHourIndex: number;
+    selectedMinuteIndex: number;
+}
+
 /**
  * @ngdoc react
  * @name TimeInputPopup
  * @description Main Popup Component of TimePicker
  */
-export class TimeInputPopup extends React.Component {
+export class TimeInputPopup extends React.Component<IProps, IState> {
+    hours = range(0, 24);
+    minutes = range(0, 60, 5);
+
     constructor(props) {
         super(props);
         this.state = {
@@ -23,9 +45,6 @@ export class TimeInputPopup extends React.Component {
             selectedMinuteIndex: 0,
             currentTime: moment(),
         };
-
-        this.hours = range(0, 24);
-        this.minutes = range(0, 60, 5);
     }
 
     componentWillMount() {
@@ -64,7 +83,7 @@ export class TimeInputPopup extends React.Component {
         const {onChange, close} = this.props;
 
         if (addMinutes) {
-            let newTime = moment.clone(this.state.currentTime);
+            const newTime = moment(this.state.currentTime);
 
             newTime.add(addMinutes, 'm');
             onChange(newTime.format('HH:mm'));
@@ -74,6 +93,13 @@ export class TimeInputPopup extends React.Component {
         }
 
         // Close the timepicker
+        close();
+    }
+
+    handleClear() {
+        const {onChange, close} = this.props;
+
+        onChange(null);
         close();
     }
 
@@ -89,23 +115,22 @@ export class TimeInputPopup extends React.Component {
                 onPopupClose={this.props.onPopupClose}
             >
                 <Header noBorder={true}>
-                    {!this.props.showToBeConfirmed && (
+                    {!this.props.showToBeConfirmed ? (
                         <div className="time-popup__header-row">
                             <Button
-                                onClick={this.handleConfirm.bind(this, 30)}
+                                onClick={() => this.handleConfirm(30)}
                                 text={gettext('in 30 min')}
                             />
                             <Button
-                                onClick={this.handleConfirm.bind(this, 60)}
+                                onClick={() => this.handleConfirm(60)}
                                 text={gettext('in 1 hr')}
                             />
                             <Button
-                                onClick={this.handleConfirm.bind(this, 120)}
+                                onClick={() => this.handleConfirm(120)}
                                 text={gettext('in 2 hrs')}
                             />
                         </div>
-                    )}
-                    {this.props.showToBeConfirmed && (
+                    ) : (
                         <div className="time-popup__header-row">
                             <Button
                                 onClick={() => {
@@ -126,7 +151,7 @@ export class TimeInputPopup extends React.Component {
                                 <li
                                     key={index}
                                     className={index === this.state.selectedHourIndex ? 'active' : ''}
-                                    onClick={this.setselectedHourIndex.bind(this, index)}
+                                    onClick={() => this.setselectedHourIndex(index)}
                                 >
                                     {hour < 10 ? '0' + hour : hour}
                                 </li>
@@ -140,7 +165,7 @@ export class TimeInputPopup extends React.Component {
                                 <li
                                     key={index}
                                     className={index === this.state.selectedMinuteIndex ? 'active' : ''}
-                                    onClick={this.setselectedMinuteIndex.bind(this, index)}
+                                    onClick={() => this.setselectedMinuteIndex(index)}
                                 >
                                     {minute < 10 ? '0' + minute : minute}
                                 </li>
@@ -150,34 +175,36 @@ export class TimeInputPopup extends React.Component {
                 </Content>
 
                 <Footer className="time-popup__footer">
+                    {
+                        this.props.canClear !== false && (
+                            <Button
+                                text={gettext('Clear')}
+                                hollow
+                                size="small"
+                                pullRight
+                                onClick={() => this.handleClear()}
+                                testId="time-popup-clear"
+                            />
+                        )
+                    }
                     <Button
                         text={gettext('Confirm')}
                         color="primary"
                         size="small"
                         pullRight={true}
-                        onClick={this.handleConfirm.bind(this, 0)}
+                        onClick={() => this.handleConfirm(0)}
+                        testId="time-popup-confirm"
                     />
                     <Button
                         text={gettext('Cancel')}
                         size="small"
                         pullRight={true}
                         onClick={this.props.close}
+                        testId="time-popup-cancel"
                     />
+
                 </Footer>
             </Popup>
         );
     }
 }
-
-TimeInputPopup.propTypes = {
-    value: PropTypes.object,
-    onChange: PropTypes.func.isRequired,
-    close: PropTypes.func.isRequired,
-    target: PropTypes.string.isRequired,
-    popupContainer: PropTypes.func,
-    onPopupOpen: PropTypes.func,
-    onPopupClose: PropTypes.func,
-    showToBeConfirmed: PropTypes.bool,
-    onToBeConfirmed: PropTypes.func,
-    toBeConfirmedText: PropTypes.string,
-};

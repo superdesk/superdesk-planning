@@ -1,6 +1,6 @@
 from planning.tests import TestCase
-from .common import set_actioned_date_to_event, get_coverage_status_from_cv
-from datetime import datetime, timedelta
+from .common import set_actioned_date_to_event, get_coverage_status_from_cv, is_new_version
+from datetime import datetime, timedelta, timezone
 from superdesk.utc import utcnow
 
 
@@ -43,8 +43,8 @@ class CommonTestCase(TestCase):
         set_actioned_date_to_event(updates, original)
         self.assertEqual(updates, {})
 
-    def test_get_coverage_status_from_cv(self):
-        with self.app.app_context():
+    async def test_get_coverage_status_from_cv(self):
+        async with self.app.app_context():
             items = [
                 {
                     "is_active": True,
@@ -89,3 +89,17 @@ class CommonTestCase(TestCase):
             self.assertEqual(get_coverage_status_from_cv("ncostat:notdec")["label"], "Coverage on merit")
             self.assertEqual(get_coverage_status_from_cv("ncostat:notint")["label"], "Coverage not planned")
             self.assertEqual(get_coverage_status_from_cv("ncostat:onreq")["label"], "Coverage on request")
+
+    def test_is_new_version(self):
+        original = {
+            "versioncreated": datetime(2025, 1, 1),
+        }
+        updated_same_version = {
+            "versioncreated": datetime(2025, 1, 1, tzinfo=timezone.utc),
+        }
+        updated_new_version = {
+            "versioncreated": datetime(2025, 1, 2, tzinfo=timezone.utc),
+        }
+
+        self.assertFalse(is_new_version(updated_same_version, original))
+        self.assertTrue(is_new_version(updated_new_version, original))

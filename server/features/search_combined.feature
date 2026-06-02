@@ -2,11 +2,11 @@ Feature: Search Events and Planning
     Background: Initial setup
         Given "agenda"
         """
-            [
-                {"name": "sports", "_id": "sports", "is_enabled": true},
-                {"name": "finance", "_id": "finance", "is_enabled": true},
-                {"name": "entertainment", "_id": "entertainment", "is_enabled": true}
-            ]
+        [
+            {"name": "sports", "_id": "68e5df45ac0f6c8b678c17b1", "is_enabled": true},
+            {"name": "finance", "_id": "68e5df45ac0f6c8b678c17b2", "is_enabled": true},
+            {"name": "entertainment", "_id": "68e5df45ac0f6c8b678c17b3", "is_enabled": true}
+        ]
         """
         And "events"
             """
@@ -75,7 +75,7 @@ Feature: Search Events and Planning
                     "unique_id": "786",
                     "unique_name": "name",
                     "name": "event 786",
-                    "state": "published",
+                    "state": "active",
                     "pubstatus": "usable",
                     "slugline": "test3 slugline",
                     "definition_short": "short value",
@@ -87,7 +87,7 @@ Feature: Search Events and Planning
                         "end": "2016-01-03T00:00:00+0000"
                     },
                     "subject": [{"qcode": "test qcode 2", "name": "test name"}],
-                    "lock_session": "ident1"
+                    "lock_session": "5f4e7eac8f8b9c001f1e1e01"
                 }
             ]
             """
@@ -100,7 +100,7 @@ Feature: Search Events and Planning
                 "headline": "test headline",
                 "slugline": "slug123",
                 "planning_date": "2016-01-02T12:00:00+0000",
-                "agendas": ["sports"]
+                "agendas": ["#agenda_0._id#"]
             }
         ]
         """
@@ -120,6 +120,8 @@ Feature: Search Events and Planning
 
     @auth
     Scenario: Users can only see their events without the planning_global_filters privilege
+        Given empty "events"
+        And empty "planning"
         Given "events"
         """
         [{
@@ -151,7 +153,7 @@ Feature: Search Events and Planning
             "headline": "plan1 for user 1",
             "planning_date": "2016-01-01T12:00:00+0000",
             "original_creator": "user_1",
-            "event_item": "user_1_event_1"
+            "related_events": [{"_id": "user_1_event_1", "link_type": "primary"}]
         }, {
             "guid": "user_1_plan_2",
             "headline": "plan2 for user 1",
@@ -162,7 +164,7 @@ Feature: Search Events and Planning
             "headline": "plan1 for user 2",
             "planning_date": "2016-01-01T12:00:00+0000",
             "original_creator": "#CONTEXT_USER_ID#",
-            "event_item": "user_2_event_2"
+            "related_events": [{"_id": "user_2_event_2", "link_type": "primary"}]
         }, {
             "guid": "user_2_plan_2",
             "headline": "plan2 for user 2",
@@ -176,11 +178,12 @@ Feature: Search Events and Planning
         """
         Then we get OK response
         When we get "/events_planning_search?only_future=false"
-        Then we get list with 3 items
+        Then we get list with 4 items
         """
         {"_items": [
             {"_id": "user_2_event_1"},
             {"_id": "user_2_event_2"},
+            {"_id": "user_2_plan_1"},
             {"_id": "user_2_plan_2"}
         ]}
         """
@@ -190,14 +193,16 @@ Feature: Search Events and Planning
         """
         Then we get OK response
         When we get "/events_planning_search?only_future=false"
-        Then we get list with 6 items
+        Then we get list with 8 items
         """
         {"_items": [
             {"_id": "user_1_event_1"},
             {"_id": "user_1_event_2"},
             {"_id": "user_2_event_1"},
             {"_id": "user_2_event_2"},
+            {"_id": "user_1_plan_1"},
             {"_id": "user_1_plan_2"},
+            {"_id": "user_2_plan_1"},
             {"_id": "user_2_plan_2"}
         ]}
         """

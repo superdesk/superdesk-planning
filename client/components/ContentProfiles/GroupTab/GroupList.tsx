@@ -7,7 +7,8 @@ import {getProfileGroupNameTranslated} from '../../../utils/contentProfiles';
 
 import {Icon, Button, IconButton} from 'superdesk-ui-framework/react';
 import * as List from '../../UI/List';
-import SortItems from '../../SortItems';
+import {arrayMove, WithSortable} from '@sourcefabric/common';
+import GroupElementTemplate from './GroupElementTemplate';
 
 interface IProps {
     groups: Array<IEditorProfileGroup>;
@@ -33,8 +34,9 @@ export class GroupList extends React.PureComponent<IProps> {
 
         return (
             <List.Item
+                className={`mt-1 ${this.props.selectedGroup?._id === group._id ? 'sd-list-item--selected' : ''}`}
                 shadow={1}
-                draggable={true}
+                flexRow
                 activated={this.props.selectedGroup?._id === group._id}
                 onClick={(e) => {
                     // don't trigger editor if click went to a three dot menu
@@ -55,7 +57,9 @@ export class GroupList extends React.PureComponent<IProps> {
                         icon="plus-large"
                         shape="round"
                         type="primary"
-                        onClick={() => this.props.insertGroup(group.index - 0.1)}
+                        onClick={() => {
+                            this.props.insertGroup(group.index - 0.1);
+                        }}
                     />
                 </div>
                 {!group.icon.length ? null : (
@@ -77,7 +81,9 @@ export class GroupList extends React.PureComponent<IProps> {
                     <IconButton
                         icon="trash"
                         ariaValue={gettext('Remove group')}
-                        onClick={() => this.props.removeGroup(group)}
+                        onClick={() => {
+                            this.props.removeGroup(group);
+                        }}
                     />
                 </List.ActionMenu>
                 {!isLastGroup ? null : (
@@ -88,7 +94,9 @@ export class GroupList extends React.PureComponent<IProps> {
                             icon="plus-large"
                             shape="round"
                             type="primary"
-                            onClick={() => this.props.insertGroup(group.index + 0.1)}
+                            onClick={(e) => {
+                                this.props.insertGroup(group.index + 0.1);
+                            }}
                         />
                     </div>
                 )}
@@ -115,15 +123,30 @@ export class GroupList extends React.PureComponent<IProps> {
                 spaceBetween={true}
                 className="sd-padding-x--2 sd-padding-y--3"
             >
-                <SortItems
-                    key={this.props.selectedGroup?._id}
-                    onSortChange={this.props.onSortChange}
+                <WithSortable
                     items={this.props.groups}
-                    getListElement={this.getListElement}
-                    useCustomStyle={true}
-                    lockAxis="y"
-                    lockToContainerEdges={true}
-                    distance={10}
+                    getId={(item) => item._id}
+                    itemTemplate={({item}) => (
+                        <GroupElementTemplate
+                            group={item}
+                            selectedGroup={this.props.selectedGroup}
+                            onClick={this.props.onClick}
+                            isLastGroup={item._id === this.props.groups[this.props.groups.length - 1]?._id}
+                            insertGroup={this.props.insertGroup}
+                            removeGroup={this.props.removeGroup}
+                        />
+                    )}
+                    options={{
+                        distance: 20,
+                        onSortEnd: ({
+                            oldIndex,
+                            newIndex
+                        }) => {
+                            const itemsSorted = arrayMove(this.props.groups, oldIndex, newIndex);
+
+                            this.props.onSortChange(itemsSorted);
+                        }
+                    }}
                 />
             </List.Group>
         );

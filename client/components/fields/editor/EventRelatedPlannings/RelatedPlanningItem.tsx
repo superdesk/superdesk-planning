@@ -1,25 +1,23 @@
 import * as React from 'react';
-import {set} from 'lodash';
 
 import {
     EDITOR_TYPE,
     IEventItem,
-    IG2ContentType,
     IPlanningContentProfile,
-    IPlanningCoverageItem,
     IPlanningItem,
     ISearchProfile
 } from '../../../../interfaces';
-import {superdeskApi} from '../../../../superdeskApi';
+import {planningApi, superdeskApi} from '../../../../superdeskApi';
 
-import {TEMP_ID_PREFIX} from '../../../../constants';
-import {planningUtils} from '../../../../utils';
-
-import {IconButton} from 'superdesk-ui-framework/react';
-import {Row} from '../../../UI/Form';
-import {RelatedCoverageItems} from './RelatedCoverageItems';
-import {AddNewCoverages} from './AddNewCoverages';
+import {IconButton, ToggleBox} from 'superdesk-ui-framework/react';
 import {RelatedPlanningListItem} from '../../../RelatedPlannings/PlanningMetaData/RelatedPlanningListItem';
+import {PlanningEditorStandalone} from '../../../editor-standalone/planning-editor-standalone';
+import {authoringStoragePlanningItemHttp} from '../../../editor-standalone/authoring-storage-planning-http';
+import {getAuthoringStorageInMemory} from '../../../editor-standalone/authoring-storage-in-memory';
+import {IAuthoringReact} from 'superdesk-api';
+import {CustomHeaderToggleBox} from 'superdesk-ui-framework/react/components/ToggleBox/CustomHeaderToggleBox';
+import {isTemporaryId, modifyForServer} from '../../../../utils';
+import {omit} from 'lodash';
 
 interface IProps {
     event: IEventItem;
@@ -29,72 +27,42 @@ interface IProps {
     editorType: EDITOR_TYPE;
     profile: IPlanningContentProfile;
     coverageProfile?: ISearchProfile;
-    removePlan(item: DeepPartial<IPlanningItem>): void;
+    unlinkPlanning(item: DeepPartial<IPlanningItem>): void;
     updatePlanningItem(
         original: DeepPartial<IPlanningItem>,
         updates: DeepPartial<IPlanningItem>,
         scrollOnChange: boolean
     ): void;
-    addCoverageToWorkflow(original: IPlanningItem, coverage: IPlanningCoverageItem, index: number): void;
     isAgendaEnabled: boolean;
+    initiallyExpanded?: boolean;
 }
 
 export class RelatedPlanningItem extends React.PureComponent<IProps> {
     containerNode: React.RefObject<HTMLDivElement>;
+    public authoringRef: React.RefObject<IAuthoringReact<IPlanningItem>>;;
+    public toggleBoxRef: React.RefObject<CustomHeaderToggleBox>;
 
     constructor(props) {
         super(props);
 
         this.containerNode = React.createRef();
+        this.authoringRef = React.createRef();
+        this.toggleBoxRef = React.createRef();
 
-        this.remove = this.remove.bind(this);
+        this.unlink = this.unlink.bind(this);
         this.update = this.update.bind(this);
-        this.updateCoverage = this.updateCoverage.bind(this);
-        this.removeCoverage = this.removeCoverage.bind(this);
-        this.duplicateCoverage = this.duplicateCoverage.bind(this);
-        this.onAddCoverageToWorkflow = this.onAddCoverageToWorkflow.bind(this);
     }
 
     scrollIntoView() {
         this.containerNode.current?.scrollIntoView({behavior: 'smooth'});
     }
 
-    remove() {
-        this.props.removePlan(this.props.item);
+    unlink() {
+        this.props.unlinkPlanning(this.props.item);
     }
 
     update(updates: DeepPartial<IPlanningItem>, scrollOnChange: boolean = true) {
         this.props.updatePlanningItem(this.props.item, updates, scrollOnChange);
-    }
-
-    updateCoverage(field: string, value: any) {
-        const updates = {coverages: [...this.props.item.coverages]};
-
-        set(updates, field, value);
-        this.update(updates, false);
-    }
-
-    removeCoverage(coverage: DeepPartial<IPlanningCoverageItem>) {
-        const coverages = this.props.item.coverages.filter(
-            (cov) => cov.coverage_id !== coverage.coverage_id
-        );
-
-        this.update({coverages}, false);
-    }
-
-    duplicateCoverage(coverage: DeepPartial<IPlanningCoverageItem>, duplicateAs?: IG2ContentType['qcode']) {
-        const coverages = planningUtils.duplicateCoverage(
-            this.props.item,
-            coverage,
-            duplicateAs,
-            this.props.event
-        );
-
-        this.update({coverages}, false);
-    }
-
-    onAddCoverageToWorkflow(coverage: IPlanningCoverageItem, index: number) {
-        this.props.addCoverageToWorkflow(this.props.item, coverage, index);
     }
 
     focus() {
@@ -105,8 +73,27 @@ export class RelatedPlanningItem extends React.PureComponent<IProps> {
 
     render() {
         const {gettext} = superdeskApi.localization;
+        const {WithLiveResources} = superdeskApi.components;
         const {item, isAgendaEnabled} = this.props;
-        const hideRemoveIcon = !this.props.item._id.startsWith(TEMP_ID_PREFIX) || this.props.disabled;
+        const hideRemoveIcon = this.props.disabled;
+
+        const renderPlanning = (planningItem: DeepPartial<IPlanningItem>) => (
+            <RelatedPlanningListItem
+                item={planningItem}
+                isAgendaEnabled={isAgendaEnabled}
+                showIcon={true}
+                shadow={1}
+                showBorder
+                editPlanningComponent={hideRemoveIcon ? null : (
+                    <IconButton
+                        icon="close-small"
+                        ariaValue={gettext('Unlink related planning')}
+                        onClick={this.unlink}
+                        toolTipFlow="left"
+                    />
+                )}
+            />
+        );
 
         return (
             <div
@@ -116,47 +103,67 @@ export class RelatedPlanningItem extends React.PureComponent<IProps> {
                 ref={this.containerNode}
                 tabIndex={0}
             >
-                <Row noPadding={true}>
-                    <RelatedPlanningListItem
-                        item={item}
-                        isAgendaEnabled={isAgendaEnabled}
-                        showIcon={true}
-                        shadow={1}
-                        editPlanningComponent={hideRemoveIcon ? null : (
-                            <IconButton
-                                icon="trash"
-                                ariaValue="Remove Planning"
-                                onClick={this.remove}
-                            />
-                        )}
+                <ToggleBox
+                    toggleBoxRef={this.toggleBoxRef}
+                    variant="custom-header"
+                    getToggleButtonLabel={(isOpen) => isOpen ? gettext('Show less') : gettext('Show more')}
+                    alwaysRenderChildren
+                    header={
+                        isTemporaryId(item._id)
+                            ? renderPlanning(item)
+                            : (
+                                <WithLiveResources resources={[{ids: [item._id], resource: 'planning'}]}>
+                                    {(res) => {
+                                        const planning: IPlanningItem = res[0]._items[0];
+
+                                        return renderPlanning(planning);
+                                    }}
+                                </WithLiveResources>
+                            )
+                    }
+                >
+                    <PlanningEditorStandalone
+                        editorRef={this.authoringRef}
+                        itemId={item._id}
+                        authoringStorage={
+                            isTemporaryId(item._id)
+                                ? getAuthoringStorageInMemory(
+                                    'planning',
+                                    item as IPlanningItem,
+                                    (item) => {
+                                        /**
+                                         * When adding a new embedded planning, this save call will come from
+                                         * ItemManager via handleEmbeddedItems in save-handling.ts
+                                         */
+                                        const fieldsToOmit = [
+                                            '_temporary', '_created', '_etag', '_links', '_updated',
+                                        ] satisfies Array<keyof IPlanningItem>;
+                                        const itemClean = omit(
+                                            modifyForServer(item, true),
+                                            fieldsToOmit,
+                                        );
+
+                                        return planningApi.planning.create(itemClean)
+                                            .then((created) =>
+                                                planningApi.locks.unlockItem(created)
+                                                    .then((unlocked) => {
+                                                        this.update(unlocked);
+
+                                                        return unlocked;
+                                                    })
+                                            );
+                                    },
+                                ) : authoringStoragePlanningItemHttp
+                        }
+                        makeVisible={() => {
+                            if (this.toggleBoxRef.current.isOpen()) {
+                                return Promise.resolve();
+                            }
+
+                            return this.toggleBoxRef.current.toggle().then(() => null);
+                        }}
                     />
-                </Row>
-                <Row noPadding={true}>
-                    <span className="form-label">{gettext('Coverages')}</span>
-                </Row>
-                {!this.props.item.coverages?.length ? null : (
-                    <RelatedCoverageItems
-                        item={this.props.item}
-                        coverages={this.props.item.coverages}
-                        disabled={this.props.disabled}
-                        editorType={this.props.editorType}
-                        updateCoverage={this.updateCoverage}
-                        removeCoverage={this.removeCoverage}
-                        duplicateCoverage={this.duplicateCoverage}
-                        onAddCoverageToWorkflow={this.onAddCoverageToWorkflow}
-                    />
-                )}
-                {this.props.disabled ? null : (
-                    <Row noPadding={true}>
-                        <AddNewCoverages
-                            event={this.props.event}
-                            item={item}
-                            updatePlanningItem={this.update}
-                            profile={this.props.profile}
-                            coverageProfile={this.props.coverageProfile}
-                        />
-                    </Row>
-                )}
+                </ToggleBox>
             </div>
         );
     }

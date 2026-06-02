@@ -2,7 +2,7 @@ import {createSelector} from 'reselect';
 import {get, keyBy, sortBy, uniq} from 'lodash';
 
 import {appConfig} from 'appConfig';
-import {IPlanningAppState, LIST_VIEW_TYPE} from '../interfaces';
+import {IPlanningAppState, JUMP_INTERVAL, GROUP_LIST_BY} from '../interfaces';
 
 import {storedEvents} from './events';
 import {storedPlannings} from './planning';
@@ -10,9 +10,14 @@ import {eventUtils, getSearchDateRange, planningUtils} from '../utils';
 import {EVENTS_PLANNING, SPIKED_STATE} from '../constants';
 import {userPreferences} from './general';
 
-function getCurrentListViewType(state?: IPlanningAppState) {
-    return state?.main?.listViewType ?? LIST_VIEW_TYPE.SCHEDULE;
+function getCurrentListGrouping(state?: IPlanningAppState) {
+    return state?.main?.groupListBy ?? GROUP_LIST_BY.DATE;
 }
+
+function getCurrentViewInterval(state?: IPlanningAppState): JUMP_INTERVAL {
+    return state?.main?.search?.COMBINED?.jumpInterval ?? JUMP_INTERVAL.WEEK;
+}
+
 export const getEventsPlanningList = (state) => get(state, 'eventsPlanning.eventsAndPlanningInList', []);
 export const getRelatedPlanningsList = (state) => get(state, 'eventsPlanning.relatedPlannings', {});
 export const currentSearch = (state) => get(state, 'main.search.COMBINED.currentSearch');
@@ -44,11 +49,18 @@ export const eventsPlannignViewFilters = createSelector(
  * @type {Reselect.Selector<any, any>}
  */
 export const orderedEventsPlanning = createSelector(
-    [storedEvents, storedPlannings, getEventsPlanningList, currentSearch, getCurrentListViewType],
-    (events, plannings, eventPlanningList, search, viewType) => {
+    [
+        storedEvents,
+        storedPlannings,
+        getEventsPlanningList,
+        currentSearch,
+        getCurrentListGrouping,
+        getCurrentViewInterval,
+    ],
+    (events, plannings, eventPlanningList, search, groupListBy, viewInterval) => {
         if (!eventPlanningList?.length) {
             return [];
-        } else if (viewType === LIST_VIEW_TYPE.LIST) {
+        } else if (groupListBy === GROUP_LIST_BY.NOT_GROUPED) {
             return [{
                 date: null,
                 events: eventPlanningList.map((itemId) => (
@@ -59,7 +71,7 @@ export const orderedEventsPlanning = createSelector(
 
         const eventsList = [];
         const planningList = [];
-        const dateRange = getSearchDateRange(search, appConfig.start_of_week);
+        const dateRange = getSearchDateRange(search, appConfig.start_of_week, viewInterval);
 
         eventPlanningList.forEach((_id) => {
             if (_id in events) {

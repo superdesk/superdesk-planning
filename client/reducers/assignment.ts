@@ -1,14 +1,16 @@
-import {uniq, keyBy, get, cloneDeep, filter} from 'lodash';
+import {uniq, keyBy} from 'lodash';
+import {produce} from 'immer';
 import {ASSIGNMENTS, RESET_STORE, INIT_STORE, SORT_DIRECTION} from '../constants';
 import moment from 'moment';
 import {createReducer} from './createReducer';
-import {getItemId} from '../utils';
 
 const initialState = {
     archive: {},
     assignments: {},
     baseQuery: {must: []},
     currentAssignmentId: null,
+    selectedArchiveItemId: null,
+    initialTab: null,
     filterBy: 'Desk',
     filterByPriority: null,
     filterByType: null,
@@ -20,6 +22,7 @@ const initialState = {
     searchQuery: null,
     selectedDeskId: '',
     assignmentListSingleGroupView: null,
+    searchParams: {},
 
     groupKeys: [
         ASSIGNMENTS.LIST_GROUPS.TODO.id,
@@ -67,254 +70,233 @@ const initialState = {
 };
 
 const modifyAssignmentBeingAdded = (payload) => {
-    // payload must be an array. If not, we transform
     const assignments = Array.isArray(payload) ? payload : [payload];
 
     assignments.forEach((assignment) => {
-        if (get(assignment, 'planning.scheduled')) {
+        if (assignment.planning?.scheduled) {
             assignment.planning.scheduled = moment(assignment.planning.scheduled);
         }
     });
+
     return keyBy(payload, '_id');
 };
 
-const setList = (state, payload) => {
-    state.lists[payload.list] = {
-        ...state.lists[payload.list],
-        assignmentIds: payload.ids,
-        total: payload.total,
-        lastPage: 1,
-    };
+const setList = produce((state, payload) => {
+    state.lists[payload.list].assignmentIds = payload.ids;
+    state.lists[payload.list].total = payload.total;
+    state.lists[payload.list].lastPage = 1;
 
     return state;
-};
+});
 
-const addToList = (state, payload) => {
+const addToList = produce((state, payload) => {
     state.lists[payload.list].assignmentIds = uniq([
         ...state.lists[payload.list].assignmentIds,
         ...payload.ids,
     ]);
+
     state.lists[payload.list].total = payload.total;
 
     return state;
-};
+});
 
-const setLastPage = (state, payload) => {
+const setLastPage = produce((state, payload) => {
     state.lists[payload.list].lastPage = payload.page;
 
     return state;
-};
+});
 
-const setListSortOrder = (state, payload) => {
+const setListSortOrder = produce((state, payload) => {
     state.lists[payload.list].sortOrder = payload.sortOrder;
 
     return state;
-};
+});
 
-const setGroupLoading = (state, payload) => {
-    state.lists[payload.list] = {
-        ...state.lists[payload.list],
-        isLoading: payload.isLoading,
-    };
+const setGroupLoading = produce((state, payload) => {
+    state.lists[payload.list].isLoading = payload.isLoading;
+
     return state;
-};
+});
 
 const filterList = (state, listId, assignmentId) => {
     if (state.lists[listId].assignmentIds.indexOf(assignmentId) < 0) {
         return;
     }
 
-    state.lists[listId].assignmentIds = filter(
-        state.lists[listId].assignmentIds,
-        (aid) => aid !== assignmentId
-    );
-
+    state.lists[listId].assignmentIds = state.lists[listId].assignmentIds.filter((id) => id != assignmentId);
     state.lists[listId].total = state.lists[listId].total - 1;
 };
 
 const assignmentReducer = createReducer(initialState, {
-    [RESET_STORE]: () => (null),
+    [RESET_STORE]: () => ({...initialState}),
 
-    [INIT_STORE]: () => (initialState),
+    [INIT_STORE]: () => ({...initialState}),
 
-    [ASSIGNMENTS.ACTIONS.RECEIVED_ASSIGNMENTS]: (state, payload) => {
-        let receivedAssignments = modifyAssignmentBeingAdded(payload);
+    [ASSIGNMENTS.ACTIONS.RECEIVED_ASSIGNMENTS]: produce((draftState, actionPayload) => {
+        const receivedAssignments = modifyAssignmentBeingAdded(actionPayload);
 
-        return {
-            ...state,
-            assignments: {
-                ...state.assignments || {},
-                ...receivedAssignments,
-            },
-        };
-    },
+        Object.assign(draftState.assignments, receivedAssignments);
 
-    [ASSIGNMENTS.ACTIONS.SET_LIST_ITEMS]: (state, payload) => (
-        setList(cloneDeep(state), payload)
-    ),
+        return draftState;
+    }),
 
-    [ASSIGNMENTS.ACTIONS.MY_ASSIGNMENTS_TOTAL]: (state, payload) => (
-        {
-            ...state,
-            myAssignmentsTotal: payload,
-        }
-    ),
+    [ASSIGNMENTS.ACTIONS.SET_LIST_ITEMS]: setList,
+
+    [ASSIGNMENTS.ACTIONS.MY_ASSIGNMENTS_TOTAL]: produce((draftState, actionPayload) => {
+        draftState.myAssignmentsTotal = actionPayload;
+
+        return draftState;
+    }),
 
     [ASSIGNMENTS.ACTIONS.ADD_LIST_ITEMS]: (state, payload) => (
-        addToList(cloneDeep(state), payload)
+        addToList(state, payload)
     ),
 
-    [ASSIGNMENTS.ACTIONS.CHANGE_LIST_VIEW_MODE]: (state, payload) => (
-        {
-            ...state,
-            assignmentListSingleGroupView: payload,
-        }
-    ),
+    [ASSIGNMENTS.ACTIONS.CHANGE_LIST_VIEW_MODE]: produce((draftState, actionPayload) => {
+        draftState.assignmentListSingleGroupView = actionPayload;
 
-    [ASSIGNMENTS.ACTIONS.SET_LIST_PAGE]: (state, payload) => (
-        setLastPage(cloneDeep(state), payload)
-    ),
-
-    [ASSIGNMENTS.ACTIONS.SET_GROUP_SORT_ORDER]: (state, payload) => (
-        setListSortOrder(cloneDeep(state), payload)
-    ),
-
-    [ASSIGNMENTS.ACTIONS.SET_LOADING]: (state, payload) => (
-        setGroupLoading(state, payload)
-    ),
-
-    [ASSIGNMENTS.ACTIONS.SET_SORT_FIELD]: (state, payload) => ({
-        ...state,
-        orderByField: payload,
+        return draftState;
     }),
 
-    [ASSIGNMENTS.ACTIONS.SET_DAY_FIELD]: (state, payload) => ({
-        ...state,
-        dayField: payload,
+    [ASSIGNMENTS.ACTIONS.SET_LIST_PAGE]: setLastPage,
+
+    [ASSIGNMENTS.ACTIONS.SET_GROUP_SORT_ORDER]: setListSortOrder,
+
+    [ASSIGNMENTS.ACTIONS.SET_LOADING]: setGroupLoading,
+
+    [ASSIGNMENTS.ACTIONS.SET_SORT_FIELD]: produce((draftState, actionPayload) => {
+        draftState.orderByField = actionPayload;
+
+        return draftState;
     }),
 
-    [ASSIGNMENTS.ACTIONS.CHANGE_LIST_SETTINGS]: (state, payload) => (
-        {
-            ...state,
-            ...payload,
-        }
-    ),
+    [ASSIGNMENTS.ACTIONS.SET_DAY_FIELD]: produce((draftState, actionPayload) => {
+        draftState.dayField = actionPayload;
 
-    [ASSIGNMENTS.ACTIONS.PREVIEW_ASSIGNMENT]: (state, payload) => (
-        {
-            ...state,
-            previewOpened: true,
-            currentAssignmentId: getItemId(payload) || payload,
-            readOnly: true,
-        }
-    ),
+        return draftState;
+    }),
 
-    [ASSIGNMENTS.ACTIONS.CLOSE_PREVIEW_ASSIGNMENT]: (state) => (
-        {
-            ...state,
-            previewOpened: false,
-            currentAssignmentId: null,
-            readOnly: true,
-        }
-    ),
+    [ASSIGNMENTS.ACTIONS.CHANGE_LIST_SETTINGS]: produce((draftState, actionPayload) => {
+        Object.assign(draftState, actionPayload);
+
+        return draftState;
+    }),
+
+    [ASSIGNMENTS.ACTIONS.SET_SEARCH_PARAMS]: produce((draftState, actionPayload) => {
+        draftState.searchParams = actionPayload;
+
+        return draftState;
+    }),
+
+    [ASSIGNMENTS.ACTIONS.PREVIEW_ASSIGNMENT]: produce((draftState, actionPayload) => {
+        draftState.previewOpened = true;
+        draftState.currentAssignmentId = actionPayload.assignmentId;
+        draftState.initialTab = actionPayload.initialTab;
+        draftState.selectedArchiveItemId = actionPayload.archiveItemId ?? null;
+        draftState.readOnly = true;
+
+        return draftState;
+    }),
+
+    [ASSIGNMENTS.ACTIONS.CLOSE_PREVIEW_ASSIGNMENT]: produce((draftState) => {
+        draftState.previewOpened = false;
+        draftState.currentAssignmentId = null;
+        draftState.initialTab = null;
+        draftState.selectedArchiveItemId = null;
+        draftState.readOnly = true;
+
+        return draftState;
+    }),
+
     [ASSIGNMENTS.ACTIONS.LOCK_ASSIGNMENT]: (state, payload) => {
         if (!(payload.assignment._id in state.assignments)) return state;
 
-        let assignments = cloneDeep(state.assignments);
-        let assignment = assignments[payload.assignment._id];
+        return produce(state, (draft) => {
+            const assignment = draft.assignments[payload.assignment._id];
 
-        assignment.lock_action = payload.assignment.lock_action;
-        assignment.lock_user = payload.assignment.lock_user;
-        assignment.lock_time = payload.assignment.lock_time;
-        assignment.lock_session = payload.assignment.lock_session;
-        assignment._etag = payload.assignment._etag;
-
-        return {
-            ...state,
-            assignments,
-        };
+            assignment.lock_action = payload.assignment.lock_action;
+            assignment.lock_user = payload.assignment.lock_user;
+            assignment.lock_time = payload.assignment.lock_time;
+            assignment.lock_session = payload.assignment.lock_session;
+            assignment._etag = payload.assignment._etag;
+        });
     },
 
     [ASSIGNMENTS.ACTIONS.UNLOCK_ASSIGNMENT]: (state, payload) => {
         if (!(payload.assignment._id in state.assignments)) return state;
 
-        let assignments = cloneDeep(state.assignments);
-        let assignment = assignments[payload.assignment._id];
+        return produce(state, (draft) => {
+            const assignment = draft.assignments[payload.assignment._id];
 
-        delete assignment.lock_action;
-        delete assignment.lock_user;
-        delete assignment.lock_time;
-        delete assignment.lock_session;
-        assignment._etag = payload.assignment._etag;
+            delete assignment.lock_action;
+            delete assignment.lock_user;
+            delete assignment.lock_time;
+            delete assignment.lock_session;
 
-        return {
-            ...state,
-            assignments,
-        };
+            assignment._etag = payload.assignment._etag;
+        });
     },
 
-    [ASSIGNMENTS.ACTIONS.RECEIVED_ARCHIVE]: (state, payload) => {
-        const archiveItems = {};
+    [ASSIGNMENTS.ACTIONS.RECEIVED_ARCHIVE]: produce((draftState, actionPayload) => {
+        // Store Archive items by their ID
+        const newItems = (Array.isArray(actionPayload) ? actionPayload : [actionPayload])
+            .reduce((archiveItems, item) => {
+                archiveItems[item._id] = item;
 
-        if (Array.isArray(payload)) { // Multiple items
-            for (const newItem of payload) {
-                if (newItem.assignment_id) {
-                    archiveItems[newItem.assignment_id] = newItem;
-                }
-            }
-        } else { // One single item
-            archiveItems[payload.assignment_id] = payload;
-        }
+                return archiveItems;
+            }, {});
 
-        return {
-            ...state,
-            archive: {
-                ...state.archive,
-                ...archiveItems,
-            },
-        };
-    },
+        Object.assign(draftState.archive, newItems);
 
-    [ASSIGNMENTS.ACTIONS.REMOVE_ASSIGNMENT]: (oldState, payload) => {
-        const state = cloneDeep(oldState);
+        return draftState;
+    }),
 
+    [ASSIGNMENTS.ACTIONS.REMOVE_ASSIGNMENT]: produce((draftState, actionPayload) => {
         // Remove the assignment from the stored list of assignments
-        (get(payload, 'assignments') || []).forEach((a) => {
-            if (a in state.assignments) {
-                delete state.assignments[a];
-                // If this assignment is being viewed,
-                // then close the preview and de-select the assignment
-                if (state.currentAssignmentId === a) {
-                    state.previewOpened = false;
-                    state.currentAssignmentId = null;
-                }
-
-                // Remove this assignment from any list groups
-                filterList(state, ASSIGNMENTS.LIST_GROUPS.IN_PROGRESS.id, a);
-                filterList(state, ASSIGNMENTS.LIST_GROUPS.TODO.id, a);
-                filterList(state, ASSIGNMENTS.LIST_GROUPS.COMPLETED.id, a);
-                filterList(state, ASSIGNMENTS.LIST_GROUPS.CURRENT.id, a);
-                filterList(state, ASSIGNMENTS.LIST_GROUPS.TODAY.id, a);
-                filterList(state, ASSIGNMENTS.LIST_GROUPS.FUTURE.id, a);
+        (actionPayload.assignments ?? []).forEach((itemId) => {
+            if (!(itemId in draftState.assignments)) {
+                return;
             }
+
+            delete draftState.assignments[itemId];
+
+            // If this assignment is being viewed,
+            // then close the preview and de-select the assignment
+            if (draftState.currentAssignmentId === itemId) {
+                draftState.previewOpened = false;
+                draftState.currentAssignmentId = null;
+                draftState.initialTab = null;
+                draftState.selectedArchiveItemId = null;
+            }
+
+            // Remove this assignment from any list groups
+            filterList(draftState, ASSIGNMENTS.LIST_GROUPS.IN_PROGRESS.id, itemId);
+            filterList(draftState, ASSIGNMENTS.LIST_GROUPS.TODO.id, itemId);
+            filterList(draftState, ASSIGNMENTS.LIST_GROUPS.COMPLETED.id, itemId);
+            filterList(draftState, ASSIGNMENTS.LIST_GROUPS.CURRENT.id, itemId);
+            filterList(draftState, ASSIGNMENTS.LIST_GROUPS.TODAY.id, itemId);
+            filterList(draftState, ASSIGNMENTS.LIST_GROUPS.FUTURE.id, itemId);
         });
 
-        return state;
-    },
-
-    [ASSIGNMENTS.ACTIONS.RECEIVE_ASSIGNMENT_HISTORY]: (state, payload) => ({
-        ...state,
-        assignmentHistoryItems: payload,
+        return draftState;
     }),
 
-    [ASSIGNMENTS.ACTIONS.SET_BASE_QUERY]: (state, payload) => ({
-        ...state,
-        baseQuery: payload,
+    [ASSIGNMENTS.ACTIONS.RECEIVE_ASSIGNMENT_HISTORY]: produce((draftState, actionPayload) => {
+        draftState.assignmentHistoryItems = actionPayload;
+
+        return draftState;
     }),
 
-    [ASSIGNMENTS.ACTIONS.SET_GROUP_KEYS]: (state, payload) => ({
-        ...state,
-        groupKeys: payload,
+    [ASSIGNMENTS.ACTIONS.SET_BASE_QUERY]: produce((draftState, actionPayload) => {
+        draftState.baseQuery = actionPayload;
+
+        return draftState;
+    }),
+
+    [ASSIGNMENTS.ACTIONS.SET_GROUP_KEYS]: produce((draftState, actionPayload) => {
+        draftState.groupKeys = actionPayload;
+
+        return draftState;
     }),
 });
 

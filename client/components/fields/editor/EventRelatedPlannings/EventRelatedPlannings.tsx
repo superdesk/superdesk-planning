@@ -1,100 +1,188 @@
 import * as React from 'react';
 
-import {
-    IEditorFieldProps,
-    IEventItem,
-    IPlanningCoverageItem,
-    IPlanningItem,
-    IProfileSchemaTypeList,
-    ISearchProfile
-} from '../../../../interfaces';
+import {IPlanningItem} from '../../../../interfaces';
 import {planningApi, superdeskApi} from '../../../../superdeskApi';
 
-import {ButtonGroup, Button} from 'superdesk-ui-framework/react';
-import {Row} from '../../../UI/Form';
+import {Button, EmptyState, Spacer} from 'superdesk-ui-framework/react';
 import {RelatedPlanningItem} from './RelatedPlanningItem';
 import {PlanningMetaData} from '../../../RelatedPlannings/PlanningMetaData';
 
 import './style.scss';
+import {TEMP_ID_PREFIX} from '../../../../constants';
+import {addSomeRelatedPlanningsToEventEditor} from '../../../../utils/planning';
+import {IRelatedPlanningProps} from './EventRelatedPlanningWrapper';
+import {isTemporaryId} from '../../../../utils';
+import {isEqual} from 'lodash';
 
-interface IProps extends IEditorFieldProps {
-    item: IEventItem;
-    schema?: IProfileSchemaTypeList;
-    coverageProfile?: ISearchProfile;
+export class EditorFieldEventRelatedPlanningsComponent extends React.PureComponent<IRelatedPlanningProps> {
+    relatedItemRefs: {[id: string]: RelatedPlanningItem};
 
-    getRef(value: DeepPartial<IPlanningItem>): React.RefObject<PlanningMetaData | RelatedPlanningItem>;
-    addPlanningItem(): void;
-    removePlanningItem(item: DeepPartial<IPlanningItem>): void;
-    updatePlanningItem(original: DeepPartial<IPlanningItem>, updates: DeepPartial<IPlanningItem>): void;
-    addCoverageToWorkflow(original: IPlanningItem, coverage: IPlanningCoverageItem, index: number): void;
-}
+    constructor(props: IRelatedPlanningProps) {
+        super(props);
 
-export class EditorFieldEventRelatedPlannings extends React.PureComponent<IProps> {
+        this.relatedItemRefs = {};
+        this.softLockPlannings = this.softLockPlannings.bind(this);
+    }
+
+    private softLockPlannings() {
+        if (this.props.disabled !== true) {
+            planningApi.locks.softLockItem({
+                type: 'event',
+                item: this.props.item,
+                plan_ids: this.props.item.associated_plannings.map((x) => x._id),
+            });
+        }
+    }
+
+    componentDidMount(): void {
+        this.softLockPlannings();
+    }
+
+    componentDidUpdate(prevProps: Readonly<IRelatedPlanningProps>): void {
+        if (this.props.disabled !== true) {
+            const prevPlanIds = prevProps.item.associated_plannings.map((x) => x._id);
+            const currentPlanIds = this.props.item.associated_plannings.map((x) => x._id);
+
+            if (isEqual(prevPlanIds, currentPlanIds) === false) {
+                this.softLockPlannings();
+            }
+        }
+    }
+
+    componentWillUnmount(): void {
+        if (this.props.disabled !== true) {
+            // Unlock all associated planning items (both temporary and existing)
+            // when the event editor closes
+            this.props.item.associated_plannings
+                .forEach((x) => planningApi.locks.unlockEmbeddedItem(x as IPlanningItem));
+        }
+    }
+
     render() {
         const {gettext} = superdeskApi.localization;
+        const {DropZone} = superdeskApi.components;
         const isAgendaEnabled = planningApi.planning.getEditorProfile().editor.agendas.enabled;
         const disabled = this.props.disabled || this.props.schema?.read_only;
+        const planningItems = this.props.item.associated_plannings ?? [];
+
+        const canAddItems: {allowed: boolean; error: string | null} = (() => {
+            if (this.props.disabled || this.props.schema?.read_only) {
+                return {
+                    allowed: false,
+                    error: null,
+                };
+            } else if (isTemporaryId(this.props.item._id)) {
+                return {
+                    allowed: false,
+                    error: gettext('Event has to be created before adding related plannings'),
+                };
+            } else {
+                return {
+                    allowed: true,
+                    error: null,
+                };
+            }
+        })();
+
+        const planningItemsMetadata = planningItems.length > 0 ? (
+            <>
+                {planningItems.map((plan, index) => (
+                    <PlanningMetaData
+                        key={plan._id}
+                        field={`plannings[${index}]`}
+                        plan={plan}
+                        scrollInView={true}
+                        tabEnabled={true}
+                    />
+                ))}
+            </>
+        ) : (
+            <EmptyState
+                title={superdeskApi.localization.gettext('No planning items have been added')}
+                illustration="2"
+                size="small"
+            />
+        );
 
         return (
             <div className="related-plannings">
-                <Row flex={true} noPadding={true}>
+                <Spacer h gap="4" justifyContent="space-between" noWrap>
                     <label className="InputArray__label side-panel__heading side-panel__heading--big">
                         {gettext('Related Plannings')}
                     </label>
-                    {disabled ? null : (
-                        <ButtonGroup align="end">
-                            <Button
-                                type="primary"
-                                icon="plus-large"
-                                text="plus-large"
-                                shape="round"
-                                size="small"
-                                iconOnly={true}
-                                onClick={this.props.addPlanningItem}
-                            />
-                        </ButtonGroup>
+
+                    {canAddItems.allowed && (
+                        <Button
+                            type="primary"
+                            icon="plus-large"
+                            text="plus-large"
+                            shape="round"
+                            size="small"
+                            iconOnly={true}
+                            onClick={() => {
+                                this.props.addPlanningItem();
+                            }}
+                        />
                     )}
-                </Row>
-                {!this.props.item.associated_plannings?.length ? (
-                    <Row>
-                        <div className="info-box--dashed">
-                            <label>{gettext('No related Planning yet')}</label>
-                        </div>
-                    </Row>
-                ) : (
-                    <React.Fragment>
-                        {disabled ? (
-                            this.props.item.associated_plannings.map((plan, index) => (
-                                <PlanningMetaData
-                                    ref={this.props.getRef(plan) as React.RefObject<PlanningMetaData>}
-                                    key={plan._id}
-                                    field={`plannings[${index}]`}
-                                    plan={plan}
-                                    scrollInView={true}
-                                    tabEnabled={true}
-                                />
-                            ))
-                        ) : (
-                            this.props.item.associated_plannings?.map((plan, index) => (
+                </Spacer>
+                {disabled ? planningItemsMetadata : (
+                    <>
+                        {planningItems.map((plan, index) => {
+                            const isNewlyCreatedItem = index === planningItems.length - 1
+                                && plan._id.startsWith(TEMP_ID_PREFIX);
+
+                            return (
                                 <RelatedPlanningItem
-                                    ref={this.props.getRef(plan) as React.RefObject<RelatedPlanningItem>}
-                                    key={plan._id}
+                                    // Reload if _etag has changed so autosave and saving doesn't crash
+                                    key={plan._etag ?? plan._id}
+                                    ref={(ref) => {
+                                        this.relatedItemRefs[index] = ref;
+                                    }}
                                     index={index}
                                     event={this.props.item}
                                     item={plan}
-                                    removePlan={this.props.removePlanningItem}
-                                    updatePlanningItem={this.props.updatePlanningItem}
-                                    addCoverageToWorkflow={this.props.addCoverageToWorkflow}
+                                    unlinkPlanning={(item) => {
+                                        return this.props.unlinkPlanning(item).then(() =>
+                                            planningApi.locks.unlockEmbeddedItem(item as IPlanningItem)
+                                        );
+                                    }}
+                                    updatePlanningItem={(org, updates, scrollOnChange) => {
+                                        return this.props.updatePlanningItem(org, updates, scrollOnChange).then(() => {
+                                            // Wait for redux store to update
+                                            setTimeout(() => {
+                                                this.softLockPlannings();
+                                            }, 100);
+                                        });
+                                    }}
                                     disabled={false}
                                     editorType={this.props.editorType}
                                     profile={this.props.profile}
                                     coverageProfile={this.props.coverageProfile}
                                     isAgendaEnabled={isAgendaEnabled}
+                                    initiallyExpanded={isNewlyCreatedItem && (plan.coverages ?? []).length < 1}
                                 />
-                            ))
-                        )}
-                    </React.Fragment>
+                            );
+                        })}
+                    </>
                 )}
+                <DropZone
+                    canDrop={() => canAddItems.allowed}
+                    onDrop={(event) => {
+                        const data = event.dataTransfer.getData('application/superdesk.planning.planning_item');
+
+                        if (data.length < 1) {
+                            superdeskApi.ui.notify.error(gettext('Dropped item is not a planning item'));
+                        } else {
+                            const planningItem: IPlanningItem = JSON.parse(data);
+
+                            addSomeRelatedPlanningsToEventEditor([planningItem], this.props.lockedItems);
+                        }
+                    }}
+                    multiple={true}
+                    disabled={!canAddItems.allowed}
+                >
+                    {canAddItems.allowed ? gettext('Drop planning items here') : canAddItems.error}
+                </DropZone>
             </div>
         );
     }

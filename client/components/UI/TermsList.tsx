@@ -1,6 +1,6 @@
 import React from 'react';
-import {gettext} from 'superdesk-core/scripts/core/utils';
 import {getVocabularyItemFieldTranslated} from '../../utils/vocabularies';
+import {superdeskApi} from '../../superdeskApi';
 
 type Term = {[key: string]: any};
 
@@ -26,6 +26,7 @@ export default class TermsList extends React.PureComponent<IProps> {
             return null;
         }
 
+        const {gettext} = superdeskApi.localization;
         const classes = readOnly ?
             'terms-list terms-list--disabled' :
             'terms-list';

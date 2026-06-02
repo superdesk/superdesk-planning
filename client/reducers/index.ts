@@ -18,8 +18,11 @@ import featuredPlanning from './featuredPlanning';
 import files from './files';
 import contacts from './contacts';
 import locations from './locations';
+import coveragesReducer from './coverageProfiles';
+import exportTemplates from './exportTemplates';
 
 const returnState = (state) => state || {};
+const returnGenreState = (state) => state ?? [];
 
 const planningApp = combineReducers({
     modal: modal,
@@ -29,6 +32,7 @@ const planningApp = combineReducers({
     agenda: agenda,
     assignment: assignment,
     forms: forms,
+    coverageProfiles: coveragesReducer,
     locks: locks,
     session: session,
     workspace: workspace,
@@ -40,19 +44,19 @@ const planningApp = combineReducers({
     featuredPlanning: featuredPlanning,
     files: files,
     contacts: contacts,
+    exportTemplates: exportTemplates,
 
     // The following doesn't require reducers as they are loaded using sdPlanningService
     ingest: returnState,
     privileges: returnState,
     subjects: returnState,
-    genres: returnState,
+    genres: returnGenreState,
     users: returnState,
     desks: returnState,
     urgency: returnState,
     customVocabularies: returnState,
     userDesks: returnState,
     locations: locations,
-    exportTemplates: returnState,
 });
 
 export default planningApp;

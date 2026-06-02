@@ -4,10 +4,12 @@ import eventsApi from '../events/api';
 import planningApi from '../planning/api';
 import {EVENTS_PLANNING, MAIN, ITEM_TYPE, MODALS} from '../../constants';
 import * as selectors from '../../selectors';
-import {getItemType, dispatchUtils, getErrorMessage} from '../../utils';
+import {getItemType, dispatchUtils, getErrorMessage, gettext} from '../../utils';
+import {getRelatedEventIdsForPlanning} from '../../utils/planning';
 import main from '../main';
-import {gettext} from '../../utils';
 import {showModal} from '../index';
+import {appConfig} from 'appConfig';
+import {planningApis} from '../../api';
 
 /**
  * Action to fetch events and planning based on the params
@@ -90,7 +92,8 @@ const refetchPlanning = (planningId) => (
     (dispatch, getState) => {
         const storedPlannings = selectors.planning.storedPlannings(getState());
         const plan = get(storedPlannings, planningId);
-        const eventId = get(plan, 'event_item');
+        const relatedEventIds = getRelatedEventIdsForPlanning(plan);
+        const eventId = relatedEventIds.length > 0 ? relatedEventIds[0] : undefined;
         const events = selectors.eventsPlanning.getRelatedPlanningsList(getState()) || {};
 
         if (!selectors.main.isEventsPlanningView(getState()) || !eventId ||
@@ -133,6 +136,11 @@ const receiveEventsPlanning = (items = []) => (
 
         dispatch(eventsApi.receiveEvents(events));
         dispatch(planningApi.receivePlannings(plannings));
+
+        if (appConfig.planning_expand_related_plannings) {
+            dispatch(self.loadAllRelatedPlannings(items));
+        }
+
         return Promise.resolve();
     }
 );
@@ -173,6 +181,32 @@ const _showRelatedPlannings = (event) => ({
     type: EVENTS_PLANNING.ACTIONS.SHOW_RELATED_PLANNINGS,
     payload: event,
 });
+
+const loadAllRelatedPlannings = (items) => (
+    (dispatch) => {
+        const eventsWithPlannings = items.filter(
+            (item) => getItemType(item) === ITEM_TYPE.EVENT && (item.planning_ids?.length ?? 0) > 0
+        );
+
+        if (eventsWithPlannings.length === 0) {
+            return Promise.resolve();
+        }
+
+        const eventIds = eventsWithPlannings.map((event) => event._id);
+
+        return planningApis.planning.searchGetAll({
+            event_item: eventIds,
+            only_future: false,
+            include_killed: true,
+        }).then((plannings) => {
+            dispatch(planningApi.receivePlannings(plannings));
+            eventsWithPlannings.forEach((event) => {
+                dispatch(self._showRelatedPlannings(event));
+            });
+            return plannings;
+        });
+    }
+);
 
 /**
  * Saves the combined view filter
@@ -325,6 +359,7 @@ const self = {
     clearList,
     showRelatedPlannings,
     _showRelatedPlannings,
+    loadAllRelatedPlannings,
     loadMore,
     requestEventsPlanning,
     refetch,

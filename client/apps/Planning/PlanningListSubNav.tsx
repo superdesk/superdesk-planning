@@ -4,7 +4,7 @@ import moment from 'moment';
 import classNames from 'classnames';
 
 import {planningApi, superdeskApi} from '../../superdeskApi';
-import {LIST_VIEW_TYPE, SORT_FIELD, SORT_ORDER, PLANNING_VIEW} from '../../interfaces';
+import {GROUP_LIST_BY, SORT_FIELD, SORT_ORDER, PLANNING_VIEW} from '../../interfaces';
 
 import * as selectors from '../../selectors';
 import * as actions from '../../actions';
@@ -22,7 +22,7 @@ const STANDARD_MIN_WIDTH = 500;
 
 interface IProps {
     currentStartFilter?: moment.Moment;
-    listViewType: LIST_VIEW_TYPE;
+    groupListBy: GROUP_LIST_BY;
     currentInterval: 'DAY' | 'WEEK' | 'MONTH';
     sortOrder: SORT_ORDER;
     sortField: SORT_FIELD;
@@ -41,7 +41,7 @@ interface IState {
 const mapStateToProps = (state) => ({
     currentStartFilter: selectors.main.currentStartFilter(state),
     currentInterval: selectors.main.currentJumpInterval(state),
-    listViewType: selectors.main.getCurrentListViewType(state),
+    groupListBy: selectors.main.getCurrentListGrouping(state),
     sortOrder: selectors.main.getCurrentSortOrder(state),
     sortField: selectors.main.getCurrentSortField(state),
     users: selectors.general.users(state),
@@ -183,7 +183,7 @@ class PlanningListSubNavComponent extends React.Component<IProps, IState> {
 
         return (
             <div ref={this.onContainerMounted}>
-                <SubNav className="subnav-event-planning" zIndex={1}>
+                <SubNav className="subnav-event-planning">
                     <ButtonGroup align="inline">
                         <FilterSubnavDropdown viewSize={this.state.viewSize} />
 
@@ -219,7 +219,7 @@ class PlanningListSubNavComponent extends React.Component<IProps, IState> {
                         }
                     </ButtonGroup>
                     <ButtonGroup className="hideOnMobile" align="end">
-                        {this.props.listViewType === LIST_VIEW_TYPE.LIST ? (
+                        {this.props.groupListBy === GROUP_LIST_BY.NOT_GROUPED ? (
                             <React.Fragment>
                                 <div
                                     className={classNames(
@@ -268,7 +268,7 @@ class PlanningListSubNavComponent extends React.Component<IProps, IState> {
                                 {this.state.viewSize === 'compact' ? null : (
                                     <React.Fragment>
                                         <IconButton
-                                            ariaValue="back"
+                                            ariaValue={gettext('back')}
                                             onClick={() => this.props.jumpTo('BACK')}
                                             icon="chevron-left-thin"
                                         />
@@ -281,16 +281,21 @@ class PlanningListSubNavComponent extends React.Component<IProps, IState> {
                                             onClick={() => this.props.jumpTo('TODAY')}
                                         />
                                         <IconButton
-                                            ariaValue="forward"
+                                            ariaValue={gettext('forward')}
                                             onClick={() => this.props.jumpTo('FORWARD')}
                                             icon="chevron-right-thin"
                                         />
-                                        <Dropdown items={this.intervalOptions}>
-                                            <span className="sd-margin-l--1 sd-margin-r--3">
-                                                {intervalText}
-                                                <span className="dropdown__caret" />
-                                            </span>
-                                        </Dropdown>
+                                        <div data-test-id="interval-dropdown">
+                                            <Dropdown items={this.intervalOptions}>
+                                                <span
+                                                    data-test-id="interval-dropdown-toggle"
+                                                    className="sd-margin-l--1 sd-margin-r--3"
+                                                >
+                                                    {intervalText}
+                                                    <span className="dropdown__caret" />
+                                                </span>
+                                            </Dropdown>
+                                        </div>
                                     </React.Fragment>
                                 )}
                             </React.Fragment>

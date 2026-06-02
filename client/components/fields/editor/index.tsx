@@ -1,6 +1,3 @@
-import * as React from 'react';
-
-import {EditorFieldCategories} from './Categories';
 import {EditorFieldCoverageType} from './CoverageType';
 import {EditorFieldEndDateTime} from './EndDateTime';
 import {EditorFieldFeatured} from './Featured';
@@ -37,11 +34,10 @@ import {EditorFieldEventRecurringRules} from './EventRecurringRules';
 import {EditorFieldEventSchedule} from './EventSchedule';
 import {EditorFieldContacts} from './Contacts';
 import {EditorFieldEventOccurenceStatus} from './EventOccurenceStatus';
-import {EditorFieldEventRelatedPlannings} from './EventRelatedPlannings/EventRelatedPlannings';
 import {EditorFieldPlanningDateTime} from './PlanningDateTime';
 import {EditorFieldNotForPublication} from './NotForPublication';
 import {EditorFieldOverrideAutoAssignToWorkflow} from './OverrideAutoAssignToWorkflow';
-import {EditorFieldAssociatedEvent} from './AssociatedEvent';
+import {EditorFieldAssociatedEvents} from './AssociatedEventWrapper';
 import {EditorFieldCoverages} from './Coverages';
 import {EditorFieldGenre} from './Genre';
 import {EditorFieldNewsCoverageStatus} from './NewsCoverageStatus';
@@ -51,11 +47,17 @@ import {EditorFieldNoContentLinking} from './NoContentLinking';
 import {EditorFieldCoverageContact} from './CoverageContact';
 import {EditorFieldXMPFile} from './XMPFile';
 import {EditorFieldScheduledUpdates} from './ScheduledUpdates';
-import {EditorFieldCustomVocabularies} from './CustomVocabularies';
 import {EditorFieldAssignedCoverageComponent} from './AssignedCoverage';
+import {EditorFieldEventRelatedPlannings} from './EventRelatedPlannings/EventRelatedPlanningWrapper';
+import {EditorFieldAddCoverageToWorkflow} from './AddCoverageToWorkflow';
+import {EditorFieldAssignmentPriority} from './AssignmentPriority';
+import {EditorFieldCreationDate} from './CreationDate';
 
+/**
+ * This is the single source of truth for field definitions, allows for registering
+ * other fields from a different place through `registerEditorField`
+*/
 export const FIELD_TO_EDITOR_COMPONENT = {
-    anpa_category: EditorFieldCategories,
     featured: EditorFieldFeatured,
     source: EditorFieldIngestSource,
     location: EditorFieldLocation,
@@ -118,6 +120,7 @@ export const FIELD_TO_EDITOR_COMPONENT = {
     'dates.recurring_rules': EditorFieldEventRecurringRules,
     recurring_rules: EditorFieldEventRecurringRules,
     dates: EditorFieldEventSchedule,
+    creation_date: EditorFieldCreationDate,
     contacts: EditorFieldContacts,
     event_contact_info: EditorFieldContacts,
     occur_status: EditorFieldEventOccurenceStatus,
@@ -127,7 +130,7 @@ export const FIELD_TO_EDITOR_COMPONENT = {
     marked_for_not_publication: EditorFieldNotForPublication,
     'flags.overide_auto_assign_to_workflow': EditorFieldOverrideAutoAssignToWorkflow,
     overide_auto_assign_to_workflow: EditorFieldOverrideAutoAssignToWorkflow,
-    associated_event: EditorFieldAssociatedEvent,
+    associated_event: EditorFieldAssociatedEvents,
     coverages: EditorFieldCoverages,
     genre: EditorFieldGenre,
     news_coverage_status: EditorFieldNewsCoverageStatus,
@@ -139,9 +142,10 @@ export const FIELD_TO_EDITOR_COMPONENT = {
     coverage_contact: EditorFieldCoverageContact,
     contact_info: EditorFieldCoverageContact,
     xmp_file: EditorFieldXMPFile,
+    add_coverage_to_workflow: EditorFieldAddCoverageToWorkflow,
     scheduled_updates: EditorFieldScheduledUpdates,
-    custom_vocabularies: EditorFieldCustomVocabularies,
     coverage_assignment_status: EditorFieldAssignedCoverageComponent,
+    assignment_priority: EditorFieldAssignmentPriority,
 };
 
 // Import resource fields so that registration happens after the above

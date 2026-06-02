@@ -1,257 +1,379 @@
 import React from 'react';
-import PropTypes from 'prop-types';
-import {get} from 'lodash';
+import {connect} from 'react-redux';
 
-import {appConfig} from 'appConfig';
+import {IDesk, ITemplate} from 'superdesk-api';
+import {superdeskApi} from '../superdeskApi';
+import {IEventOrPlanningItem, ILockedItems, IPlanningExportTemplate} from '../interfaces';
 
-import {gettext, getItemType, eventUtils, getDateTimeString, timeUtils, planningUtils} from '../utils';
-import {ITEM_TYPE, EVENTS, PLANNING} from '../constants';
+import {PERSONAL_WORKSPACE} from '../constants';
+import {lockUtils} from '../utils';
+import * as selectors from '../selectors';
 
-import {Button} from './UI';
-import {SelectInput, Row} from './UI/Form';
-import {Item, Column, Row as ListRow} from './UI/List';
-import {Modal} from './index';
 import SortItems from './SortItems/index';
-import {KEYCODES} from '../constants';
-import {renderFields} from './fields';
+import {RelatedEventListItem} from './Events/EventMetadata/RelatedEventListItem';
+import {RelatedPlanningListItem} from './RelatedPlannings/PlanningMetaData/RelatedPlanningListItem';
+import {
+    Alert,
+    Button,
+    ButtonGroup,
+    FormLayout,
+    FormGroupV2,
+    FormGroupItem,
+    Select,
+    Option,
+    Spacer,
+    Modal,
+} from 'superdesk-ui-framework/react';
 
-export class ExportAsArticleModal extends React.Component {
-    constructor(props) {
+interface IOwnProps {
+    handleHide(): void;
+    modalProps: {
+        items: Array<IEventOrPlanningItem>;
+        download: boolean;
+        type: IEventOrPlanningItem['type'];
+        defaultDeskId: IDesk['_id'];
+        action(
+            items: Array<IEventOrPlanningItem>,
+            desk: IDesk['_id'],
+            planningTemplate: IPlanningExportTemplate['name'],
+            type: IEventOrPlanningItem['type'],
+            download: boolean,
+            articleTemplate: ITemplate['_id'],
+        ): void;
+    };
+}
+
+interface IReduxStateProps {
+    articleTemplates: Array<ITemplate>;
+    userDesks: Array<IDesk>;
+    lockedItems: ILockedItems;
+    planningTemplates: Array<IPlanningExportTemplate>;
+}
+
+type IProps = IOwnProps & IReduxStateProps;
+
+interface IState {
+    planningTemplateName?: IPlanningExportTemplate['name'];
+    deskId?: IDesk['_id'];
+    items: Array<IEventOrPlanningItem>;
+    selectedItems: Array<IEventOrPlanningItem['_id']>;
+    articleTemplateId?: ITemplate['_id'];
+    articleTemplates: Array<ITemplate>;
+}
+
+const mapStateToProps = (state: any, ownProps: IOwnProps) => ({
+    articleTemplates: selectors.general.templates(state),
+    userDesks: selectors.general.userDesks(state),
+    lockedItems: selectors.locks.getLockedItems(state),
+    planningTemplates: (ownProps.modalProps.type === 'planning' ?
+        selectors.general.getPlanningExportTemplates(state) :
+        selectors.general.getEventExportTemplates(state)
+    ).filter((planningTemplate) => (
+        ownProps.modalProps.download ? planningTemplate.download === true : planningTemplate.download !== true
+    )),
+});
+
+class ExportAsArticleModalComponent extends React.Component<IProps, IState> {
+    constructor(props: IProps) {
         super(props);
 
+        const {defaultDeskId, type} = this.props.modalProps;
+        const [articleTemplateId, articleTemplates] = this.getFilteredArticleTemplates(defaultDeskId);
+        const defaultTemplateName = this.props.planningTemplates.find((planningTemplate) => (
+            (type === 'planning' && planningTemplate.name === 'default_planning')
+            || (type !== 'planning' && planningTemplate.name === 'default_event')
+        ))?.name;
+
         this.state = {
-            template: this.props.modalProps.defaultTemplate,
-            desk: this.props.modalProps.defaultDesk,
+            planningTemplateName: defaultTemplateName,
+            deskId: this.props.modalProps.defaultDeskId,
             items: this.props.modalProps.items,
-            articleTemplate: this.props.modalProps.defaultArticleTemplate,
-            articleTemplates: this.props.modalProps.articleTemplates,
+            selectedItems: this.props.modalProps.items
+                .filter((item) => !lockUtils.isItemLocked(item, this.props.lockedItems))
+                .map((item) => item._id),
+            articleTemplateId: articleTemplateId,
+            articleTemplates: articleTemplates,
         };
-
-        this.onChange = this.onChange.bind(this);
-        this.onSortChange = this.onSortChange.bind(this);
-        this.onSubmit = this.onSubmit.bind(this);
-        this.filterArticleTemplates = this.filterArticleTemplates.bind(this);
-        this.getListElement = this.getListElement.bind(this);
-        this.handleKeydown = this.handleKeydown.bind(this);
-        this.onCloseItem = this.onCloseItem.bind(this);
     }
 
-    componentDidMount() {
-        this.filterArticleTemplates(this.state.desk);
-        document.addEventListener('keydown', this.handleKeydown);
+    onChangeDesk = (deskId: IDesk['_id']) => {
+        // on desk change filter article-templates based on desk selected
+        const [articleTemplateId, articleTemplates] = this.getFilteredArticleTemplates(deskId);
+
+        this.setState({
+            deskId: deskId,
+            articleTemplateId: articleTemplateId,
+            articleTemplates: articleTemplates,
+        });
     }
 
-    componentWillUnmount() {
-        document.removeEventListener('keydown', this.handleKeydown);
+    onChangeTemplate = (templateId: ITemplate['_id']) => {
+        this.setState({articleTemplateId: templateId});
     }
 
-    handleKeydown(event) {
-        if (event.keyCode === KEYCODES.ESCAPE) {
-            event.preventDefault();
-            this.props.handleHide();
-        }
+    onChangePlanningTemplate = (planningTemplateName: IPlanningExportTemplate['name']) => {
+        this.setState({planningTemplateName: planningTemplateName});
     }
 
-    onChange(field, value) {
-        if (field === 'desk') { // on desk change filter article-templates based on desk selected
-            this.filterArticleTemplates(value);
-        }
-        this.setState({[field]: value});
-    }
+    onSubmit = () => {
+        const {deskId, planningTemplateName, items, articleTemplateId} = this.state;
+        const {type, download} = this.props.modalProps;
 
-    onSubmit() {
-        const {
-            desk,
-            template,
-            items,
-            articleTemplate,
-        } = this.state;
+        const selectedItems = items.filter(
+            (item) => this.state.selectedItems.includes(item._id)
+        );
 
-        this.props.modalProps.action(items, get(desk, '_id'), get(template, 'name'),
-            get(this.props, 'modalProps.type'), get(this.props, 'modalProps.download'), get(articleTemplate, '_id'));
+        this.props.modalProps.action(selectedItems, deskId, planningTemplateName, type, download, articleTemplateId);
         this.props.handleHide();
     }
 
-    onSortChange(items) {
+    onSortChange = (items: Array<IEventOrPlanningItem>) => {
         this.setState({items: items});
     }
 
-    onCloseItem(itemId) {
-        this.setState({items: this.state.items.filter((i) => i._id !== itemId)});
-    }
-
-    filterArticleTemplates(desk) {
-        const newObj = {};
-
-        newObj.articleTemplates = this.props.modalProps.articleTemplates.filter((t) =>
-            Object.keys(t).length > 0 && t.template_desks && t.template_desks.includes(desk._id));
-        newObj.articleTemplate = newObj.articleTemplates.find((t) =>
-            Object.keys(t).length > 0 && t._id === get(desk, 'default_content_template'))
-            || newObj.articleTemplates[0];
-
-        this.setState((prevState) => ({...prevState, ...newObj}));
-    }
-
-    getListElement(item) {
-        const {exportListFields, agendas} = this.props.modalProps;
-        const itemType = getItemType(item);
-        const propsToComponent = {
-            fieldsProps: {
-                location: {noMargin: true},
-                description: {alternateFieldName: 'definition_short'},
-                agendas: {agendas: planningUtils.getAgendaNames(item, agendas, true)},
-
-            },
-        };
-        let primaryFields, secFields, dateStr;
-
-        if (itemType === ITEM_TYPE.EVENT) {
-            primaryFields = EVENTS.EXPORT_LIST.PRIMARY_FIELDS;
-            secFields = EVENTS.EXPORT_LIST.SECONDARY_FIELDS;
-            dateStr = eventUtils.getDateStringForEvent(
-                item,
-                false,
-                true,
-                timeUtils.isEventInDifferentTimeZone(item));
-        } else {
-            primaryFields = PLANNING.EXPORT_LIST.PRIMARY_FIELDS;
-            secFields = PLANNING.EXPORT_LIST.SECONDARY_FIELDS;
-            dateStr = getDateTimeString(
-                item.planning_date,
-                appConfig.planning.dateformat,
-                appConfig.planning.timeformat,
-                ' @ ',
-                false
-            ) || '';
+    getFilteredArticleTemplates(deskId: IDesk['_id']): [ITemplate['_id'], Array<ITemplate>] {
+        if (deskId === PERSONAL_WORKSPACE._id) {
+            return [this.props.articleTemplates[0]?._id, this.props.articleTemplates];
         }
 
-        return (
-            <Item>
-                <Column grow={true} border={false}>
-                    <ListRow>
-                        <span className="sd-overflow-ellipsis sd-list-item--element-grow">
-                            {renderFields(get(exportListFields,
-                                `${itemType}.primary_fields`, primaryFields), item, propsToComponent)}
-                        </span>
-                        <button
-                            className="icon-close-small"
-                            onClick={this.onCloseItem.bind(null, item._id)}
-                        />
-                    </ListRow>
-                    <ListRow>
-                        <span className="sd-overflow-ellipsis sd-list-item--element-grow">
-                            {renderFields(get(exportListFields,
-                                `${itemType}.secondary_fields`, secFields), item, propsToComponent)}
-                        </span>
-                        {dateStr && <time className="no-padding"><i className="icon-time" />{dateStr}</time>}
-                    </ListRow>
-                </Column>
-            </Item>
+        const desk = this.props.userDesks.find((desk) => desk._id === deskId);
+
+        if (desk == null) {
+            console.warn('Desk not found, cannot filter article templates');
+            return [null, []];
+        }
+
+        const articleTemplates = this.props.articleTemplates.filter(
+            (articleTemplate) => (articleTemplate.template_desks?.includes(deskId))
         );
+
+        return [
+            (articleTemplates.find(
+                (articleTemplate) => (articleTemplate._id === desk.default_content_template)
+            ) || articleTemplates[0])?._id,
+            articleTemplates,
+        ];
+    }
+
+    toggleItemSelection = (item: IEventOrPlanningItem) => {
+        this.setState((prevState) => {
+            if (prevState.selectedItems.includes(item._id)) {
+                return {
+                    selectedItems: prevState.selectedItems.filter((itemId) => itemId !== item._id),
+                    // Re-assign items to a new value so `SortItems` re-renders
+                    items: [...prevState.items],
+                };
+            } else {
+                return {
+                    selectedItems: [...prevState.selectedItems, item._id],
+                    // Re-assign items to a new value so `SortItems` re-renders
+                    items: [...prevState.items],
+                };
+            }
+        });
+    }
+
+    includeAllLockedItems = () => {
+        this.setState((prevState) => {
+            const unselectedLockedItemIds = this.getLockedItemIds().filter(
+                (itemId) => !prevState.selectedItems.includes(itemId)
+            );
+
+            return {
+                selectedItems: [...prevState.selectedItems, ...unselectedLockedItemIds],
+                // Re-assign items to a new value so `SortItems` re-renders
+                items: [...prevState.items],
+            };
+        });
+    }
+
+    excludeAllLockedItems = () => {
+        this.setState((prevState) => {
+            const lockedItemIds = this.getLockedItemIds();
+
+            return {
+                selectedItems: prevState.selectedItems.filter((itemId) => !lockedItemIds.includes(itemId)),
+                // Re-assign items to a new value so `SortItems` re-renders
+                items: [...prevState.items],
+            };
+        });
+    }
+
+    getListElement = (item: IEventOrPlanningItem) => {
+        const selected = this.state.selectedItems.includes(item._id);
+
+        if (item.type === 'event') {
+            return (
+                <RelatedEventListItem
+                    item={item}
+                    showIcon={true}
+                    shadow={1}
+                    showBorder={true}
+                    active={selected}
+                    showCheckbox={true}
+                    checked={selected}
+                    onCheckToggle={this.toggleItemSelection.bind(this, item)}
+                    noColumnPadding={true}
+                />
+            );
+        } else if (item.type === 'planning') {
+            return (
+                <RelatedPlanningListItem
+                    item={item}
+                    showIcon={true}
+                    shadow={1}
+                    showBorder={true}
+                    isAgendaEnabled={false}
+                    active={selected}
+                    showCheckbox={true}
+                    checked={selected}
+                    onCheckToggle={this.toggleItemSelection.bind(this, item)}
+                    noColumnPadding={true}
+                />
+            );
+        } else {
+            throw new Error('no other options');
+        }
+    }
+
+    getLockedItemIds(): Array<IEventOrPlanningItem['_id']> {
+        return this.state.items
+            .filter((item) => lockUtils.isItemLocked(item, this.props.lockedItems))
+            .map((item) => item._id);
     }
 
     render() {
-        const {
-            desks,
-            templates,
-            download,
-        } = this.props.modalProps;
-
-        const {
-            desk,
-            template,
-            articleTemplate,
-            articleTemplates,
-        } = this.state;
+        const {gettext, gettextPlural} = superdeskApi.localization;
+        const lockedItemIds = this.getLockedItemIds();
+        const unselectedLockedItemIds = lockedItemIds.filter((itemId) => !this.state.selectedItems.includes(itemId));
 
         return (
-            <Modal show={true}>
-                <Modal.Header>
-                    <h3 className="modal__heading">{gettext('Export as article')}</h3>
-                </Modal.Header>
-                <Modal.Body>
-                    <Row>
-                        <SortItems
-                            items={this.state.items}
-                            onSortChange={this.onSortChange}
-                            getListElement={this.getListElement}
-                        />
-                    </Row>
-                    {!download && [<Row key={0}>
-                        <SelectInput
-                            field="desk"
-                            label={gettext('Desk')}
-                            value={desk}
-                            onChange={this.onChange}
-                            options={desks}
-                            labelField="name"
-                            keyField="_id"
-                        />
-                    </Row>,
-                    <Row key={1}>
-                        <SelectInput
-                            field="articleTemplate"
-                            label={gettext('Select Article Template')}
-                            value={articleTemplate}
-                            onChange={this.onChange}
-                            options={articleTemplates}
-                            labelField="template_name"
-                            keyField="_id"
-                            clearable
-                        />
-                    </Row>]}
-                    <Row>
-                        <SelectInput
-                            field="template"
-                            label={gettext('Custom Layout')}
-                            value={template}
-                            onChange={this.onChange}
-                            options={templates}
-                            labelField="label"
-                            keyField="name"
-                            clearable
-                        />
-                    </Row>
-                </Modal.Body>
-                <Modal.Footer>
-                    <div className="button-group button-group--end button-group--comfort">
-                        <Button type="button" onClick={this.props.handleHide}>
-                            {gettext('Cancel')}
-                        </Button>
-                        {!download && (
+            <Modal
+                visible={true}
+                size="large"
+                position="top"
+                headerTemplate={gettext('Export as article')}
+                onHide={this.props.handleHide}
+                closeOnEscape={true}
+                footerTemplate={(
+                    <ButtonGroup align="end">
+                        <Button type="default" onClick={this.props.handleHide} text={gettext('Cancel')} />
+                        {this.props.modalProps.download !== true ? (
                             <Button
-                                type="submit"
-                                className="btn--primary"
-                                disabled={!desk}
+                                type="primary"
+                                disabled={this.state.deskId == null}
                                 onClick={this.onSubmit}
-                            >{gettext('Export')}</Button>
+                                text={gettext('Export')}
+                            />
+                        ) : (
+                            <Button type="primary" onClick={this.onSubmit} text={gettext('Download')} />
                         )}
-                        {download && (
-                            <Button type="submit" className="btn--primary"onClick={this.onSubmit}>
-                                {gettext('Download')}
-                            </Button>
-                        )}
-                    </div>
-                </Modal.Footer>
+                    </ButtonGroup>
+                )}
+            >
+                <FormLayout spaces="compact" className="mb-4">
+                    {this.props.modalProps.download === true ? null : (
+                        <React.Fragment>
+                            <FormGroupV2>
+                                <FormGroupItem>
+                                    <Select
+                                        label={gettext('Desk')}
+                                        value={this.state.deskId}
+                                        onChange={this.onChangeDesk}
+                                        required={true}
+                                    >
+                                        <Option value={PERSONAL_WORKSPACE._id}>
+                                            {PERSONAL_WORKSPACE.name}
+                                        </Option>
+                                        {this.props.userDesks.map((desk) => (
+                                            <Option key={desk._id} value={desk._id}>{desk.name}</Option>
+                                        ))}
+                                    </Select>
+                                </FormGroupItem>
+                            </FormGroupV2>
+                            <FormGroupV2>
+                                <FormGroupItem>
+                                    <Select
+                                        label={gettext('Article Template')}
+                                        value={this.state.articleTemplateId}
+                                        onChange={this.onChangeTemplate}
+                                    >
+                                        <Option />
+                                        {this.state.articleTemplates.map((articleTemplate) => (
+                                            <Option key={articleTemplate._id} value={articleTemplate._id}>
+                                                {articleTemplate.template_name}
+                                            </Option>
+                                        ))}
+                                    </Select>
+                                </FormGroupItem>
+                            </FormGroupV2>
+                        </React.Fragment>
+                    )}
+
+                    <FormGroupV2>
+                        <FormGroupItem>
+                            <Select
+                                label={gettext('Custom Layout')}
+                                value={this.state.planningTemplateName}
+                                onChange={this.onChangePlanningTemplate}
+                            >
+                                <Option />
+                                {this.props.planningTemplates.map((planningTemplate) => (
+                                    <Option key={planningTemplate.name} value={planningTemplate.name}>
+                                        {planningTemplate.label}
+                                    </Option>
+                                ))}
+                            </Select>
+                        </FormGroupItem>
+                    </FormGroupV2>
+                </FormLayout>
+                {lockedItemIds.length === 0 ? null : (
+                    <React.Fragment>
+                        <Alert
+                            style="hollow"
+                            size="normal"
+                            margin="small"
+                            icon="warning-sign"
+                            type="warning"
+                            restoreIcon="info"
+                        >
+                            <Spacer v={true} gap="4">
+                                {gettextPlural(
+                                    lockedItemIds.length,
+                                    'One of the items that was selected is locked. ' +
+                                    'By default locked items are not included in the export.',
+                                    '{{ count }} items that were selected are locked. ' +
+                                    'By default locked items are not included in the export.',
+                                    {count: lockedItemIds.length}
+                                )}
+                                <ButtonGroup align="end">
+                                    <Button
+                                        type="tertiary"
+                                        size="small"
+                                        onClick={unselectedLockedItemIds.length > 0 ?
+                                            this.includeAllLockedItems :
+                                            this.excludeAllLockedItems
+                                        }
+                                        text={unselectedLockedItemIds.length > 0 ?
+                                            gettext('Include all locked items') :
+                                            gettext('Exclude all locked items')
+                                        }
+                                    />
+                                </ButtonGroup>
+                            </Spacer>
+                        </Alert>
+                    </React.Fragment>
+                )}
+                <SortItems
+                    items={this.state.items}
+                    onSortChange={this.onSortChange}
+                    getListElement={this.getListElement}
+                />
             </Modal>
         );
     }
 }
 
-ExportAsArticleModal.propTypes = {
-    handleHide: PropTypes.func,
-    modalProps: PropTypes.shape({
-        items: PropTypes.array,
-        desks: PropTypes.array,
-        templates: PropTypes.array,
-        defaultDesk: PropTypes.object,
-        defaultTemplate: PropTypes.object,
-        onSortChange: PropTypes.func,
-        action: PropTypes.func,
-        download: PropTypes.bool,
-        articleTemplates: PropTypes.array,
-        defaultArticleTemplate: PropTypes.object,
-        exportListFields: PropTypes.object.isRequired,
-        agendas: PropTypes.array,
-    }),
-};
+export const ExportAsArticleModal = connect<IReduxStateProps, {}, IOwnProps>(
+    mapStateToProps
+)(ExportAsArticleModalComponent);

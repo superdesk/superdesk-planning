@@ -1,24 +1,28 @@
 import React from 'react';
-import PropTypes from 'prop-types';
-
 import {get} from 'lodash';
 import {getTranslatedValue} from '.';
 import {IFieldsProps} from '../../interfaces';
+import {stringUtils} from '../../utils';
+
+const stylesForEllipsis: React.CSSProperties = {
+    flexShrink: 1,
+    whiteSpace: 'nowrap',
+    overflow: 'hidden',
+    textOverflow: 'ellipsis',
+};
 
 export const slugline = ({item, language}: IFieldsProps) => {
     if (!get(item, 'slugline', '')) {
         return null;
     }
 
-    return (
-        <span className="sd-list-item__slugline">{getTranslatedValue(language, item, 'slugline') ||
-    item.slugline}</span>
+    const value = stringUtils.convertHtmlToPlainText(
+        getTranslatedValue(language, item, 'slugline') || item.slugline,
     );
-};
 
-slugline.propTypes = {
-    item: PropTypes.shape({
-        slugline: PropTypes.string,
-    }).isRequired,
-    language: PropTypes.string,
+    return (
+        <span className="sd-list-item__slugline" style={{...stylesForEllipsis, lineHeight: '1lh'}}>
+            {value}
+        </span>
+    );
 };

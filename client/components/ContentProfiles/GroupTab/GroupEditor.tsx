@@ -3,8 +3,7 @@ import * as React from 'react';
 import {IEditorProfileGroup, ILanguage, IPlanningContentProfile} from '../../../interfaces';
 import {superdeskApi} from '../../../superdeskApi';
 
-import {Button, ButtonGroup, Input, Switch, ToggleBox} from 'superdesk-ui-framework/react';
-import {IconSelectButton} from '../../UI/IconSelectButton';
+import {Button, ButtonGroup, IconPicker, Input, Switch, ToggleBox} from 'superdesk-ui-framework/react';
 
 interface IProps {
     profile: IPlanningContentProfile;
@@ -73,7 +72,7 @@ export class GroupEditor extends React.PureComponent<IProps> {
                             <Button
                                 text={this.props.isNewGroup ?
                                     gettext('Create') :
-                                    gettext('Save')
+                                    gettext('Apply')
                                 }
                                 onClick={() => this.props.saveGroup()}
                                 type="primary"
@@ -87,10 +86,11 @@ export class GroupEditor extends React.PureComponent<IProps> {
                         <div className="side-panel__content-block-inner side-panel__content-block-inner--grow">
                             <div className="form__group">
                                 <div className="form__item form__item--auto-width">
-                                    <IconSelectButton
-                                        label={gettext('Icon')}
-                                        icon={this.props.group.icon}
+                                    <IconPicker
                                         onChange={this.props.updateGroupAttribute.bind(null, 'icon')}
+                                        filterPlaceholder={gettext('Search icons....')}
+                                        value={this.props.group.icon}
+                                        label={gettext('Icon')}
                                     />
                                 </div>
                                 <div className="form__item">
@@ -127,6 +127,7 @@ export class GroupEditor extends React.PureComponent<IProps> {
                             </div>
                             {!this.props.languages?.length ? null : (
                                 <ToggleBox
+                                    variant="simple"
                                     title={gettext('Name Translations')}
                                     className="toggle-box--circle"
                                     initiallyOpen={true}

@@ -1,6 +1,6 @@
 Feature: Duplicate Planning
 
-    @auth @notification
+    @auth @notification @vocabulary
     Scenario: Duplicate a Planning item
         When we post to "planning" with success
         """
@@ -34,7 +34,7 @@ Feature: Duplicate Planning
             ]
         }
         """
-        When we post to "/planning/123/duplicate"
+        When we post to "/planning/123/duplicate" with success
         """
         [{}]
         """
@@ -149,12 +149,12 @@ Feature: Duplicate Planning
         ]
         """
 
-    @auth
+    @auth @vocabulary
     Scenario: Planning can only be duplicated by user having privileges
         When we post to "planning" with success
         """
         [{
-            "guid": "123",
+            "guid": "124",
             "headline": "test headline",
             "slugline": "test slugline",
             "state": "scheduled",
@@ -167,7 +167,7 @@ Feature: Duplicate Planning
         {"user_type": "user", "privileges": {"planning_planning_management": 0, "users": 1}}
         """
         Then we get OK response
-        When we post to "/planning/123/duplicate"
+        When we post to "/planning/124/duplicate"
         """
         [{}]
         """
@@ -177,19 +177,19 @@ Feature: Duplicate Planning
         {"user_type": "user", "privileges": {"planning_planning_management": 1}}
         """
         Then we get OK response
-        When we post to "/planning/123/duplicate"
+        When we post to "/planning/124/duplicate" with success
         """
         [{}]
         """
         Then we get OK response
 
 
-    @auth @notification
+    @auth @notification @vocabulary
     Scenario: Coverage workflow_status defaults to draft on duplication item
         When we post to "planning" with success
         """
         [{
-            "guid": "123",
+            "guid": "125",
             "headline": "test headline",
             "slugline": "test slugline",
             "state": "scheduled",
@@ -218,17 +218,17 @@ Feature: Duplicate Planning
             ]
         }
         """
-        When we post to "/planning/123/duplicate"
+        When we post to "/planning/125/duplicate" with success
         """
         [{}]
         """
         Then we get OK response
-        When we get "/planning/123"
+        When we get "/planning/125"
         Then we get existing resource
         """
         {
-            "_id": "123",
-            "guid": "123",
+            "_id": "125",
+            "guid": "125",
             "headline": "test headline",
             "slugline": "test slugline",
             "state": "scheduled",
@@ -279,18 +279,31 @@ Feature: Duplicate Planning
         }
         """
 
-    @auth @notification
+    @auth @notification @vocabulary
     Scenario: Duplicating a posted Planning item won't repost it
         When we post to "planning" with success
         """
         [{
-            "guid": "123",
+            "guid": "126",
             "headline": "test headline",
             "slugline": "test slugline",
             "planning_date": "2029-11-21T14:00:00.000Z"
         }]
         """
         Then we get OK response
+        When we post to "/products" with success
+        """
+        { "name": "prod-1", "codes": "abc", "product_type": "both" }
+        """
+        And we post to "/subscribers" with success
+        """
+        {
+        "name": "News1", "media_type": "media", "subscriber_type": "digital", "products": ["#products._id#"], "email": "test@email.com",
+        "is_active": true,
+        "codes": "abc",
+        "destinations": [{ "name": "planning", "format": "json_planning", "delivery_type": "File", "config": { "file_path": "/tmp" } }]
+        }
+        """
         When we post to "/planning/post"
         """
         {
@@ -300,7 +313,7 @@ Feature: Duplicate Planning
         }
         """
         Then we get OK response
-        When we post to "/planning/123/duplicate"
+        When we post to "/planning/126/duplicate" with success
         """
         [{}]
         """
@@ -311,7 +324,7 @@ Feature: Duplicate Planning
         {"_items": [
             {
                 "operation": "create",
-                "planning_id": "123",
+                "planning_id": "126",
                 "update": {
                     "headline": "test headline",
                     "slugline": "test slugline"
@@ -319,11 +332,11 @@ Feature: Duplicate Planning
             },
             {
                 "operation": "post",
-                "planning_id": "123"
+                "planning_id": "126"
             },
             {
                 "operation": "duplicate",
-                "planning_id": "123",
+                "planning_id": "126",
                 "update": {"duplicate_id": "#duplicate._id#"}
             },
             {
@@ -333,7 +346,7 @@ Feature: Duplicate Planning
         ]}
         """
 
-    @auth
+    @auth @vocabulary
     Scenario: Duplicate a past planning item will have current date
         Given "planning"
         """
@@ -364,7 +377,7 @@ Feature: Duplicate Planning
 
         }]
         """
-        When we post to "/planning/plan1/duplicate"
+        When we post to "/planning/plan1/duplicate" with success
         """
         [{}]
         """
@@ -377,7 +390,7 @@ Feature: Duplicate Planning
         {"expired": "__no_value__"}
         """
 
-    @auth
+    @auth @vocabulary
     Scenario: Duplicating a Planning item will link to the same Event
         Given "events"
         """
@@ -400,11 +413,11 @@ Feature: Duplicate Planning
             "guid": "plan1",
             "slugline": "Test Event",
             "state": "draft",
-            "event_item": "event1",
+            "related_events": [{"_id": "event1", "link_type": "primary"}],
             "planning_date": "2029-11-21T14:00:00.000Z"
         }]
         """
-        When we post to "/planning/plan1/duplicate"
+        When we post to "/planning/plan1/duplicate" with success
         """
         [{}]
         """
@@ -418,12 +431,12 @@ Feature: Duplicate Planning
             "slugline": "Test Event",
             "state": "draft",
             "planning_date": "2029-11-21T14:00:00+0000",
-            "event_item": "event1",
+            "related_events": [{"_id": "event1", "link_type": "primary"}],
             "expired": "__no_value__"
         }
         """
 
-    @auth
+    @auth @vocabulary
     Scenario: Duplicating an expired Planning item will remove the link to the Event
         Given "events"
         """
@@ -447,12 +460,12 @@ Feature: Duplicate Planning
             "guid": "plan1",
             "slugline": "Test Event",
             "state": "draft",
-            "event_item": "event1",
+            "related_events": [{"_id": "event1", "link_type": "primary"}],
             "planning_date": "2029-11-21T14:00:00.000Z",
             "expired": true
         }]
         """
-        When we post to "/planning/plan1/duplicate"
+        When we post to "/planning/plan1/duplicate" with success
         """
         [{}]
         """
@@ -466,12 +479,12 @@ Feature: Duplicate Planning
             "slugline": "Test Event",
             "state": "draft",
             "planning_date": "2029-11-21T14:00:00+0000",
-            "event_item": "__no_value__",
+            "related_events": "__empty__",
             "expired": "__no_value__"
         }
         """
 
-    @auth
+    @auth @vocabulary
     Scenario: Duplicating a canceled Planning item will clear the state_reason
         Given "events"
         """
@@ -497,7 +510,7 @@ Feature: Duplicate Planning
             "slugline": "Test Event",
             "state" : "cancelled",
             "state_reason": "A reason why this is cancelled.",
-            "event_item": "event1",
+            "related_events": [{"_id": "event1", "link_type": "primary"}],
             "planning_date": "2029-11-21T14:00:00.000Z",
             "ednote" : "This is the ednote in planning",
             "coverages": [
@@ -520,7 +533,7 @@ Feature: Duplicate Planning
             ]
         }]
         """
-        When we post to "/planning/plan1/duplicate"
+        When we post to "/planning/plan1/duplicate" with success
         """
         [{}]
         """
@@ -534,7 +547,7 @@ Feature: Duplicate Planning
             "slugline": "Test Event",
             "state": "draft",
             "planning_date": "2029-11-21T14:00:00+0000",
-            "event_item": "__no_value__",
+            "related_events": "__empty__",
             "expired": "__no_value__",
             "state_reason": "__no_value__",
             "ednote": "This is the ednote in planning",
@@ -542,7 +555,7 @@ Feature: Duplicate Planning
         }
         """
 
-    @auth
+    @auth @vocabulary
     Scenario: Duplicating a rescheduled Planning item will clear the state_reason
         Given "events"
         """
@@ -567,7 +580,7 @@ Feature: Duplicate Planning
             "guid": "plan1",
             "slugline": "Test Event",
             "state" : "rescheduled",
-            "event_item": "event1",
+            "related_events": [{"_id": "event1", "link_type": "primary"}],
             "planning_date": "2029-11-21T14:00:00.000Z",
             "ednote" : "This is the ednote in planning",
             "state_reason": "A reason why this is rescheduled.",
@@ -591,7 +604,7 @@ Feature: Duplicate Planning
             ]
         }]
         """
-        When we post to "/planning/plan1/duplicate"
+        When we post to "/planning/plan1/duplicate" with success
         """
         [{}]
         """
@@ -605,7 +618,7 @@ Feature: Duplicate Planning
             "slugline": "Test Event",
             "state": "draft",
             "planning_date": "2029-11-21T14:00:00+0000",
-            "event_item": "__no_value__",
+            "related_events": "__empty__",
             "expired": "__no_value__",
             "ednote": "This is the ednote in planning",
             "state_reason": "__no_value__",
@@ -644,7 +657,7 @@ Feature: Duplicate Planning
             "slugline": "test slugline",
             "state": "scheduled",
             "pubstatus": "usable",
-            "event_item": "123",
+            "related_events": [{"_id": "123", "link_type": "primary"}],
             "planning_date": "2029-11-21T14:00:00.000Z"
         }]
         """
@@ -671,10 +684,10 @@ Feature: Duplicate Planning
         {
             "_id": "123",
             "state": "cancelled",
-            "event_item": "123"
+            "related_events": [{"_id": "123", "link_type": "primary"}]
         }
         """
-        When we post to "/planning/123/duplicate"
+        When we post to "/planning/123/duplicate" with success
         """
         [{}]
         """
@@ -685,7 +698,7 @@ Feature: Duplicate Planning
         {
             "_id": "#duplicate._id#",
             "state": "draft",
-            "event_item": "__no_value__"
+            "related_events": "__empty__"
         }
         """
 
@@ -719,7 +732,7 @@ Feature: Duplicate Planning
             "slugline": "test slugline",
             "state": "scheduled",
             "pubstatus": "usable",
-            "event_item": "123",
+            "related_events": [{"_id": "123", "link_type": "primary"}],
             "planning_date": "2029-11-21T14:00:00.000Z"
         }]
         """
@@ -753,10 +766,10 @@ Feature: Duplicate Planning
         {
             "_id": "123",
             "state": "rescheduled",
-            "event_item": "123"
+            "related_events": [{"_id": "123", "link_type": "primary"}]
         }
         """
-        When we post to "/planning/123/duplicate"
+        When we post to "/planning/123/duplicate" with success
         """
         [{}]
         """
@@ -767,6 +780,6 @@ Feature: Duplicate Planning
         {
             "_id": "#duplicate._id#",
             "state": "draft",
-            "event_item": "__no_value__"
+            "related_events": "__empty__"
         }
         """

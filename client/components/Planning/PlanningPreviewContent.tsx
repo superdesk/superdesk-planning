@@ -5,6 +5,8 @@ import {get} from 'lodash';
 import {IDesk, IUser} from 'superdesk-api';
 import {superdeskApi} from '../../superdeskApi';
 import {
+    ICoverageContentProfile,
+    ICoverageFormProfile,
     IEventItem,
     IFile,
     IFormProfiles,
@@ -19,6 +21,7 @@ import {eventUtils, getCreator, getFileDownloadURL} from '../../utils';
 import {getUserInterfaceLanguageFromCV} from '../../utils/users';
 import * as selectors from '../../selectors';
 import * as actions from '../../actions';
+import planningActions from '../../actions/planning/api';
 
 import {
     AuditInformation,
@@ -32,31 +35,46 @@ import {ContentBlock} from '../UI/SidePanel';
 import {EventMetadata} from '../Events';
 import {FeatureLabel} from './FeaturedPlanning';
 import {previewGroupToProfile, renderGroupedFieldsForPanel} from '../fields';
+import {getRelatedEventIdsForPlanning} from '../../utils/planning';
+import {coverageProfiles} from '../../selectors/coverageProfiles';
+import {getCoverageFields} from '../../api/editor/item_planning';
+import {appConfig} from 'appConfig';
 
-interface IProps {
-    item: IPlanningItem;
-    users: Array<IUser>;
-    desks: Array<IDesk>;
-    session: ISession;
-    lockedItems: ILockedItems;
-    formProfile: IFormProfiles;
-    event?: IEventItem;
-    newsCoverageStatus: Array<IPlanningNewsCoverageStatus>;
-    onEditEvent(): void; // TODO - match code
+interface IOwnProps {
     inner?: boolean;
     noPadding?: boolean;
-    fetchEventFiles(event: IEventItem): void; // TODO - match code
-    fetchPlanningFiles(item: IPlanningItem): void; // TODO - match code
     hideRelatedItems?: boolean;
-    files: Array<IFile>;
     hideEditIcon?: boolean;
-    planningAllowScheduledUpdates: boolean;
     currentCoverageId?: IPlanningCoverageItem['coverage_id'];
 }
 
-const mapStateToProps = (state, ownProps) => ({
+interface IReduxProps {
+    item: IPlanningItem;
+    relatedEvents: Array<IEventItem> | null;
+    session: ISession;
+    privileges: any;
+    users: Array<IUser>;
+    desks: Array<IDesk>;
+    lockedItems: ILockedItems;
+    formProfile: IFormProfiles;
+    newsCoverageStatus: Array<IPlanningNewsCoverageStatus>;
+    files: Array<IFile>;
+    coverageProfiles: Array<ICoverageContentProfile>;
+}
+
+interface IDispatchProps {
+    onEditEvent(event): void; // TODO - match code
+
+    // TODO: Multiple related events - If BE supports bulk fetch for an array of events use it
+    fetchEventFiles(event: IEventItem): void; // TODO - match code
+    fetchPlanningFiles(item: IPlanningItem): void; // TODO - match code
+}
+
+type IProps = IOwnProps & IReduxProps & IDispatchProps;
+
+const mapStateToProps = (state, ownProps): IReduxProps => ({
     item: selectors.planning.currentPlanning(state) || ownProps.item,
-    event: selectors.events.planningWithEventDetails(state),
+    relatedEvents: selectors.events.getRelatedEventsForPlanning(state),
     session: selectors.general.session(state),
     privileges: selectors.general.privileges(state),
     users: selectors.general.users(state),
@@ -65,20 +83,22 @@ const mapStateToProps = (state, ownProps) => ({
     formProfile: selectors.forms.profiles(state),
     newsCoverageStatus: selectors.general.newsCoverageStatus(state) || ownProps.item.coverages.news_coverage_status,
     files: selectors.general.files(state),
-    planningAllowScheduledUpdates: selectors.forms.getPlanningAllowScheduledUpdates(state),
+    coverageProfiles: coverageProfiles(state),
 });
 
-const mapDispatchToProps = (dispatch) => ({
+const mapDispatchToProps = (dispatch): IDispatchProps => ({
     onEditEvent: (event) => dispatch(actions.main.openForEdit(event)),
     fetchEventFiles: (event) => dispatch(actions.events.api.fetchEventFiles(event)),
-    fetchPlanningFiles: (planning) => dispatch(actions.planning.api.fetchPlanningFiles(planning)),
+    fetchPlanningFiles: (planning) => dispatch(planningActions.fetchPlanningFiles(planning)),
 });
 
 export class PlanningPreviewContentComponent extends React.PureComponent<IProps> {
     componentWillMount() {
         // If the planning item is associated with an event, get its files
-        if (this.props.event) {
-            this.props.fetchEventFiles(this.props.event);
+        if ((this.props.relatedEvents?.length ?? 0) > 0) {
+            this.props.relatedEvents.forEach((relatedEvent) => (
+                this.props.fetchEventFiles(relatedEvent)
+            ));
         }
 
         this.props.fetchPlanningFiles(this.props.item);
@@ -89,18 +109,17 @@ export class PlanningPreviewContentComponent extends React.PureComponent<IProps>
         const {item,
             users,
             formProfile,
-            event,
+            relatedEvents,
             desks,
             newsCoverageStatus,
             onEditEvent,
-            lockedItems,
             inner,
             noPadding,
             hideRelatedItems,
             hideEditIcon,
             files,
-            planningAllowScheduledUpdates,
         } = this.props;
+
         const createdBy = getCreator(item, 'original_creator', users);
         const updatedBy = getCreator(item, 'version_creator', users);
         const creationDate = get(item, '_created');
@@ -115,23 +134,32 @@ export class PlanningPreviewContentComponent extends React.PureComponent<IProps>
             item.coverages ?? [] :
             (item.coverages ?? []).filter((coverage) => coverage.coverage_id !== this.props.currentCoverageId);
 
-        const renderCoverage = (coverage, index) => (
-            <CoveragePreview
-                item={item}
-                key={coverage.coverage_id}
-                index={index}
-                coverage={coverage}
-                users= {users}
-                desks= {desks}
-                newsCoverageStatus={newsCoverageStatus}
-                formProfile={formProfile.coverage}
-                inner={inner}
-                files={files}
-                createLink={getFileDownloadURL}
-                planningAllowScheduledUpdates={planningAllowScheduledUpdates}
-                scrollInView={true}
-            />
-        );
+        const CoveragesPreview = ({coverage, index}) => {
+            const {profile} = getCoverageFields(coverage.planning.g2_content_type);
+
+            return (
+                <CoveragePreview
+                    item={item}
+                    key={coverage.coverage_id}
+                    index={index}
+                    coverage={coverage}
+                    users= {users}
+                    desks= {desks}
+                    newsCoverageStatus={newsCoverageStatus}
+                    formProfile={profile}
+                    inner={inner}
+                    files={files}
+                    createLink={getFileDownloadURL}
+                    canScheduleUpdates={
+                        profile.editor.flags && appConfig.planning_allow_scheduled_updates
+                    }
+                    scrollInView={true}
+                />
+            );
+        };
+
+        const primaryEventId = getRelatedEventIdsForPlanning(this.props.item, 'primary')[0];
+        const primaryRelatedEvent = (relatedEvents ?? []).find((relatedEvent) => relatedEvent._id === primaryEventId);
 
         return (
             <ContentBlock noPadding={noPadding}>
@@ -153,7 +181,8 @@ export class PlanningPreviewContentComponent extends React.PureComponent<IProps>
                             verbose={true}
                             withExpiredStatus={true}
                         />
-                        {eventUtils.isEventCompleted(event) && (
+                        {/* TODO: How do we display event status when there's multiple? Primary only? */}
+                        {eventUtils.isEventCompleted(primaryRelatedEvent) && (
                             <Label
                                 text={gettext('Event Completed')}
                                 iconType="success"
@@ -198,43 +227,49 @@ export class PlanningPreviewContentComponent extends React.PureComponent<IProps>
                             <span className="sd-text__info">{gettext('No attached files added.')}</span>}
                     </ToggleBox>
                 )}
-                {!hideRelatedItems && event && (
-                    <h3 className="side-panel__heading--big">
-                        {gettext('Associated Event')}
-                    </h3>
+                {!hideRelatedItems && (relatedEvents?.length ?? 0) > 0 && (
+                    <>
+                        <h3 className="side-panel__heading--big">
+                            {gettext('Associated Events')}
+                        </h3>
+                        {relatedEvents.map((relatedEvent) => (
+                            <EventMetadata
+                                key={`related_event--${relatedEvent._id}`}
+                                event={relatedEvent}
+                                dateOnly={true}
+                                onEditEvent={onEditEvent.bind(null, relatedEvent)}
+                                createUploadLink={getFileDownloadURL}
+                                files={files}
+                                hideEditIcon={hideEditIcon}
+                            />
+                        ))}
+                    </>
                 )}
-                {!hideRelatedItems && event && (
-                    <EventMetadata
-                        event={event}
-                        dateOnly={true}
-                        onEditEvent={onEditEvent.bind(null, event)}
-                        lockedItems={lockedItems}
-                        createUploadLink={getFileDownloadURL}
-                        files={files}
-                        hideEditIcon={hideEditIcon}
-                    />
-                )}
-                {!hasCoverage ? null : (
-                    <React.Fragment>
+                {hasCoverage && (
+                    <>
                         {currentCoverage == null ? (
-                            <React.Fragment>
+                            <>
                                 <h3 className="side-panel__heading--big">{gettext('Coverages')}</h3>
-                                {otherCoverages.map(renderCoverage)}
-                            </React.Fragment>
+                                {otherCoverages.map((coverage, i) => (
+                                    <CoveragesPreview key={i} coverage={coverage} index={i} />
+                                ))}
+                            </>
                         ) : (
-                            <React.Fragment>
+                            <>
                                 <h3 className="side-panel__heading--big">{gettext('This Coverage')}</h3>
-                                {renderCoverage(currentCoverage, 0)}
+                                <CoveragesPreview coverage={currentCoverage} index={0} />
 
-                                {!otherCoverages.length ? null : (
-                                    <React.Fragment>
+                                {(otherCoverages ?? []).length > 0 && (
+                                    <>
                                         <h3 className="side-panel__heading--big">{gettext('Other Coverages')}</h3>
-                                        {otherCoverages.map(renderCoverage)}
-                                    </React.Fragment>
+                                        {otherCoverages.map((coverage, i) => (
+                                            <CoveragesPreview key={i} coverage={coverage} index={i} />
+                                        ))}
+                                    </>
                                 )}
-                            </React.Fragment>
+                            </>
                         )}
-                    </React.Fragment>
+                    </>
                 )}
             </ContentBlock>
         );

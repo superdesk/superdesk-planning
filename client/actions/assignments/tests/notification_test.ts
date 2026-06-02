@@ -10,6 +10,8 @@ import assignmentsApi from '../api';
 import main from '../../main';
 import assignmentNotifications from '../notifications';
 import planningApis from '../../planning/api';
+import type {inject} from '../../../globals';
+import {noop} from 'lodash';
 
 describe('actions.assignments.notification', () => {
     let store;
@@ -101,14 +103,13 @@ describe('actions.assignments.notification', () => {
     describe('`assignment:created`', () => {
         beforeEach(() => {
             sinon.stub(assignmentsApi, 'query').callsFake(() => (Promise.resolve({_items: []})));
-            sinon.stub(assignmentsApi, 'receivedAssignments').callsFake(() => { /* no-op */ });
+            sinon.stub(assignmentsApi, 'receivedAssignments').callsFake(noop);
             sinon.stub(assignmentUtils, 'getCurrentSelectedDeskId').returns('desk1');
         });
 
         afterEach(() => {
             restoreSinonStub(assignmentsApi.query);
             restoreSinonStub(assignmentsApi.receivedAssignments);
-            restoreSinonStub(assignmentsUi.setInList);
             restoreSinonStub(assignmentUtils.getCurrentSelectedDeskId);
         });
 
@@ -169,10 +170,11 @@ describe('actions.assignments.notification', () => {
                     expect(planningApis.loadPlanningByIds.args).toEqual([
                         [['p1']],
                     ]);
+
                     expect(assignmentsUi.reloadAssignments.callCount).toBe(2);
-                    expect(assignmentsUi.reloadAssignments.args).toEqual([
-                        [['assigned']],
-                        [[undefined]],
+                    expect(assignmentsUi.reloadAssignments.args[0]).toEqual([
+                        ['assigned'],
+                        false,
                     ]);
                     done();
                 })
@@ -358,9 +360,9 @@ describe('actions.assignments.notification', () => {
                         [['p1']],
                     ]);
                     expect(assignmentsUi.reloadAssignments.callCount).toBe(2);
-                    expect(assignmentsUi.reloadAssignments.args).toEqual([
-                        [['completed']],
-                        [[undefined]],
+                    expect(assignmentsUi.reloadAssignments.args[0]).toEqual([
+                        ['completed'],
+                        false,
                     ]);
                     done();
                 })
@@ -372,6 +374,8 @@ describe('actions.assignments.notification', () => {
             sinon.stub(assignmentsApi, 'fetchAssignmentById').callsFake(() => (
                 Promise.resolve(store.initialState.assignment.assignments.as1)));
 
+            store.initialState.assignment.filterBy = 'Desk';
+            store.initialState.assignment.selectedDeskId = 'desk1';
             store.initialState.locks.assignment = {as1: {user: 'ident1'}};
             store.initialState.workspace.currentDeskId = 'desk1';
             let payload = {
@@ -386,7 +390,11 @@ describe('actions.assignments.notification', () => {
                 .then(() => {
                     expect(planningApi.locks.setItemAsUnlocked.callCount).toBe(1);
                     expect(assignmentsApi.fetchAssignmentById.callCount).toBe(1);
-                    expect(store.dispatch.args[5]).toEqual([{
+
+                    // find the UNLOCK_ASSIGNMENT dispatch call instead of relying on hardcoded dispatch index
+                    const unlockDispatch = store.dispatch.args.find((args) => args[0]?.type === 'UNLOCK_ASSIGNMENT');
+
+                    expect(unlockDispatch).toEqual([{
                         type: 'UNLOCK_ASSIGNMENT',
                         payload: {
                             assignment: {

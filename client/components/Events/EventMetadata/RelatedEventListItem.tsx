@@ -2,17 +2,22 @@ import * as React from 'react';
 import {connect} from 'react-redux';
 
 import {IEventItem, ILockedItems} from '../../../interfaces';
-import {superdeskApi} from '../../../superdeskApi';
 import {ICON_COLORS} from '../../../constants';
+import {superdeskApi} from '../../../superdeskApi';
 
-import {eventUtils, lockUtils} from '../../../utils';
+import {lockUtils} from '../../../utils';
 import * as selectors from '../../../selectors';
 
 import * as List from '../../UI/List';
 import {ItemIcon} from '../../ItemIcon';
-import {StateLabel} from '../../StateLabel';
+import {LineItems} from '../../../components/UI/List/LineItems';
+import {eventFirstLineConfig, eventSecondLineConfig} from '../../../config';
+import {renderFields} from '../../../components/fields';
+import {getUserInterfaceLanguageFromCV} from '../../../utils/users';
+import {ILineConfig} from 'globals';
+import {Checkbox} from 'superdesk-ui-framework/react';
 
-interface IProps {
+interface IBaseProps {
     item: DeepPartial<IEventItem>;
     active?: boolean;
     noBg?: boolean;
@@ -20,12 +25,27 @@ interface IProps {
     showIcon?: boolean;
     shadow?: number;
     dateOnly?: boolean;
-    editEventComponent?: React.ReactNode;
+    eventActions?: React.ReactNode;
+    noColumnPadding?: boolean;
     onClick?(): void;
 
     // Redux Store
     lockedItems: ILockedItems;
 }
+
+interface IWithoutCheckboxProps extends IBaseProps {
+    showCheckbox?: never;
+    checked?: never;
+    onCheckToggle?: never;
+}
+
+interface IWithCheckboxProps extends IBaseProps {
+    showCheckbox: true;
+    checked: boolean;
+    onCheckToggle(value: boolean): void;
+}
+
+type IProps = IWithoutCheckboxProps | IWithCheckboxProps;
 
 const mapStateToProps = (state) => ({
     lockedItems: selectors.locks.getLockedItems(state),
@@ -33,15 +53,24 @@ const mapStateToProps = (state) => ({
 
 class RelatedEventListItemComponent extends React.PureComponent<IProps> {
     render() {
+        const {gettext} = superdeskApi.localization;
+        const {item} = this.props;
         const isItemLocked = lockUtils.isItemLocked(
-            this.props.item,
+            item,
             this.props.lockedItems
         );
-        const dateStr = eventUtils.getDateStringForEvent(
-            this.props.item,
-            this.props.dateOnly,
-            true,
-            false
+
+        const language = item.language || getUserInterfaceLanguageFromCV();
+
+        const renderFieldsWithProps = (fields: Array<ILineConfig>) => renderFields(
+            fields,
+            item,
+            {
+                fieldsProps: {
+                    // nothing field specific needed
+                },
+            },
+            language,
         );
 
         return (
@@ -54,7 +83,22 @@ class RelatedEventListItemComponent extends React.PureComponent<IProps> {
                 {!(this.props.showBorder && isItemLocked) ? null : (
                     <List.Border state="locked" />
                 )}
+
                 <div className="sd-list-item__border" />
+
+                {!this.props.showCheckbox ? null : (
+                    <List.Column>
+                        <Checkbox
+                            label={{
+                                text: gettext('Selected'),
+                                hidden: true,
+                            }}
+                            checked={this.props.checked}
+                            onChange={this.props.onCheckToggle}
+                        />
+                    </List.Column>
+                )}
+
                 {!this.props.showIcon ? null : (
                     <List.Column>
                         <ItemIcon
@@ -63,33 +107,22 @@ class RelatedEventListItemComponent extends React.PureComponent<IProps> {
                         />
                     </List.Column>
                 )}
+
                 <List.Column
                     grow={true}
                     border={false}
+                    style={this.props.noColumnPadding ? undefined : {paddingBlock: 'var(--space--1)'}}
                 >
-                    <List.Row>
-                        <span className="sd-overflow-ellipsis sd-list-item--element-grow">
-                            <span className="sd-list-item__text-strong">{this.props.item.name}</span>
-                        </span>
-                    </List.Row>
-                    <List.Row>
-                        <time className="no-padding">
-                            <i className="icon-time" />
-                            {dateStr}
-                        </time>
-                    </List.Row>
-                </List.Column>
-                <List.Column>
-                    <StateLabel
-                        item={this.props.item}
-                        verbose={true}
-                        className="pull-right"
-                        withExpiredStatus={true}
+                    <LineItems
+                        firstLine={eventFirstLineConfig.filter(({fieldId}) => fieldId !== 'related_plannings')}
+                        secondLine={eventSecondLineConfig.filter(({fieldId}) => fieldId !== 'related_plannings')}
+                        renderFieldsWithProps={renderFieldsWithProps}
                     />
                 </List.Column>
-                {!this.props.editEventComponent ? null : (
+
+                {!this.props.eventActions ? null : (
                     <List.ActionMenu>
-                        {this.props.editEventComponent}
+                        {this.props.eventActions}
                     </List.ActionMenu>
                 )}
             </List.Item>

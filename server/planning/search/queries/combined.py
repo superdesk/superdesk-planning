@@ -1,40 +1,17 @@
+# -*- coding: utf-8; -*-
+#
+# This file is part of Superdesk.
+#
+# Copyright 2014 Sourcefabric z.u. and contributors.
+#
+# For the full copyright and license information, please see the
+# AUTHORS and LICENSE files distributed with this source code, or
+# at https://www.sourcefabric.org/superdesk/license
+
 from typing import Dict, Any, List, Callable
 
 from planning.search.queries import elastic, events, planning, common
-from flask import current_app as app
-
-
-def construct_combined_view_data_query(
-    params: Dict[str, Any], search_filter: Dict[str, Any], items: List[Dict[str, Any]]
-) -> Dict[str, Any]:
-    ids = set()
-    for item in items:
-        item_id = item.get("_id")
-        event_id = item.get("event_item")
-        if common.strtobool(params.get("include_associated_planning", False)):
-            ids.add(item_id)
-            if event_id:
-                ids.add(event_id)
-        else:
-            # Combined search prioritises Events over Planning items
-            # therefore if the Planning item is linked to an Event
-            # then we want to return that Event instead
-            ids.add(event_id or item_id)
-
-    query = elastic.ElasticQuery()
-
-    filter_params = common.get_params_from_search_filter(search_filter)
-    if len(filter_params):
-        filter_params["time_zone"] = params.get("time_zone") or app.config.get("DEFAULT_TIMEZONE")
-        filter_params["start_of_week"] = params.get("start_of_week", app.config.get("START_OF_WEEK", 0))
-
-        search_dates(filter_params, query)
-
-    search_dates(params, query)
-
-    query.must.append(elastic.terms(field="_id", values=list(ids)))
-
-    return query.build()
+from .common import get_created_date_params
 
 
 def search_not_common_fields(params: Dict[str, Any], query: elastic.ElasticQuery):
@@ -93,15 +70,26 @@ def search_dates(params: Dict[str, Any], query: elastic.ElasticQuery):
     query.must.append(elastic.bool_or([event_query.build()["query"], planning_query.build()["query"]]))
 
 
+def search_created_date(params: Dict[str, Any], query: elastic.ElasticQuery):
+    created_start_date, created_end_date = get_created_date_params(params)
+
+    if created_start_date:
+        query.filter.append(elastic.date_range(elastic.ElasticRangeParams(field="_created", gte=created_start_date)))
+
+    if created_end_date:
+        query.filter.append(elastic.date_range(elastic.ElasticRangeParams(field="_created", lte=created_end_date)))
+
+
 def search_coverage_assigned_user(params: Dict[str, Any], query: elastic.ElasticQuery):
     planning.search_coverage_assigned_user(params, query)
 
 
-COMBINED_SEARCH_FILTERS: List[Callable[[Dict[str, Any], elastic.ElasticQuery], None]] = [
+COMBINED_SEARCH_FILTERS: list[common.FilterFunctionType] = [
     search_not_common_fields,
     search_sluglines,
     search_calendars_and_agendas,
     search_dates,
+    search_created_date,
     search_coverage_assigned_user,
 ]
 

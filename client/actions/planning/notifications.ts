@@ -1,7 +1,7 @@
 import {get} from 'lodash';
 
-import {IWebsocketMessageData, ITEM_TYPE} from '../../interfaces';
-import {planningApi} from '../../superdeskApi';
+import {IWebsocketMessageData, ITEM_TYPE, IPlanningAppState, IPlanningItem, IEventItem} from '../../interfaces';
+import {planningApi, superdeskApi} from '../../superdeskApi';
 
 import {gettext, lockUtils} from '../../utils';
 import {PLANNING, MODALS, WORKFLOW_STATE, WORKSPACE} from '../../constants';
@@ -10,101 +10,112 @@ import planning from './index';
 import assignments from '../assignments/index';
 
 import * as selectors from '../../selectors';
-import {events, fetchAgendas} from '../index';
+import {fetchAgendas} from '../index';
 import main from '../main';
 import {showModal, hideModal} from '../index';
 import eventsPlanning from '../eventsPlanning';
+import planningApis from '../planning/api';
+import {appConfig} from 'appConfig';
 
 /**
  * WS Action when a new Planning item is created
  * @param {object} _e - Event object
  * @param {object} data - Planning and User IDs
  */
-const onPlanningCreated = (_e, data) => (
+const onPlanningCreated = (_e: {}, data: IWebsocketMessageData['PLANNING_CREATED']) => (
     (dispatch, getState) => {
-        // If this planning item was created by this user in AddToPlanning Modal
-        // Then ignore this notification
-        if (selectors.general.sessionId(getState()) === data.session && (
+        if (data.item == null) {
+            return Promise.resolve();
+        } else if (selectors.general.sessionId(getState()) === data.session && (
             selectors.general.modalType(getState()) === MODALS.ADD_TO_PLANNING ||
             selectors.general.previousModalType(getState()) === MODALS.ADD_TO_PLANNING
         )) {
-            return;
+            // If this planning item was created by this user in AddToPlanning Modal
+            // Then ignore this notification
+            return Promise.resolve();
         }
 
-        if (get(data, 'item')) {
-            if (get(data, 'event_item', null) !== null) {
-                dispatch(events.api.markEventHasPlannings(
-                    data.event_item,
-                    data.item
-                ));
-                dispatch(main.fetchItemHistory({_id: data.event_item, type: ITEM_TYPE.EVENT}));
-            }
+        dispatch(main.setUnsetLoadingIndicator(true));
 
-            dispatch(main.setUnsetLoadingIndicator(true));
-            return dispatch(planning.ui.scheduleRefetch())
-                .then(() => dispatch(eventsPlanning.ui.scheduleRefetch()))
-                .finally(() => dispatch(main.setUnsetLoadingIndicator(false)));
+        if (data.event_ids != null && data.event_ids.length > 0) {
+            dispatch(self.expandRelatedPlanningsIfNeeded(data.event_ids));
         }
 
-        return Promise.resolve();
+        return dispatch(planning.ui.scheduleRefetch(data.item))
+            .then(() => dispatch(eventsPlanning.ui.scheduleRefetch()))
+            .finally(() => dispatch(main.setUnsetLoadingIndicator(false)));
     }
 );
 
 /**
  * WS Action when a Planning item gets updated, spiked or unspiked
  * If the Planning Item is not loaded, silently discard this notification
- * @param {object} _e - Event object
- * @param {object} data - Planning and User IDs
  */
-const onPlanningUpdated = (_e, data) => (
+const onPlanningUpdated = (_e: {}, data: IWebsocketMessageData['PLANNING_UPDATED']) => (
     (dispatch, getState) => {
-        // If this planning item was update by this user in AddToPlanning Modal
-        // Then ignore this notification
-        if (selectors.general.sessionId(getState()) === data.session && (
+        const updatedPlanningId = data.item;
+
+        if (updatedPlanningId == null) {
+            return Promise.resolve();
+        } else if (selectors.general.sessionId(getState()) === data.session && (
             selectors.general.modalType(getState()) === MODALS.ADD_TO_PLANNING ||
             selectors.general.previousModalType(getState()) === MODALS.ADD_TO_PLANNING
         )) {
-            return;
+            // If this planning item was update by this user in AddToPlanning Modal
+            // Then ignore this notification
+            return Promise.resolve();
         }
 
-        if (get(data, 'item')) {
-            dispatch(planning.ui.scheduleRefetch())
-                .then((results) => {
-                    if (selectors.general.currentWorkspace(getState()) === WORKSPACE.ASSIGNMENTS) {
-                        const selectedItems = selectors.multiSelect.selectedPlannings(getState());
-                        const currentPreviewId = selectors.main.previewId(getState());
+        const promises = [];
 
-                        const loadedFromRefetch = selectedItems.indexOf(data.item) !== -1 &&
-                        !get(results, '[0]._items').find((plan) => plan._id === data.item);
+        promises.push(dispatch(planning.ui.scheduleRefetch(data.item))
+            .then(() => {
+                if (selectors.general.currentWorkspace(getState()) === WORKSPACE.ASSIGNMENTS) {
+                    const currentPreviewId = selectors.main.previewId(getState());
 
-                        if (!loadedFromRefetch && currentPreviewId === data.item) {
-                            dispatch(planning.api.fetchById(data.item, {force: true}));
-                        }
+                    if (currentPreviewId === updatedPlanningId) {
+                        dispatch(planningApis.fetchById(updatedPlanningId, {force: true}));
                     }
+                }
+            }));
 
-                    dispatch(eventsPlanning.ui.scheduleRefetch());
-                });
-
-            if (get(data, 'added_agendas.length', 0) > 0 || get(data, 'removed_agendas.length', 0) > 0) {
-                dispatch(fetchAgendas());
-            }
-            dispatch(main.fetchItemHistory({_id: data.item, type: ITEM_TYPE.PLANNING}));
-            dispatch(udpateAssignment(data.item));
-            dispatch(planning.featuredPlanning.getAndUpdateStoredPlanningItem(data.item));
+        if (data.added_agendas.length > 0 || data.removed_agendas.length > 0) {
+            promises.push(dispatch(fetchAgendas()));
         }
 
-        return Promise.resolve();
+        promises.push(dispatch(main.fetchItemHistory({_id: updatedPlanningId, type: ITEM_TYPE.PLANNING})));
+        promises.push(dispatch(udpateAssignment(updatedPlanningId)));
+        promises.push(dispatch(planning.featuredPlanning.getAndUpdateStoredPlanningItem(updatedPlanningId)));
+        promises.push(new Promise<void>((resolve) => {
+            const state: IPlanningAppState = getState();
+
+            if ( // check if websocket notification contains updates of items currently in store
+                state.planning.plannings[updatedPlanningId] != null
+                || (data.event_ids ?? []).some((id) => state.events.events[id] != null)
+            ) {
+                return planningApi.planning.getById(updatedPlanningId, true, true)
+                    .then((latestPlanning: IPlanningItem) => {
+                        planningApi.locks.reloadSoftLocksForRelatedEvents(latestPlanning);
+
+                        resolve();
+                    });
+            } else {
+                resolve();
+            }
+        }));
+
+        return Promise.all(promises);
     }
 );
 
-const onPlanningLocked = (e, data) => (
+const onPlanningLocked = (e: {}, data: IWebsocketMessageData['ITEM_LOCKED']) => (
     (dispatch, getState) => {
-        if (get(data, 'item')) {
+        if (data.item != null && data.clientId !== superdeskApi.session.getUniqueClientId()) {
             planningApi.locks.setItemAsLocked(data);
 
             const sessionId = selectors.general.session(getState()).sessionId;
 
-            return dispatch(planning.api.getPlanning(data.item, false))
+            return dispatch(planningApis.getPlanning(data.item, false))
                 .then((planInStore) => {
                     let plan = {
                         ...planInStore,
@@ -145,7 +156,7 @@ const onPlanningLocked = (e, data) => (
  */
 function onPlanningUnlocked(_e: {}, data: IWebsocketMessageData['ITEM_UNLOCKED']) {
     return (dispatch, getState) => {
-        if (data?.item != null) {
+        if (data?.item != null && data.clientId !== superdeskApi.session.getUniqueClientId()) {
             const state = getState();
             let planningItem = selectors.planning.storedPlannings(state)[data.item];
             const isCurrentlyLocked = lockUtils.isItemLocked(planningItem, selectors.locks.getLockedItems(state));
@@ -158,8 +169,6 @@ function onPlanningUnlocked(_e: {}, data: IWebsocketMessageData['ITEM_UNLOCKED']
             }
 
             planningItem = {
-                event_item: get(data, 'event_item') || null,
-                recurrence_id: get(data, 'recurrence_id') || null,
                 ...planningItem,
                 _id: data.item,
                 lock_action: null,
@@ -184,8 +193,7 @@ function onPlanningUnlocked(_e: {}, data: IWebsocketMessageData['ITEM_UNLOCKED']
 const onPlanningPosted = (_e, data) => (
     (dispatch) => {
         if (get(data, 'item')) {
-            dispatch(planning.ui.scheduleRefetch());
-            dispatch(eventsPlanning.ui.scheduleRefetch());
+            dispatch(planning.ui.scheduleRefetch(data.item));
             dispatch(main.fetchItemHistory({_id: data.item, type: ITEM_TYPE.PLANNING}));
             dispatch(eventsPlanning.ui.refetchPlanning(data.item));
             dispatch(planning.featuredPlanning.getAndUpdateStoredPlanningItem(data.item));
@@ -217,9 +225,9 @@ const onPlanningSpiked = (_e, data) => (
 
             dispatch(planning.featuredPlanning.getAndUpdateStoredPlanningItem(data.item));
             dispatch(main.setUnsetLoadingIndicator(true));
-            return dispatch(planning.ui.scheduleRefetch())
+
+            return dispatch(planning.ui.getByIdAndAddToList(data.item))
                 .then(() => {
-                    dispatch(eventsPlanning.ui.refetchPlanning(data.item));
                     return dispatch(eventsPlanning.ui.scheduleRefetch());
                 })
                 .finally(() => dispatch(main.setUnsetLoadingIndicator(false)));
@@ -247,14 +255,12 @@ const onPlanningUnspiked = (_e, data) => (
                     null :
                     gettext('The Planning item was unspiked')
             ));
-            dispatch(planning.featuredPlanning.getAndUpdateStoredPlanningItem(data.item));
 
+            dispatch(planning.featuredPlanning.getAndUpdateStoredPlanningItem(data.item));
             dispatch(main.setUnsetLoadingIndicator(true));
-            return dispatch(planning.ui.scheduleRefetch())
-                .then(() => {
-                    dispatch(eventsPlanning.ui.refetchPlanning(data.item));
-                    return dispatch(eventsPlanning.ui.scheduleRefetch());
-                })
+
+            return dispatch(planning.ui.scheduleRefetch(data.item))
+                .then(() => dispatch(eventsPlanning.ui.scheduleRefetch()))
                 .finally(() => dispatch(main.setUnsetLoadingIndicator(false)));
         }
 
@@ -265,7 +271,7 @@ const onPlanningUnspiked = (_e, data) => (
 const onPlanningCancelled = (e, data) => (
     (dispatch) => {
         if (get(data, 'item')) {
-            dispatch(planning.api.markPlanningCancelled(
+            dispatch(planningApis.markPlanningCancelled(
                 data.item,
                 get(data, 'reason'),
                 get(data, 'coverage_state'),
@@ -281,7 +287,7 @@ const onPlanningCancelled = (e, data) => (
 const onCoverageCancelled = (e, data) => (
     (dispatch, getState) => {
         if (get(data, 'planning_item') && get(data, 'ids')) {
-            dispatch(planning.api.markCoverageCancelled(
+            dispatch(planningApis.markCoverageCancelled(
                 data.planning_item,
                 get(data, 'reason'),
                 get(data, 'coverage_state'),
@@ -301,20 +307,27 @@ const udpateAssignment = (planningId) => (
         }
 
         const planningItem = selectors.planning.storedPlannings(getState())[planningId];
+        const promises = [];
 
         get(planningItem, 'coverages', []).forEach((cov) => {
             if (get(cov, 'assigned_to.assignment_id')) {
-                dispatch(assignments.api.fetchAssignmentById(cov.assigned_to.assignment_id, true));
-                dispatch(assignments.api.fetchAssignmentHistory({_id: cov.assigned_to.assignment_id}));
+                promises.push(
+                    dispatch(assignments.api.fetchAssignmentById(cov.assigned_to.assignment_id, true))
+                );
+                promises.push(
+                    dispatch(assignments.api.fetchAssignmentHistory({_id: cov.assigned_to.assignment_id}))
+                );
             }
         });
+
+        return Promise.all(promises);
     }
 );
 
 const onPlanningRescheduled = (e, data) => (
     (dispatch) => {
         if (get(data, 'item')) {
-            dispatch(planning.api.loadPlanningById(data.item));
+            dispatch(planningApis.loadPlanningById(data.item));
             dispatch(main.fetchItemHistory({_id: data.item, type: ITEM_TYPE.PLANNING}));
         }
     }
@@ -323,7 +336,7 @@ const onPlanningRescheduled = (e, data) => (
 const onPlanningPostponed = (e, data) => (
     (dispatch) => {
         if (get(data, 'item')) {
-            dispatch(planning.api.markPlanningPostponed(
+            dispatch(planningApis.markPlanningPostponed(
                 data.item,
                 get(data, 'reason')
             ));
@@ -375,7 +388,8 @@ const onPlanningFeaturedUnLocked = (_e, data) => (
                         title: gettext('Featured Stories Unlocked'),
                         body: gettext('Featured stories you were managing was ' +
                             `unlocked by ${user.display_name}`),
-                    }}));
+                    }
+                }));
             }
             return Promise.resolve();
         }
@@ -383,7 +397,29 @@ const onPlanningFeaturedUnLocked = (_e, data) => (
 );
 
 const onPlanningFilesUpdated = (_e, data) => (
-    (dispatch) => (dispatch(planning.api.getFiles([data.item])))
+    (dispatch) => (dispatch(planningApis.getFiles([data.item])))
+);
+
+const expandRelatedPlanningsIfNeeded = (eventIds: Array<IEventItem['_id']>) => (
+    (dispatch, getState) => {
+        if (!appConfig.planning_expand_related_plannings) {
+            return;
+        }
+
+        const relatedPlannings = selectors.eventsPlanning.getRelatedPlanningsList(getState());
+
+        for (const eventId of eventIds) {
+            if (relatedPlannings[eventId] != null) {
+                continue;
+            }
+
+            const event = selectors.events.storedEvents(getState())[eventId];
+
+            if (event) {
+                dispatch(eventsPlanning.ui.showRelatedPlannings(event));
+            }
+        }
+    }
 );
 
 // eslint-disable-next-line consistent-this
@@ -403,6 +439,7 @@ const self: any = {
     onPlanningFeaturedLocked,
     onPlanningFeaturedUnLocked,
     onPlanningFilesUpdated,
+    expandRelatedPlanningsIfNeeded,
 };
 
 // Map of notification name and Action Event to execute

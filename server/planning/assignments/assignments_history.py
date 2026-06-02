@@ -8,11 +8,11 @@
 
 """Superdesk Files"""
 
+from superdesk.resource_fields import ID_FIELD
 from superdesk import Resource, get_resource_service
 from copy import deepcopy
 from planning.history import HistoryService
 import logging
-from eve.utils import config
 from collections import namedtuple
 from planning.common import WORKFLOW_STATE
 
@@ -65,6 +65,7 @@ class AssignmentsHistoryResource(Resource):
         "operation": {"type": "string"},
         "update": {"type": "dict", "nullable": True},
     }
+    internal_resource = True
 
 
 class AssignmentsHistoryService(HistoryService):
@@ -90,7 +91,7 @@ class AssignmentsHistoryService(HistoryService):
             user = assigned_to.get("user")
             update["assigned_to"] = {"user": user}
         history = {
-            "assignment_id": assignment[config.ID_FIELD],
+            "assignment_id": assignment[ID_FIELD],
             "user_id": user,
             "operation": operation,
             "update": update,
@@ -108,30 +109,32 @@ class AssignmentsHistoryService(HistoryService):
             self._save_history(item, diff, operation)
             return
 
-        # Split an update to two actions if needed
-        planning_history_service = get_resource_service("planning_history")
-        cov_diff = {"coverage_id": original.get("coverage_item"), "assigned_to": {}}
-        if "priority" in diff.keys():
-            cov_diff["assigned_to"]["priority"] = diff.pop("priority")
-            self._save_history(
-                item,
-                {"priority": cov_diff["assigned_to"]["priority"]},
-                ASSIGNMENT_HISTORY_ACTIONS.EDIT_PRIORITY,
-            )
-            planning_history_service._save_history(
-                {"_id": original.get("planning_item")},
-                cov_diff,
-                ASSIGNMENT_HISTORY_ACTIONS.EDIT_PRIORITY,
-            )
+        if diff:
+            # Split an update to two actions if needed
+            planning_history_service = get_resource_service("planning_history")
+            cov_diff = {"coverage_id": original.get("coverage_item"), "assigned_to": {}}
 
-        if "assigned_to" in diff.keys():
-            cov_diff["assigned_to"] = diff["assigned_to"]
-            self._save_history(item, diff, ASSIGNMENT_HISTORY_ACTIONS.REASSIGNED)
-            planning_history_service._save_history(
-                {"_id": original.get("planning_item")},
-                cov_diff,
-                ASSIGNMENT_HISTORY_ACTIONS.REASSIGNED,
-            )
+            if "priority" in diff.keys():
+                cov_diff["assigned_to"]["priority"] = diff.pop("priority")
+                self._save_history(
+                    item,
+                    {"priority": cov_diff["assigned_to"]["priority"]},
+                    ASSIGNMENT_HISTORY_ACTIONS.EDIT_PRIORITY,
+                )
+                planning_history_service._save_history(
+                    {"_id": original.get("planning_item")},
+                    cov_diff,
+                    ASSIGNMENT_HISTORY_ACTIONS.EDIT_PRIORITY,
+                )
+
+            if "assigned_to" in diff.keys():
+                cov_diff["assigned_to"] = diff["assigned_to"]
+                self._save_history(item, diff, ASSIGNMENT_HISTORY_ACTIONS.REASSIGNED)
+                planning_history_service._save_history(
+                    {"_id": original.get("planning_item")},
+                    cov_diff,
+                    ASSIGNMENT_HISTORY_ACTIONS.REASSIGNED,
+                )
 
     def on_item_deleted(self, doc):
         planning = {"_id": doc.get("planning_item")}

@@ -38,6 +38,7 @@ class PlanningSchema(BaseSchema):
     custom_vocabularies = schema.ListField()
     associated_event = schema.NoneField()
     coverages = schema.ListField()
+    location = schema.ListField()
 
 
 DEFAULT_PLANNING_PROFILE = {
@@ -103,11 +104,6 @@ DEFAULT_PLANNING_PROFILE = {
             "group": "details",
             "index": 3,
         },
-        "custom_vocabularies": {
-            "enabled": False,
-            "group": "details",
-            "index": 4,
-        },
         "urgency": {
             "enabled": True,
             "group": "details",
@@ -142,6 +138,10 @@ DEFAULT_PLANNING_PROFILE = {
             "index": 1,
         },
         "priority": {"enabled": False, "group": "details", "index": 8},
+        "location": {
+            "enabled": False,
+            "group": "details",
+        },
     },
     "schema": dict(PlanningSchema),  # type: ignore
     "groups": {

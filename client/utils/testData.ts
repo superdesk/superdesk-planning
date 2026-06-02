@@ -512,6 +512,8 @@ export const assignmentInitialState = {
     assignments: {},
     baseQuery: {must: []},
     currentAssignmentId: null,
+    selectedArchiveItemId: null,
+    initialTab: null,
     filterBy: 'Desk',
     filterByPriority: null,
     filterByType: null,
@@ -523,6 +525,7 @@ export const assignmentInitialState = {
     searchQuery: null,
     selectedDeskId: '',
     assignmentListSingleGroupView: null,
+    searchParams: {},
 
     groupKeys: ['TODO', 'IN_PROGRESS', 'COMPLETED'],
     lists: {
@@ -593,46 +596,7 @@ export const templates = {templates: []};
 
 export const form = {};
 
-export const events: Array<IEventItem> = [
-    {
-        _id: 'e1',
-        type: 'event',
-        slugline: 'test slugline',
-        name: 'Event 1',
-        dates: {
-            start: '2016-10-15T13:01:11+0000',
-            end: '2016-10-15T14:01:11+0000',
-            tz: 'Australia/Sydney',
-        },
-        planning_ids: ['p2'],
-        _etag: 'e123',
-    },
-    {
-        _id: 'e2',
-        duplicate_from: 'e1',
-        type: 'event',
-        slugline: 'test slugline 2',
-        name: 'Event 2',
-        dates: {
-            start: '2014-10-15T14:01:11+0000',
-            end: '2014-10-15T15:01:11+0000',
-            tz: 'Australia/Sydney',
-        },
-        planning_ids: [],
-    },
-    {
-        _id: 'e3',
-        type: 'event',
-        name: 'Event 3',
-        dates: {
-            start: '2015-10-15T14:01:11+0000',
-            end: '2015-10-15T15:01:11+0000',
-            tz: 'Australia/Sydney',
-        },
-    },
-];
-
-export const plannings = [
+export const plannings: Array<IPlanningItem> = [
     {
         _id: 'p1',
         type: 'planning',
@@ -696,7 +660,10 @@ export const plannings = [
         slugline: 'Planning2',
         planning_date: '2016-10-15T13:01:11',
         headline: 'Some Plan 2',
-        event_item: 'e1',
+        related_events: [{
+            _id: 'e1',
+            link_type: 'primary',
+        }],
         coverages: [
             {
                 coverage_id: 'c4',
@@ -710,6 +677,48 @@ export const plannings = [
             },
         ],
         agendas: ['a2'],
+    },
+];
+
+export const events: Array<IEventItem> = [
+    {
+        _id: 'e1',
+        type: 'event',
+        slugline: 'test slugline',
+        name: 'Event 1',
+        dates: {
+            start: '2016-10-15T13:01:11+0000',
+            end: '2016-10-15T14:01:11+0000',
+            tz: 'Australia/Sydney',
+        },
+        planning_ids: ['p2'],
+        associated_plannings: plannings.filter(({_id}) => _id === 'p2'),
+        _etag: 'e123',
+    },
+    {
+        _id: 'e2',
+        duplicate_from: 'e1',
+        type: 'event',
+        slugline: 'test slugline 2',
+        name: 'Event 2',
+        dates: {
+            start: '2014-10-15T14:01:11+0000',
+            end: '2014-10-15T15:01:11+0000',
+            tz: 'Australia/Sydney',
+        },
+        planning_ids: [],
+        associated_plannings: undefined,
+    },
+    {
+        _id: 'e3',
+        type: 'event',
+        name: 'Event 3',
+        dates: {
+            start: '2015-10-15T14:01:11+0000',
+            end: '2015-10-15T15:01:11+0000',
+            tz: 'Australia/Sydney',
+        },
+        associated_plannings: undefined,
     },
 ];
 

@@ -8,7 +8,7 @@ import {
     IEditorAPI,
     IEditorProps,
     IEditorState,
-    IEventOrPlanningItem
+    IEventOrPlanningItem,
 } from '../../../interfaces';
 import {planningApi} from '../../../superdeskApi';
 import {ITEM_TYPE, POST_STATE, UI, WORKFLOW_STATE, WORKSPACE, EVENTS} from '../../../constants';
@@ -27,6 +27,9 @@ import * as actions from '../../../actions';
 import {EditorComponent} from './Editor';
 import {AutoSave} from './AutoSave';
 import {EditorGroup} from '../../Editor/EditorGroup';
+import * as selectors from '../../../selectors';
+import {handleEmbeddedItems} from '../../../components/editor-standalone/save-handling';
+import {IPlanningItem} from '../../../interfaces';
 
 
 export class ItemManager {
@@ -58,11 +61,6 @@ export class ItemManager {
         this.addCoverage = this.addCoverage.bind(this);
         this.startPartialSave = this.startPartialSave.bind(this);
         this.openInModal = this.openInModal.bind(this);
-        this.addCoverageToWorkflow = this.addCoverageToWorkflow.bind(this);
-        this.addScheduledUpdateToWorkflow = this.addScheduledUpdateToWorkflow.bind(this);
-        this.removeAssignment = this.removeAssignment.bind(this);
-        this.cancelCoverage = this.cancelCoverage.bind(this);
-        this.finaliseCancelCoverage = this.finaliseCancelCoverage.bind(this);
         this.setStateForPartialSave = this.setStateForPartialSave.bind(this);
 
         this.editorApi = planningApi.editor(this.props.inModalView ? EDITOR_TYPE.POPUP : EDITOR_TYPE.INLINE);
@@ -141,7 +139,7 @@ export class ItemManager {
         editor.events.onEditorMounted(this, this.autoSave);
 
         if (this.props.itemId && this.props.itemType && this.props.itemAction) {
-            this.onItemIDChanged(this.props);
+            this.onItemIDChanged();
         }
     }
 
@@ -154,7 +152,7 @@ export class ItemManager {
         return this.autoSave.flushAutosave()
             .then(() => (
                 this.dispatch<any>(actions.main.openEditorAction(
-                    this.state.initialValues,
+                    this.state.initialValues as IEventOrPlanningItem,
                     'edit',
                     false,
                     true
@@ -184,10 +182,8 @@ export class ItemManager {
             if (!this.props.inModalView) {
                 this.clearForm();
             }
-        } else if (actionChanged) {
-            this.onItemActionChanged(prevProps);
-        } else if (idChanged) {
-            this.onItemIDChanged(prevProps);
+        } else if (actionChanged || idChanged) {
+            this.onItemIDChanged();
         } else if (!this.state.loading &&
             !isTemporaryId(currentId) &&
             !itemsEqual(prevProps.item, this.props.item) &&
@@ -197,17 +193,7 @@ export class ItemManager {
         }
     }
 
-    onItemActionChanged(prevProps: IEditorProps) {
-        let promise = Promise.resolve();
-
-        if (prevProps.itemAction && this.props.itemAction === 'read') {
-            promise = this.autoSave.remove();
-        }
-
-        return promise.then(() => this.onItemIDChanged(prevProps));
-    }
-
-    onItemIDChanged(prevProps: IEditorProps) {
+    onItemIDChanged() {
         return this.setState({
             itemReady: false,
             tab: UI.EDITOR.CONTENT_TAB_INDEX,
@@ -251,7 +237,7 @@ export class ItemManager {
             formProfiles: nextProps.formProfiles,
             errors: errors,
             messages: errorMessages,
-            ignoreDateValidation: !isTemporaryId(nextProps.itemId),
+            ignoreDateValidation: false,
         }));
 
         newState.errors = errors;
@@ -356,10 +342,15 @@ export class ItemManager {
             promise = this.dispatch<any>(
                 actions.main.fetchById(nextProps.itemId, nextProps.itemType, true)
             )
-                .then((original) => {
+                .then((original: IEventOrPlanningItem) => {
                     initialValues = cloneDeep(original);
 
-                    return planningApi.locks.lockItem(original);
+                    if (original.lock_action == null) {
+                        // Only lock the item if it's not already locked
+                        return planningApi.locks.lockItem(original, 'edit');
+                    } else {
+                        return original;
+                    }
                 });
         } else {
             // Fetch the latest item from the API to view in read-only mode
@@ -402,6 +393,7 @@ export class ItemManager {
                     ...removeAutosaveFields(
                         autosaveItem,
                         true,
+                        true,
                         true
                     ),
                 };
@@ -416,7 +408,18 @@ export class ItemManager {
                 const newState = {
                     initialValues: original,
                     diff: diff,
-                    dirty: this.editor.isDirty(initialValues, autosaveItem),
+                    dirty: (() => {
+                        // if associated_plannings in autosaveItem is undefined
+                        // we treat that as there's been no changes to associated_plannings
+                        const ignoreAssociatedPlannings = initialValues.type === 'event'
+                            && autosaveItem.associated_plannings === undefined;
+
+                        return this.editor.isDirty(
+                            initialValues,
+                            autosaveItem,
+                            ignoreAssociatedPlannings ? false : undefined,
+                        );
+                    })(),
                     submitting: false,
                     itemReady: true,
                     loading: false,
@@ -475,40 +478,42 @@ export class ItemManager {
     }
 
     post() {
-        const newState = {};
+        return handleEmbeddedItems(this.props.editorType, 'SAVE', this.props.itemType).then(() => {
+            const newState = {};
 
-        this.validate(this.props, newState, this.state);
-        if (!isEqual(this.state.errorMessages, [])) {
-            return this.setState({
-                submitting: false,
-                submitFailed: true,
-            })
-                .then(() => {
+            this.validate(this.props, newState, this.state);
+            if (!isEqual(this.state.errorMessages, [])) {
+                return this.setState({
+                    submitting: false,
+                    submitFailed: true,
+                }).then(() => {
                     this.props.notifyValidationErrors(this.state.errorMessages);
                     return Promise.reject();
                 });
-        }
-        return this.setState({
-            submitting: true,
-            submitFailed: false,
-        })
-            .then(() => this.autoSave.flushAutosave())
-            .then(() => this.dispatch<any>(
-                actions.main.post(this.state.initialValues)
-            ))
-            .then(
-                this.afterPostOrUnpost,
-                (error) => {
-                    if (get(error, 'status') === 412) {
-                        // If etag error, then notify user and change editor to read-only
-                        this.dispatch<any>(
-                            actions.main.notifyPreconditionFailed(this.props.inModalView)
-                        );
-                    }
+            }
 
-                    return this.setState({submitting: false});
-                }
-            );
+            return this.setState({
+                submitting: true,
+                submitFailed: false,
+            })
+                .then(() => this.autoSave.flushAutosave())
+                .then(() => this.dispatch<any>(
+                    actions.main.post(this.state.initialValues)
+                ))
+                .then(
+                    this.afterPostOrUnpost,
+                    (error) => {
+                        if (get(error, 'status') === 412) {
+                            // If etag error, then notify user and change editor to read-only
+                            this.dispatch<any>(
+                                actions.main.notifyPreconditionFailed(this.props.inModalView)
+                            );
+                        }
+
+                        return this.setState({submitting: false});
+                    }
+                );
+        });
     }
 
     unpost() {
@@ -660,76 +665,89 @@ export class ItemManager {
                 });
         }
 
-        const promise = !updateStates ?
-            Promise.resolve() :
-            this.setState({
-                submitting: true,
-                submitFailed: false,
+        /**
+         * Calls internal save of each embedded item - the one of the storage adapter, then returns the saved items.
+         */
+        const saveEmbeddedItemsChanges = handleEmbeddedItems(this.props.editorType, 'SAVE', this.props.itemType)
+            .then((res) => {
+                if (updateStates) {
+                    this.setState({submitting: true, submitFailed: false});
+                }
+
+                return res;
             });
 
-        if (this.props.addNewsItemToPlanning) {
-            return promise.then(() => this._saveFromAuthoring({post, unpost}));
-        }
-
-        // Only remove the autosave if item is temp or we're in AUTHORING
-        const isTemporary = isTemporaryId(this.props.itemId);
-
-        // If we are posting or unposting, we are setting 'pubstatus' to 'usable' from client side
-        const updates = cloneDeep(this.state.diff);
-
-        if (post) {
-            if (updates.pubstatus !== POST_STATE.USABLE) {
-                updates.state = WORKFLOW_STATE.SCHEDULED;
+        return saveEmbeddedItemsChanges.then((updatedEmbeddedItems) => {
+            if (this.props.addNewsItemToPlanning) {
+                return this._saveFromAuthoring({post, unpost});
             }
 
-            updates.pubstatus = POST_STATE.USABLE;
-            updates._post = true;
-        } else if (unpost) {
-            updates.state = WORKFLOW_STATE.KILLED;
-            updates.pubstatus = POST_STATE.CANCELLED;
-        }
+            // Only remove the autosave if item is temp or we're in AUTHORING
+            const isTemporary = isTemporaryId(this.props.itemId);
 
-        if (updates.type === 'event') {
-            updates.update_method = updateMethod;
+            // If we are posting or unposting, we are setting 'pubstatus' to 'usable' from client side
+            const updates = cloneDeep(this.state.diff);
 
-            if (Object.keys(planningUpdateMethods).length > 0) {
-                updates.associated_plannings?.forEach((planningItem) => {
-                    if (planningUpdateMethods[planningItem._id] != null) {
-                        planningItem.update_method = planningUpdateMethods[planningItem._id];
-                    }
-                });
+            if (post) {
+                if (updates.pubstatus !== POST_STATE.USABLE) {
+                    updates.state = WORKFLOW_STATE.SCHEDULED;
+                }
+
+                updates.pubstatus = POST_STATE.USABLE;
+                updates._post = true;
+            } else if (unpost) {
+                updates.state = WORKFLOW_STATE.KILLED;
+                updates.pubstatus = POST_STATE.CANCELLED;
             }
-        }
 
-        return promise.then(() => this.autoSave.flushAutosave())
-            .then(() => (
-                this.dispatch<any>(actions.main.save(
+            if (updates.type === 'event') {
+                updates.update_method = updateMethod;
+
+                updates.associated_plannings = updatedEmbeddedItems as Array<IPlanningItem>;
+
+                if (Object.keys(planningUpdateMethods).length > 0) {
+                    updates.associated_plannings?.forEach((planningItem) => {
+                        if (planningUpdateMethods[planningItem._id] != null) {
+                            planningItem.update_method = planningUpdateMethods[planningItem._id];
+                        }
+                    });
+                }
+            }
+
+            return this.autoSave.flushAutosave()
+                .then(() => this.dispatch<any>(actions.main.save(
                     isTemporary ? {} : this.state.initialValues,
                     updates,
                     withConfirmation
-                ))
-            ))
-            .then((updatedItem) => {
-                if (!updatedItem) {
-                    // This occurs during an 'Ignore/Cancel/Save' from ModalEditor
-                    // And the user clicks on 'Cancel'
-                    return this.setState({submitting: false});
-                } else if (isTemporary) {
-                    this.autoSave.remove();
+                )))
+                .then((updatedItem) => {
+                    if (!updatedItem) {
+                        // This occurs during an 'Ignore/Cancel/Save' from ModalEditor
+                        // And the user clicks on 'Cancel'
+                        return this.setState({submitting: false});
+                    } else if (isTemporary) {
+                        this.autoSave.remove();
 
-                    // If event was created by a planning item, unlock the planning item
-                    if (updates.type === 'event' && updates._planning_item != null) {
-                        planningApi.locks.unlockItemById(updates._planning_item, 'planning');
-                    }
+                        // If event was created by a planning item, unlock the planning item
+                        if (updates.type === 'event' && updates._planning_item != null) {
+                            planningApi.locks.unlockItemById(updates._planning_item, 'planning');
+                        }
 
-                    if (closeAfter) {
+                        if (closeAfter) {
+                            return this.editor.onCancel(updateStates);
+                        } else {
+                            return this.changeAction('edit', updatedItem);
+                        }
+                    } else if (closeAfter) {
                         return this.editor.onCancel(updateStates);
-                    } else {
-                        return this.changeAction('edit', updatedItem);
                     }
-                } else if (closeAfter) {
-                    return this.editor.onCancel(updateStates);
-                } else {
+
+                    if (updatedItem.type === 'planning') {
+                        planningApi.locks.reloadSoftLocksForRelatedEvents(updatedItem);
+                    } else if (updatedItem.type === 'event') {
+                        planningApi.locks.reloadSoftLocksForAssociatedPlannings(updatedItem);
+                    }
+
                     const newState: Partial<IEditorState> = {
                         initialValues: updatedItem,
                         diff: cloneDeep(updatedItem),
@@ -745,23 +763,32 @@ export class ItemManager {
                     this.editorApi.events.onItemUpdated(newState);
 
                     return this.setState(newState, null, true);
-                }
-            }, (error) => {
-                if (get(error, 'status') === 412) {
-                    // If etag error, then notify user and change editor to read-only
-                    this.dispatch<any>(
-                        actions.main.notifyPreconditionFailed(this.props.inModalView)
-                    );
-                }
+                })
+                .catch((error) => {
+                    if (get(error, 'status') === 412) {
+                        // If etag error, then notify user and change editor to read-only
+                        this.dispatch<any>(
+                            actions.main.notifyPreconditionFailed(this.props.inModalView)
+                        );
+                    }
 
-                if (updateStates) {
-                    this.setState({submitting: false});
-                }
-            });
+                    if (updateStates) {
+                        this.setState({submitting: false});
+                    }
+                });
+        }).catch((error) => {
+            this.setState({submitting: false});
+
+            if (error === 'validation errors were found') {
+                return;
+            }
+
+            throw error;
+        });
     }
 
     startPartialSave(updates) {
-        const newState = {diff: cloneDeep(updates)};
+        const newState = {diff: cloneDeep(updates), errorMessages: []};
 
         this.validate(this.props, newState, this.state);
 
@@ -796,14 +823,14 @@ export class ItemManager {
     }
 
     setStateForPartialSave(initialValues) {
-        let newState = {
+        const newState = {
             partialSave: false,
             submitting: false,
             submitFailed: false,
         };
 
         if (initialValues) {
-            newState.initialValues = initialValues;
+            newState['initialValues'] = initialValues;
         }
 
         return this.setState(newState);
@@ -821,16 +848,6 @@ export class ItemManager {
         return this.setState({initialValues}).then(() => this.editor.onChangeHandler(diff, null, false));
     }
 
-    // TODO: Is this used anywhere
-    // lock(item: IEventOrPlanningItem) {
-    //     return planningApi.locks.lockItem(item);
-    // }
-
-    // TODO: Is this used anywhere
-    // unlock() {
-    //     return planningApi.locks.unlockItem(this.props.item);
-    // }
-
     unlockThenLock(item: IEventOrPlanningItem) {
         return this.setState({
             itemReady: false,
@@ -843,25 +860,30 @@ export class ItemManager {
     }
 
     unlockAndCancel() {
-        const {session, currentWorkspace} = this.props;
-        const {initialValues, diff} = this.state;
-        let promises = [];
+        return handleEmbeddedItems(
+            this.props.editorType,
+            'DISCARD',
+            this.props.itemType,
+        ).then(() => {
+            const {session, currentWorkspace} = this.props;
+            const {initialValues, diff} = this.state;
+            let promises = [];
 
-        if (shouldUnLockItem(initialValues, session, currentWorkspace, this.props.lockedItems)) {
-            promises.push(planningApi.locks.unlockItem(this.props.item));
-            // promises.push(this.unlock());
-        }
+            if (shouldUnLockItem(initialValues, session, currentWorkspace, this.props.lockedItems)) {
+                promises.push(planningApi.locks.unlockItem(this.props.item));
+            }
 
-        // If event was created by a planning item, unlock the planning item
-        if (diff?.type === 'event' && diff._planning_item) {
-            planningApi.locks.unlockItemById(diff._planning_item, 'planning');
-        }
+            // If event was created by a planning item, unlock the planning item
+            if (diff?.type === 'event' && diff._planning_item) {
+                planningApi.locks.unlockItemById(diff._planning_item, 'planning');
+            }
 
-        promises.push(this.autoSave.remove());
+            promises.push(this.autoSave.remove());
 
-        this.editor.closeEditor();
+            this.editor.closeEditor();
 
-        return Promise.all(promises);
+            return Promise.all(promises);
+        });
     }
 
     changeAction(action, newItem = null) {
@@ -878,47 +900,16 @@ export class ItemManager {
     }
 
     addCoverage(g2ContentType) {
-        const newCoverage = planningUtils.defaultCoverageValues(
-            this.props.newsCoverageStatus,
+        const newCoverage = planningApi.planning.coverages.setDefaultValues(
             this.state.initialValues,
-            this.props.associatedEvent,
+            this.props.associatedEvents?.[0] ?? null, // TAG: MULTIPLE_PRIMARY_EVENTS
             g2ContentType,
-            this.props.defaultDesk,
-            this.props.preferredCoverageDesks
         );
 
         this.editor.onChangeHandler(
             'coverages',
             [...get(this.state, 'diff.coverages', []), newCoverage]
         );
-    }
-
-    addCoverageToWorkflow(planning, coverage, index) {
-        return planningApi.planning.coverages.addCoverageToWorkflow(planning, coverage, index)
-            .then((updates) => this.finalisePartialSave(this.getCoverageAfterPartialSave(updates, index)));
-    }
-
-    addScheduledUpdateToWorkflow(planning, coverage, covergeIndex, scheduledUpdate, index) {
-        return this.dispatch<any>(actions.planning.ui.addScheduledUpdateToWorkflow(planning, coverage, covergeIndex,
-            scheduledUpdate, index))
-            .then((updates) => this.finalisePartialSave(this.getCoverageAfterPartialSave(updates, index)));
-    }
-
-    removeAssignment(planning, coverage, index) {
-        return this.dispatch<any>(actions.planning.ui.removeAssignment(planning, coverage, index))
-            .then((updates) => this.finalisePartialSave(this.getCoverageAfterPartialSave(updates, index)));
-    }
-
-    cancelCoverage(planning, coverage, index, scheduledUpdate, scheduledUpdateIndex) {
-        return this.dispatch<any>(actions.planning.ui.openCancelCoverageModal(planning,
-            coverage, index, this.finaliseCancelCoverage, this.setStateForPartialSave,
-            scheduledUpdate, scheduledUpdateIndex));
-    }
-
-    finaliseCancelCoverage(planning, updatedCoverage, index, scheduledUpdate, scheduledUpdateIndex) {
-        return this.dispatch<any>(actions.planning.ui.cancelCoverage(planning, updatedCoverage, index,
-            scheduledUpdate, scheduledUpdateIndex)).then((updates) =>
-            this.finalisePartialSave(this.getCoverageAfterPartialSave(updates, index)));
     }
 
     getCoverageAfterPartialSave(updates, index) {

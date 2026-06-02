@@ -8,10 +8,11 @@
 # AUTHORS and LICENSE files distributed with this source code, or
 # at https://www.sourcefabric.org/superdesk/license
 
-from superdesk import Resource
+from copy import deepcopy
+
+from superdesk import Resource, get_resource_service
 from superdesk.resource import not_analyzed, not_enabled
 from superdesk.metadata.item import metadata_schema, ITEM_TYPE
-from copy import deepcopy
 
 from planning.common import (
     WORKFLOW_STATE_SCHEMA,
@@ -20,7 +21,7 @@ from planning.common import (
     TO_BE_CONFIRMED_FIELD,
     TO_BE_CONFIRMED_FIELD_SCHEMA,
 )
-from planning.planning.planning import planning_schema as original_planning_schema
+from planning.planning.planning_schema import planning_schema
 
 event_type = deepcopy(Resource.rel("events", type="string"))
 event_type["mapping"] = not_analyzed
@@ -29,9 +30,6 @@ planning_type = deepcopy(Resource.rel("planning", type="string"))
 planning_type["mapping"] = not_analyzed
 original_creator_schema = metadata_schema["original_creator"]
 original_creator_schema.update({"nullable": True})
-
-planning_schema = deepcopy(original_planning_schema)
-planning_schema["event_item"] = {"type": "string"}
 
 events_schema = {
     # Identifiers
@@ -57,6 +55,7 @@ events_schema = {
     "version_creator": metadata_schema["version_creator"],
     "firstcreated": metadata_schema["firstcreated"],
     "versioncreated": metadata_schema["versioncreated"],
+    "firstpublished": metadata_schema["firstpublished"],
     # Ingest Details
     "ingest_provider": metadata_schema["ingest_provider"],
     "source": metadata_schema["source"],
@@ -64,6 +63,7 @@ events_schema = {
     "ingest_provider_sequence": metadata_schema["ingest_provider_sequence"],
     "ingest_firstcreated": metadata_schema["versioncreated"],
     "ingest_versioncreated": metadata_schema["versioncreated"],
+    "ingest_pubstatus": {"type": "string", "mapping": not_analyzed},
     "event_created": {"type": "datetime"},
     "event_lastmodified": {"type": "datetime"},
     # Event Details
@@ -75,10 +75,27 @@ events_schema = {
     "registration_details": {"type": "string"},
     "invitation_details": {"type": "string"},
     "accreditation_info": {"type": "string"},
-    "accreditation_deadline": {"type": "datetime"},
+    "accreditation_deadline": {
+        "type": "string",
+        "nullable": True,
+        "mapping": {"type": "date"},
+    },
     # Reference can be used to hold for example a court case reference number
     "reference": {"type": "string"},
-    "anpa_category": metadata_schema["anpa_category"],
+    "anpa_category": {
+        "type": "list",
+        "nullable": True,
+        "mapping": {
+            "type": "object",
+            "dynamic": False,
+            "properties": {
+                "qcode": not_analyzed,
+                "name": not_analyzed,
+                "scheme": not_analyzed,
+                "translations": {"enabled": False},  # explicitly disable
+            },
+        },
+    },
     "files": {
         "type": "list",
         "nullable": True,
@@ -95,6 +112,7 @@ events_schema = {
     },
     "links": {"type": "list", "nullable": True},
     "priority": metadata_schema["priority"],
+    "urgency": metadata_schema["urgency"],
     # NewsML-G2 Event properties See IPTC-G2-Implementation_Guide 15.4.3
     "dates": {
         "type": "dict",
@@ -111,11 +129,11 @@ events_schema = {
                 "type": "string",
                 "nullable": True,
             },
-            "end_tz": {"type": "string"},
-            "all_day": {"type": "boolean"},
-            "no_end_time": {"type": "boolean"},
-            "duration": {"type": "string"},
-            "confirmation": {"type": "string"},
+            "end_tz": {"type": "string", "nullable": True},
+            "all_day": {"type": "boolean", "nullable": True},
+            "no_end_time": {"type": "boolean", "nullable": True},
+            "duration": {"type": "string", "nullable": True},
+            "confirmation": {"type": "string", "nullable": True},
             "recurring_date": {
                 "type": "list",
                 "nullable": True,
@@ -150,6 +168,7 @@ events_schema = {
             "ex_date": {"type": "list", "mapping": {"type": "date"}},
             "ex_rule": {
                 "type": "dict",
+                "nullable": True,
                 "schema": {
                     "frequency": {"type": "string"},
                     "interval": {"type": "string"},
@@ -198,19 +217,7 @@ events_schema = {
     "subject": planning_schema["subject"],
     "slugline": metadata_schema["slugline"],
     # Item metadata
-    "location": {
-        "type": "list",
-        "mapping": {
-            "properties": {
-                "qcode": not_analyzed,
-                "name": {"type": "string"},
-                "address": {"type": "object"},
-                "geo": {"type": "string"},
-                "location": {"type": "geo_point"},
-            }
-        },
-        "nullable": True,
-    },
+    "location": planning_schema["location"],
     "participant": {
         "type": "list",
         "mapping": {"properties": {"qcode": not_analyzed, "name": not_analyzed}},
@@ -225,7 +232,7 @@ events_schema = {
     },
     "event_contact_info": {
         "type": "list",
-        "schema": Resource.rel("contacts"),
+        "schema": Resource.rel("contacts", type="string"),
         "mapping": not_analyzed,
     },
     "language": metadata_schema["language"],
@@ -266,6 +273,7 @@ events_schema = {
             "properties": {
                 "qcode": not_analyzed,
                 "name": not_analyzed,
+                "translations": {"enabled": False},  # explicitly disable
             },
         },
     },
@@ -325,6 +333,37 @@ events_schema = {
             },
         },
     },
+    # HACK: Add ``related_events`` to elastic mapping
+    # Otherwise searching related events in combined view fails on events type
+    "related_events": {
+        "type": "list",
+        "required": False,
+        "schema": {
+            "type": "dict",
+            "allow_unknown": True,
+            "schema": {
+                "_id": Resource.rel("events", type="string", required=True),
+                "recurrence_id": {
+                    "type": "string",
+                    "nullable": True,
+                },
+                "link_type": {
+                    "type": "string",
+                    "required": True,
+                    "default": "primary",
+                    "allowed": ["primary", "secondary"],
+                },
+            },
+        },
+        "mapping": {
+            "type": "nested",
+            "properties": {
+                "_id": not_analyzed,
+                "recurrence_id": not_analyzed,
+                "link_type": not_analyzed,
+            },
+        },
+    },
     "extra": metadata_schema["extra"],
     "translations": {
         "type": "list",
@@ -360,6 +399,7 @@ events_schema = {
                         "type": "dict",
                         "schema": {
                             "coverage_id": {"type": "string"},
+                            "add_coverage_to_workflow": {"type": "boolean"},
                             "g2_content_type": {"type": "string"},
                             "news_coverage_status": {"type": "string"},
                             "scheduled": {"type": "datetime"},
@@ -372,6 +412,15 @@ events_schema = {
                             "ednote": {"type": "string", "nullable": True},
                             "internal_note": {"type": "string", "nullable": True},
                             "priority": {"type": "integer", "nullable": True},
+                            "coverage_provider": {
+                                "type": "dict",
+                                "nullable": True,
+                                "schema": {
+                                    "qcode": {"type": "string"},
+                                    "name": {"type": "string"},
+                                    "contact_type": {"type": "string"},
+                                },
+                            },
                         },
                     },
                 },

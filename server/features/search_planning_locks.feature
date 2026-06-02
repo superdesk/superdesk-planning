@@ -56,21 +56,21 @@ Feature: Planning Search Locks
                 "headline": "event unlocked",
                 "slugline": "ep-unlocked",
                 "planning_date": "2016-01-02T12:00:00+0000",
-                "event_item": "event_1"
+                "related_events": [{"_id": "event_1", "link_type": "primary"}]
             },
             {
                 "guid": "planning_4",
                 "headline": "event locked",
                 "slugline": "ep-e-locked",
                 "planning_date": "2016-01-02T12:00:00+0000",
-                "event_item": "event_2"
+                "related_events": [{"_id": "event_2", "link_type": "primary"}]
             },
             {
                 "guid": "planning_5",
                 "headline": "planning locked",
                 "slugline": "ep-p-locked",
                 "planning_date": "2016-01-02T12:00:00+0000",
-                "event_item": "event_3"
+                "related_events": [{"_id": "event_3", "link_type": "primary"}]
             }
         ]
         """
@@ -169,7 +169,7 @@ Feature: Planning Search Locks
             "headline": "planning",
             "slugline": "planning",
             "planning_date": "2016-01-02T12:00:00+0000",
-            "event_item": "#EVENT2._id#"
+            "related_events": [{"_id": "#EVENT2._id#", "link_type": "primary"}]
         }]
         """
         When we get "/events_planning_search?repo=planning&only_future=false&lock_state=locked"

@@ -1,214 +1,43 @@
-import moment from 'moment-timezone';
 import {get, cloneDeep, has, pick} from 'lodash';
 
-import {appConfig} from 'appConfig';
-import {IAssignmentItem} from '../../interfaces';
+import {IArticle} from 'superdesk-api';
+import {IAssignmentItem, ISearchQueryOperator, IAssignmentSearchParams} from '../../interfaces';
 import {planningApi} from '../../superdeskApi';
 
 import * as selectors from '../../selectors';
 import * as actions from '../';
-import {ASSIGNMENTS, ALL_DESKS, SORT_DIRECTION} from '../../constants';
+import {ASSIGNMENTS} from '../../constants';
 import planningUtils from '../../utils/planning';
 import {getErrorMessage, isExistingItem, gettext} from '../../utils';
-import planning from '../planning';
-import {assignmentsViewRequiresArchiveItems} from '../../components/Assignments/AssignmentItem/fields';
+import planningActions from '../planning/api';
+
+export const SEARCH_QUERY_OPERATORS: Array<ISearchQueryOperator> = ['must', 'must_not', 'should'];
 
 const setBaseQuery = ({must = []}) => ({
     type: ASSIGNMENTS.ACTIONS.SET_BASE_QUERY,
     payload: {must},
 });
 
-const constructQuery = ({
-    systemTimezone,
-    baseQuery,
-    searchQuery,
-    deskId = null,
-    userId = null,
-    states = [],
-    type = null,
-    priority = null,
-    dateFilter = null,
-    ignoreScheduledUpdates = false,
-}) => {
-    let must = [];
-    let mustNot = [];
-
-    const filters = [{
-        condition: () => deskId && deskId !== ALL_DESKS,
-        do: () => {
-            must.push(
-                {term: {'assigned_to.desk': deskId}}
-            );
-        },
-    }, {
-        condition: () => userId,
-        do: () => {
-            must.push(
-                {term: {'assigned_to.user': userId}}
-            );
-        },
-    }, {
-        condition: () => get(states, 'length', 0) > 0,
-        do: () => {
-            must.push(
-                {terms: {'assigned_to.state': states}}
-            );
-        },
-    }, {
-        condition: () => type,
-        do: () => {
-            must.push(
-                {term: {'planning.g2_content_type': type}}
-            );
-        },
-    }, {
-        condition: () => priority,
-        do: () => {
-            must.push(
-                {term: {priority: priority}}
-            );
-        },
-    }, {
-        condition: () => searchQuery,
-        do: () => {
-            must.push(
-                {query_string: {query: searchQuery}}
-            );
-        },
-    }, {
-        condition: () => dateFilter,
-        do: () => {
-            const timezoneOffset = moment()
-                .tz(systemTimezone || moment.tz.guess())
-                .format('Z');
-
-            switch (dateFilter) {
-            case 'today':
-                must.push({
-                    range: {
-                        'planning.scheduled': {
-                            gte: 'now/d',
-                            lte: 'now/d',
-                            time_zone: timezoneOffset,
-                        },
-                    },
-                });
-                break;
-            case 'current':
-                must.push({
-                    range: {
-                        'planning.scheduled': {
-                            lte: 'now/d',
-                            time_zone: timezoneOffset,
-                        },
-                    },
-                });
-                break;
-            case 'future':
-                must.push({
-                    range: {
-                        'planning.scheduled': {
-                            gt: 'now/d',
-                            time_zone: timezoneOffset,
-                        },
-                    },
-                });
-                break;
-            }
-        },
-    }, {
-        condition: () => ignoreScheduledUpdates,
-        do: () => {
-            mustNot.push({
-                constant_score: {filter: {exists: {field: 'scheduled_update_id'}}},
-            });
-        },
-    }, {
-        condition: () => get(baseQuery, 'must.length', 0) > 0,
-        do: () => {
-            must = must.concat(baseQuery.must);
-        },
-    }];
-
-    filters.forEach((filter) => {
-        if (filter.condition()) {
-            filter.do();
-        }
-    });
-
-    let returnQuery: any = {bool: {must}};
-
-    if (mustNot.length > 0) {
-        returnQuery.bool.must_not = mustNot;
-    }
-
-    return returnQuery;
-};
-
-
 /**
  * Action Dispatcher for query the api for events
  * @return arrow function
  */
-const query = ({
-    searchQuery,
-    orderByField,
-    orderDirection,
-    page = 1,
-    deskId = null,
-    userId = null,
-    states = [],
-    type = null,
-    priority = null,
-    dateFilter = null,
-    size = null,
-    ignoreScheduledUpdates = false,
-    max_results = null,
-}) => (
-    (dispatch, getState, {api}) => {
-        const filterByValues = {
-            Created: '_created',
-            Updated: '_updated',
-            Priority: 'priority',
-            Scheduled: 'planning.scheduled',
-        };
+function query(params: IAssignmentSearchParams) {
+    return (dispatch, getState) => {
+        const baseElasticQuery = selectors.getBaseAssignmentQuery(getState());
 
-        let sort = '[("' + (get(filterByValues, orderByField, 'planning.scheduled')) + '", '
-            + (orderDirection === SORT_DIRECTION.ASCENDING ? 1 : -1) + ')]';
-
-        const baseQuery = selectors.getBaseAssignmentQuery(getState());
-        const query = constructQuery({
-            systemTimezone: appConfig.default_timezone,
-            baseQuery: baseQuery,
-            searchQuery: searchQuery,
-            deskId: deskId,
-            userId: userId,
-            states: states,
-            type: type,
-            priority: priority,
-            dateFilter: dateFilter,
-            ignoreScheduledUpdates: ignoreScheduledUpdates,
-        });
-
-        return api('assignments').query({
-            page: page,
-            max_results: max_results,
-            sort: sort,
-            source: JSON.stringify(size !== null ?
-                {query, size} :
-                {query}
-            ),
-        })
-            .then((data) => {
-                if (get(data, '_items')) {
-                    data._items.forEach(planningUtils.modifyCoverageForClient);
-                    return Promise.resolve(data);
-                } else {
-                    return Promise.reject('Failed to retrieve items');
+        if (params.query != null) {
+            // Combine the elastic queries from the provided baseQuery and the one from the redux store
+            for (const field of SEARCH_QUERY_OPERATORS) {
+                if (params.query[field]) {
+                    baseElasticQuery[field] = (baseElasticQuery[field] || []).concat(params.query[field]);
                 }
-            }, (error) => (Promise.reject(error)));
-    }
-);
+            }
+        }
+
+        return planningApi.assignments.search(params);
+    };
+}
 
 /**
  * Action Dispatcher that fetches a Assignment Item by ID
@@ -250,9 +79,7 @@ const fetchAssignmentById = (id, force = false, recieve = true) => (
 const receivedAssignments = (assignments) => (
     (dispatch) => {
         dispatch(actions.contacts.fetchContactsFromAssignments(assignments));
-        if (assignmentsViewRequiresArchiveItems()) {
-            dispatch(actions.assignments.api.loadArchiveItems(assignments));
-        }
+        dispatch(actions.assignments.api.loadArchiveItems(assignments));
         dispatch({
             type: ASSIGNMENTS.ACTIONS.RECEIVED_ASSIGNMENTS,
             payload: assignments,
@@ -330,29 +157,6 @@ const link = (assignment, newsItem, reassign) => (
 );
 
 /**
- * Action to create news item from assignment and template
- * @param {String} assignmentId - Id of the Assignment
- * @param {String} templateName - name of the template to use
- * @return Promise
- */
-const createFromTemplateAndShow = (assignmentId, templateName) => (
-    (dispatch, getState, {api, authoringWorkspace, notify}) => (
-        api('assignments_content').save({}, {
-            assignment_id: assignmentId,
-            template_name: templateName,
-        })
-            .then((item) => authoringWorkspace.edit(item),
-                (error) => {
-                    notify.error(
-                        getErrorMessage(error, 'Failed to lock the Assignment.')
-                    );
-                    return Promise.reject(error);
-                }
-            )
-    )
-);
-
-/**
  * Action to complete an assignment
  * @param {String} item - Assignment to be completed
  * @return Promise
@@ -415,7 +219,7 @@ const receiveAssignmentHistory = (items) => ({
  * @param {object} assignment - The Assignment to load items for
  */
 const loadPlanningAndEvent = (assignment) => (dispatch) =>
-    dispatch(planning.api.fetchById(assignment.planning_item));
+    dispatch(planningActions.fetchById(assignment.planning_item));
 
 /**
  * Loads the Archive items that are linked to the provided Assignment list
@@ -445,6 +249,13 @@ const loadArchiveItems = (assignments: Array<any>) => (
     const criteria = query.getCriteria(true);
 
     criteria.repo = 'archive,archived,published';
+
+    // TODO: we need to load them all or change the way it's used
+    if (criteria.source != null) {
+        criteria.source.size = 500;
+    } else {
+        criteria.max_results = 500;
+    }
 
     return api.query('search', criteria)
         .then((data) => {
@@ -481,7 +292,7 @@ const loadArchiveItem = (assignment) => (
         const assignmentId = get(assignment, '_id', null);
 
         if (!assignmentId) {
-            notify.error('Incorrect Assignment');
+            notify.error(gettext('Incorrect Assignment'));
             return Promise.reject('Incorrect Assignment');
         }
 
@@ -506,7 +317,7 @@ const loadArchiveItem = (assignment) => (
                 const item = get(data, '_items[0]', null);
 
                 if (!item) {
-                    notify.error('Content item not found!');
+                    notify.error(gettext('Content item not found!'));
                     return Promise.reject('Content item not found!');
                 }
 
@@ -541,18 +352,19 @@ const removeAssignment = (assignment) => (
     )
 );
 
-function unlink(assignment: IAssignmentItem) {
+function unlink(assignment: IAssignmentItem, itemId: IArticle['_id']) {
     return (dispatch, getState, {api, notify}) => (
         api('assignments_unlink').save({}, {
             assignment_id: assignment._id,
-            item_id: get(assignment, 'item_ids[0]'),
+            item_id: itemId,
         })
             .then(() => {
                 notify.success(gettext('Assignment reverted.'));
-                return planningApi.locks.unlockItem(assignment);
             }, (error) => {
                 notify.error(get(error, 'data._message') || gettext('Could not unlock the assignment.'));
-                throw error;
+            })
+            .finally(() => {
+                return planningApi.locks.unlockItem(assignment);
             })
     );
 }
@@ -564,7 +376,6 @@ const self = {
     fetchAssignmentById,
     save,
     link,
-    createFromTemplateAndShow,
     complete,
     revert,
     loadPlanningAndEvent,
@@ -575,7 +386,6 @@ const self = {
     receiveAssignmentHistory,
     unlink,
     setBaseQuery,
-    constructQuery,
 };
 
 export default self;

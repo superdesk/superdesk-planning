@@ -1,9 +1,13 @@
-import {isNil, zipObject, get, isEmpty} from 'lodash';
+import {isNil, zipObject, get} from 'lodash';
+
+import {ITemplate} from 'superdesk-api';
 import {createStore} from '../utils';
 import {COVERAGES, ITEM_TYPE, ASSIGNMENTS} from '../constants';
 import * as selectors from '../selectors';
 import * as actions from '../actions';
-import {planningApi} from '../superdeskApi';
+import {planningApi, superdeskApi} from '../superdeskApi';
+import {isCustomVocabulary} from '../helpers';
+import {PLANNING_EXPORT_TEMPLATES_RESOURCE} from '../constants/exportTemplates';
 
 export class PlanningStoreService {
     constructor(
@@ -174,26 +178,50 @@ export class PlanningStoreService {
     }
 
     fetchData() {
-        return this.$q.all({
-            voc: this.vocabularies.getAllActiveVocabularies(),
-            ingest: this.api('ingest_providers').getAll(),
-            privileges: this.privileges.loaded,
-            metadata: this.metadata.initialize(),
-            users: this.userList.getAll(),
-            desks: this.desks.initialize(),
-            all_templates: this.templates.fetchAllTemplates(1, 200, 'create'),
-            formsProfile: planningApi.contentProfiles.getAll(),
-            userDesks: this.desks.fetchCurrentUserDesks(),
-            exportTemplates: this.api('planning_export_templates').query({
+        return Promise.all([
+            this.vocabularies.getAllActiveVocabularies(),
+            this.api('ingest_providers').getAll(),
+            this.privileges.loaded,
+            this.metadata.initialize(),
+            this.userList.getAll(),
+            this.desks.initialize(),
+            this.getAllCreateTemplates(),
+            planningApi.contentProfiles.getAll(),
+            planningApi.contentProfiles.coverages.getAll(),
+            this.desks.fetchCurrentUserDesks(),
+            this.api(PLANNING_EXPORT_TEMPLATES_RESOURCE).query({
                 max_results: 200,
                 page: 1,
             }),
-        });
+        ]);
+    }
+
+    private getAllCreateTemplates(): Promise<Array<ITemplate>> {
+        return superdeskApi.dataApi.query<ITemplate>(
+            'content_templates',
+            1,
+            {field: 'template_name', direction: 'ascending'},
+            {template_type: 'create'},
+            200,
+        )
+            .then((response) => (response._items));
     }
 
     getInitialState() {
         return this.fetchData()
-            .then((data) => {
+            .then(([
+                voc = [],
+                ingest = [],
+                privileges = [],
+                _metadata,
+                users = [],
+                _desks,
+                all_templates = [],
+                formsProfile = [],
+                coverageProfiles = [],
+                userDesks = [],
+                exportTemplates = [],
+            ]) => {
                 const genres = this.metadata.values.genre_custom ?
                     this.metadata.values.genre_custom.map(
                         (item) => Object.assign({scheme: 'genre_custom'}, item)
@@ -202,11 +230,11 @@ export class PlanningStoreService {
 
                 const initialState = {
                     vocabularies: zipObject(
-                        get(data, 'voc', []).map((cv) => cv._id),
-                        get(data, 'voc', []).map((cv) => cv.items)
+                        voc.map((cv) => cv._id),
+                        voc.map((cv) => cv.items)
                     ),
                     ingest: {
-                        providers: get(data, 'ingest', [])
+                        providers: ingest
                             .filter((p) => (
                                 get(p, 'content_types', []).indexOf(ITEM_TYPE.EVENT) !== -1 ||
                                 get(p, 'content_types', []).indexOf(ITEM_TYPE.PLANNING) !== -1)
@@ -216,12 +244,12 @@ export class PlanningStoreService {
                                 id: provider._id,
                             })),
                     },
-                    privileges: data.privileges,
+                    privileges: privileges,
                     subjects: this.metadata.values.subjectcodes,
                     genres: genres,
-                    users: data.users,
+                    users: users,
                     desks: this.desks.desks._items,
-                    templates: data.all_templates._items,
+                    templates: all_templates,
                     workspace: {
                         currentDeskId: get(this.desks, 'active.desk'),
                         currentStageId: get(this.desks, 'active.stage'),
@@ -235,13 +263,13 @@ export class PlanningStoreService {
                         urgency: this.metadata.values.urgency,
                         label: this.gettextCatalog.getString('Urgency'),
                     },
+                    coverageProfiles: {
+                        profiles: coverageProfiles,
+                    },
                     forms: {profiles: {}},
-                    customVocabularies: this.metadata.cvs.filter((cv) =>
-                        !isEmpty(cv.service) &&
-                        isEmpty(cv.field_type)
-                    ),
-                    userDesks: data.userDesks,
-                    exportTemplates: get(data.exportTemplates, '_items', []),
+                    customVocabularies: this.metadata.cvs.filter(isCustomVocabulary),
+                    userDesks: userDesks,
+                    exportTemplates: get(exportTemplates, '_items', []),
                 };
 
                 // use custom cvs if any
@@ -249,7 +277,7 @@ export class PlanningStoreService {
                     genre: genres,
                 });
 
-                data.formsProfile.forEach((p) => {
+                formsProfile.forEach((p) => {
                     initialState.forms.profiles[p.name] = p;
                 });
 
@@ -285,7 +313,7 @@ export class PlanningStoreService {
             .then((voc) => {
                 this.store.dispatch({
                     type: 'RECEIVE_VOCABULARIES',
-                    payload: voc._items,
+                    payload: voc,
                 });
             });
     }

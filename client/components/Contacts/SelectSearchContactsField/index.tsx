@@ -1,12 +1,27 @@
 import React from 'react';
-import PropTypes from 'prop-types';
 import {SelectListPopup} from './SelectListPopup';
 import {LineInput, Label} from '../../UI/Form';
-
+import {IContact} from 'superdesk-api';
 import './style.scss';
 
+interface IProps {
+    value: Array<string>;
+    label?: string;
+    readOnly?: boolean;
+    onChange: (contact: IContact) => void;
+    required?: boolean;
+    message?: string;
+    invalid?: boolean;
+    onAdd?: (...args: any) => void;
+    onAddText?: string;
+    onFocus?: (...args: any) => void;
+    contactType?: string;
+    minLengthPopup?: number;
+    placeholder?: string;
+    noMargin?: boolean
+}
 
-export class SelectSearchContactsField extends React.Component {
+export class SelectSearchContactsField extends React.Component<IProps, {openSelectPopup: boolean}> {
     constructor(props) {
         super(props);
         this.state = {openSelectPopup: true};
@@ -19,7 +34,7 @@ export class SelectSearchContactsField extends React.Component {
         this.setState({openSelectPopup: !this.state.openSelectPopup});
     }
 
-    onChange(contact) {
+    onChange(contact: IContact) {
         this.props.onChange(contact);
         this.toggleOpenSelectPopup();
     }
@@ -33,14 +48,26 @@ export class SelectSearchContactsField extends React.Component {
             onFocus,
             readOnly,
             contactType,
-            minLengthPopup,
+            minLengthPopup = 1,
             placeholder,
+            noMargin,
+            message,
+            invalid,
             ...props
         } = this.props;
 
+        const hasLabel = (label ?? '').trim();
+
         return (
-            <LineInput readOnly={readOnly} {...props}>
-                {label && (
+            <LineInput
+                readOnly={readOnly}
+                {...props}
+                message={message}
+                invalid={invalid}
+                noLabel={!hasLabel}
+                noMargin={noMargin}
+            >
+                {hasLabel && (
                     <Label text={label} />
                 )}
                 <SelectListPopup
@@ -61,24 +88,3 @@ export class SelectSearchContactsField extends React.Component {
         );
     }
 }
-
-SelectSearchContactsField.propTypes = {
-    value: PropTypes.arrayOf(PropTypes.string),
-    label: PropTypes.string,
-    readOnly: PropTypes.bool,
-    onChange: PropTypes.func,
-    required: PropTypes.bool,
-    field: PropTypes.string.isRequired,
-    onAdd: PropTypes.func,
-    onAddText: PropTypes.string,
-    onFocus: PropTypes.func,
-    contactType: PropTypes.string,
-    minLengthPopup: PropTypes.number,
-    placeholder: PropTypes.string,
-};
-
-SelectSearchContactsField.defaultProps = {
-    required: false,
-    readOnly: false,
-    minLengthPopup: 1,
-};

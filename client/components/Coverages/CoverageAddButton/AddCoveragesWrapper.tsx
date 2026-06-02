@@ -7,23 +7,22 @@ import {IG2ContentType, IPlanningCoverageItem, IPlanningNewsCoverageStatus} from
 
 import {planningUtils, onEventCapture} from '../../../utils';
 import {getVocabularyItemFieldTranslated} from '../../../utils/vocabularies';
-import {getUserInterfaceLanguageFromCV} from '../../../utils/users';
 import * as selectors from '../../../selectors';
-import * as actions from '../../../actions';
 
 import {CoveragesMenuPopup} from './CoveragesMenuPopup';
 import {CoverageAddAdvancedModal} from '../CoverageAddAdvancedModal';
+import {planningApi} from '../../../superdeskApi';
 
-interface IProps {
+interface IOwnProps {
     field: string;
     value: Array<DeepPartial<IPlanningCoverageItem>>;
     target: string;
     button: React.ComponentType<{toggleMenu: (event: React.MouseEvent<HTMLButtonElement>) => void}>;
     language?: string;
+    eventLanguages?: Array<string>;
 
     onChange(field: string, value: Array<DeepPartial<IPlanningCoverageItem>>): void;
     createCoverage(qcode: IG2ContentType['qcode']): DeepPartial<IPlanningCoverageItem>;
-    setCoverageAddAdvancedMode(enable: boolean): void;
     onOpen?(): void;
     onAdd(
         qcode: IG2ContentType['qcode'],
@@ -32,7 +31,9 @@ interface IProps {
     ): void;
     onPopupOpen?(): void;
     onPopupClose?(): void;
+}
 
+interface IReduxStateProps {
     contentTypes: Array<IG2ContentType>;
     defaultDesk?: IDesk;
     preferredCoverageDesks: {[key: string]: string};
@@ -41,6 +42,8 @@ interface IProps {
     users: Array<IUser>;
     coverageAddAdvancedMode: boolean;
 }
+
+type IProps = IOwnProps & IReduxStateProps;
 
 interface ICoverageTypeEntry {
     id: string;
@@ -55,7 +58,7 @@ interface IState {
     advanced: boolean;
 }
 
-const mapStateToProps = (state) => ({
+const mapStateToProps = (state): IReduxStateProps => ({
     contentTypes: selectors.general.contentTypes(state),
     defaultDesk: selectors.general.defaultDesk(state),
     preferredCoverageDesks: selectors.general.preferredCoverageDesks(state)?.desks ?? {},
@@ -63,10 +66,6 @@ const mapStateToProps = (state) => ({
     users: selectors.general.users(state),
     desks: selectors.general.desks(state),
     coverageAddAdvancedMode: selectors.general.coverageAddAdvancedMode(state),
-});
-
-const mapDispatchToProps = (dispatch) => ({
-    setCoverageAddAdvancedMode: (advancedMode) => dispatch(actions.users.setCoverageAddAdvancedMode(advancedMode)),
 });
 
 function getCoverageTypesFromProps(
@@ -145,6 +144,11 @@ class AddCoveragesWrapperComponent extends React.Component<IProps, IState> {
         this.setState({advanced: false});
     }
 
+    onAdvancedSave = (field: string, value: Array<DeepPartial<IPlanningCoverageItem>>) => {
+        this.props.onChange(field, value);
+        this.closeAdvanced();
+    };
+
     toggleMenu(event: React.MouseEvent) {
         this.state.isOpen ?
             this.closeMenu(event) :
@@ -154,7 +158,7 @@ class AddCoveragesWrapperComponent extends React.Component<IProps, IState> {
     render() {
         const Button = this.props.button;
         const coverageTypes = this.getOptions(
-            this.props.language || getUserInterfaceLanguageFromCV(),
+            selectors.general.session(planningApi.redux.store.getState()).identity.language ?? 'en',
             this.props.contentTypes,
             this.props.onAdd,
             this.props.defaultDesk,
@@ -164,7 +168,7 @@ class AddCoveragesWrapperComponent extends React.Component<IProps, IState> {
         return (
             <React.Fragment>
                 <Button toggleMenu={this.toggleMenu} />
-                {!this.state.isOpen ? null : (
+                {this.state.isOpen && (
                     <CoveragesMenuPopup
                         closeMenu={this.closeMenu}
                         actions={coverageTypes}
@@ -174,22 +178,18 @@ class AddCoveragesWrapperComponent extends React.Component<IProps, IState> {
                         openAdvanced={this.openAdvanced}
                     />
                 )}
-                {!this.state.advanced ? null : (
+                {this.state.advanced && (
                     <CoverageAddAdvancedModal
-                        close={this.closeAdvanced}
+                        onCancel={this.closeAdvanced}
                         contentTypes={this.props.contentTypes}
                         newsCoverageStatus={this.props.newsCoverageStatus}
-
                         field={this.props.field}
                         value={this.props.value}
-                        onChange={this.props.onChange}
+                        onSave={this.onAdvancedSave}
                         createCoverage={this.props.createCoverage}
-
                         users={this.props.users}
                         desks={this.props.desks}
-
                         coverageAddAdvancedMode={this.props.coverageAddAdvancedMode}
-                        setCoverageAddAdvancedMode={this.props.setCoverageAddAdvancedMode}
                     />
                 )}
             </React.Fragment>
@@ -199,5 +199,4 @@ class AddCoveragesWrapperComponent extends React.Component<IProps, IState> {
 
 export const AddCoveragesWrapper = connect(
     mapStateToProps,
-    mapDispatchToProps
 )(AddCoveragesWrapperComponent);

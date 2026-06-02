@@ -1,17 +1,32 @@
 import React from 'react';
-import PropTypes from 'prop-types';
-import DebounceInput from 'react-debounce-input';
+import {DebounceInput} from 'react-debounce-input';
 import {uniqueId} from 'lodash';
 import {KEYCODES} from '../constants';
 import {onEventCapture} from '../utils';
 import {gettext} from '../../../utils/gettext';
 
+
+interface IProps {
+    onSearch: (value: any) => void;
+    onSearchClick: (e: React.KeyboardEvent<HTMLInputElement>) => void;
+    value?: string;
+    minLength?: number;
+    onFocus?: () => void;
+    readOnly?: boolean;
+    placeholder?: string;
+    autoComplete?: boolean;
+    name?: string;
+}
+
+interface IState {
+    searchInputValue: string;
+    uniqueId: string;
+}
+
 /**
- * @ngdoc react
- * @name SearchField
- * @description Input Field Component with search capabiities
+ * Input Field Component with search capabiities
  */
-export default class SearchField extends React.Component {
+export default class SearchField extends React.Component<IProps, IState> {
     constructor(props) {
         super(props);
         this.state = {
@@ -34,7 +49,7 @@ export default class SearchField extends React.Component {
     }
 
     /** Search events by keywords */
-    onSearchChange(event) {
+    onSearchChange(event: React.ChangeEvent<HTMLInputElement>) {
         const value = event.target.value;
 
         this.setState(
@@ -44,16 +59,16 @@ export default class SearchField extends React.Component {
         );
     }
 
-    onSearchClick(event) {
+    onSearchClick(event: React.KeyboardEvent<HTMLInputElement>) {
         if (this.props.onSearchClick) {
             this.props.onSearchClick(event);
         }
     }
 
-    onKeyDown(event) {
+    onKeyDown(event: React.KeyboardEvent<HTMLInputElement>) {
         if (event.keyCode === KEYCODES.ENTER) {
             onEventCapture(event);
-            this.onSearchClick();
+            this.onSearchClick(event);
         }
     }
 
@@ -75,23 +90,9 @@ export default class SearchField extends React.Component {
                 onKeyDown={this.onKeyDown}
                 onFocus={this.props.onFocus}
                 disabled={this.props.readOnly}
-                autoComplete={this.props.autoComplete ? 'on' : 'off'}
+                autoComplete={(this.props.autoComplete ?? true) ? 'on' : 'off'}
                 name={this.props.name}
             />
         );
     }
 }
-
-SearchField.propTypes = {
-    onSearch: PropTypes.func.isRequired,
-    onSearchClick: PropTypes.func.isRequired,
-    value: PropTypes.string,
-    minLength: PropTypes.number,
-    onFocus: PropTypes.func,
-    readOnly: PropTypes.bool,
-    placeholder: PropTypes.string,
-    autoComplete: PropTypes.bool,
-    name: PropTypes.string,
-};
-
-SearchField.defaultProps = {autoComplete: true};

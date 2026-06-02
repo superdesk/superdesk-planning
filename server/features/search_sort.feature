@@ -42,7 +42,7 @@ Feature: Event Search
             "firstcreated": "2016-01-02T01:00:00+0000", "versioncreated": "2016-01-03T01:00:00+0000",
             "guid": "plan_2", "name": "plan 2", "slugline": "test2 slugline",
             "planning_date": "2016-01-01T01:00:00+0000",
-            "event_item": "event_2"
+            "related_events": [{"_id": "event_2", "link_type": "primary"}]
         }, {
             "firstcreated": "2016-01-03T01:00:00+0000", "versioncreated": "2016-01-02T01:00:00+0000",
             "guid": "plan_3", "name": "plan 3", "slugline": "test3 slugline",
@@ -51,7 +51,7 @@ Feature: Event Search
             "firstcreated": "2016-01-04T01:00:00+0000", "versioncreated": "2016-01-01T01:00:00+0000",
             "guid": "plan_4", "name": "plan 4", "slugline": "test4 slugline",
             "planning_date": "2016-01-02T01:00:00+0000",
-            "event_item": "event_4"
+            "related_events": [{"_id": "event_4", "link_type": "primary"}]
         }]
         """
 
@@ -147,31 +147,31 @@ Feature: Event Search
         When we get "events_planning_search?repo=combined&only_future=false"
         Then we get the following order
         """
-        ["event_2", "event_4", "event_1", "plan_1", "event_3", "plan_3"]
+        ["event_2", "plan_2", "event_4", "plan_4", "event_1", "plan_1", "event_3", "plan_3"]
         """
         # Sort by creation date, in ascending order (default order)
         When we get "events_planning_search?repo=combined&only_future=false&sort_field=created"
         Then we get the following order
         """
-        ["event_1", "plan_1", "event_2", "event_3", "plan_3", "event_4"]
+        ["event_1", "plan_1", "event_2", "plan_2", "event_3", "plan_3", "event_4", "plan_4"]
         """
         # Sort by creation date, in descending order
         When we get "events_planning_search?repo=combined&only_future=false&sort_field=created&sort_order=descending"
         Then we get the following order
         """
-        ["event_4", "plan_3", "event_3", "event_2", "plan_1", "event_1"]
+        ["plan_4", "event_4", "plan_3", "event_3", "plan_2", "event_2", "plan_1", "event_1"]
         """
         # Sort by updated date, in ascending order (default order)
         When we get "events_planning_search?repo=combined&only_future=false&sort_field=updated"
         Then we get the following order
         """
-        ["event_4", "event_3", "plan_3", "event_2", "event_1", "plan_1"]
+        ["event_4", "plan_4", "event_3", "plan_3", "event_2", "plan_2", "event_1", "plan_1"]
         """
         # Sort by updated date, in descending order
         When we get "events_planning_search?repo=combined&only_future=false&sort_field=updated&sort_order=descending"
         Then we get the following order
         """
-        ["plan_1", "event_1", "event_2", "plan_3", "event_3", "event_4"]
+        ["plan_1", "event_1", "plan_2", "event_2", "plan_3", "event_3", "plan_4", "event_4"]
         """
         # Update an item, then sort by updated date in descending order
         When we patch "/events/event_3"
@@ -181,5 +181,5 @@ Feature: Event Search
         When we get "events_planning_search?repo=combined&only_future=false&sort_field=updated&sort_order=descending"
         Then we get the following order
         """
-        ["event_3", "plan_1", "event_1", "event_2", "plan_3", "event_4"]
+        ["event_3", "plan_1", "event_1", "plan_2", "event_2", "plan_3", "plan_4", "event_4"]
         """

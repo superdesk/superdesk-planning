@@ -4,7 +4,7 @@ import {assignEventConstantTranslations} from './events';
 import {assignPlanningConstantTranslations} from './planning';
 import {assignAssignmentConstantTranslations} from './assignments';
 import {assignTooltipConstantTranslations} from './tooltips';
-import {assignCoverageConstantTranslations} from './coverages';
+import {IPlanningPubstatus, IWorkflowState} from 'interfaces';
 
 export {PRIVILEGES} from './privileges';
 export {PLANNING} from './planning';
@@ -40,7 +40,7 @@ export const DATE_FORMATS = {
     DISPLAY_CDATE_TBC_FORMAT: 'D. MMMM @ TBC',
 };
 
-export const WORKFLOW_STATE = {
+export const WORKFLOW_STATE: {[key: string]: IWorkflowState} = {
     DRAFT: 'draft',
     INGESTED: 'ingested',
     SCHEDULED: 'scheduled',
@@ -51,7 +51,7 @@ export const WORKFLOW_STATE = {
     SPIKED: 'spiked',
 };
 
-export const POST_STATE = {
+export const POST_STATE: {[key: string]: IPlanningPubstatus} = {
     USABLE: 'usable',
     CANCELLED: 'cancelled',
 };
@@ -69,6 +69,7 @@ export const SPIKED_STATE = {
 
 export const RESET_STORE = 'RESET_STORE';
 export const INIT_STORE = 'INIT_STORE';
+export const INITIAL_STATE = '_INITIAL_STATE';
 export const FORM_NAMES = {
     PlanningForm: 'planning',
     EventForm: 'event',
@@ -94,6 +95,9 @@ export const TEMP_ID_PREFIX = 'tempId-';
 
 // The delay in ms for use with single and double click detection
 export const CLICK_DELAY = 250;
+
+// The delay in ms for use with input changes
+export const CHANGE_DELAY = 500;
 
 export const USER_ACTIONS = {
     RECEIVE_USER_PREFERENCES: 'RECEIVE_USER_PREFERENCES',
@@ -150,6 +154,7 @@ export const TIME_COMPARISON_GRANULARITY = {
 };
 
 export const ALL_DESKS = '_all';
+export const PERSONAL_WORKSPACE = {_id: 'personal-workspace', name: 'Personal Workspace'};
 
 export const SORT_DIRECTION = {
     ASCENDING: 'Asc',
@@ -162,10 +167,10 @@ export function assignConstantLabelTranslations() {
 
     DATE_FORMATS.DISPLAY_TBC_FORMAT = `D. MMMM YYYY @ ${TO_BE_CONFIRMED_SHORT_TEXT}`;
     DATE_FORMATS.DISPLAY_CDATE_TBC_FORMAT = `D. MMMM @ ${TO_BE_CONFIRMED_SHORT_TEXT}`;
+    PERSONAL_WORKSPACE.name = gettext('Personal Workspace');
 
     assignEventConstantTranslations();
     assignPlanningConstantTranslations();
     assignAssignmentConstantTranslations();
     assignTooltipConstantTranslations();
-    assignCoverageConstantTranslations();
 }

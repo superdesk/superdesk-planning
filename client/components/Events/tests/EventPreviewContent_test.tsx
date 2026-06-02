@@ -1,3 +1,4 @@
+/* eslint-disable jasmine/no-focused-tests */
 import React from 'react';
 import {mount} from 'enzyme';
 import {Provider} from 'react-redux';
@@ -38,10 +39,10 @@ describe('<EventPreviewContent />', () => {
             name: 'Planned, occurs certainly',
             qcode: 'eocstat:eos5',
         },
-        location: {
+        location: [{
             name: 'location',
             formatted_address: 'address',
-        },
+        }],
         calendars: [{
             name: 'Sport',
             qcode: 'sport',
@@ -133,10 +134,12 @@ describe('<EventPreviewContent />', () => {
         verifyDataRow(eventDetailRows.at(2), 'Long Description:', 'long description');
         verifyDataRow(eventDetailRows.at(3), 'Internal Note:', 'internal note');
 
-        let contacts = wrapper.find('.contact-info');
-
-        expect(contacts.find('.contact-info__name').first()
-            .text()).toBe(`${storeContact.first_name} ${storeContact.last_name} `);
+        expect(
+            wrapper.find('.contact-info__name')
+                .first()
+                .text()
+                .trim()
+        ).toBe(`${storeContact.first_name} ${storeContact.last_name}`);
 
         let files = wrapper.find('.toggle-box').at(1);
 
@@ -162,7 +165,7 @@ describe('<EventPreviewContent />', () => {
 
         let relatedPlannings = wrapper.find('.related-plannings');
 
-        const relPlan = relatedPlannings.find('span').first();
+        const relPlan = relatedPlannings.find('span.sd-list-item__slugline').first();
 
         expect(relPlan.text()).toBe('Planning2'); // expect to display slugline (i.e. Planning2)
     });

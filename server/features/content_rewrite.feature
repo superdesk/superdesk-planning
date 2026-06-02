@@ -103,7 +103,7 @@ Feature: Rewrite content
         """
         {
         "_items": [
-          {"state": "pending", "content_type": "text",
+          {"state": "success", "content_type": "text",
           "subscriber_id": "#wire#", "item_id": "#archive._id#", "item_version": 2,
           "ingest_provider": "__none__",
           "destination": {
@@ -182,10 +182,10 @@ Feature: Rewrite content
         }
         """
         Then we get OK response
-        When we get "published_planning?sort=item_id,version"
+        When we get "published_planning?sort=_id"
         Then we get list with 1 items
         Then we store "PLANNING" with first item
-        When we get "published_planning?where={\"item_id\": \"#PLANNING.item_id#\", \"version\": #PLANNING.version#}"
+        When we get "published_planning?where={\"_id\": \"#PLANNING._id#\"}"
         Then we get list with 1 items
         """
         {
@@ -260,7 +260,7 @@ Feature: Rewrite content
         }
         """
         When we transmit items
-        When we get "published_planning?sort=item_id,version"
+        When we get "published_planning?sort=_id"
         Then we get list with 2 items
         Then we store "PLANNING" with 2 item
         Then we get transmitted item "/tmp/#PLANNING.item_id#-#PLANNING.version#-2.txt"
@@ -302,7 +302,7 @@ Feature: Rewrite content
         """
 
         When we transmit items
-        When we get "published_planning?sort=item_id,version"
+        When we get "published_planning?sort=_id"
         Then we get list with 3 items
         Then we store "PLANNING" with 3 item
         Then we get transmitted item "/tmp/#PLANNING.item_id#-#PLANNING.version#-3.txt"
@@ -346,7 +346,7 @@ Feature: Rewrite content
         ]}
         """
         When we transmit items
-        When we get "published_planning?sort=item_id,version"
+        When we get "published_planning?sort=_id"
         Then we get list with 4 items
         Then we store "PLANNING" with 4 item
         Then we get transmitted item "/tmp/#PLANNING.item_id#-#PLANNING.version#-4.txt"
@@ -432,10 +432,10 @@ Feature: Rewrite content
         }
         """
         Then we get OK response
-        When we get "published_planning?sort=item_id,version"
+        When we get "published_planning?sort=_id"
         Then we get list with 1 items
         Then we store "PLANNING" with first item
-        When we get "published_planning?where={\"item_id\": \"#PLANNING.item_id#\", \"version\": #PLANNING.version#}"
+        When we get "published_planning?where={\"_id\": \"#PLANNING._id#\"}"
         Then we get list with 1 items
         """
         {
@@ -500,7 +500,7 @@ Feature: Rewrite content
         }
         """
         When we transmit items
-        When we get "published_planning?sort=item_id,version"
+        When we get "published_planning?sort=_id"
         Then we get list with 2 items
         Then we store "PLANNING" with 2 item
         Then we get transmitted item "/tmp/#PLANNING.item_id#-#PLANNING.version#-2.txt"
@@ -553,7 +553,7 @@ Feature: Rewrite content
         {"_id": "#REWRITE_ID#", "rewrite_of": "#archive._id#", "assignment_id": "__no_value__"}
         """
         When we transmit items
-        When we get "published_planning?sort=item_id,version"
+        When we get "published_planning?sort=_id"
         Then we get list with 2 items
         Then we store "PLANNING" with 2 item
         Then we get transmitted item "/tmp/#PLANNING.item_id#-#PLANNING.version#-2.txt"
@@ -632,10 +632,10 @@ Feature: Rewrite content
         }
         """
         Then we get OK response
-        When we get "published_planning?sort=item_id,version"
+        When we get "published_planning?sort=_id"
         Then we get list with 1 items
         Then we store "PLANNING" with first item
-        When we get "published_planning?where={\"item_id\": \"#PLANNING.item_id#\", \"version\": #PLANNING.version#}"
+        When we get "published_planning?where={\"_id\": \"#PLANNING._id#\"}"
         Then we get list with 1 items
         """
         {
@@ -702,7 +702,7 @@ Feature: Rewrite content
         }
         """
         When we transmit items
-        When we get "published_planning?sort=item_id,version"
+        When we get "published_planning?sort=_id"
         Then we get list with 2 items
         Then we store "PLANNING" with 2 item
         Then we get transmitted item "/tmp/#PLANNING.item_id#-#PLANNING.version#-2.txt"
@@ -740,7 +740,7 @@ Feature: Rewrite content
         }
         """
         When we transmit items
-        When we get "published_planning?sort=item_id,version"
+        When we get "published_planning?sort=_id"
         Then we get list with 3 items
         Then we store "PLANNING" with 3 item
         Then we get transmitted item "/tmp/#PLANNING.item_id#-#PLANNING.version#-3.txt"
@@ -784,7 +784,7 @@ Feature: Rewrite content
         ]}
         """
         When we transmit items
-        When we get "published_planning?sort=item_id,version"
+        When we get "published_planning?sort=_id"
         Then we get list with 4 items
         Then we store "PLANNING" with 4 item
         Then we get transmitted item "/tmp/#PLANNING.item_id#-#PLANNING.version#-4.txt"
@@ -827,7 +827,7 @@ Feature: Rewrite content
         }
         """
         When we transmit items
-        When we get "published_planning?sort=item_id,version"
+        When we get "published_planning?sort=_id"
         Then we get list with 5 items
         Then we store "PLANNING" with 5 item
         Then we get transmitted item "/tmp/#PLANNING.item_id#-#PLANNING.version#-5.txt"
@@ -875,7 +875,7 @@ Feature: Rewrite content
         ]}
         """
         When we transmit items
-        When we get "published_planning?sort=item_id,version"
+        When we get "published_planning?sort=_id"
         Then we get list with 6 items
         Then we store "PLANNING" with 6 item
         Then we get transmitted item "/tmp/#PLANNING.item_id#-#PLANNING.version#-6.txt"
@@ -959,10 +959,10 @@ Feature: Rewrite content
         }
         """
         Then we get OK response
-        When we get "published_planning?sort=item_id,version"
+        When we get "published_planning?sort=_id"
         Then we get list with 1 items
         Then we store "PLANNING" with first item
-        When we get "published_planning?where={\"item_id\": \"#PLANNING.item_id#\", \"version\": #PLANNING.version#}"
+        When we get "published_planning?where={\"_id\": \"#PLANNING._id#\"}"
         Then we get list with 1 items
         """
         {
@@ -1053,10 +1053,10 @@ Feature: Rewrite content
             "#firstassignment#": {"assigned_to": {"state": "completed"}}
         }
         """
-        When we get "published_planning?sort=item_id,version"
+        When we get "published_planning?sort=_id"
         Then we get list with 2 items
         Then we store "PLANNING" with 2 item
-        When we get "published_planning?where={\"item_id\": \"#PLANNING.item_id#\", \"version\": #PLANNING.version#}"
+        When we get "published_planning?where={\"_id\": \"#PLANNING._id#\"}"
         Then we get list with 1 items
         """
         {
@@ -1167,10 +1167,10 @@ Feature: Rewrite content
             "reassign": true
         }]
         """
-        When we get "published_planning?sort=item_id,version"
+        When we get "published_planning?sort=_id"
         Then we get list with 3 items
         Then we store "PLANNING" with 3 item
-        When we get "published_planning?where={\"item_id\": \"#PLANNING.item_id#\", \"version\": #PLANNING.version#}"
+        When we get "published_planning?where={\"_id\": \"#PLANNING._id#\"}"
         Then we get list with 1 items
         """
         {
@@ -1245,7 +1245,10 @@ Feature: Rewrite content
                 },
                 "news_coverage_status": {"qcode": "ncostat:int"},
                 "workflow_status": "active",
-                "deliveries": []
+                "deliveries": [{
+                  "item_id": "#archive._id#",
+                  "item_state": "fetched"
+                }]
             }]
         }
         """
@@ -1264,10 +1267,10 @@ Feature: Rewrite content
         {"_items" : [{"_id": "#archive1#", "assignment_id": "#firstassignment#"},
         {"_id": "#archive._id#", "assignment_id": "#secondassignment#"}]}
         """
-        When we get "published_planning?sort=item_id,version"
+        When we get "published_planning?sort=_id"
         Then we get list with 4 items
         Then we store "PLANNING" with 4 item
-        When we get "published_planning?where={\"item_id\": \"#PLANNING.item_id#\", \"version\": #PLANNING.version#}"
+        When we get "published_planning?where={\"_id\": \"#PLANNING._id#\"}"
         Then we get list with 1 items
         """
         {
@@ -1362,10 +1365,10 @@ Feature: Rewrite content
             "assignment_id": "#secondassignment#"
         }
         """
-        When we get "published_planning?sort=item_id,version"
+        When we get "published_planning?sort=_id"
         Then we get list with 5 items
         Then we store "PLANNING" with 5 item
-        When we get "published_planning?where={\"item_id\": \"#PLANNING.item_id#\", \"version\": #PLANNING.version#}"
+        When we get "published_planning?where={\"_id\": \"#PLANNING._id#\"}"
         Then we get list with 1 items
         """
         {
@@ -1463,10 +1466,10 @@ Feature: Rewrite content
             {"_id": "#REWRITE_ID#", "rewrite_of": "#archive._id#", "assignment_id": "#secondassignment#"}
         ]}
         """
-        When we get "published_planning?sort=item_id,version"
+        When we get "published_planning?sort=_id"
         Then we get list with 6 items
         Then we store "PLANNING" with 6 item
-        When we get "published_planning?where={\"item_id\": \"#PLANNING.item_id#\", \"version\": #PLANNING.version#}"
+        When we get "published_planning?where={\"_id\": \"#PLANNING._id#\"}"
         Then we get list with 1 items
         """
         {
@@ -1609,10 +1612,10 @@ Feature: Rewrite content
         }
         """
         Then we get OK response
-        When we get "published_planning?sort=item_id,version"
+        When we get "published_planning?sort=_id"
         Then we get list with 1 items
         Then we store "PLANNING" with first item
-        When we get "published_planning?where={\"item_id\": \"#PLANNING.item_id#\", \"version\": #PLANNING.version#}"
+        When we get "published_planning?where={\"_id\": \"#PLANNING._id#\"}"
         Then we get list with 1 items
         """
         {
@@ -1685,7 +1688,7 @@ Feature: Rewrite content
         }
         """
         When we transmit items
-        When we get "published_planning?sort=item_id,version"
+        When we get "published_planning?sort=_id"
         Then we get list with 2 items
         Then we store "PLANNING" with 2 item
         Then we get transmitted item "/tmp/#PLANNING.item_id#-#PLANNING.version#-2.txt"
@@ -1723,7 +1726,7 @@ Feature: Rewrite content
             "assignment_id": "#firstassignment#"
         }
         """
-        When we get "published_planning?sort=item_id,version"
+        When we get "published_planning?sort=_id"
         Then we get list with 3 items
         When we get "/published"
         Then we get existing resource
@@ -1742,7 +1745,7 @@ Feature: Rewrite content
         ]}
         """
         When we transmit items
-        When we get "published_planning?sort=item_id,version"
+        When we get "published_planning?sort=_id"
         Then we get list with 4 items
         Then we store "PLANNING" with 4 item
         Then we get transmitted item "/tmp/#PLANNING.item_id#-#PLANNING.version#-4.txt"
@@ -1784,7 +1787,7 @@ Feature: Rewrite content
         ]}
         """
         When we transmit items
-        When we get "published_planning?sort=item_id,version"
+        When we get "published_planning?sort=_id"
         Then we get list with 5 items
         Then we store "PLANNING" with 5 item
         Then we get transmitted item "/tmp/#PLANNING.item_id#-#PLANNING.version#-5.txt"
@@ -1862,10 +1865,10 @@ Feature: Rewrite content
         }
         """
         Then we get OK response
-        When we get "published_planning?sort=item_id,version"
+        When we get "published_planning?sort=_id"
         Then we get list with 1 items
         Then we store "PLANNING" with first item
-        When we get "published_planning?where={\"item_id\": \"#PLANNING.item_id#\", \"version\": #PLANNING.version#}"
+        When we get "published_planning?where={\"_id\": \"#PLANNING._id#\"}"
         Then we get list with 1 items
         """
         {
@@ -1938,7 +1941,7 @@ Feature: Rewrite content
         }
         """
         When we transmit items
-        When we get "published_planning?sort=item_id,version"
+        When we get "published_planning?sort=_id"
         Then we get list with 2 items
         Then we store "PLANNING" with 2 item
         Then we get transmitted item "/tmp/#PLANNING.item_id#-#PLANNING.version#-2.txt"
@@ -1976,7 +1979,7 @@ Feature: Rewrite content
             "assignment_id": "__no_value__"
         }
         """
-        When we get "published_planning?sort=item_id,version"
+        When we get "published_planning?sort=_id"
         Then we get list with 2 items
         When we get "/published"
         Then we get existing resource
@@ -1996,7 +1999,7 @@ Feature: Rewrite content
         {"_id": "#REWRITE_ID#", "rewrite_of": "#archive._id#", "assignment_id": "__no_value__"}
         """
         When we transmit items
-        When we get "published_planning?sort=item_id,version"
+        When we get "published_planning?sort=_id"
         Then we get list with 2 items
         Then we store "PLANNING" with 2 item
         Then we get transmitted item "/tmp/#PLANNING.item_id#-#PLANNING.version#-2.txt"
@@ -2075,10 +2078,10 @@ Feature: Rewrite content
         }
         """
         Then we get OK response
-        When we get "published_planning?sort=item_id,version"
+        When we get "published_planning?sort=_id"
         Then we get list with 1 items
         Then we store "PLANNING" with first item
-        When we get "published_planning?where={\"item_id\": \"#PLANNING.item_id#\", \"version\": #PLANNING.version#}"
+        When we get "published_planning?where={\"_id\": \"#PLANNING._id#\"}"
         Then we get list with 1 items
         """
         {
@@ -2151,7 +2154,7 @@ Feature: Rewrite content
         }
         """
         When we transmit items
-        When we get "published_planning?sort=item_id,version"
+        When we get "published_planning?sort=_id"
         Then we get list with 2 items
         Then we store "PLANNING" with 2 item
         Then we get transmitted item "/tmp/#PLANNING.item_id#-#PLANNING.version#-2.txt"
@@ -2210,7 +2213,7 @@ Feature: Rewrite content
             "rewritten_by": "#archive._id#"
         }
         """
-        When we get "published_planning?sort=item_id,version"
+        When we get "published_planning?sort=_id"
         Then we get list with 3 items
         When we get "/published"
         Then we get existing resource
@@ -2229,7 +2232,7 @@ Feature: Rewrite content
         ]}
         """
         When we transmit items
-        When we get "published_planning?sort=item_id,version"
+        When we get "published_planning?sort=_id"
         Then we get list with 4 items
         Then we store "PLANNING" with 4 item
         Then we get transmitted item "/tmp/#PLANNING.item_id#-#PLANNING.version#-4.txt"
@@ -2311,10 +2314,10 @@ Feature: Rewrite content
         }
         """
         Then we get OK response
-        When we get "published_planning?sort=item_id,version"
+        When we get "published_planning?sort=_id"
         Then we get list with 1 items
         Then we store "PLANNING" with first item
-        When we get "published_planning?where={\"item_id\": \"#PLANNING.item_id#\", \"version\": #PLANNING.version#}"
+        When we get "published_planning?where={\"_id\": \"#PLANNING._id#\"}"
         Then we get list with 1 items
         """
         {
@@ -2379,7 +2382,7 @@ Feature: Rewrite content
         }
         """
         When we transmit items
-        When we get "published_planning?sort=item_id,version"
+        When we get "published_planning?sort=_id"
         Then we get list with 2 items
         Then we store "PLANNING" with 2 item
         Then we get transmitted item "/tmp/#PLANNING.item_id#-#PLANNING.version#-2.txt"
@@ -2419,7 +2422,7 @@ Feature: Rewrite content
         }
         """
         When we transmit items
-        When we get "published_planning?sort=item_id,version"
+        When we get "published_planning?sort=_id"
         Then we get list with 3 items
         Then we store "PLANNING" with 3 item
         Then we get transmitted item "/tmp/#PLANNING.item_id#-#PLANNING.version#-3.txt"
@@ -2461,7 +2464,7 @@ Feature: Rewrite content
         ]}
         """
         When we transmit items
-        When we get "published_planning?sort=item_id,version"
+        When we get "published_planning?sort=_id"
         Then we get list with 4 items
         Then we store "PLANNING" with 4 item
         Then we get transmitted item "/tmp/#PLANNING.item_id#-#PLANNING.version#-4.txt"
@@ -2502,7 +2505,7 @@ Feature: Rewrite content
         }
         """
         When we transmit items
-        When we get "published_planning?sort=item_id,version"
+        When we get "published_planning?sort=_id"
         Then we get list with 5 items
         Then we store "PLANNING" with 5 item
         Then we get transmitted item "/tmp/#PLANNING.item_id#-#PLANNING.version#-5.txt"
@@ -2584,10 +2587,10 @@ Feature: Rewrite content
         }
         """
         Then we get OK response
-        When we get "published_planning?sort=item_id,version"
+        When we get "published_planning?sort=_id"
         Then we get list with 1 items
         Then we store "PLANNING" with first item
-        When we get "published_planning?where={\"item_id\": \"#PLANNING.item_id#\", \"version\": #PLANNING.version#}"
+        When we get "published_planning?where={\"_id\": \"#PLANNING._id#\"}"
         Then we get list with 1 items
         """
         {
@@ -2683,7 +2686,7 @@ Feature: Rewrite content
         }
         """
         When we transmit items
-        When we get "published_planning?sort=item_id,version"
+        When we get "published_planning?sort=_id"
         Then we get list with 2 items
         Then we store "PLANNING" with 2 item
         Then we get transmitted item "/tmp/#PLANNING.item_id#-#PLANNING.version#-2.txt"
@@ -2717,7 +2720,7 @@ Feature: Rewrite content
         { "_id": "#REWRITE_ID#", "rewrite_of": "#archive._id#", "assignment_id": "#firstassignment#" }
         """
         When we transmit items
-        When we get "published_planning?sort=item_id,version"
+        When we get "published_planning?sort=_id"
         Then we get list with 3 items
         Then we store "PLANNING" with 3 item
         Then we get transmitted item "/tmp/#PLANNING.item_id#-#PLANNING.version#-3.txt"
@@ -2799,10 +2802,10 @@ Feature: Rewrite content
         }
         """
         Then we get OK response
-        When we get "published_planning?sort=item_id,version"
+        When we get "published_planning?sort=_id"
         Then we get list with 1 items
         Then we store "PLANNING" with first item
-        When we get "published_planning?where={\"item_id\": \"#PLANNING.item_id#\", \"version\": #PLANNING.version#}"
+        When we get "published_planning?where={\"_id\": \"#PLANNING._id#\"}"
         Then we get list with 1 items
         """
         {
@@ -2875,7 +2878,7 @@ Feature: Rewrite content
         }
         """
         When we transmit items
-        When we get "published_planning?sort=item_id,version"
+        When we get "published_planning?sort=_id"
         Then we get list with 2 items
         Then we store "PLANNING" with 2 item
         Then we get transmitted item "/tmp/#PLANNING.item_id#-#PLANNING.version#-2.txt"
@@ -2935,7 +2938,7 @@ Feature: Rewrite content
             "#firstassignment#": {"assigned_to": {"state": "completed", "desk": "#desks._id#"}}
         }
         """
-        When we get "published_planning?sort=item_id,version"
+        When we get "published_planning?sort=_id"
         Then we get list with 3 items
         When we get "/published"
         Then we get existing resource
@@ -2954,7 +2957,7 @@ Feature: Rewrite content
         ]}
         """
         When we transmit items
-        When we get "published_planning?sort=item_id,version"
+        When we get "published_planning?sort=_id"
         Then we get list with 4 items
         Then we store "PLANNING" with 4 item
         Then we get transmitted item "/tmp/#PLANNING.item_id#-#PLANNING.version#-4.txt"
@@ -3036,10 +3039,10 @@ Feature: Rewrite content
         }
         """
         Then we get OK response
-        When we get "published_planning?sort=item_id,version"
+        When we get "published_planning?sort=_id"
         Then we get list with 1 items
         Then we store "PLANNING" with first item
-        When we get "published_planning?where={\"item_id\": \"#PLANNING.item_id#\", \"version\": #PLANNING.version#}"
+        When we get "published_planning?where={\"_id\": \"#PLANNING._id#\"}"
         Then we get list with 1 items
         """
         {
@@ -3112,7 +3115,7 @@ Feature: Rewrite content
         }
         """
         When we transmit items
-        When we get "published_planning?sort=item_id,version"
+        When we get "published_planning?sort=_id"
         Then we get list with 2 items
         Then we store "PLANNING" with 2 item
         Then we get transmitted item "/tmp/#PLANNING.item_id#-#PLANNING.version#-2.txt"

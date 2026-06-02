@@ -20,6 +20,7 @@ import {Row} from '../../UI/Preview';
 import {TextAreaInput, Field} from '../../UI/Form';
 
 import '../style.scss';
+import {isSameDay} from './../../../helpers';
 
 export class RescheduleEventComponent extends React.Component {
     constructor(props) {
@@ -134,8 +135,8 @@ export class RescheduleEventComponent extends React.Component {
             fieldsToValidate // Validate only those fields which can change while rescheduling.
         );
 
-        const multiDayChanged = eventUtils.isEventSameDay(original.dates.start, original.dates.end) &&
-            !eventUtils.isEventSameDay(diff.dates.start, diff.dates.end);
+        const multiDayChanged = isSameDay(original.dates.start, original.dates.end) &&
+            !isSameDay(diff.dates.start, diff.dates.end);
 
         if ((!diff[TO_BE_CONFIRMED_FIELD] &&
             eventUtils.eventsDatesSame(diff, original, TIME_COMPARISON_GRANULARITY.MINUTE)) ||
@@ -177,9 +178,12 @@ export class RescheduleEventComponent extends React.Component {
         const {original, formProfiles, submitting} = this.props;
         let reasonLabel = gettext('Reason for rescheduling this event:');
         const numPlannings = get(original, '_plannings.length');
-        const afterUntil = moment.isMoment(get(original, 'dates.recurring_rule.until')) &&
-            moment.isMoment(get(this.state, 'diff.dates.start')) &&
-            this.state.diff.dates.start.isAfter(original.dates.recurring_rule.until);
+        const until = timeUtils.dateToMomentDate(original.dates?.recurring_rule?.until);
+        const afterUntil = (
+            until != null &&
+            this.state.diff.dates?.start != null &&
+            moment(this.state.diff.dates.start).isAfter(original.dates.recurring_rule.until)
+        );
         const timeZone = get(original, 'dates.tz') || appConfig.default_timezone;
         const dateFormat = appConfig.planning.dateformat;
         const timeFormat = appConfig.planning.timeformat;

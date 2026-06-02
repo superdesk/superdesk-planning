@@ -1,0 +1,338 @@
+# Translations template for superdesk-planning.
+# Copyright (C) 2025 ORGANIZATION
+# This file is distributed under the same license as the superdesk-planning
+# project.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2025.
+# 
+# Translators:
+# Anton Borgström <anton.borgstrom@etc.se>, 2025
+# Eva Borgström <eva.stjerne@gmail.com>, 2025
+# Lars Kajes <mintlars@hotmail.com>, 2025
+# 
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: superdesk-planning 3.1.0.dev0\n"
+"Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
+"POT-Creation-Date: 2025-10-22 11:06+0200\n"
+"PO-Revision-Date: 2021-01-15 10:16+0000\n"
+"Last-Translator: Lars Kajes <mintlars@hotmail.com>, 2025\n"
+"Language-Team: Swedish (Sweden) (https://app.transifex.com/sourcefabric/teams/6584/sv_SE/)\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: Babel 2.17.0\n"
+"Language: sv_SE\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+#: server/planning/__init__.py:122 server/planning/__init__.py:185
+#: server/planning/__init__.py:192 server/planning/__init__.py:199
+#: server/planning/__init__.py:206 server/planning/__init__.py:217
+msgid "Planning"
+msgstr "Planering"
+
+#: server/planning/__init__.py:123
+msgid "Create, update, and delete  events, planning items, and coverages"
+msgstr "Skapa, uppdatera, och radera evenemang, utlägg, och artiklar"
+
+#: server/planning/__init__.py:128
+msgid "Planning - Agenda Management"
+msgstr "Planering - Schema-hantering"
+
+#: server/planning/__init__.py:129
+msgid "Ability to create and modify Agendas"
+msgstr "Behörig att skapa och ändra Scheman"
+
+#: server/planning/__init__.py:134
+msgid "Planning - Delete Agendas"
+msgstr "Planering - Radera scheman"
+
+#: server/planning/__init__.py:135
+msgid "Ability to delete an Agenda"
+msgstr "Behörig att radera ett Schema"
+
+#: server/planning/__init__.py:140
+msgid "Planning - Edit Expired Items"
+msgstr "Planering - Redigera utgångna utlägg"
+
+#: server/planning/__init__.py:141
+msgid "Ability to edit expired Event and Planning items"
+msgstr "Behörighet att redigera avslutade evenemang och utlägg "
+
+#: server/planning/__init__.py:146
+msgid "Planning - Manage Export Templates"
+msgstr ""
+
+#: server/planning/__init__.py:147
+msgid "Ability to manage export templates"
+msgstr ""
+
+#: server/planning/__init__.py:152
+msgid "Planning - Create Event/Planning in the past"
+msgstr "Planering - Skapa bakdaterat Evenemang/Utlägg"
+
+#: server/planning/__init__.py:153
+msgid "Ability to create an Event or Planning item in the past"
+msgstr "Behörighet att skapa evenemang eller utlägg i efterhand"
+
+#: server/planning/__init__.py:158
+msgid "Planning - Assignments"
+msgstr ""
+
+#: server/planning/__init__.py:159
+msgid "User can access assignments view and see their own assignments"
+msgstr ""
+
+#: server/planning/__init__.py:164
+msgid "Planning - Assignments desk"
+msgstr ""
+
+#: server/planning/__init__.py:165
+msgid "User can see desk assignments"
+msgstr ""
+
+#: server/planning/__init__.py:177
+msgid "Allow Notifications To Slack"
+msgstr "Tillåt meddelanden till Slack "
+
+#: server/planning/__init__.py:178
+msgid "Notifications"
+msgstr "Meddelanden"
+
+#: server/planning/__init__.py:184
+msgid "Default Calendar"
+msgstr "Standardkalender"
+
+#: server/planning/__init__.py:191
+msgid "Default Agenda"
+msgstr "Standardschema"
+
+#: server/planning/__init__.py:198
+msgid "Default Events Planning Filter"
+msgstr "Standard planeringsfilter"
+
+#: server/planning/__init__.py:205
+msgid "Default desk for coverage types"
+msgstr "Standarddesk för utläggstyper"
+
+#: server/planning/__init__.py:216
+msgid "Open advanced mode when adding coverages"
+msgstr "Öppna avancerat läge när utlägg skapas"
+
+#: server/planning/common.py:452
+msgid "Item didn't match any Products"
+msgstr ""
+
+#: server/planning/common.py:454
+msgid "Item not published to any Subscribers"
+msgstr ""
+
+#: server/planning/common.py:456
+msgid "Failed to route item"
+msgstr ""
+
+#: server/planning/module.py:66
+msgid "Agendas"
+msgstr "Scheman"
+
+#: server/planning/utils.py:135
+msgid "ALL DAY"
+msgstr ""
+
+#: server/planning/assignments/__init__.py:163
+msgid "Default sort preferences for Assignment lists"
+msgstr "Sorteringsinställning för utläggslistor"
+
+#: server/planning/assignments/__init__.py:164
+msgid "Assignments"
+msgstr "Uppdrag"
+
+#: server/planning/assignments/assignments.py:670
+msgid "by "
+msgstr ""
+
+#: server/planning/assignments/assignments.py:672
+msgid "to yourself"
+msgstr ""
+
+#: server/planning/assignments/assignments.py:798
+msgid "Unknown"
+msgstr "Okänd"
+
+#: server/planning/assignments/assignments.py:800
+msgid "You"
+msgstr ""
+
+#: server/planning/assignments/assignments_link.py:168
+#, python-format
+msgid ""
+"Content type \"%(content_type)s\" is not allowed to be linked to a coverage"
+msgstr "Innehållstyp \"%(content_type)s\" kan inte kopplas till utlägg"
+
+#: server/planning/content_profiles/__init__.py:33
+msgid "Planning - Manage Content Profiles"
+msgstr ""
+
+#: server/planning/content_profiles/__init__.py:34
+msgid "Ability to edit Event/Planning Content Profiles"
+msgstr ""
+
+#: server/planning/events/__init__.py:109
+msgid "Planning - Event Management"
+msgstr "Planering - Evenemang-hantering"
+
+#: server/planning/events/__init__.py:110
+msgid "Ability to create and modify Events"
+msgstr "Behörighet att skapa och ändra evenemang"
+
+#: server/planning/events/__init__.py:115
+msgid "Planning - Spike Event Items"
+msgstr "Planering - Borttagna evenemang"
+
+#: server/planning/events/__init__.py:116
+msgid "Ability to spike an Event"
+msgstr "Behörighet att radera ett evenemang"
+
+#: server/planning/events/__init__.py:121
+msgid "Planning - Unspike Event Items"
+msgstr "Planering - Återställ evenemang"
+
+#: server/planning/events/__init__.py:122
+msgid "Ability to unspike an Event"
+msgstr "Behörighet att återställa ett evenemang"
+
+#: server/planning/events/__init__.py:127
+msgid "Planning - Post Event Items"
+msgstr "Planering - Publicera evenemang"
+
+#: server/planning/events/__init__.py:128
+msgid "Ability to post an Event"
+msgstr "Behörighet att publicera ett evenemang"
+
+#: server/planning/events/__init__.py:133
+msgid "Planning - Unpost Event Items"
+msgstr "Planering - Avpublicera evenemang"
+
+#: server/planning/events/__init__.py:134
+msgid "Ability to unpost an Event"
+msgstr "Behörighet att avpublicera ett evenemang"
+
+#: server/planning/events/__init__.py:139
+msgid "Planning - Event Templates"
+msgstr "Planering - Evenemang-mallar"
+
+#: server/planning/events/__init__.py:140
+msgid "Ability to create and manage Event templates"
+msgstr "Behörighet att skapa och hantera evenemang-mallar"
+
+#: server/planning/events/views.py:169
+msgid "New recurring rules not provided"
+msgstr ""
+
+#: server/planning/events/views.py:171
+msgid "Not a series of recurring events"
+msgstr ""
+
+#: server/planning/feeding_services/onclusive_api_service.py:43
+#: server/planning/feeding_services/onclusive_api_service.py:44
+msgid "Username"
+msgstr "Användarnamn"
+
+#: server/planning/feeding_services/onclusive_api_service.py:50
+#: server/planning/feeding_services/onclusive_api_service.py:51
+msgid "Password"
+msgstr "Lösenord"
+
+#: server/planning/feeding_services/onclusive_api_service.py:57
+msgid "Days to Ingest"
+msgstr ""
+
+#: server/planning/feeding_services/onclusive_api_service.py:58
+#: server/planning/feeding_services/onclusive_api_service.py:66
+msgid "Days"
+msgstr "Dagar"
+
+#: server/planning/feeding_services/onclusive_api_service.py:65
+msgid "Days in the past to Reingest"
+msgstr ""
+
+#: server/planning/io/ingest_rule_handler.py:29
+msgid "Autopost Planning"
+msgstr ""
+
+#: server/planning/locations/__init__.py:27
+msgid "Planning - Manage locations"
+msgstr "Planering - Hantera platser "
+
+#: server/planning/locations/__init__.py:28
+msgid "Ability to create, edit and delete locations"
+msgstr "Behörighet att skapa, redigera och radera platser"
+
+#: server/planning/planning/__init__.py:134
+msgid "Planning - Planning Item Management"
+msgstr "Planering - Utläggshantering"
+
+#: server/planning/planning/__init__.py:135
+msgid "Ability to create and modify Planning items"
+msgstr "Behörighet att skapa och ändra utlägg"
+
+#: server/planning/planning/__init__.py:140
+msgid "Planning - Spike Planning Items"
+msgstr "Planering - Borttagna utlägg"
+
+#: server/planning/planning/__init__.py:141
+msgid "Ability to spike a Planning Item"
+msgstr "Behörighet att radera ett utlägg"
+
+#: server/planning/planning/__init__.py:146
+msgid "Planning - Unspike Planning Items"
+msgstr "Planering - Återställ utlägg"
+
+#: server/planning/planning/__init__.py:147
+msgid "Ability to unspike a Planning Item"
+msgstr "Behörighet att återställa ett utlägg"
+
+#: server/planning/planning/__init__.py:152
+msgid "Planning - Post Planning Items"
+msgstr "Planering - Publicera utlägg"
+
+#: server/planning/planning/__init__.py:153
+msgid "Ability to post a Planning Item"
+msgstr "Behörighet att publicera ett utlägg"
+
+#: server/planning/planning/__init__.py:158
+msgid "Planning - Unpost Planning Items"
+msgstr "Planering - Avpublicera utlägg"
+
+#: server/planning/planning/__init__.py:159
+msgid "Ability to unpost a Planning Item"
+msgstr "Behörighet att avpublicera ett utlägg"
+
+#: server/planning/planning/__init__.py:164
+msgid "Planning - Featured Stories"
+msgstr "Planering - Huvudartiklar"
+
+#: server/planning/planning/__init__.py:165
+msgid ""
+"Ability to create and modify a featured stories list from planning items"
+msgstr "Behörighet att skapa och ändra en artikellista från utlägg"
+
+#: server/planning/search/__init__.py:31 server/planning/search/__init__.py:73
+msgid "Planning - Events & Planning View Filters Management"
+msgstr "Planering - Hantera evenemang- & utläggsfilter"
+
+#: server/planning/search/__init__.py:32 server/planning/search/__init__.py:74
+msgid "Create/Update/Delete Events & Planning View Filters"
+msgstr "Skapa/Uppdatera/Radera filter"
+
+#: server/planning/search/__init__.py:79
+msgid "Planning - Global Filters"
+msgstr ""
+
+#: server/planning/search/__init__.py:80
+msgid "Ability to view global Events/Planning items"
+msgstr ""
+
+#: server/planning/search/queries/assignments.py:195
+msgid "Invalid custom text param"
+msgstr ""

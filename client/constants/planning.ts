@@ -5,6 +5,7 @@ export const PLANNING = {
         SPIKE_PLANNING: 'SPIKE_PLANNING',
         UNSPIKE_PLANNING: 'UNSPIKE_PLANNING',
         RECEIVE_PLANNINGS: 'RECEIVE_PLANNINGS',
+        STORE_LAST_DAY_GROUP: 'STORE_LAST_DAY_GROUP',
         RECEIVE_PLANNING_HISTORY: 'RECEIVE_PLANNING_HISTORY',
         SET_LIST: 'SET_PLANNING_LIST',
         ADD_TO_LIST: 'ADD_TO_PLANNING_LIST',
@@ -51,6 +52,7 @@ export const PLANNING = {
             lock_action: 'cancel_all_coverage',
         },
         ADD_TO_PLANNING: {
+            label: 'Add to planning',
             lock_action: 'add_to_planning',
             actionName: 'onAddToPlanning',
         },
@@ -96,6 +98,11 @@ export const PLANNING = {
             icon: 'icon-plus-small',
             actionName: 'onAddNewCoverageToPlanning',
         },
+        ADD_COVERAGE_ADVANCED: {
+            label: 'Edit Coverages',
+            icon: 'icon-pencil',
+            actionName: 'onAddCoverageAdvanced',
+        },
         PREVIEW: {
             label: 'Preview',
             icon: 'icon-preview-mode',
@@ -109,6 +116,7 @@ export const PLANNING = {
     },
     G2_CONTENT_TYPE: {
         TEXT: 'text',
+        MULTIPLE_TEXT: 'multiple_text',
         VIDEO: 'video',
         LIVE_VIDEO: 'live_video',
         AUDIO: 'audio',
@@ -123,14 +131,6 @@ export const PLANNING = {
         ADD_FEATURED: 'add_featured',
         REMOVE_FEATURED: 'remove_featured',
         CREATE_EVENT: 'create_event',
-    },
-    LIST: {
-        PRIMARY_FIELDS: ['slugline', 'internalnote', 'description'],
-        SECONDARY_FIELDS: ['state', 'featured', 'agendas', 'coverages'],
-    },
-    EXPORT_LIST: {
-        PRIMARY_FIELDS: ['slugline', 'description'],
-        SECONDARY_FIELDS: ['agendas'],
     },
 };
 
@@ -150,5 +150,6 @@ export function assignPlanningConstantTranslations() {
     PLANNING.ITEM_ACTIONS.ADD_TO_FEATURED.label = gettext('Add to featured stories');
     PLANNING.ITEM_ACTIONS.REMOVE_FROM_FEATURED.label = gettext('Remove from featured stories');
     PLANNING.ITEM_ACTIONS.ADD_COVERAGE_FROM_LIST.label = gettext('Add coverage');
+    PLANNING.ITEM_ACTIONS.ADD_COVERAGE_ADVANCED.label = gettext('Edit Coverages');
     PLANNING.ITEM_ACTIONS.PREVIEW.label = gettext('Preview');
 }

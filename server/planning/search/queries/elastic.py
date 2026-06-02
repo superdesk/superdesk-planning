@@ -12,16 +12,16 @@ from typing import Any, List, NamedTuple, Dict, Optional, Set
 import pytz
 
 from datetime import timedelta, datetime
-from flask import current_app as app
 from eve.utils import str_to_date
 
+from superdesk.core import get_app_config
 from planning.common import get_start_of_next_week, sanitize_query_text
 
 
 class ElasticQuery:
     """Utility class to build elastic queries"""
 
-    def __init__(self):
+    def __init__(self) -> None:
         """Default all filters to empty arrays"""
 
         self.must: List[Dict[str, Any]] = []
@@ -33,6 +33,7 @@ class ElasticQuery:
 
         self.extra: Dict[str, Any] = {}
         self.multilingual_fields: Set[str] = set()
+        self.size: int | None = None
 
     def build(self) -> Dict[str, Any]:
         query: Dict[str, Any] = {"query": {"bool": {}}}
@@ -52,12 +53,22 @@ class ElasticQuery:
         if len(self.sort):
             query["sort"] = self.sort
 
+        if self.size is not None:
+            query["size"] = self.size
+
         return query
 
     def extend_query(self, query: Dict[str, Any]):
         def _extend(key: str):
-            conditions = ((query.get("query") or {}).get("bool") or {}).get(key) or []
-            if len(conditions):
+            try:
+                conditions = query["query"]["bool"][key]
+            except KeyError:
+                try:
+                    conditions = query["bool"][key]
+                except KeyError:
+                    conditions = query.get(key, None)
+
+            if conditions:
                 self.__dict__[key].extend(conditions)
 
         _extend("must")
@@ -113,7 +124,7 @@ class ElasticRangeParams:
         self.lt = lt
         self.lte = lte
         self.value_format = value_format
-        self.time_zone = time_zone or app.config.get("DEFAULT_TIMEZONE")
+        self.time_zone = time_zone or get_app_config("DEFAULT_TIMEZONE")
         self.start_of_week = int(start_of_week or 0)
         self.date_range = date_range
         self.date = str_to_date(date) if date else None
@@ -199,7 +210,7 @@ def field_range(query: ElasticRangeParams):
     if query.time_zone:
         params["time_zone"] = query.time_zone
 
-    if query.field in ("dates.start", "dates.end"):
+    if query.field in ("dates.start", "dates.end", "_planning_schedule.scheduled", "_updates_schedule.scheduled"):
         # handle also all day events
         # there we get value which is in utc,
         # so we first convert it to local timezone
@@ -207,26 +218,140 @@ def field_range(query: ElasticRangeParams):
         local_params = params.copy()
         local_params.pop("time_zone", None)
         for key in ("gt", "gte", "lt", "lte"):
-            if local_params.get(key) and "T" in local_params[key] and query.time_zone:
-                tz = pytz.timezone(query.time_zone)
+            if local_params.get(key) and "T" in local_params[key] and params.get("time_zone"):
+                tz = pytz.timezone(params["time_zone"])
                 utc_value = datetime.fromisoformat(local_params[key].replace("+0000", "+00:00"))
                 local_value = utc_value.astimezone(tz)
                 local_params[key] = local_value.strftime("%Y-%m-%d")
-        return {
-            "bool": {
-                "should": [
-                    {"range": {query.field: params}},
-                    {
-                        "bool": {
-                            "must": [
-                                {"term": {"dates.all_day": True}},
-                                {"range": {query.field: local_params}},
-                            ],
-                        }
-                    },
-                ],
-            },
-        }
+        if query.field == "dates.start":
+            return {
+                "bool": {
+                    "should": [
+                        {
+                            "bool": {
+                                "must_not": [
+                                    {"term": {"dates.all_day": True}},
+                                ],
+                                "must": [
+                                    {"range": {query.field: params}},
+                                ],
+                            },
+                        },
+                        {
+                            "bool": {
+                                "must": [
+                                    {"term": {"dates.all_day": True}},
+                                    {"range": {query.field: local_params}},
+                                ],
+                            },
+                        },
+                    ],
+                },
+            }
+        elif query.field == "dates.end":
+            return {
+                "bool": {
+                    "should": [
+                        {
+                            "bool": {
+                                "must_not": [
+                                    {"term": {"dates.all_day": True}},
+                                    {"term": {"dates.no_end_time": True}},
+                                ],
+                                "must": [
+                                    {"range": {query.field: params}},
+                                ],
+                            },
+                        },
+                        {
+                            "bool": {
+                                "should": [
+                                    {"term": {"dates.all_day": True}},
+                                    {"term": {"dates.no_end_time": True}},
+                                ],
+                                "must": [
+                                    {"range": {query.field: local_params}},
+                                ],
+                                "minimum_should_match": 1,
+                            },
+                        },
+                    ],
+                },
+            }
+        elif query.field == "_planning_schedule.scheduled":
+            return {
+                "bool": {
+                    "should": [
+                        {
+                            "bool": {
+                                "must_not": [{"term": {"all_day": True}}],
+                                "must": [
+                                    {
+                                        "nested": {
+                                            "path": "_planning_schedule",
+                                            "query": {"bool": {"must": {"range": {query.field: params}}}},
+                                        }
+                                    }
+                                ],
+                            }
+                        },
+                        {
+                            "bool": {
+                                "must": [
+                                    {"term": {"all_day": True}},
+                                    {
+                                        "nested": {
+                                            "path": "_planning_schedule",
+                                            "query": {
+                                                "bool": {
+                                                    # Currently, only Planning items can be date-only
+                                                    # So split the search query for Planning and Coverages separately
+                                                    "should": [
+                                                        {
+                                                            # Match Planning date using UTC date params
+                                                            "bool": {
+                                                                "must_not": {
+                                                                    "exists": {
+                                                                        "field": "_planning_schedule.coverage_id"
+                                                                    }
+                                                                },
+                                                                "must": {
+                                                                    "range": {
+                                                                        "_planning_schedule.scheduled": local_params
+                                                                    }
+                                                                },
+                                                            }
+                                                        },
+                                                        {
+                                                            # Match coverage dates using local date params
+                                                            "bool": {
+                                                                "must": [
+                                                                    {
+                                                                        "exists": {
+                                                                            "field": "_planning_schedule.coverage_id"
+                                                                        }
+                                                                    },
+                                                                    {"range": {"_planning_schedule.scheduled": params}},
+                                                                ]
+                                                            }
+                                                        },
+                                                    ],
+                                                    "minimum_should_match": 1,
+                                                }
+                                            },
+                                        }
+                                    },
+                                ]
+                            }
+                        },
+                    ],
+                    "minimum_should_match": 1,
+                }
+            }
+        elif query.field == "_updates_schedule.scheduled":
+            return {
+                "nested": {"path": "_updates_schedule", "query": {"bool": {"must": {"range": {query.field: params}}}}}
+            }
 
     return {"range": {query.field: params}}
 

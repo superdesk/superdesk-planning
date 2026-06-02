@@ -1,26 +1,24 @@
 import React from 'react';
 import {connect} from 'react-redux';
 import {get, isEqual} from 'lodash';
-import {OverlayTrigger, Tooltip} from 'react-bootstrap';
-import {Menu} from 'superdesk-ui-framework/react';
+import moment from 'moment';
+import {Menu, Tooltip} from 'superdesk-ui-framework/react';
 
-import {superdeskApi} from '../../superdeskApi';
+import {superdeskApi, planningApi} from '../../superdeskApi';
 import {
     IPlanningListItemProps,
-    LIST_VIEW_TYPE,
-    SORT_FIELD
+    GROUP_LIST_BY,
+    SORT_FIELD,
+    IPlanningNewsCoverageStatus,
 } from '../../interfaces';
 import {PLANNING, EVENTS, MAIN, ICON_COLORS, WORKFLOW_STATE} from '../../constants';
 
-import {Label} from '../';
 import {Item, Border, ItemType, PubStatus, Column, Row} from '../UI/List';
 import {Button as NavButton} from '../UI/Nav';
-import Icon from '../UI/IconMix';
-import {EventDateTime} from '../Events';
 import {CreatedUpdatedColumn} from '../UI/List/CreatedUpdatedColumn';
+import {CoverageAddAdvancedModal} from '../Coverages/CoverageAddAdvancedModal';
 
 import {
-    eventUtils,
     planningUtils,
     lockUtils,
     onEventCapture,
@@ -32,25 +30,80 @@ import {
 } from '../../utils';
 import {renderFields} from '../fields';
 import * as actions from '../../actions';
+import * as selectors from '../../selectors';
+import planningApis from '../../actions/planning/api';
 import {getUserInterfaceLanguageFromCV} from '../../utils/users';
+import {LineItems} from '../../components/UI/List/LineItems';
+import {getPlanningSecondLineConfig, planningFirstLineConfig} from '../../config';
+import {getRelatedEventIdsForPlanning} from '../../utils/planning';
+import {ILineConfig} from 'globals';
 
 interface IState {
     hover: boolean;
+    showCoverageModal: boolean;
+    lockedItem: IPlanningListItemProps['item'] | null; // Store the locked item with updated _etag
 }
 
-interface IProps extends IPlanningListItemProps {
-    dispatch(action: any): void;
+interface IReduxStateProps {
+    newsCoverageStatus: Array<IPlanningNewsCoverageStatus>;
+    coverageAddAdvancedMode: boolean;
+}
+
+interface IProps extends IPlanningListItemProps, IReduxStateProps {
+    dispatch(action: any): any;
 }
 
 class PlanningItemComponent extends React.Component<IProps, IState> {
     constructor(props) {
         super(props);
-        this.state = {hover: false};
+        this.state = {hover: false, showCoverageModal: false, lockedItem: null};
 
         this.onAddCoverageButtonClick = this.onAddCoverageButtonClick.bind(this);
         this.onItemHoverOn = this.onItemHoverOn.bind(this);
         this.onItemHoverOff = this.onItemHoverOff.bind(this);
         this.renderItemActions = this.renderItemActions.bind(this);
+    }
+
+    // Attempt to unlock the item if the modal is open when the page is closing/reloading
+    private handleBeforeUnload = () => {
+        if (!this.state.showCoverageModal) return;
+
+        const itemToUnlock = this.state.lockedItem || this.props.item;
+
+        if (itemToUnlock) {
+            try {
+                planningApi.locks.unlockItem(itemToUnlock).catch(() => undefined);
+            } catch (e) {
+                // ignore
+            }
+        }
+    };
+
+    componentDidUpdate(prevProps: Readonly<IProps>, prevState: Readonly<IState>) {
+        if (prevState.showCoverageModal !== this.state.showCoverageModal) {
+            if (this.state.showCoverageModal) {
+                window.addEventListener('beforeunload', this.handleBeforeUnload);
+            } else {
+                window.removeEventListener('beforeunload', this.handleBeforeUnload);
+            }
+        }
+    }
+
+    componentWillUnmount() {
+        window.removeEventListener('beforeunload', this.handleBeforeUnload);
+
+        // Also best-effort unlock if still open when unmounting
+        if (this.state.showCoverageModal) {
+            const itemToUnlock = this.state.lockedItem || this.props.item;
+
+            if (itemToUnlock) {
+                try {
+                    planningApi.locks.unlockItem(itemToUnlock).catch(() => undefined);
+                } catch (e) {
+                    // ignore
+                }
+            }
+        }
     }
 
     onAddCoverageButtonClick(event) {
@@ -61,13 +114,15 @@ class PlanningItemComponent extends React.Component<IProps, IState> {
     shouldComponentUpdate(nextProps: Readonly<IProps>, nextState: Readonly<IState>) {
         return isItemDifferent(this.props, nextProps) ||
             this.state.hover !== nextState.hover ||
+            this.state.showCoverageModal !== nextState.showCoverageModal ||
             !isEqual(
                 planningUtils.getAgendaNames(this.props.item, this.props.agendas),
                 planningUtils.getAgendaNames(nextProps.item, nextProps.agendas)
             ) ||
             this.props.minTimeWidth !== nextProps.minTimeWidth ||
             this.props.filterLanguage !== nextProps.filterLanguage ||
-            this.props.isAgendaEnabled !== nextProps.isAgendaEnabled;
+            this.props.isAgendaEnabled !== nextProps.isAgendaEnabled ||
+            this.props.relatedEventsUI?.visible !== nextProps.relatedEventsUI?.visible;
     }
 
     onItemHoverOn() {
@@ -77,6 +132,75 @@ class PlanningItemComponent extends React.Component<IProps, IState> {
     onItemHoverOff() {
         this.setState({hover: false});
     }
+
+    openCoverageModal() {
+        const {gettext} = superdeskApi.localization;
+        const {item} = this.props;
+
+        // Lock the planning item before opening the modal
+        planningApi.locks.lockItem(item, 'edit_coverages')
+            .then((lockedItem) => {
+                // Store the locked item with updated _etag
+                this.setState({showCoverageModal: true, lockedItem: lockedItem});
+            })
+            .catch((error) => {
+                console.error('Failed to lock planning item:', error);
+
+                const message = gettext(
+                    'Unable to edit coverages. This planning item is currently locked by another user. ' +
+                    'Please try again later or contact the user to release the lock.'
+                );
+
+                superdeskApi.ui.alert(message);
+            });
+    }
+
+    closeCoverageModal() {
+        const {lockedItem} = this.state;
+        const itemToUnlock = lockedItem || this.props.item;
+
+        this.setState({showCoverageModal: false, lockedItem: null});
+
+        // Unlock the planning item after closing the modal
+        planningApi.locks.unlockItem(itemToUnlock)
+            .catch((error) => {
+                console.error('Failed to unlock planning item:', error);
+            });
+    }
+
+    onCoverageModalSave = (field: string, value: any) => {
+        // Use the locked item (with updated _etag) for saving
+        const itemToSave = this.state.lockedItem || this.props.item;
+
+        const coveragesToSave = Array.isArray(value)
+            ? value.filter((coverage) => coverage.workflow_status !== WORKFLOW_STATE.SPIKED)
+            : value;
+
+        // Save the planning item with updated coverages
+        this.props.dispatch(planningApis.save(itemToSave, {[field]: coveragesToSave}))
+            .then((savedItem) => {
+                // Update lockedItem with saved item for proper unlock
+                this.setState({lockedItem: savedItem || itemToSave});
+                // Refresh the planning item in the store so updated coverages are visible
+                this.props.dispatch(planningApis.receivePlannings([savedItem]));
+                // Use saved item (with updated _etag) to unlock
+                return planningApi.locks.unlockItem(savedItem || itemToSave);
+            })
+            .then(() => {
+                // Close modal after unlock is complete
+                this.setState({showCoverageModal: false, lockedItem: null});
+            })
+            .catch((error) => {
+                console.error('Failed to save coverages:', error);
+                // Still try to unlock even if save failed
+                const itemToUnlock = this.state.lockedItem || this.props.item;
+
+                planningApi.locks.unlockItem(itemToUnlock)
+                    .finally(() => {
+                        this.setState({showCoverageModal: false, lockedItem: null});
+                    });
+            });
+    };
 
     renderItemActions() {
         if (!this.state.hover && !this.props.active) {
@@ -107,6 +231,10 @@ class PlanningItemComponent extends React.Component<IProps, IState> {
                 this.props[PLANNING.ITEM_ACTIONS.ASSIGN_TO_AGENDA.actionName],
             [PLANNING.ITEM_ACTIONS.ADD_COVERAGE_FROM_LIST.actionName]:
                 this.props[PLANNING.ITEM_ACTIONS.ADD_COVERAGE_FROM_LIST.actionName],
+            // Only add Edit Coverages action if item is not locked by someone else
+            ...(!lockUtils.isLockRestricted(item, session, lockedItems) ? {
+                [PLANNING.ITEM_ACTIONS.ADD_COVERAGE_ADVANCED.actionName]: this.openCoverageModal,
+            } : {}),
             [PLANNING.ITEM_ACTIONS.ADD_TO_FEATURED.actionName]:
                 this.props[PLANNING.ITEM_ACTIONS.ADD_TO_FEATURED.actionName],
             [PLANNING.ITEM_ACTIONS.REMOVE_FROM_FEATURED.actionName]:
@@ -114,7 +242,7 @@ class PlanningItemComponent extends React.Component<IProps, IState> {
             [EVENTS.ITEM_ACTIONS.CANCEL_EVENT.actionName]:
                 this.props[EVENTS.ITEM_ACTIONS.CANCEL_EVENT.actionName],
             [EVENTS.ITEM_ACTIONS.POSTPONE_EVENT.actionName]:
-                    this.props[EVENTS.ITEM_ACTIONS.POSTPONE_EVENT.actionName],
+                this.props[EVENTS.ITEM_ACTIONS.POSTPONE_EVENT.actionName],
             [EVENTS.ITEM_ACTIONS.UPDATE_TIME.actionName]:
                 this.props[EVENTS.ITEM_ACTIONS.UPDATE_TIME.actionName],
             [EVENTS.ITEM_ACTIONS.RESCHEDULE_EVENT.actionName]:
@@ -129,13 +257,14 @@ class PlanningItemComponent extends React.Component<IProps, IState> {
         const itemActions = hideItemActions ? [] :
             planningUtils.getPlanningActionsForUiFrameworkMenu({
                 item: item,
-                event: event,
+                events: [event], // TAG: MULTIPLE_PRIMARY_EVENTS
                 session: session,
                 privileges: privileges,
                 lockedItems: lockedItems,
                 agendas: agendas,
                 contentTypes: contentTypes,
-                callBacks: itemActionsCallBack});
+                callBacks: itemActionsCallBack,
+            });
 
         if (get(itemActions, 'length', 0) === 0) {
             return null;
@@ -143,7 +272,7 @@ class PlanningItemComponent extends React.Component<IProps, IState> {
 
         return (
             <div>
-                <Menu zIndex={1050} items={itemActions}>
+                <Menu items={itemActions}>
                     {
                         (toggle) => (
                             <div
@@ -177,16 +306,10 @@ class PlanningItemComponent extends React.Component<IProps, IState> {
             onMultiSelectClick,
             multiSelected,
             activeFilter,
-            users,
-            desks,
             showAddCoverage,
-            listFields,
             active,
             refNode,
-            contentTypes,
-            agendas,
-            contacts,
-            listViewType,
+            groupListBy,
             filterLanguage,
             isAgendaEnabled,
         } = this.props;
@@ -197,11 +320,58 @@ class PlanningItemComponent extends React.Component<IProps, IState> {
 
         const {gettext} = superdeskApi.localization;
         const isItemLocked = lockUtils.isItemLocked(item, lockedItems);
-        const event = get(item, 'event');
         const borderState = isItemLocked ? 'locked' : false;
         const isExpired = isItemExpired(item);
-        const secondaryFields = get(listFields, 'planning.secondary_fields', PLANNING.LIST.SECONDARY_FIELDS)
-            .filter((fields) => isAgendaEnabled ? true : fields !== 'agendas');
+
+        const renderFieldsWithProps = (fields: Array<ILineConfig>) => renderFields(
+            fields,
+            item,
+            {
+                fieldsProps: {
+                    related_events: {
+                        relatedEventsUI: this.props.relatedEventsUI,
+                    },
+                    coverages: {
+                        prepare: (coverages) => { // removing coverages that do not match page filters
+                            const coveragesMapped = planningUtils.mapCoverageByDate(coverages);
+                            const hasAssociatedEvent = getRelatedEventIdsForPlanning(item).length > 0;
+
+                            const isSameDay = (scheduled) =>
+                                scheduled && (date == null || moment(scheduled).format('YYYY-MM-DD') === date);
+
+                            const coverageToDisplay = coveragesMapped.filter((coverage) => {
+                                const scheduled = get(coverage, 'planning.scheduled');
+
+                                // Display only the coverages that match the active filter language
+                                if (
+                                    filterLanguage !== ''
+                                    && filterLanguage != null
+                                    && coverage.planning.language != filterLanguage
+                                ) {
+                                    return false;
+                                }
+
+                                if (activeFilter === MAIN.FILTERS.COMBINED) {
+                                    // Display if it has an associated event
+                                    // or if adhoc planning has coverage on that date
+                                    if (hasAssociatedEvent || isSameDay(scheduled)) {
+                                        return true;
+                                    }
+                                } else if (scheduled && isSameDay(scheduled)) {
+                                    // Planning-only view - display only coverage of the particular date
+                                    return true;
+                                }
+
+                                return false;
+                            });
+
+                            return coverageToDisplay;
+                        },
+                    },
+                },
+            },
+            language,
+        );
 
         const {querySelectorParent} = superdeskApi.utilities;
         const language = filterLanguage || item.language || getUserInterfaceLanguageFromCV();
@@ -222,11 +392,19 @@ class PlanningItemComponent extends React.Component<IProps, IState> {
                 onMouseLeave={this.onItemHoverOff}
                 onMouseEnter={this.onItemHoverOn}
                 refNode={refNode}
+                draggable={!isItemLocked}
+                onDragStart={(dragEvent) => {
+                    dragEvent.dataTransfer.setData(
+                        'application/superdesk.planning.planning_item',
+                        JSON.stringify(item),
+                    );
+                    dragEvent.dataTransfer.effectAllowed = 'link';
+                }}
             >
                 <Border state={borderState} />
                 <ItemType
                     item={item}
-                    hasCheck={activeFilter !== MAIN.FILTERS.COMBINED}
+                    hasCheck={this.props.hideItemActions === true ? false : activeFilter !== MAIN.FILTERS.COMBINED}
                     checked={multiSelected}
                     onCheckToggle={onMultiSelectClick.bind(null, item)}
                     color={!isExpired && ICON_COLORS.LIGHT_BLUE}
@@ -234,63 +412,23 @@ class PlanningItemComponent extends React.Component<IProps, IState> {
                 <PubStatus
                     item={item}
                     isPublic={isItemPosted(item) &&
-                    getItemWorkflowState(item) !== WORKFLOW_STATE.KILLED}
+                        getItemWorkflowState(item) !== WORKFLOW_STATE.KILLED}
                 />
+
                 <Column
                     grow={true}
                     border={false}
                 >
-                    <Row>
-                        <span className="sd-overflow-ellipsis sd-list-item--element-grow">
-                            {renderFields(get(listFields, 'planning.primary_fields',
-                                PLANNING.LIST.PRIMARY_FIELDS), item, {}, language)}
-                        </span>
-
-                        {event && (
-                            <span className="sd-no-wrap">
-                                <Icon className="icon-event" color={ICON_COLORS.DARK_BLUE_GREY} />&nbsp;
-                                <EventDateTime item={event} />
-                            </span>
-                        )}
-                    </Row>
-                    <Row classes="sd-overflow--visible"> {/** overflow is needed for coverage icons */}
-                        {isExpired && (
-                            <Label
-                                text={gettext('Expired')}
-                                iconType="alert"
-                                isHollow={true}
-                            />
-                        )}
-                        {secondaryFields.includes('state') && renderFields('state', item) }
-                        {eventUtils.isEventCompleted(event) && (
-                            <Label
-                                text={gettext('Event Completed')}
-                                iconType="success"
-                                isHollow={true}
-                            />
-                        )}
-                        {secondaryFields.includes('featured') &&
-                            renderFields('featured', item, {tooltipFlowDirection: 'right'})}
-                        {secondaryFields.includes('agendas') &&
-                            renderFields('agendas', item, {
-                                fieldsProps: {
-                                    agendas: {
-                                        agendas: planningUtils.getAgendaNames(item, agendas),
-                                    },
-                                },
-                            })}
-                        {secondaryFields.includes('coverages') && renderFields('coverages', item, {
-                            date,
-                            users,
-                            desks,
-                            activeFilter,
-                            contentTypes,
-                            contacts,
-                            filterLanguage,
-                        })}
-                    </Row>
+                    <LineItems
+                        firstLine={this.props.customTemplate?.firstLine ?? planningFirstLineConfig}
+                        secondLine={
+                            this.props.customTemplate?.secondLine ?? getPlanningSecondLineConfig({isAgendaEnabled})
+                        }
+                        renderFieldsWithProps={renderFieldsWithProps}
+                    />
                 </Column>
-                {listViewType === LIST_VIEW_TYPE.SCHEDULE ? null : (
+
+                {groupListBy === GROUP_LIST_BY.DATE ? null : (
                     <CreatedUpdatedColumn
                         item={item}
                         field={this.props.sortField === SORT_FIELD.CREATED ?
@@ -302,13 +440,9 @@ class PlanningItemComponent extends React.Component<IProps, IState> {
                 )}
                 {showAddCoverage && !isItemLocked && (
                     <Column border={false}>
-                        <OverlayTrigger
+                        <Tooltip
+                            content={gettext('Add as coverage')}
                             placement="left"
-                            overlay={(
-                                <Tooltip id={getItemId(item)}>
-                                    {gettext('Add as coverage')}
-                                </Tooltip>
-                            )}
                         >
                             <NavButton
                                 className="dropdown sd-create-btn"
@@ -318,8 +452,30 @@ class PlanningItemComponent extends React.Component<IProps, IState> {
                             >
                                 <span className="circle" />
                             </NavButton>
-                        </OverlayTrigger>
+                        </Tooltip>
                     </Column>
+                )}
+                {this.state.showCoverageModal && (
+                    <div onClick={(e) => e.stopPropagation()}> {/* avoid opening preview on click in the modal */}
+                        <CoverageAddAdvancedModal
+                            onCancel={this.closeCoverageModal}
+                            contentTypes={this.props.contentTypes}
+                            newsCoverageStatus={this.props.newsCoverageStatus}
+                            field="coverages"
+                            value={get(item, 'coverages', [])}
+                            onSave={this.onCoverageModalSave}
+                            createCoverage={(qcode) => ({
+                                planning: {
+                                    g2_content_type: qcode,
+                                    language: null,
+                                },
+                                workflow_status: 'draft',
+                            })}
+                            users={this.props.users}
+                            desks={this.props.desks}
+                            coverageAddAdvancedMode={this.props.coverageAddAdvancedMode}
+                        />
+                    </div>
                 )}
                 {this.renderItemActions()}
             </Item>
@@ -327,4 +483,9 @@ class PlanningItemComponent extends React.Component<IProps, IState> {
     }
 }
 
-export const PlanningItem = connect()(PlanningItemComponent);
+const mapStateToProps = (state) => ({
+    newsCoverageStatus: selectors.general.newsCoverageStatus(state),
+    coverageAddAdvancedMode: selectors.general.coverageAddAdvancedMode(state),
+});
+
+export const PlanningItem = connect(mapStateToProps)(PlanningItemComponent);

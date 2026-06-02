@@ -1,9 +1,12 @@
 import eventsPlanningApi from '../api';
 import eventsPlanningUi from '../ui';
 import eventsApi from '../../events/api';
+import planningApi from '../../planning/api';
 import sinon from 'sinon';
 import {getTestActionStore, restoreSinonStub} from '../../../utils/testUtils';
 import {PLANNING, EVENTS, EVENTS_PLANNING, MAIN} from '../../../constants';
+import {planningApis} from '../../../api';
+import {appConfig} from 'appConfig';
 
 describe('actions.eventsplanning.ui', () => {
     let store;
@@ -405,6 +408,150 @@ describe('actions.eventsplanning.ui', () => {
                     expect(services.notify.success.args[0][0]).toEqual(
                         'The Events and Planning view filter is deleted.'
                     );
+                    done();
+                })
+                .catch(done.fail);
+        });
+    });
+
+    describe('loadAllRelatedPlannings', () => {
+        const relatedPlannings = [
+            {_id: 'p10', type: 'planning', event_item: 'e1', slugline: 'RelatedPlan1'},
+            {_id: 'p11', type: 'planning', event_item: 'e1', slugline: 'RelatedPlan2'},
+        ];
+
+        beforeEach(() => {
+            sinon.stub(planningApis.planning, 'searchGetAll').callsFake(
+                () => Promise.resolve(relatedPlannings)
+            );
+            sinon.stub(planningApi, 'receivePlannings').callsFake(
+                () => ({type: PLANNING.ACTIONS.RECEIVE_PLANNINGS, payload: relatedPlannings})
+            );
+        });
+
+        afterEach(() => {
+            restoreSinonStub(planningApis.planning.searchGetAll);
+            restoreSinonStub(planningApi.receivePlannings);
+        });
+
+        it('fetches related plannings for events with planning_ids', (done) => {
+            const items = [
+                {_id: 'e1', type: 'event', planning_ids: ['p10', 'p11']},
+                {_id: 'e2', type: 'event', planning_ids: []},
+                {_id: 'p1', type: 'planning', slugline: 'Plan1'},
+            ];
+
+            store.test(done, eventsPlanningUi.loadAllRelatedPlannings(items))
+                .then(() => {
+                    expect(planningApis.planning.searchGetAll.callCount).toBe(1);
+                    expect(planningApis.planning.searchGetAll.args[0][0]).toEqual({
+                        event_item: ['e1'],
+                        only_future: false,
+                        include_killed: true,
+                    });
+
+                    expect(planningApi.receivePlannings.callCount).toBe(1);
+                    expect(planningApi.receivePlannings.args[0][0]).toEqual(relatedPlannings);
+
+                    done();
+                })
+                .catch(done.fail);
+        });
+
+        it('dispatches _showRelatedPlannings for each event with plannings', (done) => {
+            const items = [
+                {_id: 'e1', type: 'event', planning_ids: ['p10']},
+                {_id: 'e2', type: 'event', planning_ids: ['p11']},
+            ];
+
+            store.test(done, eventsPlanningUi.loadAllRelatedPlannings(items))
+                .then(() => {
+                    const showRelatedDispatches = store.dispatch.args.filter(
+                        (args) => args[0]?.type === EVENTS_PLANNING.ACTIONS.SHOW_RELATED_PLANNINGS
+                    );
+
+                    expect(showRelatedDispatches.length).toBe(2);
+                    expect(showRelatedDispatches[0][0].payload._id).toBe('e1');
+                    expect(showRelatedDispatches[1][0].payload._id).toBe('e2');
+
+                    done();
+                })
+                .catch(done.fail);
+        });
+
+        it('resolves immediately when no events have planning_ids', (done) => {
+            const items = [
+                {_id: 'e1', type: 'event', planning_ids: []},
+                {_id: 'p1', type: 'planning', slugline: 'Plan1'},
+            ];
+
+            store.test(done, eventsPlanningUi.loadAllRelatedPlannings(items))
+                .then(() => {
+                    expect(planningApis.planning.searchGetAll.callCount).toBe(0);
+                    done();
+                })
+                .catch(done.fail);
+        });
+
+        it('skips planning items in the input', (done) => {
+            const items = [
+                {_id: 'p1', type: 'planning', slugline: 'Plan1'},
+                {_id: 'p2', type: 'planning', slugline: 'Plan2'},
+            ];
+
+            store.test(done, eventsPlanningUi.loadAllRelatedPlannings(items))
+                .then(() => {
+                    expect(planningApis.planning.searchGetAll.callCount).toBe(0);
+                    done();
+                })
+                .catch(done.fail);
+        });
+    });
+
+    describe('receiveEventsPlanning with planning_expand_related_plannings', () => {
+        let originalExpandSetting;
+
+        beforeEach(() => {
+            originalExpandSetting = appConfig.planning_expand_related_plannings;
+            sinon.stub(planningApis.planning, 'searchGetAll').callsFake(
+                () => Promise.resolve([])
+            );
+            sinon.stub(planningApi, 'receivePlannings').callsFake(
+                (items) => ({type: PLANNING.ACTIONS.RECEIVE_PLANNINGS, payload: items})
+            );
+        });
+
+        afterEach(() => {
+            appConfig.planning_expand_related_plannings = originalExpandSetting;
+            restoreSinonStub(planningApis.planning.searchGetAll);
+            restoreSinonStub(planningApi.receivePlannings);
+        });
+
+        it('calls loadAllRelatedPlannings when config is true', (done) => {
+            appConfig.planning_expand_related_plannings = true;
+
+            const items = [
+                {_id: 'e1', type: 'event', planning_ids: ['p10']},
+            ];
+
+            store.test(done, eventsPlanningUi.receiveEventsPlanning(items))
+                .then(() => {
+                    expect(planningApis.planning.searchGetAll.callCount).toBe(1);
+                    done();
+                })
+                .catch(done.fail);
+        });
+
+        it('does not call loadAllRelatedPlannings when config is false', (done) => {
+            appConfig.planning_expand_related_plannings = false;
+
+            const items = [
+                {_id: 'e1', type: 'event', planning_ids: ['p10']},
+            ];
+
+            store.test(done, eventsPlanningUi.receiveEventsPlanning(items))
+                .then(() => {
+                    expect(planningApis.planning.searchGetAll.callCount).toBe(0);
                     done();
                 })
                 .catch(done.fail);

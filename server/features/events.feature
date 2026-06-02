@@ -46,7 +46,8 @@ Feature: Events
                 },
                 "subject": [{"qcode": "test qcaode", "name": "test name"}],
                 "location": [{"qcode": "test qcaode", "name": "test name"}],
-                "event_contact_info": ["#contacts._id#"]
+                "event_contact_info": ["#contacts._id#"],
+                "accreditation_deadline": "2025-05-05"
             }
         ]
         """
@@ -74,7 +75,8 @@ Feature: Events
                 "definition_long": "long value",
                 "location": [{"qcode": "test qcaode", "name": "test name", "formatted_address": ""}],
                 "firstcreated": "__now__",
-                "versioncreated": "__now__"
+                "versioncreated": "__now__",
+                "accreditation_deadline": "2025-05-05"
             }]}
         """
         When we get "/events?sort=[("dates.start",1)]&source={"query":{"range":{"dates.start":{"lte":"2015-01-01T00:00:00.000Z"}}}}"
@@ -211,6 +213,7 @@ Feature: Events
     @auth
     @notification
     Scenario: Track post history for event
+        When we configure planning for publishing
         Given empty "users"
         Given "contacts"
         """
@@ -276,6 +279,15 @@ Feature: Events
                 }
             ]}
         """
+        When we get "user_metrics"
+        Then we get list with 1 items
+        """
+        {
+            "_items": [
+                {"name": "published_events", "value": 1}
+            ]
+        }
+        """
         When we post to "/events/post"
         """
         {"event": "#events._id#", "etag": "#events._etag#", "pubstatus": "cancelled"}
@@ -310,6 +322,15 @@ Feature: Events
                 "update": {"pubstatus": "cancelled"}
                 }
             ]}
+        """
+        When we get "user_metrics"
+        Then we get list with 1 items
+        """
+        {
+            "_items": [
+                {"name": "published_events", "value": 1}
+            ]
+        }
         """
 
     @auth
@@ -480,6 +501,7 @@ Feature: Events
     @auth
     @notification
     Scenario: Posted event modified will re-post the event
+        When we configure planning for publishing
         When we post to "events" with success
         """
         [{
@@ -677,7 +699,7 @@ Feature: Events
         When we get "/planning/plan1"
         Then we get existing resource
         """
-        {"event_item": "#events._id#"}
+        {"related_events": [{"_id": "#events._id#", "link_type": "primary"}]}
         """
         And we get notifications
         """
@@ -711,11 +733,142 @@ Feature: Events
                     "operation": "create_event",
                     "planning_id": "#planning._id#",
                     "update": {
-                        "event_item": "#events._id#"
+                        "related_events": [
+                            {"_id": "#events._id#", "link_type": "primary"}
+                        ]
                     }
                 }]
             }
         """
+
+    @auth
+    @notification
+    Scenario: Link and unlink event as secondary to a Planning item
+        Given config update
+        """
+        {"PLANNING_EVENT_LINK_METHOD": "one_primary_many_secondary"}
+        """
+        Given "planning"
+        """
+        [{
+            "_id": "plan1",
+            "guid": "plan1",
+            "slugline": "TestEvent",
+            "state": "draft",
+            "lock_user": "#CONTEXT_USER_ID#",
+            "lock_session": "#SESSION_ID#",
+            "lock_action": "add_as_event",
+            "lock_time": "#DATE#",
+            "planning_date": "2016-01-02"
+        },
+        {
+            "_id": "plan2",
+            "guid": "plan2",
+            "state": "draft",
+            "planning_date": "2016-01-02"
+        }]
+        """
+        When we post to "events"
+        """
+        {
+            "guid": "event_1",
+            "name": "Primary Event 1",
+            "slugline": "event-1",
+            "_planning_item": "plan1",
+            "dates": {
+                "start": "2029-11-21T12:00:00.000Z",
+                "end": "2029-11-21T14:00:00.000Z",
+                "tz": "Australia/Sydney"
+            }
+        }
+        """
+        Then we get OK response
+        When we get "/planning/plan1"
+        Then we get existing resource
+        """
+        {"related_events": [{"_id": "#events._id#", "link_type": "primary"}]}
+        """
+        When we post to "events"
+        """
+        {
+            "guid": "event_2",
+            "name": "Primary Event 2",
+            "slugline": "event-2",
+            "_planning_item": "plan1",
+            "dates": {
+                "start": "2029-11-21T12:00:00.000Z",
+                "end": "2029-11-21T14:00:00.000Z",
+                "tz": "Australia/Sydney"
+            }
+        }
+        """
+        Then we get OK response
+        When we get "/planning/plan1"
+        Then we get existing resource
+        """
+        {"related_events": [
+            {"_id": "event_1", "link_type": "primary"},
+            {"_id": "event_2", "link_type": "secondary"}
+        ]}
+        """
+        When we reset notifications
+        When we patch "/planning/plan1"
+        """
+        {"related_events": [
+            {"_id": "event_2", "link_type": "secondary"}
+        ]}
+        """
+        Then we get OK response
+        And we get notifications
+        """
+        [
+            {"event": "planning:updated", "extra": {"item": "plan1", "related_events_changed": true}},
+            {"event": "event:link_updated", "extra": {"event": "event_1", "planning": "plan1", "action": "delete", "links": []}}
+        ]
+        """
+        When we reset notifications
+        When we patch "/planning/plan1"
+        """
+        {"name": "Test"}
+        """
+        Then we get OK response
+        And we get notifications
+        """
+        [{"event": "planning:updated", "extra": {"related_events_changed": false}}]
+        """
+        When we reset notifications
+        When we patch "/planning/plan2"
+        """
+        {"related_events": [
+            {"_id": "event_2", "link_type": "secondary"}
+        ]}
+        """
+        Then we get OK response
+        And we get notifications
+        """
+        [
+            {"event": "planning:updated", "extra": {"item": "plan2", "related_events_changed": true}},
+            {"event": "event:link_updated", "extra": {"event": "event_2", "planning": "plan2", "action": "create", "links": ["plan1", "plan2"]}}
+        ]
+        """
+
+    @auth
+    Scenario: Attemps to link Event to non existing Planning fails
+        When we post to "events"
+        """
+        {
+            "guid": "event_1",
+            "name": "Primary Event 1",
+            "slugline": "event-1",
+            "_planning_item": "plan1",
+            "dates": {
+                "start": "2029-11-21T12:00:00.000Z",
+                "end": "2029-11-21T14:00:00.000Z",
+                "tz": "Australia/Sydney"
+            }
+        }
+        """
+        Then we get error 400
 
     @auth
     Scenario: Fails to link a new Event to a Planning Item if another use holds the Planning lock
@@ -1135,7 +1288,7 @@ Feature: Events
         When we get "/planning/#planning._id#"
         Then we get existing resource
         """
-        {"event_item": "#events._id#"}
+        {"related_events": [{"_id": "#events._id#", "link_type": "primary"}]}
         """
         When we post to "/events/#events._id#/lock"
         """
@@ -1242,7 +1395,7 @@ Feature: Events
         """
         {
             "coverages": [{
-                "workflow_status": "draft",
+                "workflow_status": "assigned",
                 "planning": {
                     "ednote": "test coverage, I want 250 words",
                     "slugline": "test slugline",
@@ -1324,7 +1477,7 @@ Feature: Events
         When we get "/planning/#planning._id#"
         Then we get existing resource
         """
-        {"event_item": "#events._id#"}
+        {"related_events": [{"_id": "#events._id#", "link_type": "primary"}]}
         """
         When we post to "/events/#events._id#/lock"
         """
@@ -1465,7 +1618,9 @@ Feature: Events
                         "assigned_to": {}
                     }
                 ],
-                "event_item": "tempId-1712220681040btveuuz"
+                "related_events": [
+                    {"_id": "tempId-1712220681040btveuuz", "link_type": "primary"}
+                ]
             }
         ],
         "related_items": [
@@ -1554,7 +1709,9 @@ Feature: Events
                         "assigned_to": {}
                     }
                 ],
-                "event_item": "tempId-1712220681040btveuuz"
+                "related_events": [
+                    {"_id": "tempId-1712220681040btveuuz", "link_type": "primary"}
+                ]
             }
         ],
         "related_items": [
@@ -1584,3 +1741,95 @@ Feature: Events
     }
     """
     Then we get OK response
+
+    @auth
+    Scenario: Link new Event with many_secondary link method
+        Given config update
+        """
+        {"PLANNING_EVENT_LINK_METHOD": "many_secondary"}
+        """
+        Given "planning"
+        """
+        [{
+            "_id": "plan1",
+            "guid": "plan1",
+            "slugline": "TestEvent",
+            "state": "draft",
+            "lock_user": "#CONTEXT_USER_ID#",
+            "lock_session": "#SESSION_ID#",
+            "lock_action": "add_as_event",
+            "lock_time": "#DATE#",
+            "planning_date": "2016-01-02"
+        }]
+        """
+        When we post to "events"
+        """
+        {
+            "guid": "event_1",
+            "name": "Primary Event 1",
+            "slugline": "event-1",
+            "_planning_item": "plan1",
+            "dates": {
+                "start": "2029-11-21T12:00:00.000Z",
+                "end": "2029-11-21T14:00:00.000Z",
+                "tz": "Australia/Sydney"
+            }
+        }
+        """
+        Then we get OK response
+        When we get "/planning/plan1"
+        Then we get existing resource
+        """
+        {"related_events": [{"_id": "#events._id#", "link_type": "secondary"}]}
+        """
+        When we get "/events/event_1"
+        Then we get existing resource
+        """
+        {
+            "planning_ids": [
+                "plan1"
+            ]
+        }
+        """
+     
+    @auth
+    Scenario: Link new Event with one_primary link method
+        Given config update
+        """
+        {"PLANNING_EVENT_LINK_METHOD": "one_primary"}
+        """
+        Given "planning"
+        """
+        [{
+            "_id": "plan1",
+            "guid": "plan1",
+            "slugline": "TestEvent",
+            "state": "draft",
+            "lock_user": "#CONTEXT_USER_ID#",
+            "lock_session": "#SESSION_ID#",
+            "lock_action": "add_as_event",
+            "lock_time": "#DATE#",
+            "planning_date": "2016-01-02"
+        }]
+        """
+        When we post to "events"
+        """
+        {
+            "guid": "event_1",
+            "name": "Primary Event 1",
+            "slugline": "event-1",
+            "_planning_item": "plan1",
+            "dates": {
+                "start": "2029-11-21T12:00:00.000Z",
+                "end": "2029-11-21T14:00:00.000Z",
+                "tz": "Australia/Sydney"
+            }
+        }
+        """
+        Then we get OK response
+        When we get "/planning/plan1"
+        Then we get existing resource
+        """
+        {"related_events": [{"_id": "#events._id#", "link_type": "primary"}]}
+        """
+     

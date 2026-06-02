@@ -164,7 +164,7 @@ Feature: Events Cancel
             "_id": "plan1",
             "guid": "plan1",
             "slugline": "TestPlan 1",
-            "event_item": "event1",
+            "related_events": [{"_id": "event1"}],
             "state": "draft",
             "planning_date": "2016-01-02"
         },
@@ -172,7 +172,7 @@ Feature: Events Cancel
             "_id": "plan2",
             "guid": "plan2",
             "slugline": "TestPlan 2",
-            "event_item": "event1",
+            "related_events": [{"_id": "event1"}],
             "state": "draft",
             "planning_date": "2016-01-02"
         }]
@@ -311,7 +311,7 @@ Feature: Events Cancel
         [{
             "slugline": "Weekly Meetings",
             "headline": "Friday Club",
-            "event_item": "#EVENT3._id#",
+            "related_events": [{"_id": "#EVENT3._id#"}],
             "planning_date": "2016-01-02"
         }]
         """
@@ -345,24 +345,6 @@ Feature: Events Cancel
         """
         [{"_id": "desk_123", "name": "Politic Desk"}]
         """
-        Given "assignments"
-        """
-        [{
-            "_id": "aaaaaaaaaaaaaaaaaaaaaaaa",
-            "planning": {
-                "ednote": "test coverage, I want 250 words",
-                "headline": "test headline",
-                "slugline": "test slugline",
-                "g2_content_type": "text",
-                "scheduled": "2029-11-21T14:00:00.000Z"
-            },
-            "assigned_to": {
-                "desk": "#desks._id#",
-                "user": "#CONTEXT_USER_ID#",
-                "state": "assigned"
-            }
-        }]
-        """
         Given "events"
         """
         [{
@@ -392,7 +374,9 @@ Feature: Events Cancel
             "_id": "plan1",
             "guid": "plan1",
             "slugline": "TestPlan 1",
-            "event_item": "event1",
+            "related_events": [
+                {"_id": "event1"}
+            ],
             "ednote": "We're covering this Event",
             "state": "draft",
             "coverages": [{
@@ -408,11 +392,11 @@ Feature: Events Cancel
                     "qcode": "ncostat:int",
                     "name": "Coverage intended"
                 },
-                  "assigned_to": {
-                        "desk": "#desks._id#",
-                        "user": "#CONTEXT_USER_ID#",
-                        "assignment_id": "aaaaaaaaaaaaaaaaaaaaaaaa"
-                  }
+                "assigned_to": {
+                    "desk": "#desks._id#",
+                    "user": "#CONTEXT_USER_ID#",
+                    "state": "assigned"
+                }
             }],
             "planning_date": "2029-11-21T14:00:00.000Z"
         }]
@@ -519,22 +503,22 @@ Feature: Events Cancel
         When we perform cancel on events "event1"
         Then we get error 400
         """
-        {"_issues": {"validator exception": "403: The event must be locked"}, "_status": "ERR"}
+        {"_message": "The event must be locked", "_status": "ERR"}
         """
         When we perform cancel on events "event2"
         Then we get error 400
         """
-        {"_issues": {"validator exception": "403: The event is locked by you in another session"}, "_status": "ERR"}
+        {"_message": "The event is locked by you in another session", "_status": "ERR"}
         """
         When we perform cancel on events "event3"
         Then we get error 400
         """
-        {"_issues": {"validator exception": "403: The event is locked by another user"}, "_status": "ERR"}
+        {"_message": "The event is locked by another user", "_status": "ERR"}
         """
         When we perform cancel on events "event4"
         Then we get error 400
         """
-        {"_issues": {"validator exception": "403: The lock must be for the `cancel` action"}, "_status": "ERR"}
+        {"_message": "The lock must be for the `cancel` action", "_status": "ERR"}
         """
 
     @auth
@@ -563,7 +547,7 @@ Feature: Events Cancel
         When we perform cancel on events "event1"
         Then we get error 400
         """
-        {"_issues": {"validator exception": "400: Event not in valid state for cancellation"}, "_status": "ERR"}
+        {"_message": "Event not in valid state for cancellation", "_status": "ERR"}
         """
         When we patch "/events/#events._id#"
         """
@@ -573,7 +557,7 @@ Feature: Events Cancel
         When we perform cancel on events "event1"
         Then we get error 400
         """
-        {"_issues": {"validator exception": "400: Event not in valid state for cancellation"}, "_status": "ERR"}
+        {"_message": "Event not in valid state for cancellation", "_status": "ERR"}
         """
         When we patch "/events/#events._id#"
         """
@@ -583,7 +567,7 @@ Feature: Events Cancel
         When we perform cancel on events "event1"
         Then we get error 400
         """
-        {"_issues": {"validator exception": "403: Aborted. Event is already cancelled"}, "_status": "ERR"}
+        {"_message": "Aborted. Event is already cancelled", "_status": "ERR"}
         """
 
     @auth
@@ -866,7 +850,9 @@ Feature: Events Cancel
         [{
             "slugline": "Weekly Meetings",
             "headline": "Friday Club",
-            "event_item": "#EVENT3._id#",
+            "related_events": [
+                {"_id": "#EVENT3._id#"}
+            ],
             "planning_date": "2016-01-02"
         }]
         """
@@ -893,5 +879,50 @@ Feature: Events Cancel
             { "_id": "#EVENT2._id#", "state": "cancelled" },
             { "_id": "#EVENT3._id#", "state": "cancelled" },
             { "_id": "#EVENT4._id#", "state": "cancelled" }
+        ]}
+        """
+
+    @auth
+    @vocabulary
+    Scenario: Cancelling an Event does not cancel Planning item with secondary link
+        Given config update
+        """
+        {"PLANNING_EVENT_LINK_METHOD": "many_secondary"}
+        """
+        Given we have sessions "/sessions"
+        And "events"
+        """
+        [{
+            "guid": "event1",
+            "name": "Event1",
+            "dates": {
+                "start": "2029-05-29T12:00:00+0000",
+                "end": "2029-05-29T14:00:00+0000",
+                "tz": "Australia/Sydney"
+            },
+            "lock_user": "#CONTEXT_USER_ID#",
+            "lock_session": "#SESSION_ID#",
+            "lock_action": "cancel",
+            "lock_time": "#DATE#"
+        }]
+        """
+        And "planning"
+        """
+        [{
+            "guid": "plan2",
+            "slugline": "test-plan",
+            "planning_date": "2029-05-29T12:00:00+0000",
+            "related_events": [{"_id": "event1"}]
+        }]
+        """
+        When we perform cancel on events "event1"
+        Then we get OK response
+        When we get "/planning"
+        Then we get list with 1 items
+        """
+        {"_items": [
+            {"_id": "plan2", "state": "draft", "related_events": [
+                {"_id": "event1", "link_type": "secondary"}
+            ]}
         ]}
         """

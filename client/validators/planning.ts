@@ -5,7 +5,12 @@ import {WORKSPACE, WORKFLOW_STATE, PRIVILEGES} from '../constants';
 import * as selectors from '../selectors';
 import {gettext, getItemInArrayById} from '../utils';
 
-import {validateField, validators} from './index';
+import {getVocabularyItemsForScheme, validateField, validators} from './index';
+import type {ICoverageContentProfile, IPlanningCoverageItem, IPlanningItem} from 'interfaces';
+import {planningApi, superdeskApi} from '../superdeskApi';
+import {getCoverageFields} from '../api/editor/item_planning';
+import {vocabularies} from '../api/vocabularies';
+import type {Dictionary} from 'superdesk-api';
 
 const validatePlanningScheduleDate = ({getState, field, value, errors, messages, diff, item}) => {
     // Only validate the schedule if it has changed
@@ -26,66 +31,193 @@ const validatePlanningScheduleDate = ({getState, field, value, errors, messages,
     }
 };
 
+/**
+ * The purpose of v2 is to have a interface cleaner
+ * and reduce the number of arguments that have to be passed.
+ */
+export function validateCoveragesV2(value: Array<IPlanningCoverageItem>) {
+    let errors = {};
+    let messages = [];
+
+    const store = planningApi.redux.store;
+
+    validateCoverages({
+        dispatch: store.dispatch,
+        getState: store.getState,
+        value: value,
+        diff: {
+            coverages: value,
+        },
+        item: {},
+        errors: errors,
+        messages: messages,
+    });
+
+    return {errors, messages};
+}
+
+interface IValidateCoverages {
+    dispatch: any;
+    getState: any;
+    value: Array<IPlanningCoverageItem>;
+    errors: any;
+    messages: any;
+    diff: Partial<IPlanningItem>;
+    item: Partial<IPlanningItem>;
+}
+
 export const validateCoverages = ({
     dispatch,
     getState,
-    field,
-    value,
-    profile,
+    value: coverages,
     errors,
     messages,
     diff,
     item,
-}) => {
-    const error = {};
+}: IValidateCoverages) => {
+    const error: Dictionary<string, string> = {};
+    const handleErrors = () => {
+        if (!isEqual(error, {})) {
+            errors.coverages = error;
+        } else if (errors.coverages) {
+            delete errors.coverages;
+        }
+    };
 
-    if (Array.isArray(value)) {
-        value.forEach((coverage, index) => {
-            const originalCoverage = getItemInArrayById(
-                get(item, 'coverages') || [],
-                get(coverage, 'coverage_id'),
-                'coverage_id'
-            );
+    if (Array.isArray(coverages) === false) {
+        handleErrors();
+        return;
+    }
 
-            Object.keys(validators.coverage).forEach((key) => {
-                const coverageErrors = {};
-                let keyName = ['news_coverage_status', 'scheduled_updates'].includes(key) ? key : `planning.${key}`;
-                let original = get(originalCoverage, keyName);
-                let value = get(coverage, keyName);
+    coverages.forEach((coverage, index) => {
+        const originalCoverage = getItemInArrayById(
+            get(item, 'coverages') || [],
+            get(coverage, 'coverage_id'),
+            'coverage_id'
+        );
+        const coverageProfile = getCoverageFields(coverage.planning.g2_content_type).profile;
 
-                if (key === 'scheduled' && original !== undefined && isEqual(original, value)) {
-                    // Only validate scheduled date if it has changed
-                    return;
-                } else if (get(coverage, 'planning.g2_content_type') !== 'text' && key === 'genre') {
-                    // Only validate Genre if the content type is Text
-                    return;
-                }
+        validateCoverageVocabularyFields(coverageProfile, errors, messages, diff.coverages[index]);
+        validateCoverageCustomTextFields(coverageProfile, errors, messages, diff.coverages[index]);
 
-                validateField({
-                    dispatch: dispatch,
-                    getState: getState,
-                    profileName: 'coverage',
-                    field: key,
-                    value: value,
-                    profile: profile,
-                    errors: coverageErrors,
-                    messages: messages,
-                    diff: diff,
-                });
+        const isValidSubject = coverageProfile.schema['subject']?.required
+            ? !isEmpty((diff.coverages[index].subject ?? []).filter((x) => x.scheme == null))
+            : true;
 
-                if (get(coverageErrors, key)) {
-                    set(error, `${index}.${keyName}`, coverageErrors[key]);
-                }
+        if (!isValidSubject) {
+            set(error, `${index}.subject`, gettext('Field is required'));
+            messages.push(gettext('Subject is a required field'));
+        } else {
+            delete error?.[index]?.['subject'];
+        }
+
+        Object.entries(validators.coverage).forEach(([key, val]) => {
+            const coverageErrors = {};
+            const keyName = ['news_coverage_status', 'scheduled_updates'].includes(key) ? key : `planning.${key}`;
+            const original = get(originalCoverage, keyName);
+            const value = get(coverage, keyName);
+
+            if (key === 'scheduled' && original !== undefined && isEqual(original, value)) {
+                // Only validate scheduled date if it has changed
+                return;
+            } else if (get(coverage, 'planning.g2_content_type') !== 'text' && key === 'genre') {
+                // Only validate Genre if the content type is Text
+                return;
+            }
+
+            validateField({
+                profileName: 'coverage',
+                dispatch: dispatch,
+                getState: getState,
+                field: key,
+                value: value,
+                profile: coverageProfile,
+                errors: coverageErrors,
+                messages: messages,
+                diff: diff,
             });
-        });
-    }
 
-    if (!isEqual(error, {})) {
-        errors.coverages = error;
-    } else if (errors.coverages) {
-        delete errors.coverages;
-    }
+            if (coverageErrors?.[key] !== null) {
+                set(error, `${index}.${keyName}`, coverageErrors[key]);
+            }
+        });
+    });
+
+    handleErrors();
 };
+
+export const validateCoverageVocabularyFields = (
+    coverageProfile: ICoverageContentProfile,
+    errors: Dictionary<string, string>,
+    messages: Array<string>,
+    diff: IPlanningCoverageItem,
+): void => {
+    const vocabularyLabels = new Map(vocabularies.getCustomVocabularies().map((x) => [x._id, x.display_name]));
+
+    Object.keys(coverageProfile.schema).filter((fieldId) => {
+        const hasNoDefinedValidator = !validators['coverage'][fieldId];
+        const isCustomVocabulary = coverageProfile.schema[fieldId].type === 'custom_vocabulary';
+
+        return hasNoDefinedValidator && isCustomVocabulary;
+    })
+        .forEach((fieldId) => {
+            const isInvalid = coverageProfile.schema[fieldId].required
+                ? isEmpty(getVocabularyItemsForScheme(diff, fieldId))
+                : false;
+
+            if (isInvalid) {
+                errors[fieldId] = gettext('This field is required');
+                messages.push(gettext('{{ key }} is a required field', {key: vocabularyLabels.get(fieldId)}));
+            } else {
+                errors[fieldId] = null;
+            }
+        });
+};
+
+/**
+ * Takes configured custom text fields and reads coverage fields from profile schema.
+ * Reads the latest coverage data that's in sync with the editor UI, checks each field
+ * that is custom text if it's required and empty. If there's an error it's pushed to errors object,
+ * later used for generating UI alerts.
+ */
+export const validateCoverageCustomTextFields = (
+    coverageProfile: ICoverageContentProfile,
+    errors: Dictionary<string, string>,
+    messages: Array<string>,
+    diff: IPlanningCoverageItem,
+): void => {
+    const customTextFieldLabels = new Map(
+        superdeskApi.entities.vocabulary.getAll().toArray()
+            .filter((x) => x.field_type === 'text')
+            .map((x) => [x._id, x.display_name])
+    );
+
+    Object.keys(coverageProfile.schema).filter((fieldId) => {
+        const hasNoDefinedValidator = !validators['coverage'][fieldId];
+        const isCustomTextField = coverageProfile.schema[fieldId].type === 'custom_text';
+
+        return hasNoDefinedValidator && isCustomTextField;
+    })
+        .forEach((fieldId) => {
+            const isInvalid = coverageProfile.schema[fieldId].required
+                ? isEmpty((diff.planning?.fields ?? []).find((x) => x.field === fieldId)?.value)
+                : false;
+
+            if (isInvalid) {
+                errors[fieldId] = gettext('This field is required');
+
+                messages.push(
+                    gettext(
+                        '{{ key }} is a required field',
+                        {key: customTextFieldLabels.get(fieldId) ?? fieldId},
+                    ),
+                );
+            } else {
+                errors[fieldId] = null;
+            }
+        });
+};
+
 
 const validateCoverageScheduleDate = ({
     getState,
@@ -95,14 +227,9 @@ const validateCoverageScheduleDate = ({
     errors,
     messages,
 }) => {
-    if (get(profile, 'schema.scheduled.required') && !value) {
-        if (!field.endsWith('_scheduledTime')) {
-            set(errors, `${field}.date`, gettext('Required'));
-            messages.push(gettext('COVERAGE SCHEDULED DATE is required'));
-        } else {
-            set(errors, field, gettext('Required'));
-            messages.push(gettext('COVERAGE SCHEDULED TIME is required'));
-        }
+    if (profile?.schema?.scheduled?.required && (!moment.isMoment(value) || !value.isValid())) {
+        set(errors, 'planning.scheduled.date', gettext('Required'));
+        messages.push(gettext('COVERAGE SCHEDULE is required'));
 
         return;
     }
@@ -122,7 +249,7 @@ const validateCoverageScheduleDate = ({
     const today = moment();
 
     if (!field.endsWith('_scheduledTime') &&
-            validateSchedule && moment.isMoment(value) && value.isBefore(today, 'day')) {
+        validateSchedule && moment.isMoment(value) && value.isBefore(today, 'day')) {
         set(errors, `${field}.date`, gettext('Date is in the past'));
 
         if (!canCreateInPast) {
@@ -172,7 +299,7 @@ const validateScheduledUpdatesDate = ({
                 'scheduled') : null;
 
             if ((coverageSchedule && schedule <= coverageSchedule) ||
-                    (previousSchedule && schedule <= previousSchedule)) {
+                (previousSchedule && schedule <= previousSchedule)) {
                 errors.scheduled_updates[planningSchedules.length - 1 - index] = {
                     planning: {
                         _scheduledTime: gettext('Should be after the previous scheduled update/coverage'),
@@ -190,21 +317,18 @@ const validateScheduledUpdatesDate = ({
         delete errors.scheduled_updates;
     } else {
         if (scheduleConflict) {
-            messages.push(gettext('Scheduled Upates have to be after the previous updates.'));
+            messages.push(gettext('Scheduled updates have to be after the previous updates.'));
         }
 
         if (requiredMissing) {
-            messages.push(gettext('Scheduled Upates should have a date/time.'));
+            messages.push(gettext('Scheduled updates should have a date/time.'));
         }
     }
 };
 
-// eslint-disable-next-line consistent-this
-const self = {
+export default {
     validatePlanningScheduleDate,
     validateCoverages,
     validateScheduledUpdatesDate,
     validateCoverageScheduleDate,
 };
-
-export default self;

@@ -1,28 +1,30 @@
 import React from 'react';
 import {connect} from 'react-redux';
+import moment from 'moment';
 import {get} from 'lodash';
 import {Menu} from 'superdesk-ui-framework/react';
 import {superdeskApi} from '../../superdeskApi';
-import {IEventListItemProps, LIST_VIEW_TYPE, PLANNING_VIEW, SORT_FIELD} from '../../interfaces';
+import {IEventListItemProps, GROUP_LIST_BY, PLANNING_VIEW, SORT_FIELD} from '../../interfaces';
 
 import {EVENTS, ICON_COLORS, WORKFLOW_STATE} from '../../constants';
 
-import {Label} from '../';
-import {Border, Column, Item, ItemType, PubStatus, Row} from '../UI/List';
+import {Border, Column, Item, ItemType, PubStatus} from '../UI/List';
 import {
     eventUtils,
     getItemWorkflowState,
     isItemDifferent,
     isItemExpired,
     isItemPosted,
-    onEventCapture,
     lockUtils,
 } from '../../utils';
 import {renderFields} from '../fields';
 import {CreatedUpdatedColumn} from '../UI/List/CreatedUpdatedColumn';
-import {EventDateTimeColumn} from './EventDateTimeColumn';
 import * as actions from '../../actions';
 import {getUserInterfaceLanguageFromCV} from '../../utils/users';
+import {LineItems} from '../../components/UI/List/LineItems';
+import {eventFirstLineConfig, eventSecondLineConfig} from '../../config';
+import {isSameDay} from '../../helpers';
+import {ILineConfig} from 'globals';
 
 interface IState {
     hover: boolean;
@@ -46,6 +48,7 @@ class EventItemComponent extends React.Component<IProps, IState> {
             this.state.hover !== nextState.hover ||
             this.props.minTimeWidth !== nextProps.minTimeWidth ||
             this.props.lockedItems != nextProps.lockedItems ||
+            (this.props.relatedEventsUI && this.props.relatedEventsUI.visible != nextProps.relatedEventsUI.visible) ||
             this.props.filterLanguage !== nextProps.filterLanguage;
     }
 
@@ -117,7 +120,7 @@ class EventItemComponent extends React.Component<IProps, IState> {
 
         return (
             <div>
-                <Menu zIndex={1050} items={itemActions}>
+                <Menu items={itemActions}>
                     {
                         (toggle) => (
                             <div
@@ -143,7 +146,6 @@ class EventItemComponent extends React.Component<IProps, IState> {
     }
 
     render() {
-        const {gettext} = superdeskApi.localization;
         const {querySelectorParent} = superdeskApi.utilities;
 
         const {
@@ -151,13 +153,10 @@ class EventItemComponent extends React.Component<IProps, IState> {
             onItemClick,
             lockedItems,
             activeFilter,
-            toggleRelatedPlanning,
             onMultiSelectClick,
-            calendars,
-            listFields,
             active,
             refNode,
-            listViewType,
+            groupListBy,
             filterLanguage
         } = this.props;
 
@@ -167,7 +166,6 @@ class EventItemComponent extends React.Component<IProps, IState> {
 
         const hasPlanning = eventUtils.eventHasPlanning(item);
         const isItemLocked = lockUtils.isItemLocked(item, lockedItems);
-        const showRelatedPlanningLink = activeFilter === PLANNING_VIEW.COMBINED && hasPlanning;
         let borderState: 'locked' | 'active' | false = false;
 
         if (isItemLocked) {
@@ -176,10 +174,27 @@ class EventItemComponent extends React.Component<IProps, IState> {
             borderState = 'active';
         }
 
-
         const isExpired = isItemExpired(item);
+        const eventStartDate = eventUtils.getStartDate(item);
 
-        const secondaryFields = get(listFields, 'event.secondary_fields', EVENTS.LIST.SECONDARY_FIELDS);
+        const renderFieldsWithProps = (fields: Array<ILineConfig>) => renderFields(
+            fields,
+            item,
+            {
+                fieldsProps: {
+                    related_plannings: {
+                        relatedEventsUI: this.props.relatedEventsUI,
+                        relatedPlanningsCount: this.props.relatedPlanningsCount,
+                    },
+                    event_datetime: {
+                        hasStartDateContext: this.props.planningProps?.date != null
+                            && isSameDay(eventStartDate, moment(this.props.planningProps.date)),
+                    },
+                },
+            },
+            language,
+        );
+
         const language = filterLanguage || item.language || getUserInterfaceLanguageFromCV();
 
         return (
@@ -198,90 +213,41 @@ class EventItemComponent extends React.Component<IProps, IState> {
                 onMouseLeave={this.onItemHoverOff}
                 onMouseEnter={this.onItemHoverOn}
                 refNode={refNode}
+                draggable={!isItemLocked}
+                onDragStart={(dragEvent) => {
+                    dragEvent.dataTransfer.setData('application/superdesk.planning.event', JSON.stringify(item));
+                    dragEvent.dataTransfer.effectAllowed = 'link';
+                }}
             >
                 <Border state={borderState} />
+
                 <ItemType
                     item={item}
-                    hasCheck={activeFilter !== PLANNING_VIEW.COMBINED}
+                    hasCheck={this.props.multiSelectDisabled !== true && activeFilter !== PLANNING_VIEW.COMBINED}
                     checked={this.props.multiSelected}
                     onCheckToggle={onMultiSelectClick.bind(null, item)}
                     color={!isExpired && ICON_COLORS.DARK_BLUE_GREY}
                 />
+
                 <PubStatus
                     item={item}
                     isPublic={isItemPosted(item) &&
                         getItemWorkflowState(item) !== WORKFLOW_STATE.KILLED
                     }
                 />
+
                 <Column
                     grow={true}
                     border={false}
                 >
-                    <Row>
-                        <span className="sd-overflow-ellipsis sd-list-item--element-grow">
-                            {renderFields(get(listFields, 'event.primary_fields',
-                                EVENTS.LIST.PRIMARY_FIELDS), item, {}, language)}
-                        </span>
-                    </Row>
-                    <Row>
-                        {isExpired && (
-                            <Label
-                                text={gettext('Expired')}
-                                iconType="alert"
-                                isHollow={true}
-                            />
-                        )}
-
-                        {secondaryFields.includes('state') && renderFields('state', item) }
-                        {secondaryFields.includes('actionedState') &&
-                            renderFields('actionedState', item, {
-                                onClick: (e) => {
-                                    onEventCapture(e);
-                                    onItemClick({
-                                        _id: item.reschedule_from,
-                                        type: 'event',
-                                    });
-                                },
-                            })
-                        }
-                        {eventUtils.isEventCompleted(item) && (
-                            <Label
-                                text={gettext('Event Completed')}
-                                iconType="success"
-                                isHollow={true}
-                            />
-                        )}
-                        {secondaryFields.includes('calendars') && renderFields('calendars', item, {
-                            calendars: calendars,
-                        }) }
-
-                        {secondaryFields.includes('files') && renderFields('files', item)}
-
-
-                        {(showRelatedPlanningLink) && (
-                            <span
-                                className="sd-overflow-ellipsis sd-list-item__element-lm-10"
-                            >
-                                <a
-                                    className="sd-line-input__input--related-item-link"
-                                    onClick={toggleRelatedPlanning}
-                                >
-                                    <i className="icon-calendar" />
-                                    <span className="sd-margin-l--0-5">
-                                        {this.props.relatedPlanningText}
-                                    </span>
-                                </a>
-                            </span>
-                        )}
-
-                        {secondaryFields.includes('location') && renderFields('location', item)}
-                    </Row>
+                    <LineItems
+                        firstLine={this.props.customTemplate?.firstLine ?? eventFirstLineConfig}
+                        secondLine={this.props.customTemplate?.secondLine ?? eventSecondLineConfig}
+                        renderFieldsWithProps={renderFieldsWithProps}
+                    />
                 </Column>
-                <EventDateTimeColumn
-                    item={item}
-                    multiRow={listViewType === LIST_VIEW_TYPE.LIST}
-                />
-                {listViewType === LIST_VIEW_TYPE.SCHEDULE ? null : (
+
+                {groupListBy === GROUP_LIST_BY.DATE ? null : (
                     <CreatedUpdatedColumn
                         item={item}
                         field={this.props.sortField === SORT_FIELD.CREATED ?
@@ -291,6 +257,7 @@ class EventItemComponent extends React.Component<IProps, IState> {
                         minTimeWidth={this.props.minTimeWidth}
                     />
                 )}
+
                 {this.renderItemActions()}
             </Item>
         );

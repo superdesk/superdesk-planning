@@ -1,8 +1,10 @@
+import {get, orderBy, cloneDeep} from 'lodash';
+
 import {IPlanningSearchParams} from '../../interfaces';
 import {planningApi} from '../../superdeskApi';
 
 import {showModal} from '../index';
-import planningApis from './api';
+import planningApis, {storeLastDayGroup} from './api';
 import main from '../main';
 import eventsUi from '../events/ui';
 import {ITEM_TYPE} from '../../constants';
@@ -16,11 +18,12 @@ import {
     isExistingItem,
     planningUtils,
 } from '../../utils';
+import {getRelatedEventIdsForPlanning} from '../../utils/planning';
 
 import * as selectors from '../../selectors';
-import {PLANNING, WORKSPACE, MODALS, MAIN, COVERAGES} from '../../constants';
+import {PLANNING, WORKSPACE, MODALS, MAIN} from '../../constants';
 import * as actions from '../index';
-import {get, orderBy, cloneDeep} from 'lodash';
+import {IRestApiResponse} from 'superdesk-api';
 
 /**
  * Action dispatcher that marks a Planning item as spiked
@@ -93,11 +96,24 @@ const addToList = (ids) => ({
  */
 function fetchToList(params: IPlanningSearchParams) {
     return (dispatch) => {
-        dispatch(self.requestPlannings(params));
-        return dispatch(planningApis.fetch(params))
-            .then((items) => (dispatch(self.setInList(
-                items.map((p) => p._id)
-            ))));
+        // Store params as previous, starting with page 1
+        dispatch(self.requestPlannings({...params, page: 1}));
+
+        // reset list items, so handleItemsForLastFetchedDay
+        // can keep track of all fetched items
+        dispatch(self.clearList());
+
+        // reset lastDayGroupItems since this function is fetching for a new range,
+        // and previous items are irrelevant
+        dispatch(storeLastDayGroup([]));
+
+        // Always fetch starting from page 1.
+        // This is the first page for the given date range,
+        // otherwise results may be incomplete
+        return dispatch(planningApis.fetch({...params, page: 1}))
+            .then((items) => {
+                dispatch(self.setInList(items.map((p) => p._id)));
+            });
     };
 }
 
@@ -110,9 +126,19 @@ const loadMore = () => (
     (dispatch, getState) => {
         const previousParams = selectors.main.lastRequestParams(getState());
         const totalItems = selectors.main.planningTotalItems(getState());
-        const planIdsInList = selectors.planning.planIdsInList(getState());
+        const planIdsInList = selectors.planning.planIdsInList(getState()) ?? [];
+        const lastDayGroup = selectors.planning.lastDayGroup(getState()) ?? [];
 
-        if (totalItems === get(planIdsInList, 'length', 0)) {
+        // When user scrolls to load more items, this function runs recursively.
+        // Check if previously stored lastDayGroup and the already loaded items
+        // make up all the items so there's no further fetching
+        if (totalItems === (planIdsInList.length + lastDayGroup.length)) {
+            if (lastDayGroup.length != 0) {
+                dispatch(planningApis.receivePlannings(lastDayGroup));
+                dispatch(self.addToList(lastDayGroup.map((x) => x._id)));
+                dispatch(storeLastDayGroup([]));
+            }
+
             return Promise.resolve();
         }
 
@@ -123,41 +149,64 @@ const loadMore = () => (
 
         return dispatch(planningApis.fetch(params))
             .then((items) => {
-                if (get(items, 'length', 0) === MAIN.PAGE_SIZE) {
-                    dispatch(self.requestPlannings(params));
-                }
-                dispatch(self.addToList(items.map((p) => p._id)));
+                // Save params queried with in lastRequestParams
+                // so we keep track of next page
+                dispatch(self.requestPlannings(params));
+                dispatch(self.addToList(items.map((x) => x._id)));
+
                 return Promise.resolve(items);
             });
     }
 );
 
 /**
- * Refetch planning items based on the current search
+ * Refetch planning item based on the current search
  */
-const refetch = () => (
+const getByIdAndAddToList = (itemId: string) => (
     (dispatch, getState, {notify}) => {
         var previewId = selectors.main.previewId(getState());
 
         if (!selectors.main.isPlanningView(getState())) {
             return Promise.resolve();
         }
+
         if (previewId) {
             dispatch(main.fetchItemHistory({_id: previewId, type: ITEM_TYPE.PLANNING}));
         }
 
-        return dispatch(planningApis.refetch())
-            .then(
-                (items) => {
-                    dispatch(self.setInList(items.map((p) => p._id)));
-                    return Promise.resolve(items);
-                }, (error) => {
-                    notify.error(
-                        getErrorMessage(error, 'Failed to update the planning list!')
-                    );
-                    return Promise.reject(error);
+        const prevParams = selectors.main.lastRequestParams(getState());
+
+        return dispatch(planningApis.query(
+            {
+                ...prevParams,
+                itemIds: [itemId],
+                page: 1,
+            },
+            false,
+        ))
+            .then((result: IRestApiResponse<IPlanningItem>) => {
+                const maybeItem = result._items?.[0];
+
+                if (maybeItem != null) {
+                    dispatch(planningApis.receivePlannings([maybeItem]));
+                    dispatch(self.addToList([maybeItem._id]));
+                } else {
+                    // remove from the list view
+                    const itemsInList = selectors.planning.planIdsInList(getState());
+                    const nextItemsInList = itemsInList.filter((x) => x !== itemId);
+
+                    dispatch(self.setInList(nextItemsInList));
                 }
-            );
+
+                return Promise.resolve([]);
+            })
+            .catch((error) => {
+                notify.error(
+                    getErrorMessage(error, 'Failed to update the planning list!')
+                );
+
+                return Promise.reject(error);
+            });
     }
 );
 
@@ -167,11 +216,10 @@ const refetch = () => (
 let nextRefetch = {
     called: 0,
 };
-const scheduleRefetch = () => (
+
+const scheduleRefetch = (itemId: string) => (
     (dispatch) => (
-        dispatch(
-            dispatchUtils.scheduleDispatch(self.refetch(), nextRefetch)
-        )
+        dispatch(dispatchUtils.scheduleDispatch(self.getByIdAndAddToList(itemId), nextRefetch))
     )
 );
 
@@ -207,8 +255,9 @@ const duplicate = (plan) => (
             .then((newPlan) => {
                 notify.success(gettext('Planning duplicated'));
                 const openInModal = selectors.forms.currentItemIdModal(getState());
+                const relatedEventIds = getRelatedEventIdsForPlanning(plan);
 
-                if (get(plan, 'event_item')) {
+                if (relatedEventIds.length > 0) {
                     dispatch(main.unlockAndCancel(plan)).then(() => {
                         dispatch(main.openForEdit(newPlan, !openInModal, openInModal));
                     });
@@ -275,8 +324,8 @@ const openFeaturedPlanningModal = () => (
         return planningApi.locks.lockFeaturedPlanning()
             .then(() => dispatch(showModal({
                 modalType: MODALS.FEATURED_STORIES,
-            })),
-            (error) => {
+            })))
+            .catch((error) => {
                 notify.error(
                     getErrorMessage(error, gettext('Failed to lock featured story action!'))
                 );
@@ -420,6 +469,9 @@ const save = (original, updates) => (
 /**
  * Action that states that there are Planning items currently loading
  * @param {object} params - Parameters used when querying for planning items
+ *
+ * Stores passed params as lastRequestParams, which are later used to build
+ * a query for next page
  */
 const requestPlannings = (params = {}) => ({
     type: MAIN.ACTIONS.REQUEST,
@@ -462,12 +514,12 @@ const onAddCoverageClick = (item) => (
     }
 );
 
-const saveFromAuthoring = (original, updates) => (
+const saveFromAuthoring = (original, updates?: Partial<IPlanningItem>) => (
     (dispatch, getState, {notify}) => {
         dispatch(actions.actionInProgress(true));
         let resolved = true;
 
-        return dispatch(planningApis.save(original, updates))
+        return dispatch(planningApis.save(original, planningUtils.modifyForServer(updates ?? {})))
             .then((newPlan) => {
                 const newsItem = get(selectors.general.modalProps(getState()), 'newsItem') ||
                     get(selectors.general.previousModalProps(getState()), 'newsItem');
@@ -477,17 +529,20 @@ const saveFromAuthoring = (original, updates) => (
 
                 return dispatch(actions.assignments.api.link(coverage.assigned_to, newsItem, reassign))
                     .then(() => {
-                        notify.success('Content linked to the planning item.');
+                        notify.success(gettext('Content linked to the planning item.'));
 
                         return Promise.resolve(newPlan);
-                    }, (error) => {
+                    })
+                    .catch((error) => {
                         notify.error(
                             getErrorMessage(error, 'Failed to link to the Planning item!')
                         );
                         resolved = false;
+
                         return Promise.reject(error);
                     });
-            }, (error) => {
+            })
+            .catch((error) => {
                 resolved = false;
                 notify.error(
                     getErrorMessage(error, 'Failed to save the Planning item!')
@@ -511,43 +566,6 @@ const saveFromAuthoring = (original, updates) => (
     }
 );
 
-const addScheduledUpdateToWorkflow = (original, coverage, coverageIndex, scheduledUpdate, index) => (
-    (dispatch, getState, {notify}) => {
-        let updates = {coverages: cloneDeep(original.coverages)};
-        let coverage = updates.coverages[coverageIndex];
-
-        coverage.scheduled_updates[index] = planningUtils.getActiveCoverage(scheduledUpdate,
-            selectors.general.newsCoverageStatus(getState()));
-
-        return dispatch(planningApis.save(original, updates))
-            .then((savedItem) => {
-                notify.success(gettext('Scheduled update added to workflow.'));
-                return dispatch(self.updateItemOnSave(savedItem));
-            });
-    }
-);
-
-/**
- * Action to update the values of a single Coverage so the Assignment is placed in the workflow
- * @param {object} original - Original Planning item
- * @param {object} updatedCoverage - Coverage to update (along with any coverage fields to update as well)
- * @param {number} index - index of the Coverage in the coverages[] array
- */
-const removeAssignment = (original, updatedCoverage, index) => (
-    (dispatch, getState, {notify}) => {
-        const updates = {coverages: cloneDeep(original.coverages)};
-        const coverage = cloneDeep(updatedCoverage);
-
-        updates.coverages[index] = coverage;
-
-        return dispatch(planningApis.save(original, updates))
-            .then((savedItem) => {
-                notify.success(gettext('Removed assignment from coverage.'));
-                return dispatch(self.updateItemOnSave(savedItem));
-            });
-    }
-);
-
 const updateItemOnSave = (savedItem) => (
     (dispatch) => {
         const modifiedItem = planningUtils.modifyForClient(savedItem);
@@ -564,42 +582,6 @@ const addNewCoverageToPlanning = (coverageType, item) => (
     })))
 );
 
-const openCancelCoverageModal = (planning, coverage, index, onSubmit, onCancel,
-    scheduledUpdate, scheduledUpdateIndex) => (
-    (dispatch, getState) =>
-        dispatch(showModal({
-            modalType: MODALS.ITEM_ACTIONS_MODAL,
-            modalProps: {
-                original: planning,
-                actionType: COVERAGES.ITEM_ACTIONS.CANCEL_COVERAGE.actionName,
-                coverage: coverage,
-                index: index,
-                onSubmit: onSubmit,
-                onCancel: onCancel,
-                scheduledUpdate: scheduledUpdate,
-                scheduledUpdateIndex: scheduledUpdateIndex,
-            },
-        }))
-);
-
-const cancelCoverage = (original, updatedCoverage, index, scheduledUpdate, scheduledUpdateIndex) => (
-    (dispatch, getState, {notify}) => {
-        let updates = {coverages: cloneDeep(original.coverages)};
-
-        if (!scheduledUpdate) {
-            updates.coverages[index] = cloneDeep(updatedCoverage);
-        } else {
-            updates.coverages[index].scheduled_updates[scheduledUpdateIndex] = cloneDeep(scheduledUpdate);
-        }
-
-        return dispatch(planningApis.save(original, updates))
-            .then((savedItem) => {
-                notify.success(gettext('Coverage cancelled.'));
-                return dispatch(self.updateItemOnSave(savedItem));
-            });
-    }
-);
-
 // eslint-disable-next-line consistent-this
 const self = {
     spike,
@@ -614,7 +596,7 @@ const self = {
     setInList,
     addToList,
     loadMore,
-    refetch,
+    getByIdAndAddToList,
     duplicate,
     openCancelPlanningModal,
     openCancelAllCoverageModal,
@@ -624,15 +606,11 @@ const self = {
     saveFromAuthoring,
     scheduleRefetch,
     assignToAgenda,
-    removeAssignment,
     _modifyPlanningFeatured,
     modifyPlanningFeatured,
     openFeaturedPlanningModal,
     updateItemOnSave,
     addNewCoverageToPlanning,
-    openCancelCoverageModal,
-    cancelCoverage,
-    addScheduledUpdateToWorkflow,
 };
 
 export default self;

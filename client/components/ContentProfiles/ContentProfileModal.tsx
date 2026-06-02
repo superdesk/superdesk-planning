@@ -14,22 +14,18 @@ import {superdeskApi, planningApi} from '../../superdeskApi';
 
 import {KEYBOARD_CODES} from '../../constants';
 import {getLanguages} from '../../selectors/vocabs';
-
-import {getFieldNameTranslated, isProfileFieldEnabled} from '../../utils/contentProfiles';
 import {getErrorMessage} from '../../utils';
-
-import {Button, ButtonGroup, Tabs, TabLabel, TabContent, TabPanel} from 'superdesk-ui-framework/react';
-import {Modal} from '../index';
-
+import {Button, ButtonGroup, Modal, Tabs, TabLabel, TabContent, TabPanel} from 'superdesk-ui-framework/react';
 import {GroupTab, GroupTabComponent} from './GroupTab';
-import {FieldTab} from './FieldTab';
+import {FieldTab, FieldTabComponent} from './FieldTab';
+import {validateAndNotifyForRequiredFields} from './utils';
 
 import './style.scss';
 
 interface IProfileModalProps {
     label?: string;
     profile: IPlanningContentProfile;
-    systemRequiredFields: Array<Array<string>>;
+    systemRequiredFields: Array<string>;
     disableMinMaxFields?: Array<string>;
     disableRequiredFields?: Array<string>;
 }
@@ -37,7 +33,6 @@ interface IProfileModalProps {
 interface IProps {
     title: string;
     mainProfile: IProfileModalProps;
-    embeddedProfile: IProfileModalProps;
     languages: Array<IG2ContentType>;
     closeModal(): void
 }
@@ -45,18 +40,14 @@ interface IProps {
 enum TAB_INDEX {
     GROUPS = 0,
     FIELDS = 1,
-    EMBEDDED = 2,
 }
 
 interface IState {
     activeTabId: TAB_INDEX;
     profile: IPlanningContentProfile;
-    embeddedProfile?: IPlanningContentProfile; // Used for Coverage Profile
     saving: boolean;
     dirty: boolean;
 }
-
-type IProfileStateKey = keyof Pick<IState, 'profile' | 'embeddedProfile'>
 
 const mapStateToProps = (state) => ({
     languages: getLanguages(state),
@@ -64,8 +55,7 @@ const mapStateToProps = (state) => ({
 
 class ContentProfileModalComponent extends React.Component<IProps, IState> {
     groupTab: React.RefObject<GroupTabComponent>;
-    fieldTab: React.RefObject<FieldTab>;
-    embeddedFieldTab: React.RefObject<FieldTab>
+    fieldTab: React.RefObject<FieldTabComponent>;
 
     constructor(props) {
         super(props);
@@ -73,19 +63,14 @@ class ContentProfileModalComponent extends React.Component<IProps, IState> {
         this.state = {
             activeTabId: TAB_INDEX.GROUPS,
             profile: this.reloadOriginal(this.props.mainProfile.profile),
-            embeddedProfile: this.props.embeddedProfile == null ?
-                null :
-                this.reloadOriginal(this.props.embeddedProfile.profile),
             saving: false,
             dirty: false,
         };
         this.groupTab = React.createRef();
         this.fieldTab = React.createRef();
-        this.embeddedFieldTab = React.createRef();
 
         this.handleKeyDown = this.handleKeyDown.bind(this);
         this.closeModal = this.closeModal.bind(this);
-        this.reset = this.reset.bind(this);
         this.save = this.save.bind(this);
         this.changeTab = this.changeTab.bind(this);
         this.updateGroup = this.updateGroup.bind(this);
@@ -94,9 +79,6 @@ class ContentProfileModalComponent extends React.Component<IProps, IState> {
 
         this.updateField = this.updateField.bind(this);
         this.updateFields = this.updateFields.bind(this);
-
-        this.updateEmbeddedField = this.updateEmbeddedField.bind(this);
-        this.updateEmbeddedFields = this.updateEmbeddedFields.bind(this);
     }
 
     componentDidMount() {
@@ -138,8 +120,8 @@ class ContentProfileModalComponent extends React.Component<IProps, IState> {
             const {showIgnoreCancelSaveDialog} = superdeskApi.ui;
 
             showIgnoreCancelSaveDialog({
-                title: gettext('Save changes?'),
-                body: gettext('There are unsaved changes.'),
+                title: gettext('Unsaved changes'),
+                body: gettext('Your changes will be lost if you close now. What would you like to do?'),
             }).then((response) => {
                 if (response === 'save') {
                     this.save();
@@ -172,53 +154,6 @@ class ContentProfileModalComponent extends React.Component<IProps, IState> {
         return profile;
     }
 
-    reset() {
-        this.closeCurrentEditor(true).then((response) => {
-            if (response !== 'cancel') {
-                this.setState({
-                    profile: this.reloadOriginal(this.props.mainProfile.profile),
-                    embeddedProfile: this.props.embeddedProfile == null ?
-                        null :
-                        this.reloadOriginal(this.props.embeddedProfile.profile),
-                    dirty: false,
-                });
-            }
-        });
-    }
-
-    validateRequiredFields(
-        profile: IPlanningContentProfile,
-        requiredFields: Array<Array<string>>,
-        includeGroupCheck: boolean
-    ): boolean {
-        const {notify} = superdeskApi.ui;
-        const {gettext} = superdeskApi.localization;
-        let valid = true;
-
-        requiredFields.forEach((fields) => {
-            const result = fields.some(
-                (field) => isProfileFieldEnabled(profile, field, includeGroupCheck)
-            );
-
-            if (!result) {
-                valid = false;
-                if (fields.length === 1) {
-                    notify.error(gettext('"{{field}}" field is required by the system', {
-                        field: getFieldNameTranslated(fields[0]).toUpperCase()
-                    }));
-                } else {
-                    notify.error(gettext('At least one "{{fields}}" fields are required by the system', {
-                        fields: fields
-                            .map((field) => getFieldNameTranslated(field).toUpperCase())
-                            .join('", "')
-                    }));
-                }
-            }
-        });
-
-        return valid;
-    }
-
     save() {
         this.setState({saving: true});
         this.closeCurrentEditor().then((response) => {
@@ -227,17 +162,11 @@ class ContentProfileModalComponent extends React.Component<IProps, IState> {
                 return;
             }
 
-            if (!this.validateRequiredFields(
+            if (!validateAndNotifyForRequiredFields(
                 this.state.profile,
                 this.props.mainProfile.systemRequiredFields,
                 true
-            ) ||
-                !this.validateRequiredFields(
-                    this.state.embeddedProfile,
-                    this.props.embeddedProfile?.systemRequiredFields ?? [],
-                    false
-                )
-            ) {
+            )) {
                 this.setState({saving: false});
                 return;
             }
@@ -245,12 +174,6 @@ class ContentProfileModalComponent extends React.Component<IProps, IState> {
             const promises = [
                 planningApi.contentProfiles.patch(this.props.mainProfile.profile, this.state.profile)
             ];
-
-            if (this.props.embeddedProfile != null) {
-                promises.push(
-                    planningApi.contentProfiles.patch(this.props.embeddedProfile.profile, this.state.embeddedProfile)
-                );
-            }
 
             Promise.all(promises)
                 .then(() => {
@@ -274,9 +197,7 @@ class ContentProfileModalComponent extends React.Component<IProps, IState> {
     }
 
     closeCurrentEditor(disableSave?: boolean): Promise<IIgnoreCancelSaveResponse> {
-        const currentTab = this.groupTab.current ||
-            this.fieldTab.current ||
-            this.embeddedFieldTab.current;
+        const currentTab = this.groupTab.current || this.fieldTab.current;
 
         return currentTab == null ?
             Promise.resolve('ignore') :
@@ -348,12 +269,12 @@ class ContentProfileModalComponent extends React.Component<IProps, IState> {
         });
     }
 
-    _updateField<T extends IProfileStateKey>(key: T, item: IProfileFieldEntry) {
-        this.setState<T>((prevState: Readonly<IState>) => {
-            const profile = cloneDeep(prevState[key]);
+    updateField(item: IProfileFieldEntry) {
+        this.setState((prevState: Readonly<IState>) => {
+            const profile = cloneDeep(prevState.profile);
 
-            if (key === 'profile' && item.schema.type === 'string' && item.name === 'language') {
-                const enabledBefore = (prevState[key].schema.language as IProfileSchemaTypeString).multilingual;
+            if (item.schema.type === 'string' && item.name === 'language') {
+                const enabledBefore = (prevState.profile.schema.language as IProfileSchemaTypeString).multilingual;
                 const enabledAfter = item.schema.multilingual;
 
                 if (enabledBefore !== enabledAfter && enabledAfter === false) {
@@ -373,53 +294,28 @@ class ContentProfileModalComponent extends React.Component<IProps, IState> {
             profile.editor[item.name] = {...item.field};
             profile.schema[item.name] = {...item.schema};
 
-            return key === 'profile' ?
-                {
-                    profile: profile,
-                    dirty: true,
-                } :
-                {
-                    embeddedProfile: profile,
-                    dirty: true,
-                };
+            return {
+                profile: profile,
+                dirty: true,
+            };
         });
     }
 
-    _updateFields<T extends IProfileStateKey>(key: T, fields: Array<IProfileFieldEntry>) {
-        this.setState<T>((prevState: Readonly<IState>) => {
-            const profile = {...prevState[key]};
+    updateFields(fields: Array<IProfileFieldEntry>) {
+        this.setState((prevState: Readonly<IState>) => {
+            const profile = {...prevState.profile};
 
             fields.forEach((item, index) => {
                 profile.editor[item.name] = {...item.field};
                 profile.editor[item.name].index = index;
+                profile.schema[item.name] = {...item.schema};
             });
 
-            return key === 'profile' ?
-                {
-                    profile: profile,
-                    dirty: true,
-                } :
-                {
-                    embeddedProfile: profile,
-                    dirty: true,
-                };
+            return {
+                profile: profile,
+                dirty: true,
+            };
         });
-    }
-
-    updateField(item: IProfileFieldEntry) {
-        this._updateField('profile', item);
-    }
-
-    updateFields(fields: Array<IProfileFieldEntry>) {
-        this._updateFields('profile', fields);
-    }
-
-    updateEmbeddedField(item: IProfileFieldEntry) {
-        this._updateField('embeddedProfile', item);
-    }
-
-    updateEmbeddedFields(fields: Array<IProfileFieldEntry>) {
-        this._updateFields('embeddedProfile', fields);
     }
 
     render() {
@@ -468,91 +364,46 @@ class ContentProfileModalComponent extends React.Component<IProps, IState> {
             </TabPanel>
         )];
 
-        if (this.props.embeddedProfile != null) {
-            tabLabels.push((
-                <TabLabel
-                    key="embedded_fields"
-                    label={this.props.embeddedProfile.label ?? gettext('Embedded Fields')}
-                    indexValue={TAB_INDEX.EMBEDDED}
-                />
-            ));
-            tabPanels.push((
-                <TabPanel
-                    key="embedded_fields"
-                    indexValue={TAB_INDEX.EMBEDDED}
-                >
-                    <FieldTab
-                        ref={this.embeddedFieldTab}
-                        profile={this.state.embeddedProfile}
-                        groupFields={false}
-                        systemRequiredFields={this.props.embeddedProfile.systemRequiredFields}
-                        disableMinMaxFields={this.props.embeddedProfile.disableMinMaxFields}
-                        disableRequiredFields={this.props.embeddedProfile.disableRequiredFields}
-                        updateField={this.updateEmbeddedField}
-                        updateFields={this.updateEmbeddedFields}
-                    />
-                </TabPanel>
-            ));
-        }
-
         return (
             <Modal
-                show={true}
-                large={true}
-                removeTabIndexAttribute={true}
-            >
-                <Modal.Header>
-                    <h3 className="modal__heading">
-                        {this.props.title}
-                    </h3>
-                    <a
-                        className="icn-btn"
-                        onClick={this.state.saving ?
-                            undefined :
-                            this.closeModal
-                        }
-                    >
-                        <i className="icon-close-small" />
-                    </a>
-                </Modal.Header>
-                <Modal.Body className="sd-padding--0 sd-padding-t--2" noScroll={true}>
-                    {!this.state.saving ? null : (
-                        <div className="sd-loader" />
-                    )}
-                    <form className="planning-profile-form" onSubmit={(e) => e.preventDefault()}>
-                        <Tabs onClick={this.changeTab}>
-                            {tabLabels}
-                        </Tabs>
-                        <TabContent activePanel={this.state.activeTabId}>
-                            {tabPanels}
-                        </TabContent>
-                    </form>
-                </Modal.Body>
-                <Modal.Footer flex={true}>
+                visible
+                size="large"
+                position="top"
+                onHide={this.state.saving ? undefined : this.closeModal}
+                headerTemplate={this.props.title}
+                contentPadding="none"
+                footerTemplate={(
                     <ButtonGroup align="end">
                         <Button
                             text={this.state.dirty ?
-                                gettext('Cancel') :
+                                gettext('Discard All') :
                                 gettext('Close')
                             }
-                            style="hollow"
+                            type="tertiary"
                             onClick={this.closeModal}
                             disabled={this.state.saving}
                         />
-                        <Button
-                            text={gettext('Reset')}
-                            style="hollow"
-                            onClick={this.reset}
-                            disabled={this.state.saving || !this.state.dirty}
-                        />
-                        <Button
-                            text={gettext('Save')}
-                            type="primary"
-                            onClick={this.save}
-                            disabled={this.state.saving || !this.state.dirty}
-                        />
+                        {this.state.dirty && (
+                            <Button
+                                text={gettext('Save All')}
+                                type="primary"
+                                onClick={this.save}
+                                disabled={this.state.saving}
+                            />
+                        )}
                     </ButtonGroup>
-                </Modal.Footer>
+                )}
+                className="planning-profile-form"
+            >
+                {this.state.saving && (<div className="sd-loader" />)}
+                <form onSubmit={(e) => e.preventDefault()}>
+                    <Tabs onClick={this.changeTab}>
+                        {tabLabels}
+                    </Tabs>
+                    <TabContent activePanel={this.state.activeTabId}>
+                        {tabPanels}
+                    </TabContent>
+                </form>
             </Modal>
         );
     }

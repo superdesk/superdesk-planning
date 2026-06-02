@@ -6,14 +6,19 @@
 # AUTHORS and LICENSE files distributed with this source code, or
 # at https://www.sourcefabric.org/superdesk/license
 
-from dateutil import tz
-
-from flask import render_template_string, current_app, render_template
-from eve.utils import config
+from dateutil import tz, parser
 from bson import ObjectId
 
+from superdesk.core import get_app_config
+from superdesk.core.types import ItemId
+from superdesk.eve_async.service import AsyncBaseService
+from superdesk.resource_fields import VERSION
+from superdesk.flask import render_template_string, render_template
+
+from quart_babel import gettext as _
+
 from superdesk.utc import utc_to_local, get_timezone_offset, utcnow
-from superdesk import get_resource_service, Resource, Service
+from superdesk import get_resource_service, Resource
 from superdesk.errors import SuperdeskApiError
 from superdesk.metadata.item import get_schema
 
@@ -27,11 +32,15 @@ from planning.common import (
     ASSIGNMENT_WORKFLOW_STATE,
     get_first_paragraph_text,
 )
+from planning.events import EventsAsyncService
+from planning.agendas_async import AgendasAsyncService
+from planning.utils import get_related_planning_for_events_async, get_first_related_event_id_for_planning
 from planning.archive import create_item_from_template
 
 
 PLACEHOLDER_TEXT = r"{{content}}"
 PLACEHOLDER_HTML = "<p>%s</p>" % PLACEHOLDER_TEXT
+EXPORT_FETCH_PAGE_SIZE = 1000
 
 
 class PlanningArticleExportResource(Resource):
@@ -57,20 +66,25 @@ class PlanningArticleExportResource(Resource):
     privileges = {"POST": "planning"}
 
 
-def get_items(ids, resource_type):
+async def get_items(ids, resource_type):
     ids_string = [str(item_id) for item_id in ids]
-    items = get_resource_service("events_planning_search").search_repos(
-        resource_type, {"item_ids": ",".join(ids_string), "only_future": False}
+    items = await get_resource_service("events_planning_search").search_repos(
+        resource_type,
+        {"item_ids": ",".join(ids_string), "only_future": False},
+        page_size=EXPORT_FETCH_PAGE_SIZE,
     )
-    items = sorted(items, key=lambda i: ids_string.index(str(i.get("_id"))))
+    items = sorted([item async for item in items], key=lambda i: ids_string.index(str(i.get("_id"))))
 
-    events_service = get_resource_service("events")
+    events_service = EventsAsyncService()
     for item in items:
         item_type = item.get("type")
-        if item_type == "planning" and item.get("event_item"):
-            item["event"] = events_service.find_one(req=None, _id=item["event_item"])
+
+        if item_type == "planning":
+            event_id = get_first_related_event_id_for_planning(item, "primary")
+            if event_id:
+                item["event"] = await events_service.find_by_id_raw(event_id)
         elif item_type == "event":
-            item["plannings"] = events_service.get_plannings_for_event(item)
+            item["plannings"] = await get_related_planning_for_events_async([item["_id"]], "primary")
             item["coverages"] = []
             for plan in item["plannings"]:
                 item["coverages"].extend(plan.get("coverages") or [])
@@ -78,7 +92,7 @@ def get_items(ids, resource_type):
     return items
 
 
-def group_items_by_agenda(items):
+async def group_items_by_agenda(items):
     """
     Returns an array with all agendas for the provided items.
 
@@ -104,7 +118,7 @@ def group_items_by_agenda(items):
             if len(agenda_in_array) > 0:
                 agenda_in_array[0]["items"].append(item)
             else:
-                agenda = get_resource_service("agenda").find_one(req=None, _id=str(agenda_id))
+                agenda = await AgendasAsyncService().find_by_id_raw(str(agenda_id))
                 if agenda is not None and agenda["is_enabled"]:
                     agenda["items"] = [item]
                     agendas.append(agenda)
@@ -125,9 +139,9 @@ def group_items_by_agenda(items):
     return agendas
 
 
-def inject_internal_coverages(items):
+async def inject_internal_coverages(items):
     coverage_labels = {}
-    cv = get_resource_service("vocabularies").find_one(req=None, _id="g2_content_type")
+    cv = await get_resource_service("vocabularies").find_one_async(req=None, _id="g2_content_type")
     if cv:
         coverage_labels = {_type["qcode"]: _type["name"] for _type in cv["items"]}
 
@@ -141,7 +155,7 @@ def inject_internal_coverages(items):
                 if assigned_to.get("coverage_provider"):
                     user = assigned_to["coverage_provider"]
                 elif assigned_to.get("user"):
-                    user = get_resource_service("users").find_one(req=None, _id=assigned_to.get("user"))
+                    user = await get_resource_service("users").find_one_async(req=None, _id=assigned_to.get("user"))
 
                 coverage_type = coverage.get("planning").get("g2_content_type")
                 label = coverage_labels.get(coverage_type, coverage_type)
@@ -188,7 +202,7 @@ def _enhance_assigned_provider(coverage, item, assigned_to):
         item["text_assignees"].append(assigned_to["coverage_provider"]["name"])
 
 
-def enhance_coverage(planning, item, users, desks, text_users, text_desks):
+async def enhance_coverage(planning, item, users, desks, text_users, text_desks):
     for c in planning.get("coverages") or []:
         is_text = c.get("planning", {}).get("g2_content_type", "") == "text"
         completed = (c.get("assigned_to") or {}).get("state") == ASSIGNMENT_WORKFLOW_STATE.COMPLETED
@@ -209,22 +223,25 @@ def enhance_coverage(planning, item, users, desks, text_users, text_desks):
         # Get abstract from related text item if coverage is 'complete'
         if is_text:
             if completed:
-                results = list(
-                    get_resource_service("archive").get_from_mongo(
-                        req=None,
-                        lookup={
-                            "assignment_id": ObjectId(c["assigned_to"]["assignment_id"]),
-                            "state": {"$in": ["published", "corrected"]},
-                            "pubstatus": "usable",
-                            "rewrite_of": None,
-                        },
-                    )
+                results = await get_resource_service("archive").get_from_mongo_async(
+                    req=None,
+                    lookup={
+                        "assignment_id": ObjectId(c["assigned_to"]["assignment_id"]),
+                        "state": {"$in": ["published", "corrected"]},
+                        "pubstatus": "usable",
+                        "rewrite_of": None,
+                    },
                 )
-                if len(results) > 0:
+                try:
+                    archive_item = await results.next()
+                except StopAsyncIteration:
+                    archive_item = None
+
+                if archive_item:
                     item["published_archive_items"].append(
                         {
-                            "archive_text": get_first_paragraph_text(results[0].get("abstract")) or "",
-                            "archive_slugline": results[0].get("slugline") or "",
+                            "archive_text": get_first_paragraph_text(archive_item.get("abstract")) or "",
+                            "archive_slugline": archive_item.get("slugline") or "",
                         }
                     )
             elif c.get("news_coverage_status", {}).get("qcode") == "ncostat:int":
@@ -240,13 +257,13 @@ def enhance_coverage(planning, item, users, desks, text_users, text_desks):
                 else:
                     text_desks.append({"desk": desk, "slugline": (c.get("planning", {})).get("slugline", "")})
 
-    item["contacts"] = get_contacts_from_item(item)
+    item["contacts"] = await (await get_contacts_from_item(item)).to_list()
 
 
-def generate_text_item(items, template_name, resource_type):
-    template = get_resource_service("planning_export_templates").get_export_template(template_name, resource_type)
+async def generate_text_item(items, template_name, resource_type):
+    template = await get_resource_service("planning_export_templates").get_export_template(template_name, resource_type)
     if not template:
-        raise SuperdeskApiError.badRequestError("Invalid template selected")
+        raise SuperdeskApiError.badRequestError(_("Invalid template selected"))
 
     for item in items:
         # Create list of assignee with preference to coverage_provider, if not, assigned user
@@ -260,14 +277,16 @@ def generate_text_item(items, template_name, resource_type):
         desks = []
 
         if item["type"] == "planning":
-            enhance_coverage(item, item, users, desks, text_users, text_desks)
+            await enhance_coverage(item, item, users, desks, text_users, text_desks)
         else:
             for p in item.get("plannings") or []:
-                enhance_coverage(p, item, users, desks, text_users, text_desks)
+                await enhance_coverage(p, item, users, desks, text_users, text_desks)
 
-        users = list(get_resource_service("users").find(where={"_id": {"$in": users}}))
+        cursor_users = await get_resource_service("users").find_async(where={"_id": {"$in": users}})
+        users = await cursor_users.to_list()
 
-        desks = list(get_resource_service("desks").find(where={"_id": {"$in": desks}}))
+        cursor_desks = await get_resource_service("desks").find_async(where={"_id": {"$in": desks}})
+        desks = await cursor_desks.to_list()
 
         for u in text_users:
             user = next((_i for _i in users if str(_i.get("_id")) == u["user"]) or [], None)
@@ -293,18 +312,21 @@ def generate_text_item(items, template_name, resource_type):
 
         # Handle dates and remote time-zones
         if item.get("dates") or (item.get("event") or {}).get("dates"):
+            default_timezone = get_app_config("DEFAULT_TIMEZONE")
             dates = item.get("dates") or item.get("event").get("dates")
-            item["schedule"] = utc_to_local(config.DEFAULT_TIMEZONE, dates.get("start"))
-            if get_timezone_offset(config.DEFAULT_TIMEZONE, utcnow()) != get_timezone_offset(dates.get("tz"), utcnow()):
+            start = dates.get("start")
+            utc_dt = parser.parse(start) if isinstance(start, str) else start
+            item["schedule"] = utc_to_local(default_timezone, utc_dt)
+            if get_timezone_offset(default_timezone, utcnow()) != get_timezone_offset(dates.get("tz"), utcnow()):
                 item["schedule"] = "{} ({})".format(item["schedule"].strftime("%H%M"), item["schedule"].tzname())
             else:
                 item["schedule"] = item["schedule"].strftime("%H%M")
 
-    agendas = group_items_by_agenda(items)
-    inject_internal_coverages(items)
+    agendas = await group_items_by_agenda(items)
+    await inject_internal_coverages(items)
 
     labels = {}
-    cv = get_resource_service("vocabularies").find_one(req=None, _id="g2_content_type")
+    cv = await get_resource_service("vocabularies").find_one_async(req=None, _id="g2_content_type")
     if cv:
         labels = {_type["qcode"]: _type["name"] for _type in cv["items"]}
 
@@ -323,9 +345,9 @@ def generate_text_item(items, template_name, resource_type):
 
     for key, value in template.items():
         if value.endswith(".html"):
-            article[key.replace("_template", "")] = render_template(value, items=items, agendas=agendas)
+            article[key.replace("_template", "")] = await render_template(value, items=items, agendas=agendas)
         else:
-            article[key] = render_template_string(value, items=items, agendas=agendas)
+            article[key] = await render_template_string(value, items=items, agendas=agendas)
 
     return article
 
@@ -343,13 +365,13 @@ def set_item_place(item):
     item["place"] = [p.get("name") for p in item["place"]] if item.get("place") else None
 
 
-class PlanningArticleExportService(Service):
-    def create(self, docs, **kwargs):
+class PlanningArticleExportService(AsyncBaseService):
+    async def create_async(self, docs: list[dict], **kwargs) -> list[ItemId]:
         ids = []
         for doc in docs:
             item_type = doc.pop("type")
-            item_list = get_items(doc.pop("items", []), item_type)
-            desk = get_resource_service("desks").find_one(req=None, _id=doc.pop("desk")) or {}
+            item_list = await get_items(doc.pop("items", []), item_type)
+            desk = await get_resource_service("desks").find_one_async(req=None, _id=doc.pop("desk")) or {}
             article_template = doc.pop("article_template", None)
             if article_template:
                 content_template = (
@@ -359,7 +381,7 @@ class PlanningArticleExportService(Service):
                 content_template = get_desk_template(desk)
 
             item = get_item_from_template(content_template)
-            item[current_app.config["VERSION"]] = 1
+            item[VERSION] = 1
             item.setdefault("type", "text")
 
             if item_type == "planning":
@@ -374,7 +396,7 @@ class PlanningArticleExportService(Service):
                 "user": get_user_id(),
                 "stage": desk.get("working_stage"),
             }
-            item_from_template = generate_text_item(item_list, doc.pop("template", None), item_type)
+            item_from_template = await generate_text_item(item_list, doc.pop("template", None), item_type)
             fields_to_override = []
             for key, val in item_from_template.items():
                 if item.get(key):
@@ -391,12 +413,12 @@ class PlanningArticleExportService(Service):
                 else:
                     item[key] = val
 
-            item = create_item_from_template(item, fields_to_override)
+            item = await create_item_from_template(item, fields_to_override)
             doc.update(item)
             ids.append(doc["_id"])
         return ids
 
-    def export_events_to_text(self, items, format="utf-8", template=None, tz_offset=None):
+    async def export_events_to_text(self, items, format="utf-8", template="", tz_offset=None):
         for item in items:
             item["formatted_state"] = (
                 item["state"]
@@ -418,7 +440,7 @@ class PlanningArticleExportService(Service):
                 )
 
             item["contacts"] = []
-            for contact in get_contacts_from_item(item):
+            async for contact in await get_contacts_from_item(item):
                 contact_info = ["{0} {1}".format(contact.get("first_name"), contact.get("last_name"))]
                 phone = None
                 if contact.get("job_title"):
@@ -437,8 +459,9 @@ class PlanningArticleExportService(Service):
                 item["contacts"].append(", ".join(contact_info))
 
             date_time_format = "%a %d %b %Y, %H:%M"
-            item["dates"]["start"] = utc_to_local(config.DEFAULT_TIMEZONE, item["dates"]["start"])
-            item["dates"]["end"] = utc_to_local(config.DEFAULT_TIMEZONE, item["dates"]["end"])
+            default_timezone = get_app_config("DEFAULT_TIMEZONE")
+            item["dates"]["start"] = utc_to_local(default_timezone, item["dates"]["start"])
+            item["dates"]["end"] = utc_to_local(default_timezone, item["dates"]["end"])
             item["schedule"] = "{0}-{1}".format(
                 item["dates"]["start"].strftime(date_time_format),
                 item["dates"]["end"].strftime("%H:%M"),
@@ -456,4 +479,4 @@ class PlanningArticleExportService(Service):
 
             set_item_place(item)
 
-        return str.encode(render_template(template, items=items), format)
+        return str.encode(await render_template(template, items=items), format)

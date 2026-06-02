@@ -1,9 +1,7 @@
-import {get, cloneDeep, pickBy, has, every} from 'lodash';
-
+import {get, cloneDeep, pickBy, every} from 'lodash';
 import {IEventItem, IPlanningSearchParams, IPlanningItem} from '../../interfaces';
 import {appConfig} from 'appConfig';
 import {planningApi} from '../../superdeskApi';
-
 import * as actions from '../../actions';
 import * as selectors from '../../selectors';
 import {
@@ -24,6 +22,9 @@ import {
 } from '../../constants';
 import main from '../main';
 import {planningParamsToSearchParams} from '../../utils/search';
+import {getRelatedEventIdsForPlanning} from '../../utils/planning';
+import moment from 'moment';
+import planningUi from './ui';
 
 /**
  * Action dispatcher that marks a Planning item as spiked
@@ -116,13 +117,73 @@ function query(
                         return Promise.resolve(result);
                     }
 
-                    return Promise.resolve(response._items);
+                    return Promise.resolve(response);
                 } else {
                     return Promise.reject('Failed to retrieve items');
                 }
             }, (error) => Promise.reject(error))
     );
 }
+
+const handleItemsForLastFetchedDay = (
+    items: Array<IPlanningItem>,
+    params: IPlanningSearchParams = {},
+    total: number,
+    dispatch: any,
+    getState: () => any,
+): Promise<Array<IPlanningItem>> => {
+    if (items.length < 1) {
+        return Promise.resolve([]);
+    }
+
+    const lastDayGroupItems = selectors.planning.lastDayGroup(getState()) ?? [];
+    const itemIdsInList = selectors.planning.planIdsInList(getState());
+
+    // all items in list view and items for the last group
+    const hasFetchedAllItems = total === (items.length + lastDayGroupItems.length + itemIdsInList.length);
+
+    if (hasFetchedAllItems) {
+        dispatch(storeLastDayGroup([]));
+
+        return Promise.resolve([
+            ...items,
+            ...lastDayGroupItems
+        ]);
+    }
+
+    const itemsGrouped = planningUtils.getPlanningByDate(
+        [...items, ...lastDayGroupItems],
+        {},
+        params.advancedSearch.dates.start,
+        params.advancedSearch.dates.end,
+        params.timezoneOffset,
+    );
+
+    // on initial page load we need to make sure items for all groups are loaded
+    // otherwise if the first group has 1 item, a second has 50 items, user
+    // can end up in an invalid state where he can't trigger loadMore by scrolling
+    if (itemsGrouped.length === 1 || params.page === 1) {
+        const lastPage = Math.ceil(total / params.maxResults);
+
+        // No pages left to fetch
+        if (params.page > lastPage + 1) {
+            return Promise.resolve(itemsGrouped.flatMap((x) => x.events));
+        }
+
+        dispatch(storeLastDayGroup([...items, ...lastDayGroupItems]));
+        dispatch(planningUi.loadMore());
+
+        return Promise.resolve([]);
+    } else if (Object.keys(itemsGrouped).length > 1) {
+        const lastGroup = itemsGrouped[itemsGrouped.length - 1];
+
+        dispatch(storeLastDayGroup(lastGroup.events));
+
+        return Promise.resolve(
+            itemsGrouped.slice(0, itemsGrouped.length - 1).flatMap((x) => x.events),
+        );
+    }
+};
 
 /**
  * Action dispatcher for requesting a fetch of planning items
@@ -131,21 +192,49 @@ function query(
  * @param {object} params - Parameters used when fetching the planning items
  * @return Promise
  */
-const fetch = (params = {}) => (
-    (dispatch) => (
-        dispatch(self.query(params, true))
-            .then((items) => (
-                dispatch(self.fetchPlanningsEvents(items))
-                    .then(() => {
-                        dispatch(self.receivePlannings(items));
-                        return Promise.resolve(items);
-                    }, (error) => (Promise.reject(error)))
-            ), (error) => {
-                dispatch(self.receivePlannings([]));
-                return Promise.reject(error);
-            })
-    )
-);
+const fetch = (params: IPlanningSearchParams = {}) => ((dispatch, getState) => (
+    dispatch(self.query(params, true))
+        .then((response) => {
+            // added for test cases
+            if (response._meta == null) {
+                return response._items;
+            }
+
+            return handleItemsForLastFetchedDay(
+                response._items,
+                {
+                    ...params,
+                    maxResults: response._meta.max_results,
+                    page: response._meta.page,
+                    advancedSearch: {
+                        ...params.advancedSearch,
+                        dates: {
+                            ...params.advancedSearch.dates,
+                            start: params.advancedSearch?.dates?.start ? params.advancedSearch.dates.start : moment(),
+                            end: params.advancedSearch?.dates?.end,
+                        },
+                    },
+                },
+                response._meta.total,
+                dispatch,
+                getState,
+            );
+        })
+        .then((items) => {
+            return dispatch(self.fetchPlanningsEvents(items))
+                .then(() => {
+                    dispatch(self.receivePlannings(items));
+
+                    return Promise.resolve(items);
+                })
+                .catch((error) => Promise.reject(error));
+        })
+        .catch((error) => {
+            dispatch(self.receivePlannings([]));
+
+            return Promise.reject(error);
+        })
+));
 
 /**
  * Action Dispatcher to re-fetch the current list of planning
@@ -155,23 +244,48 @@ const fetch = (params = {}) => (
 const refetch = (page = 1, plannings = []) => (
     (dispatch, getState) => {
         const prevParams = selectors.main.lastRequestParams(getState());
-
-        let params = {
+        const params = {
             ...prevParams,
             page,
         };
 
         return dispatch(self.query(params, true))
+            .then((response) => {
+                return handleItemsForLastFetchedDay(
+                    response._items,
+                    {
+                        ...params,
+                        maxResults: response._meta.max_results,
+                        page: response._meta.page,
+                        advancedSearch: {
+                            ...params.advancedSearch,
+                            dates: {
+                                ...(params.advancedSearch?.dates ?? {}),
+                                start: params.advancedSearch?.dates?.start
+                                    ? params.advancedSearch.dates.start
+                                    : moment(),
+                                end: params.advancedSearch?.dates?.end,
+                            },
+                        },
+                    },
+                    response._meta.total,
+                    dispatch,
+                    getState,
+                );
+            })
             .then((items) => {
-                plannings = plannings.concat(items); // eslint-disable-line no-param-reassign
-                page++; // eslint-disable-line no-param-reassign
-                if (get(prevParams, 'page', 1) >= page) {
-                    return dispatch(self.refetch(page, plannings));
+                const allPlanningItems = plannings.concat(items);
+                const nextPage = page + 1;
+
+                if ((prevParams?.page ?? 1) >= nextPage) {
+                    return dispatch(self.refetch(nextPage, allPlanningItems));
                 }
 
-                dispatch(self.receivePlannings(plannings));
-                return Promise.resolve(plannings);
-            }, (error) => (Promise.reject(error)));
+                dispatch(self.receivePlannings(allPlanningItems));
+
+                return Promise.resolve(allPlanningItems);
+            })
+            .catch((error) => Promise.reject(error));
     }
 );
 
@@ -181,24 +295,19 @@ const refetch = (page = 1, plannings = []) => (
  * @param {Array} plannings - An array of Planning items
  * @return Promise
  */
-const fetchPlanningsEvents = (plannings) => (
+const fetchPlanningsEvents = (plannings: Array<IPlanningItem>) => (
     (dispatch, getState) => {
         const loadedEvents = selectors.events.storedEvents(getState());
-        const linkedEvents = plannings
-            .map((p) => p.event_item)
-            .filter((eid) => (
-                eid && !has(loadedEvents, eid)
-            ));
+
+        const linkedEventIds = plannings
+            .map((plan) => getRelatedEventIdsForPlanning(plan))
+            .flat()
+            .filter((eventId) => loadedEvents[eventId] == null);
 
         // load missing events, if there are any
-        if (get(linkedEvents, 'length', 0) > 0) {
-            return dispatch(actions.events.api.silentlyFetchEventsById(
-                linkedEvents,
-                'both'
-            ));
-        }
-
-        return Promise.resolve([]);
+        return linkedEventIds.length > 0 ?
+            dispatch(actions.events.api.silentlyFetchEventsById(linkedEventIds, 'both')) :
+            Promise.resolve([]);
     }
 );
 
@@ -381,7 +490,7 @@ const save = (original, planUpdates) => (
             const originalItem = cloneDeep(originalPlan);
 
             // remove all properties starting with _ or lock_,
-            let updates = pickBy(
+            const updates: Partial<IPlanningItem> = pickBy(
                 cloneDeep(planUpdates),
                 (v, k) => ((k === TO_BE_CONFIRMED_FIELD || !k.startsWith('_')) && !k.startsWith('lock_'))
             );
@@ -396,18 +505,18 @@ const save = (original, planUpdates) => (
                 updates.agendas = updates.agendas.map((agenda) => agenda._id || agenda);
             }
 
-            planningUtils.modifyForServer(updates);
+            const cleanedUpdates = planningUtils.modifyForServer(cloneDeep(updates), originalPlan);
 
-            if (isExistingItem(originalPlan) || get(updates, 'coverages.length', 0) < 1) {
-                return api('planning').save(originalItem, updates);
+            if (isExistingItem(originalPlan) || get(cleanedUpdates, 'coverages.length', 0) < 1) {
+                return api('planning').save(originalItem, cleanedUpdates);
             }
 
             // If the new Planning item has coverages then we need to create
             // the planning first before saving the coverages
             // As assignments are created and require a Planning ID
-            let modifiedUpdates = cloneDeep(updates);
+            let modifiedUpdates = cloneDeep(cleanedUpdates);
 
-            if (updates.pubstatus === POST_STATE.USABLE) {
+            if (cleanedUpdates.pubstatus === POST_STATE.USABLE) {
                 // We are create&posting from add-to-planning
                 delete modifiedUpdates.pubstatus;
                 delete modifiedUpdates.state;
@@ -419,16 +528,11 @@ const save = (original, planUpdates) => (
 
             return api('planning').save(
                 {},
-                {
-                    ...modifiedUpdates,
-                    coverages: [],
-                }, addToPlanning
-
+                {...modifiedUpdates, coverages: []},
+                addToPlanning,
             )
-                .then(
-                    (originalItem) => api('planning').save(originalItem, updates, addToPlanning),
-                    (error) => Promise.reject(error)
-                );
+                .then((originalItem) => api('planning').save(originalItem, cleanedUpdates, addToPlanning))
+                .catch((error) => Promise.reject(error));
         });
     }
 );
@@ -486,12 +590,21 @@ const unpost = (original, updates) => (
  * Also loads all the associated contacts (if any)
  * @param  {array, object} plannings - An array of planning item objects
  */
-const receivePlannings = (plannings) => (
+const receivePlannings = (plannings): any => (
     (dispatch) => {
         dispatch(actions.contacts.fetchContactsFromPlanning(plannings));
         dispatch({
             type: PLANNING.ACTIONS.RECEIVE_PLANNINGS,
             payload: plannings,
+        });
+    }
+);
+
+export const storeLastDayGroup = (group): any => (
+    (dispatch) => {
+        dispatch({
+            type: PLANNING.ACTIONS.STORE_LAST_DAY_GROUP,
+            payload: {group},
         });
     }
 );

@@ -126,7 +126,7 @@ Feature: Events Update Time
         """
         Then we get error 400
         """
-        {"_issues": {"validator exception": "403: The event must be locked"}, "_status": "ERR"}
+        {"_message": "The event must be locked", "_status": "ERR"}
         """
         When we perform update_time on events "event2"
         """
@@ -140,7 +140,7 @@ Feature: Events Update Time
         """
         Then we get error 400
         """
-        {"_issues": {"validator exception": "403: The event is locked by you in another session"}, "_status": "ERR"}
+        {"_message": "The event is locked by you in another session", "_status": "ERR"}
         """
         When we perform update_time on events "event3"
         """
@@ -154,7 +154,7 @@ Feature: Events Update Time
         """
         Then we get error 400
         """
-        {"_issues": {"validator exception": "403: The event is locked by another user"}, "_status": "ERR"}
+        {"_message": "The event is locked by another user", "_status": "ERR"}
         """
         When we perform update_time on events "event4"
         """
@@ -168,7 +168,7 @@ Feature: Events Update Time
         """
         Then we get error 400
         """
-        {"_issues": {"validator exception": "403: The lock must be for the `update time` action"}, "_status": "ERR"}
+        {"_message": "The lock must be for the `update time` action", "_status": "ERR"}
         """
 
     @auth
@@ -554,7 +554,7 @@ Feature: Events Update Time
         When we post to "/planning" with success
         """
         [{
-            "event_item": "#EVENT3._id#",
+            "related_events": [{"_id": "#EVENT3._id#", "link_type": "primary"}],
             "slugline": "Friday Club",
             "planning_date": "2016-01-02"
         }]
@@ -674,7 +674,7 @@ Feature: Events Update Time
         When we post to "/planning" with success
         """
         [{
-            "event_item": "#EVENT3._id#",
+            "related_events": [{"_id": "#EVENT3._id#", "link_type": "primary"}],
             "slugline": "Friday Club",
             "planning_date": "2016-01-02"
         }]
@@ -775,7 +775,7 @@ Feature: Events Update Time
         When we post to "/planning" with success
         """
         [{
-            "event_item": "#EVENT3._id#",
+            "related_events": [{"_id": "#EVENT3._id#", "link_type": "primary"}],
             "slugline": "Friday Club",
             "planning_date": "2016-01-02"
         }]

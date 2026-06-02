@@ -12,6 +12,7 @@ import {planningApi} from '../../superdeskApi';
 
 import {renderFieldsForPanel} from '../fields';
 import {ToggleBox} from '../UI';
+import {getCoverageFields} from '../../api/editor/item_planning';
 
 interface IProps {
     group: IEditorFormGroup;
@@ -47,7 +48,7 @@ export class EditorGroup extends React.PureComponent<IProps> implements IEditorR
         }
     }
 
-    scrollIntoView() {
+    scrollIntoView(options?: {focus?: boolean}) {
         if (this.dom.div.current != null) {
             this.dom.div.current.scrollIntoView({behavior: 'smooth'});
         } else if (this.dom.toggle.current != null) {
@@ -61,7 +62,13 @@ export class EditorGroup extends React.PureComponent<IProps> implements IEditorR
         // Wait for scroll to complete, then attempt to focus the first field
         this.editorApi.form
             .waitForScroll()
-            .then(this.focus);
+            .then(() => {
+                const shouldFocus = options?.focus ?? true;
+
+                if (shouldFocus) {
+                    this.focus();
+                }
+            });
     }
 
     getBoundingClientRect() {
@@ -117,10 +124,7 @@ export class EditorGroup extends React.PureComponent<IProps> implements IEditorR
         const group = this.props.group;
         const testId = `editor--group__${group.id}`;
         const profile = this.getProfile();
-
-        const editor = planningApi.editor(this.props.editorType);
-        const coverageProfile = editor.item.planning.getCoverageFields();
-
+        const coverageSearchProfile = getCoverageFields('text').searchProfile;
         const renderedFields = renderFieldsForPanel(
             'editor',
             profile,
@@ -131,7 +135,7 @@ export class EditorGroup extends React.PureComponent<IProps> implements IEditorR
             'enabled',
             this.editorApi.dom.fields,
             this.props.schema,
-            coverageProfile,
+            coverageSearchProfile,
         );
 
         return group.useToggleBox ? (

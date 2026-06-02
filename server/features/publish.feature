@@ -140,11 +140,11 @@ Feature: Publish
         When we post to "/events" with success
         """
         {
-            "guid": "123",
-            "unique_id": "123",
-            "unique_name": "123 name",
-            "name": "event 123",
-            "slugline": "event-123",
+            "guid": "124",
+            "unique_id": "124",
+            "unique_name": "124 name",
+            "name": "event 124",
+            "slugline": "event-124",
             "definition_short": "short value",
             "definition_long": "long value",
             "relationships":{
@@ -184,7 +184,7 @@ Feature: Publish
             {"_items": [{"state": "success"}]}
         """
         Then we store "PUBLISHQUEUE" with first item
-        Then versioned file exists "/tmp/123-#PUBLISHQUEUE.item_version#-1.txt"
+        Then versioned file exists "/tmp/124-#PUBLISHQUEUE.item_version#-1.txt"
 
     @auth
     Scenario: Post non existing event
@@ -200,60 +200,60 @@ Feature: Publish
 
     @auth
     Scenario: Fail to post Event with insufficient privileges
-    When we post to "/products" with success
-    """
-    {
-        "name":"prod-1","codes":"abc,xyz", "product_type": "both"
-    }
-    """
-    And we post to "/subscribers" with success
-    """
-    {
-        "name":"News1","media_type":"media", "subscriber_type": "digital", "sequence_num_settings":{"min" : 1, "max" : 10}, "email": "test@test.com",
-        "products": ["#products._id#"],
-        "codes": "xyz, abc",
-        "is_active": true,
-        "destinations": [{"name":"events", "format": "json_event", "delivery_type": "File", "config":{"file_path": "/tmp"}}]
-    }
-    """
-    Given "contacts"
-    """
-        [{"first_name": "Albert", "last_name": "Foo"}]
-    """
-    When we post to "/events" with success
-    """
-    {
-        "guid": "123",
-        "unique_id": "123",
-        "unique_name": "123 name",
-        "name": "event 123",
-        "slugline": "event-123",
-        "definition_short": "short value",
-        "definition_long": "long value",
-        "pubstatus": "usable",
-        "relationships":{
-            "broader": "broader value",
-            "narrower": "narrower value",
-            "related": "related value"
-        },
-        "dates": {
-            "start": "2016-01-02",
-            "end": "2016-01-03"
-        },
-        "subject": [{"qcode": "test qcaode", "name": "test name"}],
-        "location": [{"qcode": "test qcaode", "name": "test name"}],
-        "event_contact_info": ["#contacts._id#"]
-    }
-    """
-    When we patch "/users/#CONTEXT_USER_ID#"
-    """
-    {"user_type": "user", "privileges": {"planning_event_post": 0, "users": 1}}
-    """
-    When we post to "/events/post"
-    """
-    {"event": "#events._id#", "etag": "#events._etag#", "pubstatus": "usable"}
-    """
-    Then we get error 403
+        When we post to "/products" with success
+        """
+        {
+            "name":"prod-1","codes":"abc,xyz", "product_type": "both"
+        }
+        """
+        And we post to "/subscribers" with success
+        """
+        {
+            "name":"News1","media_type":"media", "subscriber_type": "digital", "sequence_num_settings":{"min" : 1, "max" : 10}, "email": "test@test.com",
+            "products": ["#products._id#"],
+            "codes": "xyz, abc",
+            "is_active": true,
+            "destinations": [{"name":"events", "format": "json_event", "delivery_type": "File", "config":{"file_path": "/tmp"}}]
+        }
+        """
+        Given "contacts"
+        """
+            [{"first_name": "Albert", "last_name": "Foo"}]
+        """
+        When we post to "/events" with success
+        """
+        {
+            "guid": "125",
+            "unique_id": "125",
+            "unique_name": "125 name",
+            "name": "event 125",
+            "slugline": "event-125",
+            "definition_short": "short value",
+            "definition_long": "long value",
+            "pubstatus": "usable",
+            "relationships":{
+                "broader": "broader value",
+                "narrower": "narrower value",
+                "related": "related value"
+            },
+            "dates": {
+                "start": "2016-01-02",
+                "end": "2016-01-03"
+            },
+            "subject": [{"qcode": "test qcaode", "name": "test name"}],
+            "location": [{"qcode": "test qcaode", "name": "test name"}],
+            "event_contact_info": ["#contacts._id#"]
+        }
+        """
+        When we patch "/users/#CONTEXT_USER_ID#"
+        """
+        {"user_type": "user", "privileges": {"planning_event_post": 0, "users": 1}}
+        """
+        When we post to "/events/post"
+        """
+        {"event": "#events._id#", "etag": "#events._etag#", "pubstatus": "usable"}
+        """
+        Then we get error 403
 
     @auth
     Scenario: Post cancelled event
@@ -280,11 +280,11 @@ Feature: Publish
         When we post to "/events" with success
         """
         {
-            "guid": "123",
-            "unique_id": "123",
-            "unique_name": "123 name",
-            "name": "event 123",
-            "slugline": "event-123",
+            "guid": "126",
+            "unique_id": "126",
+            "unique_name": "126 name",
+            "name": "event 126",
+            "slugline": "event-126",
             "definition_short": "short value",
             "definition_long": "long value",
             "pubstatus": "cancelled",
@@ -319,7 +319,7 @@ Feature: Publish
         Then we store "PUBLISHQUEUE" with first item
 
         When we transmit items
-        Then versioned file exists "/tmp/123-#PUBLISHQUEUE.item_version#-1.txt"
+        Then versioned file exists "/tmp/126-#PUBLISHQUEUE.item_version#-1.txt"
 
     @auth
     Scenario: Patch state of ingested event (SDNTB-568 regression test)
@@ -346,11 +346,11 @@ Feature: Publish
         When we post to "/events" with success
         """
         {
-            "guid": "123",
-            "unique_id": "123",
-            "unique_name": "123 name",
-            "name": "event 123",
-            "slugline": "event-123",
+            "guid": "127",
+            "unique_id": "127",
+            "unique_name": "127 name",
+            "name": "event 127",
+            "slugline": "event-127",
             "definition_short": "short value",
             "definition_long": "long value",
             "relationships":{
@@ -383,9 +383,9 @@ Feature: Publish
         Then we get updated response
         """
         {
-            "guid": "123",
-            "name": "event 123",
-            "slugline": "event-123",
+            "guid": "127",
+            "name": "event 127",
+            "slugline": "event-127",
             "definition_short": "short value",
             "definition_long": "long value",
             "relationships":{

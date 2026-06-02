@@ -203,16 +203,6 @@ Feature: Planning
                 "item": "#planning._id#",
                 "user": "#CONTEXT_USER_ID#",
                 "added_agendas": [],
-                "removed_agendas": [],
-                "session": "__any_value__"
-            }
-        },
-        {
-            "event": "planning:updated",
-            "extra": {
-                "item": "#planning._id#",
-                "user": "#CONTEXT_USER_ID#",
-                "added_agendas": [],
                 "removed_agendas": ["#agenda1#", "#agenda2#"],
                 "session": "__any_value__"
             }
@@ -256,6 +246,13 @@ Feature: Planning
     @notification
     Scenario: Create and update coverages for planning with assignments.
         Given empty "planning"
+        When we post to "coverage_profiles"
+        """
+        [
+            {"content_type": "text"}
+        ]
+        """
+        Then we get OK response
         When we post to "planning"
         """
         [{
@@ -272,6 +269,7 @@ Feature: Planning
         {
             "coverages": [
                 {
+                    "profile": "#coverage_profiles._id#",
                     "workflow_status": "draft",
                     "news_coverage_status": {
                       "qcode": "ncostat:int"
@@ -279,7 +277,13 @@ Feature: Planning
                     "planning": {
                         "ednote": "test coverage, I want 250 words",
                         "headline": "test headline",
-                        "slugline": "test slugline"
+                        "slugline": "test slugline",
+                        "fields": [
+                            {"value": "<p>test content</p>", "field": "custom"}
+                        ],
+                        "subject": [
+                            {"name": "test", "qcode": "test", "scheme": "test"}
+                        ]
                     }
                 }
             ]
@@ -302,7 +306,13 @@ Feature: Planning
                     "planning": {
                         "ednote": "test coverage, I want 250 words",
                         "headline": "test headline",
-                        "slugline": "test slugline"
+                        "slugline": "test slugline",
+                        "fields": [
+                            {"value": "<p>test content</p>", "field": "custom"}
+                        ],
+                        "subject": [
+                            {"name": "test", "qcode": "test", "scheme": "test"}
+                        ]
                     }
                 }
             ]
@@ -321,7 +331,13 @@ Feature: Planning
                     "planning": {
                         "ednote": "test coverage, I want 250 words",
                         "headline": "test headline",
-                        "slugline": "test slugline"
+                        "slugline": "test slugline",
+                        "fields": [
+                            {"value": "<p>test content</p>", "field": "custom"}
+                        ],
+                        "subject": [
+                            {"name": "test", "qcode": "test", "scheme": "test"}
+                        ]
                     },
                     "assigned_to": {
                         "desk": "Politic Desk",
@@ -347,7 +363,14 @@ Feature: Planning
                     "planning": {
                         "ednote": "test coverage, I want 250 words",
                         "headline": "test headline",
-                        "slugline": "test slugline"
+                        "slugline": "test slugline",
+                        "fields": [
+                            {"value": "<p>test content</p>", "field": "custom"}
+                        ],
+                        "subject": [
+                            {"name": "test", "qcode": "test", "scheme": "test"}
+                        ]
+         
                     },
                     "assigned_to": {
                         "desk": "Politic Desk",
@@ -360,6 +383,22 @@ Feature: Planning
         """
         When we get "assignments/#firstassignment#"
         Then we get OK response
+        """
+        {
+            "_id": "#firstassignment#",
+            "planning": {
+                "ednote": "test coverage, I want 250 words",
+                "headline": "test headline",
+                "slugline": "test slugline",
+                "fields": [
+                    {"value": "<p>test content</p>", "field": "custom"}
+                ],
+                "subject": [
+                    {"name": "test", "qcode": "test", "scheme": "test"}
+                ]
+            }
+        }
+        """
 
 
     @auth
@@ -517,24 +556,6 @@ Feature: Planning
     @notification
     @vocabulary
     Scenario: Cancel specific coverage
-        Given "vocabularies"
-        """
-        [{
-          "_id": "newscoveragestatus",
-          "display_name": "News Coverage Status",
-          "type": "manageable",
-          "unique_field": "qcode",
-          "items": [
-              {"is_active": true, "qcode": "ncostat:int", "name": "coverage intended", "label": "Planned"},
-              {"is_active": true, "qcode": "ncostat:notdec", "name": "coverage not decided yet",
-                  "label": "On merit"},
-              {"is_active": true, "qcode": "ncostat:notint", "name": "coverage not intended",
-                  "label": "Not planned"},
-              {"is_active": true, "qcode": "ncostat:onreq", "name": "coverage upon request",
-                  "label": "On request"}
-          ]
-        }]
-        """
         When we post to "planning" with success
         """
         [{
@@ -628,24 +649,6 @@ Feature: Planning
         Given "users"
         """
         [{"_id": "507f191e810c19729de871eb", "name":"testfoo", "email":"foo@122d.com", "username":"johnfoo"}]
-        """
-        Given "vocabularies"
-        """
-        [{
-          "_id": "newscoveragestatus",
-          "display_name": "News Coverage Status",
-          "type": "manageable",
-          "unique_field": "qcode",
-          "items": [
-              {"is_active": true, "qcode": "ncostat:int", "name": "coverage intended", "label": "Planned"},
-              {"is_active": true, "qcode": "ncostat:notdec", "name": "coverage not decided yet",
-                  "label": "On merit"},
-              {"is_active": true, "qcode": "ncostat:notint", "name": "coverage not intended",
-                  "label": "Not planned"},
-              {"is_active": true, "qcode": "ncostat:onreq", "name": "coverage upon request",
-                  "label": "On request"}
-          ]
-        }]
         """
         When we post to "/planning"
         """
@@ -777,7 +780,7 @@ Feature: Planning
         }
         """
         When we get "activity"
-        Then we get list with 3 items
+        Then we get list with 4 items
         """
         {"_items":[
             {
@@ -966,7 +969,7 @@ Feature: Planning
             {
                 "item_class": "item class value",
                 "headline": "test headline",
-                "event_item": "#events._id#",
+                "related_events": [{"_id": "#events._id#", "link_type": "primary"}],
                 "planning_date": "2016-01-02"
             }
         ]
@@ -1535,55 +1538,59 @@ Feature: Planning
         [{"_id": "desk_123", "name": "Politic Desk",
          "members": [{"user": "#CONTEXT_USER_ID#"}]}]
         """
-        Given "assignments"
-        """
-        [{
-          "_id": "aaaaaaaaaaaaaaaaaaaaaaaa",
-          "planning": {
-              "ednote": "test coverage, I want 250 words",
-              "headline": "test headline",
-              "slugline": "test slugline",
-              "g2_content_type" : "text",
-              "scheduled": "2029-11-21T14:00:00.000Z"
-          },
-          "assigned_to": {
-              "desk": "desk_123",
-              "user": "#CONTEXT_USER_ID#",
-              "state": "assigned"
-          }
-        }]
-        """
         When we post to "planning" with success
         """
         [{
-          "guid": "123",
-          "headline": "test headline",
-          "slugline": "test slugline",
-          "state": "scheduled",
-          "pubstatus": "usable",
-          "internal_note": "Thanks for all the ",
-          "coverages": [
-              {
-                  "coverage_id": "cov_123",
-                  "planning": {
-                      "ednote": "test coverage, 250 words",
-                      "headline": "test headline",
-                      "slugline": "test slugline",
-                      "scheduled": "2029-11-21T14:00:00.000Z",
-                      "g2_content_type": "text",
-                      "internal_note": "Harmless"
-                  },
-                  "assigned_to": {
+            "guid": "123",
+            "headline": "test headline",
+            "slugline": "test slugline",
+            "state": "scheduled",
+            "pubstatus": "usable",
+            "internal_note": "Thanks for all the ",
+            "coverages": [
+                {
+                    "planning": {
+                        "ednote": "test coverage, 250 words",
+                        "headline": "test headline",
+                        "slugline": "test slugline",
+                        "scheduled": "2029-11-21T14:00:00.000Z",
+                        "g2_content_type": "text",
+                        "internal_note": "Harmless"
+                    },
+                    "assigned_to": {
                         "desk": "#desks._id#",
                         "user": "#CONTEXT_USER_ID#",
-                        "assignment_id": "aaaaaaaaaaaaaaaaaaaaaaaa",
                         "state": "assigned"
-                  },
-                  "workflow_status": "active"
-              }
-          ],
-          "planning_date": "2016-01-02"
+                    },
+                    "workflow_status": "active"
+                }
+            ],
+            "planning_date": "2016-01-02"
         }]
+        """
+        Then we store coverage id in "firstcoverage" from coverage 0
+        Then we store assignment id in "firstassignment" from coverage 0
+        When we reset notifications
+        When we get "/assignments/#firstassignment#"
+        Then we get existing resource
+        """
+        {
+            "planning_item": "123",
+            "coverage_item": "#firstcoverage#",
+            "planning": {
+                "ednote": "test coverage, 250 words",
+                "headline": "test headline",
+                "slugline": "test slugline",
+                "scheduled": "2029-11-21T14:00:00+0000",
+                "g2_content_type": "text",
+                "internal_note": "Harmless"
+            },
+            "assigned_to": {
+                "desk": "desk_123",
+                "user": "#CONTEXT_USER_ID#",
+                "state": "assigned"
+            }
+        }
         """
         When we patch "/planning/#planning._id#"
         """
@@ -1591,7 +1598,7 @@ Feature: Planning
           "internal_note": "Thanks for all the fish",
           "coverages": [
               {
-                  "coverage_id": "cov_123",
+                  "coverage_id": "#firstcoverage#",
                   "planning": {
                       "ednote": "test coverage, 250 words",
                       "headline": "test headline",
@@ -1603,7 +1610,7 @@ Feature: Planning
                   "assigned_to": {
                         "desk": "#desks._id#",
                         "user": "#CONTEXT_USER_ID#",
-                        "assignment_id": "aaaaaaaaaaaaaaaaaaaaaaaa",
+                        "assignment_id": "#firstassignment#",
                         "state": "assigned"
                   },
                   "workflow_status": "active"
@@ -1646,7 +1653,7 @@ Feature: Planning
             "item_class": "item class value",
             "name": "test name",
             "slugline": "test slugline",
-            "event_item": "#events._id#",
+            "related_events": [{"_id": "#events._id#", "link_type": "primary"}],
             "planning_date": "2016-01-02"
         }
         """
@@ -1688,7 +1695,7 @@ Feature: Planning
             "item_class": "item class value",
             "name": "test name",
             "slugline": "test slugline",
-            "event_item": "#events._id#",
+            "related_events": [{"_id": "#events._id#", "link_type": "primary"}],
             "planning_date": "2016-01-02"
         }
         """
@@ -1976,7 +1983,7 @@ Feature: Planning
                         "slugline": "test slugline"
                     },
                     "assigned_to": {
-                        "desk": "Politic Desk",
+                        "desk": "Sports Desk",
                         "user": "507f191e810c19729de870eb",
                         "assignment_id": "#firstassignment#",
                         "state": "assigned"
@@ -3335,24 +3342,6 @@ Feature: Planning
         """
         [{"_id": "desk_123", "name": "Politic Desk"}]
         """
-        Given "vocabularies"
-        """
-        [{
-          "_id": "newscoveragestatus",
-          "display_name": "News Coverage Status",
-          "type": "manageable",
-          "unique_field": "qcode",
-          "items": [
-              {"is_active": true, "qcode": "ncostat:int", "name": "coverage intended", "label": "Planned"},
-              {"is_active": true, "qcode": "ncostat:notdec", "name": "coverage not decided yet",
-                  "label": "On merit"},
-              {"is_active": true, "qcode": "ncostat:notint", "name": "coverage not intended",
-                  "label": "Not planned"},
-              {"is_active": true, "qcode": "ncostat:onreq", "name": "coverage upon request",
-                  "label": "On request"}
-          ]
-        }]
-        """
         Given empty "planning"
         When we post to "planning"
         """
@@ -4292,3 +4281,174 @@ Feature: Planning
         """
         When we get "/planning_files/#planning_files._id#"
         Then we have string photoshop:TransmissionReference="#firstassignment#" in media stream
+
+    @auth
+    Scenario: Validate Planning related Event must exist
+        When we post to "/planning"
+        """
+        {
+            "slugline": "test-plan",
+            "planning_date": "2029-05-29T12:00:00+0000",
+            "related_events": [{"_id": "event1", "link_type": "primary"}]
+        }
+        """
+        Then we get error 400
+        When we post to "/events"
+        """
+        {
+            "guid": "event1",
+            "name": "Event1",
+            "dates": {
+                "start": "2029-05-29T12:00:00+0000",
+                "end": "2029-05-29T14:00:00+0000",
+                "tz": "Australia/Sydney"
+            }
+        }
+        """
+        Then we get OK response
+        When we post to "/planning"
+        """
+        {
+            "slugline": "test-plan",
+            "planning_date": "2029-05-29T12:00:00+0000",
+            "related_events": [{"_id": "event1", "link_type": "primary"}]
+        }
+        """
+        Then we get OK response
+
+    @auth
+    Scenario: Planning can only have 1 primary linked event
+        Given "events"
+        """
+        [{
+            "guid": "event_1",
+            "name": "Primary Event 1",
+            "slugline": "event-1",
+            "dates": {
+                "start": "2029-11-21T12:00:00.000Z",
+                "end": "2029-11-21T14:00:00.000Z",
+                "tz": "Australia/Sydney"
+            }
+        }, {
+            "guid": "event_2",
+            "name": "Primary Event 2",
+            "slugline": "event-2",
+            "dates": {
+                "start": "2029-11-21T12:00:00.000Z",
+                "end": "2029-11-21T14:00:00.000Z",
+                "tz": "Australia/Sydney"
+            }
+        }]
+        """
+        When we post to "planning"
+        """
+        {
+            "_id": "plan1",
+            "guid": "plan1",
+            "slugline": "TestEvent",
+            "state": "draft",
+            "planning_date": "2016-01-02".
+            "related_events": [
+                {"_id": "event_1", "link_type": "primary"},
+                {"_id": "event_2", "link_type": "primary"}
+            ]
+        }
+        """
+        Then we get error 400
+
+    @auth
+    Scenario: Coverage inherits metadata from Planning
+        Given "vocabularies"
+        """
+        [{
+            "_id": "my_options",
+            "selection_type": "single selection",
+            "display_name": "My Custom Options",
+            "service": {"all": 1},
+            "items": [
+                {"qcode": "a", "name": "Option A", "is_active": true},
+                {"qcode": "b", "name": "Option B", "is_active": true},
+                {"qcode": "c", "name": "Option C", "is_active": true},
+                {"qcode": "d", "name": "Option D", "is_active": true}
+            ]
+        }]
+        """
+        Given "planning_types"
+        """
+        [{
+            "_id": "planning",
+            "name": "planning",
+            "editor": {
+                "slugline": {"enabled": true, "index": 1},
+                "anpa_category": {"enabled": true, "index": 3},
+                "subject": {"enabled": true, "index": 4},
+                "my_options": {"enabled": true, "index": 5}
+            },
+            "schema": {
+                "slugline": {"required": true},
+                "anpa_category": {"required": true},
+                "subject": {"required": true},
+                "my_options": {"type": "custom_vocabulary", "required": false}
+            }
+        }]
+        """
+        Given "coverage_profiles"
+        """
+        [{
+            "name": "Custom Text Coverage",
+            "content_type": "text",
+            "editor": {
+                "g2_content_type": {"enabled": true, "index": 1},
+                "slugline": {"enabled": true, "index": 2},
+                "scheduled": {"enabled": true, "index": 3},
+                "my_options": {"enabled": true, "index": 4},
+                "anpa_category": {"enabled": false}
+            },
+            "schema": {
+                "g2_content_type": {"required": true},
+                "slugline": {"required": true},
+                "scheduled": {"required": true},
+                "my_options": {"type": "custom_vocabulary", "required": false}
+            }
+        }]
+        """
+        When we post to "/planning" with success
+        """
+        [{
+            "slugline": "test slugline",
+            "planning_date": "2036-01-02",
+            "anpa_category": [{"name": "Sports", "qcode": "s"}],
+            "subject": [
+                {"qcode": "test", "name": "Testing"},
+                {"qcode": "b", "name": "Option B", "scheme": "my_options"}
+            ]
+        }]
+        """
+        When we patch "/planning/#planning._id#"
+        """
+        {"coverages": [{
+            "profile": "#coverage_profiles._id#",
+            "workflow_status": "draft",
+            "news_coverage_status": {"qcode": "ncostat:int"},
+            "planning": {
+                "ednote": "testing stuff",
+                "g2_content_type": "text",
+                "scheduled": "2036-01-03"
+            }
+        }]}
+        """
+        When we get "/planning/#planning._id#"
+        Then we get existing resource
+        """
+        {
+            "coverages": [{
+                "planning": {
+                    "slugline": "test slugline",
+                    "anpa_category": "__no_value__",
+                    "subject": [
+                        {"qcode": "b", "name": "Option B", "scheme": "my_options"}
+                    ]
+                }
+            }]
+        }
+        """

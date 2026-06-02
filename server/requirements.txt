@@ -1,21 +1,24 @@
-nose
-nose-timer
-pep8
-flake8
-flake8-docstrings
+pep8==1.7.1
+flake8==7.3.0
+flake8-docstrings==1.7.0
 pydocstyle<7.0
 wooper==0.4.4
-requests
 requests-mock==1.12.1
 icalendar>=4.0.3,<5.1
-coverage==7.5.3
-deepdiff
-coveralls
-mock
+coverage==7.10.7
+deepdiff==8.6.1
+coveralls==4.0.2
+mock==5.2.0
 httmock==1.4.0
-responses
-pytest
-pytest-env
+responses==0.26.0
+pytest==9.0.2
+pytest-asyncio==1.3.0
+pytest-env==1.2.0
+black~=25.11
+behave==1.2.6
+aioresponses==0.7.8
+
+-r mypy-requirements.txt
 
 -e .
 # Install in editable state so we get feature fixtures

@@ -1,5 +1,5 @@
 import {planningApi} from '../../../superdeskApi';
-import planningApis from '../api';
+import planningApis from '../../planning/api';
 import planningUi from '../ui';
 import featuredPlanning from '../featuredPlanning';
 import eventsPlanningUi from '../../eventsPlanning/ui';
@@ -10,6 +10,7 @@ import {registerNotifications} from '../../../utils';
 import planningNotifications from '../notifications';
 import {getTestActionStore, restoreSinonStub} from '../../../utils/testUtils';
 import {MAIN, PLANNING} from '../../../constants';
+import {appConfig} from 'appConfig';
 
 describe('actions.planning.notifications', () => {
     let store;
@@ -154,32 +155,26 @@ describe('actions.planning.notifications', () => {
 
     describe('`planning:created`', () => {
         beforeEach(() => {
-            sinon.stub(eventsApi, 'markEventHasPlannings').callsFake(() => (Promise.resolve()));
             sinon.stub(eventsPlanningUi, 'scheduleRefetch').callsFake(() => (Promise.resolve()));
             sinon.stub(planningUi, 'scheduleRefetch').callsFake(() => (Promise.resolve()));
             sinon.stub(main, 'setUnsetLoadingIndicator').callsFake(() => (Promise.resolve()));
         });
 
         afterEach(() => {
-            restoreSinonStub(eventsApi.markEventHasPlannings);
             restoreSinonStub(planningUi.scheduleRefetch);
             restoreSinonStub(eventsPlanningUi.scheduleRefetch);
             restoreSinonStub(main.setUnsetLoadingIndicator);
         });
 
         it('calls refetch on create', (done) => {
+            const eventId = data.plannings[1].related_events[0]._id;
+
             store.initialState.main.filter = MAIN.FILTERS.PLANNING;
             return store.test(done, planningNotifications.onPlanningCreated({}, {
                 item: data.plannings[1]._id,
-                event_item: data.plannings[1].event_item,
+                event_ids: [eventId]
             }))
                 .then(() => {
-                    expect(eventsApi.markEventHasPlannings.callCount).toBe(1);
-                    expect(eventsApi.markEventHasPlannings.args[0]).toEqual([
-                        data.plannings[1].event_item,
-                        data.plannings[1]._id,
-                    ]);
-
                     expect(main.setUnsetLoadingIndicator.callCount).toBe(2);
                     expect(main.setUnsetLoadingIndicator.args).toEqual([
                         [true],
@@ -194,10 +189,87 @@ describe('actions.planning.notifications', () => {
         });
     });
 
+    describe('`planning:created` with planning_expand_related_plannings', () => {
+        let originalExpandSetting;
+
+        beforeEach(() => {
+            originalExpandSetting = appConfig.planning_expand_related_plannings;
+            sinon.stub(eventsPlanningUi, 'scheduleRefetch').callsFake(() => (Promise.resolve()));
+            sinon.stub(eventsPlanningUi, 'showRelatedPlannings').callsFake(() => (Promise.resolve()));
+            sinon.stub(planningUi, 'scheduleRefetch').callsFake(() => (Promise.resolve()));
+            sinon.stub(main, 'setUnsetLoadingIndicator').callsFake(() => (Promise.resolve()));
+        });
+
+        afterEach(() => {
+            appConfig.planning_expand_related_plannings = originalExpandSetting;
+            restoreSinonStub(planningUi.scheduleRefetch);
+            restoreSinonStub(eventsPlanningUi.scheduleRefetch);
+            restoreSinonStub(eventsPlanningUi.showRelatedPlannings);
+            restoreSinonStub(main.setUnsetLoadingIndicator);
+        });
+
+        it('calls showRelatedPlannings for untracked event when config is true', (done) => {
+            appConfig.planning_expand_related_plannings = true;
+            store.initialState.main.filter = MAIN.FILTERS.PLANNING;
+            store.initialState.eventsPlanning = {
+                ...store.initialState.eventsPlanning,
+                relatedPlannings: {},
+            };
+            store.initialState.events.events = {
+                e1: {_id: 'e1', type: 'event', planning_ids: ['p2']},
+            };
+
+            return store.test(done, planningNotifications.onPlanningCreated({}, {
+                item: 'p2',
+                event_ids: ['e1'],
+            }))
+                .then(() => {
+                    expect(eventsPlanningUi.showRelatedPlannings.callCount).toBe(1);
+                    expect(eventsPlanningUi.showRelatedPlannings.args[0][0]._id).toBe('e1');
+                    done();
+                })
+                .catch(done.fail);
+        });
+
+        it('does not call showRelatedPlannings when event is already tracked', (done) => {
+            appConfig.planning_expand_related_plannings = true;
+            store.initialState.main.filter = MAIN.FILTERS.PLANNING;
+            store.initialState.eventsPlanning = {
+                ...store.initialState.eventsPlanning,
+                relatedPlannings: {e1: ['p2']},
+            };
+
+            return store.test(done, planningNotifications.onPlanningCreated({}, {
+                item: 'p2',
+                event_ids: ['e1'],
+            }))
+                .then(() => {
+                    expect(eventsPlanningUi.showRelatedPlannings.callCount).toBe(0);
+                    done();
+                })
+                .catch(done.fail);
+        });
+
+        it('does not call showRelatedPlannings when config is false', (done) => {
+            appConfig.planning_expand_related_plannings = false;
+            store.initialState.main.filter = MAIN.FILTERS.PLANNING;
+
+            return store.test(done, planningNotifications.onPlanningCreated({}, {
+                item: 'p2',
+                event_ids: ['e1'],
+            }))
+                .then(() => {
+                    expect(eventsPlanningUi.showRelatedPlannings.callCount).toBe(0);
+                    done();
+                })
+                .catch(done.fail);
+        });
+    });
+
     describe('onPlanningLocked', () => {
         beforeEach(() => {
             sinon.stub(planningApi.locks, 'setItemAsLocked').returns(undefined);
-            sinon.stub(planningApis, 'getPlanning').returns(Promise.resolve(data.plannings[0]));
+            sinon.stub(planningApis, 'getPlanning').returns(() => Promise.resolve(data.plannings[0]));
         });
 
         afterEach(() => {
@@ -219,7 +291,6 @@ describe('actions.planning.notifications', () => {
             ))
                 .then(() => {
                     expect(planningApi.locks.setItemAsLocked.callCount).toBe(1);
-                    expect(planningApis.getPlanning.callCount).toBe(1);
                     expect(planningApis.getPlanning.args[0]).toEqual([
                         'p1',
                         false,
@@ -323,8 +394,6 @@ describe('actions.planning.notifications', () => {
                                 lock_session: null,
                                 lock_time: null,
                                 _etag: 'e123',
-                                event_item: null,
-                                recurrence_id: null,
                             },
                         },
                     }]);
@@ -340,18 +409,17 @@ describe('actions.planning.notifications', () => {
         });
 
         afterEach(() => {
-            restoreSinonStub(planningUi.refetch);
+            restoreSinonStub(planningUi.scheduleRefetch);
             restoreSinonStub(eventsPlanningUi.refetch);
         });
 
         it('onPlanningPosted calls fetchToList', (done) => {
-            sinon.stub(planningUi, 'refetch').callsFake(() => (Promise.resolve()));
+            sinon.stub(planningUi, 'scheduleRefetch').callsFake(() => (Promise.resolve()));
 
             store.test(done, planningNotifications.onPlanningPosted({}, {item: 'p1'}))
                 .then(() => {
-                // Reloads selected Agenda Plannings
-                    expect(planningUi.refetch.callCount).toBe(1);
-                    expect(eventsPlanningUi.refetch.callCount).toBe(1);
+                    // Reloads selected Agenda Plannings
+                    expect(planningUi.scheduleRefetch.callCount).toBe(1);
                     done();
                 })
                 .catch(done.fail);
@@ -363,6 +431,7 @@ describe('actions.planning.notifications', () => {
             restoreSinonStub(planningNotifications.onPlanningSpiked);
             sinon.stub(main, 'closePreviewAndEditorForItems').callsFake(() => (Promise.resolve()));
             sinon.stub(main, 'setUnsetLoadingIndicator').callsFake(() => (Promise.resolve()));
+            sinon.stub(planningUi, 'getByIdAndAddToList').callsFake(() => (Promise.resolve()));
             sinon.stub(planningUi, 'scheduleRefetch').callsFake(() => (Promise.resolve()));
             sinon.stub(eventsPlanningUi, 'scheduleRefetch').callsFake(() => (Promise.resolve()));
             sinon.stub(eventsPlanningUi, 'refetchPlanning').callsFake(() => (Promise.resolve()));
@@ -374,6 +443,7 @@ describe('actions.planning.notifications', () => {
         afterEach(() => {
             restoreSinonStub(main.closePreviewAndEditorForItems);
             restoreSinonStub(main.setUnsetLoadingIndicator);
+            restoreSinonStub(planningUi.getByIdAndAddToList);
             restoreSinonStub(planningUi.scheduleRefetch);
             restoreSinonStub(eventsPlanningUi.scheduleRefetch);
             restoreSinonStub(eventsPlanningUi.refetchPlanning);
@@ -388,7 +458,7 @@ describe('actions.planning.notifications', () => {
                 etag: 'e123',
             }))
                 .then(() => {
-                    expect(store.dispatch.callCount).toBe(8);
+                    expect(store.dispatch.callCount).toBe(7);
                     expect(store.dispatch.args[0]).toEqual([{
                         type: PLANNING.ACTIONS.SPIKE_PLANNING,
                         payload: {
@@ -411,10 +481,10 @@ describe('actions.planning.notifications', () => {
                         [false],
                     ]);
 
-                    expect(planningUi.scheduleRefetch.callCount).toBe(1);
+                    expect(planningUi.getByIdAndAddToList.callCount).toBe(1);
                     expect(eventsPlanningUi.scheduleRefetch.callCount).toBe(1);
                     expect(featuredPlanning.getAndUpdateStoredPlanningItem.callCount).toBe(1);
-                    expect(eventsPlanningUi.refetchPlanning.callCount).toBe(1);
+
                     done();
                 })
         ).catch(done.fail));
@@ -426,7 +496,7 @@ describe('actions.planning.notifications', () => {
                 etag: 'e123',
             }))
                 .then(() => {
-                    expect(store.dispatch.callCount).toBe(8);
+                    expect(store.dispatch.callCount).toBe(7);
                     expect(store.dispatch.args[0]).toEqual([{
                         type: PLANNING.ACTIONS.UNSPIKE_PLANNING,
                         payload: {
@@ -451,7 +521,6 @@ describe('actions.planning.notifications', () => {
                     expect(planningUi.scheduleRefetch.callCount).toBe(1);
                     expect(eventsPlanningUi.scheduleRefetch.callCount).toBe(1);
                     expect(featuredPlanning.getAndUpdateStoredPlanningItem.callCount).toBe(1);
-                    expect(eventsPlanningUi.refetchPlanning.callCount).toBe(1);
 
                     done();
                 })
@@ -494,20 +563,30 @@ describe('actions.planning.notifications', () => {
                 item_type: 'planning',
             };
 
-            return store.test(done, planningNotifications.onPlanningUpdated({}, {item: data.plannings[0]._id}))
+            return store.test(done, planningNotifications.onPlanningUpdated({}, {
+                item: data.plannings[0]._id,
+                event_ids: [],
+                added_agendas: [],
+                removed_agendas: [],
+            }))
                 .then(() => {
                     expect(planningUi.scheduleRefetch.callCount).toBe(1);
-                    expect(eventsPlanningUi.scheduleRefetch.callCount).toBe(1);
+
                     done();
                 })
                 .catch(done.fail);
         });
 
         it('onPlanningUpdated does calls scheduleRefetch if item is not being edited', (done) => (
-            store.test(done, planningNotifications.onPlanningUpdated({}, {item: data.plannings[0]._id}))
+            store.test(done, planningNotifications.onPlanningUpdated({}, {
+                item: data.plannings[0]._id,
+                event_ids: [],
+                added_agendas: [],
+                removed_agendas: [],
+            }))
                 .then(() => {
                     expect(planningUi.scheduleRefetch.callCount).toBe(1);
-                    expect(eventsPlanningUi.scheduleRefetch.callCount).toBe(1);
+
                     done();
                 })
                 .catch(done.fail)

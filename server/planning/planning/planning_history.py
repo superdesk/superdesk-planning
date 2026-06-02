@@ -8,16 +8,22 @@
 
 """Superdesk Files"""
 
-from flask import request
-from superdesk import Resource, get_resource_service
-from planning.history import HistoryService
 import logging
-from eve.utils import config
 from copy import deepcopy
+from typing import Any
+
+
+from superdesk.flask import request
+from superdesk.resource_fields import ID_FIELD
+from superdesk import Resource, get_resource_service
+from superdesk.default_settings import strtobool
+
+from planning.history import HistoryService
 from planning.common import WORKFLOW_STATE, ITEM_ACTIONS, ASSIGNMENT_WORKFLOW_STATE
 from planning.item_lock import LOCK_ACTION
 from planning.assignments.assignments_history import ASSIGNMENT_HISTORY_ACTIONS
-from superdesk.default_settings import strtobool
+from planning.utils import get_related_event_links_for_planning
+
 
 logger = logging.getLogger(__name__)
 update_item_actions = ["assign_agenda", "add_featured", "remove_featured"]
@@ -35,6 +41,7 @@ class PlanningHistoryResource(Resource):
         "operation": {"type": "string"},
         "update": {"type": "dict", "nullable": True},
     }
+    internal_resource = True
 
 
 class PlanningHistoryService(HistoryService):
@@ -56,7 +63,7 @@ class PlanningHistoryService(HistoryService):
                 assigned_to.get("assignor_user", assigned_to.get("assignor_desk")),
             )
         history = {
-            "planning_id": planning[config.ID_FIELD],
+            "planning_id": planning[ID_FIELD],
             "user_id": user,
             "operation": operation,
             "update": update,
@@ -67,7 +74,7 @@ class PlanningHistoryService(HistoryService):
 
         self.post([history])
 
-    def on_item_updated(self, updates, original, operation=None):
+    def on_item_updated(self, updates, original, operation: str | None = None):
         item = deepcopy(original)
         if list(item.keys()) == ["_id"]:
             diff = self._remove_unwanted_fields(updates)
@@ -84,7 +91,7 @@ class PlanningHistoryService(HistoryService):
                 if original.get(LOCK_ACTION) == "assign_agenda":
                     diff["agendas"] = [a for a in diff.get("agendas", []) if a not in original.get("agendas", [])]
 
-            if diff.get("event_item"):
+            if len(get_related_event_links_for_planning(diff, "primary")):
                 operation = "create_event"
 
             self._save_history(item, diff, operation)
@@ -199,12 +206,12 @@ class PlanningHistoryService(HistoryService):
 
     def on_duplicate(self, parent, duplicate):
         self._save_history(
-            {config.ID_FIELD: str(parent[config.ID_FIELD])},
-            {"duplicate_id": str(duplicate[config.ID_FIELD])},
+            {ID_FIELD: str(parent[ID_FIELD])},
+            {"duplicate_id": str(duplicate[ID_FIELD])},
             "duplicate",
         )
 
     def on_duplicate_from(self, item, duplicate_id):
         new_plan = deepcopy(item)
         new_plan["duplicate_id"] = duplicate_id
-        self._save_history({config.ID_FIELD: str(item[config.ID_FIELD])}, new_plan, "duplicate_from")
+        self._save_history({ID_FIELD: str(item[ID_FIELD])}, new_plan, "duplicate_from")

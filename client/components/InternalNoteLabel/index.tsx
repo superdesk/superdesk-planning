@@ -1,93 +1,91 @@
 import React from 'react';
-import PropTypes from 'prop-types';
 import {get} from 'lodash';
 import classNames from 'classnames';
-
-import {OverlayTrigger, Tooltip} from 'react-bootstrap';
-
+import {Text, Tooltip} from 'superdesk-ui-framework/react';
 import {gettext, getItemWorkflowStateLabel} from '../../utils';
+import {stripHtmlTags} from 'superdesk-core/scripts/core/utils';
 
 import './style.scss';
 
-export const InternalNoteLabel = ({
+interface IInternalNoteLabelProps {
+    item: any;
+    noteField?: string;
+    prefix?: string;
+    showTooltip?: boolean;
+    marginRight?: boolean;
+    marginLeft?: boolean;
+    showText?: boolean;
+    stateField?: string;
+    className?: string;
+    showHeaderText?: boolean;
+}
+
+export const InternalNoteLabel: React.FC<IInternalNoteLabelProps> = ({
     item,
-    noteField,
-    prefix,
-    showTooltip,
-    marginRight,
-    marginLeft,
+    noteField = 'internal_note',
     showText,
     stateField,
     className,
-    showHeaderText,
+    prefix = '',
+    showTooltip = true,
+    marginRight = false,
+    marginLeft = false,
+    showHeaderText = true,
 }) => {
-    const internalNote = get(item, `${prefix}${noteField}`);
-    const iconColor = stateField ? get(getItemWorkflowStateLabel(item, stateField), 'iconType') : 'red';
+    const internalNoteRaw = get(item, `${prefix}${noteField}`);
 
-    if (get(internalNote, 'length', 0) < 1) {
+    if ((internalNoteRaw ?? '').length < 1) {
         return null;
     }
 
-    return !showTooltip ? (
-        <div className={className}>
-            <i
-                className={classNames(
-                    'internal-note__label',
-                    'icon-info-sign',
-                    `icon--${iconColor}`,
-                    {
-                        'internal-note__label--margin-right': marginRight,
-                        'internal-note__label--margin-left': marginLeft,
-                    }
-                )}
-            />{showText && internalNote}</div>
-    ) : (
-        <OverlayTrigger
-            overlay={(
-                <Tooltip id="internal_note_popup" className="tooltip--text-left">
-                    {showHeaderText && gettext('Internal Note:')}
-                    {showHeaderText && <br />}
-                    {internalNote
-                        .split('\n')
-                        .map((item, key) => <span key={key}>{item}<br /></span>)
-                    }
-                </Tooltip>
+    const iconColor = stateField ? get(getItemWorkflowStateLabel(item, stateField), 'iconType') : 'red';
+
+    const icon = (
+        <i
+            id="internal-note-icon"
+            className={classNames(
+                'internal-note__label',
+                'icon-info-sign',
+                `icon--${iconColor}`,
+                {
+                    'internal-note__label--margin-right': marginRight,
+                    'internal-note__label--margin-left': marginLeft,
+                }
+            )}
+        />
+    );
+
+    if (!showTooltip) {
+        return (
+            <div data-test-id="internal-note-label" className={className}>
+                {icon}
+                {showText && internalNoteRaw}
+            </div>
+        );
+    }
+
+    const contentParsed = stripHtmlTags(internalNoteRaw).split('\n')
+        .map((x, i) => <p key={i}>{x}</p>);
+
+    return (
+        <Tooltip
+            placement="auto"
+            content={() => (
+                <div
+                    data-test-id="internal-note-label"
+                    style={{
+                        boxShadow: 'var(--sd-shadow--z3)',
+                        padding: 'var(--space--1-5)',
+                        fontSize: 'var(--text-size-small)',
+                        lineHeight: 1.4
+                    }}
+                >
+                    {showHeaderText && <Text weight="strong">{gettext('Internal Note:')}</Text>}
+                    {contentParsed}
+                </div>
             )}
         >
-            <i
-                className={classNames(
-                    'internal-note__label',
-                    'icon-info-sign',
-                    `icon--${iconColor}`,
-                    {
-                        'internal-note__label--margin-right': marginRight,
-                        'internal-note__label--margin-left': marginLeft,
-                    }
-                )}
-            />
-        </OverlayTrigger>
+            {icon}
+        </Tooltip>
     );
-};
-
-InternalNoteLabel.propTypes = {
-    item: PropTypes.object,
-    prefix: PropTypes.string,
-    field: PropTypes.string,
-    className: PropTypes.string,
-    showHeaderText: PropTypes.bool,
-    showTooltip: PropTypes.bool,
-    marginRight: PropTypes.bool,
-    marginLeft: PropTypes.bool,
-    noteField: PropTypes.string,
-    showText: PropTypes.bool,
-    stateField: PropTypes.string,
-};
-
-InternalNoteLabel.defaultProps = {
-    prefix: '',
-    showTooltip: true,
-    marginRight: false,
-    marginLeft: false,
-    noteField: 'internal_note',
-    showHeaderText: true,
 };

@@ -1,6 +1,6 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import {connect} from 'react-redux';
+import {connect, Provider} from 'react-redux';
 
 import {appConfig} from 'appConfig';
 import {planningApi} from '../../superdeskApi';
@@ -9,32 +9,45 @@ import {gettext} from '../../utils';
 import {Dropdown} from '../UI/SubNav';
 import {PRIVILEGES} from '../../constants';
 import {showModal} from '../../actions/modal';
+import {showModal as showModalSf} from '@sourcefabric/common';
 import {MODALS} from '../../constants/modals';
+import {CoverageProfilesModal} from '../../components/ContentProfiles/CoverageProfileModal';
+import {ManageExportTemplatesModal} from '../../components/ExportTemplates/ManageExportTemplates';
 
 const ActionsSubnavDropdownComponent = (props) => {
     let items = [];
 
     if (props.privileges[PRIVILEGES.AGENDA_MANAGEMENT]) {
         items.push({
-            label: gettext('Manage agendas'),
+            label: gettext('Manage Agendas'),
             action: props.openAgendas,
         });
     }
 
     if (props.privileges[PRIVILEGES.MANAGE_CONTENT_PROFILES]) {
         items.push({
-            label: gettext('Manage planning profiles'),
+            label: gettext('Manage Planning Profile'),
             action: planningApi.contentProfiles.showManagePlanningProfileModal,
         });
+
         items.push({
-            label: gettext('Manage event profiles'),
+            label: gettext('Manage Coverage Profiles'),
+            action: () => showModalSf(({closeModal}) => (
+                <Provider store={planningApi.redux.store}>
+                    <CoverageProfilesModal closeModal={closeModal} />
+                </Provider>
+            )),
+        });
+
+        items.push({
+            label: gettext('Manage Event Profile'),
             action: planningApi.contentProfiles.showManageEventProfileModal,
         });
     }
 
     if (appConfig.event_templates_enabled === true && props.privileges[PRIVILEGES.EVENT_TEMPLATES]) {
         items.push({
-            label: gettext('Manage event templates'),
+            label: gettext('Manage Event Templates'),
             action: () => props.dispatch(showModal({
                 modalType: MODALS.MANAGE_EVENT_TEMPLATES,
             })),
@@ -48,9 +61,18 @@ const ActionsSubnavDropdownComponent = (props) => {
         });
     }
 
+    if (props.privileges[PRIVILEGES.MANAGE_EXPORT_TEMPLATES]) {
+        items.push({
+            label: gettext('Manage Custom Layouts'),
+            action: () => showModalSf(({closeModal}) => (
+                <ManageExportTemplatesModal closeModal={closeModal} />
+            )),
+        });
+    }
+
     if (props.privileges[PRIVILEGES.FEATURED_STORIES]) {
         items.push({
-            label: gettext('Featured stories'),
+            label: gettext('Featured Stories'),
             action: props.openFeaturedPlanningModal,
         });
     }

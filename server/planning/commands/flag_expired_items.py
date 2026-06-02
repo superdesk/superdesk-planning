@@ -1,26 +1,31 @@
-# -*- coding: utf-8; -*-
-#
-# This file is part of Superdesk.
-#
-# Copyright 2013, 2014, 2015, 2016, 2017, 2018 Sourcefabric z.u. and contributors.
-#
-# For the full copyright and license information, please see the
-# AUTHORS and LICENSE files distributed with this source code, or
-# at https://www.sourcefabric.org/superdesk/license
+from datetime import timedelta, datetime
+from bson.objectid import ObjectId
+from contextvars import ContextVar
+from typing import Any, Literal
 
-from flask import current_app as app
-from superdesk import Command, command, get_resource_service
+from superdesk.core import get_config, get_current_async_app
+from superdesk.core.utils import str_to_date
+from superdesk.commands import cli
+from superdesk.resource_fields import ID_FIELD
+from superdesk import get_resource_service
 from superdesk.logging import logger
 from superdesk.utc import utcnow
 from superdesk.celery_task_utils import get_lock_id
-from superdesk.lock import lock, unlock, remove_locks
+from superdesk.lock import lock, unlock
 from superdesk.notification import push_notification
-from datetime import timedelta, datetime
-from eve.utils import config
-from bson.objectid import ObjectId
+
+from planning.common import remove_lock_information
+from planning.search.queries import elastic
+
+from planning.utils import get_related_planning_for_events_async, get_related_event_ids_for_planning
+from .utils import iterate_expired_items
 
 
-class FlagExpiredItems(Command):
+log_msg_context: ContextVar[str] = ContextVar("log_msg", default="")
+
+
+@cli.command("planning:flag_expired")
+async def flag_expired_items_command():
     """
     Flag expired `Events` and `Planning` items with `{'expired': True}`.
 
@@ -29,172 +34,214 @@ class FlagExpiredItems(Command):
 
         $ python manage.py planning:flag_expired
 
+    .. versionchanged:: 3.1
+        - Removes any lock information from the item (locks would already be too old).
+        - Uses bulk update operations in batches to improve performance
+
     """
+    return await flag_expired_items_handler()
 
-    log_msg = ""
 
-    def run(self):
-        now = utcnow()
-        self.log_msg = "Expiry Time: {}.".format(now)
-        logger.info("{} Starting to remove expired content at.".format(self.log_msg))
+async def flag_expired_items_handler():
+    now = utcnow()
+    log_msg = f"Expiry Time: {now}."
+    log_msg_context.set(log_msg)
 
-        expire_interval = app.config.get("PLANNING_EXPIRY_MINUTES", 0)
-        if expire_interval == 0:
-            logger.info("{} PLANNING_EXPIRY_MINUTES=0, not flagging items as expired")
-            return
+    logger.info(f"{log_msg} Starting to remove expired content at.")
 
-        lock_name = get_lock_id("planning", "flag_expired")
-        if not lock(lock_name, expire=610):
-            logger.info("{} Flag expired items task is already running".format(self.log_msg))
-            return
+    expire_interval = get_config(int, "PLANNING_EXPIRY_MINUTES", 0)
+    if expire_interval == 0:
+        logger.info(f"{log_msg} PLANNING_EXPIRY_MINUTES=0, not flagging items as expired")
+        return
 
-        expiry_datetime = now - timedelta(minutes=expire_interval)
+    lock_name = get_lock_id("planning", "flag_expired")
+    if not lock(lock_name, expire=610):
+        logger.info(f"{log_msg} Flag expired items task is already running")
+        return
 
+    expiry_datetime = now - timedelta(minutes=expire_interval)
+
+    try:
         try:
-            self._flag_expired_events(expiry_datetime)
+            await flag_expired_items("event", expiry_datetime)
         except Exception as e:
             logger.exception(e)
 
         try:
-            self._flag_expired_planning(expiry_datetime)
+            await flag_expired_items("planning", expiry_datetime)
         except Exception as e:
             logger.exception(e)
-
+    finally:
         unlock(lock_name)
 
-        logger.info("{} Completed flagging expired items.".format(self.log_msg))
-        remove_locks()
-        logger.info("{} Starting to remove expired planning versions.".format(self.log_msg))
-        self._remove_expired_published_planning()
-        logger.info("{} Completed removing expired planning versions.".format(self.log_msg))
+    logger.info(f"{log_msg} Completed flagging expired items.")
+    logger.info(f"{log_msg} Starting to remove expired planning versions.")
+    await remove_expired_published_planning()
+    logger.info(f"{log_msg} Completed removing expired planning versions.")
 
-    def _flag_expired_events(self, expiry_datetime):
-        logger.info("{} Starting to flag expired events".format(self.log_msg))
-        events_service = get_resource_service("events")
-        planning_service = get_resource_service("planning")
 
-        locked_events = set()
-        events_in_use = set()
-        events_expired = set()
-        plans_expired = set()
+async def flag_expired_items(resource_type: Literal["event", "planning"], expiry_datetime: datetime):
+    """
+    Flags items and related plans as `expired` if their schedules are before or equal to the provided expiry_datetime.
 
-        # Obtain the full list of Events that we're to process first
-        # As subsequent queries will change the list of returned items
-        events = dict()
-        for items in events_service.get_expired_items(expiry_datetime):
-            events.update({item[config.ID_FIELD]: item for item in items})
+    - Item locks will be removed.
+    - Events with schedules extending beyond expiry_datetime are considered "in use" and not flagged.
+    - Expired events and their related plans are updated with {"expired": True}.
+    - Notifications are pushed for expired events and plans.
+    """
 
-        self._set_event_plans(events)
+    log_msg = log_msg_context.get()
+    logger.info(f"{log_msg} Starting to flag expired {resource_type}s")
 
-        for event_id, event in events.items():
-            if event.get("lock_user"):
-                locked_events.add(event_id)
-            elif self._get_event_schedule(event) > expiry_datetime:
-                events_in_use.add(event_id)
+    processing_events = resource_type == "event"
+    events_in_use: set[str] = set()
+    items_expired: set[str] = set()
+    plans_expired: set[str] = set()
+
+    projection: list[str] = [] if not processing_events else ["dates"]
+    base_query: dict = {"must_not": [elastic.term("expired", True)]}
+
+    if resource_type == "planning":
+        # Skip Planning items with a primary link to an Event,
+        # as this will be processed when processing the Event
+        base_query["must_not"].append(
+            elastic.nested(
+                "related_events",
+                elastic.term("related_events.link_type", "primary"),
+            )
+        )
+
+    # We can safely remove the lock, as the lock would be too old now anyway
+    updates = remove_lock_information({"expired": True})
+
+    async for items in iterate_expired_items(resource_type, expiry_datetime, base_query, projection):
+        plans: dict[str, list[dict]] = await get_event_plans(items) if processing_events else {}
+        events_to_expire: set[str] = set()
+        planning_to_expire: set[str] = set()
+
+        for item in items:
+            item_id = item[ID_FIELD]
+
+            if not processing_events:
+                planning_to_expire.add(item_id)
             else:
-                events_expired.add(event_id)
-                events_service.system_update(event_id, {"expired": True}, event)
-                for plan in event.get("_plans", []):
-                    plan_id = plan[config.ID_FIELD]
-                    planning_service.system_update(plan_id, {"expired": True}, plan)
-                    plans_expired.add(plan_id)
+                item_plans: list[dict] = plans.get(item_id, [])
+                if is_event_in_use(item, item_plans, expiry_datetime):
+                    # This Event is linked to a Planning item that's not eligible for expiry yet
+                    # Skipping this one
+                    events_in_use.add(item_id)
+                    continue
 
-        if len(locked_events) > 0:
-            logger.info(
-                "{} Skipping {} locked Events: {}".format(self.log_msg, len(locked_events), list(locked_events))
-            )
+                events_to_expire.add(item_id)
+                for plan in item_plans:
+                    plan_id: str = plan[ID_FIELD]
+                    planning_to_expire.add(plan_id)
+                    plans_expired.update(plan_id)
 
-        if len(events_in_use) > 0:
-            logger.info(
-                "{} Skipping {} Events in use: {}".format(self.log_msg, len(events_in_use), list(events_in_use))
-            )
+            items_expired.add(item_id)
 
-        if len(events_expired) > 0:
-            push_notification("events:expired", items=list(events_expired))
+        resource_updates: list[tuple[str, set[str], dict]] = []
+        if events_to_expire:
+            resource_updates.append(("events", events_to_expire, updates.copy()))
+        if planning_to_expire:
+            resource_updates.append(("planning", planning_to_expire, updates.copy()))
 
-        if len(plans_expired) > 0:
-            push_notification("planning:expired", items=list(plans_expired))
+        if resource_updates:
+            await get_current_async_app().resources.bulk_update_resources(resource_updates)
 
-        logger.info("{} {} Events expired: {}".format(self.log_msg, len(events_expired), list(events_expired)))
+        logger.info(
+            f"{log_msg} {len(events_to_expire)} Events expired, {len(planning_to_expire)} Planning items expired"
+        )
 
-    def _flag_expired_planning(self, expiry_datetime):
-        logger.info("{} Starting to flag expired planning items".format(self.log_msg))
-        planning_service = get_resource_service("planning")
+    if len(events_in_use) > 0:
+        logger.info(f"{log_msg} Skipping {len(events_in_use)} Events in use: {list(events_in_use)}")
 
-        # Obtain the full list of Planning items that we're to process first
-        # As subsequent queries will change the list of returnd items
-        plans = dict()
-        for items in planning_service.get_expired_items(expiry_datetime):
-            plans.update({item[config.ID_FIELD]: item for item in items})
+    if len(items_expired) > 0:
+        push_resource_name = "events" if processing_events else "planning"
+        push_notification(f"{push_resource_name}:expired", items=list(items_expired))
 
-        locked_plans = set()
-        plans_expired = set()
+    if len(plans_expired) > 0:
+        push_notification("planning:expired", items=list(plans_expired))
 
-        for plan_id, plan in plans.items():
-            if plan.get("lock_user"):
-                locked_plans.add(plan_id)
-            else:
-                planning_service.system_update(plan[config.ID_FIELD], {"expired": True}, plan)
-                plans_expired.add(plan_id)
-
-        if len(locked_plans) > 0:
-            logger.info(
-                "{} Skipping {} locked Planning items: {}".format(self.log_msg, len(locked_plans), list(locked_plans))
-            )
-
-        if len(plans_expired) > 0:
-            push_notification("planning:expired", items=list(plans_expired))
-
-        logger.info("{} {} Planning items expired: {}".format(self.log_msg, len(plans_expired), list(plans_expired)))
-
-    @staticmethod
-    def _set_event_plans(events):
-        planning_service = get_resource_service("planning")
-
-        for plan in planning_service.get_from_mongo(req=None, lookup={"event_item": {"$in": list(events.keys())}}):
-            event = events[plan["event_item"]]
-            if "_plans" not in event:
-                event["_plans"] = []
-            event["_plans"].append(plan)
-
-    @staticmethod
-    def _get_event_schedule(event):
-        latest_scheduled = datetime.strptime(event["dates"]["end"], "%Y-%m-%dT%H:%M:%S%z")
-        for plan in event.get("_plans", []):
-            # First check the Planning item's planning date
-            # and compare to the Event's end date
-            if latest_scheduled < plan.get("planning_date", latest_scheduled):
-                latest_scheduled = plan.get("planning_date")
-
-            # Next go through all the coverage's scheduled dates
-            # and compare to the latest scheduled date
-            for planning_schedule in plan.get("_planning_schedule", []):
-                scheduled = planning_schedule.get("scheduled")
-                if scheduled and isinstance(scheduled, str):
-                    scheduled = datetime.strptime(planning_schedule.get("scheduled"), "%Y-%m-%dT%H:%M:%S%z")
-
-                if scheduled and (latest_scheduled < scheduled):
-                    latest_scheduled = scheduled
-
-        # Finally return the latest scheduled date among the Event, Planning and Coverages
-        return latest_scheduled
-
-    @staticmethod
-    def _remove_expired_published_planning():
-        """Expire planning versions
-
-        Expiry of the planning versions mirrors the expiry of items within the publish queue in Superdesk so it uses the
-        same configuration value
-
-        :param self:
-        :return:
-        """
-        expire_interval = app.config.get("PUBLISH_QUEUE_EXPIRY_MINUTES", 0)
-        if expire_interval:
-            expire_time = utcnow() - timedelta(minutes=expire_interval)
-            logger.info("Removing planning history items created before {}".format(str(expire_time)))
-
-            get_resource_service("published_planning").delete({"_id": {"$lte": ObjectId.from_datetime(expire_time)}})
+    logger.info(f"{log_msg} {len(items_expired)} {resource_type}s expired")
 
 
-command("planning:flag_expired", FlagExpiredItems())
+async def get_event_plans(events: list[dict[str, Any]]) -> dict[str, list[dict]]:
+    """
+    Populates each event in the given dictionary with its related planning items.
+
+    This function retrieves planning items associated with the provided events and
+    adds them to each event under the `_plans` key. The relationship between events
+    and plans is determined through a "primary".
+
+    Side Effects:
+        - The `events` dictionary is modified in place.
+        - Each event gains a `_plans` key containing a list of related planning items.
+    """
+
+    plans: dict[str, list[dict]] = {}
+    event_ids = [event[ID_FIELD] for event in events]
+
+    projection = {"_planning_schedule": 1, "planning_date": 1, "related_events": 1}
+    for plan in await get_related_planning_for_events_async(event_ids, "primary", projection=projection):
+        for related_event_id in get_related_event_ids_for_planning(plan, "primary"):
+            plans.setdefault(related_event_id, []).append(plan)
+    return plans
+
+
+def is_event_in_use(event: dict[str, Any], plans: list[dict], expiry_datetime: datetime) -> bool:
+    """
+    Checks if an event is considered 'in use' by comparing its latest
+    scheduled date to the provided expiry_datetime.
+    """
+    return get_latest_scheduled_date(event, plans) > expiry_datetime
+
+
+def get_latest_scheduled_date(event: dict[str, Any], plans: list[dict]) -> datetime:
+    """
+    Calculates the latest scheduled date for a given event, considering:
+    - The event's own end date
+    - The planning_date of any related plans
+    - The scheduled dates of any coverages within related plans
+
+    Returns:
+        datetime: The latest scheduled datetime.
+    """
+    latest_scheduled = str_to_date(event["dates"]["end"])
+
+    # Check related plans' planning dates
+    for plan in plans:
+        planning_date = plan.get("planning_date", latest_scheduled)
+
+        # First check the Planning item's planning date
+        # and compare to the Event's end date
+        if latest_scheduled < planning_date:
+            latest_scheduled = planning_date
+
+        # Next go through all the coverage's scheduled dates
+        # and compare to the latest scheduled date
+        for planning_schedule in plan.get("_planning_schedule", []):
+            scheduled = planning_schedule.get("scheduled")
+            if scheduled and isinstance(scheduled, str):
+                scheduled = str_to_date(scheduled)
+
+            if scheduled and (latest_scheduled < scheduled):
+                latest_scheduled = scheduled
+
+    return latest_scheduled
+
+
+async def remove_expired_published_planning():
+    """Expire planning versions
+
+    Expiry of the planning versions mirrors the expiry of items within the publish queue in Superdesk so it uses the
+    same configuration value
+    """
+    expire_interval = get_config(int, "PUBLISH_QUEUE_EXPIRY_MINUTES", 0)
+    if expire_interval:
+        expire_time = utcnow() - timedelta(minutes=expire_interval)
+        logger.info(f"Removing published_planning items created before {expire_time}")
+
+        await get_resource_service("published_planning").delete_async(
+            {"_id": {"$lte": ObjectId.from_datetime(expire_time)}}
+        )

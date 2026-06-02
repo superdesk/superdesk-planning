@@ -1,15 +1,45 @@
 import React from 'react';
-import PropTypes from 'prop-types';
 import {connect} from 'react-redux';
 import * as actions from '../actions';
 import * as selectors from '../selectors';
-import {every, get, some} from 'lodash';
+import {every} from 'lodash';
 import {eventUtils, planningUtils, gettext} from '../utils';
 import {MAIN} from '../constants';
 import {SlidingToolBar} from './UI/SubNav';
-import {Button} from './UI';
+import {IEventItem, ILockedItems, IPlanningItem, IPrivileges, ISession} from 'interfaces';
+import {addSomeEventsAsRelatedToPlanningEditor, canAddSomeEventsAsRelatedToPlanningEditor} from '../utils/events';
+import {superdeskApi} from '../superdeskApi';
+import {addSomeRelatedPlanningsToEventEditor, canAddSomeRelatedPlanningsToEventEditor} from '../utils/planning';
+import {IconButton} from 'superdesk-ui-framework/react';
 
-export class MultiSelectActionsComponent extends React.PureComponent {
+interface IReduxState {
+    selectedEvents: Array<any>;
+    eventsInList: Array<any>;
+    selectedPlannings: Array<IPlanningItem>;
+    privileges: IPrivileges;
+    session: ISession;
+    lockedItems: ILockedItems;
+    activeFilter: any;
+    selectedPlanningIds: Array<string>;
+    selectedEventIds: Array<string>;
+    plansInList: any;
+}
+
+interface IDispatchProps {
+    selectAllEvents(): void;
+    deSelectAllEvents(): void;
+    selectAllPlannings(): void;
+    deSelectAllPlannings(): void;
+    addToWorkflow(items): void;
+    exportAsArticle(items, download): void;
+    spikeItems(items): void;
+    unspikeItems(items): void;
+    addEventToCurrentAgenda(events): void;
+}
+
+type IProps = IReduxState & IDispatchProps;
+
+export class MultiSelectActionsComponent extends React.PureComponent<IProps> {
     constructor(props) {
         super(props);
 
@@ -37,11 +67,11 @@ export class MultiSelectActionsComponent extends React.PureComponent {
     }
 
     getCountLabel() {
-        let count = get(this.props.selectedEvents, 'length', 0);
+        let count = this.props.selectedEvents?.length ?? 0;
         let itemType = count > 1 ? gettext('events') : gettext('event');
 
         if (this.props.activeFilter === MAIN.FILTERS.PLANNING) {
-            count = get(this.props.selectedPlannings, 'length', 0);
+            count = this.props.selectedPlannings?.length ?? 0;
             itemType = count > 1 ? gettext('planning items') : gettext('planning item');
         }
 
@@ -50,11 +80,9 @@ export class MultiSelectActionsComponent extends React.PureComponent {
 
     canSelectAll() {
         if (this.props.activeFilter === MAIN.FILTERS.EVENTS) {
-            return get(this.props, 'selectedEvents.length') <
-                get(this.props, 'eventsInList.length');
+            return (this.props.selectedEvents?.length ?? 0) < (this.props.eventsInList?.length ?? 0);
         } else {
-            return get(this.props, 'selectedPlannings.length') <
-                get(this.props, 'plansInList.length');
+            return (this.props.selectedPlannings?.length ?? 0) < (this.props.plansInList?.length ?? 0);
         }
     }
 
@@ -67,6 +95,7 @@ export class MultiSelectActionsComponent extends React.PureComponent {
     }
 
     getPlanningTools() {
+        const {gettextPlural} = superdeskApi.localization;
         const {
             selectedPlannings,
             privileges,
@@ -81,57 +110,79 @@ export class MultiSelectActionsComponent extends React.PureComponent {
 
         const showUnspike = every(
             selectedPlannings,
-            (plan) => planningUtils.canUnspikePlanning(plan, plan.event, privileges)
+            (planningItem) => {
+                const events: Array<IEventItem> = [planningItem.event]; // TAG: MULTIPLE_PRIMARY_EVENTS
+
+                return planningUtils.canUnspikePlanning(planningItem, events, privileges);
+            }
         );
 
-        const showExport = !some(selectedPlannings, 'flags.marked_for_not_publication');
+        const showExport = selectedPlannings.every((planning) => planning.flags.marked_for_not_publication !== true);
 
         let tools = [];
 
-        if (!some(selectedPlannings, 'lock_action')) {
+        if (selectedPlannings.every((planning) => planning.lock_action == null)) {
             tools.push(
-                <Button
+                <IconButton
                     key={0}
-                    hollow={true}
+                    icon="assign"
+                    ariaValue={gettext('Add to workflow')}
                     onClick={() => {
                         this.props.addToWorkflow(this.getItemList());
                     }}
-                    text={gettext('Add to workflow')}
                 />
             );
         }
+
         if (showExport) {
             tools.push(
-                <Button
+                <IconButton
                     key={1}
-                    hollow={true}
+                    icon="upload"
+                    ariaValue={gettext('Export')}
                     onClick={this.exportArticle}
-                    text={gettext('Export')}
                 />
             );
         }
 
         if (showSpike) {
             tools.push(
-                <Button
+                <IconButton
                     key={2}
+                    icon="trash"
+                    ariaValue={gettext('Spike')}
                     onClick={this.itemSpike}
-                    color="alert"
-                    hollow={true}
-                    text={gettext('Spike')}
-                    icon="icon-trash"
                 />
             );
         }
 
         if (showUnspike) {
             tools.push(
-                <Button
+                <IconButton
                     key={3}
+                    icon="unspike"
+                    ariaValue={gettext('Unspike')}
                     onClick={this.itemUnSpike}
-                    color="warning"
-                    icon="icon-unspike"
-                    text={gettext('Unspike')}
+                />
+            );
+        }
+
+        if (canAddSomeRelatedPlanningsToEventEditor(selectedPlannings, lockedItems)) {
+            tools.push(
+                <IconButton
+                    key={4}
+                    onClick={() => {
+                        addSomeRelatedPlanningsToEventEditor(selectedPlannings, lockedItems)
+                            .then(() => {
+                                this.handleDeSelectAll();
+                            });
+                    }}
+                    icon="link"
+                    ariaValue={gettextPlural(
+                        selectedPlannings.length,
+                        'Add as related planning',
+                        'Add as related plannings',
+                    )}
                 />
             );
         }
@@ -162,54 +213,69 @@ export class MultiSelectActionsComponent extends React.PureComponent {
             (event) => eventUtils.canCreatePlanningFromEvent(event, session, privileges, lockedItems)
         );
 
+        const {gettextPlural} = superdeskApi.localization;
+
         let tools = [(
-            <Button
+            <IconButton
                 key={0}
+                icon="upload"
+                ariaValue={gettext('Export')}
                 onClick={this.exportArticle}
-                hollow
-                text={gettext('Export')}
             />
         ), (
-            <Button
+            <IconButton
                 key={1}
+                icon="download"
+                ariaValue={gettext('Download')}
                 onClick={this.exportArticle.bind(null, true)}
-                color="primary"
-                text={gettext('Download')}
             />
         )];
 
         if (showCreatePlan) {
             tools.push(
-                <Button
+                <IconButton
                     key={2}
+                    icon="calendar"
+                    ariaValue={gettext('Create planning')}
                     onClick={this.createPlanning}
-                    color="primary"
-                    text={gettext('Create planning')}
                 />
             );
         }
 
         if (showSpike) {
             tools.push(
-                <Button
+                <IconButton
                     key={3}
+                    icon="trash"
+                    ariaValue={gettext('Spike')}
                     onClick={this.itemSpike}
-                    color="alert"
-                    hollow={true}
-                    text={gettext('Spike')}
-                    icon="icon-trash"
                 />
             );
         }
 
         if (showUnspike) {
             tools.push(
-                <Button
+                <IconButton
                     key={4}
+                    icon="unspike"
+                    ariaValue={gettext('Unspike')}
                     onClick={this.itemUnSpike}
-                    color="warning"
-                    text={gettext('Unspike')}
-                    icon="icon-unspike"
+                />
+            );
+        }
+
+        if (canAddSomeEventsAsRelatedToPlanningEditor(selectedEvents)) {
+            tools.push(
+                <IconButton
+                    key={5}
+                    onClick={() => {
+                        addSomeEventsAsRelatedToPlanningEditor(selectedEvents)
+                            .then(() => {
+                                this.handleDeSelectAll();
+                            });
+                    }}
+                    icon="link"
+                    ariaValue={gettextPlural(selectedEvents.length, 'Add as related event', 'Add as related events')}
                 />
             );
         }
@@ -245,10 +311,19 @@ export class MultiSelectActionsComponent extends React.PureComponent {
             selectedEventIds,
         } = this.props;
 
-        const hideSlidingToolBar = (activeFilter === MAIN.FILTERS.PLANNING &&
-            get(selectedPlanningIds, 'length') === 0) ||
-            (activeFilter === MAIN.FILTERS.EVENTS && get(selectedEventIds, 'length') === 0) ||
-            activeFilter === MAIN.FILTERS.COMBINED;
+        const hideSlidingToolBar =
+            (
+                activeFilter === MAIN.FILTERS.PLANNING &&
+                selectedPlanningIds.length === 0
+            )
+            || (
+                activeFilter === MAIN.FILTERS.EVENTS && selectedEventIds.length === 0
+            )
+            || activeFilter === MAIN.FILTERS.COMBINED;
+
+        if (hideSlidingToolBar) {
+            return null;
+        }
 
         let innerTools = [(<a key={1} onClick={this.handleDeSelectAll.bind(this)}>{gettext('Deselect All')}</a>)];
 
@@ -269,28 +344,7 @@ export class MultiSelectActionsComponent extends React.PureComponent {
     }
 }
 
-MultiSelectActionsComponent.propTypes = {
-    selectedEvents: PropTypes.array,
-    selectAllEvents: PropTypes.func,
-    deSelectAllEvents: PropTypes.func,
-    addToWorkflow: PropTypes.func,
-    selectedPlannings: PropTypes.array,
-    selectAllPlannings: PropTypes.func,
-    deSelectAllPlannings: PropTypes.func,
-    privileges: PropTypes.object.isRequired,
-    session: PropTypes.object.isRequired,
-    lockedItems: PropTypes.object,
-    activeFilter: PropTypes.string,
-    exportAsArticle: PropTypes.func,
-    createPlanning: PropTypes.func,
-    spikeItems: PropTypes.func,
-    unspikeItems: PropTypes.func,
-    addEventToCurrentAgenda: PropTypes.func,
-    selectedPlanningIds: PropTypes.array,
-    selectedEventIds: PropTypes.array,
-};
-
-const mapStateToProps = (state) => ({
+const mapStateToProps = (state): IReduxState => ({
     activeFilter: selectors.main.activeFilter(state),
     selectedEvents: selectors.multiSelect.selectedEvents(state),
     eventsInList: selectors.events.eventIdsInList(state),
@@ -303,7 +357,7 @@ const mapStateToProps = (state) => ({
     selectedPlanningIds: selectors.multiSelect.selectedPlanningIds(state),
 });
 
-const mapDispatchToProps = (dispatch) => ({
+const mapDispatchToProps = (dispatch): IDispatchProps => ({
     selectAllEvents: () => dispatch(actions.multiSelect.selectEvents(null, true)),
     deSelectAllEvents: () => dispatch(actions.multiSelect.deSelectEvents(null, true)),
     selectAllPlannings: () => dispatch(actions.multiSelect.selectPlannings(null, true)),

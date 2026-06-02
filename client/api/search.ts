@@ -1,15 +1,27 @@
-import {ISearchAPIParams, ISearchParams} from '../interfaces';
-import {superdeskApi} from '../superdeskApi';
+import {IEventOrPlanningItem, ISearchAPIParams, ISearchParams} from '../interfaces';
+import {superdeskApi, planningApi as sdPlanningApi} from '../superdeskApi';
 import {IRestApiResponse} from 'superdesk-api';
-import {getDateTimeElasticFormat, getTimeZoneOffset} from '../utils';
+import {
+    getCreatedEndDateElasticFormat,
+    getCreatedStartDateElasticFormat,
+    getDateTimeElasticFormat,
+    getTimeZoneOffset,
+} from '../utils';
 import {default as timeUtils} from '../utils/time';
 import {appConfig} from 'appConfig';
+import planningApi from '../actions/planning/api';
+import eventsApi from '../actions/events/api';
+import {partition} from 'lodash';
+import {MAIN} from '../constants';
 
-
-export function cvsToString(items?: Array<{[key: string]: any}>, field: string = 'qcode'): string {
+export function cvsToString(
+    items?: Array<{[key: string]: any}>,
+    field: string = 'qcode',
+    includeScheme: boolean = false,
+): string {
     return arrayToString(
         (items ?? [])
-            .map((item) => item[field])
+            .map((item) => includeScheme && item.scheme ? item.scheme + ':' + item[field] : item[field])
     );
 }
 
@@ -19,12 +31,19 @@ export function arrayToString(items?: Array<string | number>): string {
 }
 
 export function convertCommonParams(params: ISearchParams): Partial<ISearchAPIParams> {
+    const createdStartDate = params.created_start_date !== undefined ?
+        params.created_start_date :
+        params.advancedSearch?.created_start_date;
+    const createdEndDate = params.created_end_date !== undefined ?
+        params.created_end_date :
+        params.advancedSearch?.created_end_date;
+
     return {
         item_ids: arrayToString(params.item_ids),
         name: params.name,
         full_text: params.full_text,
         anpa_category: cvsToString(params.anpa_category),
-        subject: cvsToString(params.subject),
+        subject: cvsToString(params.subject, 'qcode', true),
         state: cvsToString(params.state),
         posted: params.posted,
         language: params.language,
@@ -37,12 +56,18 @@ export function convertCommonParams(params: ISearchParams): Partial<ISearchAPIPa
         end_date: params.end_date == null ?
             null :
             getDateTimeElasticFormat(params.end_date, params.date_filter != 'for_date'),
+        created_start_date: createdStartDate == null ?
+            null :
+            getCreatedStartDateElasticFormat(createdStartDate),
+        created_end_date: createdEndDate == null ?
+            null :
+            getCreatedEndDateElasticFormat(createdEndDate),
         start_of_week: appConfig.start_of_week,
         slugline: params.slugline,
         lock_state: params.lock_state,
         directly_locked: params.directly_locked,
         page: params.page ?? 1,
-        max_results: params.max_results ?? 50,
+        max_results: params.max_results ?? MAIN.PAGE_SIZE,
         recurrence_id: params.recurrence_id,
         place: cvsToString(params.place),
         only_future: params.only_future,
@@ -51,12 +76,13 @@ export function convertCommonParams(params: ISearchParams): Partial<ISearchAPIPa
         sort_field: params.sort_field,
         tz_offset: params.date_filter ? getTimeZoneOffset() : null,
         time_zone: timeUtils.localTimeZone(),
+        ednote: params.ednote,
     };
 }
 
-function excludeNullParams(args: ISearchAPIParams): ISearchAPIParams {
+export function excludeNullParams<T>(args: T): T {
     // Copy the args so that we don't modify the original
-    const params: ISearchAPIParams = Object.assign({}, args);
+    const params: T = Object.assign({}, args);
 
     Object.keys(params).forEach((field) => {
         if (params[field] == null) {
@@ -75,6 +101,22 @@ export function searchRaw<T>(args: ISearchAPIParams): Promise<IRestApiResponse<T
         excludeNullParams(args)
     );
 }
+
+export const searchRawAndStore = <T>(args: ISearchAPIParams) => {
+    const {dispatch} = sdPlanningApi.redux.store;
+
+    return superdeskApi.dataApi.queryRawJson<IRestApiResponse<T>>(
+        'events_planning_search',
+        excludeNullParams(args)
+    ).then((res) => {
+        const [relatedPlans, events] = partition(res._items, (item: IEventOrPlanningItem) => item.type === 'planning');
+
+        dispatch(planningApi.receivePlannings(relatedPlans));
+        dispatch(eventsApi.receiveEvents(events));
+
+        return res;
+    });
+};
 
 export function searchRawGetAll<T>(args: ISearchAPIParams): Promise<Array<T>> {
     const params = excludeNullParams(args);

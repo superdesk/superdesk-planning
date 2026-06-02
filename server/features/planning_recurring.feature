@@ -44,7 +44,7 @@ Feature: Recurring Events & Planning
         When we post to "/planning"
         """
         [{
-            "event_item": "#EVENT1._id#",
+            "related_events": [{"_id": "#EVENT1._id#", "link_type": "primary"}],
             "planning_date": "2024-11-21T12:00:00.000Z",
             "update_method": "all",
             "coverages": [{
@@ -86,7 +86,7 @@ Feature: Recurring Events & Planning
             "guid": "#PLAN1._id#",
             "type": "planning",
             "planning_date": "2024-11-21T12:00:00+0000",
-            "event_item": "#EVENT1._id#",
+            "related_events": [{"_id": "#EVENT1._id#", "link_type": "primary"}],
             "recurrence_id": "#EVENT1.recurrence_id#",
             "planning_recurrence_id": "#PLAN1.planning_recurrence_id#",
             "coverages": [
@@ -113,7 +113,7 @@ Feature: Recurring Events & Planning
             "guid": "#PLAN2._id#",
             "type": "planning",
             "planning_date": "2024-11-22T12:00:00+0000",
-            "event_item": "#EVENT2._id#",
+            "related_events": [{"_id": "#EVENT2._id#", "link_type": "primary"}],
             "recurrence_id": "#EVENT1.recurrence_id#",
             "planning_recurrence_id": "#PLAN1.planning_recurrence_id#",
             "coverages": [
@@ -140,7 +140,7 @@ Feature: Recurring Events & Planning
             "guid": "#PLAN3._id#",
             "type": "planning",
             "planning_date": "2024-11-23T12:00:00+0000",
-            "event_item": "#EVENT3._id#",
+            "related_events": [{"_id": "#EVENT3._id#", "link_type": "primary"}],
             "recurrence_id": "#EVENT1.recurrence_id#",
             "planning_recurrence_id": "#PLAN1.planning_recurrence_id#",
             "coverages": [
@@ -179,7 +179,8 @@ Feature: Recurring Events & Planning
                     "planning": {
                         "slugline": "test text slugline v2",
                         "g2_content_type": "text",
-                        "scheduled": "2024-11-22T15:00:00.000Z"
+                        "scheduled": "2024-11-22T15:00:00.000Z",
+                        "news_coverage_status": {"qcode": "ncostat:int"}
                     }
                 },
                 {
@@ -190,7 +191,8 @@ Feature: Recurring Events & Planning
                     "planning": {
                         "slugline": "test pic slugline v2",
                         "g2_content_type": "picture",
-                        "scheduled": "2024-11-22T16:00:00.000Z"
+                        "scheduled": "2024-11-22T16:00:00.000Z",
+                        "news_coverage_status": {"qcode": "ncostat:int"}
                     }
                 }
             ]
@@ -278,12 +280,16 @@ Feature: Recurring Events & Planning
                         {
                             "coverage_id": "#TEXT_COVERAGE_2_ID#",
                             "slugline": "test text slugline v3",
-                            "scheduled": "2024-11-22T17:00:00+0000"
+                            "scheduled": "2024-11-22T17:00:00+0000",
+                            "g2_content_type": "text",
+                            "news_coverage_status": "ncostat:int"
                         },
                         {
                             "coverage_id": "#PIC_COVERAGE_2_ID#",
                             "slugline": "test pic slugline v3",
-                            "scheduled": "2024-11-22T18:00:00+0000"
+                            "scheduled": "2024-11-22T18:00:00+0000",
+                            "g2_content_type": "picture",
+                            "news_coverage_status": "ncostat:int"
                         }
                     ]
                 }
@@ -391,7 +397,8 @@ Feature: Recurring Events & Planning
                     "planning": {
                         "slugline": "test text slugline v2",
                         "g2_content_type": "text",
-                        "scheduled": "2024-11-22T17:00:00.000Z"
+                        "scheduled": "2024-11-22T17:00:00.000Z",
+                        "news_coverage_status": {"qcode": "ncostat:int"}
                     }
                 },
                 {
@@ -402,7 +409,8 @@ Feature: Recurring Events & Planning
                     "planning": {
                         "slugline": "test pic slugline v2",
                         "g2_content_type": "picture",
-                        "scheduled": "2024-11-22T18:00:00.000Z"
+                        "scheduled": "2024-11-22T18:00:00.000Z",
+                        "news_coverage_status": {"qcode": "ncostat:int"}
                     }
                 }
             ]
@@ -492,7 +500,8 @@ Feature: Recurring Events & Planning
                     "planning": {
                         "slugline": "test text slugline v2",
                         "g2_content_type": "text",
-                        "scheduled": "2024-11-22T17:00:00.000Z"
+                        "scheduled": "2024-11-22T17:00:00.000Z",
+                        "news_coverage_status": {"qcode": "ncostat:int"}
                     }
                 },
                 {
@@ -503,7 +512,8 @@ Feature: Recurring Events & Planning
                     "planning": {
                         "slugline": "test pic slugline v2",
                         "g2_content_type": "picture",
-                        "scheduled": "2024-11-22T18:00:00.000Z"
+                        "scheduled": "2024-11-22T18:00:00.000Z",
+                        "news_coverage_status": {"qcode": "ncostat:int"}
                     }
                 }
             ]
@@ -588,9 +598,22 @@ Feature: Recurring Events & Planning
                     "planning_id": "#PLAN3._id#",
                     "update_method": "all",
                     "coverages": [
-                        {"coverage_id": "#TEXT_COVERAGE_3_ID#"},
-                        {"coverage_id": "#PIC_COVERAGE_3_ID#"},
                         {
+                            "coverage_id": "#TEXT_COVERAGE_3_ID#",
+                            "slugline": "test text slugline v3",
+                            "scheduled": "2024-11-22T17:00:00+0000",
+                            "g2_content_type": "text",
+                            "news_coverage_status": "ncostat:int"
+                        },
+                        {
+                            "coverage_id": "#PIC_COVERAGE_3_ID#",
+                            "slugline": "test pic slugline v3",
+                            "scheduled": "2024-11-22T18:00:00+0000",
+                            "g2_content_type": "picture",
+                            "news_coverage_status": "ncostat:int"
+                        },
+                        {
+                            "coverage_id": "6834696421f83fc293588ae9",
                             "g2_content_type": "video",
                             "slugline": "test video slugline",
                             "scheduled": "2024-11-23T19:00:00+0000",
@@ -608,7 +631,7 @@ Feature: Recurring Events & Planning
             "guid": "#PLAN1._id#",
             "type": "planning",
             "planning_date": "2024-11-21T12:00:00+0000",
-            "event_item": "#EVENT1._id#",
+            "related_events": [{"_id": "#EVENT1._id#", "link_type": "primary"}],
             "recurrence_id": "#EVENT1.recurrence_id#",
             "planning_recurrence_id": "#PLAN1.planning_recurrence_id#",
             "coverages": [
@@ -637,7 +660,7 @@ Feature: Recurring Events & Planning
             "guid": "#PLAN2._id#",
             "type": "planning",
             "planning_date": "2024-11-22T12:00:00+0000",
-            "event_item": "#EVENT2._id#",
+            "related_events": [{"_id": "#EVENT2._id#", "link_type": "primary"}],
             "recurrence_id": "#EVENT1.recurrence_id#",
             "planning_recurrence_id": "#PLAN1.planning_recurrence_id#",
             "coverages": [
@@ -666,7 +689,7 @@ Feature: Recurring Events & Planning
             "guid": "#PLAN3._id#",
             "type": "planning",
             "planning_date": "2024-11-23T12:00:00+0000",
-            "event_item": "#EVENT3._id#",
+            "related_events": [{"_id": "#EVENT3._id#", "link_type": "primary"}],
             "recurrence_id": "#EVENT1.recurrence_id#",
             "planning_recurrence_id": "#PLAN1.planning_recurrence_id#",
             "coverages": [

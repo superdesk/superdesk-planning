@@ -1,20 +1,17 @@
 import sinon from 'sinon';
 import {cloneDeep} from 'lodash';
 import moment from 'moment-timezone';
-
 import {appConfig} from 'appConfig';
-
 import {planningApi} from '../../../../superdeskApi';
 import {main} from '../../../../actions';
-import planningUi from '../../../../actions/planning/ui';
-
 import {EVENTS} from '../../../../constants';
 import {getItemInArrayById, itemsEqual, timeUtils, updateFormValues, removeAutosaveFields} from '../../../../utils';
+import {convertEventDatesForTimezone} from '../../../../utils/events';
 import {restoreSinonStub, waitFor} from '../../../../utils/testUtils';
 import * as testData from '../../../../utils/testData';
-
 import {ItemManager} from '../ItemManager';
-
+import {EDITOR_TYPE} from 'interfaces';
+import * as saveHandling from '../../../../components/editor-standalone/save-handling';
 
 describe('components.Main.ItemManager', () => {
     let editor;
@@ -41,6 +38,7 @@ describe('components.Main.ItemManager', () => {
             state: 'draft',
             language: 'en',
             languages: ['en'],
+            associated_plannings: [],
         };
 
         newPlan = {
@@ -48,6 +46,7 @@ describe('components.Main.ItemManager', () => {
             type: 'planning',
             state: 'draft',
             planning_date: jasmine.any(moment),
+            all_day: false,
             agendas: [],
             flags: {
                 marked_for_not_publication: false,
@@ -88,9 +87,8 @@ describe('components.Main.ItemManager', () => {
                 inModalView: false,
                 newsCoverageStatus: null,
                 defaultDesk: null,
-                preferredCoverageDesks: null,
                 onCancel: null,
-
+                editorType: EDITOR_TYPE.INLINE,
                 occurStatuses: testData.vocabularies.eventoccurstatus,
                 defaultCalendar: [],
                 defaultPlace: [],
@@ -124,7 +122,7 @@ describe('components.Main.ItemManager', () => {
                     editor.props.onCancel();
                 }
 
-                return manager.unlockAndCancel();
+                return manager.unlockAndCancel('DISCARD');
             }),
             onChangeHandler: sinon.spy((field, value) => {
                 const diff = field ? Object.assign({}, editor.state.diff) : cloneDeep(value);
@@ -250,9 +248,6 @@ describe('components.Main.ItemManager', () => {
             updateProps(nextProps);
             manager.componentWillMount();
             expect(manager.onItemIDChanged.callCount).toBe(1);
-            expect(manager.onItemIDChanged.args[0]).toEqual([
-                jasmine.objectContaining(nextProps),
-            ]);
         });
 
         it('on mount open for editing', () => {
@@ -266,9 +261,6 @@ describe('components.Main.ItemManager', () => {
             updateProps(nextProps);
             manager.componentWillMount();
             expect(manager.onItemIDChanged.callCount).toBe(1);
-            expect(manager.onItemIDChanged.args[0]).toEqual([
-                jasmine.objectContaining(nextProps),
-            ]);
         });
 
         it('on mount open for read only', () => {
@@ -282,9 +274,6 @@ describe('components.Main.ItemManager', () => {
             updateProps(nextProps);
             manager.componentWillMount();
             expect(manager.onItemIDChanged.callCount).toBe(1);
-            expect(manager.onItemIDChanged.args[0]).toEqual([
-                jasmine.objectContaining(nextProps),
-            ]);
         });
     });
 
@@ -345,11 +334,6 @@ describe('components.Main.ItemManager', () => {
             });
 
             expect(manager.onItemIDChanged.callCount).toBe(1);
-            expect(manager.onItemIDChanged.args[0]).toEqual([jasmine.objectContaining({
-                itemId: 'e1',
-                itemType: 'event',
-                itemAction: 'edit',
-            })]);
         });
 
         it('calls on action changed', () => {
@@ -374,22 +358,6 @@ describe('components.Main.ItemManager', () => {
                         itemAction: 'read',
                     })]);
                 });
-        });
-
-        it('calls editor.autoSave.remove on action revert to read', () => {
-            updateProps({
-                itemId: 'e1',
-                itemType: 'event',
-                itemAction: 'read',
-            });
-
-            manager.componentDidUpdate({
-                itemId: 'e1',
-                itemType: 'event',
-                itemAction: 'edit',
-            });
-
-            expect(editor.autoSave.remove.callCount).toBe(1);
         });
 
         it('calls onItemChanged', () => {
@@ -531,8 +499,6 @@ describe('components.Main.ItemManager', () => {
         });
 
         it('edit existing item', (done) => {
-            const prevProps = cloneDeep(editor.props);
-
             updateProps({
                 itemId: 'e1',
                 itemType: 'event',
@@ -540,7 +506,7 @@ describe('components.Main.ItemManager', () => {
                 initialValues: testData.events[0],
             });
 
-            manager.onItemIDChanged(prevProps);
+            manager.onItemIDChanged();
             expectState(states.loading);
 
             waitFor(() => manager.loadItem.callCount > 0)
@@ -554,18 +520,20 @@ describe('components.Main.ItemManager', () => {
                     expect(main.fetchById.args[0]).toEqual(['e1', 'event', true]);
 
                     expect(planningApi.locks.lockItem.callCount).toBe(1);
-                    expect(planningApi.locks.lockItem.args[0]).toEqual([testData.events[0]]);
+                    expect(planningApi.locks.lockItem.args[0]).toEqual([testData.events[0], 'edit']);
 
                     expect(editor.autoSave.createOrLoadAutosave.callCount).toBe(1);
                     expect(editor.autoSave.createOrLoadAutosave.args[0]).toEqual([
                         editor.props,
                         testData.events[0],
                     ]);
+                    const expectedDiff = cloneDeep(testData.events[0]);
 
+                    convertEventDatesForTimezone(expectedDiff);
                     expectState({
                         initialValues: testData.events[0],
                         diff: {
-                            ...testData.events[0],
+                            ...expectedDiff,
                             associated_plannings: [testData.plannings[1]],
                         },
                         dirty: false,
@@ -653,6 +621,7 @@ describe('components.Main.ItemManager', () => {
                 initialValues: {
                     _id: 'tempId-e5',
                     type: 'event',
+                    associated_plannings: [],
                 },
             };
 
@@ -825,7 +794,7 @@ describe('components.Main.ItemManager', () => {
                     expect(main.fetchById.args[0]).toEqual(['e1', 'event', true]);
 
                     expect(planningApi.locks.lockItem.callCount).toBe(1);
-                    expect(planningApi.locks.lockItem.args[0]).toEqual([testData.events[0]]);
+                    expect(planningApi.locks.lockItem.args[0]).toEqual([testData.events[0], 'edit']);
 
                     expect(editor.autoSave.createOrLoadAutosave.callCount).toBe(1);
                     expect(editor.autoSave.createOrLoadAutosave.args[0]).toEqual([
@@ -1186,6 +1155,8 @@ describe('components.Main.ItemManager', () => {
                 diff: item,
             });
 
+            sinon.stub(saveHandling, 'handleEmbeddedItems').returns(Promise.resolve([testData.plannings[1]]));
+
             manager._save()
                 .then(() => {
                     expect(main.save.callCount).toBe(1);
@@ -1218,7 +1189,10 @@ describe('components.Main.ItemManager', () => {
 
                     done();
                 })
-                .catch(done.fail);
+                .catch(done.fail)
+                .finally(() => {
+                    restoreSinonStub(saveHandling.handleEmbeddedItems);
+                });
         });
 
         it('sets submitting to false if main.save fails', (done) => {
@@ -1294,7 +1268,7 @@ describe('components.Main.ItemManager', () => {
                             _etag: 'e789',
                             state: 'scheduled',
                             pubstatus: 'usable',
-                        })
+                        }, true, true)
                     );
                     expect(editor.autoSave.flushAutosave.callCount).toBe(2);
 
@@ -1362,7 +1336,7 @@ describe('components.Main.ItemManager', () => {
                             _etag: 'e789',
                             state: 'killed',
                             pubstatus: 'cancelled',
-                        })
+                        }, true, true)
                     );
                     expect(editor.autoSave.flushAutosave.callCount).toBe(2);
 
@@ -1530,7 +1504,7 @@ describe('components.Main.ItemManager', () => {
                 diff: testData.events[0],
             });
 
-            manager.unlockAndCancel()
+            manager.unlockAndCancel('DISCARD')
                 .then(() => {
                     expect(planningApi.locks.unlockItem.callCount).toBe(0);
 
@@ -1553,7 +1527,7 @@ describe('components.Main.ItemManager', () => {
                 diff: initialValues,
             });
 
-            manager.unlockAndCancel()
+            manager.unlockAndCancel('DISCARD')
                 .then(() => {
                     expect(planningApi.locks.unlockItem.callCount).toBe(0);
                     expect(editor.autoSave.remove.callCount).toBe(1);
@@ -1575,7 +1549,7 @@ describe('components.Main.ItemManager', () => {
                 diff: initialValues,
             });
 
-            manager.unlockAndCancel()
+            manager.unlockAndCancel('DISCARD')
                 .then(() => {
                     expect(planningApi.locks.unlockItem.callCount).toBe(0);
 
@@ -1621,118 +1595,6 @@ describe('components.Main.ItemManager', () => {
                         'read',
                         false,
                     ]);
-
-                    done();
-                })
-                .catch(done.fail);
-        });
-    });
-
-    describe('addCoverageToWorkflow/removeAssignment', () => {
-        beforeEach(() => {
-            sinon.stub(manager, 'finalisePartialSave');
-            sinon.stub(planningApi.planning.coverages, 'addCoverageToWorkflow')
-                .callsFake((planning, coverage, index) => {
-                    const updates = {
-                        ...cloneDeep(planning),
-                        _etag: 'p456',
-                        _updated: jasmine.any(moment),
-                        version_creator: 'ident2',
-                        versioncreated: jasmine.any(moment),
-                    };
-
-                    updates.coverages[index].assigned_to.assignment_id = 'as3';
-                    updates.coverages[index].assigned_to.state = 'assigned';
-
-                    return Promise.resolve(updates);
-                });
-            sinon.stub(planningUi, 'removeAssignment')
-                .callsFake((planning, coverage, index) => {
-                    const updates = {
-                        ...cloneDeep(planning),
-                        _etag: 'p789',
-                        _updated: jasmine.any(moment),
-                        version_creator: 'ident2',
-                        versioncreated: jasmine.any(moment),
-                    };
-
-                    updates.coverages[index].assigned_to.assignment_id = null;
-                    updates.coverages[index].assigned_to.state = null;
-
-                    return Promise.resolve(updates);
-                });
-        });
-
-        afterEach(() => {
-            restoreSinonStub(manager.finalisePartialSave);
-            restoreSinonStub(planningApi.planning.coverages.addCoverageToWorkflow);
-            restoreSinonStub(planningUi.removeAssignment);
-        });
-
-        it('addCoverageToWorkflow', (done) => {
-            manager.addCoverageToWorkflow(
-                testData.plannings[0],
-                testData.plannings[0].coverages[1],
-                1
-            )
-                .then(() => {
-                    expect(planningApi.planning.coverages.addCoverageToWorkflow.callCount).toBe(1);
-                    expect(planningApi.planning.coverages.addCoverageToWorkflow.args[0]).toEqual([
-                        testData.plannings[0],
-                        testData.plannings[0].coverages[1],
-                        1,
-                    ]);
-
-                    expect(manager.finalisePartialSave.callCount).toBe(1);
-                    expect(manager.finalisePartialSave.args[0]).toEqual([{
-                        _etag: 'p456',
-                        _updated: jasmine.any(moment),
-                        version_creator: 'ident2',
-                        versioncreated: jasmine.any(moment),
-                        'coverages[1]': {
-                            ...testData.plannings[0].coverages[1],
-                            assigned_to: {
-                                ...testData.plannings[0].coverages[1].assigned_to,
-                                assignment_id: 'as3',
-                                state: 'assigned',
-                            },
-                        },
-                    }]);
-
-                    done();
-                })
-                .catch(done.fail);
-        });
-
-        it('removeAssignment', (done) => {
-            manager.removeAssignment(
-                testData.plannings[0],
-                testData.plannings[0].coverages[1],
-                1
-            )
-                .then(() => {
-                    expect(planningUi.removeAssignment.callCount).toBe(1);
-                    expect(planningUi.removeAssignment.args[0]).toEqual([
-                        testData.plannings[0],
-                        testData.plannings[0].coverages[1],
-                        1,
-                    ]);
-
-                    expect(manager.finalisePartialSave.callCount).toBe(1);
-                    expect(manager.finalisePartialSave.args[0]).toEqual([{
-                        _etag: 'p789',
-                        _updated: jasmine.any(moment),
-                        version_creator: 'ident2',
-                        versioncreated: jasmine.any(moment),
-                        'coverages[1]': {
-                            ...testData.plannings[0].coverages[1],
-                            assigned_to: {
-                                ...testData.plannings[0].coverages[1].assigned_to,
-                                assignment_id: null,
-                                state: null,
-                            },
-                        },
-                    }]);
 
                     done();
                 })

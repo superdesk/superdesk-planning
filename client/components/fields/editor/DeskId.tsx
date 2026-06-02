@@ -4,6 +4,7 @@ import {connect} from 'react-redux';
 import {superdeskApi} from '../../../superdeskApi';
 import {IDesk} from 'superdesk-api';
 import {IEditorFieldProps} from '../../../interfaces';
+import {PERSONAL_WORKSPACE} from '../../../constants';
 
 import {desks as getDesks, userDesks as getUserDesks} from '../../../selectors/general';
 import {EditorFieldSelect} from './base/select';
@@ -28,10 +29,7 @@ export class EditorFieldDeskIdComponent extends React.PureComponent<IProps> {
             Array.from(this.props.userDesks);
 
         if (this.props.includePersonal) {
-            desks.push({
-                _id: 'personal-workspace',
-                name: gettext('Personal Workspace'),
-            });
+            desks.push(PERSONAL_WORKSPACE);
         }
 
         return (

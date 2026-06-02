@@ -1,0 +1,78 @@
+import {notNullOrUndefined} from '@sourcefabric/common';
+import {EDITOR_TYPE, IEventItem, IPlanningItem} from '../../interfaces';
+import {IExposedFromAuthoring} from 'superdesk-api';
+import {planningApi} from '../../superdeskApi';
+import {RelatedPlanningItem} from '../../components/fields/editor/EventRelatedPlannings/RelatedPlanningItem';
+import {AssociatedEventItem} from 'components/fields/editor/AssociatedEventItem';
+
+type IRelatedItemRefs = {[id: string]: RelatedPlanningItem | AssociatedEventItem};
+type ItemType = 'event' | 'planning';
+export type IEmbeddedPlanningsActionType = 'SAVE' | 'HANDLE_UNSAVED_CHANGES' | 'DISCARD';
+
+const getEmbeddedAuthoringRefs = (
+    editorType: EDITOR_TYPE,
+    itemType: ItemType,
+) => {
+    const fieldId = itemType === 'event' ? 'related_plannings' : 'associated_event';
+    const embeddedEditorRef = planningApi.editor(editorType).dom.fields[fieldId]?.current;
+
+    const relatedItemRefs: IRelatedItemRefs = embeddedEditorRef?.relatedItemRefs;
+
+    return relatedItemRefs;
+};
+
+const getEmbeddedItemsExposed = <T extends IPlanningItem | IEventItem | void>(
+    editorType: EDITOR_TYPE,
+    itemType: 'event' | 'planning',
+): Array<IExposedFromAuthoring<T>> => {
+    const relatedItemRefs = getEmbeddedAuthoringRefs(editorType, itemType);
+
+    const exposedAuthoringArray = Object.values(relatedItemRefs ?? {})
+        .map((x) =>
+            x?.authoringRef?.current?.getExposed?.() as IExposedFromAuthoring<T>,
+        )
+        .filter(notNullOrUndefined);
+
+    return exposedAuthoringArray;
+};
+
+/**
+ * Iterate over related items and perform chosen action.
+ * Will stop on first error.
+ * User will be prompted about the issue in the UI and is expected to try again.
+ */
+export const handleEmbeddedItems = <T extends IEventItem | IPlanningItem>(
+    editorType: EDITOR_TYPE,
+    action: IEmbeddedPlanningsActionType,
+    itemType: ItemType,
+): Promise<Array<T>> => {
+    const updatedItems: Array<Promise<T>> = [];
+    const itemsExposed = getEmbeddedItemsExposed<T>(editorType, itemType);
+
+    for (const exposed of itemsExposed) {
+        const latestItem = exposed.getLatestItem();
+        const areAllChangesSaved = !exposed.hasUnsavedChanges();
+
+        if (areAllChangesSaved) {
+            updatedItems.push(Promise.resolve(latestItem));
+            continue;
+        }
+
+        if (action === 'SAVE') {
+            updatedItems.push(exposed.save());
+        } else if (action === 'DISCARD') {
+            exposed.discardUnsavedChanges();
+            updatedItems.push(Promise.resolve(latestItem));
+        } else {
+            updatedItems.push(exposed.handleUnsavedChanges());
+        }
+    }
+
+    return Promise.all(updatedItems);
+};
+
+export const embeddedItemHasUnsavedChanges = (itemType: ItemType) => {
+    const planningsExposed = getEmbeddedItemsExposed(EDITOR_TYPE.INLINE, itemType);
+
+    return planningsExposed.some((x) => x.hasUnsavedChanges());
+};

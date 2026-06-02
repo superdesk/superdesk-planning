@@ -49,7 +49,10 @@ describe('<WorkqueueContainer />', () => {
                     _id: 'p2',
                     slugline: 'Planning2',
                     headline: 'Some Plan 2',
-                    event_item: 'e1',
+                    related_events: [{
+                        _id: 'e1',
+                        link_type: 'primary',
+                    }],
                     coverages: [],
                     agendas: ['agenda1'],
                     lock_action: 'edit',

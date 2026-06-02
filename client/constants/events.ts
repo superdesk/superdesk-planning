@@ -12,7 +12,7 @@ export const EVENTS = {
         RECEIVE_EVENT_HISTORY: 'RECEIVE_EVENT_HISTORY',
         MARK_EVENT_CANCELLED: 'MARK_EVENT_CANCELLED',
         MARK_EVENT_POSTPONED: 'MARK_EVENT_POSTPONED',
-        MARK_EVENT_HAS_PLANNINGS: 'MARK_EVENT_HAS_PLANNINGS',
+        SET_EVENT_PLANNINGS: 'SET_EVENT_PLANNINGS',
         LOCK_EVENT: 'LOCK_EVENT',
         UNLOCK_EVENT: 'UNLOCK_EVENT',
         MARK_EVENT_POSTED: 'MARK_EVENT_POSTED',
@@ -135,14 +135,6 @@ export const EVENTS = {
         NO_CALENDAR_ASSIGNED: 'NO_CALENDAR_ASSIGNED',
         ALL_CALENDARS: 'ALL_CALENDARS',
         DEFAULT: 'ALL_CALENDARS',
-    },
-    LIST: {
-        PRIMARY_FIELDS: ['slugline', 'internalnote', 'name'],
-        SECONDARY_FIELDS: ['state', 'actionedState', 'calendars', 'location'],
-    },
-    EXPORT_LIST: {
-        PRIMARY_FIELDS: ['slugline', 'name'],
-        SECONDARY_FIELDS: ['location'],
     },
     UPDATE_METHODS: [{
         name: 'This event only',

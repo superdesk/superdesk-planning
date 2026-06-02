@@ -65,7 +65,7 @@ Feature: Planning Spike
             "revert_state": "draft"
         }
         """
-        When we get "/planning_history?where=planning_id==%22#planning._id#%22"
+        When we get "/planning_history?where={\"planning_id\": \"#planning._id#\"}"
         Then we get list with 1 items
         """
         {"_items": [{
@@ -109,7 +109,7 @@ Feature: Planning Spike
             "state": "draft"
         }
         """
-        When we get "/planning_history?where=planning_id==%22#planning._id#%22"
+        When we get "/planning_history?where={\"planning_id\": \"#planning._id#\"}"
         Then we get list with 1 items
         """
         {"_items": [{
@@ -202,14 +202,16 @@ Feature: Planning Spike
             "state": "spiked",
             "revert_state": "draft",
             "planning_date": "2016-01-02",
-            "event_item": "#events._id#"
+            "related_events": [{"_id": "#events._id#", "link_type": "primary"}]
         }]
         """
         When we unspike planning "#planning._id#"
         Then we get error 400
         """
         {
-            "_issues": {"validator exception": "400: Unspike failed. Associated event is spiked."}
+            "_message": "Unspike failed. Associated event is spiked.",
+            "_status": "ERR",
+            "internal_error": 400
         }
         """
 
@@ -469,20 +471,26 @@ Feature: Planning Spike
         Then we get error  400
         """
         {
-            "_issues": {"validator exception": "400: Spike failed. Planning item in invalid state for spiking."}
+            "_message": "Spike failed. Planning item in invalid state for spiking.",
+            "_status": "ERR",
+            "internal_error": 400
         }
         """
         When we spike planning "plan2"
         Then we get error  400
         """
         {
-            "_issues": {"validator exception": "400: Spike failed. Planning item in invalid state for spiking."}
+            "_message": "Spike failed. Planning item in invalid state for spiking.",
+            "_status": "ERR",
+            "internal_error": 400
         }
         """
         When we spike planning "plan3"
         Then we get error  400
         """
         {
-            "_issues": {"validator exception": "400: Spike failed. Planning item in invalid state for spiking."}
+            "_message": "Spike failed. Planning item in invalid state for spiking.",
+            "_status": "ERR",
+            "internal_error": 400
         }
         """

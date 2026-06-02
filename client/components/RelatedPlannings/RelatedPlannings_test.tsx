@@ -15,7 +15,10 @@ describe('<RelatedPlannings />', () => {
                         slugline: 'planning 3',
                         original_creator: {display_name: 'ABC'},
                         agendas: ['1', '2'],
-                        event_item: 'event1',
+                        related_events: [{
+                            _id: 'event1',
+                            link_type: 'primary',
+                        }],
                     },
                 },
             },

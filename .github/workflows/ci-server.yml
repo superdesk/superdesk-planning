@@ -1,19 +1,23 @@
 name: "CI-Server"
 
-on: [push, pull_request]
+on:
+  push:
+  pull_request:
+  schedule:
+    - cron: "0 2 * * *"
 
 jobs:
-  server-nose:
+  server-pytest:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: ['3.8', '3.10']
+        python-version: ['3.10', '3.12']
     env:
       INSTALL_PY_MODULES: true
       RUN_SERVICES: true
     steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-python@v4
+      - uses: actions/checkout@v6
+      - uses: actions/setup-python@v6
         with:
           python-version: ${{ matrix.python-version }}
           cache: 'pip'
@@ -24,17 +28,18 @@ jobs:
         run: ./scripts/ci-start-services.sh
       - name: Pytest
         run: pytest --log-level=ERROR --disable-warnings server/planning
+
   server-behave:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: ['3.8', '3.10']
+        python-version: ['3.10', '3.12']
     env:
       INSTALL_PY_MODULES: true
       RUN_SERVICES: true
     steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-python@v4
+      - uses: actions/checkout@v6
+      - uses: actions/setup-python@v6
         with:
           python-version: ${{ matrix.python-version }}
           cache: 'pip'
@@ -43,22 +48,25 @@ jobs:
         run: ./scripts/ci-install.sh
       - name: Start Services
         run: ./scripts/ci-start-services.sh
+      - name: Behave (Planning Content API)
+        working-directory: ./server/
+        run: behave --format progress2 --logging-level=ERROR features/planning_content_api
       - name: Behave
         working-directory: ./server
-        run: behave --format progress2 --logging-level=ERROR
+        run: behave --format progress2 --logging-level=ERROR --exclude features/planning_content_api
 
   prodapi:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: ['3.8', '3.10']
+        python-version: ['3.10', '3.12']
     env:
       INSTALL_PY_MODULES: true
       INSTALL_PY_EDITABLE: true
       RUN_SERVICES: true
     steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-python@v4
+      - uses: actions/checkout@v6
+      - uses: actions/setup-python@v6
         with:
           python-version: ${{ matrix.python-version }}
           cache: 'pip'

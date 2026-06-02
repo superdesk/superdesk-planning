@@ -6,6 +6,7 @@ import {EditorFieldText} from './text';
 import {EditorFieldTextArea} from './textArea';
 import {EditorFieldExpandableTextArea} from './expandableTextArea';
 import {EditorFieldTextEditor3} from './textEditor3';
+import {CHANGE_DELAY} from '../../../../constants';
 
 export function getTextFieldComponent(schema?: IProfileSchemaTypeString) {
     switch (schema?.field_type) {
@@ -32,6 +33,8 @@ export class EditorFieldDynamicTextType extends React.PureComponent<IProps> {
     render() {
         const Component = getTextFieldComponent(this.props.schema);
         const {refNode, ...props} = this.props;
+
+        props.debounce = CHANGE_DELAY;
 
         // TODO: Support min/max length, required etc from props.schema
 

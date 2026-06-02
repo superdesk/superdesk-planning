@@ -50,7 +50,7 @@ export const StateLabel = ({
             )}
         >
             {!noState && <div>{getStateLabel(state)}</div>}
-            <div>{withPubStatus && pubState && getStateLabel(pubState)}</div>
+            {withPubStatus && pubState && <div>{getStateLabel(pubState)}</div>}
             {expiredState && (
                 <div>
                     {getStateLabel(expiredState)}

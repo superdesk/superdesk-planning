@@ -1,5 +1,5 @@
 import React from 'react';
-import {get} from 'lodash';
+import {get, memoize, MemoizedFunction} from 'lodash';
 
 import {superdeskApi} from '../../superdeskApi';
 import {IDesk, IUser} from 'superdesk-api';
@@ -11,7 +11,7 @@ import {
     ILockedItems,
     IPlanningItem,
     ISearchFilter,
-    ISession, LIST_VIEW_TYPE, SORT_FIELD
+    ISession, GROUP_LIST_BY, SORT_FIELD
 } from '../../interfaces';
 
 import {KEYCODES, MAIN} from '../../constants';
@@ -19,7 +19,8 @@ import {onEventCapture} from '../../utils';
 
 import {ListGroup} from '.';
 import {PanelInfo} from '../UI';
-import {Item, Column, Group} from '../UI/List';
+import {Column, Group} from '../UI/List';
+import {IPlanningExtensionConfigurationOptions} from '../../planning-extension/src/extension_configuration_options';
 import './style.scss';
 
 /**
@@ -57,16 +58,12 @@ interface IProps {
     loadingIndicator: boolean;
     showAddCoverage?: boolean;
     hideItemActions?: boolean;
-    listFields?: {[key: string]: { // List fields from planning_types collection (i.e. Planning Profiles)
-        primary_fields?: Array<string>;
-        secondary_fields?: Array<string>;
-    }};
     calendars: Array<ICalendar>;
     isAllListItemsLoaded: boolean;
     indexItems?: boolean;
     contentTypes: Array<IG2ContentType>;
     contacts: {[key: string]: IContactItem};
-    listViewType: LIST_VIEW_TYPE;
+    groupListBy: GROUP_LIST_BY;
     sortField: SORT_FIELD;
     userInitiatedSearch?: boolean;
     searchParams?: ICommonAdvancedSearchParams,
@@ -95,8 +92,11 @@ interface IState {
     navigateDown: boolean;
 }
 
+const END_OF_LIST_OFFSET = 100;
+
 export class ListPanel extends React.Component<IProps, IState> {
     dom: {list?: any};
+    memoizedSort: ((items: Array<IEventOrPlanningItem>) => Array<IEventOrPlanningItem>) & MemoizedFunction;
 
     constructor(props) {
         super(props);
@@ -115,6 +115,19 @@ export class ListPanel extends React.Component<IProps, IState> {
         this.onItemClick = this.onItemClick.bind(this);
         this.navigateListWorker = this.navigateListWorker.bind(this);
         this.onItemActivate = this.onItemActivate.bind(this);
+
+        const extensionConfig: IPlanningExtensionConfigurationOptions = superdeskApi.getExtensionConfig();
+
+        this.memoizedSort = memoize((items) =>
+            extensionConfig?.comparePlanningItems != null
+                ? items.sort(extensionConfig.comparePlanningItems)
+                : items.sort((x, y) => {
+                    const item1Date = (x as IEventItem).dates?.start ?? (x as IPlanningItem).planning_date;
+                    const item2Date = (y as IEventItem).dates?.start ?? (y as IPlanningItem).planning_date;
+
+                    return item1Date.toString().localeCompare(item2Date.toString());
+                })
+        );
     }
 
     componentWillReceiveProps(nextProps) {
@@ -259,27 +272,19 @@ export class ListPanel extends React.Component<IProps, IState> {
     }
 
     handleScroll(event) {
-        if (this.state.isNextPageLoading) {
+        if (this.state.isNextPageLoading || this.props.isAllListItemsLoaded) {
             return;
         }
 
         const node = event.target;
 
-        // scroll event gets fired on hover of each item in the list.
-        // this.state.scrollTop is used to check if the scroll position has changed
-        if (node && node.scrollTop + node.offsetHeight + 100 >= node.scrollHeight &&
-            this.state.scrollTop < node.scrollTop) {
-            this.setState({isNextPageLoading: true, scrollTop: node.scrollTop});
-
-            this.props.loadMore(this.props.activeFilter)
-                .then(this.unsetNextPageLoading, this.unsetNextPageLoading);
-        }
-
-        if (node.scrollTop === 0 && this.state.scrollTop > 0) {
-            this.setState({isNextPageLoading: true, scrollTop: 0});
-
-            this.props.filter(this.props.activeFilter)
-                .then(this.unsetNextPageLoading, this.unsetNextPageLoading);
+        // Load more items if there's any if scroll position is 100px before end of the scrollable list
+        if (node.scrollHeight - node.scrollTop - node.clientHeight <= END_OF_LIST_OFFSET) {
+            this.setState({isNextPageLoading: true, scrollTop: node.scrollTop}, () => {
+                this.props
+                    .loadMore(this.props.activeFilter)
+                    .then(this.unsetNextPageLoading, this.unsetNextPageLoading);
+            });
         }
     }
 
@@ -313,13 +318,12 @@ export class ListPanel extends React.Component<IProps, IState> {
             desks,
             showAddCoverage,
             hideItemActions,
-            listFields,
             isAllListItemsLoaded,
             indexItems,
             previewItem,
             contentTypes,
             contacts,
-            listViewType,
+            groupListBy,
             sortField,
             searchParams,
             searchFilterParams,
@@ -375,7 +379,7 @@ export class ListPanel extends React.Component<IProps, IState> {
 
                             let listGroupProps: {[key: string]: any} = {
                                 name: group.date,
-                                items: group.events,
+                                items: this.memoizedSort(group.events),
                                 onItemClick: this.onItemClick,
                                 onDoubleClick: onDoubleClick,
                                 onAddCoverageClick: onAddCoverageClick,
@@ -396,9 +400,8 @@ export class ListPanel extends React.Component<IProps, IState> {
                                 desks: desks,
                                 showAddCoverage: showAddCoverage,
                                 hideItemActions: hideItemActions,
-                                listFields: listFields,
                                 contacts: contacts,
-                                listViewType: listViewType,
+                                groupListBy: groupListBy,
                                 sortField: sortField,
                                 listBoxGroupProps: listBoxGroupProps,
                                 searchParams: searchParams,
@@ -422,18 +425,16 @@ export class ListPanel extends React.Component<IProps, IState> {
                                 />
                             );
                         })}
-                        {!isAllListItemsLoaded && (
+                        {(!isAllListItemsLoaded && loadingIndicator) && (
                             <div className="ListGroup">
                                 <Group>
-                                    <Item noBg={true}>
-                                        <Column grow={true}>
-                                            <div
-                                                className="sd-alert sd-alert--hollow sd-alert--primary sd-alert--align"
-                                            >
-                                                {gettext('loading more items...')}
-                                            </div>
-                                        </Column>
-                                    </Item>
+                                    <Column grow={true}>
+                                        <div
+                                            className="sd-alert sd-alert--hollow sd-alert--primary sd-alert--align"
+                                        >
+                                            {gettext('loading more items...')}
+                                        </div>
+                                    </Column>
                                 </Group>
                             </div>
                         )}

@@ -18,12 +18,14 @@ Feature: Event Embedded Planning
                 "coverages": [{
                     "g2_content_type": "text",
                     "news_coverage_status": "ncostat:int",
-                    "scheduled": "2029-11-21T15:00:00.000Z"
+                    "scheduled": "2029-11-21T15:00:00.000Z",
+                    "coverage_provider": {
+                        "name":"Stringer",
+                        "qcode":"stringer",
+                        "contact_type":"stringer"
+                    }
                 }]
-            }],
-            "subject": [
-                {"name": "Test", "qcode": "test", "scheme": "test"}
-            ]
+            }]
         }]
         """
         Then we get OK response
@@ -47,7 +49,9 @@ Feature: Event Embedded Planning
             "original_creator": "#CONTEXT_USER_ID#",
             "firstcreated": "__now__",
             "versioncreated": "__now__",
-            "event_item": "event1",
+            "related_events": [
+                {"_id": "event1", "link_type": "primary"}
+            ],
             "planning_date": "2029-11-21T12:00:00+0000",
             "coverages": [{
                 "coverage_id": "__any_value__",
@@ -56,15 +60,19 @@ Feature: Event Embedded Planning
                 "original_creator": "#CONTEXT_USER_ID#",
                 "version_creator": "#CONTEXT_USER_ID#",
                 "workflow_status": "draft",
+                "assigned_to": {
+                    "coverage_provider": {
+                        "name":"Stringer",
+                        "qcode":"stringer",
+                        "contact_type":"stringer"
+                    }
+                },
                 "news_coverage_status": {"qcode": "ncostat:int", "name": "coverage intended", "label": "Planned"},
                 "planning": {
                     "g2_content_type": "text",
                     "scheduled": "2029-11-21T15:00:00+0000"
                 }
-            }],
-            "subject": [
-                {"name": "Test", "qcode": "test", "scheme": "test"}
-            ]
+            }]
         }]}
         """
         And we store "PLAN1" with first item
@@ -388,7 +396,9 @@ Feature: Event Embedded Planning
         Then we get list with 1 items
         """
         {"_items": [{
-            "event_item": "event1",
+            "related_events": [
+                {"_id": "event1", "link_type": "primary"}
+            ],
             "slugline": "__no_value__",
             "coverages": [{
                 "planning": {
@@ -448,3 +458,79 @@ Feature: Event Embedded Planning
         Then we store response in "PLAN1"
         When we create "planning" autosave from context item "PLAN1"
         Then we get OK response
+
+    @auth
+    @vocabulary
+    Scenario: Copies configured custom_vocabularies only
+        Given "planning_types"
+        """
+        [{
+            "_id": "event",
+            "name": "event",
+            "editor": {
+                "subject": {"enabled": true},
+                "custom_vocabularies": {"enabled": true}
+            },
+            "schema": {
+                "custom_vocabularies": {
+                    "required": false,
+                    "type": "list",
+                    "vocabularies": ["keywords", "source"]
+                }
+            }
+        }, {
+            "_id": "planing",
+            "name": "planning",
+            "editor": {
+                "subject": {"enabled": true},
+                "custom_vocabularies": {"enabled": true}
+            },
+            "schema": {
+                "custom_vocabularies": {
+                    "required": false,
+                    "type": "list",
+                    "vocabularies": ["keywords", "destination"]
+                }
+            }
+        }]
+        """
+        When we post to "/events"
+        """
+        [{
+            "guid": "event1",
+            "name": "name1",
+            "dates": {
+                "start": "2029-11-21T12:00:00+0000",
+                "end": "2029-11-21T14:00:00+0000",
+                "tz": "Australia/Sydney"
+            },
+            "slugline": "slugline1",
+            "subject":[
+                {"qcode": "17004000", "name": "Statistics"},
+                {"qcode": "sports", "name": "Sports", "scheme": "keywords"},
+                {"qcode": "sport_calendar", "name": "Sport Calendar", "scheme": "source"}
+            ],
+            "embedded_planning": [{
+                "coverages": [{
+                    "g2_content_type": "text",
+                    "language": "en",
+                    "news_coverage_status": "ncostat:int",
+                    "scheduled": "2029-11-21T15:00:00+0000",
+                    "genre": "Article"
+                }]
+            }]
+        }]
+        """
+        Then we get OK response
+        When we get "/events_planning_search?repo=planning&only_future=false&event_item=event1"
+        Then we get list with 1 items
+        """
+        {"_items": [{
+            "_id": "__any_value__",
+            "slugline": "slugline1",
+            "subject": [
+                {"qcode": "17004000", "name": "Statistics"},
+                {"qcode": "sports", "name": "Sports", "scheme": "keywords"}
+            ]
+        }]}
+        """

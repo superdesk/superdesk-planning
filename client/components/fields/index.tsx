@@ -1,7 +1,13 @@
 import React from 'react';
 import {sortBy} from 'lodash';
 
-import {IEventOrPlanningItem, IProfileSchema, IRenderPanelType, ISearchProfile, PREVIEW_PANEL} from '../../interfaces';
+import {
+    IEventOrPlanningItem,
+    IProfileSchemaType,
+    IRenderPanelType,
+    ISearchProfile,
+    PREVIEW_PANEL,
+} from '../../interfaces';
 import {superdeskApi} from '../../superdeskApi';
 
 import {name} from './name';
@@ -10,7 +16,6 @@ import {headline} from './headline';
 import {description} from './description';
 import {internalnote} from './internalnote';
 import {state} from './state';
-import {actionedState} from './actionedState';
 import {calendars} from './calendars';
 import {location} from './location';
 import {files} from './files';
@@ -22,10 +27,18 @@ import {reference} from './reference';
 import {FIELD_TO_EDITOR_COMPONENT} from './editor';
 import {FIELD_TO_LIST_COMPONENT} from './list';
 
-import {FIELD_TO_PREVIEW_COMPONENT, FIELD_TO_FORM_PREVIEW_COMPONENT} from './preview';
+import {FIELD_TO_FORM_PREVIEW_COMPONENT, FIELD_TO_PREVIEW_COMPONENT} from './preview';
 
 import {ToggleBox} from '../UI/ToggleBox';
 import './style.scss';
+import {related_events} from './related_events';
+import {related_plannings} from './related_plannings';
+import {event_datetime} from './event_datetime';
+import {vocabulary} from './vocabulary';
+import {ILineConfig} from 'globals';
+import {urgency} from './urgency';
+import {anpa_category} from './anpa_category';
+import {priority} from './priority';
 
 let registeredFields = {};
 
@@ -45,12 +58,13 @@ export function registerField(id, component) {
  * @param {Object} props
  */
 export function renderFields(
-    fields: Array<any>|string,
+    fields: Array<ILineConfig>,
     item: IEventOrPlanningItem,
     props: Object = {},
     language: string = ''
 ) {
-    return (Array.isArray(fields) ? fields : [fields]).map((id) => {
+    return fields.map((field) => {
+        const id = field.fieldId;
         const Component = registeredFields[id];
 
         if (Component) {
@@ -59,6 +73,7 @@ export function renderFields(
                     key={id}
                     item={item}
                     language={language}
+                    fieldOptions={field.fieldOptions}
                     {...props}
                 />
             );
@@ -116,11 +131,24 @@ export function renderFieldsForPanel(
     groupName?: string,
     enabledField: string = 'enabled',
     refs: {[key: string]: React.RefObject<any>} = {},
-    schema?: IProfileSchema,
+    schema?: {[key: string]: IProfileSchemaType},
     coverageProfile?: ISearchProfile,
 ) {
     const fieldComponents = getFieldsForPanel(panelType);
     const fields: {[key: string]: IRenderFieldItem} = {};
+
+    // Only render custom_vocabularies for preview. Otherwise rendering in editor is done differently
+    if ((panelType === 'simple-preview' || panelType === 'form-preview')) {
+        const schemes = new Set<string>((globalProps.item?.subject ?? []).map((x) => x.scheme));
+
+        if ((schemes.size > 0 || !schemes.has('subject'))) {
+            profile['custom_vocabularies'] = {
+                enabled: true,
+                index: -1,
+                group: 'details',
+            };
+        }
+    }
 
     Object.keys(profile).forEach((fieldName) => {
         const newField: IRenderFieldItem = {
@@ -144,11 +172,12 @@ export function renderFieldsForPanel(
         }
 
         if (newField.component == null) {
-            console.error(`Component for field ${fieldName} not registered`);
-        } else if (profile[fieldName].enabled &&
+            console.warn(`Component for field ${fieldName} not registered`);
+        } else if (
+            profile[fieldName].enabled &&
             profile[fieldName][enabledField] &&
-            (!groupName || newField.group === groupName) &&
-            fieldProps[fieldName]?.enabled != false
+            (!groupName || newField.group === groupName)
+            && fieldProps[fieldName]?.enabled != false
         ) {
             newField.enabled = true;
             fields[fieldName] = newField;
@@ -276,7 +305,6 @@ const PREVIEW_GROUPS: IPreviewGroups = {
         fields: [
             'anpa_category',
             'subject',
-            'custom_vocabularies',
             'definition_long',
             'internal_note',
             'ednote',
@@ -298,6 +326,7 @@ const PREVIEW_GROUPS: IPreviewGroups = {
             'description_text',
             'internal_note',
             'place',
+            'location',
             'agendas',
         ],
     }, {
@@ -306,7 +335,6 @@ const PREVIEW_GROUPS: IPreviewGroups = {
             'ednote',
             'anpa_category',
             'subject',
-            'custom_vocabularies',
             'urgency',
             'flags',
         ]
@@ -325,6 +353,8 @@ const PREVIEW_GROUPS: IPreviewGroups = {
             'news_coverage_status',
             'scheduled',
             'flags',
+            'location',
+            'anpa_category',
         ],
     }],
     [PREVIEW_PANEL.ASSOCIATED_EVENT]: [{
@@ -351,6 +381,7 @@ const PREVIEW_GROUPS: IPreviewGroups = {
             'keyword',
             'ednote',
             'internal_note',
+            'location',
         ],
     }],
     [PREVIEW_PANEL.SCHEDULED_COVERAGE_UPDATE]: [{
@@ -397,9 +428,13 @@ registerField('description', description);
 registerField('definition_short', description);
 registerField('internalnote', internalnote);
 registerField('state', state);
+registerField('event_datetime', event_datetime);
+registerField('related_events', related_events);
+registerField('urgency', urgency);
+registerField('priority', priority);
+
 
 // Event related fields
-registerField('actionedState', actionedState);
 registerField('calendars', calendars);
 registerField('location', location);
 registerField('files', files);
@@ -407,3 +442,8 @@ registerField('featured', FeatureLabel);
 registerField('agendas', agendas);
 registerField('coverages', coverages);
 registerField('reference', reference);
+registerField('related_plannings', related_plannings);
+
+// common fields
+registerField('vocabulary', vocabulary);
+registerField('anpa_category', anpa_category);

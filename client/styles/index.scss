@@ -1,6 +1,7 @@
 @import '~superdesk-core/styles/sass/mixins.scss';
 @import '~superdesk-core/styles/sass/variables.scss';
 @import '~superdesk-ui-framework/app/styles/variables/_colors.scss';
+@import '~@sourcefabric/common/dist/src/index.css';
 
 @mixin absolute0 {
     position: absolute;
@@ -108,13 +109,6 @@
   justify-content: flex-end;
 }
 
-// Fix second subnav's z-index in Planning page
-#sd-planning-react-container {
-  .subnav + .subnav {
-    z-index: 1002 !important;
-  }
-}
-
 // Fix react-bootstrap OverlayTrigger's Tooltip inside Modals
 .tooltip {
     z-index: 10000 !important;
@@ -133,4 +127,7 @@
   .sd-list-item {
     overflow: hidden;
   }
+}
+[class="icon-dots-vertical"], [class="icon-pencil"] {
+    pointer-events: unset !important;
 }

@@ -1,5 +1,4 @@
 import React from 'react';
-import PropTypes from 'prop-types';
 import {connect} from 'react-redux';
 import {modalType, modalProps} from '../selectors/general';
 import {modalActions} from '../actions';
@@ -42,35 +41,44 @@ const modals = {
     [MODALS.EDIT_COVERAGE_ASSIGNMENT]: EditCoverageAssignmentModal,
 };
 
-export function Modals({modalType, modalProps, handleHide}) {
-    if (modalType && modals[modalType]) {
-        return React.createElement(modals[modalType], {
-            handleHide,
-            modalProps,
-        });
+interface IModalProps {
+    modalType: string;
+    modalProps: any;
+    handleHide: (itemType?: string) => void;
+    onModalHide?: () => void;
+}
+
+export function Modals({modalType, modalProps, handleHide}: IModalProps) {
+    if (modalType != null && modals[modalType] != null) {
+        const ModalElement = modals[modalType];
+
+        return (
+            <ModalElement
+                handleHide={handleHide}
+                modalProps={modalProps}
+            />
+        );
     } else {
         return null;
     }
 }
 
-Modals.propTypes = {
-    modalType: PropTypes.string,
-    modalProps: PropTypes.object,
-    handleHide: PropTypes.func.isRequired,
-};
-
 const mapStateToProps = (state) => ({
     modalType: modalType(state),
     modalProps: modalProps(state),
 });
-const mapDispatchToProps = (dispatch) => ({
+
+const mapDispatchToProps = (dispatch, ownProps) => ({
     handleHide: (itemType) => {
         dispatch(modalActions.hideModal());
-        if (itemType === ITEM_TYPE.EVENT) {
-            dispatch(multiSelect.deSelectEvents(null, true));
-        } else {
-            dispatch(multiSelect.deSelectPlannings(null, true));
-        }
+
+        const action = itemType === ITEM_TYPE.EVENT
+            ? multiSelect.deSelectEvents
+            : multiSelect.deSelectPlannings;
+
+        dispatch(action(null, true));
+
+        ownProps?.onModalHide?.();
     },
 });
 

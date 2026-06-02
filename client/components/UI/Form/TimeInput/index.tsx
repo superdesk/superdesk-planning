@@ -21,6 +21,14 @@ import './style.scss';
  * @description Component to pick time in hours and minutes
  */
 export class TimeInput extends React.Component {
+    dom: {
+        inputField: HTMLInputElement;
+        iconWrapper: HTMLElement;
+    };
+
+    private inputPadding: number;
+    private iconPadding: number;
+
     constructor(props) {
         super(props);
         this.state = {
@@ -31,12 +39,17 @@ export class TimeInput extends React.Component {
             showLocalValidation: false,
         };
 
-        this.dom = {inputField: null};
+        this.dom = {
+            inputField: null,
+            iconWrapper: null,
+        };
+
         this.handleInputBlur = this.handleInputBlur.bind(this);
         this.validateTimeText = this.validateTimeText.bind(this);
         this.toggleOpenTimePicker = this.toggleOpenTimePicker.bind(this);
         this.onChange = this.onChange.bind(this);
         this.isValidInput = this.isValidInput.bind(this);
+        this.updateInputWidth = this.updateInputWidth.bind(this);
     }
 
     componentWillReceiveProps(nextProps) {
@@ -77,7 +90,7 @@ export class TimeInput extends React.Component {
             value.format(appConfig.planning.timeformat) :
             (value || '');
 
-        this.setState({viewValue});
+        this.setState({viewValue}, this.updateInputWidth);
     }
 
     toggleOpenTimePicker() {
@@ -90,8 +103,14 @@ export class TimeInput extends React.Component {
     }
 
     isValidInput(val) {
-        return moment(val, appConfig.planning.timeformat, true)
+        return val == null || moment(val, appConfig.planning.timeformat, true)
             .isValid();
+    }
+
+    componentDidUpdate(_prevProps, prevState) {
+        if (prevState.viewValue !== this.state.viewValue) {
+            this.updateInputWidth();
+        }
     }
 
     validateTimeText(field, val) {
@@ -119,6 +138,11 @@ export class TimeInput extends React.Component {
     */
     handleInputBlur() {
         const {viewValue, invalid} = this.state;
+
+        if (viewValue === '') {
+            this.onChange(viewValue);
+            return;
+        }
 
         if (invalid) {
             const isValidHour = (n) => (parseInt(n, 10) >= 0 && parseInt(n, 10) < 24);
@@ -171,7 +195,10 @@ export class TimeInput extends React.Component {
             }
 
             this.onChange(newValue);
-            this.setState({invalid: false, viewValue: (newValue.length === 4 ? ('0' + newValue) : newValue)});
+            this.setState({
+                invalid: false,
+                viewValue: (newValue.length === 4 ? ('0' + newValue) : newValue),
+            });
         }
     }
 
@@ -185,8 +212,8 @@ export class TimeInput extends React.Component {
             return;
         }
 
-        let newTime;
-        let newMoment;
+        let newTime: moment.Moment;
+        let newMoment: moment.Moment;
 
         if (remoteTimeZone) {
             newTime = moment.tz(newValue, appConfig.planning.timeformat, true, remoteTimeZone);
@@ -200,6 +227,7 @@ export class TimeInput extends React.Component {
                 moment();
         }
 
+        newMoment.local(); // Ensure we are in local time to set hours/minutes correctly
         newMoment.hour(newTime.hour());
         newMoment.minute(newTime.minute());
         newMoment.second(0);
@@ -214,6 +242,36 @@ export class TimeInput extends React.Component {
                 });
             }
             onChange(field, newMoment);
+        }
+    }
+
+    private updateInputWidth() {
+        if (this.dom.inputField) {
+            const computedStyle = window.getComputedStyle(this.dom.inputField);
+            const paddingStart = parseFloat(computedStyle.paddingInlineStart);
+            const paddingEnd = parseFloat(computedStyle.paddingInlineEnd);
+
+            this.inputPadding = paddingStart + paddingEnd;
+        }
+
+        if (this.dom.iconWrapper) {
+            const computedStyle = window.getComputedStyle(this.dom.iconWrapper);
+            const paddingStart = parseFloat(computedStyle.paddingInlineStart);
+            const paddingEnd = parseFloat(computedStyle.paddingInlineEnd);
+
+            this.iconPadding = paddingStart + paddingEnd;
+        }
+
+        if ((this.props.fullWidth === false) && this.dom.inputField) {
+            const characterCount = this.state.viewValue.length;
+
+            const additionalPixelWidth = this.inputPadding
+            + this.dom.iconWrapper.offsetWidth
+            + this.iconPadding;
+
+            this.dom.inputField.style.width = `calc(${characterCount}ch + ${additionalPixelWidth}px)`;
+        } else {
+            return null;
         }
     }
 
@@ -258,6 +316,8 @@ export class TimeInput extends React.Component {
             }
         }
 
+        const fullWidth = this.props.fullWidth ?? true;
+
         return (
             <LineInput
                 {...props}
@@ -266,31 +326,44 @@ export class TimeInput extends React.Component {
                 errors={errors}
                 message={message}
                 boxed={true}
+                className={fullWidth === false ? 'no-padding' : undefined}
             >
                 <Label text={label} />
-                <IconButton
-                    className="sd-line-input__icon-right"
-                    icon="icon-time"
-                    onFocus={onFocus}
-                    onClick={!readOnly ? this.toggleOpenTimePicker : null}
-                    aria-label={gettext('Time picker')}
-                />
-                <Input
-                    field={field}
-                    value={this.state.viewValue}
-                    onChange={this.validateTimeText}
-                    type="text"
-                    placeholder={placeholder || gettext('Time')}
-                    onBlur={this.handleInputBlur}
-                    readOnly={readOnly || this.state.viewValue === gettext('To Be Confirmed')}
-                    onFocus={onFocus}
-                    onKeyDown={(event) => {
-                        if (event.keyCode === KEYCODES.ENTER) {
-                            this.setState({openTimePicker: true});
-                        }
+                <div
+                    style={{
+                        position: 'relative',
+                        paddingBlock: '1.8rem',
+                        ...(fullWidth === false && {display: 'inline-flex'}),
                     }}
-                    refNode={(ref) => this.dom.inputField = ref}
-                />
+                >
+                    <IconButton
+                        className="sd-line-input__icon-right"
+                        icon="icon-time"
+                        onFocus={onFocus}
+                        onClick={!readOnly ? this.toggleOpenTimePicker : null}
+                        aria-label={gettext('Time picker')}
+                        refNode={(ref) => this.dom.iconWrapper = ref}
+                        testId="time-popup-toggle"
+                    />
+
+                    <Input
+                        style={{transition: 'none'}}
+                        field={field}
+                        value={this.state.viewValue}
+                        onChange={this.validateTimeText}
+                        type="text"
+                        placeholder={placeholder || gettext('Time')}
+                        onBlur={this.handleInputBlur}
+                        readOnly={readOnly || this.state.viewValue === gettext('To Be Confirmed')}
+                        onFocus={onFocus}
+                        onKeyDown={(event) => {
+                            if (event.keyCode === KEYCODES.ENTER) {
+                                this.setState({openTimePicker: true});
+                            }
+                        }}
+                        refNode={(ref) => this.dom.inputField = ref}
+                    />
+                </div>
                 {displayDateString && <span>{displayDateString}</span>}
                 {this.state.openTimePicker && (
                     <TimeInputPopup
@@ -304,6 +377,7 @@ export class TimeInput extends React.Component {
                         showToBeConfirmed={showToBeConfirmed}
                         onToBeConfirmed={onToBeConfirmed ? onToBeConfirmed.bind(null, field) : null}
                         toBeConfirmedText={gettext('To Be Confirmed')}
+                        canClear={this.props.canClear}
                     />
                 )}
             </LineInput>
@@ -339,6 +413,7 @@ TimeInput.propTypes = {
     onToBeConfirmed: PropTypes.func,
     toBeConfirmed: PropTypes.bool,
     showDate: PropTypes.bool,
+    fullWidth: PropTypes.bool,
 };
 
 TimeInput.defaultProps = {

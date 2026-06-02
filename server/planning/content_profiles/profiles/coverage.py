@@ -10,14 +10,16 @@
 
 import superdesk.schema as schema
 
-from .fields import BaseSchema, DateTimeField, BooleanField, TextField
+from .fields import subjectField, BaseSchema, DateTimeField, BooleanField, TextField, MultipleContentField
 
 
 class CoverageSchema(BaseSchema):
+    add_coverage_to_workflow = BooleanField()
     contact_info = schema.StringField()
     ednote = TextField(field_type="multi_line")
     files = schema.ListField()
     g2_content_type = schema.ListField(required=True)
+    anpa_category = schema.ListField()
     genre = schema.ListField()
     headline = schema.StringField()
     internal_note = TextField(field_type="multi_line", expandable=True)
@@ -26,10 +28,13 @@ class CoverageSchema(BaseSchema):
     news_coverage_status = schema.ListField()
     scheduled = DateTimeField(required=True)
     slugline = schema.StringField()
+    subject = subjectField
     xmp_file = schema.DictField()
     no_content_linking = BooleanField()
     scheduled_updates = schema.ListField()
     priority = schema.IntegerField()
+    multiple_content = MultipleContentField(read_only=False, default_value=False)
+    location = schema.ListField()
 
 
 DEFAULT_COVERAGE_PROFILE = {
@@ -67,6 +72,13 @@ DEFAULT_COVERAGE_PROFILE = {
             "enabled": True,
             "index": 8,
         },
+        "multiple_content": {
+            "enabled": False,
+            "index": 9,
+        },
+        "location": {"enabled": False},
+        "anpa_category": {"enabled": False},
+        "subject": {"enabled": False},
         # Fields disabled by default
         "contact_info": {"enabled": False},
         "language": {"enabled": False},

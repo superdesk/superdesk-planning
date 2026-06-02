@@ -1,0 +1,308 @@
+from datetime import datetime
+from pydantic import Field, TypeAdapter, model_validator
+from typing import Any, Annotated, Literal, TypeAlias
+from typing_extensions import Self
+
+from superdesk.utc import utcnow
+from superdesk.core import get_config
+from superdesk.core.resources import dataclass, fields, Dataclass
+from superdesk.core.elastic.mapping import json_schema_to_elastic_mapping
+from superdesk.core.resources.validators import validate_data_relation_async
+from superdesk.core.utils import generate_guid, GUID_NEWSML
+
+from .enums import LinkType
+
+
+class NameAnalyzedField(str, fields.CustomStringField):
+    elastic_mapping = {
+        "type": "keyword",
+        "fields": {
+            "analyzed": {"type": "text", "analyzer": "html_field_analyzer"},
+        },
+    }
+
+
+class SlugLineField(str, fields.CustomStringField):
+    elastic_mapping = {
+        "type": "text",
+        "fielddata": True,
+        "fields": {
+            "phrase": {
+                "type": "text",
+                "analyzer": "phrase_prefix_analyzer",
+                "fielddata": True,
+            },
+            "keyword": {
+                "type": "keyword",
+            },
+            "text": {"type": "text", "analyzer": "html_field_analyzer"},
+        },
+    }
+
+
+TimeToBeConfirmedType: TypeAlias = Annotated[bool, Field(alias="_time_to_be_confirmed")]
+
+Translations: TypeAlias = Annotated[
+    dict[str, Any],
+    fields.elastic_mapping(
+        {
+            "type": "object",
+            "dynamic": False,
+            "properties": {
+                "name": {
+                    "type": "object",
+                    "dynamic": True,
+                }
+            },
+        }
+    ),
+]
+
+
+@dataclass
+class RelationshipItem:
+    broader: str | None = None
+    narrower: str | None = None
+    related: str | None = None
+
+
+class PlanningSchedule(Dataclass):
+    scheduled: datetime | None = None
+    coverage_id: fields.Keyword | None = None
+
+
+@dataclass
+class UpdatesSchedule:
+    scheduled: datetime | None = None
+    scheduled_update_id: fields.Keyword | None = None
+
+
+@dataclass
+class CoverageStatus:
+    qcode: str
+    name: str
+
+
+@dataclass
+class KeywordQCodeName:
+    qcode: fields.Keyword
+    name: fields.Keyword
+
+
+@dataclass
+class KeywordNameValue:
+    name: fields.Keyword
+    value: fields.Keyword
+
+
+@dataclass
+class ExtProperty(KeywordQCodeName):
+    value: fields.Keyword
+
+
+@dataclass
+class Subject:
+    qcode: fields.Keyword
+    name: NameAnalyzedField
+    scheme: fields.Keyword | None = None
+    translations: Translations | None = None
+
+
+SubjectListType = Annotated[list[Subject], fields.nested_list(include_in_parent=True)]
+
+
+@dataclass
+class Place:
+    scheme: fields.Keyword | None = None
+    qcode: fields.Keyword | None = None
+    code: fields.Keyword | None = None
+    name: fields.Keyword | None = None
+    locality: fields.Keyword | None = None
+    state: fields.Keyword | None = None
+    country: fields.Keyword | None = None
+    world_region: fields.Keyword | None = None
+    locality_code: fields.Keyword | None = None
+    state_code: fields.Keyword | None = None
+    country_code: fields.Keyword | None = None
+    world_region_code: fields.Keyword | None = None
+    feature_class: fields.Keyword | None = None
+    location: fields.Geopoint | None = None
+    rel: fields.Keyword | None = None
+
+
+class RelatedEvent(Dataclass):
+    id: Annotated[fields.Keyword, validate_data_relation_async("events")] = Field(alias="_id")
+    recurrence_id: fields.Keyword | None = None
+    link_type: Annotated[LinkType | None, fields.keyword_mapping()] = None
+
+
+RelatedEvents = Annotated[list[RelatedEvent] | None, fields.nested_list()]
+
+
+@dataclass
+class CoverageInternalPlanning:
+    ednote: fields.HTML | None = None
+    g2_content_type: fields.Keyword | None = None
+    coverage_provider: fields.Keyword | None = None
+    contact_info: Annotated[fields.Keyword | None, validate_data_relation_async("contacts")] = None
+    item_class: fields.Keyword | None = None
+    item_count: fields.Keyword | None = None
+    scheduled: datetime | None = None
+    files: Annotated[list[fields.ObjectId], validate_data_relation_async("planning_fields")] = Field(
+        default_factory=list
+    )
+    xmp_file: Annotated[fields.ObjectId | None, validate_data_relation_async("planning_files")] = None
+    service: list[KeywordQCodeName] = Field(default_factory=list)
+    news_content_characteristics: list[KeywordNameValue] = Field(default_factory=list)
+    planning_ext_property: list[ExtProperty] = Field(default_factory=list)
+
+    # # Metadata hints.  See IPTC-G2-Implementation_Guide 16.5.1.1
+    by: list[str] = Field(default_factory=list)
+    credit_line: list[str] = Field(default_factory=list)
+    dateline: list[str] = Field(default_factory=list)
+
+    description_text: fields.HTML | None = None
+    genre: list[KeywordQCodeName] = Field(default_factory=list)
+    headline: fields.HTML = ""
+
+    keyword: list[str] = Field(default_factory=list)
+    language: fields.Keyword | None = None
+    slugline: SlugLineField | None = None
+    subject: Annotated[
+        list[dict[str, Any]],
+        fields.elastic_mapping(
+            {
+                "type": "nested",
+                "include_in_parent": True,
+                "dynamic": False,
+                "properties": {
+                    "qcode": {"type": "keyword"},
+                    "name": {"type": "keyword"},
+                    "scheme": {"type": "keyword"},
+                },
+            }
+        ),
+    ] = Field(default_factory=list)
+
+    internal_note: fields.HTML | None = None
+    workflow_status_reason: str | None = None
+    priority: int | None = None
+    multiple_content: bool = Field(
+        default=False,
+        description="If enabled, will allow multiple content items to be linked to this Coverage/Assignment",
+    )
+
+
+@dataclass
+class NewsCoverageStatus:
+    # allows unknown
+    qcode: str | None = None
+    name: str | None = None
+    label: str | None = None
+
+
+@dataclass
+class CoverageAssignedTo:
+    assignment_id: fields.Keyword | None = None
+    state: fields.Keyword | None = None
+    contact: fields.Keyword | None = None
+
+    desk: Annotated[fields.Keyword | None, validate_data_relation_async("desks")] = None
+    user: Annotated[fields.ObjectId | None, validate_data_relation_async("users")] = None
+
+    @classmethod
+    def to_elastic_properties(cls) -> dict[Literal["properties"], Any]:
+        """Generates the elastic mapping properties for the current dataclass"""
+
+        json_schema = TypeAdapter(cls).json_schema()
+        return json_schema_to_elastic_mapping(json_schema)
+
+
+@dataclass
+class CoverageFlags:
+    # allows unknown
+    no_content_linking: bool = False
+
+
+@dataclass
+class ScheduledUpdatePlanning:
+    internal_note: fields.HTML | None = None
+    contact_info: Annotated[fields.ObjectId | None, validate_data_relation_async("contacts")] = None
+    scheduled: datetime | None = None
+    genre: list[KeywordQCodeName] = Field(default_factory=list)
+    workflow_status_reason: str | None = None
+
+
+class ScheduledUpdate(Dataclass):
+    scheduled_update_id: fields.Keyword | None = None
+    coverage_id: fields.Keyword | None = None
+    workflow_status: fields.Keyword | None = None
+    previous_status: fields.Keyword | None = None
+
+    assigned_to: CoverageAssignedTo = Field(default_factory=CoverageAssignedTo)
+    news_coverage_status: NewsCoverageStatus = Field(default_factory=NewsCoverageStatus)
+    planning: ScheduledUpdatePlanning = Field(default_factory=ScheduledUpdatePlanning)
+
+
+class PlanningCoverage(Dataclass):
+    # Identifiers
+    coverage_id: fields.Keyword
+    guid: fields.Keyword
+    original_coverage_id: fields.Keyword | None = None
+
+    # Audit Information
+    original_creator: Annotated[fields.ObjectId | None, validate_data_relation_async("users")] = None
+    version_creator: Annotated[fields.ObjectId | None, validate_data_relation_async("users")] = None
+    firstcreated: datetime = Field(default_factory=utcnow)
+    versioncreated: datetime = Field(default_factory=utcnow)
+
+    # News Coverage Details
+    # See IPTC-G2-Implementation_Guide 16.4
+    planning: CoverageInternalPlanning = Field(default_factory=CoverageInternalPlanning)
+    news_coverage_status: NewsCoverageStatus = Field(default_factory=NewsCoverageStatus)
+
+    workflow_status: str | None = None
+    previous_status: str | None = None
+    assigned_to: CoverageAssignedTo = Field(default_factory=CoverageAssignedTo)
+    flags: CoverageFlags = Field(default_factory=CoverageFlags)
+    time_to_be_confirmed: TimeToBeConfirmedType = False
+    scheduled_updates: list[ScheduledUpdate] = Field(default_factory=list)
+
+    # @model_validator(mode="before")
+    @classmethod
+    def parse_dict(cls, values: dict | Self) -> dict:
+        from planning.common import TEMP_ID_PREFIX
+
+        if isinstance(values, PlanningCoverage):
+            pass
+        else:
+            if not values.get("coverage_id") or values["coverage_id"].startswith(TEMP_ID_PREFIX):
+                values["coverage_id"] = generate_guid(type=GUID_NEWSML)
+
+            if not values.get("guid"):
+                values["guid"] = values["coverage_id"]
+
+            if not values.get("original_coverage_id"):
+                values["original_coverage_id"] = values["coverage_id"]
+
+            values.setdefault("planning", {})
+            if not values["planning"].get("genre"):
+                values["planning"]["genre"] = get_config(dict, "DEFAULT_GENRE_VALUE_FOR_MANUAL_ARTICLES")
+
+        return values
+
+
+class AssignmentCoverage(PlanningCoverage):
+    contact: fields.Keyword | None = None
+
+
+class LockFieldsMixin:
+    lock_user: Annotated[fields.ObjectId, validate_data_relation_async("users")] | None = None
+    lock_time: datetime | None = None
+    lock_session: Annotated[fields.ObjectId, validate_data_relation_async("users")] | None = None
+    lock_action: fields.Keyword | None = None
+
+
+class MatchingProduct(Dataclass):
+    code: fields.ObjectId
+    name: str

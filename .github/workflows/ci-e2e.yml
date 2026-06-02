@@ -1,6 +1,10 @@
 name: "CI-E2E"
 
-on: [push, pull_request]
+on:
+  push:
+  pull_request:
+  schedule:
+    - cron: "0 2 * * *"
 
 jobs:
   e2e:
@@ -8,46 +12,55 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        python-version: ['3.8']
-        node-version: ['14']
-        e2e: ['a', 'b']
+        python-version: ['3.10']
+        node-version: ['22']
+        shardIndex: [1, 2]
+        shardTotal: [2]
     env:
-      INSTALL_NODE_MODULES: true
+      INSTALL_NODE_MODULES: false
       RUN_SERVICES: true
       E2E: true
       TZ: Australia/Sydney
+    defaults:
+      run:
+        working-directory: ./e2e
     steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-node@v3
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
         with:
           node-version: ${{ matrix.node-version }}
-      - uses: actions/setup-python@v4
+      - uses: actions/setup-python@v6
         with:
           python-version: ${{ matrix.python-version }}
           cache: 'pip'
-          cache-dependency-path: 'server/requirements.txt'
+          cache-dependency-path: |
+            server/requirements.txt
+            e2e/server/requirements.txt
+            e2e/server/core-requirements.txt
       - name: Setup Environment
         run: ./scripts/ci-install.sh
+        working-directory: ./
+      - name: Install Planning Client
+        run: npm ci
+        working-directory: ./
+      - name: Install E2E Client
+        run: npm install
       - name: Build Client
-        working-directory: ./e2e
         run: npm run build
       - name: Start Services
         run: ./scripts/ci-start-services.sh
-      - name: E2E Suite A
-        if: matrix.e2e == 'a'
-        working-directory: ./e2e
-        run: npm run cypress-ci -- --spec "cypress/e2e/events/*.cy.ts"
-        env:
-          CYPRESS_SCREENSHOTS_FOLDER: /tmp/cypress
-      - name: E2E Suite B
-        if: matrix.e2e == 'b'
-        working-directory: ./e2e
-        run: npm run cypress-ci -- --spec "cypress/e2e/!(events)/*.cy.ts|cypress/e2e/workqueue.cy.ts"
-        env:
-          CYPRESS_SCREENSHOTS_FOLDER: /tmp/cypress
-      - name: Upload screenshots
+        working-directory: ./
+      - name: Start web server
+        run: npm run start-client-server
+
+      # playwright start
+      - name: Install Playwright Browsers
+        run: npx playwright install --with-deps chromium
+      - name: Run Playwright tests
+        run: npm run playwright -- --shard=${{ matrix.shardIndex }}/${{ matrix.shardTotal }}
+      - uses: actions/upload-artifact@v6
         if: ${{ failure() }}
-        uses: actions/upload-artifact@v2
         with:
-          name: screenshots-e2e-${{ matrix.e2e }}
-          path: /tmp/cypress/**/*.png
+          name: playwright-report-${{ matrix.node-version }}-${{ matrix.shardIndex }}
+          path: e2e/test-results
+      # playwright end

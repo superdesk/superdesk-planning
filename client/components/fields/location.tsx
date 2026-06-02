@@ -7,12 +7,14 @@ import {get} from 'lodash';
 import {Location} from '../';
 
 export const location = ({item, fieldsProps}) => {
-    const hasLocation = !!get(item, 'location.name') || !!get(item, 'location.formatted_address');
-    const locationProps = get(fieldsProps, 'location');
+    const locations = Array.isArray(item.location) ? item.location : [item.location];
 
-    if (!hasLocation) {
+    if (locations.length === 0 || locations[0] == null) {
         return null;
     }
+
+    const location = locations[0];
+    const locationProps = fieldsProps?.location ?? {};
 
     return (
         <span
@@ -20,8 +22,8 @@ export const location = ({item, fieldsProps}) => {
                 {'sd-list-item__element-lm-10': !get(locationProps, 'noMargin')})}
         >
             <Location
-                name={get(item, 'location.name')}
-                address={get(item, 'location.formatted_address')}
+                name={location.name}
+                address={location.formatted_address}
             />
         </span>
     );

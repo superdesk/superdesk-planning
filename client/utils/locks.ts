@@ -57,8 +57,6 @@ function getPlanningLock(item: IPlanningItem | null, lockedItems: ILockedItems):
         return lockedItems.planning[item._id];
     } else if (item.recurrence_id != null && lockedItems.recurring[item.recurrence_id] != null) {
         return lockedItems.recurring[item.recurrence_id];
-    } else if (item.event_item != null && lockedItems.event[item.event_item] != null) {
-        return lockedItems.event[item.event_item];
     }
 
     return null;

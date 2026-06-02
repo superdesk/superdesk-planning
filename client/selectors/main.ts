@@ -5,7 +5,7 @@ import moment from 'moment';
 import {appConfig} from 'appConfig';
 import {
     IPlanningAppState,
-    LIST_VIEW_TYPE,
+    GROUP_LIST_BY,
     PLANNING_VIEW,
     SORT_FIELD,
     SORT_ORDER,
@@ -19,20 +19,21 @@ import {getEventsPlanningList, orderedEventsPlanning, selectedFilter} from './ev
 import {getSearchDateRange} from '../utils';
 
 
-export const getCurrentListViewType = (state?: IPlanningAppState) => (
-    state?.main?.listViewType ?? LIST_VIEW_TYPE.SCHEDULE
+export const getCurrentListGrouping = (state?: IPlanningAppState) => (
+    state?.main?.groupListBy ?? GROUP_LIST_BY.DATE
 );
 export const activeFilter = (state: IPlanningAppState) => {
     const privileges = get(state, 'privileges', '');
+    const defaultView = appConfig.planning_default_view;
 
     if (privileges?.planning_event_management && privileges?.planning_planning_management) {
-        return state?.main?.filter ?? PLANNING_VIEW.COMBINED;
+        return state?.main?.filter ?? defaultView;
     } else if (privileges?.planning_event_management) {
         return state?.main?.filter ?? PLANNING_VIEW.EVENTS;
     } else if (privileges?.planning_planning_management) {
         return state?.main?.filter ?? PLANNING_VIEW.PLANNING;
     } else {
-        return null;
+        return defaultView;
     }
 };
 export const isEventsPlanningView = (state) =>

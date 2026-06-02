@@ -65,7 +65,9 @@ class EditorBookmarksBarComponent extends React.PureComponent<IProps> {
                     style="hollow"
                     type="primary"
                     expand={true}
-                    onClick={editor.item.events.addPlanningItem}
+                    onClick={() => {
+                        editor.item.events.addPlanningItem();
+                    }}
                 />
             </div>
         );
@@ -101,7 +103,7 @@ class EditorBookmarksBarComponent extends React.PureComponent<IProps> {
                                         editorType={this.props.editorType}
                                         index={index}
                                         item={this.props.item}
-                                        readOnly={readOnly}
+                                        disabled={readOnly}
                                     />
                                 );
                             } else if (bookmark.type === BOOKMARK_TYPE.formGroup) {
@@ -113,7 +115,7 @@ class EditorBookmarksBarComponent extends React.PureComponent<IProps> {
                                         editorType={this.props.editorType}
                                         index={index}
                                         item={this.props.item}
-                                        readOnly={readOnly}
+                                        disabled={readOnly}
                                     />
                                 );
                             } else if (bookmark.type === BOOKMARK_TYPE.custom && !bookmark.disabled) {
@@ -127,7 +129,7 @@ class EditorBookmarksBarComponent extends React.PureComponent<IProps> {
                                         editorType={this.props.editorType}
                                         index={index}
                                         item={this.props.item}
-                                        readOnly={readOnly}
+                                        disabled={readOnly}
                                     />
                                 );
                             }

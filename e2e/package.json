@@ -1,25 +1,36 @@
 {
-  "name": "superdesk",
-  "license": "GPL-3.0",
-  "dependencies": {
-    "superdesk-core": "github:superdesk/superdesk-client-core#develop",
-    "superdesk-planning": "file:../"
-  },
-  "devDependencies": {
-    "@superdesk/build-tools": "^1.0.14",
-    "cypress": "^12.6.0",
-    "cypress-real-events": "^1.7.6",
-    "cypress-terminal-report": "^5.0.2",
-    "extract-text-webpack-plugin": "3.0.2",
-    "lodash": "^4.17.15",
-    "moment": "^2.29.4",
-    "moment-timezone": "^0.5.42"
-  },
-  "scripts": {
-    "cypress-ui": "cypress open",
-    "cypress-ci": "cypress run --browser chrome",
-    "clean": "grunt clean",
-    "build": "npx @superdesk/build-tools build-root-repo ./",
-    "serve": "node --max-old-space-size=8192 ./node_modules/.bin/grunt server"
-  }
+    "private": true,
+    "name": "superdesk",
+    "license": "GPL-3.0",
+    "dependencies": {
+        "node-polyfill-webpack-plugin": "^4.1.0",
+        "superdesk-core": "github:superdesk/superdesk-client-core#develop",
+        "superdesk-planning": "file:../"
+    },
+    "devDependencies": {
+        "@playwright/test": "~1.58.2",
+        "@superdesk/build-tools": "^1.0.14",
+        "http-server": "14.1.1",
+        "lodash": "^4.17.15",
+        "moment": "^2.29.4",
+        "moment-timezone": "^0.5.47",
+        "superdesk-code-style": "1.3.0",
+        "typescript": "^5.8.3"
+    },
+    "scripts": {
+        "clean": "grunt clean",
+        "build": "npx @superdesk/build-tools build-root-repo ./",
+        "serve": "node --max-old-space-size=8192 ./node_modules/.bin/grunt server",
+        "start": "grunt server",
+        "check-types": "tsc --noEmit --resolveJsonModule",
+        "playwright": "playwright test --workers 1",
+        "playwright-interactive": "playwright test --ui",
+        "start-client-server": "http-server dist -p 9000 -s &",
+        "stop-client-server": "fuser -k 9000/tcp",
+        "start-test-server": "cd ../server && docker-compose build && docker-compose up -d",
+        "stop-test-server": "cd ../server && docker-compose stop"
+    },
+    "volta": {
+        "node": "22.22.0"
+    }
 }

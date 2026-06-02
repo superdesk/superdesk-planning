@@ -16,6 +16,7 @@ from planning.search.queries import elastic
 from planning.common import WORKFLOW_STATE
 from .common import (
     get_date_params,
+    get_created_date_params,
     COMMON_SEARCH_FILTERS,
     COMMON_PARAMS,
     strtobool,
@@ -25,6 +26,8 @@ from .common import (
     get_sort_field,
     get_sort_order,
     search_text_field,
+    FilterFunctionType,
+    Params,
 )
 
 
@@ -53,7 +56,9 @@ def search_no_agenda_assigned(params: Dict[str, Any], query: elastic.ElasticQuer
 
 def search_ad_hoc_planning(params: Dict[str, Any], query: elastic.ElasticQuery):
     if strtobool(params.get("ad_hoc_planning", False)):
-        query.must_not.append(elastic.field_exists("event_item"))
+        query.must_not.append(
+            elastic.nested("related_events", elastic.term(field="related_events.link_type", value="primary"))
+        )
 
 
 def search_exclude_rescheduled_and_cancelled(params: Dict[str, Any], query: elastic.ElasticQuery):
@@ -145,12 +150,14 @@ def search_featured(params: Dict[str, Any], query: elastic.ElasticQuery):
 
 def search_by_events(params: Dict[str, Any], query: elastic.ElasticQuery):
     event_ids = [str(event_id) for event_id in str_to_array(params.get("event_item"))]
-    num_ids = len(event_ids)
 
-    if num_ids == 1:
-        query.must.append(elastic.term(field="event_item", value=event_ids[0]))
-    elif num_ids > 1:
-        query.must.append(elastic.terms(field="event_item", values=event_ids))
+    if len(event_ids):
+        query.must.append(
+            elastic.nested(
+                "related_events",
+                query=elastic.terms(field="related_events._id", values=event_ids),
+            ),
+        )
 
 
 def search_date(params: Dict[str, Any], query: elastic.ElasticQuery):
@@ -167,52 +174,37 @@ def search_date(params: Dict[str, Any], query: elastic.ElasticQuery):
         if date_filter:
             base_query.date_range = date_filter
             base_query.date = start_date
-
             query_range = elastic.date_range(base_query)
         else:
             base_query.gte = start_date
             base_query.lte = end_date
-
             query_range = elastic.date_range(base_query)
 
-            if not query_range["range"][field_name].get("gte") and not not query_range["range"][field_name].get("lte"):
-                query_range["range"][field_name]["gte"] = "now/d"
-
-        planning_schedule = {
-            "nested": {
-                "path": "_planning_schedule",
-                "query": {"bool": {"filter": query_range}},
-            }
-        }
-
         if strtobool(params.get("include_scheduled_updates", False)):
-            updates_range = {"range": {"_updates_schedule.scheduled": deepcopy(query_range["range"][field_name])}}
-
+            base_query.field = "_updates_schedule.scheduled"
+            updates_range = elastic.date_range(base_query)
             query.filter.append(
-                elastic.bool_or(
-                    [
-                        planning_schedule,
-                        {
-                            "nested": {
-                                "path": "_updates_schedule",
-                                "query": {"bool": {"filter": updates_range}},
-                            }
-                        },
-                    ]
-                )
+                {
+                    "bool": {
+                        "should": [
+                            query_range,
+                            updates_range,
+                        ]
+                    }
+                }
             )
-
-            query.extra["sort_filter"] = elastic.date_range(
-                elastic.ElasticRangeParams(field=field_name, gte="now/d", time_zone=time_zone)
-            )
+            # query.extra["sort_filter"] = query_range
         else:
-            query.filter.append(planning_schedule)
-            query.extra["sort_filter"] = query_range
+            query.filter.append(query_range)
+            # query.extra["sort_filter"] = query_range
 
 
 def search_date_default(params: Dict[str, Any], query: elastic.ElasticQuery):
     date_filter, start_date, end_date, time_zone = get_date_params(params)
     only_future = strtobool(params.get("only_future", True))
+
+    if params.get("created_start_date") or params.get("created_end_date"):
+        return
 
     if not date_filter and not start_date and not end_date and only_future:
         field_name = "_planning_schedule.scheduled"
@@ -224,14 +216,7 @@ def search_date_default(params: Dict[str, Any], query: elastic.ElasticQuery):
             )
         )
 
-        query.filter.append(
-            {
-                "nested": {
-                    "path": "_planning_schedule",
-                    "query": {"bool": {"filter": query_range}},
-                }
-            }
-        )
+        query.filter.append(query_range)
 
 
 def search_dates(params: Dict[str, Any], query: elastic.ElasticQuery):
@@ -244,6 +229,21 @@ def search_dates(params: Dict[str, Any], query: elastic.ElasticQuery):
         search_date_default(params, query)
 
 
+def search_created_date(params: Dict[str, Any], query: elastic.ElasticQuery):
+    created_start_date, created_end_date = get_created_date_params(params)
+
+    if created_start_date or created_end_date:
+        base_query = elastic.ElasticRangeParams(field="_created")
+
+        if created_start_date:
+            base_query.gte = created_start_date
+
+        if created_end_date:
+            base_query.lte = created_end_date
+
+        query.filter.append(elastic.date_range(base_query))
+
+
 def set_search_sort(params: Dict[str, Any], query: elastic.ElasticQuery):
     field = get_sort_field(params, "schedule")
     order = get_sort_order(params, "ascending")
@@ -253,6 +253,7 @@ def set_search_sort(params: Dict[str, Any], query: elastic.ElasticQuery):
             {
                 "_planning_schedule.scheduled": {
                     "order": order,
+                    "mode": "min",
                     "nested": {
                         "path": "_planning_schedule",
                         "filter": query.extra.get("sort_filter", None),
@@ -336,7 +337,23 @@ def search_coverage_assignment_status(params: Dict[str, Any], query: elastic.Ela
             )
 
 
-PLANNING_SEARCH_FILTERS: List[Callable[[Dict[str, Any], elastic.ElasticQuery], None]] = [
+def search_description_text(params: Params, query: elastic.ElasticQuery):
+    search_text_field(params, query, "description_text")
+
+
+def search_abstract(params: Params, query: elastic.ElasticQuery):
+    search_text_field(params, query, "abstract")
+
+
+def search_headline(params: Params, query: elastic.ElasticQuery):
+    search_text_field(params, query, "headline")
+
+
+def search_keywords(params: Params, query: elastic.ElasticQuery):
+    search_text_field(params, query, "keywords")
+
+
+PLANNING_SEARCH_FILTERS: list[FilterFunctionType] = [
     search_planning,
     search_agendas,
     search_no_agenda_assigned,
@@ -349,14 +366,19 @@ PLANNING_SEARCH_FILTERS: List[Callable[[Dict[str, Any], elastic.ElasticQuery], N
     search_featured,
     search_by_events,
     search_dates,
+    search_created_date,
     set_search_sort,
     search_coverage_assigned_user,
     search_coverage_assignment_status,
+    search_description_text,
+    search_abstract,
+    search_headline,
+    search_keywords,
 ]
 
 PLANNING_SEARCH_FILTERS.extend(COMMON_SEARCH_FILTERS)
 
-PLANNING_PARAMS: List[str] = [
+PLANNING_PARAMS = [
     "agendas",
     "no_agenda_assigned",
     "ad_hoc_planning",
@@ -369,6 +391,12 @@ PLANNING_PARAMS: List[str] = [
     "event_item",
     "coverage_user_id",
     "coverage_assignment_status",
+    "description_text",
+    "abstract",
+    "headline",
+    "slugline",
+    "keywords",
+    "priority",
 ]
 
 PLANNING_PARAMS.extend(COMMON_PARAMS)

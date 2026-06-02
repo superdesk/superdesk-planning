@@ -12,6 +12,7 @@ export interface IEditorFieldVocabularyProps extends IEditorFieldProps {
     groupField?: string;
     noMargin?: boolean; // defaults to true
     valueAsString?: boolean;
+    singleSelect?: boolean;
 }
 
 export class EditorFieldVocabulary extends React.PureComponent<IEditorFieldVocabularyProps> {
@@ -59,8 +60,8 @@ export class EditorFieldVocabulary extends React.PureComponent<IEditorFieldVocab
         return (
             <Row testId={this.props.testId}>
                 <SelectMetaTermsInput
-                    ref={this.props.refNode}
                     {...this.props}
+                    ref={this.props.refNode}
                     field={field}
                     defaultValue={defaultValue}
                     value={value}
@@ -73,6 +74,7 @@ export class EditorFieldVocabulary extends React.PureComponent<IEditorFieldVocab
                     readOnly={this.props.disabled}
                     required={this.props.required ?? this.props.schema?.required}
                     onChange={this.onChange}
+                    singleSelect={this.props.singleSelect}
                 />
             </Row>
         );

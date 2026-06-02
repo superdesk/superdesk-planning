@@ -1,6 +1,6 @@
 import {get} from 'lodash';
 
-import {planningApi} from '../../superdeskApi';
+import {planningApi, superdeskApi} from '../../superdeskApi';
 import {IWebsocketMessageData, ITEM_TYPE} from '../../interfaces';
 import * as selectors from '../../selectors';
 import {WORKFLOW_STATE, EVENTS, LOCKS} from '../../constants';
@@ -33,7 +33,7 @@ const onEventCreated = (_e, data) => (
  */
 function onEventUnlocked(_e: {}, data: IWebsocketMessageData['ITEM_UNLOCKED']) {
     return (dispatch, getState) => {
-        if (data?.item != null) {
+        if (data?.item != null && data.clientId !== superdeskApi.session.getUniqueClientId()) {
             const state = getState();
             const events = selectors.events.storedEvents(state);
             let eventInStore = get(events, data.item, {});
@@ -71,7 +71,7 @@ function onEventUnlocked(_e: {}, data: IWebsocketMessageData['ITEM_UNLOCKED']) {
 
 const onEventLocked = (_e, data) => (
     (dispatch, getState) => {
-        if (data && data.item) {
+        if (data && data.item && data?.clientId !== superdeskApi.session.getUniqueClientId()) {
             planningApi.locks.setItemAsLocked(data);
 
             const sessionId = selectors.general.session(getState()).sessionId;
@@ -92,7 +92,7 @@ const onEventLocked = (_e, data) => (
                         payload: {event: evtInStore},
                     });
 
-                    // reload the initialvalues of the editor if different session has made changes
+                    // reload the initialValues of the editor if different session has made changes
                     if (data.lock_session !== sessionId) {
                         dispatch(main.reloadEditor(eventInStore, 'read'));
                     }
@@ -348,6 +348,12 @@ const onEventDeleted = (e, data) => (
         }
     });
 
+const onEventLinkUpdated = (e, data: IWebsocketMessageData['EVENT_LINK_UPDATED']) => (
+    (dispatch, getState) => {
+        dispatch(eventsApi.setEventPlannings(data.event, data.links));
+        dispatch(main.fetchItemHistory({_id: data.event, type: ITEM_TYPE.EVENT}));
+    });
+
 // eslint-disable-next-line consistent-this
 const self = {
     onEventCreated,
@@ -363,6 +369,7 @@ const self = {
     onEventPostChanged,
     onEventExpired,
     onEventDeleted,
+    onEventLinkUpdated,
 };
 
 export const planningEventTemplateEvents = {
@@ -386,27 +393,28 @@ export const planningEventTemplateEvents = {
 
 // Map of notification name and Action Event to execute
 self.events = {
-    'events:created': () => (self.onEventCreated),
-    'events:created:recurring': () => (self.onRecurringEventCreated),
-    'events:updated': () => (self.onEventUpdated),
-    'events:updated:recurring': () => (self.onEventUpdated),
-    'events:lock': () => (self.onEventLocked),
-    'events:unlock': () => (self.onEventUnlocked),
-    'events:spiked': () => (self.onEventSpiked),
-    'events:unspiked': () => (self.onEventUnspiked),
-    'events:cancel': () => (self.onEventCancelled),
-    'events:reschedule': () => (self.onEventScheduleChanged),
-    'events:reschedule:recurring': () => (self.onEventScheduleChanged),
-    'events:postpone': () => (self.onEventPostponed),
-    'events:posted': () => (self.onEventPostChanged),
-    'events:posted:recurring': () => (self.onEventPostChanged),
-    'events:unposted': () => (self.onEventPostChanged),
-    'events:unposted:recurring': () => (self.onEventPostChanged),
-    'events:update_time': () => (self.onEventScheduleChanged),
-    'events:update_time:recurring': () => (self.onEventScheduleChanged),
-    'events:update_repetitions:recurring': () => (self.onEventScheduleChanged),
+    'events:created': () => self.onEventCreated,
+    'events:created:recurring': () => self.onRecurringEventCreated,
+    'events:updated': () => self.onEventUpdated,
+    'events:updated:recurring': () => self.onEventUpdated,
+    'events:lock': () => self.onEventLocked,
+    'events:unlock': () => self.onEventUnlocked,
+    'events:spiked': () => self.onEventSpiked,
+    'events:unspiked': () => self.onEventUnspiked,
+    'events:cancel': () => self.onEventCancelled,
+    'events:reschedule': () => self.onEventScheduleChanged,
+    'events:reschedule:recurring': () => self.onEventScheduleChanged,
+    'events:postpone': () => self.onEventPostponed,
+    'events:posted': () => self.onEventPostChanged,
+    'events:posted:recurring': () => self.onEventPostChanged,
+    'events:unposted': () => self.onEventPostChanged,
+    'events:unposted:recurring': () => self.onEventPostChanged,
+    'events:update_time': () => self.onEventScheduleChanged,
+    'events:update_time:recurring': () => self.onEventScheduleChanged,
+    'events:update_repetitions:recurring': () => self.onEventScheduleChanged,
     'events:expired': () => self.onEventExpired,
-    'events:delete': () => (self.onEventDeleted),
+    'events:delete': () => self.onEventDeleted,
+    'event:link_updated': () => self.onEventLinkUpdated,
     ...planningEventTemplateEvents,
 };
 

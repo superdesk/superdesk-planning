@@ -7,6 +7,7 @@ import {PageContent} from '../PageContent';
 import {AssignmentList} from './AssignmentList';
 import {AssignmentPreview} from './AssignmentPreview';
 import {AssignmentsSubNav} from './AssignmentsSubNav';
+import {AssignmentFilterPanel} from '../../components/Assignments/AssignmentFilterPanel';
 
 export const AssignmentsUi = ({previewOpen, showModals, showWorkqueue, marginBottom}) => (
     <PageContent
@@ -16,6 +17,7 @@ export const AssignmentsUi = ({previewOpen, showModals, showWorkqueue, marginBot
         splitView={true}
 
         previewOpen={previewOpen}
+        FilterPanel={AssignmentFilterPanel}
         ListPanel={AssignmentList}
         listProps={{saveSortPreferences: true}}
         PreviewPanel={AssignmentPreview}

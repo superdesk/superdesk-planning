@@ -1,6 +1,6 @@
 import React from 'react';
 import {connect} from 'react-redux';
-import {indexOf} from 'lodash';
+import {filter, indexOf} from 'lodash';
 
 import {IDesk, IUser} from 'superdesk-api';
 import {
@@ -13,7 +13,7 @@ import {
     ISession,
     IEventOrPlanningItem,
     IG2ContentType,
-    LIST_VIEW_TYPE,
+    GROUP_LIST_BY,
     IContactItem,
     SORT_FIELD,
     ICommonSearchParams,
@@ -28,6 +28,8 @@ import {ITEM_TYPE} from '../../constants';
 
 import {ListPanel} from '../../components/Main';
 import {PlanningListSubNav} from './PlanningListSubNav';
+import {planningApi} from '../../superdeskApi';
+import {getPlanningItemToEdit} from '../../utils/assignments';
 
 interface IProps {
     groups: Array<{
@@ -50,16 +52,12 @@ interface IProps {
     hideItemActions?: boolean;
     showAddCoverage?: boolean;
     calendars: Array<ICalendar>;
-    listFields?: {[key: string]: { // List fields from planning_types collection (i.e. Planning Profiles)
-        primary_fields?: Array<string>;
-        secondary_fields?: Array<string>;
-    }};
     isAllListItemsLoaded: boolean;
     previewId: IEventOrPlanningItem['_id'];
     contentTypes: Array<IG2ContentType>;
     userInitiatedSearch?: boolean;
     contacts: {[key: string]: IContactItem};
-    listViewType: LIST_VIEW_TYPE;
+    groupListBy: GROUP_LIST_BY;
     sortField: SORT_FIELD;
     currentSearch: ICommonSearchParams<IEventOrPlanningItem>;
     searchFilters: Array<ISearchFilter>;
@@ -88,13 +86,12 @@ const mapStateToProps = (state) => ({
     users: selectors.general.users(state),
     desks: selectors.general.desks(state),
     calendars: selectors.events.calendars(state),
-    listFields: selectors.forms.listFields(state),
     isAllListItemsLoaded: selectors.main.isAllListItemsLoaded(state),
     previewId: selectors.main.previewId(state),
     contentTypes: selectors.general.contentTypes(state),
     userInitiatedSearch: selectors.main.userInitiatedSearch(state),
     contacts: selectors.general.contactsById(state),
-    listViewType: selectors.main.getCurrentListViewType(state),
+    groupListBy: selectors.main.getCurrentListGrouping(state),
     sortField: selectors.main.getCurrentSortField(state),
     currentSearch: selectors.main.currentSearch(state),
     searchFilters: selectors.eventsPlanning.combinedViewFilters(state),
@@ -126,6 +123,16 @@ export class PlanningListComponent extends React.PureComponent<IProps> {
         super(props);
 
         this.handleItemSelection = this.handleItemSelection.bind(this);
+    }
+
+    componentDidMount() {
+        const planningItemId = getPlanningItemToEdit();
+
+        if (planningItemId) {
+            planningApi.planning.getById(planningItemId, true).then((item) => {
+                this.props.edit(item);
+            });
+        }
     }
 
     handleItemSelection(item: IEventOrPlanningItem, value: boolean, shiftKey: boolean, name: string) {
@@ -170,13 +177,12 @@ export class PlanningListComponent extends React.PureComponent<IProps> {
             itemActions,
             hideItemActions,
             showAddCoverage,
-            listFields,
             isAllListItemsLoaded,
             previewId,
             contentTypes,
             userInitiatedSearch,
             contacts,
-            listViewType,
+            groupListBy,
             sortField,
             currentSearch
         } = this.props;
@@ -185,19 +191,7 @@ export class PlanningListComponent extends React.PureComponent<IProps> {
             <React.Fragment>
                 <PlanningListSubNav />
                 <ListPanel
-                    groups={(() => {
-                        const dateFilter = currentSearch.advancedSearch?.dates?.start?.toDate()
-                            ?? new Date();
-
-                        dateFilter.setHours(0, 0, 0, 0);
-
-                        return groups.filter((group) => {
-                            const dateStringToJSDate = new Date(group.date);
-
-                            dateStringToJSDate.setHours(0, 0, 0, 0);
-                            return dateStringToJSDate >= dateFilter;
-                        });
-                    })()}
+                    groups={groups}
                     onItemClick={openPreview}
                     onDoubleClick={edit}
                     agendas={agendas}
@@ -220,13 +214,12 @@ export class PlanningListComponent extends React.PureComponent<IProps> {
                     hideItemActions={hideItemActions}
                     showAddCoverage={showAddCoverage}
                     calendars={calendars}
-                    listFields={listFields}
                     isAllListItemsLoaded={isAllListItemsLoaded}
                     previewItem={previewId}
                     contentTypes={contentTypes}
                     userInitiatedSearch={userInitiatedSearch}
                     contacts={contacts}
-                    listViewType={listViewType}
+                    groupListBy={groupListBy}
                     sortField={sortField}
                     indexItems
                     searchParams={currentSearch.advancedSearch}

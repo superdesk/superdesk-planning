@@ -17,6 +17,13 @@ import {getTimeZoneOffset, timeUtils} from './index';
 import {appConfig} from 'appConfig';
 
 function commonParamsToSearchParams(params: ICommonSearchParams<IEventOrPlanningItem>): ISearchParams {
+    const createdStartDate = params.created_start_date !== undefined ?
+        params.created_start_date :
+        params.advancedSearch?.created_start_date;
+    const createdEndDate = params.created_end_date !== undefined ?
+        params.created_end_date :
+        params.advancedSearch?.created_end_date;
+
     return {
         item_ids: params.itemIds,
         full_text: params.fulltext,
@@ -35,6 +42,8 @@ function commonParamsToSearchParams(params: ICommonSearchParams<IEventOrPlanning
         date_filter: params.advancedSearch?.dates?.range,
         start_date: params.advancedSearch?.dates?.start,
         end_date: params.advancedSearch?.dates?.end,
+        created_start_date: createdStartDate,
+        created_end_date: createdEndDate,
         name: params.advancedSearch?.name,
         place: params.advancedSearch?.place,
         posted: params.advancedSearch?.posted,
@@ -46,10 +55,19 @@ function commonParamsToSearchParams(params: ICommonSearchParams<IEventOrPlanning
         sort_field: params.sortField ?? SORT_FIELD.SCHEDULE,
         source: params.advancedSearch?.source,
         priority: params.advancedSearch?.priority,
+        internal_note: params.advancedSearch?.internal_note,
+        ednote: params.advancedSearch?.ednote,
     };
 }
 
 function searchParamsToCommonParams(params: ISearchParams): ICommonSearchParams<IEventOrPlanningItem> {
+    const createdStartDate = params.created_start_date !== undefined ?
+        params.created_start_date :
+        params.advancedSearch?.created_start_date;
+    const createdEndDate = params.created_end_date !== undefined ?
+        params.created_end_date :
+        params.advancedSearch?.created_end_date;
+
     return {
         itemIds: params.item_ids,
         fulltext: params.full_text,
@@ -65,6 +83,8 @@ function searchParamsToCommonParams(params: ISearchParams): ICommonSearchParams<
         timezoneOffset: params.tz_offset,
         sortOrder: params.sort_order,
         sortField: params.sort_field,
+        created_start_date: createdStartDate,
+        created_end_date: createdEndDate,
         advancedSearch: {
             anpa_category: params.anpa_category,
             dates: {
@@ -72,6 +92,8 @@ function searchParamsToCommonParams(params: ISearchParams): ICommonSearchParams<
                 start: params.start_date != undefined ? moment(params.start_date) : undefined,
                 end: params.end_date != undefined ? moment(params.end_date) : undefined,
             },
+            created_start_date: createdStartDate,
+            created_end_date: createdEndDate,
             name: params.name,
             place: params.place,
             posted: params.posted,
@@ -81,6 +103,8 @@ function searchParamsToCommonParams(params: ISearchParams): ICommonSearchParams<
             language: params.language,
             source: params.source,
             priority: params.priority,
+            internal_note: params.internal_note,
+            ednote: params.ednote,
         },
     };
 }
@@ -98,7 +122,9 @@ export function planningParamsToSearchParams(params: IPlanningSearchParams): ISe
         no_agenda_assigned: params.noAgendaAssigned,
         agendas: params.agendas,
         coverage_user_id: params.coverage_user_id,
-        coverage_assignment_status: params.coverage_assignment_status
+        coverage_assignment_status: params.coverage_assignment_status,
+        description_text: params.advancedSearch?.description_text,
+        headline: params.advancedSearch?.headline,
     };
 }
 
@@ -121,6 +147,8 @@ export function searchParamsToPlanningParams(params: ISearchParams): IPlanningSe
             g2_content_type: params.g2_content_type,
             noCoverage: params.no_coverage,
             urgency: params.urgency,
+            description_text: params.description_text,
+            headline: params.headline,
         },
     };
 }
@@ -133,6 +161,13 @@ export function eventParamsToSearchParams(params: IEventSearchParams): ISearchPa
         location: params.advancedSearch?.location,
         no_calendar_assigned: params.noCalendarAssigned,
         calendars: params.calendars,
+        accreditation_info: params.advancedSearch?.accreditation_info,
+        invitation_details: params.advancedSearch?.invitation_details,
+        accreditation_details: params.advancedSearch?.accreditation_details,
+        registration_details: params.advancedSearch?.registration_details,
+        definition_short: params.advancedSearch?.definition_short,
+        definition_long: params.advancedSearch?.definition_long,
+        registration: params.advancedSearch?.registration,
     };
 }
 
@@ -149,6 +184,13 @@ export function searchParamsToEventParams(params: ISearchParams): IEventSearchPa
             ...common.advancedSearch,
             location: params.location,
             reference: params.reference,
+            accreditation_info: params.accreditation_info,
+            invitation_details: params.invitation_details,
+            accreditation_details: params.accreditation_details,
+            registration_details: params.registration_details,
+            definition_short: params.definition_short,
+            definition_long: params.definition_long,
+            registration: params.registration,
         },
     };
 }

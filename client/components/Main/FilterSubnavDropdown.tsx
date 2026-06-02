@@ -79,10 +79,7 @@ class FilterSubnavDropdownComponent extends React.PureComponent<IProps> {
         return filters.map((filter) => ({
             id: filter._id,
             label: filter.name,
-            action: () => planningApi.ui.list.changeFilterId(
-                filter._id,
-                {advancedSearch: {dates: {range: filter?.params?.date_filter}}}
-            ),
+            action: () => planningApi.ui.list.changeFilterId(filter._id),
             group: gettext('Search Filters'),
         }));
     }

@@ -1,28 +1,29 @@
 import React from 'react';
 import moment from 'moment';
 import {get} from 'lodash';
-import {assignmentUtils, gettext} from '../../../../utils';
+
+import {Label} from 'superdesk-ui-framework/react';
+import {superdeskApi} from '../../../../superdeskApi';
+
+import {assignmentUtils} from '../../../../utils';
 import {AbsoluteDate} from '../../../AbsoluteDate';
 import {TO_BE_CONFIRMED_FIELD} from '../../../../constants';
-import {IAssignmentItem} from 'interfaces';
 import classNames from 'classnames';
+import {IAssignmentListItemField} from '../../../../components/Assignments/interfaces';
 
-interface IProps {
-    assignment: IAssignmentItem;
-}
-
+type IProps = IAssignmentListItemField;
 export const DueDateComponent = ({assignment}: IProps) => {
+    const {gettext} = superdeskApi.localization;
     const isOverdue = assignmentUtils.isDue(assignment);
     const assignedToProvider = assignmentUtils.isAssignedToProvider(assignment);
     const planningSchedule = get(assignment, 'planning.scheduled');
 
     return (
         <span
-            title={gettext('Due Date')}
             className={classNames('assignment--due-date', 'label-icon', {'label-icon--warning': isOverdue})}
         >
-            {assignedToProvider && <i className="icon-ingest" />}
-            <i className="icon-time" />
+            {assignedToProvider && <i className="icon-ingest" title={gettext('Assigned to provider')} />}
+            <i className="icon-time" title={gettext('Due Date')} />
             {planningSchedule ? (
                 <AbsoluteDate
                     date={moment(planningSchedule).format()}
@@ -36,9 +37,10 @@ export const DueDateComponent = ({assignment}: IProps) => {
                 <span>{gettext('\'not scheduled yet\'')}</span>
             )}
             {isOverdue && (
-                <span className="label label--warning label--hollow">
-                    {gettext('due')}
-                </span>
+                <Label
+                    type="warning"
+                    text={gettext('due')}
+                />
             )}
         </span>
     );

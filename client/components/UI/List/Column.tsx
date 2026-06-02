@@ -16,6 +16,7 @@ interface IProps {
     hasCheck?: boolean;
     checked?: boolean;
     className?: string;
+    style?: React.CSSProperties;
 }
 
 export const Column = ({
@@ -26,6 +27,7 @@ export const Column = ({
     hasCheck = false,
     checked,
     className,
+    style,
 }: IProps) => (
     <div
         className={classNames(
@@ -39,6 +41,7 @@ export const Column = ({
             },
             className
         )}
+        style={style}
     >
         {children}
     </div>

@@ -5,10 +5,11 @@ import {
     ISearchAPIParams,
     ISearchParams,
     ISearchSpikeState,
-    IPlanningConfig,
     IEventUpdateMethod,
+    IGetRequestParams,
+    IPlanningItem,
 } from '../interfaces';
-import {appConfig as config} from 'appConfig';
+import {appConfig} from 'appConfig';
 import {IRestApiResponse} from 'superdesk-api';
 import {planningApi, superdeskApi} from '../superdeskApi';
 import {EVENTS, TEMP_ID_PREFIX} from '../constants';
@@ -16,9 +17,9 @@ import {EVENTS, TEMP_ID_PREFIX} from '../constants';
 import {arrayToString, convertCommonParams, cvsToString, searchRaw, searchRawGetAll} from './search';
 import {eventUtils} from '../utils';
 import {eventProfile, eventSearchProfile} from '../selectors/forms';
-import * as actions from '../actions';
-
-const appConfig = config as IPlanningConfig;
+import planningApis from '../actions/planning/api';
+import eventsApi from '../actions/events/api';
+import {searchPlanning} from './planning';
 
 function convertEventParams(params: ISearchParams): Partial<ISearchAPIParams> {
     return {
@@ -28,6 +29,15 @@ function convertEventParams(params: ISearchParams): Partial<ISearchAPIParams> {
         calendars: cvsToString(params.calendars),
         no_calendar_assigned: params.no_calendar_assigned,
         priority: arrayToString(params.priority),
+        invitation_details: params.invitation_details,
+        accreditation_details: params.accreditation_details,
+        registration_details: params.registration_details,
+        internal_note: params.internal_note,
+        accreditation_info: params.accreditation_info,
+        definition_short: params.definition_short,
+        definition_long: params.definition_long,
+        registration: params.registration,
+        description_text: params.description_text,
     };
 }
 
@@ -70,9 +80,13 @@ export function searchEventsGetAll(params: ISearchParams): Promise<Array<IEventI
     });
 }
 
-export function getEventById(eventId: IEventItem['_id']): Promise<IEventItem> {
+export function getEventById(eventId: IEventItem['_id'], params?: IGetRequestParams): Promise<IEventItem> {
     return superdeskApi.dataApi
-        .findOne<IEventItem>('events', eventId)
+        .findOne<IEventItem>(
+            'events',
+            eventId + (params?.cache === false ? `?time=${Math.floor(Date.now() / 1000)}` : ''),
+            params?.cache,
+        )
         .then(modifyItemForClient);
 }
 
@@ -131,13 +145,13 @@ function create(updates: Partial<IEventItem>): Promise<Array<IEventItem>> {
     return superdeskApi.dataApi.create<IEventItem | IRestApiResponse<IEventItem>>('events', {
         ...updates,
         associated_plannings: undefined,
-        embedded_planning: updates.associated_plannings.map((planning) => ({
+        embedded_planning: (updates.associated_plannings ?? []).map((planning) => ({
             update_method: planning.update_method ?? planningDefaultCreateMethod,
             coverages: planning.coverages.map((coverage) => ({
                 coverage_id: coverage.coverage_id,
                 g2_content_type: coverage.planning.g2_content_type,
-                desk: coverage.assigned_to.desk,
-                user: coverage.assigned_to.user,
+                desk: coverage.assigned_to?.desk,
+                user: coverage.assigned_to?.user,
                 language: coverage.planning.language,
                 news_coverage_status: coverage.news_coverage_status.qcode,
                 scheduled: coverage.planning.scheduled,
@@ -146,12 +160,16 @@ function create(updates: Partial<IEventItem>): Promise<Array<IEventItem>> {
                 ednote: coverage.planning.ednote,
                 internal_note: coverage.planning.internal_note,
                 headline: coverage.planning.headline,
+                coverage_provider: coverage.assigned_to?.coverage_provider
             })),
         })),
         update_method: updates.update_method?.value ?? updates.update_method
     })
         .then((response) => {
             const events = modifySaveResponseForClient(response);
+
+            // Update redux store, so changes are reflected in associated_event field
+            planningApi.redux.store.dispatch<any>(eventsApi.receiveEvents(events));
 
             return planningApi.planning.searchGetAll({
                 recurrence_id: events[0].recurrence_id,
@@ -161,7 +179,7 @@ function create(updates: Partial<IEventItem>): Promise<Array<IEventItem>> {
             }).then((planningItems) => {
                 // Make sure to update the Redux Store with the latest Planning items
                 // So that the Editor can set the state with these latest items
-                planningApi.redux.store.dispatch<any>(actions.planning.api.receivePlannings(planningItems));
+                planningApi.redux.store.dispatch<any>(planningApis.receivePlannings(planningItems));
 
                 return events;
             });
@@ -183,8 +201,8 @@ function update(original: IEventItem, updates: Partial<IEventItem>): Promise<Arr
             coverages: planning.coverages.map((coverage) => ({
                 coverage_id: coverage.coverage_id,
                 g2_content_type: coverage.planning.g2_content_type,
-                desk: coverage.assigned_to.desk,
-                user: coverage.assigned_to.user,
+                desk: coverage.assigned_to?.desk,
+                user: coverage.assigned_to?.user,
                 language: coverage.planning.language,
                 news_coverage_status: coverage.news_coverage_status.qcode,
                 scheduled: coverage.planning.scheduled,
@@ -192,6 +210,8 @@ function update(original: IEventItem, updates: Partial<IEventItem>): Promise<Arr
                 slugline: coverage.planning.slugline,
                 ednote: coverage.planning.ednote,
                 internal_note: coverage.planning.internal_note,
+                headline: coverage.planning.headline,
+                coverage_provider: coverage.assigned_to?.coverage_provider
             })),
         })),
         update_method: updates.update_method?.value ?? updates.update_method ?? original.update_method
@@ -207,11 +227,16 @@ function update(original: IEventItem, updates: Partial<IEventItem>): Promise<Arr
             }).then((planningItems) => {
                 // Make sure to update the Redux Store with the latest Planning items
                 // So that the Editor can set the state with these latest items
-                planningApi.redux.store.dispatch<any>(actions.planning.api.receivePlannings(planningItems));
+                planningApi.redux.store.dispatch<any>(planningApis.receivePlannings(planningItems));
+                events[0].associated_plannings = planningItems;
 
                 return events;
             });
         });
+}
+
+function getLinkedPlanningItems(eventId: string): Promise<Array<IPlanningItem>> {
+    return searchPlanning({only_future: false, event_item: [eventId]}).then(({_items}) => _items);
 }
 
 export const events: IPlanningAPI['events'] = {
@@ -223,4 +248,5 @@ export const events: IPlanningAPI['events'] = {
     getSearchProfile: getEventSearchProfile,
     create: create,
     update: update,
+    getLinkedPlanningItems: getLinkedPlanningItems,
 };

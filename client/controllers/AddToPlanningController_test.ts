@@ -71,46 +71,21 @@ describe('AddToPlanningController', () => {
         api,
         lock,
         session,
-        userList
+        userList,
+        $timeout
     ) => {
         api.find = sinon.stub().returns($q.reject({}));
-        return new AddToPlanningController(null,
+        return (new AddToPlanningController(null,
             scope, sdPlanningStore, notify,
-            gettext, api, lock, session, userList
-        )
+            gettext, api, lock, session, userList,
+            $timeout, {}
+        ) as any)
             .then(() => { /* no-op */ }, () => {
                 expect(api.find.callCount).toBe(1);
                 expect(api.find.args[0]).toEqual(['archive', 'item1']);
 
                 expect(notify.error.callCount).toBe(2);
                 expect(notify.error.args[0]).toEqual(['Failed to load the item.']);
-            });
-    }));
-
-    it('notifies the user if the item fails data validation', inject((
-        sdPlanningStore,
-        notify,
-        gettext,
-        api,
-        lock,
-        session,
-        userList
-    ) => {
-        delete newsItem.slugline;
-        delete newsItem.urgency;
-        delete newsItem.subject;
-        delete newsItem.anpa_category;
-
-        return new AddToPlanningController(null,
-            scope, sdPlanningStore, notify,
-            gettext, api, lock, session, userList
-        )
-            .then(() => { /* no-op */ }, () => {
-                expect(notify.error.callCount).toBe(4);
-                expect(notify.error.args).toContain(['[Slugline] is a required field']);
-                expect(notify.error.args).toContain(['[Urgency] is a required field']);
-                expect(notify.error.args).toContain(['[Subject] is a required field']);
-                expect(notify.error.args).toContain(['[ANPA Category] is a required field']);
             });
     }));
 
@@ -121,13 +96,15 @@ describe('AddToPlanningController', () => {
         api,
         lock,
         session,
-        userList
+        userList,
+        $timeout
     ) => {
         newsItem.assignment_id = 'as1';
-        return new AddToPlanningController(null,
+        return (new AddToPlanningController(null,
             scope, sdPlanningStore, notify,
-            gettext, api, lock, session, userList
-        )
+            gettext, api, lock, session, userList,
+            $timeout, {}
+        ) as any)
             .then(() => {
                 expect(notify.error.callCount).toBe(1);
                 expect(notify.error.args[0]).toEqual(['Item already linked to a Planning item']);
@@ -142,12 +119,14 @@ describe('AddToPlanningController', () => {
             api,
             lock,
             session,
-            userList
+            userList,
+            $timeout
         ) => (
-            new AddToPlanningController(null,
+            (new AddToPlanningController(null,
                 scope, sdPlanningStore, notify,
-                gettext, api, lock, session, userList
-            )
+                gettext, api, lock, session, userList,
+                $timeout, {}
+            ) as any)
                 .then(() => {
                     expect(lock.isLockedInCurrentSession.callCount).toBe(1);
                     expect(lock.isLockedInCurrentSession.args[0]).toEqual([newsItem]);

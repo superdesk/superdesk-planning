@@ -1,12 +1,41 @@
-from typing import Union, List, Dict, Any, TypedDict, Optional
+# -*- coding: utf-8; -*-
+#
+# This file is part of Superdesk.
+#
+# Copyright 2014 Sourcefabric z.u. and contributors.
+#
+# For the full copyright and license information, please see the
+# AUTHORS and LICENSE files distributed with this source code, or
+# at https://www.sourcefabric.org/superdesk/license
+
+import arrow
+import pytz
+import logging
+
+from datetime import datetime
+
 from bson.objectid import ObjectId
 from bson.errors import InvalidId
-from datetime import datetime
-from flask_babel import lazy_gettext
-from eve.utils import str_to_date
-import arrow
-from flask import current_app as app
-import pytz
+from quart_babel import lazy_gettext
+from eve.utils import ParsedRequest
+from superdesk.core.types import Request
+from werkzeug.exceptions import BadRequest
+from typing import Type, Union, List, Dict, Any, TypedDict, Optional
+
+from . import settings, types
+from superdesk import get_resource_service
+from superdesk.json_utils import cast_item
+from superdesk.core.utils import str_to_date
+from superdesk.resource_fields import ID_FIELD
+from superdesk.core import json, get_app_config
+from superdesk.core.resources.service import AsyncResourceService
+
+from planning import types
+from planning.types import EventResourceModel, PlanningResourceModel, AssignmentResourceModel, BasePlanningModel
+from planning.types import Event, Planning, PLANNING_RELATED_EVENT_LINK_TYPE, PlanningRelatedEventLink
+
+
+logger = logging.getLogger(__name__)
 
 
 class FormattedContact(TypedDict):
@@ -20,6 +49,19 @@ class FormattedContact(TypedDict):
 
 MULTI_DAY_SECONDS = 24 * 60 * 60  # Number of seconds for an multi-day event
 ALL_DAY_SECONDS = MULTI_DAY_SECONDS - 1  # Number of seconds for an all-day event
+
+RESOURCE_MAPPING: dict[str, Type[BasePlanningModel]] = {
+    "events": EventResourceModel,
+    "planning": PlanningResourceModel,
+    "assignments": AssignmentResourceModel,
+}
+
+
+def get_service(item_type: str) -> AsyncResourceService:
+    resource_model = RESOURCE_MAPPING.get(item_type)
+    if resource_model is None:
+        raise BadRequest()
+    return resource_model.get_service()
 
 
 def try_cast_object_id(value: str) -> Union[ObjectId, str]:
@@ -67,20 +109,24 @@ def parse_date(datetime: Union[str, datetime]) -> datetime:
     return datetime
 
 
+def local_date(datetime: datetime, tz: pytz.BaseTzInfo) -> datetime:
+    return tz.normalize(parse_date(datetime).replace(tzinfo=pytz.utc).astimezone(tz))
+
+
 def time_short(datetime: datetime, tz: pytz.BaseTzInfo):
     if datetime:
-        return parse_date(datetime).astimezone(tz).strftime(app.config.get("TIME_FORMAT_SHORT", "%H:%M"))
+        return local_date(datetime, tz).strftime(get_app_config("TIME_FORMAT_SHORT", "%H:%M"))
 
 
 def date_short(datetime: datetime, tz: pytz.BaseTzInfo):
     if datetime:
-        return parse_date(datetime).astimezone(tz).strftime(app.config.get("DATE_FORMAT_SHORT", "%d/%m/%Y"))
+        return local_date(datetime, tz).strftime(get_app_config("DATE_FORMAT_SHORT", "%d/%m/%Y"))
 
 
 def get_event_formatted_dates(event: Dict[str, Any]) -> str:
     start = event.get("dates", {}).get("start")
     end = event.get("dates", {}).get("end")
-    tz_name: str = event.get("dates", {}).get("tz", app.config["DEFAULT_TIMEZONE"])
+    tz_name: str = event.get("dates", {}).get("tz", get_app_config("DEFAULT_TIMEZONE"))
     tz = pytz.timezone(tz_name)
 
     duration_seconds = int((end - start).total_seconds())
@@ -100,3 +146,225 @@ def get_event_formatted_dates(event: Dict[str, Any]) -> str:
         return "{} {}".format(time_short(start, tz), date_short(start, tz))
 
     return "{} - {}, {}".format(time_short(start, tz), time_short(end, tz), date_short(start, tz))
+
+
+def get_related_planning_for_events(
+    event_ids: List[str],
+    link_type: Optional[PLANNING_RELATED_EVENT_LINK_TYPE] = None,
+    exclude_planning_ids: Optional[List[str]] = None,
+    projection: dict | str | None = None,
+) -> List[Planning]:
+    """Deprecated: use get_related_planning_for_events_async in async contexts."""
+    related_events_filters: List[Dict[str, Any]] = [{"terms": {"related_events._id": event_ids}}]
+    if link_type is not None:
+        related_events_filters.append({"term": {"related_events.link_type": link_type}})
+
+    bool_query: Dict[str, Any] = {
+        "filter": {
+            "nested": {
+                "path": "related_events",
+                "query": {"bool": {"filter": related_events_filters}},
+            },
+        }
+    }
+
+    if len(exclude_planning_ids or []) > 0:
+        bool_query["must_not"] = {"terms": {"_id": exclude_planning_ids}}
+
+    req = ParsedRequest()
+    req.args = {"source": json.dumps({"query": {"bool": bool_query}})}
+    if projection:
+        req.projection = json.dumps(projection) if isinstance(projection, dict) else projection
+
+    return [cast_item(item) for item in get_resource_service("planning").get(req=req, lookup=None)]
+
+
+async def get_related_planning_for_events_async(
+    event_ids: List[str],
+    link_type: Optional[PLANNING_RELATED_EVENT_LINK_TYPE] = None,
+    exclude_planning_ids: Optional[List[str]] = None,
+    projection: dict | str | None = None,
+) -> List[Planning]:
+    related_events_filters: List[Dict[str, Any]] = [{"terms": {"related_events._id": event_ids}}]
+    if link_type is not None:
+        related_events_filters.append({"term": {"related_events.link_type": link_type}})
+
+    bool_query: Dict[str, Any] = {
+        "filter": {
+            "nested": {
+                "path": "related_events",
+                "query": {"bool": {"filter": related_events_filters}},
+            },
+        }
+    }
+
+    if len(exclude_planning_ids or []) > 0:
+        bool_query["must_not"] = {"terms": {"_id": exclude_planning_ids}}
+
+    req = ParsedRequest()
+    req.args = {"source": json.dumps({"query": {"bool": bool_query}})}
+    if projection:
+        req.projection = json.dumps(projection) if isinstance(projection, dict) else projection
+
+    return [cast_item(item) async for item in await get_resource_service("planning").get_async(req=req, lookup=None)]
+
+
+def event_has_planning_items(event_id: str, link_type: Optional[PLANNING_RELATED_EVENT_LINK_TYPE] = None) -> bool:
+    return len(get_related_planning_for_events([event_id], link_type)) > 0
+
+
+def get_related_event_links_for_planning(
+    plan: Planning, link_type: Optional[PLANNING_RELATED_EVENT_LINK_TYPE] = None
+) -> List[PlanningRelatedEventLink]:
+    related_events: List[PlanningRelatedEventLink] = plan.get("related_events") or []
+    return (
+        related_events
+        if link_type is None
+        else [related_event for related_event in related_events if related_event["link_type"] == link_type]
+    )
+
+
+def get_related_event_ids_for_planning(
+    plan: Planning, link_type: Optional[PLANNING_RELATED_EVENT_LINK_TYPE] = None
+) -> List[str]:
+    return [related_event["_id"] for related_event in get_related_event_links_for_planning(plan, link_type)]
+
+
+def get_first_related_event_id_for_planning(
+    plan: Planning, link_type: Optional[PLANNING_RELATED_EVENT_LINK_TYPE] = None
+) -> Optional[str]:
+    try:
+        return get_related_event_links_for_planning(plan, link_type)[0]["_id"]
+    except (KeyError, IndexError, TypeError):
+        return None
+
+
+def get_related_event_items_for_planning(
+    plan: Planning, link_type: Optional[PLANNING_RELATED_EVENT_LINK_TYPE] = None
+) -> List[Event]:
+    event_ids = get_related_event_ids_for_planning(plan, link_type)
+    if not len(event_ids):
+        return []
+
+    # TODO-ASYNC[EventsService] - Convert this to async when function is updated to async
+    events = list(get_resource_service("events").find(where={"_id": {"$in": event_ids}}))
+
+    if len(event_ids) != len(events):
+        logger.warning(
+            "Not all Events were found for the Planning item",
+            extra=dict(
+                plan_id=plan[ID_FIELD],
+                event_ids_requested=event_ids,
+                events_ids_found=[event[ID_FIELD] for event in events],
+            ),
+        )
+
+    return events
+
+
+async def get_related_event_items_for_planning_async(
+    plan: Planning, link_type: Optional[PLANNING_RELATED_EVENT_LINK_TYPE] = None
+) -> List[Event]:
+    """
+    Retrieve related event items asynchronously for a given planning object.
+
+    This function retrieves event items related to a specified planning object, optionally filtered
+    by a specific link type. It returns a list of related event objects. If some events are not found
+    in the database, a warning is logged with the relevant details.
+
+    :param plan: The planning item for which related events are being retrieved.
+    :param link_type: An optional link type to filter the related events. If not provided, all related events are retrieved.
+    :return: List of Events related to the given planning object.
+    """
+
+    event_ids = get_related_event_ids_for_planning(plan, link_type)
+    if not len(event_ids):
+        return []
+
+    cursor = await get_resource_service("events").find_async(where={"_id": {"$in": event_ids}})
+    events = await cursor.to_list()
+
+    if len(event_ids) != len(events):
+        logger.warning(
+            "Not all Events were found for the Planning item",
+            extra=dict(
+                plan_id=plan[ID_FIELD],
+                event_ids_requested=event_ids,
+                events_ids_found=[event[ID_FIELD] for event in events],
+            ),
+        )
+
+    return events
+
+
+def get_first_event_item_for_planning_id(
+    planning_id: str, link_type: Optional[PLANNING_RELATED_EVENT_LINK_TYPE] = None
+) -> Optional[Event]:
+    planning_item = get_resource_service("planning").find_one(req=None, _id=planning_id)
+    if not planning_item:
+        return None
+
+    first_event_id = get_first_related_event_id_for_planning(planning_item, link_type)
+    if not first_event_id:
+        return None
+
+    # TODO-ASYNC[EventsService] - Convert this to async when function is updated to async
+    return get_resource_service("events").find_one(req=None, _id=first_event_id)
+
+
+def get_planning_event_link_method() -> types.PLANNING_EVENT_LINK_METHOD:
+    return get_app_config(settings.PLANNING_EVENT_LINK_METHOD, "one_primary")
+
+
+def update_event_item_with_translations_value(event_item: Dict[str, Any], language: str) -> Dict[str, Any]:
+    if not event_item.get("translations") or not language:
+        return event_item
+    updated_event_item = event_item.copy()
+    for translation in event_item["translations"]:
+        if translation["language"] == language:
+            updated_event_item[translation["field"]] = translation["value"]
+
+    return updated_event_item
+
+
+def is_coverage_planning_modified(updates: dict[str, Any], original: dict[str, Any]):
+    from planning.common import TO_BE_CONFIRMED_FIELD
+
+    planning_updates = updates.get("planning", {})
+    planning_original = original.get("planning", {})
+
+    for key in planning_updates.keys():
+        if not key.startswith("_") and planning_updates[key] != planning_original.get(key):
+            return True
+
+    if (
+        TO_BE_CONFIRMED_FIELD in original
+        and TO_BE_CONFIRMED_FIELD in updates
+        and original.get(TO_BE_CONFIRMED_FIELD) != updates.get(TO_BE_CONFIRMED_FIELD)
+    ):
+        return True
+
+    return False
+
+
+def is_coverage_assignment_modified(updates: dict[str, Any], original: dict[str, Any]):
+    assigned_to_updates = updates.get("assigned_to", {})
+    assigned_to_original = original.get("assigned_to", {})
+
+    if assigned_to_updates:
+        keys = ["desk", "user", "state", "coverage_provider"]
+        for key in keys:
+            if key in assigned_to_updates and assigned_to_updates[key] != assigned_to_original.get(key):
+                return True
+
+        if assigned_to_updates.get("priority") and assigned_to_updates["priority"] != original.get("priority"):
+            return True
+
+    return False
+
+
+async def get_json_or_400_async(req: Request) -> dict:
+    data = await req.get_json()
+    if not isinstance(data, dict):
+        await req.abort(400)
+    return data

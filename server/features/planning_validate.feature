@@ -30,6 +30,14 @@ Feature: Planning Validate
             }
         }, {
             "_id": "planning", "name": "planning",
+            "editor":{
+                "place": {
+                    "enabled":true
+                },
+                "description_text": {
+                    "enabled":true
+                }
+            },
             "schema": {
                 "slugline": {
                     "type": "string",
@@ -42,23 +50,14 @@ Feature: Planning Validate
                 },
                 "description_text": {
                     "type": "string",
-                    "required": false
+                    "required": false,
+                    "show_in_embedded_editor": true
                 },
                 "internal_note": {
                     "type": "string",
                     "required": false
                 }
             }
-        }]
-        """
-        Given the "vocabularies"
-        """
-        [{
-            "_id": "event_calendars",
-            "display_name": "Event Calendars",
-            "type": "manageable",
-            "unique_field": "qcode",
-            "items": [{"is_active": true, "name": "Calendar 1", "qcode": "cal1"}]
         }]
         """
 
@@ -100,7 +99,7 @@ Feature: Planning Validate
         """
         {
             "slugline": "Test slugger",
-            "calendars": [{"qcode": "cal1", "name": "Calendar 1"}],
+            "calendars": [{"qcode": "sport", "name": "Sport"}],
             "dates": {
                 "start": "2029-11-21T01:00:00.000Z",
                 "end": "2029-11-21T04:00:00.000Z",
@@ -144,7 +143,7 @@ Feature: Planning Validate
         """
         {
             "slugline": "Test slugger",
-            "calendars": [{"qcode": "cal1", "name": "Calendar 1"}],
+            "calendars": [{"qcode": "sport", "name": "Sport"}],
             "dates": {
                 "start": "2029-11-21T01:00:00.000Z",
                 "end": "2029-11-21T04:00:00.000Z",
@@ -200,7 +199,7 @@ Feature: Planning Validate
         """
         {
             "slugline": "Test slugger",
-            "calendars": [{"qcode": "cal1", "name": "Calendar 1"}],
+            "calendars": [{"qcode": "sport", "name": "Sport"}],
             "update_method": "all",
             "dates": {
                 "start": "2029-11-21T01:00:00.000Z",
@@ -274,3 +273,124 @@ Feature: Planning Validate
         """
         Then we get OK response
 
+    @auth
+    Scenario: Validate coverages
+        Given "coverage_profiles"
+        """
+        [
+            {
+                "content_type": "text",
+                "editor": {
+                    "headline": {
+                        "enabled": true
+                    }
+                },
+                "schema": {
+                    "headline": {
+                        "required": true,
+                        "validate_on_post": true
+                    }
+                }
+            }
+        ]
+        """
+        When we post to "planning"
+        """
+        {"planning_date": "2016-01-02", "coverages": [
+            {"profile": "#coverage_profiles._id#"}
+        ], "place": [{"qcode": "NSW"}]}
+        """
+        Then we get OK response
+        When we post to "/planning/post"
+        """
+        {"planning": "#planning._id#", "etag": "#planning._etag#", "pubstatus": "usable"}
+        """
+        Then we get error 400
+        """
+        {
+            "_status": "ERR",
+            "_error": {
+                "message": ["HEADLINE is a required field"],
+                "code": 400
+            }
+        }
+        """
+
+    @auth
+    Scenario: Publishing related planning alongside event succeeds when show_in_embedded_editor is enabled
+        Given the "planning_types"
+        """
+        [{
+            "_id": "event", "name": "event",
+            "editor": {"related_plannings": {"enabled": true}},
+            "schema": {
+                "slugline": {
+                    "type": "string",
+                    "required": true,
+                    "validate_on_post": true
+                },
+                "related_plannings": {
+                    "planning_auto_publish": true
+                }
+            }
+        }, {
+            "_id": "planning", "name": "planning",
+            "editor": {
+                "place": {"enabled": true},
+                "description_text": {"enabled": true}
+            },
+            "schema": {
+                "place": {
+                    "type": "list",
+                    "required": true,
+                    "validate_on_post": true
+                },
+                "description_text": {
+                    "type": "string",
+                    "required": false,
+                    "show_in_embedded_editor": true
+                }
+            }
+        }]
+        """
+        When we post to "events"
+        """
+        [{
+            "name": "Test Event",
+            "slugline": "test-event",
+            "dates": {
+                "start": "2029-11-21T01:00:00.000Z",
+                "end": "2029-11-21T04:00:00.000Z",
+                "tz": "Australia/Sydney"
+            }
+        }]
+        """
+        Then we get OK response
+        When we post to "/planning"
+        """
+        [{
+            "planning_date": "2029-11-21",
+            "place": [{"qcode": "NSW"}],
+            "related_events": [{"_id": "#events._id#", "link_type": "primary"}],
+            "slugline": "test"
+        }]
+        """
+        Then we get OK response
+        When we post to "/events/post"
+        """
+        {
+            "event": "#events._id#",
+            "etag": "#events._etag#",
+            "pubstatus": "usable"
+        }
+        """
+        Then we get OK response
+        Then we get updated response
+        """
+        {"failed_planning_ids": "__empty__"}
+        """
+        When we get "/planning/#planning._id#"
+        Then we get existing resource
+        """
+        {"state": "scheduled", "pubstatus": "usable"}
+        """

@@ -113,7 +113,7 @@ Feature: Assignments Delete
                 "assignments": ["#assignmentId#"],
                 "planning": "#planning._id#",
                 "coverage": "#coverageId#",
-                "planning_etag": "__any_value__"
+                "planning_etag": null
             }
         }]
         """
@@ -291,7 +291,9 @@ Feature: Assignments Delete
                 },
                 "workflow_status": "active"
             }],
-            "event_item": "#events._id#"
+            "related_events": [
+                {"_id": "#events._id#"}
+            ]
         }
         """
         Then we get OK response
@@ -347,7 +349,10 @@ Feature: Assignments Delete
                 },
                 "workflow_status": "active"
             }],
-            "event_item": "#EVENT2._id#",
+            "related_events": [{
+                "_id": "#EVENT2._id#",
+                "recurrence_id": "#EVENT2.recurrence_id#"
+            }],
             "recurrence_id": "#EVENT2.recurrence_id#"
         }
         """
@@ -372,6 +377,7 @@ Feature: Assignments Delete
 
     @auth
     Scenario: No Lock validation passes if planning item is killed
+        When we configure planning for publishing
         When we post to "planning/#planning._id#/lock"
         """
         { "lock_action": "edit" }
@@ -768,7 +774,8 @@ Feature: Assignments Delete
     @notification @today
     @planning_cvs
     Scenario: Deleting an Assignment in schedule_updates chain will unlink all assignments content
-        Given empty "planning"
+        When we configure content for publishing
+        And we configure planning for publishing
         When we post to "planning"
         """
         [{
@@ -1032,7 +1039,6 @@ Feature: Assignments Delete
         "subject":[{"qcode": "17004000", "name": "Statistics"}],
         "slugline": "test",
         "body_html": "Test Document body",
-        "target_subscribers": [{"_id": "#subscribers._id#"}],
         "dateline": {
           "located" : {
               "country" : "Afghanistan",
@@ -1173,4 +1179,102 @@ Feature: Assignments Delete
             "assigned_to": "__no_value__",
             "workflow_status": "draft"
         }]}
+        """
+
+    @auth
+    @notification
+    Scenario: Remove Coverage assignee also removes the linked Assignment
+        When we post to "/archive"
+        """
+        [{
+            "type": "text",
+            "headline": "test headline",
+            "slugline": "test slugline",
+            "task": {
+                "desk": "#desks._id#",
+                "stage": "#desks.incoming_stage#"
+            }
+        }]
+        """
+        When we post to "assignments/link"
+        """
+        [{"assignment_id": "#assignmentId#", "item_id": "#archive._id#", "reassign": true}]
+        """
+        Then we get OK response
+        When we reset notifications
+        When we patch "/planning/#planning._id#"
+        """
+        {"coverages": [{
+            "coverage_id": "#coverageId#",
+            "planning": {
+                "ednote": "test coverage, I want 250 words",
+                "headline": "test headline",
+                "slugline": "test slugline",
+                "g2_content_type" : "text"
+            },
+            "assigned_to": {},
+            "workflow_status": "draft"
+        }]}
+        """
+        Then we get OK response
+        When we get "/assignments/#assignmentId#"
+        Then we get error 404
+        When we get "/archive/#archive._id#"
+        Then we get existing resource
+        """
+        {"assignment_id": "__none__"}
+        """
+        When we get "/planning/#planning._id#"
+        Then we get existing resource
+        """
+        {"coverages": [{
+            "coverage_id": "#coverageId#",
+            "planning": {
+                "ednote": "test coverage, I want 250 words",
+                "headline": "test headline",
+                "slugline": "test slugline",
+                "g2_content_type" : "text"
+            },
+            "assigned_to": {
+                "desk": "__no_value__",
+                "user": "__no_value__",
+                "state": "__no_value__"
+            },
+            "workflow_status": "draft"
+        }]}
+        """
+        Then we get notifications
+        """
+        [{
+            "event": "assignments:removed",
+            "extra": {
+                "assignments": ["#assignmentId#"],
+                "planning": "#planning._id#",
+                "coverage": "#coverageId#",
+                "planning_etag": "__any_value__"
+            }
+        }]
+        """
+        When we get "/activity"
+        Then we get existing resource
+        """
+        {"_items": [{
+            "data" : {
+                "slugline" : "test slugline",
+                "coverage_type" : "text"
+            },
+            "message" : "The {{coverage_type}} assignment {{slugline}} has been removed",
+            "name":"update",
+            "recipients":[{
+                "user_id":"#CONTEXT_USER_ID#",
+                "read":false
+            }],
+            "resource":"assignments",
+            "user":"#CONTEXT_USER_ID#",
+            "user_name":"test_user"
+        }]}
+        """
+        And we get emails
+        """
+        [{"body": "The text assignment test slugline has been removed"}]
         """

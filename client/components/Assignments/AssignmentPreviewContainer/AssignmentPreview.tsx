@@ -4,6 +4,7 @@ import {get} from 'lodash';
 import {superdeskApi} from '../../../superdeskApi';
 import {
     IAssignmentItem,
+    ICoverageContentProfile,
     ICoverageFormProfile,
     ICoveragePlanningDetails,
     IFile,
@@ -14,7 +15,7 @@ import {
 
 import {assignmentUtils, planningUtils} from '../../../utils';
 
-import {ContactsPreviewList} from '../../Contacts';
+import {ContactsPreviewList} from '../../Contacts/ContactsPreviewList';
 import {Row} from '../../UI/Preview';
 import {FileReadOnlyList} from '../../UI';
 import {previewGroupToProfile, renderFieldsForPanel} from '../../fields';
@@ -26,6 +27,11 @@ interface IProps {
     planningItem: IPlanningItem;
     files: Array<IFile>;
     createLink(file: IFile): string;
+
+    /**
+     * The coverage profile used when creating the assignment
+     */
+    assignmentCoverageProfile: ICoverageContentProfile;
 }
 
 export class AssignmentPreview extends React.PureComponent<IProps> {
@@ -35,26 +41,22 @@ export class AssignmentPreview extends React.PureComponent<IProps> {
             assignment,
             coverageFormProfile,
             planningFormProfile,
+            assignmentCoverageProfile,
             planningItem,
             files,
             createLink,
         } = this.props;
 
         const planning: Partial<ICoveragePlanningDetails> = assignment?.planning ?? {};
-        const contactId = get(assignment, 'assigned_to.contact') ?
-            assignment.assigned_to.contact :
-            get(planning, 'contact_info');
+        const contactId = assignment?.assigned_to?.contact ?? planning?.contact_info;
         const showXMPFiles = planningUtils.showXMPFileUIControl(assignment);
 
         return (
             <div>
-                {contactId == null ? null : (
+                {contactId != null && (
                     <Row label={assignmentUtils.getContactLabel(assignment)}>
                         <ContactsPreviewList
                             contactIds={[contactId]}
-                            scrollInView={true}
-                            scrollIntoViewOptions={{block: 'center'}}
-                            tabEnabled={true}
                         />
                     </Row>
                 )}
@@ -71,6 +73,7 @@ export class AssignmentPreview extends React.PureComponent<IProps> {
                             planning: planningItem,
                         },
                         language: planning.language,
+                        schema: assignmentCoverageProfile?.schema,
                     },
                     {
                         contact_info: {field: 'coverage'},
@@ -83,7 +86,8 @@ export class AssignmentPreview extends React.PureComponent<IProps> {
                         keyword: {field: 'coverage.keyword'},
                         ednote: {field: 'coverage.ednote', renderEmpty: true},
                         internal_note: {field: 'coverage.internal_note', renderEmpty: true},
-                    },
+                        location: {field: 'planning.location'},
+                    }
                 )}
 
                 <Row

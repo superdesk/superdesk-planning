@@ -4,9 +4,7 @@ import {connect} from 'react-redux';
 import {superdeskApi} from '../../superdeskApi';
 import {ISearchFilter, IEventsPlanningContentPanelProps} from '../../interfaces';
 
-import {Modal} from '../index';
-import {MODALS, PRIVILEGES, KEYCODES} from '../../constants';
-import {SubNav, StretchBar, Button} from '../UI/SubNav';
+import {PRIVILEGES, KEYCODES} from '../../constants';
 import {ColumnBox} from '../UI';
 import {SidePanel} from '../UI/SidePanel';
 import * as selectors from '../../selectors';
@@ -15,18 +13,21 @@ import {FiltersList} from './FiltersList';
 import {EditFilter} from './EditFilter';
 import {PreviewFilter} from './PreviewFilter';
 import {EditFilterSchedule} from './EditFilterSchedule';
+import {Button, Modal, SubNav, ButtonGroup} from 'superdesk-ui-framework/react';
 
 interface IProps {
     handleHide(): void;
     privileges: {[key: string]: number};
-    deleteFilter(filter: ISearchFilter): void;
-    deleteFilterSchedule(filter: ISearchFilter): void;
     createOrUpdate(filter: Partial<ISearchFilter>): Promise<void>;
+    deleteFilter(filter: ISearchFilter): Promise<void>;
+    deleteFilterSchedule(filter: ISearchFilter): Promise<void>;
 }
 
 interface IState {
     selectedFilter?: Partial<ISearchFilter>;
     contentPanelState: null | 'preview' | 'edit' | 'schedule';
+    isPristine: boolean;
+    pendingFilter?: Partial<ISearchFilter>;
 }
 
 const mapStateToProps = (state) => ({
@@ -34,96 +35,140 @@ const mapStateToProps = (state) => ({
 });
 
 const mapDispatchToProps = (dispatch) => ({
-    deleteFilter: (filter) => {
-        const {gettext} = superdeskApi.localization;
-
-        dispatch(actions.showModal({
-            modalType: MODALS.CONFIRMATION,
-            modalProps: {
-                body: gettext('Do you want to delete "{{ name }}" filter?', {name: filter.name}),
-                action: () => dispatch(actions.eventsPlanning.ui.deleteFilter(filter)),
-                autoClose: true,
-            },
-        }));
-    },
-    deleteFilterSchedule: (filter) => {
-        const {gettext} = superdeskApi.localization;
-
-        dispatch(actions.showModal({
-            modalType: MODALS.CONFIRMATION,
-            modalProps: {
-                body: gettext('Are you sure you want to delete this schedule?'),
-                action: () => dispatch(actions.eventsPlanning.ui.saveFilter({
-                    ...filter,
-                    schedules: [],
-                })),
-                autoClose: true,
-            },
-        }));
-    },
     createOrUpdate: (filter) => dispatch(actions.eventsPlanning.ui.saveFilter(filter)),
+    deleteFilter: (filter) => dispatch(actions.eventsPlanning.ui.deleteFilter(filter)),
+    deleteFilterSchedule: (filter) => dispatch(actions.eventsPlanning.ui.saveFilter({
+        ...filter,
+        schedules: [],
+    })),
 });
 
-
-export class ManageFiltersComponent extends React.Component<IProps, IState> {
+class ManageFiltersComponent extends React.Component<IProps, IState> {
     constructor(props) {
         super(props);
         this.state = {
             selectedFilter: null,
             contentPanelState: null,
+            isPristine: true,
+            pendingFilter: null,
         };
 
-        this.editFilter = this.editFilter.bind(this);
-        this.previewFilter = this.previewFilter.bind(this);
-        this.editFilterSchedule = this.editFilterSchedule.bind(this);
-        this.closeEditor = this.closeEditor.bind(this);
-        this.handleKeydown = this.handleKeydown.bind(this);
+        this.deleteFilter = this.deleteFilter.bind(this);
+        this.deleteFilterSchedule = this.deleteFilterSchedule.bind(this);
     }
 
     componentDidMount() {
         document.addEventListener('keydown', this.handleKeydown);
     }
 
+    deleteFilter(filter: ISearchFilter) {
+        const {gettext} = superdeskApi.localization;
+        const {confirm} = superdeskApi.ui;
+
+        confirm(
+            gettext('Filter "{{ name }}" will be permanently deleted.', {name: filter.name}),
+            gettext('Delete Item?'),
+            gettext('Delete'),
+        ).then((confirmed) => {
+            if (confirmed) {
+                this.props.deleteFilter(filter);
+            }
+        });
+    }
+
+    deleteFilterSchedule(filter: ISearchFilter) {
+        const {gettext} = superdeskApi.localization;
+        const {confirm} = superdeskApi.ui;
+
+        confirm(
+            gettext('Schedule will be permanently deleted.'),
+            gettext('Delete Item?'),
+            gettext('Delete'),
+        ).then((confirmed) => {
+            if (confirmed) {
+                this.props.deleteFilterSchedule(filter);
+            }
+        });
+    }
+
     componentWillUnmount() {
         document.removeEventListener('keydown', this.handleKeydown);
     }
 
-    handleKeydown(event) {
+    handleKeydown = (event) => {
         if (event.keyCode === KEYCODES.ESCAPE) {
             event.preventDefault();
             this.props.handleHide();
         }
     }
 
-    editFilter(filter: Partial<ISearchFilter> = null) {
+    editFilter = (filter: Partial<ISearchFilter> = null) => {
         this.setState({
             selectedFilter: filter,
             contentPanelState: 'edit',
+            isPristine: true,
+            pendingFilter: null,
         });
     }
 
-    previewFilter(filter: ISearchFilter) {
+    editFilterWithConfirmation = (filter: Partial<ISearchFilter> = null) => {
+        if (this.state.contentPanelState === 'edit' && !this.state.isPristine) {
+            this.setState({pendingFilter: filter});
+        } else {
+            this.editFilter(filter);
+        }
+    }
+
+    onDontSave = () => {
+        const {pendingFilter} = this.state;
+
+        this.editFilter(pendingFilter);
+    }
+
+    onSaveAndSwitch = () => {
+        const {createOrUpdate} = this.props;
+        const {pendingFilter} = this.state;
+        const filter = this.state.selectedFilter;
+        const updates = {
+            ...filter,
+        };
+
+        createOrUpdate(updates).then(() => {
+            this.editFilter(pendingFilter);
+        });
+    }
+
+    onCancelSwitch = () => {
+        this.setState({pendingFilter: null});
+    }
+
+    previewFilter = (filter: ISearchFilter) => {
         this.setState({
             selectedFilter: filter,
             contentPanelState: 'preview',
         });
     }
 
-    editFilterSchedule(filter: ISearchFilter) {
+    editFilterSchedule = (filter: ISearchFilter) => {
         this.setState({
             selectedFilter: filter,
             contentPanelState: 'schedule',
         });
     }
 
-    closeEditor() {
+    closeEditor = () => {
         this.setState({
             selectedFilter: null,
             contentPanelState: null,
+            isPristine: true,
         });
     }
 
-    getContentPanelComponent(): React.ComponentType<IEventsPlanningContentPanelProps> | null {
+    onPristineChange = (pristine: boolean) => {
+        this.setState({isPristine: pristine});
+    }
+
+    getContentPanelComponent = (): React.ComponentType<IEventsPlanningContentPanelProps> | null => {
         switch (this.state.contentPanelState) {
         case 'edit':
             return EditFilter;
@@ -131,14 +176,14 @@ export class ManageFiltersComponent extends React.Component<IProps, IState> {
             return PreviewFilter;
         case 'schedule':
             return EditFilterSchedule;
+        default:
+            return null;
         }
-
-        return null;
     }
 
     render() {
         const {gettext} = superdeskApi.localization;
-        const {handleHide, privileges, deleteFilter, createOrUpdate} = this.props;
+        const {handleHide, privileges, createOrUpdate} = this.props;
 
         const rightPanelClasses = this.state.contentPanelState != null ?
             'sd-main-content-grid__preview open-preview' :
@@ -147,75 +192,99 @@ export class ManageFiltersComponent extends React.Component<IProps, IState> {
 
         return (
             <Modal
-                xLarge={true}
-                show={true}
+                data-test-id="search-filters-modal"
+                visible
+                closeOnEscape
+                contentPadding="none"
+                size="x-large"
+                className="sd-content-wrapper__main-content-area sd-main-content-grid comfort"
                 onHide={handleHide}
+                headerTemplate={gettext('Manage Events & Planning Filters')}
+                footerTemplate={(
+                    <Button
+                        onClick={handleHide}
+                        text={gettext('Close')}
+                        type="tertiary"
+                    />
+                )}
             >
-                <Modal.Header>
-                    <h3 className="modal__heading">
-                        {gettext('Manage Events & Planning Filters')}
-                    </h3>
-                    <a className="icn-btn" aria-label={gettext('Close')} onClick={handleHide}>
-                        <i className="icon-close-small" />
-                    </a>
-                </Modal.Header>
-                <Modal.Body
-                    noPadding={true}
-                    noScroll={true}
-                >
-                    <div
-                        style={{height: '100%'}}
-                        className="sd-content-wrapper__main-content-area sd-main-content-grid comfort"
-                    >
-                        <div className="sd-main-content-grid__content">
-                            {!!privileges[PRIVILEGES.EVENTS_PLANNING_FILTERS_MANAGEMENT] && (
-                                <SubNav>
-                                    <StretchBar />
-                                    <Button
-                                        right={true}
-                                        buttonClassName="btn btn--primary"
-                                        onClick={() => this.editFilter()}
-                                        testId="manage-filters--add-new-filter"
-                                    >
-                                        <i className="icon-plus-sign icon-white" />
-                                        {gettext('Add New Filter')}
-                                    </Button>
-                                </SubNav>
+                <div className="sd-main-content-grid__content">
+                    {!!privileges[PRIVILEGES.EVENTS_PLANNING_FILTERS_MANAGEMENT] && (
+                        <SubNav className="px-2 sd-flex justify-end">
+                            <Button
+                                text={gettext('Add New Filter')}
+                                onClick={() => this.editFilter()}
+                                data-test-id="manage-filters--add-new-filter"
+                                type="primary"
+                                icon="plus-sign"
+                            />
+                        </SubNav>
+                    )}
+                    <ColumnBox.Box verticalScroll={true}>
+                        <ColumnBox.MainColumn padded={true}>
+                            <FiltersList
+                                activeFilterId={this.state.selectedFilter?._id}
+                                privileges={privileges}
+                                deleteFilter={this.deleteFilter}
+                                editFilter={this.editFilterWithConfirmation}
+                                editFilterSchedule={this.editFilterSchedule}
+                                deleteFilterSchedule={this.deleteFilterSchedule}
+                                previewFilter={this.previewFilter}
+                            />
+                        </ColumnBox.MainColumn>
+                    </ColumnBox.Box>
+                </div>
+                <div className={rightPanelClasses} data-test-id="manage-filters--content-panel">
+                    <div className="side-panel__container">
+                        <SidePanel className="side-panel--right">
+                            {ContentPanel == null ? (
+                                <div />
+                            ) : (
+                                <ContentPanel
+                                    key={this.state.selectedFilter?._id ?? 'new'}
+                                    filter={this.state.selectedFilter}
+                                    onClose={this.closeEditor}
+                                    onSave={createOrUpdate}
+                                    editFilter={this.editFilter}
+                                    editFilterSchedule={this.editFilterSchedule}
+                                    previewFilter={this.previewFilter}
+                                    deleteFilterSchedule={this.deleteFilterSchedule}
+                                    onPristineChange={this.onPristineChange}
+                                />
                             )}
-                            <ColumnBox.Box verticalScroll={true}>
-                                <ColumnBox.MainColumn padded={true}>
-                                    <FiltersList
-                                        privileges={privileges}
-                                        deleteFilter={deleteFilter}
-                                        editFilter={this.state.contentPanelState === 'edit' ? null : this.editFilter}
-                                        editFilterSchedule={this.editFilterSchedule}
-                                        deleteFilterSchedule={this.props.deleteFilterSchedule}
-                                        previewFilter={this.previewFilter}
-                                    />
-                                </ColumnBox.MainColumn>
-                            </ColumnBox.Box>
-                        </div>
-                        <div className={rightPanelClasses} data-test-id="manage-filters--content-panel">
-                            <div className="side-panel__container">
-                                <SidePanel className="side-panel--right">
-                                    {ContentPanel == null ? (
-                                        <div />
-                                    ) : (
-                                        <ContentPanel
-                                            filter={this.state.selectedFilter}
-                                            onClose={this.closeEditor}
-                                            onSave={createOrUpdate}
-                                            editFilter={this.editFilter}
-                                            editFilterSchedule={this.editFilterSchedule}
-                                            previewFilter={this.previewFilter}
-                                            deleteFilterSchedule={this.props.deleteFilterSchedule}
-                                        />
-                                    )}
-                                </SidePanel>
-                            </div>
-                        </div>
+                        </SidePanel>
                     </div>
-                </Modal.Body>
+                </div>
+                {this.state.pendingFilter != null && (
+                    <Modal
+                        visible
+                        size="small"
+                        position="top"
+                        onHide={this.onCancelSwitch}
+                        headerTemplate={gettext('Save changes?')}
+                        footerTemplate={(
+                            <ButtonGroup align="end">
+                                <Button
+                                    text={gettext('Go Back')}
+                                    onClick={this.onCancelSwitch}
+                                    type="tertiary"
+                                />
+                                <Button
+                                    text={gettext('Don\'t Save')}
+                                    onClick={this.onDontSave}
+                                    type="default"
+                                />
+                                <Button
+                                    text={gettext('Save')}
+                                    onClick={this.onSaveAndSwitch}
+                                    type="primary"
+                                />
+                            </ButtonGroup>
+                        )}
+                    >
+                        {gettext('Your changes will be lost if you switch now. What would you like to do?')}
+                    </Modal>
+                )}
             </Modal>
         );
     }

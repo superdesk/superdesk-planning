@@ -43,6 +43,9 @@ interface IOwnProps {
     showAllDeskOption?: boolean;
     saveSortPreferences?: boolean;
     ignoreScheduledUpdates?: boolean;
+
+    filtersOpen: boolean;
+    toggleFilterPanel(): void;
 }
 
 type IProps = IOwnProps & IReduxStateProps & IReduxDispatchProps;
@@ -187,9 +190,11 @@ export class AssignmentsSubNavComponent extends React.Component<IProps> {
                     userDesks={showDeskSelection ? userDesks : []}
                     selectAssignmentsFrom={this.selectAssignmentsFrom}
                     showDeskSelection={showDeskSelection}
-                    showAllDeskOption={showAllDeskOption}
+                    showAllDeskOption={showAllDeskOption && showDeskAssignmentView}
                     changeSortField={this.changeSortField}
                     showDeskAssignmentView={showDeskAssignmentView}
+                    filtersOpen={this.props.filtersOpen}
+                    toggleFilterPanel={this.props.toggleFilterPanel}
                 />
             </React.Fragment>
         );

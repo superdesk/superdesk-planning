@@ -8,16 +8,16 @@
 # AUTHORS and LICENSE files distributed with this source code, or
 # at https://www.sourcefabric.org/superdesk/license
 
-from datetime import datetime
-from dateutil.rrule import rrule, HOURLY
+from datetime import datetime, timedelta
+from dateutil.rrule import rrule, HOURLY, MINUTELY
 import pytz
 
-from flask import current_app as app
-
+from superdesk.core import get_app_config
 from superdesk.utc import local_to_utc
 
 from planning.tests import TestCase
 from planning.commands.export_scheduled_filters import ExportScheduledFilters
+from planning.search.eventsplanning_filters_service import EventsPlanningFiltersAsyncService
 
 
 def to_naive(date_str):
@@ -25,26 +25,31 @@ def to_naive(date_str):
 
 
 def to_utc(date_str):
-    return local_to_utc(app.config["DEFAULT_TIMEZONE"], datetime.strptime(date_str, "%Y-%m-%dT%H"))
+    return local_to_utc(get_app_config("DEFAULT_TIMEZONE"), datetime.strptime(date_str, "%Y-%m-%dT%H"))
 
 
 def to_local(date_str):
-    local_tz = pytz.timezone(app.config["DEFAULT_TIMEZONE"])
+    local_tz = pytz.timezone(get_app_config("DEFAULT_TIMEZONE"))
     local_datetime = datetime.strptime(date_str, "%Y-%m-%dT%H")
 
     return local_tz.localize(local_datetime)
 
 
 class ExportScheduledFiltersTestCase(TestCase):
-    def setUp(self):
-        super().setUp()
+    async def asyncSetUp(self):
+        await super().asyncSetUp()
         self.app.config["DEFAULT_TIMEZONE"] = "Australia/Sydney"
         self.app.config["ADMINS"] = ["superdesk@test.com"]
 
-    def _test(self, report, start, end, expected_hits):
+    def _test(self, report, start, end, expected_hits, freq=None):
         count = 0
-        for now in rrule(HOURLY, dtstart=to_naive(start), until=to_naive(end)):
-            local_tz = pytz.timezone(app.config["DEFAULT_TIMEZONE"])
+        if freq is None:
+            freq = HOURLY
+            hours_list = report.get("hours") or []
+            if any(":" in h and h.split(":")[1] != "00" for h in hours_list):
+                freq = MINUTELY
+        for now in rrule(freq, dtstart=to_naive(start), until=to_naive(end)):
+            local_tz = pytz.timezone(get_app_config("DEFAULT_TIMEZONE"))
             now_local = local_tz.localize(now)
 
             response = ExportScheduledFilters().should_export(report, now_local)
@@ -58,7 +63,7 @@ class ExportScheduledFiltersTestCase(TestCase):
 
             if response:
                 # Update the last sent time to now
-                report["_last_sent"] = local_to_utc(app.config["DEFAULT_TIMEZONE"], now_local)
+                report["_last_sent"] = local_to_utc(get_app_config("DEFAULT_TIMEZONE"), now_local)
                 count += 1
 
         self.assertEqual(len(expected_hits), count)
@@ -228,4 +233,298 @@ class ExportScheduledFiltersTestCase(TestCase):
                 to_local("2018-11-01T00"),
                 to_local("2018-12-01T00"),
             ],
+        )
+
+    def test_send_report_multiple_hours_per_day(self):
+        # Export should run on weekdays (Mon–Fri) at 08:00 and 16:00
+        report = {
+            "frequency": "weekly",
+            "hours": ["08:00", "16:00"],
+            "week_days": ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"],
+        }
+
+        self._test(
+            report=report,
+            start="2018-06-04T00",
+            end="2018-06-08T23",
+            expected_hits=[
+                to_local("2018-06-04T08"),
+                to_local("2018-06-04T16"),
+                to_local("2018-06-05T08"),
+                to_local("2018-06-05T16"),
+                to_local("2018-06-06T08"),
+                to_local("2018-06-06T16"),
+                to_local("2018-06-07T08"),
+                to_local("2018-06-07T16"),
+                to_local("2018-06-08T08"),
+                to_local("2018-06-08T16"),
+            ],
+        )
+
+    def test_send_report_multiple_hours_with_last_sent(self):
+        # Simulate already sent at 08:00 on June 4
+        report = {
+            "frequency": "weekly",
+            "hours": ["08:00", "16:00"],
+            "week_days": ["Monday", "Tuesday"],
+            "_last_sent": to_utc("2018-06-04T08"),
+        }
+
+        self._test(
+            report=report,
+            start="2018-06-04T00",
+            end="2018-06-05T23",
+            expected_hits=[
+                to_local("2018-06-04T16"),
+                to_local("2018-06-05T08"),
+                to_local("2018-06-05T16"),
+            ],
+        )
+
+    def test_send_report_minutes_precision(self):
+        # Export should run at specific minutes
+        report = {
+            "frequency": "daily",
+            "hours": ["08:15", "12:30", "16:45"],
+        }
+
+        expected_hits = [
+            to_local("2018-06-30T08") + timedelta(minutes=15),
+            to_local("2018-06-30T12") + timedelta(minutes=30),
+            to_local("2018-06-30T16") + timedelta(minutes=45),
+        ]
+
+        self._test(
+            report=report,
+            start="2018-06-30T00",
+            end="2018-06-30T23",
+            expected_hits=expected_hits,
+        )
+
+    def test_set_schedule_daily_preserves_hours(self):
+        svc = EventsPlanningFiltersAsyncService()
+        updates = {
+            "schedules": [
+                {
+                    "frequency": "daily",
+                    "hours": ["14:30", "08:05"],
+                    "hour": 14,
+                    "day": 10,
+                    "week_days": ["Monday"],
+                    "desk": "desk1",
+                }
+            ]
+        }
+
+        svc.set_schedule(updates)
+        schedule = updates["schedules"][0]
+
+        self.assertEqual(schedule["frequency"], "daily")
+        self.assertIn("hours", schedule)
+        self.assertListEqual(schedule["hours"], ["14:30", "08:05"])
+        self.assertEqual(schedule.get("day"), -1)
+        self.assertEqual(schedule.get("week_days"), [])
+        self.assertEqual(schedule.get("hour"), 14)
+
+    def test_hourly_frequency_runs_only_once_per_hour(self):
+        last_sent_local = to_local("2018-06-30T09") + timedelta(minutes=35)
+        report = {
+            "frequency": "hourly",
+            "hour": -1,
+            "hours": [],
+            "_last_sent": local_to_utc(get_app_config("DEFAULT_TIMEZONE"), last_sent_local),
+        }
+
+        same_hour = to_local("2018-06-30T09") + timedelta(minutes=40)
+        next_hour = to_local("2018-06-30T10")
+
+        self.assertFalse(ExportScheduledFilters().should_export(report, same_hour))
+        self.assertTrue(ExportScheduledFilters().should_export(report, next_hour))
+
+    def test_daily_frequency_runs_only_once_per_day_with_hour_field(self):
+        report = {
+            "frequency": "daily",
+            "hour": 10,
+            "day": -1,
+            "hours": [],
+            "week_days": [],
+        }
+
+        self._test(
+            report=report,
+            start="2026-04-01T10",
+            end="2026-04-01T11",
+            expected_hits=[
+                to_local("2026-04-01T10"),
+            ],
+            freq=MINUTELY,
+        )
+
+        self._test(
+            report=report,
+            start="2026-04-02T10",
+            end="2026-04-02T11",
+            expected_hits=[
+                to_local("2026-04-02T10"),
+            ],
+            freq=MINUTELY,
+        )
+
+    def test_weekly_frequency_runs_only_once_per_week_with_hour_field(self):
+        report = {
+            "frequency": "weekly",
+            "hour": 16,
+            "day": -1,
+            "hours": [],
+            "week_days": ["Monday"],
+        }
+
+        self._test(
+            report=report,
+            start="2026-04-06T16",
+            end="2026-04-06T17",
+            expected_hits=[
+                to_local("2026-04-06T16"),
+            ],
+            freq=MINUTELY,
+        )
+
+    def test_weekly_frequency_defaults_to_midnight_when_no_hour_defined(self):
+        report = {
+            "frequency": "weekly",
+            "hour": -1,
+            "day": -1,
+            "hours": [],
+            "week_days": ["Monday"],
+        }
+
+        self._test(
+            report=report,
+            start="2026-04-06T00",
+            end="2026-04-06T01",
+            expected_hits=[
+                to_local("2026-04-06T00"),
+            ],
+            freq=MINUTELY,
+        )
+
+        self._test(
+            report=report,
+            start="2026-04-13T00",
+            end="2026-04-13T01",
+            expected_hits=[
+                to_local("2026-04-13T00"),
+            ],
+            freq=MINUTELY,
+        )
+
+        self._test(
+            report=report,
+            start="2026-04-13T16",
+            end="2026-04-13T17",
+            expected_hits=[],
+            freq=MINUTELY,
+        )
+
+    def test_monthly_frequency_runs_only_once_per_month(self):
+        # Reproduces the bug: monthly schedule with day=-1 and hours=[] was firing every
+        # minute after the first export because `now_local_minute > last_sent` was True
+        # for each subsequent minute within the scheduled hour.
+        report = {
+            "frequency": "monthly",
+            "hour": 1,
+            "day": -1,
+            "hours": [],
+            "week_days": [],
+        }
+
+        self._test(
+            report=report,
+            start="2026-04-01T01",
+            end="2026-04-01T01",
+            expected_hits=[
+                to_local("2026-04-01T01"),
+            ],
+            freq=MINUTELY,
+        )
+
+        self._test(
+            report=report,
+            start="2026-05-01T01",
+            end="2026-05-01T01",
+            expected_hits=[
+                to_local("2026-05-01T01"),
+            ],
+            freq=MINUTELY,
+        )
+
+    def test_monthly_frequency_minute_level_precision(self):
+        # Test minute-level precision for monthly schedules.
+        # Verifies the fix prevents firing every minute after the first export.
+        # Use the explicit freq override so this test always runs at minute precision.
+        report = {
+            "frequency": "monthly",
+            "hour": 1,
+            "day": -1,
+            "hours": ["01:00"],
+            "week_days": [],
+        }
+
+        self._test(
+            report=report,
+            start="2026-04-01T00",
+            end="2026-04-02T23",
+            expected_hits=[
+                to_local("2026-04-01T01"),
+            ],
+            freq=MINUTELY,
+        )
+
+    def test_monthly_frequency_multiple_hours_same_day(self):
+        report = {
+            "frequency": "monthly",
+            "day": 1,
+            "hours": ["08:00", "16:00"],
+            "week_days": [],
+        }
+
+        self._test(
+            report=report,
+            start="2026-04-01T00",
+            end="2026-05-01T23",
+            expected_hits=[
+                to_local("2026-04-01T08"),
+                to_local("2026-04-01T16"),
+                to_local("2026-05-01T08"),
+                to_local("2026-05-01T16"),
+            ],
+        )
+
+    def test_monthly_frequency_defaults_to_midnight_when_no_hour_defined(self):
+        report = {
+            "frequency": "monthly",
+            "hour": -1,
+            "day": 1,
+            "hours": [],
+            "week_days": [],
+        }
+
+        self._test(
+            report=report,
+            start="2026-04-01T00",
+            end="2026-04-01T01",
+            expected_hits=[
+                to_local("2026-04-01T00"),
+            ],
+            freq=MINUTELY,
+        )
+
+        self._test(
+            report=report,
+            start="2026-05-01T00",
+            end="2026-05-01T01",
+            expected_hits=[
+                to_local("2026-05-01T00"),
+            ],
+            freq=MINUTELY,
         )

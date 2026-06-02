@@ -104,7 +104,7 @@ export class SearchPanelComponent extends React.Component<IProps, IState> {
                 <Header className="side-panel__header--border-b">
                     <Tools
                         tools={[{
-                            icon: 'icon-close-small',
+                            icon: 'close-small',
                             onClick: this.props.toggleFilterPanel,
                             title: gettext('Close'),
                         }]}
@@ -117,6 +117,7 @@ export class SearchPanelComponent extends React.Component<IProps, IState> {
                     <ContentBlock>
                         <ContentBlockInner>
                             <AdvancedSearch
+                                type="event_planning"
                                 params={this.state.params}
                                 onChange={this.onChangeHandler}
                                 onChangeMultiple={this.onChangeMultiple}

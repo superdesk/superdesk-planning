@@ -1,6 +1,8 @@
+import {get, cloneDeep} from 'lodash';
+
+import {IPlanningCoverageItem} from '../interfaces';
 import {preferredCoverageDesks, preferredAssignmentSort} from '../selectors/general';
 import {USER_ACTIONS, COVERAGES, ASSIGNMENTS} from '../constants';
-import {get, cloneDeep} from 'lodash';
 
 const fetchAndRegisterUserPreferences = (force = false) => (
     (dispatch, getState, {preferencesService}) =>
@@ -36,17 +38,22 @@ const updatePreferences = (updates, key) => (
     )
 );
 
-const setCoverageDefaultDesk = (coverage) => (
+const setCoverageDefaultDesk = (coverage: IPlanningCoverageItem) => (
     (dispatch, getState) => {
-        const coverageType = get(coverage, 'planning.g2_content_type');
-        let coverageDeskPref = preferredCoverageDesks(getState());
+        const coverageProfileId = coverage.profile ?? coverage.planning?.g2_content_type;
+        const coverageDeskId = coverage.assigned_to?.desk;
+        const coverageDeskPref = preferredCoverageDesks(getState());
 
-        if (get(coverageDeskPref, `desks.${coverageType}`) !== get(coverage, 'assigned_to.desk')) {
+        if (!coverageProfileId || !coverageDeskId) {
+            return Promise.resolve();
+        }
+
+        if (coverageDeskPref.desks?.[coverageProfileId] !== coverageDeskId) {
             const update = {
                 [COVERAGES.DEFAULT_DESK_PREFERENCE]: {
                     desks: {
-                        ...get(coverageDeskPref, 'desks'),
-                        [coverageType]: coverage.assigned_to.desk,
+                        ...(coverageDeskPref.desks ?? {}),
+                        [coverageProfileId]: coverageDeskId,
                     },
                 },
             };

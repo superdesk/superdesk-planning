@@ -1,6 +1,6 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import DebounceInput from 'react-debounce-input';
+import {DebounceInput} from 'react-debounce-input';
 import {isNil, uniqueId} from 'lodash';
 import {gettext} from '../../../utils/gettext';
 import './style.scss';

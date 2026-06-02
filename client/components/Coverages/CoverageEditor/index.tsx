@@ -1,13 +1,17 @@
 import React from 'react';
 import {get} from 'lodash';
+import {connect} from 'react-redux';
 
 import {
     EDITOR_TYPE,
     IAssignmentPriority,
     ICoverageProvider,
+    ICoverageType,
+    IEventItem,
     IG2ContentType,
-    IGenre,
+    IPlanningAppState,
     IPlanningCoverageItem,
+    IPlanningItem,
     IPlanningNewsCoverageStatus
 } from '../../../interfaces';
 import {IArticle, IDesk, IUser} from 'superdesk-api';
@@ -21,24 +25,33 @@ import {CoverageFormHeader} from './CoverageFormHeader';
 import {planningUtils, gettext, editorMenuUtils} from '../../../utils';
 import {getVocabularyItemFieldTranslated} from '../../../utils/vocabularies';
 import {getUserInterfaceLanguageFromCV} from '../../../utils/users';
-import {COVERAGES} from '../../../constants';
+import {getRelatedEventIdsForPlanning} from '../../../utils/planning';
+import {planningApi} from '../../../superdeskApi';
+import {planningApis} from '../../../api';
+import * as selectors from '../../../selectors';
+import {appConfig} from 'superdesk-core/scripts/appConfig';
 
-interface IProps {
+interface IOwnProps {
     testId?: string;
     field: string;
     value: IPlanningCoverageItem;
+
+    /**
+     * List of coverages that current coverage (`IProps['value']`) is a part of.
+     * It is needed, because `IProps['onChange']` requires to pass all coverages
+     * even if only a single one is being modified.
+     */
+    coverages: Array<IPlanningCoverageItem>;
+
     users: Array<IUser>;
     desks: Array<IDesk>;
     newsCoverageStatus: Array<IPlanningNewsCoverageStatus>;
     contentTypes: Array<IG2ContentType>;
-    genres: Array<IGenre>;
     coverageProviders: Array<ICoverageProvider>;
     priorities: Array<IAssignmentPriority>;
-    keywords: Array<string>;
-    readOnly: boolean;
+    disabled: boolean;
     message: any;
-    item: any;
-    diff: any;
+    diff: any; // planning item
     formProfile: any;
     errors: {[key: string]: any};
     showErrors: boolean;
@@ -46,34 +59,119 @@ interface IProps {
     addNewsItemToPlanning?: IArticle;
     navigation?: any;
     index: number;
-    openCoverageIndex: number;
     openCoverageIds: Array<IPlanningCoverageItem['coverage_id']>;
     includeScheduledUpdates?: boolean;
     editorType: EDITOR_TYPE;
 
     onChange(field: string, value: any): void;
     remove(): void;
-    onDuplicateCoverage(coverage: DeepPartial<IPlanningCoverageItem>, duplicateAs?: IG2ContentType['qcode']): void;
-    onCancelCoverage?(): void;
-    onAddCoverageToWorkflow?(): void;
-    onRemoveAssignment?(): void;
     popupContainer(): void;
-    setCoverageDefaultDesk(): void;
     onPopupOpen(): void;
     onPopupClose(): void;
 }
 
-export class CoverageEditor extends React.PureComponent<IProps> {
-    collapseBox: React.RefObject<CollapseBox>;
+interface IReduxStateProps {
+    defaultDesk: IDesk | undefined;
+}
+
+type IProps = IOwnProps & IReduxStateProps;
+
+function duplicateCoverage({
+    planning,
+    coverage,
+    duplicateAs,
+}: {
+    planning: IPlanningItem;
+    coverage: IPlanningCoverageItem;
+    duplicateAs?: ICoverageType;
+}): Array<DeepPartial<IPlanningCoverageItem>> {
+    const state: IPlanningAppState = planningApi.redux.store.getState();
+
+    // TAG: MULTIPLE_PRIMARY_EVENTS
+    const relatedEventId = getRelatedEventIdsForPlanning(planning, 'primary')[0];
+
+    const relatedEvent: IEventItem | undefined = relatedEventId == null
+        ? undefined
+        : state.events.events[relatedEventId];
+
+    const coverageProfilesMap = selectors.coverageProfiles.getCoverageProfilesMap(state);
+
+    const coverages = planningUtils.duplicateCoverage(
+        planning,
+        coverage,
+        coverageProfilesMap,
+        duplicateAs,
+        relatedEvent,
+    );
+
+    return coverages;
+}
+
+function assignCoverageToDefaultDesk(coverage: DeepPartial<IPlanningCoverageItem>, defaultDesk: IDesk) {
+    if (!Object.keys(coverage.assigned_to ?? {}).length) {
+        coverage.assigned_to = {desk: defaultDesk._id};
+    } else {
+        const deskMembers = (defaultDesk?.members ?? []).map((m) => m.user);
+
+        coverage.assigned_to.desk = defaultDesk._id;
+
+        // If the user does not belong to default desk, remove the user
+        if (coverage.assigned_to.user && !deskMembers.includes(coverage.assigned_to.user)) {
+            coverage.assigned_to.user = null;
+        }
+    }
+}
+
+export class CoverageEditorComponent extends React.PureComponent<IProps> {
+    private collapseBox: React.RefObject<CollapseBox>;
 
     constructor(props) {
         super(props);
 
         this.collapseBox = React.createRef<CollapseBox>();
+        this.onChange = this.onChange.bind(this);
     }
 
     scrollInView() {
         this.collapseBox.current?.scrollInView(true);
+    }
+
+    private onChange(field, value) {
+        let valueToUpdate = value;
+
+        if (field.match(/^coverages\[/)) {
+            const {newsCoverageStatus} = this.props;
+            const coverage = value;
+
+            // If there is an assignment and coverage status not planned,
+            // change it to 'planned'
+            if (newsCoverageStatus.length > 0 &&
+                coverage?.news_coverage_status?.qcode !== newsCoverageStatus[0].qcode &&
+                coverage?.assigned_to?.desk != null
+            ) {
+                valueToUpdate = {
+                    ...coverage,
+                    news_coverage_status: this.props.newsCoverageStatus[0],
+                };
+            }
+
+            if (field.match(/g2_content_type$/) &&
+                value === 'text' &&
+                this.props.defaultDesk?._id != null
+            ) {
+                const coverageStr = field.substr(0, field.indexOf('.'));
+                let existingCoverage: IPlanningCoverageItem = {...get(this.props, `diff.${coverageStr}`)};
+
+                if (existingCoverage?.assigned_to?.desk !== this.props.defaultDesk._id) {
+                    existingCoverage.planning.g2_content_type = value;
+                    assignCoverageToDefaultDesk(existingCoverage, this.props.defaultDesk);
+                    this.props.onChange(coverageStr, existingCoverage);
+                    return;
+                }
+            }
+        }
+
+        this.props.onChange(field, valueToUpdate);
     }
 
     render() {
@@ -86,17 +184,9 @@ export class CoverageEditor extends React.PureComponent<IProps> {
             desks,
             remove,
             contentTypes,
-            genres,
             newsCoverageStatus,
-            onChange,
             coverageProviders,
-            priorities,
-            keywords,
-            onDuplicateCoverage,
-            onCancelCoverage,
-            onAddCoverageToWorkflow,
-            onRemoveAssignment,
-            readOnly,
+            disabled,
             message,
             invalid,
             addNewsItemToPlanning,
@@ -104,55 +194,81 @@ export class CoverageEditor extends React.PureComponent<IProps> {
             popupContainer,
             onPopupOpen,
             onPopupClose,
-            setCoverageDefaultDesk,
             openCoverageIds,
             testId,
             includeScheduledUpdates,
+            onChange: __unused, // destructure to avoid it being present in "...props"
             ...props
         } = this.props;
+
+        const {onChange} = this;
 
         // Coverage item actions
         let itemActions = [];
 
-        if (!readOnly && !addNewsItemToPlanning) {
+        // `this.props.field` can be 'coverages[0]'
+        const fieldOfArray = 'coverages';
+
+        if (!disabled && !addNewsItemToPlanning) {
             const language = value.planning?.language ?? getUserInterfaceLanguageFromCV();
-            const duplicateActions = contentTypes
-                .filter((contentType) => (
-                    contentType.qcode !== get(value, 'planning.g2_content_type')
-                ))
-                .map((contentType) => ({
-                    label: getVocabularyItemFieldTranslated(
-                        contentType,
-                        'name',
-                        language
-                    ),
-                    callback: onDuplicateCoverage.bind(null, value, contentType.qcode),
-                }));
 
-            itemActions = [{
-                label: gettext('Duplicate'),
-                icon: 'icon-copy',
-                callback: onDuplicateCoverage.bind(null, value),
-            },
-            {
-                label: gettext('Duplicate As'),
-                icon: 'icon-copy',
-                callback: duplicateActions,
-            }];
+            itemActions = [
+                {
+                    label: gettext('Duplicate'),
+                    icon: 'icon-copy',
+                    callback: () => {
+                        onChange(
+                            fieldOfArray,
+                            duplicateCoverage({
+                                planning: diff,
+                                coverage: value,
+                            }),
+                        );
+                    },
+                },
+                {
+                    label: gettext('Duplicate As'),
+                    icon: 'icon-copy',
+                    callback: contentTypes
+                        .filter((contentType) => (
+                            contentType.qcode !== get(value, 'planning.g2_content_type')
+                        ))
+                        .map((contentType) => ({
+                            label: getVocabularyItemFieldTranslated(
+                                contentType,
+                                'name',
+                                language
+                            ),
+                            callback: () => {
+                                onChange(
+                                    fieldOfArray,
+                                    duplicateCoverage({
+                                        planning: diff,
+                                        coverage: value,
+                                        duplicateAs: contentType.qcode,
+                                    }),
+                                );
+                            },
+                        })),
+                },
+            ];
 
-            if (onCancelCoverage != null && planningUtils.canCancelCoverage(value, diff)) {
+            if (
+                planningUtils.canCancelCoverage(value, diff)
+
+                // Show only if adding coverages to workflow is handled automatically
+                // thus toggle in the editor is hidden
+                && appConfig.planning_auto_assign_to_workflow === true
+            ) {
                 itemActions.push({
-                    ...COVERAGES.ITEM_ACTIONS.CANCEL_COVERAGE,
-                    callback: onCancelCoverage.bind(null, value, index),
-                });
-            }
-
-            if (onAddCoverageToWorkflow != null && planningUtils.canAddCoverageToWorkflow(value, diff)) {
-                itemActions.push({
-                    id: 'addToWorkflow',
-                    label: gettext('Add to workflow'),
-                    icon: 'icon-assign',
-                    callback: onAddCoverageToWorkflow.bind(null, value, index),
+                    label: gettext('Cancel coverage'),
+                    icon: 'icon-close-small',
+                    callback: () => {
+                        planningApis.coverages.cancelCoverage(this.props.coverages, value)
+                            .then((nextCoverages) => {
+                                onChange(fieldOfArray, nextCoverages);
+                            });
+                    },
                 });
             }
 
@@ -178,17 +294,15 @@ export class CoverageEditor extends React.PureComponent<IProps> {
             openCoverageIds.includes(value.coverage_id);
         const onFocus = editorMenuUtils.onItemFocus(navigation, value.coverage_id);
 
-        const itemActionComponent = get(itemActions, 'length', 0) > 0 ?
-            (
-                <div className="side-panel__top-tools-right">
-                    <ItemActionsMenu
-                        field={field}
-                        actions={itemActions}
-                        onOpen={onFocus}
-                    />
-                </div>
-            ) :
-            null;
+        const itemActionComponent = (itemActions ?? []).length > 0 && (
+            <div className="side-panel__top-tools-right">
+                <ItemActionsMenu
+                    field={field}
+                    actions={itemActions}
+                    onOpen={onFocus}
+                />
+            </div>
+        );
 
         const coverageItem = (
             <CoverageItem
@@ -196,7 +310,6 @@ export class CoverageEditor extends React.PureComponent<IProps> {
                 index={index}
                 coverage={value}
                 itemActionComponent={itemActionComponent}
-                readOnly={readOnly}
             />
         );
 
@@ -207,10 +320,8 @@ export class CoverageEditor extends React.PureComponent<IProps> {
                 onChange={onChange}
                 users={users}
                 desks={desks}
-                readOnly={readOnly}
+                disabled={disabled}
                 addNewsItemToPlanning={addNewsItemToPlanning}
-                onRemoveAssignment={onRemoveAssignment && onRemoveAssignment.bind(null, value, index)}
-                setCoverageDefaultDesk={setCoverageDefaultDesk}
                 {...props}
             />
         );
@@ -222,25 +333,14 @@ export class CoverageEditor extends React.PureComponent<IProps> {
                 diff={diff}
                 index={index}
                 onChange={onChange}
-                newsCoverageStatus={newsCoverageStatus}
-                contentTypes={contentTypes}
-                genres={genres}
-                keywords={keywords}
-                readOnly={readOnly}
+                disabled={disabled}
                 message={message}
-                invalid={invalid}
+                item={diff}
                 hasAssignment={planningUtils.isCoverageAssigned(value)}
                 addNewsItemToPlanning={addNewsItemToPlanning}
                 onFieldFocus={onFocus}
                 onPopupOpen={onPopupOpen}
                 onPopupClose={onPopupClose}
-                onRemoveAssignment={onRemoveAssignment}
-                setCoverageDefaultDesk={setCoverageDefaultDesk}
-                users={users}
-                desks={desks}
-                coverageProviders={coverageProviders}
-                priorities={priorities}
-                onCancelCoverage={onCancelCoverage}
                 includeScheduledUpdates={includeScheduledUpdates}
                 {...props}
             />
@@ -267,3 +367,17 @@ export class CoverageEditor extends React.PureComponent<IProps> {
         );
     }
 }
+
+function mapStateToProps(state: IPlanningAppState): IReduxStateProps {
+    return {
+        defaultDesk: selectors.general.defaultDesk(state),
+    };
+}
+
+
+export const CoverageEditor = connect(
+    mapStateToProps,
+    null,
+    null,
+    {forwardRef: true}
+)(CoverageEditorComponent);

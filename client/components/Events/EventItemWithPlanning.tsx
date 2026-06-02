@@ -2,21 +2,21 @@ import React from 'react';
 import {get, findIndex} from 'lodash';
 
 import {
-    LIST_VIEW_TYPE,
+    GROUP_LIST_BY,
     IEventListItemProps,
     IPlanningListItemProps,
     IEventItem,
     IEventOrPlanningItem,
     IPlanningItem,
 } from '../../interfaces';
-import {superdeskApi} from '../../superdeskApi';
+import {appConfig} from 'appConfig';
 
 import {onEventCapture} from '../../utils';
 import {KEYCODES} from '../../constants';
 
 import {EventItem} from '.';
 import {PlanningItem} from '../Planning';
-import {NestedItem} from '../UI/List';
+import {NestedItem} from '../../components/UI/List/NestedItem';
 
 interface IProps {
     eventProps: IEventListItemProps;
@@ -24,7 +24,7 @@ interface IProps {
     relatedPlanningsInList: {[key: string]: Array<IPlanningItem>};
     navigateDown?: boolean;
     previewItem: IEventOrPlanningItem['_id'];
-    listViewType: LIST_VIEW_TYPE;
+    groupListBy: GROUP_LIST_BY;
 
     showRelatedPlannings(item: IEventItem): void;
     refNode?(node: HTMLElement): void;
@@ -41,15 +41,14 @@ export class EventItemWithPlanning extends React.Component<IProps, IState> {
     constructor(props) {
         super(props);
         this.state = {
-            openPlanningItems: false,
+            openPlanningItems: appConfig.planning_expand_related_plannings,
             activeIndex: -1, // Index of active nested element (-1=None, 0=event, 1....=respective planning item)
         };
         this.toggleRelatedPlanning = this.toggleRelatedPlanning.bind(this);
         this.handleKeyDown = this.handleKeyDown.bind(this);
     }
 
-    toggleRelatedPlanning(evt) {
-        evt.stopPropagation();
+    toggleRelatedPlanning(isOpen) {
         if (!this.state.openPlanningItems) {
             this.props.showRelatedPlannings(get(this.props, 'eventProps.item', {}));
         }
@@ -58,7 +57,7 @@ export class EventItemWithPlanning extends React.Component<IProps, IState> {
 
         this.setState({
             activeIndex: activeIndex,
-            openPlanningItems: !this.state.openPlanningItems,
+            openPlanningItems: isOpen,
         });
 
         this.activateItem(activeIndex, false);
@@ -205,12 +204,7 @@ export class EventItemWithPlanning extends React.Component<IProps, IState> {
     }
 
     render() {
-        const {gettext} = superdeskApi.localization;
         const planningItems = get(this.props, 'eventProps.item.planning_ids', []).length;
-        const relatedPlanningText = gettext('({{ count }}) {{ action }} planning item(s)', {
-            count: planningItems,
-            action: this.state.openPlanningItems ? gettext('Hide') : gettext('Show'),
-        });
 
         const getPlannings = (item) => (
             get(this.props.relatedPlanningsInList, item._id, []).map((plan, index) => {
@@ -226,21 +220,28 @@ export class EventItemWithPlanning extends React.Component<IProps, IState> {
 
         const eventProps = {
             ...this.props.eventProps,
-            toggleRelatedPlanning: this.toggleRelatedPlanning,
-            relatedPlanningText: relatedPlanningText,
+            relatedPlanningsCount: planningItems,
         };
 
         // Event is always indexed as 0
-        const eventItem = <EventItem {...eventProps} active={this.state.activeIndex === 0} />;
+        const eventItem = (
+            <EventItem
+                {...eventProps}
+                planningProps={this.props.planningProps}
+                active={this.state.activeIndex === 0}
+                relatedEventsUI={{
+                    visible: this.state.openPlanningItems,
+                    setVisibility: this.toggleRelatedPlanning,
+                }}
+            />
+        );
 
         return (
             <NestedItem
                 parentItem={eventItem}
-                collapsed={!this.state.openPlanningItems}
                 expanded={this.state.openPlanningItems}
                 nestedChildren={getPlannings(eventProps.item)}
-                noMarginTop={this.props.listViewType === LIST_VIEW_TYPE.LIST}
-                refNode={this.props.refNode}
+                noMarginTop={this.props.groupListBy === GROUP_LIST_BY.NOT_GROUPED}
             />
         );
     }

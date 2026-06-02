@@ -1,33 +1,82 @@
 import * as React from 'react';
-import {get} from 'lodash';
-import {IEditorFieldProps} from '../../../interfaces';
-
 import {superdeskApi} from '../../../superdeskApi';
 import {GeoLookupInput} from '../../GeoLookupInput';
 import {Row} from '../../UI/Form';
+import {IEditorFieldLocationProps} from './Location.interface';
+import {get} from 'lodash';
+import {Input} from 'superdesk-ui-framework/react';
 
-interface IProps extends IEditorFieldProps {
-    enableExternalSearch?: boolean;
-    disableAddLocation?: boolean;
-}
-
-export class EditorFieldLocation extends React.PureComponent<IProps> {
+/**
+ * The component was originally designed to use `ILocation` as value.
+ * It was needed later to store it as `Array<ILocation>` - `storeAsArray` prop was added.
+ * Even though it was implemented to make it possible to store value as an array, it only supports a single value.
+ */
+export class EditorFieldLocation extends React.PureComponent<IEditorFieldLocationProps> {
     render() {
         const {gettext} = superdeskApi.localization;
         const field = this.props.field ?? 'location';
+        const props = this.props;
+        const error = get(props.errors ?? {}, field);
+        const invalid = props.invalid ?? (error != null && props.showErrors);
+
+        const originalValue = get(props.item, field);
+        const valueSingle = props.storeAsArray === true ? originalValue?.[0] : originalValue;
+
+        const onChange = (field, value) => {
+            const valueNext = (() => {
+                if (props.storeAsArray === true) {
+                    if (value == null) {
+                        return [];
+                    } else {
+                        return [value];
+                    }
+                } else {
+                    return value;
+                }
+            })();
+
+            props.onChange(
+                field,
+                valueNext,
+            );
+        };
 
         return (
-            <Row testId={this.props.testId}>
-                <GeoLookupInput
-                    {...this.props}
-                    field={field}
-                    label={this.props.label ?? gettext('Location')}
-                    value={get(this.props.item, field, this.props.defaultValue)}
-                    disableSearch={!this.props.enableExternalSearch}
-                    disableAddLocation={this.props.disableAddLocation}
-                    readOnly={this.props.disabled}
-                />
-            </Row>
+            <>
+                <Row testId={this.props.testId}>
+                    <GeoLookupInput
+                        {...props}
+                        onChange={onChange} // overwrites onChange from props spread above
+                        field={field}
+                        label={props.label ?? gettext('Location')}
+                        required={props.schema?.required}
+                        message={props.showErrors ? error : undefined}
+                        invalid={invalid}
+                        value={valueSingle}
+                        disableSearch={!props.enableExternalSearch}
+                        disableAddLocation={props.disableAddLocation}
+                        readOnly={props.disabled}
+                    />
+                </Row>
+
+                {
+                    valueSingle != null && (
+                        <Row>
+                            <Input
+                                type="text"
+                                label={gettext('Location Details')}
+                                value={valueSingle?.details ?? ''}
+                                onChange={(val) => {
+                                    onChange(field, {
+                                        ...valueSingle,
+                                        details: val,
+                                    });
+                                }}
+                            />
+                        </Row>
+                    )
+                }
+            </>
         );
     }
 }
