@@ -14,7 +14,7 @@ aiofiles==25.1.0
     #   quart
 aiohappyeyeballs==2.6.1
     # via aiohttp
-aiohttp==3.13.5
+aiohttp==3.14.0
     # via
     #   aiobotocore
     #   elasticsearch
@@ -308,6 +308,7 @@ types-pytz==2026.2.0.20260506
     # via quart-babel
 typing-extensions==4.15.0
     # via
+    #   aiohttp
     #   aiosignal
     #   jwcrypto
     #   pydantic
