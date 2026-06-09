@@ -201,8 +201,17 @@ const updatePlanningRelatedToAssignment = (data) => (
 
         let coverages = get(planningItem, 'coverages') || [];
         let coverage = coverages.find((cov) => cov.coverage_id === data.coverage);
+        const currentEditedPlanningId = selectors.forms.currentEditedPlanningId(state);
+        const isSamePlanningOpenInEditor = currentEditedPlanningId === data.planning;
 
         if (!coverage) return;
+
+        if (data.source === 'planning' && isSamePlanningOpenInEditor) {
+            // Planning save already owns the editor state. Avoid reloading the planning item
+            // from the assignment websocket and overwriting the in-flight planning update.
+            await dispatch(main.fetchItemHistory(planningItem));
+            return;
+        }
 
         await dispatch(planningApis.loadPlanningByIds([data.planning]));
         await dispatch(main.fetchItemHistory(planningItem));

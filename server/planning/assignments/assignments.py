@@ -265,7 +265,7 @@ class AssignmentsService(AsyncBaseService):
             state = "unposted" if (plan or {}).get("state") == WORKFLOW_STATE.KILLED else (plan or {}).get("state")
             raise SuperdeskApiError.forbiddenError("Action failed. Related planning item is {}".format(state))
 
-    def notify(self, event_name, updates, original):
+    def notify(self, event_name, updates, original, source: str | None = None):
         # No notifications for 'draft' assignments
         if self.is_assignment_draft(updates, original):
             return
@@ -296,6 +296,7 @@ class AssignmentsService(AsyncBaseService):
             "assignment_state": assigned_to["state"],
             "lock_user": lock_user,
             "session": get_auth().get("_id"),
+            "source": source,
         }
 
         if event_name == "assignments:updated" and not updates.get("assigned_to") and updates.get("priority"):
@@ -304,7 +305,8 @@ class AssignmentsService(AsyncBaseService):
         push_notification(event_name, **kwargs)
 
     async def on_updated_async(self, updates, original):
-        self.notify("assignments:updated", updates, original)
+        source = updates.pop("_notification_source", None)
+        self.notify("assignments:updated", updates, original, source=source)
         await self.send_assignment_notification(updates, original)
 
         assignment = deepcopy(original)
@@ -332,10 +334,21 @@ class AssignmentsService(AsyncBaseService):
 
         return False
 
-    async def system_update_async(self, id, updates, original, skip_planning_sync: bool = False, **kwargs):
+    async def system_update_async(
+        self,
+        id,
+        updates,
+        original,
+        skip_planning_sync: bool = False,
+        notification_source: str | None = None,
+        **kwargs,
+    ):
         self._skip_planning_sync = skip_planning_sync
+        updates_to_apply = deepcopy(updates)
+        if notification_source is not None:
+            updates_to_apply["_notification_source"] = notification_source
         try:
-            rtn = await super().system_update_async(id, updates, original, **kwargs)
+            rtn = await super().system_update_async(id, updates_to_apply, original, **kwargs)
             if self.is_assignment_being_activated(updates, original):
                 doc = deepcopy(original)
                 doc.update(updates)

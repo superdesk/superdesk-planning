@@ -1062,6 +1062,7 @@ class PlanningService(AsyncBaseService):
                     assignment_updates,
                     original_assignment,
                     skip_planning_sync=True,
+                    notification_source="planning",
                 )
 
             # If there has been a change in the planning internal note then notify the assigned users/desk
@@ -1333,7 +1334,11 @@ class PlanningService(AsyncBaseService):
                 original_assigment = await assignment_service.find_one_async(req=None, _id=assign_id)
                 if original_assigment:
                     await assignment_service.system_update_async(
-                        ObjectId(assign_id), {"_to_delete": True}, original_assigment, skip_planning_sync=True
+                        ObjectId(assign_id),
+                        {"_to_delete": True},
+                        original_assigment,
+                        skip_planning_sync=True,
+                        notification_source="planning",
                     )
 
         if request:

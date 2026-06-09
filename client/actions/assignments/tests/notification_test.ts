@@ -233,6 +233,60 @@ describe('actions.assignments.notification', () => {
                 })
                 .catch(done.fail);
         });
+
+        it('does not reload planning when assignment update originated from planning', (done) => {
+            sinon.stub(main, 'fetchItemHistory').callsFake(
+                () => (Promise.resolve())
+            );
+            store.initialState.workspace.currentDeskId = 'desk1';
+            store.initialState.forms.editors.panel.itemId = 'p1';
+            store.initialState.forms.editors.panel.itemType = 'planning';
+
+            const payload = {
+                item: 'as1',
+                assigned_desk: 'desk2',
+                coverage: 'c1',
+                planning: 'p1',
+                original_assigned_desk: 'desk1',
+                assignment_state: 'assigned',
+                source: 'planning',
+            };
+
+            return store.test(done, assignmentNotifications.onAssignmentUpdated({}, payload))
+                .then(() => {
+                    expect(planningApis.loadPlanningByIds.callCount).toBe(0);
+                    expect(main.fetchItemHistory.callCount).toBe(1);
+                    done();
+                })
+                .catch(done.fail);
+        });
+
+        it('reloads planning when assignment update originated from planning but planning is not being edited',
+            (done) => {
+                sinon.stub(main, 'fetchItemHistory').callsFake(
+                    () => (Promise.resolve())
+                );
+                store.initialState.workspace.currentDeskId = 'desk1';
+
+                const payload = {
+                    item: 'as1',
+                    assigned_desk: 'desk2',
+                    coverage: 'c1',
+                    planning: 'p1',
+                    original_assigned_desk: 'desk1',
+                    assignment_state: 'assigned',
+                    source: 'planning',
+                };
+
+                return store.test(done, assignmentNotifications.onAssignmentUpdated({}, payload))
+                    .then(() => {
+                        expect(planningApis.loadPlanningByIds.callCount).toBe(1);
+                        expect(main.fetchItemHistory.callCount).toBe(1);
+                        done();
+                    })
+                    .catch(done.fail);
+            }
+        );
     });
 
     describe('`assignment lock`', () => {
