@@ -982,7 +982,7 @@ class PlanningService(superdesk.Service):
                 # This keeps planning edits functional when assignment was removed out-of-band.
                 assigned_to_updates = deepcopy(assigned_to)
                 assigned_to_updates.pop("assignment_id", None)
-                if any(assigned_to_updates.get(field) for field in ["user", "desk", "contact", "coverage_provider"]):
+                if assigned_to_updates.get("user") or assigned_to_updates.get("desk"):
                     updates["assigned_to"] = assigned_to_updates
                     self._create_update_assignment(
                         planning_original,
