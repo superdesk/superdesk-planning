@@ -18,7 +18,7 @@ import {planningApi, superdeskApi} from '../../superdeskApi';
 import * as selectors from '../../selectors';
 import * as actions from '../../actions';
 
-import {Button, ButtonGroup, Checkbox, Modal, Spacer, Tooltip} from 'superdesk-ui-framework/react';
+import {Button, ButtonGroup, Checkbox, Modal, Tooltip} from 'superdesk-ui-framework/react';
 import {CoverageEditableFields} from './CoverageFieldsRow';
 
 type IReduxStateProps = {

@@ -1,5 +1,5 @@
 import React from 'react';
-import {Spacer, Select, IconButton, Option} from 'superdesk-ui-framework/react';
+import {Select, IconButton, Option} from 'superdesk-ui-framework/react';
 import {getVocabularyItemFieldTranslated} from '../../utils/vocabularies';
 import {getUserInterfaceLanguageFromCV} from '../../utils/users';
 import {gettext} from '../../utils';
@@ -7,7 +7,6 @@ import {superdeskApi} from '../../superdeskApi';
 import {IPlanningNewsCoverageStatus} from '../../interfaces';
 import {IDesk, IUser, IVocabularyItem} from 'superdesk-api';
 import {ICoverageLineItem} from './CoverageAddAdvancedModal';
-import {OverflowStack} from 'superdesk-ui-framework/react';
 
 interface IProps {
     index: number;
