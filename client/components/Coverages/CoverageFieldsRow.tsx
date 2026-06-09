@@ -7,6 +7,7 @@ import {superdeskApi} from '../../superdeskApi';
 import {IPlanningNewsCoverageStatus} from '../../interfaces';
 import {IDesk, IUser, IVocabularyItem} from 'superdesk-api';
 import {ICoverageLineItem} from './CoverageAddAdvancedModal';
+import { OverflowStack } from 'superdesk-ui-framework/react';
 
 interface IProps {
     index: number;
@@ -33,14 +34,7 @@ export const CoverageEditableFields = ({
     const {SelectUser} = superdeskApi.components;
 
     return (
-        <Spacer
-            h
-            gap="8"
-            noWrap
-            alignItems="end"
-            style={{padding: 'var(--gap-1)'}}
-            justifyContent="space-between"
-        >
+        <div className="d-flex gap-1 flex-grow items-end py-1 px-1-5">  
             <Select
                 fullWidth
                 label={gettext('Desk')}
@@ -57,19 +51,20 @@ export const CoverageEditableFields = ({
                     <Option key={desk._id} value={desk._id}>{desk.name}</Option>
                 ))}
             </Select>
-            <div style={{width: '100%'}}>
-                <SelectUser
-                    key={`${coverage.desk?._id}-${index}`}
-                    deskId={coverage.desk?._id ?? undefined}
-                    selectedUserId = {coverage.user?._id}
-                    onSelect={(user) => {
-                        handleUserChange(coverage, user);
-                    }}
-                    autoFocus={false}
-                    horizontalSpacing={true}
-                    clearable={true}
-                />
-            </div>
+            <SelectUser
+                key={`${coverage.desk?._id}-${index}`}
+                deskId={coverage.desk?._id ?? undefined}
+                selectedUserId = {coverage.user?._id}
+                onSelect={(user) => {
+                    handleUserChange(coverage, user);
+                }}
+                autoFocus={false}
+                horizontalSpacing={true}
+                clearable={true}
+                inlineLabel={false}
+                labelHidden={false}
+                displayStatus={false}
+            />
             <Select
                 fullWidth
                 value={coverage.planning?.language}
@@ -117,6 +112,6 @@ export const CoverageEditableFields = ({
                     duplicateCoverage(index, coverage);
                 }}
             />
-        </Spacer>
+        </div>
     );
 };

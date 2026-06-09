@@ -18,7 +18,7 @@ import {planningApi, superdeskApi} from '../../superdeskApi';
 import * as selectors from '../../selectors';
 import * as actions from '../../actions';
 
-import {Button, Checkbox, Modal, Spacer, Tooltip} from 'superdesk-ui-framework/react';
+import {Button, ButtonGroup, Checkbox, Modal, Spacer, Tooltip} from 'superdesk-ui-framework/react';
 import {CoverageEditableFields} from './CoverageFieldsRow';
 
 type IReduxStateProps = {
@@ -63,6 +63,9 @@ interface IState {
 
 class CoverageAddAdvancedModalComponent extends React.Component<IProps, IState> {
     contentTypes: Map<string, IProps['contentTypes'][0]>;
+    private pendingFocusIndex: number | null = null;
+    private pendingFocusFieldIndex: number | null = null;
+    private rowRefs = new Map<number, HTMLElement | null>();
 
     constructor(props: IProps) {
         super(props);
@@ -146,7 +149,23 @@ class CoverageAddAdvancedModalComponent extends React.Component<IProps, IState> 
             }
         });
 
+        this.pendingFocusIndex = 0;
         this.setState({coverages: [...savedCoverages, ...coverages]});
+    }
+
+    componentDidUpdate() {
+        if (this.pendingFocusIndex != null) {
+            const rowEl = this.rowRefs.get(this.pendingFocusIndex);
+
+            rowEl?.querySelector<HTMLElement>('input[type="checkbox"]')?.focus();
+            this.pendingFocusIndex = null;
+        }
+        if (this.pendingFocusFieldIndex != null) {
+            const rowEl = this.rowRefs.get(this.pendingFocusFieldIndex);
+
+            rowEl?.querySelector<HTMLElement>('select')?.focus();
+            this.pendingFocusFieldIndex = null;
+        }
     }
 
     duplicate = (index, coverage) => {
@@ -165,6 +184,7 @@ class CoverageAddAdvancedModalComponent extends React.Component<IProps, IState> 
         };
 
         coveragesCopy.splice(index + 1, 0, coverageToAdd);
+        this.pendingFocusIndex = index + 1;
         this.setState({coverages: coveragesCopy});
     }
 
@@ -280,10 +300,11 @@ class CoverageAddAdvancedModalComponent extends React.Component<IProps, IState> 
                 visible
                 closeOnEscape
                 size="x-large"
+                contentBg="medium"
                 onHide={this.props.onCancel}
                 headerTemplate={gettext('Add Coverages (advanced mode)')}
                 footerTemplate={(
-                    <Spacer h justifyContent="space-between" gap="0" alignItems="center">
+                    <React.Fragment>
                         <Checkbox
                             checked={this.state.advancedMode}
                             label={{
@@ -297,34 +318,58 @@ class CoverageAddAdvancedModalComponent extends React.Component<IProps, IState> 
                                 });
                             }}
                         />
-                        <Spacer h gap="8" alignItems="end" justifyContent="end" noGrow>
+                        <ButtonGroup align="end">
                             <Button
                                 text={gettext('Cancel')}
-                                style="hollow"
+                                type="secondary"
                                 onClick={this.props.onCancel}
                             />
                             <Button
                                 text={gettext('Save')}
                                 type="primary"
-                                style="filled"
                                 disabled={!this.state.isDirty || !canSave}
                                 onClick={() => {
                                     this.save();
                                 }}
                             />
-                        </Spacer>
-                    </Spacer>
+                        </ButtonGroup>
+                    </React.Fragment>
                 )}
             >
-                <Spacer v gap="8" justifyContent="center" alignItems="center">
+                <div
+                    className="sd-list-item-group sd-list-item-group--space-between-items"
+                    onKeyDown={(e) => {
+                        if (e.key !== 'ArrowDown' && e.key !== 'ArrowUp') {
+                            return;
+                        }
+                        const target = e.target as HTMLElement;
+
+                        if (!target.matches('input[type="checkbox"]')) {
+                            return;
+                        }
+
+                        e.preventDefault();
+
+                        const currentIndex = Array.from(this.rowRefs.entries())
+                            .find(([, el]) => el?.contains(target))?.[0];
+
+                        if (currentIndex == null) {
+                            return;
+                        }
+
+                        const nextIndex = currentIndex + (e.key === 'ArrowDown' ? 1 : -1);
+
+                        this.rowRefs.get(nextIndex)?.querySelector<HTMLElement>('input[type="checkbox"]')?.focus();
+                    }}
+                >
                     {this.state.coverages.map((coverage, index) => {
                         const isActive = coverage.workflow_status === 'active';
 
                         return (
                             <div
                                 key={index}
-                                style={coverage.enabled ? {height: 60} : {}}
-                                className="sd-list-item sd-shadow--z1"
+                                ref={(el) => { this.rowRefs.set(index, el); }}
+                                className="sd-list-item sd-list-item--no-hover sd-list-item--focusable sd-shadow--z1"
                             >
                                 <div className="sd-list-item__column">
                                     <Tooltip
@@ -341,7 +386,12 @@ class CoverageAddAdvancedModalComponent extends React.Component<IProps, IState> 
                                                 hidden: true,
                                             }}
                                             checked={coverage.enabled}
-                                            onChange={() => this.updateCoverage(coverage, {enabled: !coverage.enabled})}
+                                            onChange={() => {
+                                                if (!coverage.enabled) {
+                                                    this.pendingFocusFieldIndex = index;
+                                                }
+                                                this.updateCoverage(coverage, {enabled: !coverage.enabled});
+                                            }}
                                         />
                                     </Tooltip>
                                 </div>
@@ -366,7 +416,7 @@ class CoverageAddAdvancedModalComponent extends React.Component<IProps, IState> 
                             </div>
                         );
                     })}
-                </Spacer>
+                </div>
             </Modal>
         );
     }
