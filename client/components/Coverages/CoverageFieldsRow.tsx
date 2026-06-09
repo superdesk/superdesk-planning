@@ -7,7 +7,7 @@ import {superdeskApi} from '../../superdeskApi';
 import {IPlanningNewsCoverageStatus} from '../../interfaces';
 import {IDesk, IUser, IVocabularyItem} from 'superdesk-api';
 import {ICoverageLineItem} from './CoverageAddAdvancedModal';
-import { OverflowStack } from 'superdesk-ui-framework/react';
+import {OverflowStack} from 'superdesk-ui-framework/react';
 
 interface IProps {
     index: number;
@@ -34,7 +34,7 @@ export const CoverageEditableFields = ({
     const {SelectUser} = superdeskApi.components;
 
     return (
-        <div className="d-flex gap-1 flex-grow items-end py-1 px-1-5">  
+        <div className="d-flex gap-1 flex-grow items-end py-1 px-1-5">
             <Select
                 fullWidth
                 label={gettext('Desk')}

@@ -359,7 +359,8 @@ class CoverageAddAdvancedModalComponent extends React.Component<IProps, IState> 
 
                         const nextIndex = currentIndex + (e.key === 'ArrowDown' ? 1 : -1);
 
-                        this.rowRefs.get(nextIndex)?.querySelector<HTMLElement>('input[type="checkbox"]')?.focus();
+                        this.rowRefs.get(nextIndex)?.querySelector<HTMLElement>('input[type="checkbox"]')
+                            ?.focus();
                     }}
                 >
                     {this.state.coverages.map((coverage, index) => {
@@ -368,7 +369,9 @@ class CoverageAddAdvancedModalComponent extends React.Component<IProps, IState> 
                         return (
                             <div
                                 key={index}
-                                ref={(el) => { this.rowRefs.set(index, el); }}
+                                ref={(el) => {
+                                    this.rowRefs.set(index, el);
+                                }}
                                 className="sd-list-item sd-list-item--no-hover sd-list-item--focusable sd-shadow--z1"
                             >
                                 <div className="sd-list-item__column">
