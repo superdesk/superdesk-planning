@@ -214,3 +214,62 @@ class AssignmentRecoveryTestCase(TestCase):
 
             assignment_service.find_one.assert_called_once_with(req=None, _id="stale-assignment-id")
             assignment_service.post.assert_not_called()
+
+    def test_stale_assignment_id_on_cancel_does_not_recreate_assignment(self):
+        with self.app.app_context():
+            planning_service = get_resource_service("planning")
+            real_get_resource_service = get_resource_service
+
+            assignment_service = MagicMock()
+            assignment_service.find_one.return_value = None
+
+            def _get_resource_service(resource_name):
+                if resource_name == "assignments":
+                    return assignment_service
+
+                return real_get_resource_service(resource_name)
+
+            planning_original = {
+                "_id": "plan1",
+                "state": "scheduled",
+            }
+            updates = {
+                "coverage_id": "cov1",
+                "workflow_status": "cancelled",
+                "planning": {
+                    "g2_content_type": "text",
+                    "workflow_status_reason": "coverage no longer needed",
+                },
+                "assigned_to": {
+                    "assignment_id": "stale-assignment-id",
+                    "desk": "desk1",
+                },
+            }
+            original = {
+                "coverage_id": "cov1",
+                "workflow_status": "active",
+                "planning": {
+                    "g2_content_type": "text",
+                },
+                "assigned_to": {
+                    "assignment_id": "stale-assignment-id",
+                    "desk": "desk1",
+                },
+            }
+
+            with patch.object(planning_module, "get_resource_service", side_effect=_get_resource_service):
+                with patch.object(
+                    planning_module,
+                    "get_coverage_status_from_cv",
+                    return_value={"qcode": "ncostat:notint", "is_active": False},
+                ):
+                    planning_service._create_update_assignment(planning_original, {}, updates, original)
+
+            assignment_service.find_one.assert_called_once_with(req=None, _id="stale-assignment-id")
+            assignment_service.post.assert_not_called()
+            assignment_service.cancel_assignment.assert_not_called()
+            self.assertEqual(updates["workflow_status"], "cancelled")
+            self.assertEqual(updates["previous_status"], "active")
+            self.assertEqual(updates["assigned_to"]["state"], "cancelled")
+            self.assertEqual(updates["news_coverage_status"]["qcode"], "ncostat:notint")
+            self.assertEqual(updates["planning"]["workflow_status_reason"], "coverage no longer needed")

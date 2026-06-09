@@ -977,6 +977,22 @@ class PlanningService(superdesk.Service):
             # update the assignment using the coverage details
             original_assignment = assignment_service.find_one(req=None, _id=assigned_to.get("assignment_id"))
 
+            # Check if coverage was cancelled
+            coverage_cancel_state = get_coverage_status_from_cv("ncostat:notint")
+            coverage_cancel_state.pop("is_active", None)
+            if (
+                original.get("workflow_status") != updates.get("workflow_status")
+                and updates.get("workflow_status") == WORKFLOW_STATE.CANCELLED
+            ):
+                self.cancel_coverage(
+                    updates,
+                    coverage_cancel_state,
+                    original.get("workflow_status"),
+                    original_assignment,
+                    (updates.get("planning") or {}).get("workflow_status_reason"),
+                )
+                return
+
             if not original_assignment:
                 # Stale assignment reference: recreate assignment if assignee details still exist.
                 # This keeps planning edits functional when assignment was removed out-of-band.
@@ -995,22 +1011,6 @@ class PlanningService(superdesk.Service):
                     return
 
                 raise SuperdeskApiError.badRequestError("Assignment related to the coverage does not exists.")
-
-            # Check if coverage was cancelled
-            coverage_cancel_state = get_coverage_status_from_cv("ncostat:notint")
-            coverage_cancel_state.pop("is_active", None)
-            if (
-                original.get("workflow_status") != updates.get("workflow_status")
-                and updates.get("workflow_status") == WORKFLOW_STATE.CANCELLED
-            ):
-                self.cancel_coverage(
-                    updates,
-                    coverage_cancel_state,
-                    original.get("workflow_status"),
-                    original_assignment,
-                    updates.get("planning").get("workflow_status_reason"),
-                )
-                return
 
             assignment = {}
             if self.is_coverage_planning_modified(updates, original):
