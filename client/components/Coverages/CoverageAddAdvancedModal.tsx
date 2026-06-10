@@ -156,7 +156,12 @@ class CoverageAddAdvancedModalComponent extends React.Component<IProps, IState> 
 
         const combinedCoverages = [...savedCoverages, ...coverages];
 
-        this.pendingFocusId = combinedCoverages[0]?.rowId ?? null;
+        // focus the first row with an enabled checkbox; active coverages are
+        // disabled and cannot receive focus
+        const firstFocusable = combinedCoverages.find((coverage) => coverage.workflow_status !== 'active')
+            ?? combinedCoverages[0];
+
+        this.pendingFocusId = firstFocusable?.rowId ?? null;
         this.setState({coverages: combinedCoverages});
     }
 
