@@ -162,7 +162,12 @@ class AssignmentRecoveryTestCase(TestCase):
             }
 
             with patch.object(planning_module, "get_resource_service", side_effect=_get_resource_service):
-                planning_service._create_update_assignment(planning_original, {}, updates, original)
+                with patch.object(
+                    planning_module,
+                    "get_coverage_status_from_cv",
+                    return_value={"qcode": "ncostat:notint", "is_active": False},
+                ):
+                    planning_service._create_update_assignment(planning_original, {}, updates, original)
 
             assignment_service.find_one.assert_called_once_with(req=None, _id="stale-assignment-id")
             assignment_service.post.assert_called_once()
@@ -209,8 +214,13 @@ class AssignmentRecoveryTestCase(TestCase):
             }
 
             with patch.object(planning_module, "get_resource_service", side_effect=_get_resource_service):
-                with self.assertRaises(SuperdeskApiError):
-                    planning_service._create_update_assignment(planning_original, {}, updates, original)
+                with patch.object(
+                    planning_module,
+                    "get_coverage_status_from_cv",
+                    return_value={"qcode": "ncostat:notint", "is_active": False},
+                ):
+                    with self.assertRaises(SuperdeskApiError):
+                        planning_service._create_update_assignment(planning_original, {}, updates, original)
 
             assignment_service.find_one.assert_called_once_with(req=None, _id="stale-assignment-id")
             assignment_service.post.assert_not_called()
@@ -265,7 +275,8 @@ class AssignmentRecoveryTestCase(TestCase):
                 ):
                     planning_service._create_update_assignment(planning_original, {}, updates, original)
 
-            assignment_service.find_one.assert_called_once_with(req=None, _id="stale-assignment-id")
+            self.assertEqual(assignment_service.find_one.call_count, 2)
+            assignment_service.find_one.assert_called_with(req=None, _id="stale-assignment-id")
             assignment_service.post.assert_not_called()
             assignment_service.cancel_assignment.assert_not_called()
             self.assertEqual(updates["workflow_status"], "cancelled")
