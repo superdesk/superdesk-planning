@@ -13,6 +13,7 @@
 from typing import Dict, Any
 from copy import deepcopy
 import logging
+from contextvars import ContextVar
 
 from bson import ObjectId
 from icalendar import Calendar, Event
@@ -87,6 +88,7 @@ from planning.coverage_assignments import update_planning_from_assignment_change
 logger = logging.getLogger(__name__)
 planning_type = deepcopy(superdesk.Resource.rel("planning", type="string", required=True))
 planning_type["mapping"] = not_analyzed
+notification_source_ctx: ContextVar[str | None] = ContextVar("assignment_notification_source", default=None)
 
 
 class AssignmentsService(AsyncBaseService):
@@ -296,8 +298,10 @@ class AssignmentsService(AsyncBaseService):
             "assignment_state": assigned_to["state"],
             "lock_user": lock_user,
             "session": get_auth().get("_id"),
-            "source": source,
         }
+
+        if source is not None:
+            kwargs["source"] = source
 
         if event_name == "assignments:updated" and not updates.get("assigned_to") and updates.get("priority"):
             kwargs["priority"] = doc.get("priority")
@@ -305,7 +309,7 @@ class AssignmentsService(AsyncBaseService):
         push_notification(event_name, **kwargs)
 
     async def on_updated_async(self, updates, original):
-        source = updates.pop("_notification_source", None)
+        source = notification_source_ctx.get()
         self.notify("assignments:updated", updates, original, source=source)
         await self.send_assignment_notification(updates, original)
 
@@ -345,8 +349,7 @@ class AssignmentsService(AsyncBaseService):
     ):
         self._skip_planning_sync = skip_planning_sync
         updates_to_apply = deepcopy(updates)
-        if notification_source is not None:
-            updates_to_apply["_notification_source"] = notification_source
+        notification_source_token = notification_source_ctx.set(notification_source)
         try:
             rtn = await super().system_update_async(id, updates_to_apply, original, **kwargs)
             if self.is_assignment_being_activated(updates, original):
@@ -362,6 +365,7 @@ class AssignmentsService(AsyncBaseService):
                 app = get_current_app().as_any()
                 await app.on_updated_assignments.call_async(updates, original)
         finally:
+            notification_source_ctx.reset(notification_source_token)
             self._skip_planning_sync = False
         return rtn
 

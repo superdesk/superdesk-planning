@@ -319,11 +319,11 @@ def _get_coverage_planning_metadata(planning: dict, coverage: dict) -> dict:
 
 def _set_assignment_state(updates: dict, coverage: dict, assignment: dict) -> bool:
     """
-    Determines and updates the assignment state based on the current coverage
-    workflow status and state.
+    Determine and update assignment state from coverage workflow and assignee changes.
 
     :param updates: A dictionary to store the updated assignment state.
     :param coverage: A dictionary containing coverage details.
+    :param assignment: A dictionary containing the current assignment details.
     :return: A boolean indicating whether the assignment state was updated.
     """
 
