@@ -1,6 +1,6 @@
 import React from 'react';
 import {connect} from 'react-redux';
-import {cloneDeep, get} from 'lodash';
+import {cloneDeep, get, uniqueId} from 'lodash';
 
 import {
     IG2ContentType,
@@ -18,7 +18,7 @@ import {planningApi, superdeskApi} from '../../superdeskApi';
 import * as selectors from '../../selectors';
 import * as actions from '../../actions';
 
-import {Button, Checkbox, Modal, Spacer, Tooltip} from 'superdesk-ui-framework/react';
+import {Button, ButtonGroup, Checkbox, Modal, Tooltip} from 'superdesk-ui-framework/react';
 import {CoverageEditableFields} from './CoverageFieldsRow';
 
 type IReduxStateProps = {
@@ -37,6 +37,9 @@ export interface ICoverageLineItem extends IPlanningCoverageItem {
     status: IPlanningNewsCoverageStatus;
     filteredDesks: Array<IDesk>;
     filteredUsers: Array<IUser>;
+
+    // frontend-only stable identity used for React keys and focus management
+    rowId: string;
 }
 
 interface IOwnProps {
@@ -63,6 +66,9 @@ interface IState {
 
 class CoverageAddAdvancedModalComponent extends React.Component<IProps, IState> {
     contentTypes: Map<string, IProps['contentTypes'][0]>;
+    private pendingFocusId: string | null = null;
+    private pendingFocusFieldId: string | null = null;
+    private rowRefs = new Map<string, HTMLElement | null>();
 
     constructor(props: IProps) {
         super(props);
@@ -112,6 +118,7 @@ class CoverageAddAdvancedModalComponent extends React.Component<IProps, IState> 
             // g2_content_type vocabulary do not try to render it
             .filter((coverage) => this.contentTypes.get(coverage.planning.g2_content_type) != null)
             .map((coverage) => ({
+                rowId: uniqueId('coverage-row-'),
                 enabled: true,
                 workflow_status: coverage.workflow_status,
                 planning: {
@@ -131,6 +138,7 @@ class CoverageAddAdvancedModalComponent extends React.Component<IProps, IState> 
 
             if (presentInSavedCoverages == null) {
                 coverages.push({
+                    rowId: uniqueId('coverage-row-'),
                     enabled: false,
                     qcode: contentType.qcode,
                     workflow_status: 'draft',
@@ -146,12 +154,67 @@ class CoverageAddAdvancedModalComponent extends React.Component<IProps, IState> 
             }
         });
 
-        this.setState({coverages: [...savedCoverages, ...coverages]});
+        const combinedCoverages = [...savedCoverages, ...coverages];
+
+        // focus the first row with an enabled checkbox; active coverages are
+        // disabled and cannot receive focus
+        const firstFocusable = combinedCoverages.find((coverage) => coverage.workflow_status !== 'active')
+            ?? combinedCoverages[0];
+
+        this.pendingFocusId = firstFocusable?.rowId ?? null;
+        this.setState({coverages: combinedCoverages});
     }
 
-    duplicate = (index, coverage) => {
+    componentDidUpdate() {
+        if (this.pendingFocusId != null) {
+            const rowEl = this.rowRefs.get(this.pendingFocusId);
+
+            rowEl?.querySelector<HTMLElement>('input[type="checkbox"]')?.focus();
+            this.pendingFocusId = null;
+        }
+        if (this.pendingFocusFieldId != null) {
+            const rowEl = this.rowRefs.get(this.pendingFocusFieldId);
+
+            rowEl?.querySelector<HTMLElement>('select')?.focus();
+            this.pendingFocusFieldId = null;
+        }
+    }
+
+    handleListKeyDown = (e: React.KeyboardEvent) => {
+        if (e.key !== 'ArrowDown' && e.key !== 'ArrowUp') {
+            return;
+        }
+        const target = e.target as HTMLElement;
+
+        if (!target.matches('input[type="checkbox"]')) {
+            return;
+        }
+
+        e.preventDefault();
+
+        const rowIds = this.state.coverages.map((coverage) => coverage.rowId);
+        const currentId = rowIds.find((id) => id != null && this.rowRefs.get(id)?.contains(target));
+
+        if (currentId == null) {
+            return;
+        }
+
+        const nextId = rowIds[rowIds.indexOf(currentId) + (e.key === 'ArrowDown' ? 1 : -1)];
+
+        if (nextId == null) {
+            return;
+        }
+
+        this.rowRefs.get(nextId)?.querySelector<HTMLElement>('input[type="checkbox"]')
+            ?.focus();
+    }
+
+    duplicate = (coverage: Partial<ICoverageLineItem>) => {
         const coveragesCopy = cloneDeep(this.state.coverages);
+        const index = coveragesCopy.findIndex((c) => c.rowId === coverage.rowId);
+        const rowId = uniqueId('coverage-row-');
         const coverageToAdd: Partial<ICoverageLineItem> = {
+            rowId: rowId,
             enabled: false,
             qcode: coverage.qcode,
             desk: null,
@@ -165,6 +228,7 @@ class CoverageAddAdvancedModalComponent extends React.Component<IProps, IState> 
         };
 
         coveragesCopy.splice(index + 1, 0, coverageToAdd);
+        this.pendingFocusId = rowId;
         this.setState({coverages: coveragesCopy});
     }
 
@@ -280,10 +344,11 @@ class CoverageAddAdvancedModalComponent extends React.Component<IProps, IState> 
                 visible
                 closeOnEscape
                 size="x-large"
+                contentBg="medium"
                 onHide={this.props.onCancel}
                 headerTemplate={gettext('Add Coverages (advanced mode)')}
                 footerTemplate={(
-                    <Spacer h justifyContent="space-between" gap="0" alignItems="center">
+                    <React.Fragment>
                         <Checkbox
                             checked={this.state.advancedMode}
                             label={{
@@ -297,34 +362,40 @@ class CoverageAddAdvancedModalComponent extends React.Component<IProps, IState> 
                                 });
                             }}
                         />
-                        <Spacer h gap="8" alignItems="end" justifyContent="end" noGrow>
+                        <ButtonGroup align="end">
                             <Button
                                 text={gettext('Cancel')}
-                                style="hollow"
+                                type="secondary"
                                 onClick={this.props.onCancel}
                             />
                             <Button
                                 text={gettext('Save')}
                                 type="primary"
-                                style="filled"
                                 disabled={!this.state.isDirty || !canSave}
                                 onClick={() => {
                                     this.save();
                                 }}
                             />
-                        </Spacer>
-                    </Spacer>
+                        </ButtonGroup>
+                    </React.Fragment>
                 )}
             >
-                <Spacer v gap="8" justifyContent="center" alignItems="center">
-                    {this.state.coverages.map((coverage, index) => {
+                <div
+                    className="sd-list-item-group sd-list-item-group--space-between-items"
+                    onKeyDown={this.handleListKeyDown}
+                >
+                    {this.state.coverages.map((coverage) => {
                         const isActive = coverage.workflow_status === 'active';
 
                         return (
                             <div
-                                key={index}
-                                style={coverage.enabled ? {height: 60} : {}}
-                                className="sd-list-item sd-shadow--z1"
+                                key={coverage.rowId}
+                                ref={(el) => {
+                                    if (coverage.rowId != null) {
+                                        this.rowRefs.set(coverage.rowId, el);
+                                    }
+                                }}
+                                className="sd-list-item sd-list-item--no-hover sd-list-item--focusable sd-shadow--z1"
                             >
                                 <div className="sd-list-item__column">
                                     <Tooltip
@@ -341,7 +412,12 @@ class CoverageAddAdvancedModalComponent extends React.Component<IProps, IState> 
                                                 hidden: true,
                                             }}
                                             checked={coverage.enabled}
-                                            onChange={() => this.updateCoverage(coverage, {enabled: !coverage.enabled})}
+                                            onChange={() => {
+                                                if (!coverage.enabled) {
+                                                    this.pendingFocusFieldId = coverage.rowId ?? null;
+                                                }
+                                                this.updateCoverage(coverage, {enabled: !coverage.enabled});
+                                            }}
                                         />
                                     </Tooltip>
                                 </div>
@@ -353,7 +429,6 @@ class CoverageAddAdvancedModalComponent extends React.Component<IProps, IState> 
                                 </div>
                                 {coverage.enabled && (
                                     <CoverageEditableFields
-                                        index={index}
                                         coverage={coverage}
                                         languages={this.getFilteredLanguages(this.props.allLanguages)}
                                         handleDeskChange={this.onDeskChange}
@@ -366,7 +441,7 @@ class CoverageAddAdvancedModalComponent extends React.Component<IProps, IState> 
                             </div>
                         );
                     })}
-                </Spacer>
+                </div>
             </Modal>
         );
     }

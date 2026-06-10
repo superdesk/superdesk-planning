@@ -123,6 +123,11 @@
     }
 }
 
+.sd-list-item-nested__childs {
+  .sd-list-item {
+    overflow: hidden;
+  }
+}
 [class="icon-dots-vertical"], [class="icon-pencil"] {
     pointer-events: unset !important;
 }
