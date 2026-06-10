@@ -6,6 +6,7 @@ from superdesk.tests import utils as test_utils, fixtures
 from superdesk.tests import setup_db_user
 
 from planning.planning.planning import PlanningService
+from planning.coverage_assignments import get_metadata_updates_between_entities
 from planning.tests import TestCase
 
 
@@ -287,3 +288,69 @@ class SyncAssignmentCoverageTest(TestCase):
 
         planning = await test_utils.find_by_id("planning", "p1")
         self.assertEqual(original_planning_etag, planning["_etag"])
+
+
+def test_reassignment_resets_assignment_state_to_assigned():
+    assignment = {
+        "_id": "as1",
+        "assigned_to": {
+            "desk": "desk-1",
+            "user": "user-1",
+            "state": "in_progress",
+        },
+        "planning": {},
+    }
+    planning = {"_id": "plan-1"}
+    coverage = {
+        "coverage_id": "cov-1",
+        "workflow_status": "active",
+        "assigned_to": {
+            "assignment_id": "as1",
+            "desk": "desk-1",
+            "user": None,
+            "state": "in_progress",
+        },
+        "planning": {},
+    }
+
+    with mock.patch("planning.coverage_assignments.get_user", return_value=None), mock.patch(
+        "planning.coverage_assignments.get_config_assignment_manual_reassignment_only",
+        return_value=True,
+    ):
+        updates = get_metadata_updates_between_entities(assignment, planning, coverage, destination="assignment")
+
+    assert updates["assigned_to"]["user"] is None
+    assert updates["assigned_to"]["state"] == "assigned"
+
+
+def test_reassignment_does_not_reset_state_when_manual_reassignment_disabled():
+    assignment = {
+        "_id": "as1",
+        "assigned_to": {
+            "desk": "desk-1",
+            "user": "user-1",
+            "state": "in_progress",
+        },
+        "planning": {},
+    }
+    planning = {"_id": "plan-1"}
+    coverage = {
+        "coverage_id": "cov-1",
+        "workflow_status": "active",
+        "assigned_to": {
+            "assignment_id": "as1",
+            "desk": "desk-1",
+            "user": None,
+            "state": "in_progress",
+        },
+        "planning": {},
+    }
+
+    with mock.patch("planning.coverage_assignments.get_user", return_value=None), mock.patch(
+        "planning.coverage_assignments.get_config_assignment_manual_reassignment_only",
+        return_value=False,
+    ):
+        updates = get_metadata_updates_between_entities(assignment, planning, coverage, destination="assignment")
+
+    assert updates["assigned_to"]["user"] is None
+    assert updates["assigned_to"]["state"] == "in_progress"

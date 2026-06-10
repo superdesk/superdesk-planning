@@ -135,6 +135,26 @@ export const currentItemModal = createSelector(
         getcurrentItem(itemId, itemType, events, plannings, values, true)
     ));
 
+export const currentEditedPlanningId = createSelector(
+    [currentItemType, currentItemId, currentItemTypeModal, currentItemIdModal],
+    (panelItemType, panelItemId, modalItemType, modalItemId) => {
+        if (modalItemType === ITEM_TYPE.PLANNING) {
+            return modalItemId;
+        }
+
+        if (panelItemType === ITEM_TYPE.PLANNING) {
+            return panelItemId;
+        }
+
+        return null;
+    }
+);
+
+export const currentEditedPlanningItem = createSelector(
+    [currentEditedPlanningId, storedPlannings],
+    (planningId, plannings) => (planningId ? get(plannings, planningId) || null : null)
+);
+
 export const currentAutosaveModal = createSelector(
     [autosaves, currentItemIdModal],
     (autosaveItems, itemId) => (
