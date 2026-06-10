@@ -1,5 +1,8 @@
 from datetime import datetime
 import pytz
+from unittest.mock import MagicMock, patch
+
+from planning.planning import planning as planning_module
 from planning.tests import TestCase
 from superdesk import get_resource_service
 from superdesk.errors import SuperdeskApiError
@@ -113,3 +116,171 @@ class DuplicateCoverageTestCase(TestCase):
                 return
 
             self.assertFalse("Failed to raise an exception")
+
+
+class AssignmentRecoveryTestCase(TestCase):
+    def test_recreate_assignment_when_stale_assignment_id_is_sent(self):
+        with self.app.app_context():
+            planning_service = get_resource_service("planning")
+            real_get_resource_service = get_resource_service
+
+            assignment_service = MagicMock()
+            assignment_service.find_one.return_value = None
+            assignment_service.post.return_value = ["new-assignment-id"]
+
+            def _get_resource_service(resource_name):
+                if resource_name == "assignments":
+                    return assignment_service
+
+                return real_get_resource_service(resource_name)
+
+            planning_original = {
+                "_id": "plan1",
+                "state": "scheduled",
+            }
+            updates = {
+                "coverage_id": "cov1",
+                "workflow_status": "draft",
+                "planning": {
+                    "g2_content_type": "text",
+                },
+                "assigned_to": {
+                    "assignment_id": "stale-assignment-id",
+                    "desk": "desk1",
+                },
+            }
+            original = {
+                "coverage_id": "cov1",
+                "workflow_status": "draft",
+                "planning": {
+                    "g2_content_type": "text",
+                },
+                "assigned_to": {
+                    "assignment_id": "stale-assignment-id",
+                    "desk": "desk1",
+                },
+            }
+
+            with patch.object(planning_module, "get_resource_service", side_effect=_get_resource_service):
+                with patch.object(
+                    planning_module,
+                    "get_coverage_status_from_cv",
+                    return_value={"qcode": "ncostat:notint", "is_active": False},
+                ):
+                    planning_service._create_update_assignment(planning_original, {}, updates, original)
+
+            assignment_service.find_one.assert_called_once_with(req=None, _id="stale-assignment-id")
+            assignment_service.post.assert_called_once()
+            self.assertEqual(updates["assigned_to"]["assignment_id"], "new-assignment-id")
+            self.assertEqual(updates["assigned_to"]["state"], "draft")
+
+    def test_stale_assignment_id_without_assignee_still_fails(self):
+        with self.app.app_context():
+            planning_service = get_resource_service("planning")
+            real_get_resource_service = get_resource_service
+
+            assignment_service = MagicMock()
+            assignment_service.find_one.return_value = None
+
+            def _get_resource_service(resource_name):
+                if resource_name == "assignments":
+                    return assignment_service
+
+                return real_get_resource_service(resource_name)
+
+            planning_original = {
+                "_id": "plan1",
+                "state": "scheduled",
+            }
+            updates = {
+                "coverage_id": "cov1",
+                "workflow_status": "draft",
+                "planning": {
+                    "g2_content_type": "text",
+                },
+                "assigned_to": {
+                    "assignment_id": "stale-assignment-id",
+                },
+            }
+            original = {
+                "coverage_id": "cov1",
+                "workflow_status": "draft",
+                "planning": {
+                    "g2_content_type": "text",
+                },
+                "assigned_to": {
+                    "assignment_id": "stale-assignment-id",
+                },
+            }
+
+            with patch.object(planning_module, "get_resource_service", side_effect=_get_resource_service):
+                with patch.object(
+                    planning_module,
+                    "get_coverage_status_from_cv",
+                    return_value={"qcode": "ncostat:notint", "is_active": False},
+                ):
+                    with self.assertRaises(SuperdeskApiError):
+                        planning_service._create_update_assignment(planning_original, {}, updates, original)
+
+            assignment_service.find_one.assert_called_once_with(req=None, _id="stale-assignment-id")
+            assignment_service.post.assert_not_called()
+
+    def test_stale_assignment_id_on_cancel_does_not_recreate_assignment(self):
+        with self.app.app_context():
+            planning_service = get_resource_service("planning")
+            real_get_resource_service = get_resource_service
+
+            assignment_service = MagicMock()
+            assignment_service.find_one.return_value = None
+
+            def _get_resource_service(resource_name):
+                if resource_name == "assignments":
+                    return assignment_service
+
+                return real_get_resource_service(resource_name)
+
+            planning_original = {
+                "_id": "plan1",
+                "state": "scheduled",
+            }
+            updates = {
+                "coverage_id": "cov1",
+                "workflow_status": "cancelled",
+                "planning": {
+                    "g2_content_type": "text",
+                    "workflow_status_reason": "coverage no longer needed",
+                },
+                "assigned_to": {
+                    "assignment_id": "stale-assignment-id",
+                    "desk": "desk1",
+                },
+            }
+            original = {
+                "coverage_id": "cov1",
+                "workflow_status": "active",
+                "planning": {
+                    "g2_content_type": "text",
+                },
+                "assigned_to": {
+                    "assignment_id": "stale-assignment-id",
+                    "desk": "desk1",
+                },
+            }
+
+            with patch.object(planning_module, "get_resource_service", side_effect=_get_resource_service):
+                with patch.object(
+                    planning_module,
+                    "get_coverage_status_from_cv",
+                    return_value={"qcode": "ncostat:notint", "is_active": False},
+                ):
+                    planning_service._create_update_assignment(planning_original, {}, updates, original)
+
+            self.assertEqual(assignment_service.find_one.call_count, 2)
+            assignment_service.find_one.assert_called_with(req=None, _id="stale-assignment-id")
+            assignment_service.post.assert_not_called()
+            assignment_service.cancel_assignment.assert_not_called()
+            self.assertEqual(updates["workflow_status"], "cancelled")
+            self.assertEqual(updates["previous_status"], "active")
+            self.assertEqual(updates["assigned_to"]["state"], "cancelled")
+            self.assertEqual(updates["news_coverage_status"]["qcode"], "ncostat:notint")
+            self.assertEqual(updates["planning"]["workflow_status_reason"], "coverage no longer needed")

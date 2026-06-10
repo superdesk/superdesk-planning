@@ -955,6 +955,14 @@ class PlanningService(superdesk.Service):
                 ]:
                     raise SuperdeskApiError.badRequestError("Coverage not in correct state to remove assignment.")
                 # Removing assignment
+                user = get_user(required=False) or {}
+                logger.info(
+                    "Removing assignment via planning patch: assignment_id=%s planning_id=%s coverage_id=%s user_id=%s",
+                    assigned_to.get("assignment_id"),
+                    planning_original.get(config.ID_FIELD),
+                    doc.get("coverage_id"),
+                    user.get(config.ID_FIELD),
+                )
                 assignment_service.delete(lookup={"_id": assigned_to.get("assignment_id")})
                 assignment = {
                     "planning_item": planning_original.get(config.ID_FIELD),
@@ -969,9 +977,6 @@ class PlanningService(superdesk.Service):
             # update the assignment using the coverage details
             original_assignment = assignment_service.find_one(req=None, _id=assigned_to.get("assignment_id"))
 
-            if not original_assignment:
-                raise SuperdeskApiError.badRequestError("Assignment related to the coverage does not exists.")
-
             # Check if coverage was cancelled
             coverage_cancel_state = get_coverage_status_from_cv("ncostat:notint")
             coverage_cancel_state.pop("is_active", None)
@@ -984,9 +989,28 @@ class PlanningService(superdesk.Service):
                     coverage_cancel_state,
                     original.get("workflow_status"),
                     original_assignment,
-                    updates.get("planning").get("workflow_status_reason"),
+                    (updates.get("planning") or {}).get("workflow_status_reason"),
                 )
                 return
+
+            if not original_assignment:
+                # Stale assignment reference: recreate assignment if assignee details still exist.
+                # This keeps planning edits functional when assignment was removed out-of-band.
+                assigned_to_updates = deepcopy(assigned_to)
+                assigned_to_updates.pop("assignment_id", None)
+                if assigned_to_updates.get("user") or assigned_to_updates.get("desk"):
+                    updates["assigned_to"] = assigned_to_updates
+                    self._create_update_assignment(
+                        planning_original,
+                        planning_updates,
+                        updates,
+                        original,
+                        parent_coverage,
+                    )
+                    self.set_xmp_file_info(updates, original)
+                    return
+
+                raise SuperdeskApiError.badRequestError("Assignment related to the coverage does not exists.")
 
             assignment = {}
             if self.is_coverage_planning_modified(updates, original):

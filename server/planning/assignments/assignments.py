@@ -1302,6 +1302,15 @@ class AssignmentsService(superdesk.Service):
             delivery_service.delete_action(lookup={"assignment_id": ObjectId(assignment_id)})
 
     def on_deleted(self, doc):
+        logger.info(
+            "Assignment removed: assignment_id=%s planning_id=%s coverage_id=%s scheduled_update_id=%s to_delete=%s session=%s",
+            doc.get(config.ID_FIELD),
+            doc.get("planning_item"),
+            doc.get("coverage_item"),
+            doc.get("scheduled_update_id"),
+            doc.get("_to_delete"),
+            get_auth().get("_id"),
+        )
         deleted_assignments = [doc.get(config.ID_FIELD)]
         planning_service = get_resource_service("planning")
         self.archive_delete_assignment(doc)
