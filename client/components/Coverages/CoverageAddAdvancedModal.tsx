@@ -1,6 +1,6 @@
 import React from 'react';
 import {connect} from 'react-redux';
-import {cloneDeep, get} from 'lodash';
+import {cloneDeep, get, uniqueId} from 'lodash';
 
 import {
     IG2ContentType,
@@ -37,6 +37,9 @@ export interface ICoverageLineItem extends IPlanningCoverageItem {
     status: IPlanningNewsCoverageStatus;
     filteredDesks: Array<IDesk>;
     filteredUsers: Array<IUser>;
+
+    // frontend-only stable identity used for React keys and focus management
+    rowId: string;
 }
 
 interface IOwnProps {
@@ -63,9 +66,9 @@ interface IState {
 
 class CoverageAddAdvancedModalComponent extends React.Component<IProps, IState> {
     contentTypes: Map<string, IProps['contentTypes'][0]>;
-    private pendingFocusIndex: number | null = null;
-    private pendingFocusFieldIndex: number | null = null;
-    private rowRefs = new Map<number, HTMLElement | null>();
+    private pendingFocusId: string | null = null;
+    private pendingFocusFieldId: string | null = null;
+    private rowRefs = new Map<string, HTMLElement | null>();
 
     constructor(props: IProps) {
         super(props);
@@ -115,6 +118,7 @@ class CoverageAddAdvancedModalComponent extends React.Component<IProps, IState> 
             // g2_content_type vocabulary do not try to render it
             .filter((coverage) => this.contentTypes.get(coverage.planning.g2_content_type) != null)
             .map((coverage) => ({
+                rowId: uniqueId('coverage-row-'),
                 enabled: true,
                 workflow_status: coverage.workflow_status,
                 planning: {
@@ -134,6 +138,7 @@ class CoverageAddAdvancedModalComponent extends React.Component<IProps, IState> 
 
             if (presentInSavedCoverages == null) {
                 coverages.push({
+                    rowId: uniqueId('coverage-row-'),
                     enabled: false,
                     qcode: contentType.qcode,
                     workflow_status: 'draft',
@@ -149,28 +154,62 @@ class CoverageAddAdvancedModalComponent extends React.Component<IProps, IState> 
             }
         });
 
-        this.pendingFocusIndex = 0;
-        this.setState({coverages: [...savedCoverages, ...coverages]});
+        const combinedCoverages = [...savedCoverages, ...coverages];
+
+        this.pendingFocusId = combinedCoverages[0]?.rowId ?? null;
+        this.setState({coverages: combinedCoverages});
     }
 
     componentDidUpdate() {
-        if (this.pendingFocusIndex != null) {
-            const rowEl = this.rowRefs.get(this.pendingFocusIndex);
+        if (this.pendingFocusId != null) {
+            const rowEl = this.rowRefs.get(this.pendingFocusId);
 
             rowEl?.querySelector<HTMLElement>('input[type="checkbox"]')?.focus();
-            this.pendingFocusIndex = null;
+            this.pendingFocusId = null;
         }
-        if (this.pendingFocusFieldIndex != null) {
-            const rowEl = this.rowRefs.get(this.pendingFocusFieldIndex);
+        if (this.pendingFocusFieldId != null) {
+            const rowEl = this.rowRefs.get(this.pendingFocusFieldId);
 
             rowEl?.querySelector<HTMLElement>('select')?.focus();
-            this.pendingFocusFieldIndex = null;
+            this.pendingFocusFieldId = null;
         }
     }
 
-    duplicate = (index, coverage) => {
+    handleListKeyDown = (e: React.KeyboardEvent) => {
+        if (e.key !== 'ArrowDown' && e.key !== 'ArrowUp') {
+            return;
+        }
+        const target = e.target as HTMLElement;
+
+        if (!target.matches('input[type="checkbox"]')) {
+            return;
+        }
+
+        e.preventDefault();
+
+        const rowIds = this.state.coverages.map((coverage) => coverage.rowId);
+        const currentId = rowIds.find((id) => id != null && this.rowRefs.get(id)?.contains(target));
+
+        if (currentId == null) {
+            return;
+        }
+
+        const nextId = rowIds[rowIds.indexOf(currentId) + (e.key === 'ArrowDown' ? 1 : -1)];
+
+        if (nextId == null) {
+            return;
+        }
+
+        this.rowRefs.get(nextId)?.querySelector<HTMLElement>('input[type="checkbox"]')
+            ?.focus();
+    }
+
+    duplicate = (coverage: Partial<ICoverageLineItem>) => {
         const coveragesCopy = cloneDeep(this.state.coverages);
+        const index = coveragesCopy.findIndex((c) => c.rowId === coverage.rowId);
+        const rowId = uniqueId('coverage-row-');
         const coverageToAdd: Partial<ICoverageLineItem> = {
+            rowId: rowId,
             enabled: false,
             qcode: coverage.qcode,
             desk: null,
@@ -184,7 +223,7 @@ class CoverageAddAdvancedModalComponent extends React.Component<IProps, IState> 
         };
 
         coveragesCopy.splice(index + 1, 0, coverageToAdd);
-        this.pendingFocusIndex = index + 1;
+        this.pendingFocusId = rowId;
         this.setState({coverages: coveragesCopy});
     }
 
@@ -338,39 +377,18 @@ class CoverageAddAdvancedModalComponent extends React.Component<IProps, IState> 
             >
                 <div
                     className="sd-list-item-group sd-list-item-group--space-between-items"
-                    onKeyDown={(e) => {
-                        if (e.key !== 'ArrowDown' && e.key !== 'ArrowUp') {
-                            return;
-                        }
-                        const target = e.target as HTMLElement;
-
-                        if (!target.matches('input[type="checkbox"]')) {
-                            return;
-                        }
-
-                        e.preventDefault();
-
-                        const currentIndex = Array.from(this.rowRefs.entries())
-                            .find(([, el]) => el?.contains(target))?.[0];
-
-                        if (currentIndex == null) {
-                            return;
-                        }
-
-                        const nextIndex = currentIndex + (e.key === 'ArrowDown' ? 1 : -1);
-
-                        this.rowRefs.get(nextIndex)?.querySelector<HTMLElement>('input[type="checkbox"]')
-                            ?.focus();
-                    }}
+                    onKeyDown={this.handleListKeyDown}
                 >
-                    {this.state.coverages.map((coverage, index) => {
+                    {this.state.coverages.map((coverage) => {
                         const isActive = coverage.workflow_status === 'active';
 
                         return (
                             <div
-                                key={index}
+                                key={coverage.rowId}
                                 ref={(el) => {
-                                    this.rowRefs.set(index, el);
+                                    if (coverage.rowId != null) {
+                                        this.rowRefs.set(coverage.rowId, el);
+                                    }
                                 }}
                                 className="sd-list-item sd-list-item--no-hover sd-list-item--focusable sd-shadow--z1"
                             >
@@ -391,7 +409,7 @@ class CoverageAddAdvancedModalComponent extends React.Component<IProps, IState> 
                                             checked={coverage.enabled}
                                             onChange={() => {
                                                 if (!coverage.enabled) {
-                                                    this.pendingFocusFieldIndex = index;
+                                                    this.pendingFocusFieldId = coverage.rowId ?? null;
                                                 }
                                                 this.updateCoverage(coverage, {enabled: !coverage.enabled});
                                             }}
@@ -406,7 +424,6 @@ class CoverageAddAdvancedModalComponent extends React.Component<IProps, IState> 
                                 </div>
                                 {coverage.enabled && (
                                     <CoverageEditableFields
-                                        index={index}
                                         coverage={coverage}
                                         languages={this.getFilteredLanguages(this.props.allLanguages)}
                                         handleDeskChange={this.onDeskChange}

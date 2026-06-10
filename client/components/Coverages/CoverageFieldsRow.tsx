@@ -9,18 +9,16 @@ import {IDesk, IUser, IVocabularyItem} from 'superdesk-api';
 import {ICoverageLineItem} from './CoverageAddAdvancedModal';
 
 interface IProps {
-    index: number;
     coverage: Partial<ICoverageLineItem>;
     newsCoverageStatus: Array<IPlanningNewsCoverageStatus>;
     languages: Array<{value: IVocabularyItem}>;
     handleDeskChange: (coverage: Partial<ICoverageLineItem>, desk: IDesk) => void;
     handleUserChange: (coverage: Partial<ICoverageLineItem>, user: IUser) => void;
     updateCoverage: (coverage: Partial<ICoverageLineItem>, updates: Partial<ICoverageLineItem>) => void;
-    duplicateCoverage: (index: number, coverage: Partial<ICoverageLineItem>) => void;
+    duplicateCoverage: (coverage: Partial<ICoverageLineItem>) => void;
 }
 
 export const CoverageEditableFields = ({
-    index,
     coverage,
     newsCoverageStatus,
     languages,
@@ -51,7 +49,7 @@ export const CoverageEditableFields = ({
                 ))}
             </Select>
             <SelectUser
-                key={`${coverage.desk?._id}-${index}`}
+                key={`${coverage.desk?._id}-${coverage.rowId}`}
                 deskId={coverage.desk?._id ?? undefined}
                 selectedUserId = {coverage.user?._id}
                 onSelect={(user) => {
@@ -108,7 +106,7 @@ export const CoverageEditableFields = ({
                 ariaValue={gettext('Duplicate')}
                 icon="plus-sign"
                 onClick={() => {
-                    duplicateCoverage(index, coverage);
+                    duplicateCoverage(coverage);
                 }}
             />
         </div>
