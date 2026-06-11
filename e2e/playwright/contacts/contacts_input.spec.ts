@@ -10,8 +10,8 @@ import {
     UiFrameworkModal,
     ContactsInput,
 } from '../utils/common';
-import {EventEditor, PlanningList} from '../utils/planning';
-import {ContactsEditor} from '../utils/contacts';
+import {EventEditor, PlanningList} from '../page-object-models/planning';
+import {ContactsEditor} from '../page-object-models/contacts';
 
 test.describe('MediaContacts: contact input', () => {
     let editors: {

@@ -1,7 +1,7 @@
 import {test, expect} from '@playwright/test';
 
 import {setup, login, waitForPageLoad, SubNavBar, addItems} from '../utils/common';
-import {EventEditor, NewLocationPopup} from '../utils/planning';
+import {EventEditor, NewLocationPopup} from '../page-object-models/planning';
 import {CVs} from '../utils/fixtures/cvs';
 
 test.describe('Planning.Locations: from the Event form', () => {

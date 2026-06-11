@@ -1,7 +1,7 @@
 import {test, expect} from '@playwright/test';
 
 import {setup, login, addItems, waitForPageLoad, CLIENT_FORMAT, ActionMenu} from '../utils/common';
-import {PlanningList, PlanningPreview, EventEditor, PlanningEditor} from '../utils/planning';
+import {PlanningList, PlanningPreview, EventEditor, PlanningEditor} from '../page-object-models/planning';
 import {TIMEZONE} from '../utils/time';
 import moment from "moment-timezone";
 

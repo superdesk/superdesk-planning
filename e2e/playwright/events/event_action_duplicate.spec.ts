@@ -2,7 +2,7 @@ import {test} from '@playwright/test';
 import moment from 'moment/moment';
 
 import {setup, login, waitForPageLoad, UiFrameworkModal, SubNavBar, CLIENT_FORMAT} from '../utils/common';
-import {PlanningList, PlanningPreview, EventEditor} from '../utils/planning';
+import {PlanningList, PlanningPreview, EventEditor} from '../page-object-models/planning';
 
 test.describe('Planning.Events: duplicate event', () => {
     let event: {[key: string]: any};

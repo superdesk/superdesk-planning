@@ -1,7 +1,7 @@
 import {test, expect} from '@playwright/test';
 
 import {setup, login, waitForPageLoad, addItems, UiFrameworkModal, SubNavBar} from './utils/common';
-import {EventEditor, PlanningList, PlanningEditor} from './utils/planning';
+import {EventEditor, PlanningList, PlanningEditor} from './page-object-models/planning';
 import {createEventFor} from './utils/fixtures/events';
 
 test.describe('Planning.IgnoreCancelSaveModal', () => {

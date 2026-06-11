@@ -2,7 +2,7 @@ import {test, expect} from '@playwright/test';
 import moment from 'moment';
 
 import {setup, login, waitForPageLoad, SubNavBar, addItems, CLIENT_FORMAT} from '../utils/common';
-import {EventEditor, PlanningList, EmbeddedCoverageEditor} from '../utils/planning';
+import {EventEditor, PlanningList, EmbeddedCoverageEditor} from '../page-object-models/planning';
 import {setupPlanningPublishing} from '../utils/fixtures/publish_config';
 import {createEventFor} from '../utils/fixtures/events';
 

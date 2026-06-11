@@ -2,7 +2,7 @@ import {test, expect} from '@playwright/test';
 import moment from 'moment';
 
 import {setup, addItems, login, waitForPageLoad, Modal, getMenuItem} from '../utils/common';
-import {PlanningList, PlanningEditor, PlanningPreview} from '../utils/planning';
+import {PlanningList, PlanningEditor, PlanningPreview} from '../page-object-models/planning';
 import {TIME_STRINGS} from '../utils/time';
 import {setupPlanningPublishing} from '../utils/fixtures/publish_config';
 

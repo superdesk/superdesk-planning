@@ -1,6 +1,6 @@
 import {Page, Locator} from '@playwright/test';
 
-import {ActionMenu} from '../common';
+import {ActionMenu} from '../../utils/common';
 
 export class PlanningPreview {
     page: Page;

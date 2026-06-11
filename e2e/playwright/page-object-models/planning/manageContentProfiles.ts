@@ -1,5 +1,5 @@
 import {expect, Locator} from '@playwright/test';
-import {Modal, SubNavBar, ActionMenu, NewCheckboxInput, TreeSelect} from '../common';
+import {Modal, SubNavBar, ActionMenu, NewCheckboxInput, TreeSelect} from '../../utils/common';
 
 export class ManageContentProfiles extends Modal {
     async show(contentType: 'event' | 'planning'): Promise<void> {

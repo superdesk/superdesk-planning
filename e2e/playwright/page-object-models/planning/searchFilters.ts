@@ -1,6 +1,6 @@
 import {Page, Locator, expect} from '@playwright/test';
 
-import {Modal, SubNavBar, ActionMenu} from '../common';
+import {Modal, SubNavBar, ActionMenu} from '../../utils/common';
 import {AdvancedSearch} from './advancedSearch';
 
 export class SearchFilters extends Modal {

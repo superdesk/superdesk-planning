@@ -1,7 +1,7 @@
 import {test, expect} from '@playwright/test';
 
 import {setup, login, waitForPageLoad, Workqueue, UiFrameworkModal, addItems} from './utils/common';
-import {AdvancedSearch, EventEditor, PlanningList} from './utils/planning';
+import {AdvancedSearch, EventEditor, PlanningList} from './page-object-models/planning';
 
 import {TEST_EVENTS} from './utils/fixtures/events';
 

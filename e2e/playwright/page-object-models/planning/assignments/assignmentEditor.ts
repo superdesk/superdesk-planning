@@ -1,7 +1,7 @@
 import {Page, Locator} from '@playwright/test';
 import {get} from 'lodash';
 
-import {Modal, Input, CoverageUserSelectInput, SelectInput} from '../../common';
+import {Modal, Input, CoverageUserSelectInput, SelectInput} from '../../../utils/common';
 
 /**
  * Wrapper class for Superdesk's Assignment popup editor

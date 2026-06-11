@@ -1,7 +1,7 @@
 import {test} from '@playwright/test';
 
 import {setup, login, waitForPageLoad, SubNavBar, Workqueue} from '../utils/common';
-import {PlanningList, PlanningEditor, CoverageEditor} from '../utils/planning';
+import {PlanningList, PlanningEditor, CoverageEditor} from '../page-object-models/planning';
 
 test.describe('Planning.Planning: autosave', () => {
     let editor: PlanningEditor;

@@ -1,7 +1,7 @@
 import {Locator} from '@playwright/test';
 
 import {EventEditor} from './eventEditor';
-import {SelectInput, NewCheckboxInput, CoverageUserSelectInput} from '../../common';
+import {SelectInput, NewCheckboxInput, CoverageUserSelectInput} from '../../../utils/common';
 
 export class EmbeddedCoverageEditor {
     editor: EventEditor;

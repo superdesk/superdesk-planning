@@ -1,7 +1,7 @@
 import {test, expect} from '@playwright/test';
 
 import {setup, login, waitForPageLoad, SubNavBar} from '../utils/common';
-import {ContactsEditor, ContactsList} from '../utils/contacts';
+import {ContactsEditor, ContactsList} from '../page-object-models/contacts';
 
 test.describe('MediaContacts: contacts manager', () => {
     let editor: ContactsEditor;

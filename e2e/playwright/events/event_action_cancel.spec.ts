@@ -10,7 +10,7 @@ import {
     getMenuItem,
     ActionMenu,
 } from '../utils/common';
-import {PlanningList, EventEditor, PlanningPreview} from '../utils/planning';
+import {PlanningList, EventEditor, PlanningPreview} from '../page-object-models/planning';
 import {createEventFor} from '../utils/fixtures/events';
 
 test.describe('Planning.Events: event cancel action', () => {
