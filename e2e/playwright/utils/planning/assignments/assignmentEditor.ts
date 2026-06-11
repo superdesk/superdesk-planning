@@ -22,7 +22,7 @@ export class AssignmentEditor extends Modal {
 
     /**
      * Returns the dom node for the editor component
-     * @returns {Cypress.Chainable<JQuery<HTMLElement>>}
+     * @returns {Locator}
      */
     get form(): Locator {
         return this.element.getByTestId('form-update-assignment');
@@ -30,7 +30,7 @@ export class AssignmentEditor extends Modal {
 
     /**
      * Returns the dom node for the cancel button
-     * @returns {Cypress.Chainable<JQuery<HTMLElement>>}
+     * @returns {Locator}
      */
     get cancelButton(): Locator {
         return this.getFooterButton('Cancel');
@@ -38,7 +38,7 @@ export class AssignmentEditor extends Modal {
 
     /**
      * Returns the dom node for the OK button
-     * @returns {Cypress.Chainable<JQuery<HTMLElement>>}
+     * @returns {Locator}
      */
     get okButton(): Locator {
         return this.getFooterButton('OK');
