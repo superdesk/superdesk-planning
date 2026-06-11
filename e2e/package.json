@@ -26,9 +26,7 @@
         "playwright": "playwright test --workers 1",
         "playwright-interactive": "playwright test --ui",
         "start-client-server": "http-server dist -p 9000 -s &",
-        "stop-client-server": "fuser -k 9000/tcp",
-        "start-test-server": "cd ../server && docker-compose build && docker-compose up -d",
-        "stop-test-server": "cd ../server && docker-compose stop"
+        "stop-client-server": "fuser -k 9000/tcp"
     },
     "volta": {
         "node": "22.22.0"
