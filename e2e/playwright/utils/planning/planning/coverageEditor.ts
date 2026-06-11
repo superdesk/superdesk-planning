@@ -55,7 +55,7 @@ export class CoverageEditor extends Editor {
 
     /**
      * Returns the dom node for the collapse box component for this coverage
-     * @returns {Cypress.Chainable<JQuery<HTMLElement>>}
+     * @returns {Locator}
      */
     get element(): Locator {
         return this.parentEditor.element
@@ -73,7 +73,7 @@ export class CoverageEditor extends Editor {
 
     /**
      * Returns the dom node for the REASSIGN button
-     * @returns {Cypress.Chainable<JQuery<HTMLElement>>}
+     * @returns {Locator}
      */
     get reassignButton(): Locator {
         return this.element.getByRole('button', {name: 'Reassign', exact: true});
@@ -81,7 +81,7 @@ export class CoverageEditor extends Editor {
 
     /**
      * Returns the dom node for the REMOVE button
-     * @returns {Cypress.Chainable<JQuery<HTMLElement>>}
+     * @returns {Locator}
      */
     get removeButton(): Locator {
         return this.element.getByRole('button', {name: 'Remove', exact: true});
@@ -89,7 +89,7 @@ export class CoverageEditor extends Editor {
 
     /**
      * Returns the dom node for the EDIT button for the assignment
-     * @returns {Cypress.Chainable<JQuery<HTMLElement>>}
+     * @returns {Locator}
      */
     get editAssignmentButton(): Locator {
         return this.element.getByRole('button', {name: 'Assign', exact: true});
