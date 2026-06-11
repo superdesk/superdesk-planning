@@ -1,6 +1,6 @@
 import type {Page, APIRequestContext} from '@playwright/test';
 
-export const baseBackendUrl = 'http://localhost:5000/api';
+export const baseBackendUrl = (process.env.SUPERDESK_URL || 'http://localhost:5002/api').replace(/\/$/, '');
 
 /**
  * Resets the application state by sending a prepopulate request to the backend.
