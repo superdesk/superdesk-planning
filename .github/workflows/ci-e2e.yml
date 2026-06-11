@@ -21,6 +21,10 @@ jobs:
       RUN_SERVICES: true
       E2E: true
       TZ: Australia/Sydney
+      # CI runs the server on 5000 (hypercorn default; no AirPlay conflict on
+      # Linux). The test helpers and client build read SUPERDESK_URL, which
+      # defaults to 5002 locally to dodge macOS AirPlay; pin it to the CI port.
+      SUPERDESK_URL: http://localhost:5000/api
     defaults:
       run:
         working-directory: ./e2e
