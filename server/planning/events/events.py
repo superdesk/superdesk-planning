@@ -870,11 +870,12 @@ class EventsService(AsyncBaseService):
 
         Allows updates when:
         - Event doesn't exist locally
-        - Event never manually edited (version_creator is None), even if cancelled/killed
-        - Event manually edited but not cancelled/killed
+        - Event is not cancelled/killed
+        - Event is cancelled/killed but has no manual editor marker
 
-        Key behavior: Ingest feeds can update cancelled/killed events only if never manually
-        touched. Once user-edited, cancelled/killed events won't be updated from feeds.
+        Key behavior: Ingest feeds must not update manually unposted events.
+        Provider-origin cancellations remain ingest-updatable, so cancelled/killed
+        alone does not block updates.
 
         Args:
             old_item: Existing event (None if doesn't exist)
@@ -884,16 +885,15 @@ class EventsService(AsyncBaseService):
         Returns:
             True if should update, False otherwise
         """
-        return (
-            old_item is None
-            or old_item.get("version_creator") is None
-            or not any(
-                [
-                    old_item.get("pubstatus") == "cancelled",
-                    old_item.get("state") == "killed",
-                ]
-            )
-        )
+        if old_item is None:
+            return True
+
+        is_cancelled_or_killed = old_item.get("pubstatus") == "cancelled" or old_item.get("state") == "killed"
+        if not is_cancelled_or_killed:
+            return True
+
+        manually_touched = old_item.get("version_creator") is not None
+        return not manually_touched
 
 
 class EventsResource(superdesk.Resource):
