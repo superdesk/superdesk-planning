@@ -1,8 +1,8 @@
 import {Page, Locator} from '@playwright/test';
 
-import {Editor} from '../../common/editor';
+import {Editor} from '../../../utils/common/editor';
 import {CoverageEditor} from './coverageEditor';
-import {Input, SelectMetaTerms, ToggleInput, Popup, UrgencyTreeSelectInput, TreeSelect} from '../../common';
+import {Input, SelectMetaTerms, ToggleInput, Popup, UrgencyTreeSelectInput, TreeSelect} from '../../../utils/common';
 
 /**
  * Wrapper class around Superdesk's Planning editor component

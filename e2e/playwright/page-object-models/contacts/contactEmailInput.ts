@@ -1,5 +1,5 @@
 import {Locator, expect} from '@playwright/test';
-import {Input} from '../common';
+import {Input} from '../../utils/common';
 
 export class ContactEmailInput extends Input {
     get element(): Locator {

@@ -1,7 +1,7 @@
 import {test, expect} from '@playwright/test';
 
 import {setup, login, waitForPageLoad, addItems} from '../utils/common';
-import {SearchFilters} from '../utils/planning';
+import {SearchFilters} from '../page-object-models/planning';
 
 import {LOCATIONS} from '../utils/fixtures/events';
 import {AGENDAS} from '../utils/fixtures/planning';

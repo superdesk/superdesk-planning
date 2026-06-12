@@ -2,7 +2,7 @@ import {test, expect} from '@playwright/test';
 import moment from 'moment';
 
 import {setup, login, waitForPageLoad, SubNavBar, CLIENT_FORMAT} from '../utils/common';
-import {PlanningList, EventEditor} from '../utils/planning';
+import {PlanningList, EventEditor} from '../page-object-models/planning';
 import {getDateStringFor} from '../utils/time';
 
 test.describe('Planning.Events: all day events and events without end time', () => {

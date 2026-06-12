@@ -12,7 +12,7 @@ import {
     TimePickerInput,
     UrgencyTreeSelectInput,
     clickAll,
-} from '../common';
+} from '../../utils/common';
 import {PlanningList} from './planningList';
 
 interface ISearchTest {

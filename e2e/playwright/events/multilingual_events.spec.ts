@@ -1,7 +1,7 @@
 import {test, expect} from '@playwright/test';
 
 import {setup, login, addItems, waitForPageLoad, SubNavBar} from '../utils/common';
-import {EventEditor, ManageContentProfiles} from '../utils/planning';
+import {EventEditor, ManageContentProfiles} from '../page-object-models/planning';
 import {CVs} from '../utils/fixtures/cvs';
 
 const MULTILINGUAL_FIELDS = ['slugline', 'name', 'definition_short'];

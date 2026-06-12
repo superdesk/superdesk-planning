@@ -1,5 +1,5 @@
 import {Locator, expect} from '@playwright/test';
-import {Modal} from '../../common';
+import {Modal} from '../../../utils/common';
 
 type IFooterButtonLabels = 'Close' | 'Cancel' | 'Save' | 'Post' | 'Update';
 interface IExpectListEntries {

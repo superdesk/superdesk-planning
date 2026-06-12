@@ -1,7 +1,7 @@
 import {Page, test, expect} from '@playwright/test';
 
 import {setup, login, waitForPageLoad, addItems, forceUnlockItem, Modal, getMenuItem} from './utils/common';
-import {EventEditor, PlanningList} from './utils/planning';
+import {EventEditor, PlanningList} from './page-object-models/planning';
 
 import {TEST_PLANNINGS} from './utils/fixtures/planning';
 import {TEST_EVENTS} from './utils/fixtures/events';

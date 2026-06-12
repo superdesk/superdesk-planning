@@ -1,7 +1,7 @@
 import {test, expect} from '@playwright/test';
 
 import {setup, login, waitForPageLoad, SubNavBar} from '../utils/common';
-import {EventEditor} from '../utils/planning';
+import {EventEditor} from '../page-object-models/planning';
 
 test.describe('Planning.Events: editor bookmarks', () => {
     let editor: EventEditor;

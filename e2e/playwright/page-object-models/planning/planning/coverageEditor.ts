@@ -1,7 +1,7 @@
 import type {Locator} from '@playwright/test';
 
-import {Editor} from '../../common/editor';
-import {Input, SelectInput, ActionMenu, ToggleInput} from '../../common';
+import {Editor} from '../../../utils/common/editor';
+import {Input, SelectInput, ActionMenu, ToggleInput} from '../../../utils/common';
 import {PlanningEditor} from './planningEditor';
 
 /**

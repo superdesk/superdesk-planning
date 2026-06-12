@@ -37,7 +37,7 @@ services:
             context: ../
             dockerfile: e2e/server/Dockerfile
         ports:
-            - "5000:5000"
+            - "${PORT:-5002}:5000"
             - "5100:5100"
         networks:
             - e2e

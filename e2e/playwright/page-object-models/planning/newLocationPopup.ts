@@ -1,6 +1,6 @@
 import type {Page, Locator} from '@playwright/test';
 
-import {Popup, Input, SelectInput} from '../common';
+import {Popup, Input, SelectInput} from '../../utils/common';
 
 export class NewLocationPopup extends Popup {
     fields: {

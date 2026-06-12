@@ -3,7 +3,7 @@ import moment from 'moment';
 import {cloneDeep} from 'lodash';
 
 import {setup, login, waitForPageLoad, SubNavBar, Workqueue, Modal, addItems, CLIENT_FORMAT} from '../utils/common';
-import {EventEditor, PlanningList} from '../utils/planning';
+import {EventEditor, PlanningList} from '../page-object-models/planning';
 import {createEventFor, TEST_EVENTS} from '../utils/fixtures/events';
 import {setupPlanningPublishing} from '../utils/fixtures/publish_config';
 

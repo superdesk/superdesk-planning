@@ -1,7 +1,7 @@
 import {test, expect} from '@playwright/test';
 
 import {setup, login, addItems, waitForPageLoad, SubNavBar, UiFrameworkModal} from '../utils/common';
-import {PlanningList, PlanningEditor, PlanningPreview, FeaturedModal} from '../utils/planning';
+import {PlanningList, PlanningEditor, PlanningPreview, FeaturedModal} from '../page-object-models/planning';
 import {createPlanningFor} from '../utils/fixtures/planning';
 import {setupPlanningPublishing} from '../utils/fixtures/publish_config';
 

@@ -1,7 +1,7 @@
 import {test, expect} from '@playwright/test';
 
 import {setup, login, waitForPageLoad, SubNavBar, changeWorkspace, UiFrameworkModal} from '../utils/common';
-import {PlanningList, PlanningEditor, AssignmentEditor} from '../utils/planning';
+import {PlanningList, PlanningEditor, AssignmentEditor} from '../page-object-models/planning';
 import {getMenuItem} from '../utils/common';
 
 test.describe('Planning.Assignment: remove assignment', () => {

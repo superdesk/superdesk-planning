@@ -1,7 +1,7 @@
 import {test} from '@playwright/test';
 
 import {setup, login, addItems, waitForPageLoad} from '../utils/common';
-import {AdvancedSearch, PlanningList, EventEditor} from '../utils/planning';
+import {AdvancedSearch, PlanningList, EventEditor} from '../page-object-models/planning';
 
 import {TEST_EVENTS, createEventFor, LOCATIONS} from '../utils/fixtures/events';
 import {ADVANCED_SEARCH} from '../utils/fixtures/planning_types';

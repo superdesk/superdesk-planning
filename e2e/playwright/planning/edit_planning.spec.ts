@@ -2,7 +2,7 @@ import {test, expect} from '@playwright/test';
 import moment from 'moment/moment';
 
 import {setup, login, waitForPageLoad, SubNavBar, Workqueue, CLIENT_FORMAT} from '../utils/common';
-import {PlanningList, PlanningEditor, AssignmentEditor} from '../utils/planning';
+import {PlanningList, PlanningEditor, AssignmentEditor} from '../page-object-models/planning';
 import {setupPlanningPublishing} from '../utils/fixtures/publish_config';
 
 test.describe('Planning.Planning: edit metadata', () => {

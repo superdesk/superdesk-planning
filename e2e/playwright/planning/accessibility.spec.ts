@@ -1,7 +1,7 @@
 import {test, expect} from '@playwright/test';
 
 import {setup, login, waitForPageLoad, addItems} from '../utils/common';
-import {PlanningList} from '../utils/planning';
+import {PlanningList} from '../page-object-models/planning';
 import {TIME_STRINGS, TIMEZONE} from '../utils/time';
 import {createPlanningFor} from '../utils/fixtures/planning';
 import {createEventFor} from '../utils/fixtures/events';

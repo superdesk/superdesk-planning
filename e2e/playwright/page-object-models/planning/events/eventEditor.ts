@@ -1,5 +1,5 @@
 import type {Page, Locator} from '@playwright/test';
-import {Editor} from '../../common/editor';
+import {Editor} from '../../../utils/common/editor';
 import {
     Input,
     ToggleInput,
@@ -9,7 +9,7 @@ import {
     LinkInput,
     ContactsInput,
     LocationInput,
-} from '../../common/inputs';
+} from '../../../utils/common/inputs';
 
 export class EventEditor extends Editor {
     constructor(page: Page, languages: Array<string> = [], multilingualFields: Array<string> = []) {

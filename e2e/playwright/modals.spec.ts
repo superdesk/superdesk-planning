@@ -1,7 +1,7 @@
 import {test, expect} from '@playwright/test';
 
 import {setup, login, waitForPageLoad, addItems, Modal} from './utils/common';
-import {EventEditor, PlanningList} from './utils/planning';
+import {EventEditor, PlanningList} from './page-object-models/planning';
 import {createEventFor} from './utils/fixtures/events';
 
 test.describe('Planning.Modals', () => {

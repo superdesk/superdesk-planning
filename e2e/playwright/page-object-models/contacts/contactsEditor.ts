@@ -1,6 +1,6 @@
 import {Page, Locator} from '@playwright/test';
-import {Editor} from '../common/editor';
-import {Input} from '../common/inputs';
+import {Editor} from '../../utils/common/editor';
+import {Input} from '../../utils/common/inputs';
 import {ContactEmailInput} from './contactEmailInput';
 
 

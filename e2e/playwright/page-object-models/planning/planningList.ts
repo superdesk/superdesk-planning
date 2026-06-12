@@ -1,5 +1,5 @@
 import {Page, Locator, expect} from '@playwright/test';
-import {ActionMenu, getMenuItem} from '../common/ui';
+import {ActionMenu, getMenuItem} from '../../utils/common/ui';
 
 export class PlanningList {
     page: Page;
