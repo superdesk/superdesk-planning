@@ -85,3 +85,23 @@ def test_should_update():
         "state": "killed",
     }
     assert not service.should_update(old_event, new_event, provider={})
+
+    # Test: should_update returns True when cancelled/killed with no manual marker
+    # (e.g. provider-origin cancellation that may later be reposted to usable)
+    old_event = {
+        "versioncreated": datetime.now(),
+        "version_creator": None,
+        "pubstatus": "cancelled",
+        "state": "killed",
+    }
+    assert service.should_update(old_event, new_event, provider={})
+
+    # Test: should_update returns False when manually unposted
+    # (cancelled/killed item with manual marker)
+    old_event = {
+        "versioncreated": datetime.now(),
+        "version_creator": "user_id",
+        "pubstatus": "cancelled",
+        "state": "killed",
+    }
+    assert not service.should_update(old_event, new_event, provider={})
