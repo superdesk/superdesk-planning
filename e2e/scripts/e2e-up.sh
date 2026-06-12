@@ -12,7 +12,7 @@
 #
 # Usage (from repo root):
 #   ./e2e/scripts/e2e-up.sh                  # bring up the stack
-#   ./e2e/scripts/e2e-up.sh --reinstall      # force `npm ci` in e2e/
+#   ./e2e/scripts/e2e-up.sh --reinstall      # force dependency reinstall (repo root + e2e/)
 #   ./e2e/scripts/e2e-up.sh --rebuild        # force docker compose build + client rebuild
 #
 # Exits 0 only when both the server (e.g. http://localhost:5002/api/) and the
@@ -47,6 +47,12 @@ SERVER_URL="${SUPERDESK_URL%/}/"
 CLIENT_URL="http://localhost:9000/"
 SUPERDESK_HOST_PORT="$(printf '%s\n' "$SUPERDESK_URL" | sed -E 's#^https?://##; s#/.*$##')"
 PORT="${PORT:-${SUPERDESK_HOST_PORT##*:}}"
+case "$PORT" in
+    ''|*[!0-9]*)
+        printf '\n[e2e-up] ERROR: could not derive a numeric backend port from SUPERDESK_URL="%s". Include an explicit port, e.g. http://localhost:5002/api.\n' "$SUPERDESK_URL" >&2
+        exit 1
+        ;;
+esac
 export SUPERDESK_URL PORT
 
 log() { printf '\n[e2e-up] %s\n' "$*"; }
@@ -83,9 +89,10 @@ wait_until_reachable() {
 
 ensure_deps() {
     local dir="$1"
+    local install_cmd="${2:-npm ci}"
     if [ "$REINSTALL" = true ] || [ ! -d "$dir/node_modules" ]; then
-        log "installing dependencies in $dir"
-        (cd "$dir" && npm ci)
+        log "installing dependencies in $dir ($install_cmd)"
+        (cd "$dir" && $install_cmd)
     fi
 }
 
@@ -136,11 +143,12 @@ fi
 
 # 2. Dependencies
 # The planning client (built below) resolves its modules from the repo-root
-# node_modules, so install those first, then the e2e client deps. Mirrors CI:
-# `npm ci` at the repo root ("Install Planning Client") then `npm install` in
-# e2e ("Install E2E Client").
-ensure_deps "$REPO_ROOT"
-ensure_deps "$E2E_DIR"
+# node_modules, so install those first, then the e2e client deps. Mirror CI
+# exactly: `npm ci` at the repo root ("Install Planning Client") and `npm
+# install` in e2e ("Install E2E Client"). e2e/ uses npm install because its
+# `file:../` and `github:` deps don't sit cleanly under npm ci.
+ensure_deps "$REPO_ROOT" "npm ci"
+ensure_deps "$E2E_DIR" "npm install"
 
 # 3. Client build (build-tools -> e2e/dist; http-server serves that dir).
 # Rebuild when forced, deps reinstalled, the app bundles are missing, OR the

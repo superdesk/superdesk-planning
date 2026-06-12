@@ -120,8 +120,8 @@ holding the `Page`.
 
 ## Running tests
 
-Bring up the stack with the bootstrap script from the repo's `e2e/` directory,
-then run Playwright from `e2e/`.
+Bring up the stack with the bootstrap script from the repo root, then run
+Playwright from `e2e/`.
 
 ```sh
 # Bring up the stack (idempotent)
