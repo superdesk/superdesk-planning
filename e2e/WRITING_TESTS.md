@@ -99,6 +99,11 @@ await addItems(
 planning-only; there is no equivalent in client-core. Fixture builders such as
 `createEventFor` live under `utils/fixtures/`.
 
+Build preconditions with `addItems`, not by driving the UI in a setup loop. A
+single atomic UI action as a precondition is fine, but repeating UI mutations to
+seed several items is fragile (the editor reflows between actions) and slow. If
+you need N of something, `addItems` it.
+
 ## Page Objects
 
 Reuse the Page Object classes under `page-object-models/`. They take a `Page` in
@@ -117,6 +122,10 @@ test.beforeEach(async ({page}) => {
 When an interaction is not covered by an existing method, add a method to the
 relevant Page Object rather than inlining it. Keep Page Objects stateless beyond
 holding the `Page`.
+
+An interaction with **known flakiness** (settling waits, a retry/`toPass`, a
+stub) especially belongs in a Page Object: write the robustness once so the next
+spec inherits it instead of re-deriving it.
 
 ## Running tests
 
@@ -154,6 +163,10 @@ avoided because macOS AirPlay Receiver answers on it.
 - The only acceptable product-source change from a test is adding a
   `data-test-id` attribute. Anything more belongs in a separate PR with product
   review.
+- A single green run is not proof of stability. Before calling a new spec done,
+  run it under repeat: `npx playwright test playwright/<feature>/<scenario>.spec.ts
+  --repeat-each 5` (more for fast specs). Flakiness from async UI churn often
+  shows only on repeat.
 
 ## Comments
 
