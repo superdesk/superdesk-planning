@@ -155,11 +155,36 @@ avoided because macOS AirPlay Receiver answers on it.
   `data-test-id` attribute. Anything more belongs in a separate PR with product
   review.
 
+## Comments
+
+Comment the non-obvious *why*, not the *what*. A reader can see what
+`getByTestId('save').click()` does; they cannot see why an action needs a
+workaround, why a call is stubbed, or why a selector has an unusual shape.
+Reserve comments for those: workarounds, async timing, app quirks.
+
+Do not narrate the steps (`// open the modal`) or restate the QA case
+(`// Expected: item is unlocked`). The scenario mapping belongs in the
+`describe`/`test` titles, which are the first thing a reviewer reads.
+
 ## Reference specs
 
 When writing a new spec, start from the closest of these curated examples, copy
-its structure, and adapt:
+its structure, and adapt. Planning's specs are already native (`getByTestId`,
+Page Objects), so use them directly:
 
-<!-- TODO(exemplar): add the path(s) to the native reference spec(s) produced
-     from a real QA test case (workstream W2). Until then, fall back to the
-     closest existing spec under playwright/. -->
+- `playwright/item_locks.spec.ts` - the broadest reference. It shows the full
+  planning fixture pattern: `setup(page, 'planning_prepopulate_data', ...)` in
+  `beforeEach`, then per-test `addItems(page.request, 'events'|'planning', [...])`
+  from `utils/fixtures`, then `login(page)` and `waitForPageLoad`. It drives the
+  list and editor through Page Objects (`PlanningList`, `EventEditor`, `Modal`),
+  asserts with web-first assertions, and uses `forceUnlockItem` via
+  `page.request` to simulate a second user.
+- `playwright/modals.spec.ts` - a smaller starting point when the scenario is a
+  single dialog interaction rather than a full editor flow.
+
+Note the cross-repo difference: planning resets state per test with
+`setup`/`addItems` and logs in explicitly, whereas client-core relies on a
+committed `storageState` session plus `restoreDatabaseSnapshot()`. Do not copy
+client-core's auth/reset pattern here. The companion
+`superdesk-client-core/e2e/WRITING_TESTS.md` documents a worked example
+(`edit-embed.spec.ts`) for that repo.
