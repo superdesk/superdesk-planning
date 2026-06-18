@@ -14,6 +14,7 @@ import logging
 from quart_babel import gettext as _
 
 from superdesk.core import get_app_config, get_current_app
+from superdesk.core.emails import send_email, EmailAttachment
 from superdesk.resource_fields import ID_FIELD
 from superdesk.flask import render_template
 
@@ -23,8 +24,6 @@ from jinja2 import Template, TemplateNotFound
 from superdesk.errors import SuperdeskApiError
 from superdesk.celery_app import celery
 from planning.common import WORKFLOW_STATE, get_assignment_acceptance_email_address
-from superdesk.emails import send_email
-from flask_mail import Attachment
 from apps.archive.common import get_user
 from planning.common import get_assginment_name
 from superdesk.preferences import get_user_notification_preferences
@@ -348,7 +347,7 @@ async def _send_user_email(user_id, contact_id, source, meta_message, data):
             event_file = superdesk.get_resource_service("events_files").find_one(req=None, _id=file_id)
             media = app.media.get(event_file["media"], resource="events_files")
             fp = media.read()
-            attachments.append(Attachment(filename=media.name, content_type=media.content_type, data=fp))
+            attachments.append(EmailAttachment(filename=media.name, content_type=media.content_type, data=fp))
 
     if data.get("assignment") and (data["assignment"].get("planning", {})).get("files"):
         for file_id in data["assignment"]["planning"]["files"]:
@@ -357,7 +356,7 @@ async def _send_user_email(user_id, contact_id, source, meta_message, data):
             if assignment_file:
                 media = app.media.get(assignment_file["media"], resource="planning_files")
                 fp = media.read()
-                attachments.append(Attachment(filename=media.name, content_type=media.content_type, data=fp))
+                attachments.append(EmailAttachment(filename=media.name, content_type=media.content_type, data=fp))
             else:
                 logger.error(
                     "File {} attached to assignment {} not found".format(file_id, data["assignment"]["assignment_id"])
@@ -370,7 +369,7 @@ async def _send_user_email(user_id, contact_id, source, meta_message, data):
         if xmp_file:
             media = app.media.get(xmp_file["media"], resource="planning_files")
             fp = media.read()
-            attachments.append(Attachment(filename=media.name, content_type=media.content_type, data=fp))
+            attachments.append(EmailAttachment(filename=media.name, content_type=media.content_type, data=fp))
         else:
             logger.error(
                 "XMP File {} attached to assignment {} not found".format(
@@ -382,7 +381,7 @@ async def _send_user_email(user_id, contact_id, source, meta_message, data):
         ics = data["assignment"]["planning"]["ics_data"]
         if ics:
             name = get_assginment_name(data.get("assignment"))
-            attachments.append(Attachment(filename=name, content_type="text/calendar", data=ics))
+            attachments.append(EmailAttachment(filename=name, content_type="text/calendar", data=ics))
 
     await send_email(
         subject=data["subject"],
