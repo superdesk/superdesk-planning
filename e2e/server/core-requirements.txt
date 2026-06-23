@@ -18,6 +18,7 @@ aiohttp==3.13.3
     # via
     #   aiobotocore
     #   elasticsearch
+    #   superdesk-core
 aioitertools==0.13.0
     # via aiobotocore
 aiosignal==1.4.0
@@ -315,7 +316,7 @@ six==1.17.0
     #   flask-oidc-ex
     #   oauth2client
     #   python-dateutil
-superdesk-core @ git+https://github.com/superdesk/superdesk-core.git@develop
+superdesk-core @ git+https://github.com/superdesk/superdesk-core.git@release/3.5
     # via -r core-requirements.in
 taskgroup==0.2.2
     # via hypercorn
