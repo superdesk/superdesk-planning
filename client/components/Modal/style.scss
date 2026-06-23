@@ -1,7 +1,7 @@
-@import '~superdesk-core/styles/sass/mixins.scss';
-@import '~superdesk-core/styles/sass/variables.scss';
+@import 'superdesk-core/styles/sass/mixins.scss';
+@import 'superdesk-core/styles/sass/variables.scss';
 // required for extending .modal__backdrop :
-@import '~superdesk-ui-framework/app/styles/_variables.scss';
+@import 'superdesk-ui-framework/app/styles/_variables.scss';
 
 .modal__backdrop {
     position: fixed;
