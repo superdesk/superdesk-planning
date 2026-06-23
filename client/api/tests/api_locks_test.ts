@@ -4,7 +4,7 @@ import {cloneDeep} from 'lodash';
 
 import {superdeskApi, planningApi} from '../../superdeskApi';
 import {IPlanningAppState} from '../../interfaces';
-import {EVENTS, PLANNING, ASSIGNMENTS} from '../../constants';
+import {EVENTS, PLANNING, ASSIGNMENTS, LOCKS} from '../../constants';
 
 import * as testDataOriginal from '../../utils/testData';
 import {restoreSinonStub} from '../../utils/testUtils';
@@ -63,6 +63,23 @@ describe('planningApi.locks', () => {
             assignment: {},
             recurring: {},
         });
+    });
+
+    it('softLockItem does not dispatch SET_ITEM_AS_LOCKED for empty lock fields', () => {
+        const itemWithoutLock = {
+            ...testData.events[0],
+            lock_user: null,
+            lock_session: undefined,
+            lock_action: null,
+        };
+
+        planningApi.locks.softLockItem({
+            type: 'event',
+            item: itemWithoutLock,
+            plan_ids: [],
+        });
+
+        expect(redux.dispatch.args.some(([action]) => action.type === LOCKS.ACTIONS.SET_ITEM_AS_LOCKED)).toBe(false);
     });
 
     it('lockItemById attempts to load the item by id before locking it', (done) => {

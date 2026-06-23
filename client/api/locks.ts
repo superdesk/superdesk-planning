@@ -99,6 +99,13 @@ function setItemAsLocked(data: IWebsocketMessageData['ITEM_LOCKED']): void {
 function softLockItem(options: ISoftLockItemData): void {
     const {item} = options;
 
+    if (item.lock_user == null && item.lock_session == null && item.lock_action == null) {
+        // The source item carries no lock (e.g. its lock fields were stripped after
+        // posting). Propagating it would overwrite the existing valid lock in the store
+        // with an empty one, incorrectly flipping the editor to read-only.
+        return;
+    }
+
     return setItemAsLocked({
         item: item._id,
         type: item.type,

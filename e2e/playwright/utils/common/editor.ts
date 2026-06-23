@@ -30,6 +30,10 @@ export class Editor {
         return this.element.getByRole('button', {name: 'Save', exact: true});
     }
 
+    get updateButton(): Locator {
+        return this.element.getByRole('button', {name: 'Update', exact: true});
+    }
+
     get postButton(): Locator {
         return this.element.getByRole('button', {name: /Save & Post|Post/, exact: true});
     }
