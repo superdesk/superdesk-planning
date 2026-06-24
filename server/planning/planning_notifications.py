@@ -381,7 +381,7 @@ async def _send_user_email(user_id, contact_id, source, meta_message, data):
         ics = data["assignment"]["planning"]["ics_data"]
         if ics:
             name = get_assginment_name(data.get("assignment"))
-            attachments.append(EmailAttachment(filename=name, content_type="text/calendar", data=ics))
+            attachments.append(EmailAttachment(filename=name, content_type="text/calendar", data=ics.encode("utf-8")))
 
     await send_email(
         subject=data["subject"],
