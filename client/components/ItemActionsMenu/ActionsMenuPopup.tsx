@@ -50,7 +50,10 @@ export class ActionsMenuPopup extends React.PureComponent<IProps> {
                 }}
             >
                 <Content noPadding={true}>
-                    <ul className="dropdown dropdown__menu more-activity-menu open">
+                    <ul
+                        className="dropdown dropdown__menu more-activity-menu open"
+                        data-test-id="item-actions-menu__popup"
+                    >
                         <li onClick={onEventCapture}>
                             <div className="dropdown__menu-label">
                                 {gettext('Actions')}

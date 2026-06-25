@@ -53,10 +53,10 @@ test.describe('Planning.Planning: cancel planning item', () => {
         // Make sure the list item shows the 'Scheduled' badge
         // and is no longer locked
         await expect(
-            list.item(0).locator('.label--success')
+            list.item(0).getByTestId('item-state-badge--scheduled')
         ).toContainText('Scheduled');
         await expect(
-            list.item(0).locator('.sd-list-item__border--locked')
+            list.item(0).getByTestId('item-locked-indicator')
         ).not.toBeAttached();
 
         // Now make sure the 'Cancel Planning' action is there
@@ -69,7 +69,7 @@ test.describe('Planning.Planning: cancel planning item', () => {
 
         // Make sure the item is locked at this point in time
         await expect(
-            list.item(0).locator('.sd-list-item__border--locked')
+            list.item(0).getByTestId('item-locked-indicator')
         ).toBeVisible();
         await modal.element
             .getByRole('textbox', {name: 'reason'})
@@ -80,17 +80,17 @@ test.describe('Planning.Planning: cancel planning item', () => {
         // Now make sure the list item shows the 'Cancelled' badge
         // and is no longer locked
         await expect(
-            list.item(0).locator('.label--yellow2')
+            list.item(0).getByTestId('item-state-badge--cancelled')
         ).toContainText('Cancelled');
         await expect(
-            list.item(0).locator('.sd-list-item__border--locked')
+            list.item(0).getByTestId('item-locked-indicator')
         ).not.toBeAttached();
 
         // Make sure the 'Cancelled' badge and reason appears in the Preview
         await list.item(0).click();
         await preview.waitTillOpen();
         await expect(
-            preview.element.locator('.label--yellow2')
+            preview.element.getByTestId('item-state-badge--cancelled')
         ).toContainText('Cancelled');
 
         await expect(preview.element.getByTestId('internal-note-label')).toContainText(reason);

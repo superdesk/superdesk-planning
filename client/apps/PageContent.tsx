@@ -172,7 +172,7 @@ export class PageContent<T> extends React.Component<IProps<T>, IState> {
                     </div>
                 </div>
                 {mountEditorInMainPage && (
-                    <div className={slideInClassName}>
+                    <div className={slideInClassName} data-test-id="editor-panel">
                         <EditorPanel
                             toggleFilterPanel={this.toggleFilterPanel}
                             {...editorProps}

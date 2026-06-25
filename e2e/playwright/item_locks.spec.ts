@@ -25,12 +25,12 @@ test.describe('Planning: item locks', () => {
         // Open the Cancel Modal
         await (await getMenuItem(page, list.item(0), actionLabel)).click();
         await modal.waitTillOpen();
-        await expect(list.item(0).locator('.sd-list-item__border--locked')).toBeVisible();
+        await expect(list.item(0).getByTestId('item-locked-indicator')).toBeVisible();
 
         // Cancel the action and make sure the item get's unlocked
         await modal.getFooterButton('Cancel').click();
         await modal.waitTillClosed();
-        await expect(list.item(0).locator('.sd-list-item__border--locked')).not.toBeAttached();
+        await expect(list.item(0).getByTestId('item-locked-indicator')).not.toBeAttached();
     }
 
     async function testUnlockedFromModal(page: Page, actionLabel: string, itemType: string, itemId: string): Promise<void> {
@@ -39,11 +39,11 @@ test.describe('Planning: item locks', () => {
         // Open the Cancel Modal
         await (await getMenuItem(page, list.item(0), actionLabel)).click();
         await modal.waitTillOpen();
-        await expect(list.item(0).locator('.sd-list-item__border--locked')).toBeVisible();
+        await expect(list.item(0).getByTestId('item-locked-indicator')).toBeVisible();
 
         // Test another user force unlocks the item
         await forceUnlockItem(page.request, itemType, itemId);
-        await expect(list.item(0).locator('.sd-list-item__border--locked')).not.toBeAttached();
+        await expect(list.item(0).getByTestId('item-locked-indicator')).not.toBeAttached();
         await modal.shouldContainTitle('Item Unlocked');
         await modal.getFooterButton('OK').click();
         await modal.waitTillClosed();
@@ -81,7 +81,7 @@ test.describe('Planning: item locks', () => {
         await editor.closeButton.click()
 
         await editor.waitTillClosed();
-        await expect(list.item(0).locator('.sd-list-item__border--locked')).not.toBeAttached();
+        await expect(list.item(0).getByTestId('item-locked-indicator')).not.toBeAttached();
     }
 
     async function testUnlockedFromEditPanel(page: Page, actionLabel: string, itemType: string, itemId: string): Promise<void> {
@@ -106,7 +106,7 @@ test.describe('Planning: item locks', () => {
 
         // Test another user force unlocks the item
         await forceUnlockItem(page.request, itemType, itemId);
-        await expect(list.item(0).locator('.sd-list-item__border--locked')).not.toBeAttached();
+        await expect(list.item(0).getByTestId('item-locked-indicator')).not.toBeAttached();
         await modal.shouldContainTitle('Item Unlocked');
         await modal.getFooterButton('OK').click();
         await modal.waitTillClosed();
@@ -117,7 +117,7 @@ test.describe('Planning: item locks', () => {
 
         // Close the editor
         await editor.closeButton.click();
-        await expect(list.item(0).locator('.sd-list-item__border--locked')).not.toBeAttached();
+        await expect(list.item(0).getByTestId('item-locked-indicator')).not.toBeAttached();
     }
 
     test.describe('event actions', () => {

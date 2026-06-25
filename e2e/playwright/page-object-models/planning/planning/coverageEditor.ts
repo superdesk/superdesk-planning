@@ -47,8 +47,8 @@ export class CoverageEditor extends Editor {
                 '[data-test-id="field-news_coverage_status"] select',
             ),
             scheduled: {
-                date: new Input(parentEditor.page, getParent, 'input[name="planning.scheduled.date"]'),
-                time: new Input(parentEditor.page, getParent, 'input[name="planning.scheduled"]'),
+                date: new Input(parentEditor.page, getParent, '[data-test-id="field-scheduled-date"]'),
+                time: new Input(parentEditor.page, getParent, '[data-test-id="field-scheduled-time"]'),
             },
         };
     }

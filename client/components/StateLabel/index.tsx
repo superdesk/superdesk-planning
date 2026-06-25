@@ -5,6 +5,7 @@ import {get} from 'lodash';
 import classNames from 'classnames';
 import {Label} from '../../components';
 import {
+    getItemWorkflowState,
     getItemWorkflowStateLabel,
     getItemPostedStateLabel,
     getItemExpiredStateLabel,
@@ -32,9 +33,10 @@ export const StateLabel = ({
         return null;
     }
 
-    const getStateLabel = (state) => (
+    const getStateLabel = (state, testId?: string) => (
         <Label
             id={id}
+            testId={testId}
             text={gettext(state.label)}
             iconType={state.iconType}
             verbose={verbose ? gettext(get(state, 'labelVerbose')) : null}
@@ -49,7 +51,11 @@ export const StateLabel = ({
                 className
             )}
         >
-            {!noState && <div>{getStateLabel(state)}</div>}
+            {!noState && (
+                <div>
+                    {getStateLabel(state, `item-state-badge--${getItemWorkflowState(item, fieldName)}`)}
+                </div>
+            )}
             {withPubStatus && pubState && <div>{getStateLabel(pubState)}</div>}
             {expiredState && (
                 <div>

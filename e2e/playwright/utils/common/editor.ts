@@ -19,7 +19,7 @@ export class Editor {
     }
 
     get element(): Locator {
-        return this.page.locator('.sd-edit-panel');
+        return this.page.getByTestId('editor-panel');
     }
 
     get createButton(): Locator {
@@ -127,15 +127,18 @@ export class Editor {
 
     async waitLoadingComplete(): Promise<void> {
         await this.element.waitFor({state: 'visible'});
-        await this.element.locator('.sd-loader').waitFor({state: 'detached'});
+        // Loading is done once the editor groups have rendered (they only mount
+        // after the loading state clears), so wait for the first group instead of
+        // a loader element.
+        await this.element.locator('[data-test-id^="editor--group__"]').first().waitFor({state: 'visible'});
         // In CI some editors don't render a role="textbox" immediately.
         // The panel is usable once loading is done and controls are enabled.
         await expect(this.closeButton).toBeEnabled();
     }
 
     async openAllToggleBoxes() {
-        await this.element.locator('.toggle-box.toggle-box--circle').first().waitFor({state: 'visible'});
-        await clickAll(this.element, '.toggle-box.toggle-box--circle.hidden');
+        await this.element.locator('[data-test-id^="editor--group__"]').first().waitFor({state: 'visible'});
+        await clickAll(this.element, '[data-test-id^="editor--group__"] [role="button"][aria-expanded="false"]');
     }
 
     async clickBookmark(bookmarkId: string): Promise<void> {

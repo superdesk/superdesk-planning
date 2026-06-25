@@ -7,7 +7,7 @@ export class Modal extends Popup {
     }
 
     get footer(): Locator {
-        return this.element.locator('.modal__footer');
+        return this.element.getByTestId('modal-footer');
     }
 
     getFooterButton(label: string): Locator {
