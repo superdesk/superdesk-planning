@@ -11,7 +11,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: ['3.10', '3.12']
+        python-version: ['3.12']
     env:
       INSTALL_PY_MODULES: true
       RUN_SERVICES: true
@@ -33,7 +33,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: ['3.10', '3.12']
+        python-version: ['3.12']
     env:
       INSTALL_PY_MODULES: true
       RUN_SERVICES: true
@@ -59,7 +59,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: ['3.10', '3.12']
+        python-version: ['3.12']
     env:
       INSTALL_PY_MODULES: true
       INSTALL_PY_EDITABLE: true
