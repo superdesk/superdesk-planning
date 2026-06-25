@@ -585,10 +585,6 @@ class PlanningService(superdesk.Service):
             return
 
         planning_date = original.get("planning_date") or updates.get("planning_date")
-        event_id = original.get("event_item") or updates.get("event_item")
-        event = None
-        if event_id:
-            event = get_resource_service("events").find_one(req=None, _id=event_id)
 
         original_coverage_ids = [
             coverage["coverage_id"] for coverage in original.get("coverages") or [] if coverage.get("coverage_id")
@@ -608,10 +604,16 @@ class PlanningService(superdesk.Service):
                 # Make sure the coverage has a ``scheduled`` date
                 # If none was supplied, fallback to the event end date or planning_date
                 coverage.setdefault("planning", {})
-                if event and event.get("dates", {}).get("end"):
-                    coverage["planning"].setdefault("scheduled", event["dates"]["end"])
-                else:
-                    coverage["planning"].setdefault("scheduled", planning_date)
+                if not coverage["planning"].get("scheduled"):
+                    event_id = original.get("event_item") or updates.get("event_item")
+                    event = None
+                    if event_id:
+                        event = get_resource_service("events").find_one(req=None, _id=event_id)
+
+                    if event and event.get("dates", {}).get("end"):
+                        coverage["planning"].setdefault("scheduled", event["dates"]["end"])
+                    else:
+                        coverage["planning"].setdefault("scheduled", planning_date)
 
                 set_original_creator(coverage)
                 self.set_coverage_active(coverage, updates)

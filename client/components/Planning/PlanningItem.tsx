@@ -462,7 +462,7 @@ class PlanningItemComponent extends React.Component<IProps, IState> {
                             value={get(item, 'coverages', [])}
                             onSave={this.onCoverageModalSave}
                             createCoverage={(qcode) => {
-                                const eventItem = this.props.events[item.event_item];
+                                const eventItem = item.event_item ? this.props.events[item.event_item] : undefined;
 
                                 return planningApi.planning.coverages.setDefaultValues(item, eventItem, qcode);
                             }}
