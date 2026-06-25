@@ -555,6 +555,53 @@ describe('EventUtils', () => {
                 }
             });
         });
+
+        it('shows a no_end_time event when raw end date is before local start day after conversion', () => {
+            const event = eventUtils.modifyForClient({
+                _id: 'e1',
+                dates: {
+                    start: '2026-06-19T22:00:00+0000',
+                    end: '2026-06-19T00:00:00+0000',
+                    tz: 'America/Vancouver',
+                    all_day: false,
+                    no_end_time: true,
+                },
+            });
+
+            const eventsDateGroup = eventUtils.getEventsByDate(
+                [event as any],
+                moment('2026-06-19T00:00:00+0000'),
+                moment('2026-06-21T23:59:59+0000')
+            );
+
+            expect(Object.keys(eventsDateGroup).length).toBeGreaterThan(0);
+            Object.keys(eventsDateGroup).forEach((key) => {
+                expect(eventPresentInGroup(eventsDateGroup[key], event)).toBe(true);
+            });
+        });
+
+        it('treats all_day as authoritative when all_day and no_end_time are both set', () => {
+            const event = eventUtils.modifyForClient({
+                _id: 'e1',
+                dates: {
+                    start: '2026-06-19T22:00:00+0000',
+                    end: '2026-06-19T00:00:00+0000',
+                    tz: 'America/Vancouver',
+                    all_day: true,
+                    no_end_time: true,
+                },
+            });
+
+            const eventsDateGroup = eventUtils.getEventsByDate(
+                [event as any],
+                moment('2026-06-18T00:00:00+0000'),
+                moment('2026-06-20T23:59:59+0000')
+            );
+
+            expect(eventsDateGroup.length).toBe(1);
+            expect(eventsDateGroup[0].date).toBe('2026-06-19');
+            expect(eventPresentInGroup(eventsDateGroup[0], event)).toBe(true);
+        });
     });
 
     describe('modifyForClient', () => {
