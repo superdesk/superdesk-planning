@@ -1,7 +1,7 @@
-@import '~superdesk-core/styles/sass/mixins.scss';
-@import '~superdesk-core/styles/sass/variables.scss';
-@import '~superdesk-ui-framework/app/styles/variables/_colors.scss';
-@import '~@sourcefabric/common/dist/src/index.css';
+@import 'superdesk-core/styles/sass/mixins.scss';
+@import 'superdesk-core/styles/sass/variables.scss';
+@import 'superdesk-ui-framework/app/styles/variables/_colors.scss';
+@import '@sourcefabric/common/dist/src/index.css';
 
 @mixin absolute0 {
     position: absolute;
