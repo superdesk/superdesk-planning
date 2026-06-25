@@ -52,8 +52,10 @@ test.describe('Planning.Planning: cancel planning item', () => {
 
         // Make sure the list item shows the 'Scheduled' badge
         // and is no longer locked
+        // NOTE: the planning list state badge is rendered by a publish-state path that does not
+        // carry a stable test-id; this is list (not editor) markup, so it stays on the CSS class.
         await expect(
-            list.item(0).getByTestId('item-state-badge--scheduled')
+            list.item(0).locator('.label--success')
         ).toContainText('Scheduled');
         await expect(
             list.item(0).getByTestId('item-locked-indicator')
@@ -80,7 +82,7 @@ test.describe('Planning.Planning: cancel planning item', () => {
         // Now make sure the list item shows the 'Cancelled' badge
         // and is no longer locked
         await expect(
-            list.item(0).getByTestId('item-state-badge--cancelled')
+            list.item(0).locator('.label--yellow2')
         ).toContainText('Cancelled');
         await expect(
             list.item(0).getByTestId('item-locked-indicator')
