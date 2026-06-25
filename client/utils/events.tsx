@@ -748,7 +748,7 @@ function getDateStringForEvent(
     const localStart = timeUtils.getLocalDate(start, tz);
     const isFullDay = event?.dates?.all_day;
     const noEndTime = event?.dates?.no_end_time;
-    const multiDay = !start.isSame(end, 'day');
+    const multiDay = noEndTime && end.isBefore(start) ? false : !start.isSame(end, 'day');
 
     let dateString, timezoneString = '';
 
@@ -1137,8 +1137,15 @@ function getLocalStartDate(event: IEventItem): moment.Moment {
 }
 
 function getLocalEndDate(event: IEventItem): moment.Moment {
-    if (event.dates.all_day || event.dates.no_end_time) {
+    if (event.dates.all_day) {
         return moment(moment.utc(event.dates.end).format('YYYY-MM-DD')).endOf('day');
+    }
+
+    if (event.dates.no_end_time) {
+        const localStartDate = getLocalStartDate(event);
+        const localEndDate = moment(moment.utc(event.dates.end).format('YYYY-MM-DD')).endOf('day');
+
+        return localEndDate.isBefore(localStartDate) ? localStartDate.clone().endOf('day') : localEndDate;
     }
 
     return moment(event.dates.end);
@@ -1198,9 +1205,12 @@ function modifyForClient(event: Partial<IEventItem>): Partial<IEventItem> {
     convertEventDatesForTimezone(event);
 
     if (event.dates?.end != null) {
-        event.dates.end = timeUtils.getDateInRemoteTimeZone(event.dates.end, timeUtils.localTimeZone());
-        event._endTime = event.dates.all_day || event.dates.no_end_time ? null
-            : timeUtils.getDateInRemoteTimeZone(event.dates.end, timeUtils.localTimeZone());
+        if (event.dates.all_day || event.dates.no_end_time) {
+            event._endTime = null;
+        } else {
+            event.dates.end = timeUtils.getDateInRemoteTimeZone(event.dates.end, timeUtils.localTimeZone());
+            event._endTime = timeUtils.getDateInRemoteTimeZone(event.dates.end, timeUtils.localTimeZone());
+        }
     }
 
     setRecurringEventUntilDate(event);
