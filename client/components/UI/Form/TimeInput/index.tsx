@@ -288,6 +288,7 @@ export class TimeInput extends React.Component {
             showToBeConfirmed,
             onToBeConfirmed,
             showDate,
+            inputTestId,
             ...props
         } = this.props;
 
@@ -349,6 +350,7 @@ export class TimeInput extends React.Component {
                     <Input
                         style={{transition: 'none'}}
                         field={field}
+                        testId={inputTestId}
                         value={this.state.viewValue}
                         onChange={this.validateTimeText}
                         type="text"

@@ -38,6 +38,7 @@ interface IProps {
     onPopupOpen?(): void;
     onPopupClose?(): void;
     refNode?(node: HTMLElement): void;
+    inputTestId?: string;
 }
 
 interface IState {
@@ -172,6 +173,7 @@ export class DateInput extends React.Component<IProps, IState> {
             isLocalTimeZoneDifferent,
             remoteTimeZone,
             inputAsLabel,
+            inputTestId,
             ...props
         } = this.props;
 
@@ -214,6 +216,7 @@ export class DateInput extends React.Component<IProps, IState> {
                 {!inputAsLabel && (
                     <Input
                         field={field}
+                        testId={inputTestId}
                         value={this.state.viewValue}
                         placeholder={placeholder || gettext('Date')}
                         onChange={this.onInputChange}

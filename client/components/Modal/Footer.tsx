@@ -10,6 +10,7 @@ interface IProps {
 export default function Footer({children, flex}: IProps) {
     return (
         <_Modal.Footer
+            data-test-id="modal-footer"
             className={classNames(
                 'modal__footer',
                 {'sd-d-flex': flex}

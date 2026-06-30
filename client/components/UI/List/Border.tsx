@@ -10,6 +10,7 @@ interface IProps {
  */
 export const Border: React.FunctionComponent<IProps> = ({state = false}) => (
     <div
+        data-test-id={state === 'locked' ? 'item-locked-indicator' : undefined}
         className={classNames(
             'sd-list-item__border',
             state ? `sd-list-item__border--${state}` : null

@@ -98,7 +98,7 @@ describe('<AssignmentPreviewContainer />', () => {
 
             // Renders Assignment State label
             expect(topTools.contains(
-                <span className="label label--draft label--hollow">
+                <span className="label label--draft label--hollow" data-test-id="item-state-badge--assigned">
                     Assigned
                 </span>
             )).toBe(true);

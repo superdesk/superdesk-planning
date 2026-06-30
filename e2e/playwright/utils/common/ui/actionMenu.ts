@@ -9,7 +9,7 @@ export class ActionMenu {
     constructor(page: Page, getParent: () => Locator) {
         this.page = page;
         this.getParent = getParent;
-        this.popup = new Popup(page, '.item-actions-menu__popup');
+        this.popup = new Popup(page, '[data-test-id="item-actions-menu__popup"]');
     }
 
     get parent(): Locator {
@@ -17,7 +17,7 @@ export class ActionMenu {
     }
 
     get menuButton(): Locator {
-        return this.parent.locator('.icon-dots-vertical').first();
+        return this.parent.getByTestId('item-actions-menu').first();
     }
 
     async open(): Promise<ActionMenu> {
