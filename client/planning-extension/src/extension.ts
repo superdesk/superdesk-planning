@@ -127,6 +127,11 @@ const extension: IExtension = {
         const {gettext} = superdesk.localization;
         const {article: superdeskArticleApi} = superdesk.entities;
         const planningActionsGroupId = 'planning-actions';
+        const planningActionsGroup = {
+            id: 'planning-actions',
+            label: gettext('Planning'),
+            priority: 10,
+        };
         const {getItemPlanningInfo} = extensionBridge.planning;
         const canAddToPlanning = (item: IArticle) => (
             superdesk.privileges.hasPrivilege('planning_planning_management') &&
@@ -174,6 +179,7 @@ const extension: IExtension = {
                 permittedActions.push({
                     label: gettext('Add to Planning'),
                     groupId: planningActionsGroupId,
+                    group: planningActionsGroup,
                     icon: 'icon-calendar-list',
                     onTrigger: () => {
                         const customEvent = new CustomEvent('planning:addToPlanning', {detail: item});
@@ -187,6 +193,7 @@ const extension: IExtension = {
                 permittedActions.push({
                     label: gettext('Unlink as Coverage'),
                     groupId: planningActionsGroupId,
+                    group: planningActionsGroup,
                     icon: 'icon-cut',
                     onTrigger: () => {
                         superdesk.entities.article.get(item._id).then((_item) => {
@@ -203,6 +210,7 @@ const extension: IExtension = {
                 permittedActions.push({
                     label: superdesk.localization.gettext('Link to Assignment'),
                     groupId: planningActionsGroupId,
+                    group: planningActionsGroup,
                     icon: 'icon-calendar-list',
                     onTrigger: () => {
                         superdesk.entities.article.get(item._id).then((_item) => {
