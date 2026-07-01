@@ -1,4 +1,5 @@
-import {Locator} from '@playwright/test';
+import {expect} from '@playwright/test';
+import type {Locator, Page, Response} from '@playwright/test';
 
 import {EventEditor} from './eventEditor';
 import {SelectInput, NewCheckboxInput, CoverageUserSelectInput} from '../../../utils/common';
@@ -16,6 +17,50 @@ export class EmbeddedCoverageEditor {
 
     getPlanningItem(index: number): Locator {
         return this.element.getByTestId(`editor--planning-item__${index}`);
+    }
+
+    // An embedded planning renders collapsed with its fields present but not
+    // interactable; expand it before touching any field.
+    async expand(index: number): Promise<void> {
+        const showMore = this.getPlanningItem(index).getByRole('button', {name: 'Show more'});
+
+        if (await showMore.isVisible().catch(() => false)) {
+            await showMore.click();
+        }
+    }
+
+    slugline(index: number): Locator {
+        return this.getPlanningItem(index).getByTestId('editor3').locator('[contenteditable="true"]').first();
+    }
+
+    async appendToSlugline(index: number, text: string): Promise<void> {
+        await this.expand(index);
+
+        const field = this.slugline(index);
+
+        await field.scrollIntoViewIfNeeded();
+        await field.click();
+        await field.page().keyboard.press('End');
+        await field.page().keyboard.type(text);
+    }
+
+    async save(index: number): Promise<void> {
+        const planning = this.getPlanningItem(index);
+
+        await planning.getByRole('button', {name: 'Save', exact: true}).first().click();
+
+        // Done once no enabled Save button remains: the first save persists a temporary
+        // item and remounts the card collapsed (button gone), later saves just grey it out.
+        await expect(planning.locator('button:enabled', {hasText: 'Save'})).toHaveCount(0, {timeout: 20000});
+    }
+
+    // Resolves once an autosave request of the given method has completed
+    // successfully, so callers can reload without racing the pending write.
+    waitForAutosaved(page: Page, method: 'POST' | 'PATCH'): Promise<Response> {
+        return page.waitForResponse((res) =>
+            res.url().includes('/api/planning_autosave') &&
+            res.request().method() === method &&
+            res.status() < 400);
     }
 
     getAddCoverageForm(index: number): Locator {
