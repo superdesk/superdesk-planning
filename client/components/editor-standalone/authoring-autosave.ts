@@ -77,8 +77,9 @@ export class AutoSaveHttp<T extends IBaseRestApiResponse & IEventOrPlanningItem>
             : this.updateAutosave(item, previousAutosavedItem).catch((error) => {
                 // The autosave document may no longer exist on the server, e.g. it was deleted
                 // by a manual save or purged once its lock expired. Recreate it rather than
-                // failing the autosave with a 404.
-                if (error?.internal_error === 404) {
+                // failing the autosave with a 404. Match both error shapes the local http
+                // helper can surface (`internal_error` and the Eve `_error.code`).
+                if (error?.internal_error === 404 || error?._error?.code === 404) {
                     return this.createAutosave(item);
                 }
 
