@@ -421,19 +421,51 @@ def update_returned_document(doc, item, custom_hateoas):
     return [doc["_id"]]
 
 
-def get_version_item_for_post(item):
-    version = int(time.time())
+def get_version_item_for_post(item: Dict[str, Any]) -> tuple[int, Dict[str, Any]]:
+    """Compute and assign the publish version for a planning/event item.
+
+    The returned version is strictly monotonic for a given item and is stored
+    in both ``_current_version`` and ``version`` fields. To remain compatible
+    with Elasticsearch ``integer`` mappings, the value is constrained to the
+    signed int32 range.
+
+    If the current version has already reached int32 max (or the next computed
+    value would exceed int32 max), this function raises
+    ``SuperdeskApiError.badRequestError`` instead of wrapping to a smaller
+    number, so version ordering is never reversed.
+
+    :param item: Planning or event item to publish.
+    :return: Tuple of ``(version, item)`` with updated version fields.
+    """
+    max_int32 = 2_147_483_647
+    # Keep a time-based seed for ordering and delay int32 overflow horizon.
+    # 2024-01-01T00:00:00Z
+    version_seed = int(time.time()) - 1_704_067_200
+    version = max(1, version_seed)
     current_version = item.get(VERSION)
 
     # Always generate a fresh version and keep it monotonic for rapid updates.
     # Some code paths store VERSION as a numeric string, so normalize first.
-    try:
-        normalized_current_version = int(current_version)
-    except (TypeError, ValueError):
+    normalized_current_version: Optional[int]
+    if current_version is None:
         normalized_current_version = None
+    else:
+        try:
+            normalized_current_version = int(current_version)
+        except (TypeError, ValueError):
+            normalized_current_version = None
 
-    if normalized_current_version is not None and 0 < normalized_current_version:
+    if normalized_current_version is not None and 0 < normalized_current_version < max_int32:
         version = max(version, normalized_current_version + 1)
+    elif normalized_current_version == max_int32:
+        raise SuperdeskApiError.badRequestError(
+            message="Version has reached the maximum value for int32. Migrate the mapping to long to continue."
+        )
+
+    if version > max_int32:
+        raise SuperdeskApiError.badRequestError(
+            message="Version exceeded the maximum value for int32. Migrate the mapping to long to continue."
+        )
 
     item[VERSION] = version
     item["version"] = version
