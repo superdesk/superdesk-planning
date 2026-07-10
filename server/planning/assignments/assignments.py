@@ -13,6 +13,7 @@
 from typing import Dict, Any
 from copy import deepcopy
 import logging
+import time
 
 from bson import ObjectId
 from icalendar import Calendar, Event
@@ -62,6 +63,7 @@ from planning.common import (
     TO_BE_CONFIRMED_FIELD,
     TO_BE_CONFIRMED_FIELD_SCHEMA,
     update_assignment_on_link_unlink,
+    sync_assignment_details_to_coverages,
     get_notify_self_on_assignment,
     planning_auto_assign_to_workflow,
     get_config_assignment_manual_reassignment_only,
@@ -1444,10 +1446,38 @@ class AssignmentsService(AsyncBaseService):
             if not planning_item or not published_planning_item or planning_item.get("state") == WORKFLOW_STATE.KILLED:
                 return
 
-            async def _publish_planning(item):
-                item.pop(VERSION, None)
+            async def _publish_planning(item, last_published_version=None):
                 item.pop("item_id", None)
+
+                # Re-sync assignment state/details into planning coverages before
+                # formatting/publishing so transmitted payload reflects current
+                # assignment fields.
+                sync_assignment_details_to_coverages(item)
+
+                # Keep generated versions ahead of the last published planning
+                # version so publish queue dedupe doesn't suppress retransmits.
+                try:
+                    normalized_last_published = int(last_published_version)
+                except (TypeError, ValueError):
+                    normalized_last_published = None
+
+                try:
+                    current_item_version = int(item.get(VERSION))
+                except (TypeError, ValueError):
+                    current_item_version = None
+
+                # Use a high-resolution seed so repeated assignment-triggered
+                # republishes in the same second still get distinct versions.
+                version_seed = int(time.time_ns())
+
+                if normalized_last_published is not None:
+                    version_seed = max(version_seed, normalized_last_published)
+
+                if current_item_version is None or current_item_version < version_seed:
+                    item[VERSION] = version_seed
+
                 version, item = get_version_item_for_post(item)
+                item["version"] = version
 
                 # Create an entry in the planning versions collection for this published version
                 version_id = await published_service.post_async(
@@ -1466,7 +1496,7 @@ class AssignmentsService(AsyncBaseService):
                 else:
                     logger.error("Failed to save planning version for planning item id {}".format(item["_id"]))
 
-            await _publish_planning(planning_item)
+            await _publish_planning(planning_item, published_planning_item.get("version"))
         except Exception:
             logger.exception("Failed to publish assignment for planning.")
 

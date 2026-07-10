@@ -422,8 +422,21 @@ def update_returned_document(doc, item, custom_hateoas):
 
 
 def get_version_item_for_post(item):
-    version = int(time.time())
-    item.setdefault(VERSION, version)
+    version = int(time.time_ns())
+    current_version = item.get(VERSION)
+
+    # Always generate a fresh version and keep it monotonic for rapid updates.
+    # Some code paths store VERSION as a numeric string, so normalize first.
+    try:
+        normalized_current_version = int(current_version)
+    except (TypeError, ValueError):
+        normalized_current_version = None
+
+    if normalized_current_version is not None:
+        version = max(version, normalized_current_version + 1)
+
+    item[VERSION] = version
+    item["version"] = version
     item.setdefault("item_id", item["_id"])
     return version, item
 
@@ -800,24 +813,35 @@ def _sync_coverage_assigned_to(coverages, lookup_field, id_field):
     if not coverages:
         return
 
-    assignments = {
-        str(assignment[ID_FIELD]): assignment
-        for assignment in get_resource_service("assignments").get_from_mongo(
-            req=None,
-            lookup={lookup_field: {"$in": [coverage[id_field] for coverage in coverages]}},
-        )
-    }
+    lookup_values = [coverage.get(id_field) for coverage in coverages if coverage.get(id_field)]
+    assignments_by_id = {}
+    assignments_by_lookup_value = {}
+
+    for assignment in get_resource_service("assignments").get_from_mongo(
+        req=None,
+        lookup={lookup_field: {"$in": lookup_values}},
+    ):
+        assignments_by_id[str(assignment[ID_FIELD])] = assignment
+
+        assignment_lookup_value = assignment.get(lookup_field)
+        if assignment_lookup_value is not None:
+            assignments_by_lookup_value[str(assignment_lookup_value)] = assignment
 
     for coverage in coverages:
-        if not coverage.get("assigned_to"):
-            coverage["assigned_to"] = {}
-            continue
+        assigned_to = coverage.get("assigned_to") or {}
+        assignment = None
 
-        assignment = assignments.get(str(coverage["assigned_to"].get("assignment_id")))
+        if assigned_to.get("assignment_id") is not None:
+            assignment = assignments_by_id.get(str(assigned_to.get("assignment_id")))
+
+        if assignment is None and coverage.get(id_field) is not None:
+            assignment = assignments_by_lookup_value.get(str(coverage.get(id_field)))
 
         if not assignment:
+            coverage.setdefault("assigned_to", {})
             continue
 
+        coverage.setdefault("assigned_to", {})
         copy_assignment_details_to_coverage(assignment, coverage)
 
 
