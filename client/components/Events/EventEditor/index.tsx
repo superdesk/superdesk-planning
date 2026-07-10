@@ -94,8 +94,15 @@ class EventEditorComponent extends React.PureComponent<IProps> {
             this.props.original?._etag != null &&
             prevProps.original._etag !== this.props.original._etag
         ) {
-            // Batch with other initialValues updates to avoid async setState races.
-            initialValueUpdates._etag = this.props.original._etag;
+            // Keep editor If-Match value current without triggering onChange/autosave side effects.
+            const managerState = this.props.itemManager.getState();
+
+            this.props.itemManager.setState({
+                initialValues: {
+                    ...managerState.initialValues,
+                    _etag: this.props.original._etag,
+                },
+            });
         }
 
         if (Object.keys(initialValueUpdates).length > 0) {
