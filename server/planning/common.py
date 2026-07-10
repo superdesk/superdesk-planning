@@ -422,7 +422,7 @@ def update_returned_document(doc, item, custom_hateoas):
 
 
 def get_version_item_for_post(item):
-    version = int(time.time_ns())
+    version = int(time.time())
     current_version = item.get(VERSION)
 
     # Always generate a fresh version and keep it monotonic for rapid updates.
@@ -432,7 +432,7 @@ def get_version_item_for_post(item):
     except (TypeError, ValueError):
         normalized_current_version = None
 
-    if normalized_current_version is not None:
+    if normalized_current_version is not None and 0 < normalized_current_version:
         version = max(version, normalized_current_version + 1)
 
     item[VERSION] = version
