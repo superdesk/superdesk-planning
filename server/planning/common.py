@@ -425,9 +425,9 @@ def get_version_item_for_post(item: Dict[str, Any]) -> tuple[int, Dict[str, Any]
     """Compute and assign the publish version for a planning/event item.
 
     The returned version is strictly monotonic for a given item and is stored
-    in both ``_current_version`` and ``version`` fields. To remain compatible
-    with Elasticsearch ``integer`` mappings, the value is constrained to the
-    signed int32 range.
+    in ``_current_version`` (``VERSION``). To remain compatible with
+    Elasticsearch ``integer`` mappings, the value is constrained to the signed
+    int32 range.
 
     If the current version has already reached int32 max (or the next computed
     value would exceed int32 max), this function raises
@@ -435,7 +435,9 @@ def get_version_item_for_post(item: Dict[str, Any]) -> tuple[int, Dict[str, Any]
     number, so version ordering is never reversed.
 
     :param item: Planning or event item to publish.
-    :return: Tuple of ``(version, item)`` with updated version fields.
+    The business ``version`` field is preserved when already present.
+
+    :return: Tuple of ``(version, item)`` with updated publish version field.
     """
     max_int32 = 2_147_483_647
     # Keep a time-based seed for ordering and delay int32 overflow horizon.
@@ -468,7 +470,7 @@ def get_version_item_for_post(item: Dict[str, Any]) -> tuple[int, Dict[str, Any]
         )
 
     item[VERSION] = version
-    item["version"] = version
+    item.setdefault("version", version)
     item.setdefault("item_id", item["_id"])
     return version, item
 
