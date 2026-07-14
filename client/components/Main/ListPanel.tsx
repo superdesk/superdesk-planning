@@ -97,6 +97,7 @@ const END_OF_LIST_OFFSET = 100;
 export class ListPanel extends React.Component<IProps, IState> {
     dom: {list?: any};
     memoizedSort: ((items: Array<IEventOrPlanningItem>) => Array<IEventOrPlanningItem>) & MemoizedFunction;
+    memoizedDefaultSort: ((items: Array<IEventOrPlanningItem>) => Array<IEventOrPlanningItem>) & MemoizedFunction;
 
     constructor(props) {
         super(props);
@@ -118,16 +119,19 @@ export class ListPanel extends React.Component<IProps, IState> {
 
         const extensionConfig: IPlanningExtensionConfigurationOptions = superdeskApi.getExtensionConfig();
 
-        this.memoizedSort = memoize((items) =>
+        const defaultSort = (items: Array<IEventOrPlanningItem>) => items.sort((x, y) => {
+            const item1Date = (x as IEventItem).dates?.start ?? (x as IPlanningItem).planning_date;
+            const item2Date = (y as IEventItem).dates?.start ?? (y as IPlanningItem).planning_date;
+
+            return item1Date.toString().localeCompare(item2Date.toString());
+        });
+
+        this.memoizedSort = memoize((items: Array<IEventOrPlanningItem>) =>
             extensionConfig?.comparePlanningItems != null
                 ? items.sort(extensionConfig.comparePlanningItems)
-                : items.sort((x, y) => {
-                    const item1Date = (x as IEventItem).dates?.start ?? (x as IPlanningItem).planning_date;
-                    const item2Date = (y as IEventItem).dates?.start ?? (y as IPlanningItem).planning_date;
-
-                    return item1Date.toString().localeCompare(item2Date.toString());
-                })
+                : defaultSort(items)
         );
+        this.memoizedDefaultSort = memoize(defaultSort);
     }
 
     componentWillReceiveProps(nextProps) {
@@ -379,7 +383,9 @@ export class ListPanel extends React.Component<IProps, IState> {
 
                             let listGroupProps: {[key: string]: any} = {
                                 name: group.date,
-                                items: this.memoizedSort(group.events),
+                                items: activeFilter === MAIN.FILTERS.PLANNING
+                                    ? this.memoizedSort(group.events)
+                                    : this.memoizedDefaultSort(group.events),
                                 onItemClick: this.onItemClick,
                                 onDoubleClick: onDoubleClick,
                                 onAddCoverageClick: onAddCoverageClick,
