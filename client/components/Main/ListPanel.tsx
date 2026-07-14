@@ -16,6 +16,7 @@ import {
 
 import {KEYCODES, MAIN} from '../../constants';
 import {onEventCapture} from '../../utils';
+import {sortItems, defaultSort} from '../../utils/sort';
 
 import {ListGroup} from '.';
 import {PanelInfo} from '../UI';
@@ -118,18 +119,10 @@ export class ListPanel extends React.Component<IProps, IState> {
         this.onItemActivate = this.onItemActivate.bind(this);
 
         const extensionConfig: IPlanningExtensionConfigurationOptions = superdeskApi.getExtensionConfig();
-
-        const defaultSort = (items: Array<IEventOrPlanningItem>) => items.sort((x, y) => {
-            const item1Date = (x as IEventItem).dates?.start ?? (x as IPlanningItem).planning_date;
-            const item2Date = (y as IEventItem).dates?.start ?? (y as IPlanningItem).planning_date;
-
-            return item1Date.toString().localeCompare(item2Date.toString());
-        });
+        const customComparator = extensionConfig?.comparePlanningItems;
 
         this.memoizedSort = memoize((items: Array<IEventOrPlanningItem>) =>
-            extensionConfig?.comparePlanningItems != null
-                ? items.sort(extensionConfig.comparePlanningItems)
-                : defaultSort(items)
+            sortItems(items, MAIN.FILTERS.PLANNING, customComparator)
         );
         this.memoizedDefaultSort = memoize(defaultSort);
     }
