@@ -9,11 +9,16 @@ import {MAIN} from '../constants';
  * custom comparator is registered (or for views that should not use one).
  */
 export const defaultSort = (items: Array<IEventOrPlanningItem>): Array<IEventOrPlanningItem> =>
-    items.sort((x, y) => {
+    [...items].sort((x, y) => {
         const item1Date = (x as IEventItem).dates?.start ?? (x as IPlanningItem).planning_date;
         const item2Date = (y as IEventItem).dates?.start ?? (y as IPlanningItem).planning_date;
 
-        return (item1Date ?? '').toString().localeCompare((item2Date ?? '').toString());
+        // Sort items with missing dates last
+        if (item1Date == null && item2Date == null) return 0;
+        if (item1Date == null) return 1;
+        if (item2Date == null) return -1;
+
+        return item1Date.toString().localeCompare(item2Date.toString());
     });
 
 /**
@@ -24,7 +29,7 @@ export const defaultSort = (items: Array<IEventOrPlanningItem>): Array<IEventOrP
  * is used. For every other view (`EVENTS`, `COMBINED`) — or when no custom
  * comparator is registered — the default chronological sort is used.
  *
- * @param items               The items to sort (mutated in place, like Array.sort).
+ * @param items               The items to sort (a shallow copy is sorted, the input is not mutated).
  * @param activeFilter        The current list view (`MAIN.FILTERS.PLANNING|EVENTS|COMBINED`).
  * @param comparePlanningItems Optional custom comparator supplied via extension config.
  * @returns                   The sorted array.
@@ -35,7 +40,7 @@ export const sortItems = (
     comparePlanningItems?: (a: IPlanningItem, b: IPlanningItem) => number,
 ): Array<IEventOrPlanningItem> => {
     if (activeFilter === MAIN.FILTERS.PLANNING && comparePlanningItems != null) {
-        return items.sort(comparePlanningItems);
+        return [...items].sort((a, b) => comparePlanningItems(a as IPlanningItem, b as IPlanningItem));
     }
 
     return defaultSort(items);

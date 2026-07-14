@@ -97,7 +97,7 @@ const END_OF_LIST_OFFSET = 100;
 
 export class ListPanel extends React.Component<IProps, IState> {
     dom: {list?: any};
-    memoizedSort: ((items: Array<IEventOrPlanningItem>) => Array<IEventOrPlanningItem>) & MemoizedFunction;
+    planningSort: ((items: Array<IEventOrPlanningItem>) => Array<IEventOrPlanningItem>) & MemoizedFunction;
     memoizedDefaultSort: ((items: Array<IEventOrPlanningItem>) => Array<IEventOrPlanningItem>) & MemoizedFunction;
 
     constructor(props) {
@@ -121,7 +121,7 @@ export class ListPanel extends React.Component<IProps, IState> {
         const extensionConfig: IPlanningExtensionConfigurationOptions = superdeskApi.getExtensionConfig();
         const customComparator = extensionConfig?.comparePlanningItems;
 
-        this.memoizedSort = memoize((items: Array<IEventOrPlanningItem>) =>
+        this.planningSort = memoize((items: Array<IEventOrPlanningItem>) =>
             sortItems(items, MAIN.FILTERS.PLANNING, customComparator)
         );
         this.memoizedDefaultSort = memoize(defaultSort);
@@ -377,7 +377,7 @@ export class ListPanel extends React.Component<IProps, IState> {
                             let listGroupProps: {[key: string]: any} = {
                                 name: group.date,
                                 items: activeFilter === MAIN.FILTERS.PLANNING
-                                    ? this.memoizedSort(group.events)
+                                    ? this.planningSort(group.events)
                                     : this.memoizedDefaultSort(group.events),
                                 onItemClick: this.onItemClick,
                                 onDoubleClick: onDoubleClick,

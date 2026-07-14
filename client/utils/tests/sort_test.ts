@@ -85,14 +85,18 @@ describe('utils.sort', () => {
             expect(labels).toEqual(['Event at 8', 'Plan at noon', 'Event at 15']);
         });
 
-        it('handles missing dates gracefully', () => {
+        it('handles missing dates gracefully and sorts them last', () => {
             const items = [
                 makePlanning('No date', undefined as unknown as string),
                 makeEvent('With date', '2026-07-14T08:00:00+0000'),
+                makeEvent('Earlier', '2026-07-14T06:00:00+0000'),
             ];
 
-            // Should not throw; undefined.toString() === 'undefined', sorts after a date string
-            expect(() => defaultSort([...items])).not.toThrow();
+            // Should not throw; items with missing dates sort last
+            const sorted = defaultSort([...items]);
+            const labels = sorted.map((i) => (i as any).name ?? (i as any).slugline);
+
+            expect(labels).toEqual(['Earlier', 'With date', 'No date']);
         });
     });
 
