@@ -13,7 +13,7 @@ export const defaultSort = (items: Array<IEventOrPlanningItem>): Array<IEventOrP
         const item1Date = (x as IEventItem).dates?.start ?? (x as IPlanningItem).planning_date;
         const item2Date = (y as IEventItem).dates?.start ?? (y as IPlanningItem).planning_date;
 
-        return item1Date.toString().localeCompare(item2Date.toString());
+        return (item1Date ?? '').toString().localeCompare((item2Date ?? '').toString());
     });
 
 /**
