@@ -55,16 +55,17 @@ class EventHTTPFeedingService(HTTPFeedingServiceBase):
         :return: a list of events which can be saved.
         """
 
-        response = await self.get_url(self.config["url"])
-        parser = await self.get_feed_parser(provider)
+        async with self.get_url(self.config["url"]) as response:
+            response_content = await response.read()
+            parser = await self.get_feed_parser(provider)
 
-        logger.info("Ingesting events with {} parser".format(parser.__class__.__name__))
-        logger.info("Ingesting content: {} ...".format(str(response.content)[:4000]))
+            logger.info("Ingesting events with {} parser".format(parser.__class__.__name__))
+            logger.info("Ingesting content: {} ...".format(str(response_content)[:4000]))
 
-        if hasattr(parser, "parse_http"):
-            items = await parser.parse_http(response.content, provider)
-        else:
-            items = await parser.parse(response.content)
+            if hasattr(parser, "parse_http"):
+                items = await parser.parse_http(response_content, provider)
+            else:
+                items = await parser.parse(response_content)
 
         if isinstance(items, list):
             yield items
