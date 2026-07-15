@@ -17,6 +17,7 @@ pytest-env==1.2.0
 black~=25.11
 behave==1.2.6
 aioresponses==0.7.8
+aiomoto[sqs]==0.3.0
 
 -r mypy-requirements.txt
 

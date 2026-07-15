@@ -77,7 +77,8 @@ class EventFileFeedingService(FileFeedingService):
             )
             return
 
-        for filename in get_sorted_files(self.path, sort_by=FileSortAttributes.created):
+        sorted_files = await get_sorted_files(self.path, sort_by=FileSortAttributes.created)
+        for filename in sorted_files:
             try:
                 last_updated = None
                 file_path = os.path.join(self.path, filename)
