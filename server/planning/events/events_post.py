@@ -66,7 +66,7 @@ class EventsPostService(EventsBaseService):
             update_method = self.get_update_method(event, doc)
 
             if (
-                not doc.get("firstpublished")
+                not event.get("firstpublished")
                 and doc.get("pubstatus") == POST_STATE.USABLE
                 and event.get("original_creator")
             ):

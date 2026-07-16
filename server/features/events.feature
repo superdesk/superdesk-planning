@@ -287,6 +287,22 @@ Feature: Events
             ]
         }
         """
+
+        When we patch "/events/#events._id#"
+        """
+        {"slugline": "test"}
+        """
+        Then we get OK response
+        When we get "user_metrics"
+        Then we get list with 1 items
+        """
+        {
+            "_items": [
+                {"name": "published_events", "value": 1}
+            ]
+        }
+        """
+
         When we post to "/events/post"
         """
         {"event": "#events._id#", "etag": "#events._etag#", "pubstatus": "cancelled"}
@@ -304,7 +320,7 @@ Feature: Events
         }]
         """
         When we get "/events_history"
-        Then we get a list with 3 items
+        Then we get a list with 5 items
         """
             {"_items": [{
                 "event_id": "#events._id#",
@@ -312,6 +328,14 @@ Feature: Events
                 },
                 {
                 "event_id": "#events._id#",
+                "operation": "post",
+                "update": {"state": "scheduled"}
+                },
+                {
+                "event_id": "#events._id#",
+                "operation": "edited"
+                },
+                {
                 "operation": "post",
                 "update": {"state": "scheduled"}
                 },
