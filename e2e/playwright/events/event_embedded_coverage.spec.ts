@@ -162,6 +162,58 @@ test.describe('Planning.Events: embedded coverage', () => {
         await expect(embeddedCoverages.getPlanningItem(0)).toBeVisible();
     });
 
+    test('can add planning items while event is posted', async ({page}) => {
+        await setupPlanningPublishing(page.request);
+        await addItems(
+            page.request,
+            'events',
+            [createEventFor.today({
+                type: 'event',
+                occur_status: {
+                    name: 'Planned, occurs certainly',
+                    label: 'Confirmed',
+                    qcode: 'eocstat:eos5',
+                },
+                calendars: [],
+                state: 'draft',
+                place: [],
+                name: 'Posted Event',
+                slugline: 'posted event with related planning',
+            })]
+        );
+
+        await list.item(0).dblclick();
+        await editor.waitTillOpen();
+        await editor.waitLoadingComplete();
+
+        // Post the event while keeping the editor open
+        await editor.postButton.click();
+        await editor.waitLoadingComplete();
+
+        // The editor must stay editable after posting in place
+        await expect(editor.updateButton).toBeVisible();
+
+        // Adding a related planning item to the still-open, posted event
+        // must keep the editor editable and render the new planning item
+        // (previously the editor incorrectly flipped to read-only).
+        await editor.clickBookmark('add_planning');
+        await editor.waitForAutosave();
+
+        await expect(embeddedCoverages.getPlanningItem(0)).toBeVisible();
+        await expect(editor.updateButton).toBeVisible();
+
+        // A posted event is saved via the "Update" button (Save & Post),
+        // not the "Save" button which only exists for drafts.
+        await editor.updateButton.click();
+        await editor.waitLoadingComplete();
+
+        await editor.closeButton.click();
+        await editor.waitTillClosed();
+
+        await list.toggleAssociatedPlanning(0);
+        await expect(list.nestedPlanningItems(0)).toHaveCount(1);
+    });
+
     // TODO: consider re-enabling in the future when event syncing is reimplemented
     test.skip('update new Planning when event dates changes', async () => {
         await subnav.createEvent();

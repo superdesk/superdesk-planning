@@ -23,7 +23,7 @@ async def setup_apps(context, feature):
     context.capi = get_app(config)
 
     # TODO: Move this to the CAPI and PAPI apps
-    babel = Babel(context.capi, configure_jinja=False)
+    Babel(context.capi, configure_jinja=False)
 
     context.capi.test_client_class = TestClient
     context.capi_client = context.capi.test_client()

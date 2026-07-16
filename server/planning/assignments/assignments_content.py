@@ -32,6 +32,7 @@ from planning.common import (
     get_coverage_for_assignment,
     get_archive_items_for_assignment,
     assignment_allows_multiple_content_linked,
+    get_config_assignment_manual_reassignment_only,
 )
 from planning.planning_notifications import PlanningNotifications
 from planning.archive import create_item_from_template
@@ -212,11 +213,14 @@ class AssignmentsContentService(AsyncBaseService):
                 )
 
             updates = {"assigned_to": deepcopy(assignment.get("assigned_to"))}
-            updates["assigned_to"]["user"] = str(item.get("task").get("user"))
-            updates["assigned_to"]["desk"] = str(item.get("task").get("desk"))
+
+            if not get_config_assignment_manual_reassignment_only():
+                updates["assigned_to"]["user"] = str(item.get("task").get("user"))
+                updates["assigned_to"]["desk"] = str(item.get("task").get("desk"))
+                updates["assigned_to"]["assignor_user"] = str(item.get("task").get("user"))
+                updates["assigned_to"]["assigned_date_user"] = utcnow()
+
             updates["assigned_to"]["state"] = get_next_assignment_status(updates, ASSIGNMENT_WORKFLOW_STATE.IN_PROGRESS)
-            updates["assigned_to"]["assignor_user"] = str(item.get("task").get("user"))
-            updates["assigned_to"]["assigned_date_user"] = utcnow()
 
             if not assignment.get("scheduled_update_id"):
                 # set the assignment to in progress

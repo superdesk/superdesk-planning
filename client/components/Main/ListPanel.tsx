@@ -16,6 +16,7 @@ import {
 
 import {KEYCODES, MAIN} from '../../constants';
 import {onEventCapture} from '../../utils';
+import {sortItems, defaultSort} from '../../utils/sort';
 
 import {ListGroup} from '.';
 import {PanelInfo} from '../UI';
@@ -96,7 +97,8 @@ const END_OF_LIST_OFFSET = 100;
 
 export class ListPanel extends React.Component<IProps, IState> {
     dom: {list?: any};
-    memoizedSort: ((items: Array<IEventOrPlanningItem>) => Array<IEventOrPlanningItem>) & MemoizedFunction;
+    planningSort: ((items: Array<IEventOrPlanningItem>) => Array<IEventOrPlanningItem>) & MemoizedFunction;
+    memoizedDefaultSort: ((items: Array<IEventOrPlanningItem>) => Array<IEventOrPlanningItem>) & MemoizedFunction;
 
     constructor(props) {
         super(props);
@@ -117,17 +119,12 @@ export class ListPanel extends React.Component<IProps, IState> {
         this.onItemActivate = this.onItemActivate.bind(this);
 
         const extensionConfig: IPlanningExtensionConfigurationOptions = superdeskApi.getExtensionConfig();
+        const customComparator = extensionConfig?.comparePlanningItems;
 
-        this.memoizedSort = memoize((items) =>
-            extensionConfig?.comparePlanningItems != null
-                ? items.sort(extensionConfig.comparePlanningItems)
-                : items.sort((x, y) => {
-                    const item1Date = (x as IEventItem).dates?.start ?? (x as IPlanningItem).planning_date;
-                    const item2Date = (y as IEventItem).dates?.start ?? (y as IPlanningItem).planning_date;
-
-                    return item1Date.toString().localeCompare(item2Date.toString());
-                })
+        this.planningSort = memoize((items: Array<IEventOrPlanningItem>) =>
+            sortItems(items, MAIN.FILTERS.PLANNING, customComparator)
         );
+        this.memoizedDefaultSort = memoize(defaultSort);
     }
 
     componentWillReceiveProps(nextProps) {
@@ -379,7 +376,9 @@ export class ListPanel extends React.Component<IProps, IState> {
 
                             let listGroupProps: {[key: string]: any} = {
                                 name: group.date,
-                                items: this.memoizedSort(group.events),
+                                items: activeFilter === MAIN.FILTERS.PLANNING
+                                    ? this.planningSort(group.events)
+                                    : this.memoizedDefaultSort(group.events),
                                 onItemClick: this.onItemClick,
                                 onDoubleClick: onDoubleClick,
                                 onAddCoverageClick: onAddCoverageClick,

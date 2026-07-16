@@ -2303,6 +2303,7 @@ export interface IWebsocketMessageData {
         assignment_state: IAssignmentItem['assigned_to']['state'];
         lock_user: IAssignmentItem['lock_user'];
         session: ISession['sessionId'];
+        source?: string;
     };
     ASSIGNMENT_REMOVED: {
         item: IAssignmentItem['_id'];

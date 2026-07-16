@@ -63,6 +63,8 @@ export class FileInput extends React.PureComponent<IProps> {
     }
 
     onDragEnter(e) {
+        e.preventDefault();
+        e.stopPropagation();
         e.dataTransfer.dropEffect = 'copy';
     }
 
@@ -192,7 +194,11 @@ export class FileInput extends React.PureComponent<IProps> {
                         ref={this.dom.container}
                         onDrop={this.onDrop}
                         onDragEnter={this.onDragEnter}
-                        onDragOver={(e) => e.preventDefault()}
+                        onDragOver={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            e.dataTransfer.dropEffect = 'copy';
+                        }}
                         className="basic-drag-block"
                         onKeyDown={this.handleKeyDown}
                     >

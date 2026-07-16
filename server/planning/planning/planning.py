@@ -513,6 +513,11 @@ class PlanningService(AsyncBaseService):
         return len(changed_ids) > 0
 
     async def _process_removed_assignments(self, updates: dict, original: dict) -> None:
+        if "coverages" not in updates:
+            # Non-coverage updates (for example linking related events) must not
+            # be treated as coverage removals.
+            return
+
         assignment_service = get_resource_service("assignments")
         planning_item = deepcopy(original)
         planning_item.update(deepcopy(updates))
@@ -1015,8 +1020,6 @@ class PlanningService(AsyncBaseService):
                 # Return now, we will process the assignment after the DB is updated
                 return
 
-            await self.set_xmp_file_info(updates, original)
-
             existing_assignment_id = ObjectId(assigned_to["assignment_id"])
             original_assignment = await assignment_service.find_one_async(req=None, _id=existing_assignment_id)
             if not original_assignment:
@@ -1024,10 +1027,12 @@ class PlanningService(AsyncBaseService):
                 # so the user can continue editing the coverage
                 if not updates.get("assigned_to"):
                     updates["assigned_to"] = None
-                    await self.set_xmp_file_info(updates, original)
                 else:
-                    del updates["assigned_to"]
+                    updates["assigned_to"] = deepcopy(updated_coverage.get("assigned_to") or updates["assigned_to"])
+                    updates["assigned_to"].pop("assignment_id", None)
                 return
+
+            await self.set_xmp_file_info(updates, original)
 
             # Check if the coverage was cancelled
             if (
@@ -1066,6 +1071,7 @@ class PlanningService(AsyncBaseService):
                     assignment_updates,
                     original_assignment,
                     skip_planning_sync=True,
+                    notification_source="planning",
                 )
 
             # If there has been a change in the planning internal note then notify the assigned users/desk
@@ -1337,7 +1343,11 @@ class PlanningService(AsyncBaseService):
                 original_assigment = await assignment_service.find_one_async(req=None, _id=assign_id)
                 if original_assigment:
                     await assignment_service.system_update_async(
-                        ObjectId(assign_id), {"_to_delete": True}, original_assigment, skip_planning_sync=True
+                        ObjectId(assign_id),
+                        {"_to_delete": True},
+                        original_assigment,
+                        skip_planning_sync=True,
+                        notification_source="planning",
                     )
 
         if request:

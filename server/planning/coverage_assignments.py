@@ -13,6 +13,7 @@ from planning.common import (
     ASSIGNMENT_WORKFLOW_STATE,
     DEFAULT_ASSIGNMENT_PRIORITY,
     TO_BE_CONFIRMED_FIELD,
+    get_config_assignment_manual_reassignment_only,
 )
 from planning.types import PlanningAutosaveResourceModel
 
@@ -183,7 +184,7 @@ def get_metadata_updates_between_entities(
         if _copy_translated_values_to_assignment(updates, planning):
             destination_updated = True
 
-        if _set_assignment_state(updates, coverage):
+        if _set_assignment_state(updates, coverage, assignment):
             destination_updated = True
 
     if not updates.get("assigned_to"):
@@ -316,21 +317,33 @@ def _get_coverage_planning_metadata(planning: dict, coverage: dict) -> dict:
     return planning_metadata
 
 
-def _set_assignment_state(updates: dict, coverage: dict) -> bool:
+def _set_assignment_state(updates: dict, coverage: dict, assignment: dict) -> bool:
     """
-    Determines and updates the assignment state based on the current coverage
-    workflow status and state.
+    Determine and update assignment state from coverage workflow and assignee changes.
 
     :param updates: A dictionary to store the updated assignment state.
     :param coverage: A dictionary containing coverage details.
+    :param assignment: A dictionary containing the current assignment details.
     :return: A boolean indicating whether the assignment state was updated.
     """
 
     assign_state = ASSIGNMENT_WORKFLOW_STATE.ASSIGNED
+    coverage_assigned_to = coverage.get("assigned_to") or {}
+    assignment_assigned_to = (assignment or {}).get("assigned_to") or {}
+
     if coverage.get("workflow_status") == WORKFLOW_STATE.DRAFT:
         assign_state = ASSIGNMENT_WORKFLOW_STATE.DRAFT
-    elif coverage["assigned_to"].get("state") and coverage["assigned_to"]["state"] != ASSIGNMENT_WORKFLOW_STATE.DRAFT:
-        assign_state = coverage["assigned_to"]["state"]
+    else:
+        assignee_changed = any(
+            coverage_assigned_to.get(field) != assignment_assigned_to.get(field)
+            for field in ("desk", "user", "contact", "coverage_provider")
+        )
+
+        if assignee_changed and get_config_assignment_manual_reassignment_only():
+            # Reassignment should move the item back to To Do.
+            assign_state = ASSIGNMENT_WORKFLOW_STATE.ASSIGNED
+        elif coverage_assigned_to.get("state") and coverage_assigned_to["state"] != ASSIGNMENT_WORKFLOW_STATE.DRAFT:
+            assign_state = coverage_assigned_to["state"]
 
     if updates["assigned_to"]["state"] != assign_state:
         updates["assigned_to"]["state"] = assign_state

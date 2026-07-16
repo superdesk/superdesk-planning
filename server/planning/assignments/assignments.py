@@ -13,6 +13,7 @@
 from typing import Dict, Any
 from copy import deepcopy
 import logging
+from contextvars import ContextVar
 
 from bson import ObjectId
 from icalendar import Calendar, Event
@@ -87,6 +88,7 @@ from planning.coverage_assignments import update_planning_from_assignment_change
 logger = logging.getLogger(__name__)
 planning_type = deepcopy(superdesk.Resource.rel("planning", type="string", required=True))
 planning_type["mapping"] = not_analyzed
+notification_source_ctx: ContextVar[str | None] = ContextVar("assignment_notification_source", default=None)
 
 
 class AssignmentsService(AsyncBaseService):
@@ -265,7 +267,7 @@ class AssignmentsService(AsyncBaseService):
             state = "unposted" if (plan or {}).get("state") == WORKFLOW_STATE.KILLED else (plan or {}).get("state")
             raise SuperdeskApiError.forbiddenError(gettext("Action failed. Related planning item is {}").format(state))
 
-    def notify(self, event_name, updates, original):
+    def notify(self, event_name, updates, original, source: str | None = None):
         # No notifications for 'draft' assignments
         if self.is_assignment_draft(updates, original):
             return
@@ -298,13 +300,17 @@ class AssignmentsService(AsyncBaseService):
             "session": get_auth().get("_id"),
         }
 
+        if source is not None:
+            kwargs["source"] = source
+
         if event_name == "assignments:updated" and not updates.get("assigned_to") and updates.get("priority"):
             kwargs["priority"] = doc.get("priority")
 
         push_notification(event_name, **kwargs)
 
     async def on_updated_async(self, updates, original):
-        self.notify("assignments:updated", updates, original)
+        source = notification_source_ctx.get()
+        self.notify("assignments:updated", updates, original, source=source)
         await self.send_assignment_notification(updates, original)
 
         assignment = deepcopy(original)
@@ -332,10 +338,20 @@ class AssignmentsService(AsyncBaseService):
 
         return False
 
-    async def system_update_async(self, id, updates, original, skip_planning_sync: bool = False, **kwargs):
+    async def system_update_async(
+        self,
+        id,
+        updates,
+        original,
+        skip_planning_sync: bool = False,
+        notification_source: str | None = None,
+        **kwargs,
+    ):
         self._skip_planning_sync = skip_planning_sync
+        updates_to_apply = deepcopy(updates)
+        notification_source_token = notification_source_ctx.set(notification_source)
         try:
-            rtn = await super().system_update_async(id, updates, original, **kwargs)
+            rtn = await super().system_update_async(id, updates_to_apply, original, **kwargs)
             if self.is_assignment_being_activated(updates, original):
                 doc = deepcopy(original)
                 doc.update(updates)
@@ -349,6 +365,7 @@ class AssignmentsService(AsyncBaseService):
                 app = get_current_app().as_any()
                 await app.on_updated_assignments.call_async(updates, original)
         finally:
+            notification_source_ctx.reset(notification_source_token)
             self._skip_planning_sync = False
         return rtn
 
