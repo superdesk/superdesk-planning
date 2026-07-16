@@ -1430,10 +1430,6 @@ function defaultCoverageValues(
         newCoverage.planning.priority = planningItem.priority;
     }
 
-    if (planningItem?._time_to_be_confirmed) {
-        newCoverage._time_to_be_confirmed = planningItem._time_to_be_confirmed;
-    }
-
     if (planningItem) {
         const getCoverageDueDateStrategy = planningConfig.coverage?.getDueDateStrategy || getDefaultCoverageDueDate;
         const coverageTime = getCoverageDueDateStrategy(planningItem as IPlanningItem, eventItem);

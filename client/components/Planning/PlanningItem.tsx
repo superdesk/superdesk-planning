@@ -9,7 +9,8 @@ import {
     IPlanningListItemProps,
     LIST_VIEW_TYPE,
     SORT_FIELD,
-    IPlanningNewsCoverageStatus
+    IPlanningNewsCoverageStatus,
+    IEventItem
 } from '../../interfaces';
 import {PLANNING, EVENTS, MAIN, ICON_COLORS, WORKFLOW_STATE} from '../../constants';
 
@@ -48,6 +49,7 @@ interface IState {
 interface IReduxStateProps {
     newsCoverageStatus: Array<IPlanningNewsCoverageStatus>;
     coverageAddAdvancedMode: boolean;
+    events: {[key: string]: IEventItem};
 }
 
 interface IProps extends IPlanningListItemProps, IReduxStateProps {
@@ -459,13 +461,11 @@ class PlanningItemComponent extends React.Component<IProps, IState> {
                             field="coverages"
                             value={get(item, 'coverages', [])}
                             onSave={this.onCoverageModalSave}
-                            createCoverage={(qcode) => ({
-                                planning: {
-                                    g2_content_type: qcode,
-                                    language: null,
-                                },
-                                workflow_status: 'draft',
-                            })}
+                            createCoverage={(qcode) => {
+                                const eventItem = item.event_item ? this.props.events[item.event_item] : undefined;
+
+                                return planningApi.planning.coverages.setDefaultValues(item, eventItem, qcode);
+                            }}
                             users={users}
                             desks={desks}
                             coverageAddAdvancedMode={this.props.coverageAddAdvancedMode}
@@ -481,6 +481,7 @@ class PlanningItemComponent extends React.Component<IProps, IState> {
 const mapStateToProps = (state) => ({
     newsCoverageStatus: selectors.general.newsCoverageStatus(state),
     coverageAddAdvancedMode: selectors.general.coverageAddAdvancedMode(state),
+    events: selectors.events.storedEvents(state),
 });
 
 export const PlanningItem = connect(mapStateToProps)(PlanningItemComponent);
