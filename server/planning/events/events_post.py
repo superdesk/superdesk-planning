@@ -16,6 +16,7 @@ from superdesk.resource import Resource, not_analyzed
 from superdesk.notification import push_notification
 from superdesk.users import user_metrics
 from superdesk.utc import utcnow
+from apps.auth import get_user
 
 from .events import EventsResource
 from planning.common import (
@@ -195,6 +196,10 @@ class EventsPostService(AsyncBaseService):
 
         new_item_state = get_item_post_state(event, new_post_state, repost)
         updates = {"state": new_item_state, "pubstatus": new_post_state}
+        user = get_user()
+        if user and user.get(ID_FIELD):
+            updates["version_creator"] = user.get(ID_FIELD)
+
         if not event.get("firstpublished"):
             updates["firstpublished"] = utcnow()
 

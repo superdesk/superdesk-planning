@@ -47,7 +47,7 @@ export const getCalendarsField = (): IFieldDefinition => {
                     calendars: vocabularyFromStore.filter((x) => operationalValue.includes(x.qcode)),
                 };
             },
-            retrieveStoredValue: (item) => item.calendars.map((x) => x.qcode),
+            retrieveStoredValue: (item) => (item.calendars ?? []).map((x) => x.qcode),
         }
     };
 };

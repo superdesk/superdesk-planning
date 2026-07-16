@@ -29,6 +29,7 @@ export interface IProps {
     maxLength?: number;
     language?: string;
     invalid?: boolean;
+    ignoreScheme?: boolean;
 }
 
 interface IState {
@@ -73,11 +74,13 @@ export class SelectMetaTermsInput extends React.Component<IProps, IState> {
         if (term.scheme != null || term.qcode != null) {
             const termScheme = term.scheme ?? null;
             const termQcode = term.qcode ?? null;
+            const updatedValue = value.filter(({scheme = null, qcode = null}) => {
+                if (this.props.ignoreScheme && termQcode != null) {
+                    return termQcode !== qcode;
+                }
 
-            // fallback to `null` when destructuring, since this is a strict comparison
-            const updatedValue = value.filter(({scheme = null, qcode = null}) =>
-                !(termScheme === scheme && termQcode === qcode)
-            );
+                return !(termScheme === scheme && termQcode === qcode);
+            });
 
             onChange(
                 field,

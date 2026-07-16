@@ -26,10 +26,12 @@ export class EventDateTime extends React.PureComponent<IProps> {
         const {gettext} = superdeskApi.localization;
         const {hasStartDateContext = false} = this.props;
         const {item} = this.props;
+        const noEndTime = item.dates?.no_end_time;
+        const isFullDay = item.dates?.all_day;
         const start = eventUtils.getStartDate(item);
         const end = eventUtils.getEndDate(item);
         const isAllDay = eventUtils.isEventAllDay(item);
-        const multiDay = !isSameDay(start, end);
+        const multiDay = noEndTime && end.isBefore(start) ? false : !isSameDay(start, end);
         const showEventStartDate = !hasStartDateContext;
         const isRemoteTimeZone = timeUtils.isEventInDifferentTimeZone(item);
         const withYear = !hasStartDateContext || (multiDay && start.year() !== end.year());
@@ -60,9 +62,6 @@ export class EventDateTime extends React.PureComponent<IProps> {
                 </span>
             );
         }
-
-        const noEndTime = item.dates?.no_end_time;
-        const isFullDay = item.dates?.all_day;
 
         const commonProps = {
             padLeft: false,

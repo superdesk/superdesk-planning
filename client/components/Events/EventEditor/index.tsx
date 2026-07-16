@@ -84,10 +84,29 @@ class EventEditorComponent extends React.PureComponent<IProps> {
             });
         }
 
+        const initialValueUpdates: Partial<IEventItem> = {};
+
         if (!isEqual(this.props.original?.planning_ids, prevProps.original?.planning_ids)) {
-            this.props.itemManager.forceUpdateInitialValues({
-                planning_ids: this.props.original?.planning_ids ?? [],
+            initialValueUpdates.planning_ids = this.props.original?.planning_ids ?? [];
+        }
+
+        if (prevProps.original?._etag != null &&
+            this.props.original?._etag != null &&
+            prevProps.original._etag !== this.props.original._etag
+        ) {
+            // Keep editor If-Match value current without triggering onChange/autosave side effects.
+            const managerState = this.props.itemManager.getState();
+
+            this.props.itemManager.setState({
+                initialValues: {
+                    ...managerState.initialValues,
+                    _etag: this.props.original._etag,
+                },
             });
+        }
+
+        if (Object.keys(initialValueUpdates).length > 0) {
+            this.props.itemManager.forceUpdateInitialValues(initialValueUpdates);
         }
     }
 

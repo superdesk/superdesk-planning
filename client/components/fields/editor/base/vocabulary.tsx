@@ -13,6 +13,7 @@ export interface IEditorFieldVocabularyProps extends IEditorFieldProps {
     noMargin?: boolean; // defaults to true
     valueAsString?: boolean;
     singleSelect?: boolean;
+    ignoreScheme?: boolean;
 }
 
 export class EditorFieldVocabulary extends React.PureComponent<IEditorFieldVocabularyProps> {
@@ -75,6 +76,7 @@ export class EditorFieldVocabulary extends React.PureComponent<IEditorFieldVocab
                     required={this.props.required ?? this.props.schema?.required}
                     onChange={this.onChange}
                     singleSelect={this.props.singleSelect}
+                    ignoreScheme={this.props.ignoreScheme}
                 />
             </Row>
         );
