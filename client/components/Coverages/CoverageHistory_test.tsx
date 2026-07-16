@@ -22,7 +22,7 @@ describe('<CoverageHistory />', () => {
     );
 
     const openCollapseBox = (wrapper) => {
-        wrapper.find('CollapseBox').setState({isOpen: true});
+        wrapper.find('.sd-collapse-box').simulate('click');
         wrapper.update();
     };
 
