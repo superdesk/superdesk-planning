@@ -52,11 +52,11 @@ class AssignmentHistoryComponent extends React.Component {
 
             if (user) {
                 return (
-                    <span>{prefix}<strong>{desk.name}</strong>
+                    <span>{prefix}<strong>{desk?.name ?? '-'}</strong>
                         {gettext(' and ')}<strong>{user.display_name}</strong>{suffix}</span>
                 );
             } else {
-                return (<span>{prefix}<strong>{desk.name}</strong>{suffix}</span>);
+                return (<span>{prefix}<strong>{desk?.name ?? '-'}</strong>{suffix}</span>);
             }
 
         case ASSIGNMENTS.HISTORY_OPERATIONS.EDIT_PRIORITY:
@@ -81,7 +81,7 @@ class AssignmentHistoryComponent extends React.Component {
             desk = getItemInArrayById(this.props.desks, get(update, 'assigned_to.desk'));
             return (
                 <span>{gettext('Assignment ')}<strong>{gettext('submitted')}</strong>
-                    {gettext(' to ')}<strong>{desk.name}</strong>{suffix}</span>
+                    {gettext(' to ')}<strong>{desk?.name ?? '-'}</strong>{suffix}</span>
             );
 
         case ASSIGNMENTS.HISTORY_OPERATIONS.CANCELLED:
