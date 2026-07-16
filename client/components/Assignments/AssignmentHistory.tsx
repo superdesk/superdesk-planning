@@ -11,7 +11,7 @@ import {ASSIGNMENTS} from '../../constants';
 import {AbsoluteDate} from '../';
 import {ContentBlock} from '../UI/SidePanel';
 
-class AssignmentHistoryComponent extends React.Component {
+export class AssignmentHistoryComponent extends React.Component {
     componentWillMount() {
         const {assignment, fetchAssignmentHistory} = this.props;
 
