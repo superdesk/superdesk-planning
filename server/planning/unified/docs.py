@@ -25,7 +25,7 @@ docs_html = """<!DOCTYPE html>
     <div id="redoc-container"></div>
     <script src="https://cdn.jsdelivr.net/npm/redoc@latest/bundles/redoc.standalone.js"> </script>
     <script>
-        const spec = {{ spec_json | safe }};
+        const spec = {{ spec | tojson }};
         Redoc.init(spec, {showExtensions: true}, document.getElementById('redoc-container'));
     </script>
   </body>
@@ -36,13 +36,12 @@ docs_html = """<!DOCTYPE html>
 async def unified_resource_docs():
     spec = get_spec()
     spec.spec.setdefault("theme", {}).setdefault("openapi", {})["showExtensions"] = True
-    return await render_template_string(docs_html, spec_json=spec.to_string("json"))
+    return await render_template_string(docs_html, spec=spec.to_dict())
 
 
 def get_spec():
     return (
         OpenAPISpec(title="Unified Planning Resource", description="Planning", api_version="3.6.0")
-        .add_server("http://localhost:5000", "REST API")
         .add_tag("Unified Resource", "Unified Planning Resource")
         .add_model(UnifiedPlanningResource, tags=["Unified Resource"])
         .remove_additional_properties_from_top_level()

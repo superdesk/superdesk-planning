@@ -163,7 +163,7 @@ class CoverageScheduledUpdate(Dataclass):
 
 class CoverageItem(AuditInformation, BaseModel):
     coverage_id: fields.Keyword = Field(description="Coverage ID")
-    original_coverage_id: fields.Keyword | None = Field(description="Original Coverage ID")
+    original_coverage_id: fields.Keyword | None = Field(description="Original Coverage ID", default=None)
     guid: fields.Keyword | None = Field(description="Coverage GUID", default=None)  # is this used anywhere?
     profile: Annotated[fields.Keyword | None, validate_data_relation_async("coverage_profiles")] = Field(
         description="ID of the Coverage profile", default=None

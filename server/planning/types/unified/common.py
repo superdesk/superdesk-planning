@@ -59,11 +59,11 @@ class LocationAddress(Dataclass):
 
 class ItemLocation(Dataclass):
     name: fields.TextWithKeyword = Field(description="Name of the location")
-    qcode: fields.Keyword | None = Field(description="Qcode of the location")
+    qcode: fields.Keyword | None = Field(description="Qcode of the location", default=None)
     address: Annotated[LocationAddress | None, fields.dynamic_mapping(True)] = Field(
-        description="Address of the location"
+        description="Address of the location", default=None
     )
-    formatted_address: str | None = Field(description="Formatted address of the location")
+    formatted_address: str | None = Field(description="Formatted address of the location", default=None)
     geo: str | None = Field(description="Geo of the location", default=None)
     location: fields.Geopoint | None = Field(description="Geographic location", default=None)
     extra: dict | None = Field(description="Extra details of the location", default=None)
