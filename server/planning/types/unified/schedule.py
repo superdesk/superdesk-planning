@@ -9,23 +9,23 @@ from superdesk.core.resources import Dataclass, fields
 
 @unique
 class RecurringFrequency(str, Enum):
-    daily = "DAILY"
-    weekly = "WEEKLY"
-    monthly = "MONTHLY"
-    yearly = "YEARLY"
+    DAILY = "DAILY"
+    WEEKLY = "WEEKLY"
+    MONTHLY = "MONTHLY"
+    YEARLY = "YEARLY"
 
 
 @unique
 class RecurringEndMode(str, Enum):
-    count = "count"
-    until = "until"
+    COUNT = "count"
+    UNTIL = "until"
 
 
 class ItemRecurringDates(Dataclass):
     frequency: RecurringFrequency = Field(description="The frequency of the recurring item")
     interval: int = Field(description="The interval of the recurring item", default=1)
     end_repeat_mode: RecurringEndMode = Field(
-        alias="endRepeatMode", description="The end repeat mode of the recurring item", default=RecurringEndMode.count
+        alias="endRepeatMode", description="The end repeat mode of the recurring item", default=RecurringEndMode.COUNT
     )
     until: datetime | None = Field(description="The end date and time of the recurring item", default=None)
     count: int | None = Field(description="The end count of the recurring item", default=None)
