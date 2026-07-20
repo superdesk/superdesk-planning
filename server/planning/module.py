@@ -46,6 +46,8 @@ from planning.search import (
 
 from .planning_locks import planning_locks as planning_locks_endpoint
 from .planning_download import planning_download_endpoint
+from .unified.module import unified_planning_resource_config
+from .unified.docs import unified_resource_docs_endpoints
 
 
 async def cleanup_on_session_end(user_id: ObjectId, session_id: ObjectId, is_last_session: bool) -> None:
@@ -90,6 +92,7 @@ module = Module(
         events_endpoints_group,
         planning_download_endpoint,
         content_api_docs_endpoints,
+        unified_resource_docs_endpoints,
     ],
     resources=[
         events_resource_config,
@@ -110,6 +113,8 @@ module = Module(
         # content_api resources and services so they are available
         content_api_event_resource_config,
         content_api_planning_resource_config,
+        # unified resource
+        unified_planning_resource_config,
     ],
     privileges=events_planning_filters_privileges,
 )
