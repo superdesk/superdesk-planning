@@ -38,8 +38,8 @@ export class CoverageHistory extends React.Component {
 
                 assignment = ([ASSIGNMENTS.HISTORY_OPERATIONS.REASSIGNED,
                     COVERAGES.HISTORY_OPERATIONS.ASSIGNED].includes(historyItem.operation) ?
-                    gettext(' to \'{{ desk }}\'', {desk: desk.name}) :
-                    gettext(' for \'{{ desk }}\'', {desk: desk.name}));
+                    gettext(' to \'{{ desk }}\'', {desk: desk?.name ?? '-'}) :
+                    gettext(' for \'{{ desk }}\'', {desk: desk?.name ?? '-'}));
 
                 if (user) {
                     assignment += gettext(' and \'{{ user }}\'', {user: user.display_name});
