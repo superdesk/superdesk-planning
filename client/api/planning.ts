@@ -137,6 +137,36 @@ export function getPlanningByIds(
         .then((response) => response._items);
 }
 
+export function getPlanningByEventIds(eventIds: Array<IEventItem['_id']>): Promise<Array<IPlanningItem>> {
+    if (eventIds.length === 0) {
+        return Promise.resolve([]);
+    } else if (eventIds.length > PLANNING.FETCH_IDS_CHUNK_SIZE) {
+        // chunk the requests (otherwise URL may become too long)
+        const requests: Array<Promise<Array<IPlanningItem>>> = [];
+
+        for (let i = 0; i < Math.ceil(eventIds.length / PLANNING.FETCH_IDS_CHUNK_SIZE); i++) {
+            requests.push(
+                searchPlanningGetAll({
+                    event_item: eventIds.slice(
+                        i * PLANNING.FETCH_IDS_CHUNK_SIZE,
+                        (i + 1) * PLANNING.FETCH_IDS_CHUNK_SIZE
+                    ),
+                    only_future: false,
+                    include_killed: true,
+                }),
+            );
+        }
+
+        return Promise
+            .all(requests)
+            .then((responses) => (
+                Array.prototype.concat.apply([], responses)
+            ));
+    }
+
+    return searchPlanningGetAll({event_item: eventIds, only_future: false, include_killed: true});
+}
+
 function getPlanningEditorProfile() {
     return planningProfile(planningApi.redux.store.getState());
 }
@@ -273,6 +303,7 @@ export const planning: IPlanningAPI['planning'] = {
     searchGetAll: searchPlanningGetAll,
     getById: getPlanningById,
     getByIds: getPlanningByIds,
+    getByEventIds: getPlanningByEventIds,
     getEditorProfile: getPlanningEditorProfile,
     getSearchProfile: getPlanningSearchProfile,
     featured: featured,

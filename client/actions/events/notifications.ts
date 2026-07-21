@@ -1,7 +1,7 @@
 import {get} from 'lodash';
 
 import {planningApi} from '../../superdeskApi';
-import {IWebsocketMessageData, ITEM_TYPE} from '../../interfaces';
+import {IWebsocketMessageData, ITEM_TYPE, PLANNING_VIEW} from '../../interfaces';
 import * as selectors from '../../selectors';
 import {WORKFLOW_STATE, EVENTS, LOCKS} from '../../constants';
 import {gettext, dispatchUtils, getErrorMessage, lockUtils} from '../../utils';
@@ -20,9 +20,9 @@ import eventsPlanning from '../eventsPlanning';
 const onEventCreated = (_e, data) => (
     (dispatch) => {
         if (data && data.item) {
-            return dispatch(eventsUi.scheduleRefetch())
-                .then(() => dispatch(eventsPlanning.ui.scheduleRefetch()));
+            return planningApi.ui.list.reloadListPages(PLANNING_VIEW.EVENTS);
         }
+        return Promise.resolve();
     }
 );
 
@@ -254,8 +254,8 @@ const onRecurringEventCreated = (_e, data) => (
             // Once we know our Recurring Events can be received from Elasticsearch,
             // go ahead and refresh the current list of events
                 .then((items) => {
-                    dispatch(eventsUi.scheduleRefetch());
-                    dispatch(eventsPlanning.ui.scheduleRefetch());
+                    planningApi.ui.list.reloadListPages(PLANNING_VIEW.EVENTS);
+
                     // Fetch the event if it is 'planning only' view
                     if (selectors.main.isPlanningView(getState())) {
                         dispatch(eventsApi.fetchById(data.item, {force: true}));
@@ -277,13 +277,9 @@ const onRecurringEventCreated = (_e, data) => (
  * @param {object} data - Event and User IDs
  */
 const onEventUpdated = (_e, data) => (
-    (dispatch, getState) => {
+    (dispatch) => {
         if (data && data.item) {
-            dispatch(main.setUnsetLoadingIndicator(true));
-            dispatch(eventsUi.scheduleRefetch(get(data, 'recurrence_id') ? [data.item] : []))
-                .then(() => dispatch(eventsPlanning.ui.scheduleRefetch()))
-                .finally(() => dispatch(main.setUnsetLoadingIndicator(false)));
-
+            planningApi.ui.list.reloadListPages(PLANNING_VIEW.EVENTS);
             dispatch(fetchItemHistoryOnRecurringNotitication(data));
         }
 

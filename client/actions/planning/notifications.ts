@@ -1,10 +1,10 @@
 import {get} from 'lodash';
 
-import {IWebsocketMessageData, ITEM_TYPE} from '../../interfaces';
-import {planningApi, superdeskApi} from '../../superdeskApi';
+import {IWebsocketMessageData, ITEM_TYPE, PLANNING_VIEW} from '../../interfaces';
+import {planningApi} from '../../superdeskApi';
 
-import {gettext, lockUtils, getErrorMessage} from '../../utils';
-import {PLANNING, MODALS, WORKFLOW_STATE, WORKSPACE} from '../../constants';
+import {gettext, lockUtils} from '../../utils';
+import {PLANNING, MODALS, WORKFLOW_STATE, WORKSPACE, MAIN} from '../../constants';
 
 import planning from './index';
 import assignments from '../assignments/index';
@@ -42,7 +42,7 @@ const onPlanningCreated = (_e, data) => (
                 dispatch(main.fetchItemHistory({_id: data.event_item, type: ITEM_TYPE.EVENT}));
             }
 
-            return planningApi.ui.list.reloadListPages();
+            return planningApi.ui.list.reloadListPages(PLANNING_VIEW.PLANNING);
         }
 
         return Promise.resolve();
@@ -67,7 +67,7 @@ const onPlanningUpdated = (_e, data) => (
         }
 
         if (get(data, 'item')) {
-            planningApi.ui.list.reloadListPages()
+            planningApi.ui.list.reloadListPages(PLANNING_VIEW.PLANNING)
                 .then((results) => {
                     if (selectors.general.currentWorkspace(getState()) === WORKSPACE.ASSIGNMENTS) {
                         const selectedItems = selectors.multiSelect.selectedPlannings(getState());
@@ -83,11 +83,6 @@ const onPlanningUpdated = (_e, data) => (
                             dispatch(planning.api.fetchById(data.item, {force: true}));
                         }
                     }
-                })
-                .catch((error) => {
-                    superdeskApi.ui.notify.error(
-                        getErrorMessage(error, gettext('Failed to reload item list'))
-                    );
                 });
 
             if (get(data, 'added_agendas.length', 0) > 0 || get(data, 'removed_agendas.length', 0) > 0) {

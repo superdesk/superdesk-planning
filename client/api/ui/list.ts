@@ -26,6 +26,7 @@ import {activeFilter, getCurrentListViewType, lastRequestParams} from '../../sel
 import {getEventFilterParams} from '../../selectors/events';
 import {getPlanningFilterParams} from '../../selectors/planning';
 import {getEventsPlanningViewParams} from '../../selectors/eventsplanning';
+import {getErrorMessage, gettext} from '../../utils';
 import {
     searchParamsToOld,
     removeUndefinedParams,
@@ -72,11 +73,16 @@ function _refetchListItemPages(): Promise<{items: Array<IEventOrPlanningItem>, t
     return getPages().then(() => ({items, total}));
 }
 
-function reloadListPages() {
+function reloadListPages(forViewType: PLANNING_VIEW) {
     const {getState, dispatch} = planningApi.redux.store;
     const state = getState();
     const currentView = activeFilter(state);
     const currentListViewType = getCurrentListViewType(state);
+
+    if (![forViewType, PLANNING_VIEW.COMBINED].includes(currentView)) {
+        // No need to reload the current page, as it won't include the changes required
+        return Promise.resolve();
+    }
 
     dispatch(actions.main.setUnsetLoadingIndicator(true));
     return _refetchListItemPages()
@@ -110,23 +116,21 @@ function reloadListPages() {
 
                 const eventIds = eventsWithPlannings.map((event) => event._id);
 
-                return planningApi.planning.searchGetAll({
-                    event_item: eventIds,
-                    only_future: false,
-                    include_killed: true,
-                }).then((plannings) => {
-                    payload.plannings = payload.plannings.concat(plannings);
+                return planningApi.planning
+                    .getByEventIds(eventIds)
+                    .then((plannings) => {
+                        payload.plannings = payload.plannings.concat(plannings);
 
-                    payload.relatedPlannings = eventsWithPlannings.reduce(
-                        (acc, curr) => {
-                            acc[curr._id] = curr.planning_ids;
-                            return acc;
-                        },
-                        {},
-                    );
+                        payload.relatedPlannings = eventsWithPlannings.reduce(
+                            (acc, curr) => {
+                                acc[curr._id] = curr.planning_ids;
+                                return acc;
+                            },
+                            {},
+                        );
 
-                    return payload;
-                });
+                        return payload;
+                    });
             }
 
             return payload;
@@ -138,6 +142,11 @@ function reloadListPages() {
             dispatch({type: MAIN.ACTIONS.RELOAD_LIST_PAGES, payload: payload});
 
             return payload;
+        })
+        .catch((error) => {
+            superdeskApi.ui.notify.error(
+                getErrorMessage(error, gettext('Failed to reload item list'))
+            );
         })
         .finally(() => {
             dispatch(actions.main.setUnsetLoadingIndicator(false));
