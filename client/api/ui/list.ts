@@ -48,8 +48,8 @@ function _refetchListItemPages(): Promise<{items: Array<IEventOrPlanningItem>, t
     let items: Array<IEventOrPlanningItem> = [];
     let total = 0;
     let getNextPage: () => Promise<IRestApiResponse<IEventOrPlanningItem>>;
+    const lastPage = previousParams.page ?? 1;
 
-    previousParams.page = previousParams.page ?? 1;
     if (currentView === MAIN.FILTERS.PLANNING) {
         getNextPage = () => planningApi.planning.search(planningParamsToSearchParams(params));
     } else if (currentView === MAIN.FILTERS.EVENTS) {
@@ -62,7 +62,7 @@ function _refetchListItemPages(): Promise<{items: Array<IEventOrPlanningItem>, t
         items = items.concat(response._items);
 
         currentPage++;
-        if (previousParams.page >= currentPage) {
+        if (lastPage >= currentPage) {
             params.page = currentPage;
             return getPages();
         }
