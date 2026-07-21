@@ -193,11 +193,7 @@ const loadAllRelatedPlannings = (items) => (
 
         const eventIds = eventsWithPlannings.map((event) => event._id);
 
-        return planningApis.planning.searchGetAll({
-            event_item: eventIds,
-            only_future: false,
-            include_killed: true,
-        }).then((plannings) => {
+        return planningApis.planning.getByEventIds(eventIds).then((plannings) => {
             dispatch(planningApi.receivePlannings(plannings));
             eventsWithPlannings.forEach((event) => {
                 dispatch(self._showRelatedPlannings(event));

@@ -17,6 +17,7 @@ import {arrayToString, convertCommonParams, searchRaw, searchRawGetAll, cvsToStr
 import {planningApi, superdeskApi} from '../superdeskApi';
 import {IRestApiResponse} from 'superdesk-api';
 import {planningUtils, getErrorMessage} from '../utils';
+import {searchInChunks} from '../utils/search';
 import {planningProfile, planningSearchProfile} from '../selectors/forms';
 import {featured} from './featured';
 import {PLANNING} from '../constants';
@@ -138,33 +139,13 @@ export function getPlanningByIds(
 }
 
 export function getPlanningByEventIds(eventIds: Array<IEventItem['_id']>): Promise<Array<IPlanningItem>> {
-    if (eventIds.length === 0) {
-        return Promise.resolve([]);
-    } else if (eventIds.length > PLANNING.FETCH_IDS_CHUNK_SIZE) {
-        // chunk the requests (otherwise URL may become too long)
-        const requests: Array<Promise<Array<IPlanningItem>>> = [];
-
-        for (let i = 0; i < Math.ceil(eventIds.length / PLANNING.FETCH_IDS_CHUNK_SIZE); i++) {
-            requests.push(
-                searchPlanningGetAll({
-                    event_item: eventIds.slice(
-                        i * PLANNING.FETCH_IDS_CHUNK_SIZE,
-                        (i + 1) * PLANNING.FETCH_IDS_CHUNK_SIZE
-                    ),
-                    only_future: false,
-                    include_killed: true,
-                }),
-            );
-        }
-
-        return Promise
-            .all(requests)
-            .then((responses) => (
-                Array.prototype.concat.apply([], responses)
-            ));
-    }
-
-    return searchPlanningGetAll({event_item: eventIds, only_future: false, include_killed: true});
+    return searchInChunks(eventIds, (chunk) => (
+        searchPlanningGetAll({
+            event_item: chunk,
+            only_future: false,
+            include_killed: true,
+        })
+    ));
 }
 
 function getPlanningEditorProfile() {
