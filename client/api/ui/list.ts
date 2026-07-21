@@ -27,6 +27,7 @@ import {getEventFilterParams} from '../../selectors/events';
 import {getPlanningFilterParams} from '../../selectors/planning';
 import {getEventsPlanningViewParams} from '../../selectors/eventsplanning';
 import {getErrorMessage, gettext} from '../../utils';
+import {throttlePromise} from '../../utils/throttle';
 import {
     searchParamsToOld,
     removeUndefinedParams,
@@ -73,16 +74,28 @@ function _refetchListItemPages(): Promise<{items: Array<IEventOrPlanningItem>, t
     return getPages().then(() => ({items, total}));
 }
 
+const RELOAD_LIST_PAGES_COOLDOWN_MS = 1000;
+
+// Collapse bursts of websocket notifications: the first call reloads immediately, while
+// calls received during a reload or its cooldown share a single follow-up reload.
+const reloadListPagesThrottled = throttlePromise(_reloadListPages, RELOAD_LIST_PAGES_COOLDOWN_MS);
+
 function reloadListPages(forViewType: PLANNING_VIEW): Promise<IReloadPagePayload | null> {
-    const {getState, dispatch} = planningApi.redux.store;
-    const state = getState();
-    const currentView = activeFilter(state);
-    const currentListViewType = getCurrentListViewType(state);
+    const currentView = activeFilter(planningApi.redux.store.getState());
 
     if (![forViewType, PLANNING_VIEW.COMBINED].includes(currentView)) {
         // No need to reload the current page, as it won't include the changes required
         return Promise.resolve(null);
     }
+
+    return reloadListPagesThrottled();
+}
+
+function _reloadListPages(): Promise<IReloadPagePayload | null> {
+    const {getState, dispatch} = planningApi.redux.store;
+    const state = getState();
+    const currentView = activeFilter(state);
+    const currentListViewType = getCurrentListViewType(state);
 
     dispatch(actions.main.setUnsetLoadingIndicator(true));
     return _refetchListItemPages()
