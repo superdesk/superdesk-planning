@@ -432,6 +432,16 @@ export interface IItemSubActions {
     };
 }
 
+export interface IReloadPagePayload {
+    currentView: FILTER_TYPE;
+    total: number;
+    items: Array<IEventOrPlanningItem>;
+    events: Array<IEventItem>;
+    plannings: Array<IPlanningItem>;
+    relatedPlannings: {[eventId: string]: Array<IEventItem['planning_ids']>};
+    listViewType: LIST_VIEW_TYPE;
+}
+
 export type IDateTime = moment.MomentInput;
 
 export interface IEmbeddedCoverageItem {
@@ -2261,6 +2271,7 @@ export interface IPlanningAPI {
             clearList(): void;
             setViewType(viewType: LIST_VIEW_TYPE): Promise<any>;
             changeCurrentView(view: PLANNING_VIEW): Promise<any>;
+            reloadListPages(): Promise<IReloadPagePayload>;
         };
     };
     locations: {

@@ -1,6 +1,6 @@
 import {cloneDeep, get, omit, set} from 'lodash';
 
-import {IMainState, LIST_VIEW_TYPE} from '../interfaces';
+import {IMainState, LIST_VIEW_TYPE, IReloadPagePayload} from '../interfaces';
 
 import {MAIN, RESET_STORE, TIME_COMPARISON_GRANULARITY} from '../constants';
 import {createReducer} from './createReducer';
@@ -50,6 +50,13 @@ const modifyParams = (state, payload) => {
 
     return params;
 };
+
+function reloadListPages(state: IMainState, payload: IReloadPagePayload) {
+    const newState = {...state};
+
+    newState.search[payload.currentView].totalItems = payload.total;
+    return newState;
+}
 
 export default createReducer<IMainState>(initialState, {
     [RESET_STORE]: (state) => ({
@@ -168,4 +175,5 @@ export default createReducer<IMainState>(initialState, {
         ...state,
         itemHistory: payload,
     }),
+    [MAIN.ACTIONS.RELOAD_LIST_PAGES]: reloadListPages,
 });

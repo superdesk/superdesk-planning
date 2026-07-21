@@ -40,14 +40,9 @@ const onPlanningCreated = (_e, data) => (
                     data.item
                 ));
                 dispatch(main.fetchItemHistory({_id: data.event_item, type: ITEM_TYPE.EVENT}));
-
-                dispatch(self.expandRelatedPlanningsIfNeeded(data.event_item));
             }
 
-            dispatch(main.setUnsetLoadingIndicator(true));
-            return dispatch(planning.ui.scheduleRefetch())
-                .then(() => dispatch(eventsPlanning.ui.scheduleRefetch()))
-                .finally(() => dispatch(main.setUnsetLoadingIndicator(false)));
+            return planningApi.ui.list.reloadListPages();
         }
 
         return Promise.resolve();
@@ -72,21 +67,22 @@ const onPlanningUpdated = (_e, data) => (
         }
 
         if (get(data, 'item')) {
-            dispatch(planning.ui.scheduleRefetch())
+            planningApi.ui.list.reloadListPages()
                 .then((results) => {
                     if (selectors.general.currentWorkspace(getState()) === WORKSPACE.ASSIGNMENTS) {
                         const selectedItems = selectors.multiSelect.selectedPlannings(getState());
                         const currentPreviewId = selectors.main.previewId(getState());
+                        const fetchedItemIds = results.items.map((item) => item._id);
 
-                        const loadedFromRefetch = selectedItems.indexOf(data.item) !== -1 &&
-                        !get(results, '[0]._items').find((plan) => plan._id === data.item);
+                        const loadedFromRefetch = (
+                            selectedItems.indexOf(data.item) !== -1
+                            && fetchedItemIds.includes(data.item)
+                        );
 
                         if (!loadedFromRefetch && currentPreviewId === data.item) {
                             dispatch(planning.api.fetchById(data.item, {force: true}));
                         }
                     }
-
-                    dispatch(eventsPlanning.ui.scheduleRefetch());
                 });
 
             if (get(data, 'added_agendas.length', 0) > 0 || get(data, 'removed_agendas.length', 0) > 0) {

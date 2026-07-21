@@ -1,5 +1,6 @@
 import {get, uniq, find} from 'lodash';
 import {createReducer} from './createReducer';
+import {IReloadPagePayload} from '../interfaces';
 import {getItemType, planningUtils} from '../utils';
 import {
     PLANNING,
@@ -21,6 +22,20 @@ const initialState = {
     readOnly: true,
     planningHistoryItems: [],
 };
+
+function reloadListPages(state, payload: IReloadPagePayload) {
+    return produce(state, (draft) => {
+        // Update the stored Plannings
+        payload.plannings.forEach((plan) => {
+            draft.plannings[plan._id] = planningUtils.modifyForClient(plan);
+        });
+
+        if (payload.currentView === MAIN.FILTERS.PLANNING) {
+            // Update the planning list
+            draft.planningsInList = payload.items.map((plan) => plan._id);
+        }
+    });
+}
 
 const planningReducer = createReducer(initialState, {
     [RESET_STORE]: () => ({...initialState}),
@@ -55,6 +70,8 @@ const planningReducer = createReducer(initialState, {
             ...state,
             plannings: planningUtils.modifyPlanningsBeingAdded(state, payload),
         }),
+
+    [MAIN.ACTIONS.RELOAD_LIST_PAGES]: reloadListPages,
 
     [PLANNING.ACTIONS.RECEIVE_PLANNING_HISTORY]: (state, payload) => ({
         ...state,
