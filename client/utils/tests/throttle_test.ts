@@ -44,7 +44,7 @@ describe('utils.throttlePromise', () => {
     });
 
     it('executes the first call immediately', (done) => {
-        (async () => {
+        (async() => {
             const result = throttled();
 
             expect(callCount).toBe(1);
@@ -55,7 +55,7 @@ describe('utils.throttlePromise', () => {
     });
 
     it('collapses calls received during an execution into a single follow-up', (done) => {
-        (async () => {
+        (async() => {
             const first = throttled();
             const second = throttled();
             const third = throttled();
@@ -78,7 +78,7 @@ describe('utils.throttlePromise', () => {
     });
 
     it('waits for a slow execution to finish before starting the follow-up', (done) => {
-        (async () => {
+        (async() => {
             const first = throttled();
             const second = throttled();
 
@@ -97,7 +97,7 @@ describe('utils.throttlePromise', () => {
     });
 
     it('executes immediately again when idle and cooled down', (done) => {
-        (async () => {
+        (async() => {
             const first = throttled();
 
             deferreds[0].resolve('one');
@@ -114,7 +114,7 @@ describe('utils.throttlePromise', () => {
     });
 
     it('propagates a rejection to that cycle and recovers afterwards', (done) => {
-        (async () => {
+        (async() => {
             const first = throttled();
             const second = throttled();
             let caught;
