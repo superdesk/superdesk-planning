@@ -433,7 +433,7 @@ export interface IItemSubActions {
 }
 
 export interface IReloadPagePayload {
-    currentView: FILTER_TYPE;
+    currentView: PLANNING_VIEW;
     total: number;
     items: Array<IEventOrPlanningItem>;
     events: Array<IEventItem>;
