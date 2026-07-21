@@ -1,9 +1,9 @@
 import {get} from 'lodash';
 
 import {IWebsocketMessageData, ITEM_TYPE} from '../../interfaces';
-import {planningApi} from '../../superdeskApi';
+import {planningApi, superdeskApi} from '../../superdeskApi';
 
-import {gettext, lockUtils} from '../../utils';
+import {gettext, lockUtils, getErrorMessage} from '../../utils';
 import {PLANNING, MODALS, WORKFLOW_STATE, WORKSPACE} from '../../constants';
 
 import planning from './index';
@@ -83,6 +83,11 @@ const onPlanningUpdated = (_e, data) => (
                             dispatch(planning.api.fetchById(data.item, {force: true}));
                         }
                     }
+                })
+                .catch((error) => {
+                    superdeskApi.ui.notify.error(
+                        getErrorMessage(error, gettext('Failed to reload item list'))
+                    );
                 });
 
             if (get(data, 'added_agendas.length', 0) > 0 || get(data, 'removed_agendas.length', 0) > 0) {
