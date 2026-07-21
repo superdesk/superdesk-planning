@@ -12,9 +12,36 @@ import {
     SORT_FIELD,
     SORT_ORDER,
 } from '../interfaces';
-import {MAIN} from '../constants';
+import {MAIN, PLANNING} from '../constants';
 import {getTimeZoneOffset, timeUtils} from './index';
 import {appConfig} from 'appConfig';
+
+/**
+ * Runs `search` over `ids` in chunks and concatenates the results, keeping each
+ * request's query string below the server's request line size limit.
+ */
+export function searchInChunks<T>(
+    ids: Array<string>,
+    search: (chunk: Array<string>) => Promise<Array<T>>,
+    chunkSize: number = PLANNING.FETCH_IDS_CHUNK_SIZE,
+): Promise<Array<T>> {
+    if (ids.length === 0) {
+        return Promise.resolve([]);
+    }
+
+    const safeChunkSize = Math.max(1, chunkSize);
+    const requests: Array<Promise<Array<T>>> = [];
+
+    for (let i = 0; i < ids.length; i += safeChunkSize) {
+        requests.push(search(ids.slice(i, i + safeChunkSize)));
+    }
+
+    return Promise
+        .all(requests)
+        .then((responses) => (
+            responses.reduce<Array<T>>((all, chunkItems) => all.concat(chunkItems), [])
+        ));
+}
 
 function commonParamsToSearchParams(params: ICommonSearchParams<IEventOrPlanningItem>): ISearchParams {
     return {

@@ -9,6 +9,7 @@ import {
 } from '../interfaces';
 import {IRestApiResponse} from 'superdesk-api';
 import {searchRaw, searchRawGetAll, convertCommonParams, cvsToString, arrayToString, searchRawAndStore} from './search';
+import {searchInChunks} from '../utils/search';
 import {eventUtils, planningUtils} from '../utils';
 import {planningApi} from '../superdeskApi';
 import {combinedSearchProfile} from '../selectors/forms';
@@ -65,6 +66,18 @@ export function searchCombinedGetAll(params: ISearchParams): Promise<Array<IEven
 
             return items;
         });
+}
+
+export function getEventsAndPlanningByIds(
+    itemIds: Array<IEventOrPlanningItem['_id']>,
+    params: ISearchParams = {}
+): Promise<Array<IEventOrPlanningItem>> {
+    return searchInChunks(itemIds, (chunk) => (
+        searchCombinedGetAll({
+            ...params,
+            item_ids: chunk,
+        })
+    ));
 }
 
 export function searchAndStore(params: ISearchParams) {
@@ -154,6 +167,7 @@ function getCombinedSearchProfile() {
 export const combined: IPlanningAPI['combined'] = {
     search: searchCombined,
     searchGetAll: searchCombinedGetAll,
+    getByIds: getEventsAndPlanningByIds,
     getRecurringEventsAndPlanningItems: getRecurringEventsAndPlanningItems,
     getEventsAndPlanning: getEventsAndPlanning,
     getSearchProfile: getCombinedSearchProfile,

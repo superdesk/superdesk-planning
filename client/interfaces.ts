@@ -2244,6 +2244,10 @@ export interface IPlanningAPI {
         searchAndStore(params: ISearchParams): Promise<IRestApiResponse<IEventOrPlanningItem>>;
         search(params: ISearchParams): Promise<IRestApiResponse<IEventOrPlanningItem>>;
         searchGetAll(params: ISearchParams): Promise<Array<IEventOrPlanningItem>>;
+        getByIds(
+            itemIds: Array<IEventOrPlanningItem['_id']>,
+            params?: ISearchParams
+        ): Promise<Array<IEventOrPlanningItem>>;
         getRecurringEventsAndPlanningItems(
             event: IEventItem,
             loadPlannings?: boolean,

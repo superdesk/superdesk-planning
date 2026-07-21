@@ -49,8 +49,7 @@ function loadLockedItems(types?: Array<'events_and_planning' | 'featured_plannin
             }
 
             // Make sure that all items that are locked are loaded into the store
-            return planningApi.combined.searchGetAll({
-                item_ids: lockedItemIds,
+            return planningApi.combined.getByIds(lockedItemIds, {
                 only_future: false,
                 include_killed: true,
                 spike_state: 'draft',
