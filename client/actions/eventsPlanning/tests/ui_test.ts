@@ -421,7 +421,7 @@ describe('actions.eventsplanning.ui', () => {
         ];
 
         beforeEach(() => {
-            sinon.stub(planningApis.planning, 'searchGetAll').callsFake(
+            sinon.stub(planningApis.planning, 'getByEventIds').callsFake(
                 () => Promise.resolve(relatedPlannings)
             );
             sinon.stub(planningApi, 'receivePlannings').callsFake(
@@ -430,7 +430,7 @@ describe('actions.eventsplanning.ui', () => {
         });
 
         afterEach(() => {
-            restoreSinonStub(planningApis.planning.searchGetAll);
+            restoreSinonStub(planningApis.planning.getByEventIds);
             restoreSinonStub(planningApi.receivePlannings);
         });
 
@@ -443,12 +443,8 @@ describe('actions.eventsplanning.ui', () => {
 
             store.test(done, eventsPlanningUi.loadAllRelatedPlannings(items))
                 .then(() => {
-                    expect(planningApis.planning.searchGetAll.callCount).toBe(1);
-                    expect(planningApis.planning.searchGetAll.args[0][0]).toEqual({
-                        event_item: ['e1'],
-                        only_future: false,
-                        include_killed: true,
-                    });
+                    expect(planningApis.planning.getByEventIds.callCount).toBe(1);
+                    expect(planningApis.planning.getByEventIds.args[0][0]).toEqual(['e1']);
 
                     expect(planningApi.receivePlannings.callCount).toBe(1);
                     expect(planningApi.receivePlannings.args[0][0]).toEqual(relatedPlannings);
@@ -487,7 +483,7 @@ describe('actions.eventsplanning.ui', () => {
 
             store.test(done, eventsPlanningUi.loadAllRelatedPlannings(items))
                 .then(() => {
-                    expect(planningApis.planning.searchGetAll.callCount).toBe(0);
+                    expect(planningApis.planning.getByEventIds.callCount).toBe(0);
                     done();
                 })
                 .catch(done.fail);
@@ -501,7 +497,7 @@ describe('actions.eventsplanning.ui', () => {
 
             store.test(done, eventsPlanningUi.loadAllRelatedPlannings(items))
                 .then(() => {
-                    expect(planningApis.planning.searchGetAll.callCount).toBe(0);
+                    expect(planningApis.planning.getByEventIds.callCount).toBe(0);
                     done();
                 })
                 .catch(done.fail);
@@ -513,7 +509,7 @@ describe('actions.eventsplanning.ui', () => {
 
         beforeEach(() => {
             originalExpandSetting = appConfig.planning_expand_related_plannings;
-            sinon.stub(planningApis.planning, 'searchGetAll').callsFake(
+            sinon.stub(planningApis.planning, 'getByEventIds').callsFake(
                 () => Promise.resolve([])
             );
             sinon.stub(planningApi, 'receivePlannings').callsFake(
@@ -523,7 +519,7 @@ describe('actions.eventsplanning.ui', () => {
 
         afterEach(() => {
             appConfig.planning_expand_related_plannings = originalExpandSetting;
-            restoreSinonStub(planningApis.planning.searchGetAll);
+            restoreSinonStub(planningApis.planning.getByEventIds);
             restoreSinonStub(planningApi.receivePlannings);
         });
 
@@ -536,7 +532,7 @@ describe('actions.eventsplanning.ui', () => {
 
             store.test(done, eventsPlanningUi.receiveEventsPlanning(items))
                 .then(() => {
-                    expect(planningApis.planning.searchGetAll.callCount).toBe(1);
+                    expect(planningApis.planning.getByEventIds.callCount).toBe(1);
                     done();
                 })
                 .catch(done.fail);
@@ -551,7 +547,7 @@ describe('actions.eventsplanning.ui', () => {
 
             store.test(done, eventsPlanningUi.receiveEventsPlanning(items))
                 .then(() => {
-                    expect(planningApis.planning.searchGetAll.callCount).toBe(0);
+                    expect(planningApis.planning.getByEventIds.callCount).toBe(0);
                     done();
                 })
                 .catch(done.fail);
