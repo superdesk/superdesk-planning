@@ -73,7 +73,7 @@ function _refetchListItemPages(): Promise<{items: Array<IEventOrPlanningItem>, t
     return getPages().then(() => ({items, total}));
 }
 
-function reloadListPages(forViewType: PLANNING_VIEW) {
+function reloadListPages(forViewType: PLANNING_VIEW): Promise<IReloadPagePayload | null> {
     const {getState, dispatch} = planningApi.redux.store;
     const state = getState();
     const currentView = activeFilter(state);
@@ -81,7 +81,7 @@ function reloadListPages(forViewType: PLANNING_VIEW) {
 
     if (![forViewType, PLANNING_VIEW.COMBINED].includes(currentView)) {
         // No need to reload the current page, as it won't include the changes required
-        return Promise.resolve();
+        return Promise.resolve(null);
     }
 
     dispatch(actions.main.setUnsetLoadingIndicator(true));
@@ -147,6 +147,8 @@ function reloadListPages(forViewType: PLANNING_VIEW) {
             superdeskApi.ui.notify.error(
                 getErrorMessage(error, gettext('Failed to reload item list'))
             );
+
+            return null;
         })
         .finally(() => {
             dispatch(actions.main.setUnsetLoadingIndicator(false));

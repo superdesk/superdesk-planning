@@ -69,6 +69,11 @@ const onPlanningUpdated = (_e, data) => (
         if (get(data, 'item')) {
             planningApi.ui.list.reloadListPages(PLANNING_VIEW.PLANNING)
                 .then((results) => {
+                    // the list was not reloaded
+                    if (results == null) {
+                        return;
+                    }
+
                     if (selectors.general.currentWorkspace(getState()) === WORKSPACE.ASSIGNMENTS) {
                         const selectedItems = selectors.multiSelect.selectedPlannings(getState());
                         const currentPreviewId = selectors.main.previewId(getState());

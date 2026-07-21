@@ -2272,7 +2272,7 @@ export interface IPlanningAPI {
             clearList(): void;
             setViewType(viewType: LIST_VIEW_TYPE): Promise<any>;
             changeCurrentView(view: PLANNING_VIEW): Promise<any>;
-            reloadListPages(forViewType: PLANNING_VIEW): Promise<IReloadPagePayload>;
+            reloadListPages(forViewType: PLANNING_VIEW): Promise<IReloadPagePayload | null>;
         };
     };
     locations: {
