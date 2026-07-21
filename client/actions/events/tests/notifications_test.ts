@@ -730,16 +730,12 @@ describe('actions.events.notifications', () => {
         beforeEach(() => {
             restoreSinonStub(eventsNotifications.onEventUpdated);
             sinon.stub(main, 'closePreviewAndEditorForItems').callsFake(() => (Promise.resolve()));
-            sinon.stub(main, 'setUnsetLoadingIndicator').callsFake(() => (Promise.resolve()));
-            sinon.stub(eventsUi, 'scheduleRefetch').callsFake(() => (Promise.resolve()));
-            sinon.stub(eventsPlanningUi, 'scheduleRefetch').callsFake(() => (Promise.resolve()));
+            sinon.stub(planningApi.ui.list, 'reloadListPages').callsFake(() => (Promise.resolve({})));
         });
 
         afterEach(() => {
             restoreSinonStub(main.closePreviewAndEditorForItems);
-            restoreSinonStub(main.setUnsetLoadingIndicator);
-            restoreSinonStub(eventsUi.scheduleRefetch);
-            restoreSinonStub(eventsPlanningUi.scheduleRefetch);
+            restoreSinonStub(planningApi.ui.list.reloadListPages);
         });
 
         it('onEventUpdated does call scheduleRefetch if item is being edited', (done) => {
@@ -761,8 +757,7 @@ describe('actions.events.notifications', () => {
 
             return store.test(done, eventsNotifications.onEventUpdated({}, {item: data.events[0]._id}))
                 .then(() => {
-                    expect(eventsUi.scheduleRefetch.callCount).toBe(1);
-                    expect(eventsPlanningUi.scheduleRefetch.callCount).toBe(1);
+                    expect(planningApi.ui.list.reloadListPages.callCount).toBe(1);
                     done();
                 })
                 .catch(done.fail);
@@ -771,8 +766,7 @@ describe('actions.events.notifications', () => {
         it('onEventUpdated does calls scheduleRefetch if item is not being edited', (done) => (
             store.test(done, eventsNotifications.onEventUpdated({}, {item: data.events[0]._id}))
                 .then(() => {
-                    expect(eventsUi.scheduleRefetch.callCount).toBe(1);
-                    expect(eventsPlanningUi.scheduleRefetch.callCount).toBe(1);
+                    expect(planningApi.ui.list.reloadListPages.callCount).toBe(1);
                     done();
                 })
                 .catch(done.fail)
@@ -794,29 +788,33 @@ describe('actions.events.notifications', () => {
                 recurrence_id: 'rec1',
             }))
                 .then(() => {
-                    expect(eventsUi.scheduleRefetch.callCount).toBe(1);
-                    expect(eventsPlanningUi.scheduleRefetch.callCount).toBe(1);
-                    expect(eventsUi.scheduleRefetch.args[0]).toEqual([[data.events[0]._id]]);
+                    expect(planningApi.ui.list.reloadListPages.callCount).toBe(1);
                     done();
                 })
                 .catch(done.fail);
         });
     });
 
-    it('calls scheduleRefetch for events.ui and eventsPlanning.ui', (done) => {
-        sinon.stub(eventsUi, 'scheduleRefetch').returns(Promise.resolve());
-        sinon.stub(eventsPlanningUi, 'scheduleRefetch').returns(Promise.resolve());
+    describe('onEventCreated', () => {
+        beforeEach(() => {
+            restoreSinonStub(eventsNotifications.onEventCreated);
+            sinon.stub(main, 'closePreviewAndEditorForItems').callsFake(() => (Promise.resolve()));
+            sinon.stub(planningApi.ui.list, 'reloadListPages').callsFake(() => (Promise.resolve({})));
+        });
 
-        store.test(done, eventsNotifications.onEventCreated({}, {item: 'e1'}))
-            .then(() => {
-                expect(eventsUi.scheduleRefetch.callCount).toBe(1);
-                expect(eventsPlanningUi.scheduleRefetch.callCount).toBe(1);
+        afterEach(() => {
+            restoreSinonStub(main.closePreviewAndEditorForItems);
+            restoreSinonStub(planningApi.ui.list.reloadListPages);
+        });
 
-                restoreSinonStub(eventsUi.scheduleRefetch);
-                restoreSinonStub(eventsPlanningUi.scheduleRefetch);
+        it('calls scheduleRefetch for events.ui and eventsPlanning.ui', (done) => {
+            store.test(done, eventsNotifications.onEventCreated({}, {item: 'e1'}))
+                .then(() => {
+                    expect(planningApi.ui.list.reloadListPages.callCount).toBe(1);
 
-                done();
-            })
-            .catch(done.fail);
+                    done();
+                })
+                .catch(done.fail);
+        });
     });
 });

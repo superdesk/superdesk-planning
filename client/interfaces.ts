@@ -2209,6 +2209,7 @@ export interface IPlanningAPI {
             spikeState?: ISearchSpikeState,
             params?: ISearchParams
         ): Promise<Array<IPlanningItem>>;
+        getByEventIds(eventIds: Array<IEventItem['_id']>): Promise<Array<IPlanningItem>>;
         getEditorProfile(): IPlanningFormProfile;
         getSearchProfile(): IPlanningSearchProfile;
         featured: {
@@ -2271,7 +2272,7 @@ export interface IPlanningAPI {
             clearList(): void;
             setViewType(viewType: LIST_VIEW_TYPE): Promise<any>;
             changeCurrentView(view: PLANNING_VIEW): Promise<any>;
-            reloadListPages(): Promise<IReloadPagePayload>;
+            reloadListPages(forViewType: PLANNING_VIEW): Promise<IReloadPagePayload | null>;
         };
     };
     locations: {
