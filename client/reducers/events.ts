@@ -46,7 +46,7 @@ const modifyEventsBeingAdded = (state, eventList, listIds = null, listType = nul
                 listIds :
                 orderBy(
                     listIds,
-                    (e) => state.events[e].dates.start,
+                    (e) => draft.events[e]?.dates.start,
                     ['desc']
                 );
         }
