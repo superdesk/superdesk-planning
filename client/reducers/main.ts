@@ -1,4 +1,5 @@
 import {cloneDeep, get, omit, set} from 'lodash';
+import {produce} from 'immer';
 
 import {IMainState, LIST_VIEW_TYPE, IReloadPagePayload} from '../interfaces';
 
@@ -52,10 +53,9 @@ const modifyParams = (state, payload) => {
 };
 
 function reloadListPages(state: IMainState, payload: IReloadPagePayload) {
-    const newState = {...state};
-
-    newState.search[payload.currentView].totalItems = payload.total;
-    return newState;
+    return produce(state, (draft) => {
+        draft.search[payload.currentView].totalItems = payload.total;
+    });
 }
 
 export default createReducer<IMainState>(initialState, {
