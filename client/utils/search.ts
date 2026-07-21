@@ -29,16 +29,17 @@ export function searchInChunks<T>(
         return Promise.resolve([]);
     }
 
+    const safeChunkSize = Math.max(1, chunkSize);
     const requests: Array<Promise<Array<T>>> = [];
 
-    for (let i = 0; i < ids.length; i += chunkSize) {
-        requests.push(search(ids.slice(i, i + chunkSize)));
+    for (let i = 0; i < ids.length; i += safeChunkSize) {
+        requests.push(search(ids.slice(i, i + safeChunkSize)));
     }
 
     return Promise
         .all(requests)
         .then((responses) => (
-            Array.prototype.concat.apply([], responses)
+            responses.reduce<Array<T>>((all, chunkItems) => all.concat(chunkItems), [])
         ));
 }
 

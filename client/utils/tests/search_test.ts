@@ -53,6 +53,16 @@ describe('utils.search.searchInChunks', () => {
             .catch(done.fail);
     });
 
+    it('falls back to a chunk size of 1 when given an invalid chunk size', (done) => {
+        searchInChunks(['a', 'b'], search, 0)
+            .then((items) => {
+                expect(searchedChunks).toEqual([['a'], ['b']]);
+                expect(items).toEqual([{_id: 'a'}, {_id: 'b'}]);
+                done();
+            })
+            .catch(done.fail);
+    });
+
     it('rejects if any chunk fails', (done) => {
         const failingSearch = (chunk: Array<string>) => (
             chunk.includes('id-30') ?
