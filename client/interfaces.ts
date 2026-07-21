@@ -438,7 +438,7 @@ export interface IReloadPagePayload {
     items: Array<IEventOrPlanningItem>;
     events: Array<IEventItem>;
     plannings: Array<IPlanningItem>;
-    relatedPlannings: {[eventId: string]: Array<IEventItem['planning_ids']>};
+    relatedPlannings: {[eventId: string]: IEventItem['planning_ids']};
     listViewType: LIST_VIEW_TYPE;
 }
 
