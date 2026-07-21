@@ -63,21 +63,20 @@ export const getPreviewItem = createSelector(
     }
 );
 
-export const itemGroups = createSelector(
-    [activeFilter, orderedEvents, orderedPlanningList, orderedEventsPlanning],
-    (filter, events, plans, eventsPlannings) => {
-        switch (filter) {
-        case MAIN.FILTERS.COMBINED:
-            return eventsPlannings;
-        case MAIN.FILTERS.EVENTS:
-            return events;
-        case MAIN.FILTERS.PLANNING:
-            return plans;
-        }
+export function itemGroups(state: IPlanningAppState) {
+    const filter = activeFilter(state);
 
-        return [];
+    switch (filter) {
+    case MAIN.FILTERS.COMBINED:
+        return orderedEventsPlanning(state);
+    case MAIN.FILTERS.EVENTS:
+        return orderedEvents(state);
+    case MAIN.FILTERS.PLANNING:
+        return orderedPlanningList(state);
     }
-);
+
+    return [];
+}
 
 export const searchParams = (state) => get(state, 'main.search', {});
 

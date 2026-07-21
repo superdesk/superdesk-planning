@@ -236,8 +236,7 @@ const addEventToCurrentAgenda = (
                 return openInEditor ?
                     dispatch(main.openForEdit(firstPlanning, !openInModal, openInModal)) :
                     Promise.resolve(firstPlanning);
-            })
-            .then(() => dispatch(fetchSelectedAgendaPlannings()));
+            });
     }
 );
 

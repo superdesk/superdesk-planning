@@ -2,7 +2,7 @@ import {orderBy, uniq, get} from 'lodash';
 import moment from 'moment';
 import {produce} from 'immer';
 
-import {IEventState, IMainState, LIST_VIEW_TYPE} from '../interfaces';
+import {IEventState, IMainState, LIST_VIEW_TYPE, IReloadPagePayload} from '../interfaces';
 
 import {EVENTS, RESET_STORE, INIT_STORE, LOCKS, WORKFLOW_STATE, MAIN} from '../constants';
 import {createReducer} from './createReducer';
@@ -18,11 +18,11 @@ const initialState: IEventState = {
     eventTemplates: [],
 };
 
-const modifyEventsBeingAdded = (state, payload) => (
+const modifyEventsBeingAdded = (state, eventList, listIds = null, listType = null) => (
     produce(state, (draft) => {
         let _events = draft.events;
 
-        payload.forEach((e) => {
+        eventList.forEach((e) => {
             _events[e._id] = e;
 
             // Change dates to moment objects
@@ -40,6 +40,16 @@ const modifyEventsBeingAdded = (state, payload) => (
                 e.location = e.location[0];
             }
         });
+
+        if (listIds != null) {
+            draft.eventsInList = listType === LIST_VIEW_TYPE.LIST ?
+                listIds :
+                orderBy(
+                    listIds,
+                    (e) => draft.events[e]?.dates.start,
+                    ['desc']
+                );
+        }
     })
 );
 
@@ -74,6 +84,22 @@ export const unspikeEvent = (events, payload) => {
     event._etag = payload.etag;
 };
 
+function reloadListPages(state: IEventState, payload: IReloadPagePayload) {
+    if (payload.currentView === MAIN.FILTERS.EVENTS) {
+        // Update the stored Events and list items
+        return modifyEventsBeingAdded(
+            state,
+            payload.events,
+            uniq(payload.items.map((event) => event._id)),
+            payload.listViewType,
+        );
+    } else {
+        // We only want to update the stored Events here, as the list will be updated in the
+        // `eventsplanning` or `planning` reducers.
+        return modifyEventsBeingAdded(state, payload.events);
+    }
+}
+
 const eventsReducer = createReducer<IEventState>(initialState, {
     [RESET_STORE]: () => ({...initialState}),
 
@@ -82,7 +108,7 @@ const eventsReducer = createReducer<IEventState>(initialState, {
     [EVENTS.ACTIONS.ADD_EVENTS]: (state, payload) => (
         modifyEventsBeingAdded(state, payload)
     ),
-
+    [MAIN.ACTIONS.RELOAD_LIST_PAGES]: reloadListPages,
     [EVENTS.ACTIONS.SET_EVENTS_LIST]: (state, payload) => (
         {
             ...state,

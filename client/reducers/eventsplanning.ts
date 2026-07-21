@@ -1,6 +1,6 @@
 import {get, uniq, sortBy} from 'lodash';
 
-import {IEventsPlanningState, IMainState, ISearchFilter} from '../interfaces';
+import {IEventsPlanningState, IMainState, ISearchFilter, IReloadPagePayload} from '../interfaces';
 import {EVENTS_PLANNING, INIT_STORE, RESET_STORE, MAIN} from '../constants';
 
 import {createReducer} from './createReducer';
@@ -13,6 +13,17 @@ const initialState: IEventsPlanningState = {
     filters: [],
     currentFilter: null,
 };
+
+function reloadListPages(state: IEventsPlanningState, payload: IReloadPagePayload) {
+    return payload.currentView !== MAIN.FILTERS.COMBINED ? state : {
+        ...state,
+        eventsAndPlanningInList: (payload.items).map((e) => e._id),
+        relatedPlannings: {
+            ...state.relatedPlannings,
+            ...payload.relatedPlannings,
+        },
+    };
+}
 
 /**
  * Creates a new filter if it doesn't exist, otherwise updates the existing one
@@ -42,6 +53,7 @@ const eventsPlanningReducer = createReducer<IEventsPlanningState>(initialState, 
             eventsAndPlanningInList: (payload || []).map((e) => e._id),
         }
     ),
+    [MAIN.ACTIONS.RELOAD_LIST_PAGES]: reloadListPages,
     [EVENTS_PLANNING.ACTIONS.ADD_EVENTS_PLANNING_LIST]: (state, payload) => (
         produce(state, (draft) => {
             draft.eventsAndPlanningInList = uniq([
