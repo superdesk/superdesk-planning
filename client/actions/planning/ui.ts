@@ -102,37 +102,6 @@ function fetchToList(params: IPlanningSearchParams) {
 }
 
 /**
- * Fetch more planning items and add them to the list
- * Uses planning.lastRequestParams from the redux store for the api query,
- * then adds the received Planning items to the Planning List
- */
-const loadMore = () => (
-    (dispatch, getState) => {
-        const previousParams = selectors.main.lastRequestParams(getState());
-        const totalItems = selectors.main.planningTotalItems(getState());
-        const planIdsInList = selectors.planning.planIdsInList(getState());
-
-        if (totalItems === get(planIdsInList, 'length', 0)) {
-            return Promise.resolve();
-        }
-
-        const params = {
-            ...previousParams,
-            page: get(previousParams, 'page', 1) + 1,
-        };
-
-        return dispatch(planningApis.fetch(params))
-            .then((items) => {
-                if (get(items, 'length', 0) === MAIN.PAGE_SIZE) {
-                    dispatch(self.requestPlannings(params));
-                }
-                dispatch(self.addToList(items.map((p) => p._id)));
-                return Promise.resolve(items);
-            });
-    }
-);
-
-/**
  * Refetch planning items based on the current search
  */
 const refetch = () => (
@@ -613,7 +582,6 @@ const self = {
     requestPlannings,
     setInList,
     addToList,
-    loadMore,
     refetch,
     duplicate,
     openCancelPlanningModal,

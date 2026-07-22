@@ -7,7 +7,7 @@ import {MAIN, RESET_STORE, TIME_COMPARISON_GRANULARITY} from '../constants';
 import {createReducer} from './createReducer';
 
 const search = {
-    lastRequestParams: {page: 1},
+    lastRequestParams: {page: 1, lastPageReceivedInFull: true},
     fulltext: undefined,
     currentSearch: undefined,
     totalItems: 0,
@@ -55,6 +55,18 @@ const modifyParams = (state, payload) => {
 function reloadListPages(state: IMainState, payload: IReloadPagePayload) {
     return produce(state, (draft) => {
         draft.search[payload.currentView].totalItems = payload.total;
+    });
+}
+
+function nextPageLoaded(state: IMainState, payload: IReloadPagePayload) {
+    return produce(state, (draft) => {
+        const currentSearch = draft.search[payload.currentView];
+
+        currentSearch.lastRequestParams.page = payload.lastPage;
+        currentSearch.lastRequestParams.lastPageReceivedInFull = payload.items.length === MAIN.PAGE_SIZE;
+
+        // Update the total, in case it has changed since last page load
+        currentSearch.totalItems = payload.total;
     });
 }
 
@@ -176,4 +188,5 @@ export default createReducer<IMainState>(initialState, {
         itemHistory: payload,
     }),
     [MAIN.ACTIONS.RELOAD_LIST_PAGES]: reloadListPages,
+    [MAIN.ACTIONS.NEXT_PAGE_LOADED]: nextPageLoaded,
 });

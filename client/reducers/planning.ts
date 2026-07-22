@@ -37,6 +37,22 @@ function reloadListPages(state, payload: IReloadPagePayload) {
     });
 }
 
+function nextPageLoaded(state, payload: IReloadPagePayload) {
+    return produce(state, (draft) => {
+        // Update the stored Plannings
+        payload.plannings.forEach((plan) => {
+            draft.plannings[plan._id] = planningUtils.modifyForClient(plan);
+        });
+
+        if (payload.currentView === MAIN.FILTERS.PLANNING) {
+            draft.planningsInList = uniq([
+                ...draft.planningsInList,
+                ...payload.items.map((plan) => plan._id),
+            ]);
+        }
+    });
+}
+
 const planningReducer = createReducer(initialState, {
     [RESET_STORE]: () => ({...initialState}),
 
@@ -72,6 +88,7 @@ const planningReducer = createReducer(initialState, {
         }),
 
     [MAIN.ACTIONS.RELOAD_LIST_PAGES]: reloadListPages,
+    [MAIN.ACTIONS.NEXT_PAGE_LOADED]: nextPageLoaded,
 
     [PLANNING.ACTIONS.RECEIVE_PLANNING_HISTORY]: (state, payload) => ({
         ...state,

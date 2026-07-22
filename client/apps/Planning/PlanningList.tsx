@@ -72,7 +72,6 @@ interface IProps {
     multiSelectEvent(eventId: IEventItem['_id'], deselect?: boolean, shiftKey?: boolean, name?: string): void;
     multiSelectPlanning(planId: IPlanningItem['_id'], deselect?: boolean, shiftKey?: boolean, name?: string): void;
     showRelatedPlannings(item: IEventItem): void;
-    loadMore(viewType: FILTER_TYPE): Promise<any>;
     filter(viewType: FILTER_TYPE): Promise<any>;
 }
 
@@ -117,7 +116,6 @@ const mapDispatchToProps = (dispatch) => ({
     showRelatedPlannings: (event) => dispatch(
         actions.eventsPlanning.ui.showRelatedPlannings(event)
     ),
-    loadMore: (filterType) => dispatch(actions.main.loadMore(filterType)),
     filter: (filterType) => dispatch(actions.main.filter(filterType)),
 
     itemActions: actionUtils.getActionDispatches({dispatch: dispatch}),
@@ -172,7 +170,6 @@ export class PlanningListComponent extends React.PureComponent<IProps> {
             selectedPlanningIds,
             showRelatedPlannings,
             relatedPlanningsInList,
-            loadMore,
             filter,
             loadingIndicator,
             desks,
@@ -211,7 +208,7 @@ export class PlanningListComponent extends React.PureComponent<IProps> {
                     selectedPlanningIds={selectedPlanningIds}
                     showRelatedPlannings={showRelatedPlannings}
                     relatedPlanningsInList={relatedPlanningsInList}
-                    loadMore={loadMore}
+                    loadMore={planningApi.ui.list.loadNextPage}
                     filter={filter}
                     loadingIndicator={loadingIndicator}
                     desks={desks}

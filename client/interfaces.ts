@@ -440,6 +440,7 @@ export interface IReloadPagePayload {
     plannings: Array<IPlanningItem>;
     relatedPlannings: {[eventId: string]: IEventItem['planning_ids']};
     listViewType: LIST_VIEW_TYPE;
+    lastPage: number;
 }
 
 export type IDateTime = moment.MomentInput;
@@ -996,6 +997,7 @@ export interface ICommonSearchParams<T extends IEventOrPlanningItem> {
     includeKilled?: boolean;
     maxResults?: number;
     page?: number;
+    lastPageReceivedInFull?: boolean;
     onlyFuture?: boolean;
     startOfWeek?: number;
     spikeState?: ISearchSpikeState;
@@ -2268,6 +2270,9 @@ export interface IPlanningAPI {
     search<T>(args: ISearchAPIParams): Promise<IRestApiResponse<T>>;
     ui: {
         list: {
+            updateSearchAndReloadList(
+                params?: ICombinedEventOrPlanningSearchParams
+            ): Promise<IReloadPagePayload | null>;
             changeFilterId(id: ISearchFilter['_id'], params?: ICombinedEventOrPlanningSearchParams): Promise<any>;
             changeCalendarId(id: ICalendar['qcode'], params?: IEventSearchParams): Promise<any>;
             changeAgendaId(id: IAgenda['_id'], params?: IPlanningSearchParams): Promise<any>;
@@ -2277,6 +2282,7 @@ export interface IPlanningAPI {
             setViewType(viewType: LIST_VIEW_TYPE): Promise<any>;
             changeCurrentView(view: PLANNING_VIEW): Promise<any>;
             reloadListPages(forViewType: PLANNING_VIEW): Promise<IReloadPagePayload | null>;
+            loadNextPage(): Promise<IReloadPagePayload | null>;
         };
     };
     locations: {
