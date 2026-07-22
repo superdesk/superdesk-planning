@@ -139,11 +139,11 @@ function getItemTotalsAndPage(): [number, number, number] {
 
     switch (currentView) {
     case MAIN.FILTERS.PLANNING:
-        return [planIdsInList?.length ?? 0, planningTotalItems(state), nextPage];
+        return [planIdsInList(state)?.length ?? 0, planningTotalItems(state), nextPage];
     case MAIN.FILTERS.EVENTS:
-        return [eventIdsInList?.length ?? 0, eventsTotalItems(state), nextPage];
+        return [eventIdsInList(state)?.length ?? 0, eventsTotalItems(state), nextPage];
     default:
-        return [getEventsPlanningList?.length ?? 0, combinedTotalItems(state), nextPage];
+        return [getEventsPlanningList(state)?.length ?? 0, combinedTotalItems(state), nextPage];
     }
 }
 
