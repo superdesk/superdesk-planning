@@ -659,33 +659,6 @@ const openAssignCalendarModal = (original, updates) => (
     ))
 );
 
-/**
- * Action to load more events
- */
-const loadMore = () => (dispatch, getState) => {
-    const previousParams = selectors.main.lastRequestParams(getState());
-    const totalItems = selectors.main.eventsTotalItems(getState());
-    const eventIdsInList = selectors.events.eventIdsInList(getState());
-
-    if (totalItems === get(eventIdsInList, 'length', 0)) {
-        return Promise.resolve();
-    }
-
-    const params = {
-        ...previousParams,
-        page: get(previousParams, 'page', 1) + 1,
-    };
-
-    return dispatch(eventsApi.query(params, true))
-        .then((items) => {
-            if (get(items, 'length', 0) === MAIN.PAGE_SIZE) {
-                dispatch(self.requestEvents(params));
-            }
-            dispatch(eventsApi.receiveEvents(items));
-            dispatch(self.addToList(items.map((e) => e._id)));
-        });
-};
-
 const requestEvents = (params = {}) => ({
     type: MAIN.ACTIONS.REQUEST,
     payload: {[MAIN.FILTERS.EVENTS]: params},
@@ -1051,7 +1024,6 @@ const self = {
     convertToRecurringEvent,
     saveWithConfirmation,
     receiveEventHistory,
-    loadMore,
     addToList,
     requestEvents,
     updateEventTime,

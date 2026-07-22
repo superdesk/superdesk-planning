@@ -24,6 +24,8 @@ Object.assign(superdeskApi, {
             urlParams: {
                 getString: () => undefined,
                 setString: () => undefined,
+                getJson: () => undefined,
+                setJson: () => undefined,
             }
         }
     },

@@ -78,7 +78,7 @@ interface IProps {
     onAddCoverageClick(item: IPlanningItem): void;
     onMultiSelectClick(item: IEventOrPlanningItem, value: boolean, shiftKey: boolean, name: string): void;
     showRelatedPlannings(item: IEventItem): void;
-    loadMore(viewType: FILTER_TYPE): Promise<any>;
+    loadMore(): Promise<any>;
     filter(viewType: FILTER_TYPE): Promise<any>;
 }
 
@@ -281,7 +281,7 @@ export class ListPanel extends React.Component<IProps, IState> {
             this.state.scrollTop < node.scrollTop) {
             this.setState({isNextPageLoading: true, scrollTop: node.scrollTop});
 
-            this.props.loadMore(this.props.activeFilter)
+            this.props.loadMore()
                 .then(this.unsetNextPageLoading, this.unsetNextPageLoading);
         }
 

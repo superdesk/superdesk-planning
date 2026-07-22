@@ -4,6 +4,7 @@ import {registerNotifications} from '../../../utils';
 import notifications from '../notifications';
 import eventsPlanningUi from '../ui';
 import {MAIN} from '../../../constants';
+import {planningApi} from '../../../superdeskApi';
 
 
 describe('actions.eventsplanning.notifications', () => {
@@ -81,11 +82,9 @@ describe('actions.eventsplanning.notifications', () => {
 
     describe('on filter create', () => {
         beforeEach(() => {
+            sinon.stub(planningApi.ui.list, 'updateSearchAndReloadList').callsFake(() => (Promise.resolve({})));
             sinon.stub(eventsPlanningUi, 'fetchFilterById').callsFake(
                 () => Promise.resolve(data.events_planning_filters[0])
-            );
-            sinon.stub(eventsPlanningUi, 'scheduleRefetch').callsFake(
-                () => Promise.resolve([])
             );
             sinon.stub(eventsPlanningUi, 'fetchFilters').callsFake(
                 () => Promise.resolve([])
@@ -94,7 +93,7 @@ describe('actions.eventsplanning.notifications', () => {
 
         afterEach(() => {
             restoreSinonStub(eventsPlanningUi.fetchFilterById);
-            restoreSinonStub(eventsPlanningUi.scheduleRefetch);
+            restoreSinonStub(planningApi.ui.list.updateSearchAndReloadList);
             restoreSinonStub(eventsPlanningUi.fetchFilters);
         });
 
@@ -102,7 +101,7 @@ describe('actions.eventsplanning.notifications', () => {
             store.test(done, notifications.onEventPlaningFilterCreatedOrUpdated({}, {item: 'finance', user: 'user1'}))
                 .then(() => {
                     expect(eventsPlanningUi.fetchFilterById.callCount).toBe(1);
-                    expect(eventsPlanningUi.scheduleRefetch.callCount).toBe(0);
+                    expect(planningApi.ui.list.updateSearchAndReloadList.callCount).toBe(0);
                     expect(services.notify.warning.callCount).toBe(0);
                     done();
                 })
@@ -115,8 +114,10 @@ describe('actions.eventsplanning.notifications', () => {
             store.test(done, notifications.onEventPlaningFilterCreatedOrUpdated({}, {item: 'finance', user: 'user1'}))
                 .then(() => {
                     expect(eventsPlanningUi.fetchFilterById.callCount).toBe(1);
-                    expect(eventsPlanningUi.scheduleRefetch.callCount).toBe(1);
-                    expect(eventsPlanningUi.scheduleRefetch.args[0][0]).toBe(true);
+
+                    expect(planningApi.ui.list.updateSearchAndReloadList.callCount).toBe(1);
+                    expect(planningApi.ui.list.updateSearchAndReloadList.args[0][0]).toEqual({filter_id: 'finance'});
+
                     expect(services.notify.warning.callCount).toBe(1);
                     expect(services.notify.warning.args[0][0]).toEqual(
                         'The Event and Planning filter you were viewing is modified!'
@@ -132,7 +133,7 @@ describe('actions.eventsplanning.notifications', () => {
             store.test(done, notifications.onEventPlaningFilterDeleted({}, {item: 'finance', user: 'user1'}))
                 .then(() => {
                     expect(eventsPlanningUi.fetchFilters.callCount).toBe(1);
-                    expect(eventsPlanningUi.scheduleRefetch.callCount).toBe(0);
+                    expect(planningApi.ui.list.updateSearchAndReloadList.callCount).toBe(0);
                     expect(services.notify.warning.callCount).toBe(0);
                     done();
                 })
@@ -145,8 +146,10 @@ describe('actions.eventsplanning.notifications', () => {
             store.test(done, notifications.onEventPlaningFilterDeleted({}, {item: 'finance', user: 'user1'}))
                 .then(() => {
                     expect(eventsPlanningUi.fetchFilters.callCount).toBe(1);
-                    expect(eventsPlanningUi.scheduleRefetch.callCount).toBe(1);
-                    expect(eventsPlanningUi.scheduleRefetch.args[0][0]).toBe(true);
+
+                    expect(planningApi.ui.list.updateSearchAndReloadList.callCount).toBe(1);
+                    expect(planningApi.ui.list.updateSearchAndReloadList.args[0][0]).toEqual({filter_id: null});
+
                     expect(services.notify.warning.callCount).toBe(1);
                     expect(services.notify.warning.args[0][0]).toEqual(
                         'The Event and Planning filter you were viewing is deleted!'

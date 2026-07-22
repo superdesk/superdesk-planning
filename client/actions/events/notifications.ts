@@ -124,10 +124,7 @@ const onEventSpiked = (_e, data) => (
                 'id'
             ));
 
-            dispatch(main.setUnsetLoadingIndicator(true));
-            return dispatch(eventsUi.scheduleRefetch())
-                .then(() => dispatch(eventsPlanning.ui.scheduleRefetch()))
-                .finally(() => dispatch(main.setUnsetLoadingIndicator(false)));
+            return planningApi.ui.list.reloadListPages(PLANNING_VIEW.EVENTS);
         }
 
         return Promise.resolve();
@@ -153,10 +150,7 @@ const onEventUnspiked = (_e, data) => (
                 'id'
             ));
 
-            dispatch(main.setUnsetLoadingIndicator(true));
-            return dispatch(eventsUi.scheduleRefetch())
-                .then(() => dispatch(eventsPlanning.ui.scheduleRefetch()))
-                .finally(() => dispatch(main.setUnsetLoadingIndicator(false)));
+            return planningApi.ui.list.reloadListPages(PLANNING_VIEW.EVENTS);
         }
 
         return Promise.resolve();
@@ -182,8 +176,7 @@ const onEventCancelled = (e, data) => (
 const onEventScheduleChanged = (e, data) => (
     (dispatch, getState) => {
         if (get(data, 'item')) {
-            dispatch(eventsUi.scheduleRefetch()); // Will update only 'events only' view
-            dispatch(eventsPlanning.ui.scheduleRefetch()); // Will update only 'combined' view
+            planningApi.ui.list.reloadListPages(PLANNING_VIEW.EVENTS);
             // Fetch the event if it is 'planning only' view
             if (selectors.main.isPlanningView(getState())) {
                 dispatch(eventsApi.fetchById(data.item, {force: true}));
@@ -213,8 +206,7 @@ const onEventPostponed = (e, data) => (
 const onEventPostChanged = (e, data) => (
     (dispatch, getState) => {
         if (get(data, 'item')) {
-            dispatch(eventsUi.scheduleRefetch()); // Will update only 'events only' view
-            dispatch(eventsPlanning.ui.scheduleRefetch()); // Will update only 'combined' view
+            planningApi.ui.list.reloadListPages(PLANNING_VIEW.EVENTS);
             const posted = data.state === WORKFLOW_STATE.SCHEDULED;
 
             dispatch(fetchItemHistoryOnRecurringNotitication(data));

@@ -15,14 +15,26 @@ const initialState: IEventsPlanningState = {
 };
 
 function reloadListPages(state: IEventsPlanningState, payload: IReloadPagePayload) {
-    return payload.currentView !== MAIN.FILTERS.COMBINED ? state : {
-        ...state,
-        eventsAndPlanningInList: (payload.items).map((e) => e._id),
-        relatedPlannings: {
-            ...state.relatedPlannings,
+    return payload.currentView !== MAIN.FILTERS.COMBINED ? state : produce(state, (draft) => {
+        draft.eventsAndPlanningInList = (payload.items).map((e) => e._id);
+        draft.relatedPlannings = {
+            ...draft.relatedPlannings,
             ...payload.relatedPlannings,
-        },
-    };
+        };
+    });
+}
+
+function nextPageLoaded(state: IEventsPlanningState, payload: IReloadPagePayload) {
+    return payload.currentView !== MAIN.FILTERS.COMBINED ? state : produce(state, (draft) => {
+        draft.eventsAndPlanningInList = uniq([
+            ...draft.eventsAndPlanningInList || [],
+            ...payload.items.map((e) => e._id),
+        ]);
+        draft.relatedPlannings = {
+            ...draft.relatedPlannings,
+            ...payload.relatedPlannings,
+        };
+    });
 }
 
 /**
@@ -54,6 +66,7 @@ const eventsPlanningReducer = createReducer<IEventsPlanningState>(initialState, 
         }
     ),
     [MAIN.ACTIONS.RELOAD_LIST_PAGES]: reloadListPages,
+    [MAIN.ACTIONS.NEXT_PAGE_LOADED]: nextPageLoaded,
     [EVENTS_PLANNING.ACTIONS.ADD_EVENTS_PLANNING_LIST]: (state, payload) => (
         produce(state, (draft) => {
             draft.eventsAndPlanningInList = uniq([

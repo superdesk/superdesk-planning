@@ -160,67 +160,23 @@ describe('actions.main', () => {
         ));
     });
 
-    describe('loadmore', () => {
-        beforeEach(() => {
-            restoreSinonStub(planningUi.loadMore);
-            sinon.stub(eventsUi, 'loadMore').returns(Promise.resolve());
-            sinon.stub(planningUi, 'loadMore').returns(Promise.resolve());
-            sinon.stub(eventsPlanningUi, 'loadMore').returns(Promise.resolve());
-        });
-
-        afterEach(() => {
-            restoreSinonStub(eventsUi.loadMore);
-            restoreSinonStub(planningUi.loadMore);
-            restoreSinonStub(eventsPlanningUi.loadMore);
-        });
-
-        it('load more events', (done) => {
-            store.test(done, main.loadMore('EVENTS'))
-                .then(() => {
-                    expect(eventsUi.loadMore.callCount).toBe(1);
-                    done();
-                })
-                .catch(done.fail);
-        });
-
-        it('load more planning', (done) => {
-            store.test(done, main.loadMore('PLANNING'))
-                .then(() => {
-                    expect(planningUi.loadMore.callCount).toBe(1);
-                    done();
-                })
-                .catch(done.fail);
-        });
-
-        it('load more combined', (done) => {
-            store.test(done, main.loadMore('COMBINED'))
-                .then(() => {
-                    expect(eventsPlanningUi.loadMore.callCount).toBe(1);
-                    done();
-                })
-                .catch(done.fail);
-        });
-    });
-
     describe('search', () => {
         beforeEach(() => {
-            sinon.stub(eventsUi, 'fetchEvents').returns(Promise.resolve());
-            sinon.stub(planningUi, 'fetchToList').returns(Promise.resolve());
-            sinon.stub(eventsPlanningUi, 'fetch').returns(Promise.resolve());
+            sinon.stub(planningApi.ui.list, 'updateSearchAndReloadList').callsFake(() => (Promise.resolve({})));
         });
 
         afterEach(() => {
-            restoreSinonStub(eventsUi.fetchEvents);
-            restoreSinonStub(planningUi.fetchToList);
-            restoreSinonStub(eventsPlanningUi.fetch);
+            restoreSinonStub(planningApi.ui.list.updateSearchAndReloadList);
         });
 
         it('search events', (done) => {
             store.initialState.main.filter = 'EVENTS';
             store.test(done, main.search('EVENTS'))
                 .then(() => {
-                    expect(eventsUi.fetchEvents.callCount).toBe(1);
-                    expect(eventsUi.fetchEvents.args[0]).toEqual([{page: 1, fulltext: 'EVENTS'}]);
+                    expect(planningApi.ui.list.updateSearchAndReloadList.callCount).toBe(1);
+                    expect(planningApi.ui.list.updateSearchAndReloadList.args[0]).toEqual(
+                        [{page: 1, fulltext: 'EVENTS'}]
+                    );
                     done();
                 })
                 .catch(done.fail);
@@ -230,9 +186,10 @@ describe('actions.main', () => {
             store.initialState.main.filter = 'PLANNING';
             store.test(done, main.search('PLANNING'))
                 .then(() => {
-                    expect(planningUi.fetchToList.callCount).toBe(1);
-                    expect(planningUi.fetchToList.args[0][0].page).toBe(1);
-                    expect(planningUi.fetchToList.args[0][0].fulltext).toBe('PLANNING');
+                    expect(planningApi.ui.list.updateSearchAndReloadList.callCount).toBe(1);
+                    expect(planningApi.ui.list.updateSearchAndReloadList.args[0]).toEqual(
+                        [{page: 1, fulltext: 'PLANNING'}]
+                    );
                     done();
                 })
                 .catch(done.fail);
@@ -242,8 +199,10 @@ describe('actions.main', () => {
             store.initialState.main.filter = 'COMBINED';
             store.test(done, main.search('COMBINED'))
                 .then(() => {
-                    expect(eventsPlanningUi.fetch.callCount).toBe(1);
-                    expect(eventsPlanningUi.fetch.args[0]).toEqual([{page: 1, fulltext: 'COMBINED'}]);
+                    expect(planningApi.ui.list.updateSearchAndReloadList.callCount).toBe(1);
+                    expect(planningApi.ui.list.updateSearchAndReloadList.args[0]).toEqual(
+                        [{page: 1, fulltext: 'COMBINED'}]
+                    );
                     done();
                 })
                 .catch(done.fail);
@@ -252,23 +211,25 @@ describe('actions.main', () => {
 
     describe('clearSearch', () => {
         beforeEach(() => {
-            sinon.stub(eventsUi, 'fetchEvents').returns(Promise.resolve());
-            sinon.stub(planningUi, 'fetchToList').returns(Promise.resolve());
-            sinon.stub(eventsPlanningUi, 'fetch').returns(Promise.resolve());
+            sinon.stub(planningApi.ui.list, 'reloadListPages').callsFake(() => (Promise.resolve({})));
+            sinon.stub(eventsUi, 'requestEvents').returns(Promise.resolve());
+            sinon.stub(planningUi, 'requestPlannings').returns(Promise.resolve());
+            sinon.stub(eventsPlanningUi, 'requestEventsPlanning').returns(Promise.resolve());
         });
 
         afterEach(() => {
-            restoreSinonStub(eventsUi.fetchEvents);
-            restoreSinonStub(planningUi.fetchToList);
-            restoreSinonStub(eventsPlanningUi.fetch);
+            restoreSinonStub(planningApi.ui.list.reloadListPages);
+            restoreSinonStub(eventsUi.requestEvents);
+            restoreSinonStub(planningUi.requestPlannings);
+            restoreSinonStub(eventsPlanningUi.requestEventsPlanning);
         });
 
         it('clear search events', (done) => {
             store.initialState.main.filter = 'EVENTS';
             store.test(done, main.clearSearch())
                 .then(() => {
-                    expect(eventsUi.fetchEvents.callCount).toBe(1);
-                    expect(eventsUi.fetchEvents.args[0]).toEqual([{
+                    expect(eventsUi.requestEvents.callCount).toBe(1);
+                    expect(eventsUi.requestEvents.args[0]).toEqual([{
                         noCalendarAssigned: false,
                         calendars: null,
                         advancedSearch: {},
@@ -287,8 +248,8 @@ describe('actions.main', () => {
             store.initialState.agenda.currentAgendaId = AGENDA.FILTER.ALL_PLANNING;
             store.test(done, main.clearSearch())
                 .then(() => {
-                    expect(planningUi.fetchToList.callCount).toBe(1);
-                    expect(planningUi.fetchToList.args[0]).toEqual([{
+                    expect(planningUi.requestPlannings.callCount).toBe(1);
+                    expect(planningUi.requestPlannings.args[0]).toEqual([{
                         noAgendaAssigned: false,
                         agendas: null,
                         advancedSearch: {},
@@ -307,8 +268,8 @@ describe('actions.main', () => {
             store.initialState.main.filter = 'COMBINED';
             store.test(done, main.clearSearch())
                 .then(() => {
-                    expect(eventsPlanningUi.fetch.callCount).toBe(1);
-                    expect(eventsPlanningUi.fetch.args[0]).toEqual([{
+                    expect(eventsPlanningUi.requestEventsPlanning.callCount).toBe(1);
+                    expect(eventsPlanningUi.requestEventsPlanning.args[0]).toEqual([{
                         advancedSearch: {},
                         page: 1,
                         fulltext: '',

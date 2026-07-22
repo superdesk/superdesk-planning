@@ -10,68 +10,76 @@ import {
     IEventSearchParams,
     IPlanningAPI,
     IPlanningSearchParams,
+    IReloadPagePayload,
     ISearchFilter,
     ISearchParams,
     LIST_VIEW_TYPE,
     PLANNING_VIEW,
     SORT_FIELD,
     SORT_ORDER,
-    IReloadPagePayload,
 } from '../../interfaces';
 import {planningApi, superdeskApi} from '../../superdeskApi';
 import {appConfig} from 'appConfig';
 import {AGENDA, EVENTS, EVENTS_PLANNING, MAIN} from '../../constants';
 
-import {activeFilter, getCurrentListViewType, lastRequestParams} from '../../selectors/main';
-import {getEventFilterParams} from '../../selectors/events';
-import {getPlanningFilterParams} from '../../selectors/planning';
-import {getEventsPlanningViewParams} from '../../selectors/eventsplanning';
+import {
+    activeFilter,
+    combinedTotalItems,
+    eventsTotalItems,
+    getCurrentListViewType,
+    lastRequestParams,
+    planningTotalItems,
+} from '../../selectors/main';
+import {eventIdsInList, getEventFilterParams} from '../../selectors/events';
+import {getPlanningFilterParams, planIdsInList} from '../../selectors/planning';
+import {getEventsPlanningList, getEventsPlanningViewParams} from '../../selectors/eventsplanning';
 import {getErrorMessage, gettext} from '../../utils';
 import {throttlePromise} from '../../utils/throttle';
 import {
-    searchParamsToOld,
-    removeUndefinedParams,
     combinedParamsToSearchParams,
-    planningParamsToSearchParams,
     eventParamsToSearchParams,
+    planningParamsToSearchParams,
+    removeUndefinedParams,
+    searchParamsToOld,
 } from '../../utils/search';
 
 import * as actions from '../../actions';
 
-function _refetchListItemPages(): Promise<{items: Array<IEventOrPlanningItem>, total: number}> {
+function _fetchPage(page: number): Promise<IRestApiResponse<IEventOrPlanningItem>> {
     const {getState} = planningApi.redux.store;
-    const currentView = activeFilter(getState());
-    const previousParams = lastRequestParams(getState());
-    let currentPage = 1;
-    let params = {
-        ...previousParams,
-        page: currentPage,
+    const state = getState();
+    const currentView = activeFilter(state);
+    const params = {
+        ...lastRequestParams(state),
+        page: page,
     };
+
+    switch (currentView) {
+    case MAIN.FILTERS.PLANNING:
+        return planningApi.planning.search(planningParamsToSearchParams(params));
+    case MAIN.FILTERS.EVENTS:
+        return planningApi.events.search(eventParamsToSearchParams(params));
+    default:
+        return planningApi.combined.search(combinedParamsToSearchParams(params));
+    }
+}
+
+function _refetchListItemPages(): Promise<{items: Array<IEventOrPlanningItem>, total: number, numberOfPages: number}> {
+    const {getState} = planningApi.redux.store;
+    const numberOfPages = lastRequestParams(getState())?.page ?? 1;
     let items: Array<IEventOrPlanningItem> = [];
     let total = 0;
-    let getNextPage: () => Promise<IRestApiResponse<IEventOrPlanningItem>>;
-    const lastPage = previousParams.page ?? 1;
 
-    if (currentView === MAIN.FILTERS.PLANNING) {
-        getNextPage = () => planningApi.planning.search(planningParamsToSearchParams(params));
-    } else if (currentView === MAIN.FILTERS.EVENTS) {
-        getNextPage = () => planningApi.events.search(eventParamsToSearchParams(params));
-    } else {
-        getNextPage = () => planningApi.combined.search(combinedParamsToSearchParams(params));
-    }
+    const requestPromises = Array.from({length: numberOfPages}, (_, index) => _fetchPage(index + 1));
 
-    const getPages = () => getNextPage().then((response) => {
-        items = items.concat(response._items);
-
-        currentPage++;
-        if (lastPage >= currentPage) {
-            params.page = currentPage;
-            return getPages();
-        }
-        total = response._meta.total;
-    });
-
-    return getPages().then(() => ({items, total}));
+    return Promise.all(requestPromises)
+        .then((pageResults) => {
+            total = pageResults[0]._meta.total;
+            pageResults.forEach((pageData) => {
+                items = items.concat(pageData._items);
+            });
+        })
+        .then(() => ({items, total, numberOfPages}));
 }
 
 const RELOAD_LIST_PAGES_COOLDOWN_MS = 1000;
@@ -92,62 +100,11 @@ function reloadListPages(forViewType: PLANNING_VIEW): Promise<IReloadPagePayload
 }
 
 function _reloadListPages(): Promise<IReloadPagePayload | null> {
-    const {getState, dispatch} = planningApi.redux.store;
-    const state = getState();
-    const currentView = activeFilter(state);
-    const currentListViewType = getCurrentListViewType(state);
+    const {dispatch} = planningApi.redux.store;
 
     dispatch(actions.main.setUnsetLoadingIndicator(true));
     return _refetchListItemPages()
-        .then(({items, total}) => {
-            const payload: IReloadPagePayload = {
-                currentView: currentView,
-                total: total,
-                items: items,
-                events: [],
-                plannings: [],
-                relatedPlannings: {},
-                listViewType: currentListViewType,
-            };
-
-            items.forEach((item) => {
-                if (item.type === 'event') {
-                    payload.events.push(item);
-                } else if (item.type === 'planning') {
-                    payload.plannings.push(item);
-                }
-            });
-
-            if (currentView === MAIN.FILTERS.COMBINED && appConfig.planning_expand_related_plannings) {
-                const eventsWithPlannings: Array<IEventItem> = payload.events.filter(
-                    (item) => (item.planning_ids?.length ?? 0) > 0
-                );
-
-                if (eventsWithPlannings.length === 0) {
-                    return payload;
-                }
-
-                const eventIds = eventsWithPlannings.map((event) => event._id);
-
-                return planningApi.planning
-                    .getByEventIds(eventIds)
-                    .then((plannings) => {
-                        payload.plannings = payload.plannings.concat(plannings);
-
-                        payload.relatedPlannings = eventsWithPlannings.reduce(
-                            (acc, curr) => {
-                                acc[curr._id] = curr.planning_ids;
-                                return acc;
-                            },
-                            {},
-                        );
-
-                        return payload;
-                    });
-            }
-
-            return payload;
-        })
+        .then(({items, total, numberOfPages}) => _processPageLoad(items, total, numberOfPages))
         .then((payload) => {
             if (payload.plannings.length > 0) {
                 dispatch(actions.contacts.fetchContactsFromPlanning(payload.plannings));
@@ -168,42 +125,155 @@ function _reloadListPages(): Promise<IReloadPagePayload | null> {
         });
 }
 
-function reloadList(params: ICombinedEventOrPlanningSearchParams = {}) {
-    const {getState, dispatch} = planningApi.redux.store;
-    const currentView = activeFilter(getState());
-    let promise: Promise<any>;
+function getItemTotalsAndPage(): [number, number, number] {
+    const {getState} = planningApi.redux.store;
+    const state = getState();
+    const currentView = activeFilter(state);
+    const lastParams = lastRequestParams(state);
+    const lastPage = lastRequestParams(state)?.page ?? 1;
+    const nextPage = lastParams.lastPageReceivedInFull === true ? lastPage + 1 : lastPage;
+
+    switch (currentView) {
+    case MAIN.FILTERS.PLANNING:
+        return [planIdsInList(state)?.length ?? 0, planningTotalItems(state), nextPage];
+    case MAIN.FILTERS.EVENTS:
+        return [eventIdsInList(state)?.length ?? 0, eventsTotalItems(state), nextPage];
+    default:
+        return [getEventsPlanningList(state)?.length ?? 0, combinedTotalItems(state), nextPage];
+    }
+}
+
+function _processPageLoad(
+    items: Array<IEventOrPlanningItem>,
+    total: number,
+    numberOfPages: number,
+): Promise<IReloadPagePayload> {
+    const {getState} = planningApi.redux.store;
+    const state = getState();
+    const currentView = activeFilter(state);
+    const payload: IReloadPagePayload = {
+        currentView: currentView,
+        total: total,
+        items: items,
+        events: [],
+        plannings: [],
+        relatedPlannings: {},
+        listViewType: getCurrentListViewType(state),
+        lastPage: numberOfPages,
+    };
+
+    items.forEach((item) => {
+        if (item.type === 'event') {
+            payload.events.push(item);
+        } else if (item.type === 'planning') {
+            payload.plannings.push(item);
+        }
+    });
+
+    if (currentView === MAIN.FILTERS.COMBINED && appConfig.planning_expand_related_plannings) {
+        const eventsWithPlannings: Array<IEventItem> = payload.events.filter(
+            (item) => (item.planning_ids?.length ?? 0) > 0
+        );
+
+        if (eventsWithPlannings.length === 0) {
+            return Promise.resolve(payload);
+        }
+
+        const eventIds = eventsWithPlannings.map((event) => event._id);
+
+        return planningApi.planning
+            .getByEventIds(eventIds)
+            .then((plannings) => {
+                payload.plannings = payload.plannings.concat(plannings);
+
+                payload.relatedPlannings = eventsWithPlannings.reduce(
+                    (acc, curr) => {
+                        acc[curr._id] = curr.planning_ids;
+                        return acc;
+                    },
+                    {},
+                );
+
+                return payload;
+            });
+    }
+
+    return Promise.resolve(payload);
+}
+
+function loadNextPage(): Promise<IReloadPagePayload | null> {
+    const {dispatch} = planningApi.redux.store;
+    const [listTotal, searchTotal, nextPage] = getItemTotalsAndPage();
+
+    if (listTotal === searchTotal) {
+        return Promise.resolve(null);
+    }
 
     dispatch(actions.main.setUnsetLoadingIndicator(true));
+    return _fetchPage(nextPage)
+        .then((response) => _processPageLoad(response._items, response._meta.total, nextPage))
+        .then((payload) => {
+            if (payload.plannings.length > 0) {
+                dispatch(actions.contacts.fetchContactsFromPlanning(payload.plannings));
+            }
+            dispatch({type: MAIN.ACTIONS.NEXT_PAGE_LOADED, payload: payload});
+
+            return payload;
+        })
+        .catch((error) => {
+            superdeskApi.ui.notify.error(
+                getErrorMessage(error, gettext('Failed to load next page'))
+            );
+
+            return null;
+        })
+        .finally(() => {
+            dispatch(actions.main.setUnsetLoadingIndicator(false));
+        });
+}
+
+function updateSearchAndReloadList(
+    params: ICombinedEventOrPlanningSearchParams = {},
+    updateUrlParams: boolean = false
+) {
+    const {getState, dispatch} = planningApi.redux.store;
+    const currentView = activeFilter(getState());
+
+    dispatch(actions.main.setUnsetLoadingIndicator(true));
+    if (updateUrlParams) {
+        superdeskApi.browser.location.urlParams.setJson('searchParams', params);
+    }
 
     if (currentView === MAIN.FILTERS.PLANNING) {
         dispatch(actions.eventsPlanning.ui.clearList());
         dispatch(actions.events.ui.clearList());
-        promise = dispatch<any>(actions.planning.ui.fetchToList({
+        dispatch(actions.planning.ui.requestPlannings({
             ...getPlanningFilterParams(getState()),
             ...params,
             page: 1,
         }));
+        return reloadListPages(PLANNING_VIEW.PLANNING);
     } else if (currentView === MAIN.FILTERS.EVENTS) {
         dispatch(actions.eventsPlanning.ui.clearList());
         dispatch(actions.planning.ui.clearList());
-        promise = dispatch<any>(actions.events.ui.fetchEvents({
+        dispatch(actions.events.ui.requestEvents({
             ...getEventFilterParams(getState()),
             ...params,
             page: 1,
         }));
+        return reloadListPages(PLANNING_VIEW.EVENTS);
     } else {
         dispatch(actions.events.ui.clearList());
         dispatch(actions.planning.ui.clearList());
-        promise = dispatch<any>(actions.eventsPlanning.ui.fetch({
-            ...getEventsPlanningViewParams(getState()),
-            ...params,
-            page: 1,
-        }));
+        dispatch(
+            actions.eventsPlanning.ui.requestEventsPlanning({
+                ...getEventsPlanningViewParams(getState()),
+                ...params,
+                page: 1,
+            })
+        );
+        return reloadListPages(PLANNING_VIEW.COMBINED);
     }
-
-    return promise.finally(() => {
-        dispatch(actions.main.setUnsetLoadingIndicator(false));
-    });
 }
 
 function clearList() {
@@ -248,7 +318,7 @@ function changeFilterId(id: ISearchFilter['_id'], params: ICombinedEventOrPlanni
     }
     urlParams.setString('eventsPlanningFilter', id);
 
-    return reloadList(params);
+    return updateSearchAndReloadList(params);
 }
 
 function changeCalendarId(id: ICalendar['qcode'], params: IEventSearchParams = {}) {
@@ -262,7 +332,7 @@ function changeCalendarId(id: ICalendar['qcode'], params: IEventSearchParams = {
 
     urlParams.setString('calendar', id);
     urlParams.setString('eventsPlanningFilter', null);
-    return reloadList(params);
+    return updateSearchAndReloadList(params);
 }
 
 function changeAgendaId(id: IAgenda['_id'], params: IPlanningSearchParams = {}) {
@@ -276,7 +346,7 @@ function changeAgendaId(id: IAgenda['_id'], params: IPlanningSearchParams = {}) 
 
     urlParams.setString('agenda', id);
     urlParams.setString('eventsPlanningFilter', null);
-    return reloadList(params);
+    return updateSearchAndReloadList(params);
 }
 
 function changeCurrentView(view: PLANNING_VIEW) {
@@ -288,7 +358,7 @@ function changeCurrentView(view: PLANNING_VIEW) {
         payload: view,
     });
     urlParams.setString('filter', view);
-    return reloadList();
+    return updateSearchAndReloadList();
 }
 
 function search(newParams: ISearchParams) {
@@ -310,7 +380,7 @@ function search(newParams: ISearchParams) {
         dates.start = moment(dates.end).subtract(1, 'days');
     }
 
-    return reloadList(params);
+    return updateSearchAndReloadList(params, true);
 }
 
 function clearSearch() {
@@ -321,7 +391,7 @@ function clearSearch() {
         payload: activeFilter(getState()),
     });
 
-    return reloadList();
+    return updateSearchAndReloadList({}, true);
 }
 
 function setViewType(viewType: LIST_VIEW_TYPE) {
@@ -350,10 +420,11 @@ function setViewType(viewType: LIST_VIEW_TYPE) {
             page: 1,
         };
 
-    return reloadList(params);
+    return updateSearchAndReloadList(params);
 }
 
 export const list: IPlanningAPI['ui']['list'] = {
+    updateSearchAndReloadList,
     changeFilterId,
     changeCalendarId,
     changeAgendaId,
@@ -363,4 +434,5 @@ export const list: IPlanningAPI['ui']['list'] = {
     setViewType,
     changeCurrentView,
     reloadListPages,
+    loadNextPage,
 };

@@ -835,8 +835,8 @@ function filter(ftype?: PLANNING_VIEW) {
         });
         urlParams.setString('listViewType', listViewType);
 
-        const previousParams = omit(lastRequestParams(getState()) || {}, 'page');
-        const searchParams = omit(urlParams.getJson('searchParams', {}), 'page');
+        const previousParams = omit(lastRequestParams(getState()) || {}, ['page', 'lastPageReceivedInFull']);
+        const searchParams = omit(urlParams.getJson('searchParams', {}), ['page', 'lastPageReceivedInFull']);
         let params = previousParams;
 
         if (filterType === urlParams.getString('filter') && isEmpty(previousParams) || isNewSearch) {
@@ -900,40 +900,6 @@ function _filter(filterType: PLANNING_VIEW, params: ICombinedEventOrPlanningSear
     };
 }
 
-const loadMore = (filterType) => (
-    (dispatch, getState, {notify}) => {
-        if (!filterType) {
-            const errMessage = gettext('Cannot load more data as filter type is not selected.');
-
-            notify.error(errMessage);
-            return Promise.reject(errMessage);
-        }
-
-        let promise = Promise.resolve();
-
-        dispatch(self.setUnsetLoadingIndicator(true));
-        if (filterType === MAIN.FILTERS.EVENTS) {
-            promise = dispatch(eventsUi.loadMore());
-        } else if (filterType === MAIN.FILTERS.PLANNING) {
-            promise = dispatch(planningUi.loadMore());
-        } else if (filterType === MAIN.FILTERS.COMBINED) {
-            promise = dispatch(eventsPlanningUi.loadMore());
-        }
-
-        return promise
-            .then(
-                (results) => Promise.resolve(results),
-                (error) => {
-                    notify.error(gettext('Cannot load more data. Failed to run the query.'));
-                    return Promise.reject(error);
-                }
-            )
-            .finally(() => {
-                dispatch(self.setUnsetLoadingIndicator(false));
-            });
-    }
-);
-
 /**
  * Action to search based on the search parameters
  * @param {string} fulltext - Fulltext search
@@ -968,29 +934,10 @@ const search = (fulltext, currentSearch = undefined) => (
             ...advancedSearch,
         };
 
-        let promise = Promise.resolve();
-
-        dispatch(self.setUnsetLoadingIndicator(true));
-        if (filterType === MAIN.FILTERS.EVENTS) {
-            promise = dispatch(eventsUi.fetchEvents(params));
-        } else if (filterType === MAIN.FILTERS.PLANNING) {
-            promise = dispatch(fetchSelectedAgendaPlannings(params));
-        } else if (filterType === MAIN.FILTERS.COMBINED) {
-            promise = dispatch(eventsPlanningUi.fetch(params));
-        }
-
         dispatch(self.setUnsetUserInitiatedSearch(true));
-        return promise
-            .then(
-                (results) => Promise.resolve(results),
-                (error) => {
-                    notify.error(gettext('Failed to run the query..'));
-                    return Promise.reject(error);
-                }
-            )
+        return planningApi.ui.list.updateSearchAndReloadList(params)
             .finally(() => {
                 dispatch(self.setUnsetUserInitiatedSearch(false));
-                dispatch(self.setUnsetLoadingIndicator(false));
             });
     }
 );
@@ -1673,7 +1620,6 @@ const self = {
     _filter,
     openConfirmationModal,
     closePreview,
-    loadMore,
     search,
     searchAdvancedSearch,
     clearSearch,

@@ -100,6 +100,24 @@ function reloadListPages(state: IEventState, payload: IReloadPagePayload) {
     }
 }
 
+function nextPageLoaded(state: IEventState, payload: IReloadPagePayload) {
+    if (payload.currentView === MAIN.FILTERS.EVENTS) {
+        return modifyEventsBeingAdded(
+            state,
+            payload.events,
+            uniq([
+                ...state.eventsInList,
+                ...payload.items.map((event) => event._id),
+            ]),
+            payload.listViewType,
+        );
+    } else {
+        // We only want to update the stored Events here, as the list will be updated in the
+        // `eventsplanning` or `planning` reducers.
+        return modifyEventsBeingAdded(state, payload.events);
+    }
+}
+
 const eventsReducer = createReducer<IEventState>(initialState, {
     [RESET_STORE]: () => ({...initialState}),
 
@@ -109,6 +127,7 @@ const eventsReducer = createReducer<IEventState>(initialState, {
         modifyEventsBeingAdded(state, payload)
     ),
     [MAIN.ACTIONS.RELOAD_LIST_PAGES]: reloadListPages,
+    [MAIN.ACTIONS.NEXT_PAGE_LOADED]: nextPageLoaded,
     [EVENTS.ACTIONS.SET_EVENTS_LIST]: (state, payload) => (
         {
             ...state,

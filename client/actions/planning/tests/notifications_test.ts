@@ -405,22 +405,18 @@ describe('actions.planning.notifications', () => {
 
     describe('onPlanningPosted', () => {
         beforeEach(() => {
-            sinon.stub(eventsPlanningUi, 'refetch').callsFake(() => (Promise.resolve()));
+            sinon.stub(planningApi.ui.list, 'reloadListPages').callsFake(() => (Promise.resolve({})));
         });
 
         afterEach(() => {
-            restoreSinonStub(planningUi.refetch);
-            restoreSinonStub(eventsPlanningUi.refetch);
+            restoreSinonStub(planningApi.ui.list.reloadListPages);
         });
 
         it('onPlanningPosted calls fetchToList', (done) => {
-            sinon.stub(planningUi, 'refetch').callsFake(() => (Promise.resolve()));
-
             store.test(done, planningNotifications.onPlanningPosted({}, {item: 'p1'}))
                 .then(() => {
-                // Reloads selected Agenda Plannings
-                    expect(planningUi.refetch.callCount).toBe(1);
-                    expect(eventsPlanningUi.refetch.callCount).toBe(1);
+                    // Reloads selected Agenda Plannings
+                    expect(planningApi.ui.list.reloadListPages.callCount).toBe(1);
                     done();
                 })
                 .catch(done.fail);
@@ -432,8 +428,7 @@ describe('actions.planning.notifications', () => {
             restoreSinonStub(planningNotifications.onPlanningSpiked);
             sinon.stub(main, 'closePreviewAndEditorForItems').callsFake(() => (Promise.resolve()));
             sinon.stub(main, 'setUnsetLoadingIndicator').callsFake(() => (Promise.resolve()));
-            sinon.stub(planningUi, 'scheduleRefetch').callsFake(() => (Promise.resolve()));
-            sinon.stub(eventsPlanningUi, 'scheduleRefetch').callsFake(() => (Promise.resolve()));
+            sinon.stub(planningApi.ui.list, 'reloadListPages').callsFake(() => (Promise.resolve({})));
             sinon.stub(eventsPlanningUi, 'refetchPlanning').callsFake(() => (Promise.resolve()));
             sinon.stub(featuredPlanning, 'getAndUpdateStoredPlanningItem').callsFake(
                 () => (Promise.resolve())
@@ -443,8 +438,7 @@ describe('actions.planning.notifications', () => {
         afterEach(() => {
             restoreSinonStub(main.closePreviewAndEditorForItems);
             restoreSinonStub(main.setUnsetLoadingIndicator);
-            restoreSinonStub(planningUi.scheduleRefetch);
-            restoreSinonStub(eventsPlanningUi.scheduleRefetch);
+            restoreSinonStub(planningApi.ui.list.reloadListPages);
             restoreSinonStub(eventsPlanningUi.refetchPlanning);
             restoreSinonStub(featuredPlanning.getAndUpdateStoredPlanningItem);
         });
@@ -457,7 +451,6 @@ describe('actions.planning.notifications', () => {
                 etag: 'e123',
             }))
                 .then(() => {
-                    expect(store.dispatch.callCount).toBe(8);
                     expect(store.dispatch.args[0]).toEqual([{
                         type: PLANNING.ACTIONS.SPIKE_PLANNING,
                         payload: {
@@ -474,14 +467,7 @@ describe('actions.planning.notifications', () => {
                         'The Planning item was spiked',
                     ]);
 
-                    expect(main.setUnsetLoadingIndicator.callCount).toBe(2);
-                    expect(main.setUnsetLoadingIndicator.args).toEqual([
-                        [true],
-                        [false],
-                    ]);
-
-                    expect(planningUi.scheduleRefetch.callCount).toBe(1);
-                    expect(eventsPlanningUi.scheduleRefetch.callCount).toBe(1);
+                    expect(planningApi.ui.list.reloadListPages.callCount).toBe(1);
                     expect(featuredPlanning.getAndUpdateStoredPlanningItem.callCount).toBe(1);
                     expect(eventsPlanningUi.refetchPlanning.callCount).toBe(1);
                     done();
@@ -495,7 +481,6 @@ describe('actions.planning.notifications', () => {
                 etag: 'e123',
             }))
                 .then(() => {
-                    expect(store.dispatch.callCount).toBe(8);
                     expect(store.dispatch.args[0]).toEqual([{
                         type: PLANNING.ACTIONS.UNSPIKE_PLANNING,
                         payload: {
@@ -511,14 +496,7 @@ describe('actions.planning.notifications', () => {
                         'The Planning item was unspiked',
                     ]);
 
-                    expect(main.setUnsetLoadingIndicator.callCount).toBe(2);
-                    expect(main.setUnsetLoadingIndicator.args).toEqual([
-                        [true],
-                        [false],
-                    ]);
-
-                    expect(planningUi.scheduleRefetch.callCount).toBe(1);
-                    expect(eventsPlanningUi.scheduleRefetch.callCount).toBe(1);
+                    expect(planningApi.ui.list.reloadListPages.callCount).toBe(1);
                     expect(featuredPlanning.getAndUpdateStoredPlanningItem.callCount).toBe(1);
                     expect(eventsPlanningUi.refetchPlanning.callCount).toBe(1);
 

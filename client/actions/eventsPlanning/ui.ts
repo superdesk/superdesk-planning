@@ -31,38 +31,6 @@ const fetch = (params = {}) => (
     }
 );
 
-/**
- * Action to load next page of the events and planning combined view
- * @return object - Object containing array of events and planning
- */
-const loadMore = () => (
-    (dispatch, getState) => {
-        const previousParams = selectors.main.lastRequestParams(getState());
-        const totalItems = selectors.main.combinedTotalItems(getState());
-        const eventsPlanningIdsList = selectors.eventsPlanning.getEventsPlanningList(getState());
-
-        if (totalItems === get(eventsPlanningIdsList, 'length', 0)) {
-            return Promise.resolve();
-        }
-
-        const params = {
-            ...previousParams,
-            page: get(previousParams, 'page', 1) + 1,
-        };
-
-        return dispatch(eventsAndPlanningApi.query(params, true))
-            .then((results) => {
-                if (get(results, 'length', 0) === MAIN.PAGE_SIZE) {
-                    dispatch(self.requestEventsPlanning(params));
-                }
-
-                dispatch(self.receiveEventsPlanning(results));
-                dispatch(self.addToList(results));
-                return results;
-            });
-    }
-);
-
 const refetch = (updateFilter = false) => (
     (dispatch, getState) => {
         var previewId = selectors.main.previewId(getState());
@@ -355,7 +323,6 @@ const self = {
     showRelatedPlannings,
     _showRelatedPlannings,
     loadAllRelatedPlannings,
-    loadMore,
     requestEventsPlanning,
     refetch,
     receiveEventsPlanning,

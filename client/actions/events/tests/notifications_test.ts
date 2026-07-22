@@ -267,6 +267,7 @@ describe('actions.events.notifications', () => {
     describe('onEventPostChanged', () => {
         beforeEach(() => {
             restoreSinonStub(eventsNotifications.onEventPostChanged);
+            sinon.stub(planningApi.ui.list, 'reloadListPages').callsFake(() => (Promise.resolve({})));
             sinon.stub(planningApis, 'loadPlanningByEventId').callsFake(
                 () => (Promise.resolve())
             );
@@ -274,6 +275,7 @@ describe('actions.events.notifications', () => {
 
         afterEach(() => {
             restoreSinonStub(planningApis.loadPlanningByEventId);
+            restoreSinonStub(planningApi.ui.list.reloadListPages);
         });
 
         xit('dispatches `MARK_EVENT_POSTED`', (done) => (
@@ -460,8 +462,9 @@ describe('actions.events.notifications', () => {
                 }
             ))
                 .then(() => {
-                    expect(store.dispatch.callCount).toBe(6);
+                    expect(planningApi.ui.list.reloadListPages.callCount).toBe(1);
                     expect(planningApis.loadPlanningByEventId.callCount).toBe(1);
+                    expect(planningApis.loadPlanningByEventId.args[0]).toEqual([data.events[0]._id]);
                     done();
                 })
         ).catch(done.fail));
@@ -619,16 +622,12 @@ describe('actions.events.notifications', () => {
         beforeEach(() => {
             restoreSinonStub(eventsNotifications.onEventSpiked);
             sinon.stub(main, 'closePreviewAndEditorForItems').callsFake(() => (Promise.resolve()));
-            sinon.stub(main, 'setUnsetLoadingIndicator').callsFake(() => (Promise.resolve()));
-            sinon.stub(eventsUi, 'scheduleRefetch').callsFake(() => (Promise.resolve()));
-            sinon.stub(eventsPlanningUi, 'scheduleRefetch').callsFake(() => (Promise.resolve()));
+            sinon.stub(planningApi.ui.list, 'reloadListPages').callsFake(() => (Promise.resolve({})));
         });
 
         afterEach(() => {
             restoreSinonStub(main.closePreviewAndEditorForItems);
-            restoreSinonStub(main.setUnsetLoadingIndicator);
-            restoreSinonStub(eventsUi.scheduleRefetch);
-            restoreSinonStub(eventsPlanningUi.scheduleRefetch);
+            restoreSinonStub(planningApi.ui.list.reloadListPages);
         });
 
         it('onEventSpiked dispatches `SPIKE_EVENT`', (done) => (
@@ -641,7 +640,6 @@ describe('actions.events.notifications', () => {
                 }],
             }))
                 .then(() => {
-                    expect(store.dispatch.callCount).toBe(6);
                     expect(store.dispatch.args[0]).toEqual([{
                         type: EVENTS.ACTIONS.SPIKE_EVENT,
                         payload: {
@@ -665,14 +663,7 @@ describe('actions.events.notifications', () => {
                         'id',
                     ]);
 
-                    expect(main.setUnsetLoadingIndicator.callCount).toBe(2);
-                    expect(main.setUnsetLoadingIndicator.args).toEqual([
-                        [true],
-                        [false],
-                    ]);
-
-                    expect(eventsUi.scheduleRefetch.callCount).toBe(1);
-                    expect(eventsPlanningUi.scheduleRefetch.callCount).toBe(1);
+                    expect(planningApi.ui.list.reloadListPages.callCount).toBe(1);
 
                     done();
                 })
@@ -688,7 +679,6 @@ describe('actions.events.notifications', () => {
                 }],
             }))
                 .then(() => {
-                    expect(store.dispatch.callCount).toBe(6);
                     expect(store.dispatch.args[0]).toEqual([{
                         type: EVENTS.ACTIONS.UNSPIKE_EVENT,
                         payload: {
@@ -712,14 +702,7 @@ describe('actions.events.notifications', () => {
                         'id',
                     ]);
 
-                    expect(main.setUnsetLoadingIndicator.callCount).toBe(2);
-                    expect(main.setUnsetLoadingIndicator.args).toEqual([
-                        [true],
-                        [false],
-                    ]);
-
-                    expect(eventsUi.scheduleRefetch.callCount).toBe(1);
-                    expect(eventsPlanningUi.scheduleRefetch.callCount).toBe(1);
+                    expect(planningApi.ui.list.reloadListPages.callCount).toBe(1);
 
                     done();
                 })

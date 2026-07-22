@@ -33,7 +33,6 @@ describe('actions.planning.ui', () => {
         sinon.stub(planningUi, 'setInList').callsFake(() => ({type: 'setInList'}));
         sinon.stub(planningUi, 'addToList').callsFake(() => ({type: 'addToList'}));
         sinon.stub(planningUi, 'fetchToList').callsFake(() => (Promise.resolve()));
-        sinon.stub(planningUi, 'loadMore').callsFake(() => (Promise.resolve()));
         sinon.stub(planningUi, 'refetch').callsFake(() => (Promise.resolve()));
         sinon.stub(assignmentApi, 'link').callsFake(() => (Promise.resolve()));
         sinon.stub(planningUi, 'saveFromAuthoring').callsFake(() => (Promise.resolve()));
@@ -58,18 +57,11 @@ describe('actions.planning.ui', () => {
         restoreSinonStub(planningUi.refetch);
         restoreSinonStub(assignmentApi.link);
         restoreSinonStub(planningUi.saveFromAuthoring);
-        restoreSinonStub(planningUi.loadMore);
-
         restoreSinonStub(main.closePreviewAndEditorForItems);
         restoreSinonStub(main.openForEdit);
     });
 
     describe('spike', () => {
-        afterEach(() => {
-            restoreSinonStub(planningApis.refetch);
-            restoreSinonStub(planningUi.refetch);
-        });
-
         it('ui.spike notifies end user on successful spike', (done) => (
             store.test(done, planningUi.spike(data.plannings[1]))
                 .then((item) => {
@@ -247,78 +239,6 @@ describe('actions.planning.ui', () => {
 
                 expect(planningUi.setInList.callCount).toBe(1);
                 expect(planningUi.setInList.args[0]).toEqual([['p1', 'p2']]);
-
-                done();
-            })
-            .catch(done.fail);
-    });
-
-    it('loadMore with data fetched less than page size', (done) => {
-        store.initialState.main.filter = MAIN.FILTERS.PLANNING;
-        store.initialState.main.search.PLANNING.totalItems = 50;
-        store.initialState.main.search.PLANNING.lastRequestParams = {
-            agendas: ['a1'],
-            noAgendaAssigned: false,
-            page: 1,
-        };
-
-        restoreSinonStub(planningUi.loadMore);
-        restoreSinonStub(planningApis.fetch);
-        sinon.stub(planningApis, 'fetch').callsFake(
-            () => (Promise.resolve(data.plannings))
-        );
-
-        const expectedParams = {
-            agendas: ['a1'],
-            noAgendaAssigned: false,
-            page: 2,
-        };
-
-        store.test(done, planningUi.loadMore())
-            .then(() => {
-                expect(planningUi.requestPlannings.callCount).toBe(0);
-
-                expect(planningApis.fetch.callCount).toBe(1);
-                expect(planningApis.fetch.args[0]).toEqual([expectedParams]);
-
-                expect(planningUi.addToList.callCount).toBe(1);
-                expect(planningUi.addToList.args[0]).toEqual([['p1', 'p2']]);
-
-                done();
-            })
-            .catch(done.fail);
-    });
-
-    it('loadMore with data fetched equal to page size', (done) => {
-        store.initialState.main.filter = MAIN.FILTERS.PLANNING;
-        store.initialState.main.search.PLANNING.totalItems = MAIN.PAGE_SIZE * 2;
-        store.initialState.main.search.PLANNING.lastRequestParams = {
-            agendas: ['a1'],
-            noAgendaAssigned: false,
-            page: 1,
-        };
-
-        restoreSinonStub(planningUi.loadMore);
-        restoreSinonStub(planningApis.fetch);
-        sinon.stub(planningApis, 'fetch').callsFake(
-            () => (Promise.resolve(Array.from(Array(MAIN.PAGE_SIZE).keys())))
-        );
-
-        const expectedParams = {
-            agendas: ['a1'],
-            noAgendaAssigned: false,
-            page: 2,
-        };
-
-        store.test(done, planningUi.loadMore())
-            .then(() => {
-                expect(planningUi.requestPlannings.callCount).toBe(1);
-                expect(planningUi.requestPlannings.args[0]).toEqual([expectedParams]);
-
-                expect(planningApis.fetch.callCount).toBe(1);
-                expect(planningApis.fetch.args[0]).toEqual([expectedParams]);
-
-                expect(planningUi.addToList.callCount).toBe(1);
 
                 done();
             })

@@ -168,6 +168,7 @@ export const isViewFiltered = createSelector<
             'advancedSearch',
             'itemIds',
             'page',
+            'lastPageReceivedInFull',
             'startOfWeek',
             'sortField',
             'sortOrder',
