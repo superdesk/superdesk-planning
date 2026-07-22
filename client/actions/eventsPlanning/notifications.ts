@@ -2,7 +2,6 @@ import eventsPlanningUi from './ui';
 import * as selectors from '../../selectors';
 import {gettext} from '../../utils';
 import {EVENTS_PLANNING, MAIN} from '../../constants';
-import {PLANNING_VIEW} from '../../interfaces';
 import {planningApis} from '../../api';
 
 const onEventPlaningFilterCreatedOrUpdated = (_e, data) => (
