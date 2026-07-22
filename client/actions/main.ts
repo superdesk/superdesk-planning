@@ -835,8 +835,8 @@ function filter(ftype?: PLANNING_VIEW) {
         });
         urlParams.setString('listViewType', listViewType);
 
-        const previousParams = omit(lastRequestParams(getState()) || {}, 'page');
-        const searchParams = omit(urlParams.getJson('searchParams', {}), 'page');
+        const previousParams = omit(lastRequestParams(getState()) || {}, ['page', 'lastPageReceivedInFull']);
+        const searchParams = omit(urlParams.getJson('searchParams', {}), ['page', 'lastPageReceivedInFull']);
         let params = previousParams;
 
         if (filterType === urlParams.getString('filter') && isEmpty(previousParams) || isNewSearch) {

@@ -232,11 +232,17 @@ function loadNextPage(): Promise<IReloadPagePayload | null> {
         });
 }
 
-function updateSearchAndReloadList(params: ICombinedEventOrPlanningSearchParams = {}) {
+function updateSearchAndReloadList(
+    params: ICombinedEventOrPlanningSearchParams = {},
+    updateUrlParams: boolean = false
+) {
     const {getState, dispatch} = planningApi.redux.store;
     const currentView = activeFilter(getState());
 
     dispatch(actions.main.setUnsetLoadingIndicator(true));
+    if (updateUrlParams) {
+        superdeskApi.browser.location.urlParams.setJson('searchParams', params);
+    }
 
     if (currentView === MAIN.FILTERS.PLANNING) {
         dispatch(actions.eventsPlanning.ui.clearList());
@@ -374,7 +380,7 @@ function search(newParams: ISearchParams) {
         dates.start = moment(dates.end).subtract(1, 'days');
     }
 
-    return updateSearchAndReloadList(params);
+    return updateSearchAndReloadList(params, true);
 }
 
 function clearSearch() {
@@ -385,7 +391,7 @@ function clearSearch() {
         payload: activeFilter(getState()),
     });
 
-    return updateSearchAndReloadList();
+    return updateSearchAndReloadList({}, true);
 }
 
 function setViewType(viewType: LIST_VIEW_TYPE) {

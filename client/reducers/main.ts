@@ -38,7 +38,7 @@ const modifyParams = (state, payload) => {
         params[key] = {
             ...params[key],
             currentSearch: {
-                ...omit(payloadParam, ['fulltext', 'page']),
+                ...omit(payloadParam, ['fulltext', 'page', 'lastPageReceivedInFull']),
             },
             fulltext: payloadParam.fulltext,
         };
