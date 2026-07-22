@@ -67,7 +67,6 @@ function _fetchPage(page: number): Promise<IRestApiResponse<IEventOrPlanningItem
 function _refetchListItemPages(): Promise<{items: Array<IEventOrPlanningItem>, total: number, numberOfPages: number}> {
     const {getState} = planningApi.redux.store;
     const numberOfPages = lastRequestParams(getState())?.page ?? 1;
-    let currentPage = 1;
     let items: Array<IEventOrPlanningItem> = [];
     let total = 0;
 
@@ -101,10 +100,7 @@ function reloadListPages(forViewType: PLANNING_VIEW): Promise<IReloadPagePayload
 }
 
 function _reloadListPages(): Promise<IReloadPagePayload | null> {
-    const {getState, dispatch} = planningApi.redux.store;
-    const state = getState();
-    const currentView = activeFilter(state);
-    const currentListViewType = getCurrentListViewType(state);
+    const {dispatch} = planningApi.redux.store;
 
     dispatch(actions.main.setUnsetLoadingIndicator(true));
     return _refetchListItemPages()
@@ -205,17 +201,17 @@ function _processPageLoad(
     return payload;
 }
 
-function loadNextPage(): Promise<IReloadPagePayload | undefined> {
+function loadNextPage(): Promise<IReloadPagePayload | null> {
     const {dispatch} = planningApi.redux.store;
     const [listTotal, searchTotal, nextPage] = getItemTotalsAndPage();
 
     if (listTotal === searchTotal) {
-        return Promise.resolve();
+        return Promise.resolve(null);
     }
 
     dispatch(actions.main.setUnsetLoadingIndicator(true));
     return _fetchPage(nextPage)
-        .then((response) => _processPageLoad(response._items, searchTotal, nextPage))
+        .then((response) => _processPageLoad(response._items, response._meta.total, nextPage))
         .then((payload) => {
             if (payload.plannings.length > 0) {
                 dispatch(actions.contacts.fetchContactsFromPlanning(payload.plannings));
