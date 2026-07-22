@@ -13,7 +13,7 @@ describe('planningApi.ui.list', () => {
     const mockSearchResponse = {
         _items: [],
         _links: {},
-        _meta: {total: 0},
+        _meta: {total: 10},
     };
 
     beforeEach(() => {
@@ -320,16 +320,18 @@ describe('planningApi.ui.list', () => {
     describe('loadNextPage', () => {
         it('calls the search API for the next page when more items are available', (done) => {
             // With default state (COMBINED view), listTotal > searchTotal so fetch is triggered
-            planningApi.ui.list.loadNextPage()
+            planningApi.ui.list.updateSearchAndReloadList()
+                .then(() => planningApi.ui.list.loadNextPage())
                 .then(() => {
-                    expect(planningApi.combined.search.callCount).toBe(1);
+                    expect(planningApi.combined.search.callCount).toBe(2);
                     done();
                 })
                 .catch(done.fail);
         });
 
         it('dispatches NEXT_PAGE_LOADED after a successful page fetch', (done) => {
-            planningApi.ui.list.loadNextPage()
+            planningApi.ui.list.updateSearchAndReloadList()
+                .then(() => planningApi.ui.list.loadNextPage())
                 .then(() => {
                     expect(redux.dispatch.args.some((args) => (
                         args[0]?.type === MAIN.ACTIONS.NEXT_PAGE_LOADED
@@ -345,7 +347,8 @@ describe('planningApi.ui.list', () => {
 
             const errorCallsBefore = superdeskApi.ui.notify.error.callCount;
 
-            planningApi.ui.list.loadNextPage()
+            planningApi.ui.list.updateSearchAndReloadList()
+                .then(() => planningApi.ui.list.loadNextPage())
                 .then((result) => {
                     expect(result).toBeNull();
                     expect(superdeskApi.ui.notify.error.callCount).toBe(errorCallsBefore + 1);
