@@ -176,7 +176,7 @@ function _processPageLoad(
         );
 
         if (eventsWithPlannings.length === 0) {
-            return payload;
+            return Promise.resolve(payload);
         }
 
         const eventIds = eventsWithPlannings.map((event) => event._id);
@@ -198,7 +198,7 @@ function _processPageLoad(
             });
     }
 
-    return payload;
+    return Promise.resolve(payload);
 }
 
 function loadNextPage(): Promise<IReloadPagePayload | null> {
