@@ -189,8 +189,7 @@ function onPlanningUnlocked(_e: {}, data: IWebsocketMessageData['ITEM_UNLOCKED']
 const onPlanningPosted = (_e, data) => (
     (dispatch) => {
         if (get(data, 'item')) {
-            dispatch(planning.ui.scheduleRefetch());
-            dispatch(eventsPlanning.ui.scheduleRefetch());
+            planningApi.ui.list.reloadListPages(PLANNING_VIEW.PLANNING);
             dispatch(main.fetchItemHistory({_id: data.item, type: ITEM_TYPE.PLANNING}));
             dispatch(eventsPlanning.ui.refetchPlanning(data.item));
             dispatch(planning.featuredPlanning.getAndUpdateStoredPlanningItem(data.item));
@@ -221,13 +220,8 @@ const onPlanningSpiked = (_e, data) => (
             ));
 
             dispatch(planning.featuredPlanning.getAndUpdateStoredPlanningItem(data.item));
-            dispatch(main.setUnsetLoadingIndicator(true));
-            return dispatch(planning.ui.scheduleRefetch())
-                .then(() => {
-                    dispatch(eventsPlanning.ui.refetchPlanning(data.item));
-                    return dispatch(eventsPlanning.ui.scheduleRefetch());
-                })
-                .finally(() => dispatch(main.setUnsetLoadingIndicator(false)));
+            dispatch(eventsPlanning.ui.refetchPlanning(data.item));
+            return planningApi.ui.list.reloadListPages(PLANNING_VIEW.PLANNING);
         }
 
         return Promise.resolve();
@@ -253,14 +247,8 @@ const onPlanningUnspiked = (_e, data) => (
                     gettext('The Planning item was unspiked')
             ));
             dispatch(planning.featuredPlanning.getAndUpdateStoredPlanningItem(data.item));
-
-            dispatch(main.setUnsetLoadingIndicator(true));
-            return dispatch(planning.ui.scheduleRefetch())
-                .then(() => {
-                    dispatch(eventsPlanning.ui.refetchPlanning(data.item));
-                    return dispatch(eventsPlanning.ui.scheduleRefetch());
-                })
-                .finally(() => dispatch(main.setUnsetLoadingIndicator(false)));
+            dispatch(eventsPlanning.ui.refetchPlanning(data.item));
+            return planningApi.ui.list.reloadListPages(PLANNING_VIEW.PLANNING);
         }
 
         return Promise.resolve();
@@ -391,28 +379,6 @@ const onPlanningFilesUpdated = (_e, data) => (
     (dispatch) => (dispatch(planning.api.getFiles([data.item])))
 );
 
-const expandRelatedPlanningsIfNeeded = (eventId) => (
-    (dispatch, getState) => {
-        if (!appConfig.planning_expand_related_plannings) {
-            return Promise.resolve();
-        }
-
-        const relatedPlannings = selectors.eventsPlanning.getRelatedPlanningsList(getState());
-
-        if (relatedPlannings[eventId] != null) {
-            return Promise.resolve();
-        }
-
-        const event = selectors.events.storedEvents(getState())[eventId];
-
-        if (event) {
-            return dispatch(eventsPlanning.ui.showRelatedPlannings(event));
-        }
-
-        return Promise.resolve();
-    }
-);
-
 // eslint-disable-next-line consistent-this
 const self: any = {
     onPlanningCreated,
@@ -430,7 +396,6 @@ const self: any = {
     onPlanningFeaturedLocked,
     onPlanningFeaturedUnLocked,
     onPlanningFilesUpdated,
-    expandRelatedPlanningsIfNeeded,
 };
 
 // Map of notification name and Action Event to execute

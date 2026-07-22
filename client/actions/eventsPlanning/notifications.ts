@@ -2,6 +2,8 @@ import eventsPlanningUi from './ui';
 import * as selectors from '../../selectors';
 import {gettext} from '../../utils';
 import {EVENTS_PLANNING, MAIN} from '../../constants';
+import {PLANNING_VIEW} from '../../interfaces';
+import {planningApis} from '../../api';
 
 const onEventPlaningFilterCreatedOrUpdated = (_e, data) => (
     (dispatch, getState, {notify}) => {
@@ -15,7 +17,7 @@ const onEventPlaningFilterCreatedOrUpdated = (_e, data) => (
                         notify.warning(
                             gettext('The Event and Planning filter you were viewing is modified!')
                         );
-                        return dispatch(eventsPlanningUi.scheduleRefetch(true));
+                        return planningApis.ui.list.updateSearchAndReloadList({filter_id: currentFilter});
                     }
                     return Promise.resolve();
                 });
@@ -39,7 +41,7 @@ const onEventPlaningFilterDeleted = (_e, data) => (
                             gettext('The Event and Planning filter you were viewing is deleted!')
                         );
 
-                        return dispatch(eventsPlanningUi.scheduleRefetch(true));
+                        return planningApis.ui.list.updateSearchAndReloadList({filter_id: null});
                     }
                     return Promise.resolve();
                 });
