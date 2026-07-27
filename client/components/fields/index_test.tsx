@@ -99,6 +99,48 @@ describe('profile driven field rendering', () => {
             expect(renderProfileGroupedFields('form-preview', null, globalProps, {})).toBe(null);
             expect(renderProfileGroupedFields('form-preview', {}, globalProps, {})).toBe(null);
         });
+
+        it('renders group node overrides at the group profile position', () => {
+            const profile = {
+                ...getProfile(),
+                editor: {
+                    ...getProfile().editor,
+                    related_plannings: {enabled: true, group: 'related', index: 0},
+                },
+                groups: {
+                    related: {_id: 'related', name: 'Related', index: 0},
+                    main: {_id: 'main', name: 'Main', index: 1},
+                    details: {_id: 'details', name: 'Details', index: 2, useToggleBox: true},
+                },
+            };
+            const overrideNode = 'override-content';
+            const groups: any = renderProfileGroupedFields(
+                'form-preview', profile, globalProps, {}, [], {related: overrideNode},
+            );
+
+            expect(groups.length).toBe(3);
+            expect(groups[0].key).toBe('related');
+            expect(groups[0].props.children).toBe(overrideNode);
+            expect(groups[1].key).toBe('main');
+
+            // A null override skips the group entirely
+            const withoutSection: any = renderProfileGroupedFields(
+                'form-preview', profile, globalProps, {}, [], {related: null},
+            );
+
+            expect(withoutSection.map((group) => group.key)).toEqual(['main', 'details']);
+        });
+
+        it('appends group node overrides after the fields when the profile has no groups', () => {
+            const profile = {...getProfile(), groups: {}};
+            const rendered: any = renderProfileGroupedFields(
+                'form-preview', profile, globalProps, {}, [], {related: 'override-content'},
+            );
+
+            expect(rendered.length).toBe(2);
+            expect(rendered[1].key).toBe('related');
+            expect(rendered[1].props.children).toBe('override-content');
+        });
     });
 
     describe('renderProfileFieldsFlat', () => {

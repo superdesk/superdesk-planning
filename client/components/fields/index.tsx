@@ -378,6 +378,9 @@ export function renderProfileFieldsFlat(
 /**
  * Renders panel fields with the profile's field order, groups and toggle boxes,
  * same as the editor. Falls back to flat rendering when the profile has no groups.
+ * `groupNodeOverrides` replaces a whole group with a custom node at the group's
+ * profile position (a null value skips the group); used for bespoke sections
+ * like related plannings.
  */
 export function renderProfileGroupedFields(
     panelType: IRenderPanelType,
@@ -385,6 +388,7 @@ export function renderProfileGroupedFields(
     globalProps: {[key: string]: any},
     fieldProps: {[key: string]: any},
     excludeFields: Array<string> = [],
+    groupNodeOverrides: {[groupId: string]: React.ReactNode} = {},
 ) {
     if (profile?.editor == null) {
         return null;
@@ -394,11 +398,23 @@ export function renderProfileGroupedFields(
     const groupIds = Object.keys(formGroups).sort((a, b) => formGroups[a].index - formGroups[b].index);
 
     if (groupIds.length === 0) {
-        return renderProfileFieldsFlat(panelType, profile, globalProps, fieldProps, excludeFields);
+        const flatFields = renderProfileFieldsFlat(panelType, profile, globalProps, fieldProps, excludeFields);
+        const overrideNodes = Object.entries(groupNodeOverrides)
+            .filter(([, node]) => node != null)
+            .map(([groupId, node]) => <React.Fragment key={groupId}>{node}</React.Fragment>);
+
+        // No groups to derive positions from: bespoke sections go after the fields
+        return overrideNodes.length === 0 ? flatFields : [flatFields, ...overrideNodes];
     }
 
     return groupIds
         .map((groupId) => {
+            if (Object.prototype.hasOwnProperty.call(groupNodeOverrides, groupId)) {
+                const node = groupNodeOverrides[groupId];
+
+                return node == null ? null : <React.Fragment key={groupId}>{node}</React.Fragment>;
+            }
+
             const group = formGroups[groupId];
 
             // Fields that render their own toggle box (files, links) must not

@@ -63,6 +63,30 @@ export class EventPreviewContentComponent extends React.PureComponent<IProps> {
         const versionCreator = get(updatedBy, 'display_name') ? updatedBy :
             users.find((user) => user._id === updatedBy);
 
+        // Rendered at the profile position of the `related_plannings` group
+        const relatedPlanningsNode = hideRelatedItems ? null : (
+            <>
+                {item._plannings && (
+                    <h3 className="side-panel__heading side-panel__heading--big">
+                        {gettext('Related Plannings')}
+                    </h3>
+                )}
+                {get(item, '_plannings.length') > 0 ? (
+                    <RelatedPlannings
+                        className="related-plannings"
+                        plannings={item._plannings}
+                        openPlanningItem={true}
+                        expandable={true}
+                        users={users}
+                        desks={desks}
+                        allowEditPlanning={true}
+                    />
+                ) :
+                    <span className="sd-text__info">{gettext('No related planning items.')}</span>
+                }
+            </>
+        );
+
         return (
             <ContentBlock>
                 <div className="side-panel__content-block--flex">
@@ -98,28 +122,8 @@ export class EventPreviewContentComponent extends React.PureComponent<IProps> {
                     },
                     {},
                     ['recurring_rules', 'related_plannings'],
+                    {related_plannings: relatedPlanningsNode},
                 )}
-
-                {!hideRelatedItems && item._plannings && (
-                    <h3 className="side-panel__heading side-panel__heading--big">
-                        {gettext('Related Planning Items')}
-                    </h3>
-                )}
-                {!hideRelatedItems && get(item, '_plannings.length') > 0 ? (
-                    <RelatedPlannings
-                        className="related-plannings"
-                        plannings={item._plannings}
-                        openPlanningItem={true}
-                        expandable={true}
-                        users={users}
-                        desks={desks}
-                        allowEditPlanning={true}
-                    />
-                ) :
-                    !hideRelatedItems &&
-                    <span className="sd-text__info">{gettext('No related planning items.')}</span>
-                }
-
             </ContentBlock>
         );
     }

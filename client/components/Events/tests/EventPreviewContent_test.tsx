@@ -75,11 +75,13 @@ describe('<EventPreviewContent />', () => {
             subject: {enabled: true, group: 'details', index: 1},
             definition_long: {enabled: true, group: 'details', index: 2},
             internal_note: {enabled: true, group: 'details', index: 3},
+            related_plannings: {enabled: true, group: 'related_plannings', index: 0},
             ednote: {enabled: false},
         },
         groups: {
             main: {_id: 'main', name: 'Main', index: 0},
             details: {_id: 'details', name: 'Details', index: 1, useToggleBox: true},
+            related_plannings: {_id: 'related_plannings', name: 'Related Plannings', index: 2},
         },
     };
 
@@ -189,6 +191,11 @@ describe('<EventPreviewContent />', () => {
 
         expect(linkLabel.text()).toBe('www.google.com');
         expect(linkValue.text()).toBe('https://www.google.com');
+
+        // The related plannings section renders at its profile group position, after the toggle groups
+        const html = wrapper.html();
+
+        expect(html.indexOf('Related Plannings')).toBeGreaterThan(html.indexOf('toggle-details'));
 
         let relatedPlannings = wrapper.find('.related-plannings');
 
