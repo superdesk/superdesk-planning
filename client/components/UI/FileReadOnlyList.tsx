@@ -22,6 +22,7 @@ interface IProps {
     files: Array<IFile>;
     field?: string;
     noToggle: boolean;
+    testId?: string;
 }
 
 export default class FileReadOnlyList extends React.PureComponent<IProps> {
@@ -70,6 +71,7 @@ export default class FileReadOnlyList extends React.PureComponent<IProps> {
 
         return (
             <ToggleBox
+                testId={this.props.testId}
                 title={gettext('Attached Files')}
                 isOpen={false}
                 badgeValue={get(item, `${field}.length`, 0) > 0 ? item[field].length : null}

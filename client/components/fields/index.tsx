@@ -9,6 +9,7 @@ import {
     PREVIEW_PANEL,
 } from '../../interfaces';
 import {superdeskApi} from '../../superdeskApi';
+import {getEditorFormGroupsFromProfile, getEnabledProfileFields} from '../../utils/contentProfiles';
 
 import {name} from './name';
 import {slugline} from './slugline';
@@ -28,6 +29,8 @@ import {FIELD_TO_EDITOR_COMPONENT} from './editor';
 import {FIELD_TO_LIST_COMPONENT} from './list';
 
 import {FIELD_TO_FORM_PREVIEW_COMPONENT, FIELD_TO_PREVIEW_COMPONENT} from './preview';
+import {PreviewFieldCustomVocabulary} from './preview/CustomVocabulary';
+import {PreviewFieldCustomTextField} from './preview/CustomTextField';
 
 import {ToggleBox} from '../UI/ToggleBox';
 import './style.scss';
@@ -133,12 +136,13 @@ export function renderFieldsForPanel(
     refs: {[key: string]: React.RefObject<any>} = {},
     schema?: {[key: string]: IProfileSchemaType},
     coverageProfile?: ISearchProfile,
+    addCustomVocabulariesField: boolean = true,
 ) {
     const fieldComponents = getFieldsForPanel(panelType);
     const fields: {[key: string]: IRenderFieldItem} = {};
 
     // Only render custom_vocabularies for preview. Otherwise rendering in editor is done differently
-    if ((panelType === 'simple-preview' || panelType === 'form-preview')) {
+    if ((panelType === 'simple-preview' || panelType === 'form-preview') && addCustomVocabulariesField) {
         const schemes = new Set<string>((globalProps.item?.subject ?? []).map((x) => x.scheme));
 
         if ((schemes.size > 0 || !schemes.has('subject'))) {
@@ -169,6 +173,20 @@ export function renderFieldsForPanel(
 
         if (schema?.[fieldName] != null) {
             newField.props.schema = schema[fieldName];
+        }
+
+        // Custom vocabulary/text fields have no static preview component
+        // (the vocabulary id is the field name), resolve them by schema type
+        if (newField.component == null && (panelType === 'simple-preview' || panelType === 'form-preview')) {
+            const schemaType = schema?.[fieldName]?.type ?? globalProps?.schema?.[fieldName]?.type;
+
+            if (schemaType === 'custom_vocabulary') {
+                newField.component = PreviewFieldCustomVocabulary;
+                newField.props.fieldName = fieldName;
+            } else if (schemaType === 'custom_text') {
+                newField.component = PreviewFieldCustomTextField;
+                newField.props.fieldName = fieldName;
+            }
         }
 
         if (newField.component == null) {
@@ -268,6 +286,159 @@ export function renderGroupedFieldsForPanel(
 
         return null;
     })
+        .filter((group) => group != null);
+}
+
+/**
+ * Returns `fieldProps` pointing custom vocabulary/text fields at their
+ * value arrays (`subject` / `fields`) under `basePath`.
+ */
+export function getCustomFieldSourcePaths(
+    profile,
+    basePath: string,
+): {[key: string]: {field: string}} {
+    const fieldProps: {[key: string]: {field: string}} = {};
+
+    Object.keys(profile?.schema ?? {}).forEach((fieldName) => {
+        const fieldType = profile.schema[fieldName]?.type;
+
+        if (fieldType === 'custom_vocabulary') {
+            fieldProps[fieldName] = {field: `${basePath}.subject`};
+        } else if (fieldType === 'custom_text') {
+            fieldProps[fieldName] = {field: `${basePath}.fields`};
+        }
+    });
+
+    return fieldProps;
+}
+
+function renderProfileFieldsInOrder(
+    panelType: IRenderPanelType,
+    fieldNames: Array<string>,
+    globalProps: {[key: string]: any},
+    fieldProps: {[key: string]: any},
+    excludeFields: Array<string>,
+) {
+    const orderedProfile: ISearchProfile = {};
+
+    fieldNames
+        .filter((fieldName) => !excludeFields.includes(fieldName))
+        .forEach((fieldName, index) => {
+            orderedProfile[fieldName] = {enabled: true, index: index};
+        });
+
+    if (Object.keys(orderedProfile).length === 0) {
+        return null;
+    }
+
+    return renderFieldsForPanel(
+        panelType,
+        orderedProfile,
+        globalProps,
+        fieldProps,
+        undefined,
+        undefined,
+        'enabled',
+        {},
+        undefined,
+        undefined,
+        false, // CVs render as individual fields, not the combined block
+    );
+}
+
+/**
+ * Renders panel fields flat, in profile field order, without group containers.
+ * Matches the coverage editor (which ignores groups), for coverage based previews.
+ */
+export function renderProfileFieldsFlat(
+    panelType: IRenderPanelType,
+    profile,
+    globalProps: {[key: string]: any},
+    fieldProps: {[key: string]: any},
+    excludeFields: Array<string> = [],
+) {
+    if (profile?.editor == null) {
+        return null;
+    }
+
+    // Sorted copy: getGroupFieldsSorted() would re-index the store profile in place
+    const fieldNames = getEnabledProfileFields(profile)
+        .sort((a, b) => a.field.index - b.field.index)
+        .map((entry) => entry.name);
+
+    return renderProfileFieldsInOrder(
+        panelType,
+        fieldNames,
+        globalProps,
+        fieldProps,
+        excludeFields,
+    );
+}
+
+/**
+ * Renders panel fields with the profile's field order, groups and toggle boxes,
+ * same as the editor. Falls back to flat rendering when the profile has no groups.
+ */
+export function renderProfileGroupedFields(
+    panelType: IRenderPanelType,
+    profile,
+    globalProps: {[key: string]: any},
+    fieldProps: {[key: string]: any},
+    excludeFields: Array<string> = [],
+) {
+    if (profile?.editor == null) {
+        return null;
+    }
+
+    const formGroups = getEditorFormGroupsFromProfile(profile);
+    const groupIds = Object.keys(formGroups).sort((a, b) => formGroups[a].index - formGroups[b].index);
+
+    if (groupIds.length === 0) {
+        return renderProfileFieldsFlat(panelType, profile, globalProps, fieldProps, excludeFields);
+    }
+
+    return groupIds
+        .map((groupId) => {
+            const group = formGroups[groupId];
+
+            // Fields that render their own toggle box (files, links) must not
+            // nest it inside the group's toggle box
+            const fieldPropsForGroup = !group.useToggleBox ? fieldProps : group.fields.reduce(
+                (acc, fieldName) => {
+                    acc[fieldName] = {...fieldProps[fieldName], noToggle: true};
+
+                    return acc;
+                },
+                {...fieldProps},
+            );
+
+            const renderedFields = renderProfileFieldsInOrder(
+                panelType,
+                group.fields,
+                globalProps,
+                fieldPropsForGroup,
+                excludeFields,
+            );
+
+            if (renderedFields == null) {
+                return null;
+            }
+
+            return group.useToggleBox ? (
+                <ToggleBox
+                    key={groupId}
+                    isOpen={false}
+                    title={group.title}
+                    testId={`toggle-${groupId}`}
+                >
+                    {renderedFields}
+                </ToggleBox>
+            ) : (
+                <div key={groupId} data-test-id={`preview-group__${groupId}`}>
+                    {renderedFields}
+                </div>
+            );
+        })
         .filter((group) => group != null);
 }
 

@@ -56,6 +56,33 @@ describe('<EventPreviewContent />', () => {
         event_contact_info: [storeContact._id],
     };
 
+    // The preview follows the profile's field order and groups
+    astore.initialState.forms.profiles.event = {
+        ...astore.initialState.forms.profiles.event,
+        editor: {
+            slugline: {enabled: true, group: 'main', index: 0},
+            name: {enabled: true, group: 'main', index: 1},
+            definition_short: {enabled: true, group: 'main', index: 2},
+            occur_status: {enabled: true, group: 'main', index: 3},
+            dates: {enabled: true, group: 'main', index: 4},
+            calendars: {enabled: true, group: 'main', index: 5},
+            place: {enabled: true, group: 'main', index: 6},
+            location: {enabled: true, group: 'main', index: 7},
+            event_contact_info: {enabled: true, group: 'main', index: 8},
+            files: {enabled: true, group: 'main', index: 9},
+            links: {enabled: true, group: 'main', index: 10},
+            anpa_category: {enabled: true, group: 'details', index: 0},
+            subject: {enabled: true, group: 'details', index: 1},
+            definition_long: {enabled: true, group: 'details', index: 2},
+            internal_note: {enabled: true, group: 'details', index: 3},
+            ednote: {enabled: false},
+        },
+        groups: {
+            main: {_id: 'main', name: 'Main', index: 0},
+            details: {_id: 'details', name: 'Details', index: 1, useToggleBox: true},
+        },
+    };
+
     astore.initialState.planning.plannings.p2.original_creator =
         astore.initialState.users[0];
     astore.initialState.main.previewId = 'e1';
@@ -121,11 +148,11 @@ describe('<EventPreviewContent />', () => {
         verifyDataRow(dataRows.at(5), 'Calendars:', 'Sport');
         verifyDataRow(dataRows.at(6), 'Places:', 'ACT');
 
-        let eventDetails = wrapper.find('.toggle-box').first();
+        const eventDetails = wrapper.find('[data-test-id="toggle-details"]').first();
 
         eventDetails.find('.toggle-box__header').simulate('click');
 
-        const eventDetailRows = wrapper.find('.toggle-box').first()
+        const eventDetailRows = wrapper.find('[data-test-id="toggle-details"]').first()
             .find('.toggle-box__content')
             .find('.form__row');
 
@@ -141,20 +168,20 @@ describe('<EventPreviewContent />', () => {
                 .trim()
         ).toBe(`${storeContact.first_name} ${storeContact.last_name}`);
 
-        let files = wrapper.find('.toggle-box').at(1);
+        let files = wrapper.find('[data-test-id="field-files"]').first();
 
         files.find('.toggle-box__header').simulate('click');
-        files = wrapper.find('.toggle-box').at(1);
+        files = wrapper.find('[data-test-id="field-files"]').first();
 
         const file = files.find(FileInput).first();
         const fileValue = file.find('a').first();
 
         expect(fileValue.text()).toContain('file1.jpg  (1kB)');
 
-        let links = wrapper.find('.toggle-box').at(2);
+        let links = wrapper.find('[data-test-id="field-links"]').first();
 
         links.find('.toggle-box__header').simulate('click');
-        links = wrapper.find('.toggle-box').at(2);
+        links = wrapper.find('[data-test-id="field-links"]').first();
 
         const link = links.find(LinkInput).first();
         const linkLabel = link.find('label').first();

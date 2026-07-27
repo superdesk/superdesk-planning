@@ -1,3 +1,57 @@
+/**
+ * Planning content profile used by the preview panel specs.
+ *
+ * The backend merges this record field-by-field into the default planning
+ * profile, so every field that is enabled in the default profile must be
+ * explicitly disabled (or re-grouped) here, otherwise it would still render.
+ * The merge semantics live in `merge_planning_type` in
+ * `server/planning/content_profiles/planning_types_async_service.py`.
+ *
+ * Layout under test:
+ * - group "main" (plain container): description_text, slugline, priority,
+ *   planning_date, internal_note; deliberately not the default field order.
+ * - group "extra" (useToggleBox): anpa_category.
+ * - "name" is enabled but assigned to no group, so it must not render.
+ */
+export const PLANNING_PROFILE_GROUPED_PREVIEW = {
+    _id: 'planning',
+    name: 'planning',
+    editor: {
+        description_text: {enabled: true, group: 'main', index: 1},
+        slugline: {enabled: true, group: 'main', index: 2},
+        priority: {enabled: true, group: 'main', index: 3},
+        planning_date: {enabled: true, group: 'main', index: 4},
+        internal_note: {enabled: true, group: 'main', index: 5},
+        anpa_category: {enabled: true, group: 'extra', index: 1},
+        name: {enabled: true, group: null, index: 6},
+        ednote: {enabled: false},
+        agendas: {enabled: false},
+        subject: {enabled: false},
+        urgency: {enabled: false},
+        marked_for_not_publication: {enabled: false},
+    },
+    groups: {
+        main: {
+            _id: 'main',
+            name: 'Main',
+            index: 10,
+            showBookmark: true,
+            icon: 'align-left',
+            useToggleBox: false,
+            translations: {name: {}},
+        },
+        extra: {
+            _id: 'extra',
+            name: 'Extra',
+            index: 11,
+            showBookmark: true,
+            icon: 'info-sign',
+            useToggleBox: true,
+            translations: {name: {}},
+        },
+    },
+};
+
 export const ADVANCED_SEARCH = {
     "_id": "advanced_search",
     "name": "advanced_search",

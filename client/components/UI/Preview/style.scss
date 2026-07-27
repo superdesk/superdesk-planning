@@ -1,4 +1,10 @@
 .sd-text__expandable-link {
     cursor: pointer;
     user-select: none;
+    color: var(--sd-colour-interactive);
+    text-decoration: underline;
+
+    &:hover {
+        text-decoration: none;
+    }
 }

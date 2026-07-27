@@ -4,9 +4,9 @@ import {get} from 'lodash';
 
 import {IDesk, IUser} from 'superdesk-api';
 import {superdeskApi} from '../../superdeskApi';
-import {IEventFormProfile, IEventItem, IFile, PREVIEW_PANEL} from '../../interfaces';
+import {IEventFormProfile, IEventItem} from '../../interfaces';
 
-import {getCreator, getFileDownloadURL} from '../../utils';
+import {getCreator} from '../../utils';
 import {getUserInterfaceLanguageFromCV} from '../../utils/users';
 import * as selectors from '../../selectors';
 
@@ -15,12 +15,10 @@ import {
     RelatedPlannings,
     StateLabel,
 } from '../index';
-import {ToggleBox, FileReadOnlyList} from '../UI';
 import {ContentBlock} from '../UI/SidePanel';
-import {LinkInput} from '../UI/Form';
 import * as actions from '../../actions';
 
-import {renderGroupedFieldsForPanel, previewGroupToProfile} from '../fields';
+import {renderProfileGroupedFields} from '../fields';
 
 interface IProps {
     item: IEventItem;
@@ -29,7 +27,6 @@ interface IProps {
     formProfile: IEventFormProfile;
     fetchEventFiles(event: IEventItem): Promise<void>;
     hideRelatedItems?: boolean;
-    files: {[key: string]: IFile};
 }
 
 const mapStateToProps = (state, ownProps) => ({
@@ -38,7 +35,6 @@ const mapStateToProps = (state, ownProps) => ({
     users: selectors.general.users(state),
     desks: selectors.general.desks(state),
     formProfile: selectors.forms.eventProfile(state),
-    files: selectors.general.files(state),
     contacts: selectors.general.contacts(state),
 });
 
@@ -59,7 +55,6 @@ export class EventPreviewContentComponent extends React.PureComponent<IProps> {
             desks,
             formProfile,
             hideRelatedItems,
-            files,
         } = this.props;
         const createdBy = getCreator(item, 'original_creator', users);
         const updatedBy = getCreator(item, 'version_creator', users);
@@ -91,9 +86,9 @@ export class EventPreviewContentComponent extends React.PureComponent<IProps> {
                     </div>
                 </div>
 
-                {renderGroupedFieldsForPanel(
+                {renderProfileGroupedFields(
                     'form-preview',
-                    previewGroupToProfile(PREVIEW_PANEL.EVENT, formProfile),
+                    formProfile,
                     {
                         item: item,
                         language: item.language ?? getUserInterfaceLanguageFromCV(),
@@ -102,33 +97,9 @@ export class EventPreviewContentComponent extends React.PureComponent<IProps> {
                         profile: formProfile,
                     },
                     {},
+                    ['recurring_rules', 'related_plannings'],
                 )}
 
-                <FileReadOnlyList
-                    formProfile={formProfile}
-                    files={files}
-                    item={item}
-                    createLink={getFileDownloadURL}
-                />
-
-                {get(formProfile, 'editor.links.enabled') && (
-                    <ToggleBox
-                        title={gettext('External Links')}
-                        isOpen={false}
-                        badgeValue={get(item, 'links.length', 0) > 0 ? item.links.length : null}
-                    >
-                        {get(item, 'links.length') > 0 ? (
-                            <ul>
-                                {get(item, 'links', []).map((link, index) => (
-                                    <li key={index}>
-                                        <LinkInput value={link} readOnly={true} />
-                                    </li>
-                                ))}
-                            </ul>
-                        ) :
-                            <span className="sd-text__info">{gettext('No external links added.')}</span>}
-                    </ToggleBox>
-                )}
                 {!hideRelatedItems && item._plannings && (
                     <h3 className="side-panel__heading side-panel__heading--big">
                         {gettext('Related Planning Items')}

@@ -10,7 +10,6 @@ import {
     IFile,
     IPlanningFormProfile,
     IPlanningItem,
-    PREVIEW_PANEL,
 } from '../../../interfaces';
 
 import {assignmentUtils, planningUtils} from '../../../utils';
@@ -18,7 +17,7 @@ import {assignmentUtils, planningUtils} from '../../../utils';
 import {ContactsPreviewList} from '../../Contacts/ContactsPreviewList';
 import {Row} from '../../UI/Preview';
 import {FileReadOnlyList} from '../../UI';
-import {previewGroupToProfile, renderFieldsForPanel} from '../../fields';
+import {getCustomFieldSourcePaths, renderProfileFieldsFlat} from '../../fields';
 
 interface IProps {
     assignment: IAssignmentItem;
@@ -35,6 +34,43 @@ interface IProps {
 }
 
 export class AssignmentPreview extends React.PureComponent<IProps> {
+    /**
+     * Coverage profile fields read from the coverage (`assignment.planning`),
+     * except a few sourced from the planning item.
+     */
+    getFieldProps(profile: ICoverageContentProfile | ICoverageFormProfile): {[key: string]: {[key: string]: any}} {
+        const planningItemFields = ['anpa_category', 'subject', 'location'];
+        const fieldProps: {[key: string]: {[key: string]: any}} = {
+            ...getCustomFieldSourcePaths(profile, 'coverage'),
+        };
+
+        Object.keys(profile?.editor ?? {}).forEach((fieldName) => {
+            if (fieldProps[fieldName] == null) {
+                fieldProps[fieldName] = {
+                    field: planningItemFields.includes(fieldName) ?
+                        `planning.${fieldName}` :
+                        `coverage.${fieldName}`,
+                };
+            }
+        });
+
+        return fieldProps;
+    }
+
+    /**
+     * Fields the coverage profile does not cover but the planning profile enables
+     * (place, category, subject) keep rendering from the planning item, as before
+     * the previews became profile driven.
+     */
+    getPlanningOnlyExcludes(coverageProfile, planningProfile): Array<string> {
+        const planningItemFields = ['place', 'anpa_category', 'subject'];
+
+        return Object.keys(planningProfile?.editor ?? {}).filter((fieldName) => (
+            !planningItemFields.includes(fieldName) ||
+            coverageProfile?.editor?.[fieldName]?.enabled
+        ));
+    }
+
     render() {
         const {gettext} = superdeskApi.localization;
         const {
@@ -47,6 +83,7 @@ export class AssignmentPreview extends React.PureComponent<IProps> {
             createLink,
         } = this.props;
 
+        const profile = assignmentCoverageProfile ?? coverageFormProfile;
         const planning: Partial<ICoveragePlanningDetails> = assignment?.planning ?? {};
         const contactId = assignment?.assigned_to?.contact ?? planning?.contact_info;
         const showXMPFiles = planningUtils.showXMPFileUIControl(assignment);
@@ -61,33 +98,49 @@ export class AssignmentPreview extends React.PureComponent<IProps> {
                     </Row>
                 )}
 
-                {renderFieldsForPanel(
+                {renderProfileFieldsFlat(
                     'form-preview',
-                    {
-                        ...previewGroupToProfile(PREVIEW_PANEL.ASSIGNMENT, coverageFormProfile, false, true),
-                        ...previewGroupToProfile(PREVIEW_PANEL.ASSIGNMENT, planningFormProfile, false, true),
-                    },
+                    profile,
                     {
                         item: {
                             coverage: planning,
                             planning: planningItem,
                         },
                         language: planning.language,
-                        schema: assignmentCoverageProfile?.schema,
+                        renderEmpty: true,
+                        schema: profile?.schema,
+                    },
+                    this.getFieldProps(profile),
+                    [
+                        'contact_info',
+                        'files',
+                        'xmp_file',
+                        'scheduled',
+                        'scheduled_updates',
+                        'g2_content_type',
+                        'news_coverage_status',
+                        'add_coverage_to_workflow',
+                        'multiple_content',
+                        'no_content_linking',
+                        'flags',
+                    ],
+                )}
+
+                {renderProfileFieldsFlat(
+                    'form-preview',
+                    planningFormProfile,
+                    {
+                        item: {planning: planningItem},
+                        language: planning.language,
+                        renderEmpty: true,
+                        schema: planningFormProfile?.schema,
                     },
                     {
-                        contact_info: {field: 'coverage'},
-                        language: {field: 'coverage.language'},
-                        slugline: {field: 'coverage.slugline'},
                         place: {field: 'planning.place'},
                         anpa_category: {field: 'planning.anpa_category'},
                         subject: {field: 'planning.subject'},
-                        genre: {field: 'coverage.genre'},
-                        keyword: {field: 'coverage.keyword'},
-                        ednote: {field: 'coverage.ednote', renderEmpty: true},
-                        internal_note: {field: 'coverage.internal_note', renderEmpty: true},
-                        location: {field: 'planning.location'},
-                    }
+                    },
+                    this.getPlanningOnlyExcludes(profile, planningFormProfile),
                 )}
 
                 <Row
