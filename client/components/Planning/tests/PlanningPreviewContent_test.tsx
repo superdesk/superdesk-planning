@@ -54,7 +54,7 @@ describe('<PlanningPreviewContent />', () => {
         const positions = getSectionPositions(getWrapper({
             groups: {
                 coverages: {_id: 'coverages', name: 'Coverages', index: 1},
-                associated_event: {_id: 'associated_event', name: 'Associated Event', index: 2},
+                associated_event: {_id: 'associated_event', name: 'Related Events', index: 2},
                 attachments: {_id: 'attachments', name: 'Attachments', index: 3},
             },
         }));
