@@ -127,7 +127,8 @@ export class EditorFieldAssociatedEventComponent extends React.PureComponent<IAs
                         {events.map((event, i) => (
                             <AssociatedEventItem
                                 index={i}
-                                key={event._etag}
+                                // Newly added events have a temporary `_id` but no `_etag` yet
+                                key={event._id}
                                 event={event}
                                 planningItem={this.props.item}
                                 updateEventItem={(item, updates, scrollOnChange) =>
