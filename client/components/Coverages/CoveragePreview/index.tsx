@@ -41,7 +41,7 @@ interface IProps {
     item: IPlanningItem;
     canScheduleUpdates: boolean;
     createLink(file: IFile): string;
-    files: Array<IFile>;
+    files: {[key: string]: IFile};
 }
 
 export class CoveragePreview extends React.PureComponent<IProps> {

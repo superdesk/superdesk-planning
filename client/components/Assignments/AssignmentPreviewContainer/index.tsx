@@ -53,7 +53,7 @@ interface IStateProps {
     lockedItems: ILockedItems;
     currentWorkspace: 'ASSIGNMENTS' | 'AUTHORING' | 'AUTHORING_WIDGET';
     contentTypes: Array<IG2ContentType>;
-    files: Array<IFile>;
+    files: {[key: string]: IFile};
     archiveItems: {[itemId: string]: IArticle};
 
     assignmentCoverageProfile: ICoverageContentProfile;

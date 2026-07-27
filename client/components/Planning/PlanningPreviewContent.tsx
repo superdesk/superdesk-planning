@@ -56,7 +56,7 @@ interface IReduxProps {
     lockedItems: ILockedItems;
     formProfile: IFormProfiles;
     newsCoverageStatus: Array<IPlanningNewsCoverageStatus>;
-    files: Array<IFile>;
+    files: {[key: string]: IFile};
     coverageProfiles: Array<ICoverageContentProfile>;
 }
 

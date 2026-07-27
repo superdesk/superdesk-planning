@@ -24,7 +24,7 @@ interface IProps {
     coverageFormProfile: ICoverageFormProfile;
     planningFormProfile: IPlanningFormProfile;
     planningItem: IPlanningItem;
-    files: Array<IFile>;
+    files: {[key: string]: IFile};
     createLink(file: IFile): string;
 
     /**
