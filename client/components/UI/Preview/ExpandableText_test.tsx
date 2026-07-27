@@ -42,6 +42,16 @@ describe('<ExpandableText />', () => {
         expect(wrapper.text()).toContain('b'.repeat(250));
     });
 
+    it('expands via keyboard', () => {
+        const wrapper = mount(<ExpandableText value={'c'.repeat(600)} />);
+
+        expect(getLink(wrapper).prop('role')).toBe('button');
+        expect(getLink(wrapper).prop('tabIndex')).toBe(0);
+
+        getLink(wrapper).simulate('keydown', {key: 'Enter'});
+        expect(wrapper.find('p').text()).toContain('c'.repeat(600));
+    });
+
     it('expands and collapses on link click', () => {
         const wrapper = mount(<ExpandableText value={'b'.repeat(600)} />);
 

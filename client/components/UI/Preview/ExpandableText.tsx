@@ -70,7 +70,16 @@ export class ExpandableText extends React.Component {
                 <a
                     key="expandable-link"
                     className="sd-text__expandable-link"
+                    role="button"
+                    tabIndex={0}
+                    aria-expanded={expanded}
                     onClick={this.toggleExpanded}
+                    onKeyDown={(event) => {
+                        if (event.key === 'Enter' || event.key === ' ') {
+                            event.preventDefault();
+                            this.toggleExpanded();
+                        }
+                    }}
                 >
                     ... {linkText}
                 </a>,

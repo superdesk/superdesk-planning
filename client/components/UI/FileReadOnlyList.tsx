@@ -19,7 +19,9 @@ interface IProps {
     formProfile?: IEventFormProfile | IPlanningFormProfile | ICoverageFormProfile;
     item: IEventItem | IPlanningItem | IPlanningCoverageItem;
     createLink(file: IFile): string;
-    files: Array<IFile>;
+
+    // The files store keeps an object keyed by file id
+    files: {[key: string]: IFile};
     field?: string;
     noToggle: boolean;
     testId?: string;
