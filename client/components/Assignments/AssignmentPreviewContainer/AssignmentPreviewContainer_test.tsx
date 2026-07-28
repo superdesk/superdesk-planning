@@ -174,4 +174,13 @@ describe('<AssignmentPreviewContainer />', () => {
         expect(wrapper.find(AssignmentPreview).length).toBe(1);
         expect(wrapper.find(LockContainer).length).toBe(0);
     });
+
+    it('renders planning profile only fields sourced from the planning item', () => {
+        // subject and anpa_category are enabled in the planning profile but not in the coverage profile
+        const wrapper = getWrapper();
+        const html = wrapper.find(AssignmentPreview).html();
+
+        expect(html).toContain('Subjects:');
+        expect(html).toContain('ANPA Category:');
+    });
 });
