@@ -12,6 +12,7 @@ import {
 } from '../../../interfaces';
 
 import {CoverageArrayInput} from '../../Coverages';
+import {Row} from '../../UI/Form';
 import {getFileDownloadURL} from '../../../utils';
 import {IPropsEditorFieldCoverages} from './coverages.interface';
 
@@ -157,15 +158,18 @@ export class EditorFieldCoverages extends React.PureComponent<IPropsEditorFieldC
         const {gettext} = superdeskApi.localization;
 
         return (
-            <CoverageArrayInput
-                {...this.props}
-                testId="field-coverages"
-                field={this.props.field ?? 'coverages'}
-                value={this.getCoverages()}
-                disabled={this.props.disabled}
-                addButtonText={this.props.addButtonText ?? gettext('Add a coverage')}
-                createUploadLink={getFileDownloadURL}
-            />
+            // Standard bottom field spacing; the inner InputArray row is unpadded when there are no errors
+            <Row>
+                <CoverageArrayInput
+                    {...this.props}
+                    testId="field-coverages"
+                    field={this.props.field ?? 'coverages'}
+                    value={this.getCoverages()}
+                    disabled={this.props.disabled}
+                    addButtonText={this.props.addButtonText ?? gettext('Add a coverage')}
+                    createUploadLink={getFileDownloadURL}
+                />
+            </Row>
         );
     }
 }

@@ -224,7 +224,7 @@ Feature: Planning Content Profiles
             },
             "associated_event": {
                 "_id": "associated_event",
-                "name": "Associated Event",
+                "name": "Related Events",
                 "index": 6,
                 "showBookmark": true,
                 "icon": "calendar",

@@ -40,7 +40,7 @@ export function getProfileFields(profile: IEditorProfile): Array<IProfileFieldEn
         .map((fieldName) => ({
             name: fieldName,
             field: profile.editor[fieldName],
-            schema: profile.schema[fieldName],
+            schema: profile.schema?.[fieldName],
         }));
 }
 
@@ -312,7 +312,7 @@ export function getFieldNameTranslated(field: string): string {
     case 'overide_auto_assign_to_workflow':
         return gettext('Override Auto Assign to Workflow');
     case 'associated_event':
-        return gettext('Associated Event');
+        return gettext('Related Events');
     case 'coverages':
         return gettext('Coverages');
     case 'headline':

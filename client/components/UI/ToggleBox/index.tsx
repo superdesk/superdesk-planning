@@ -140,6 +140,7 @@ export class ToggleBox extends React.Component<IProps, IState> {
                     onClick={this.toggle}
                     role="button"
                     tabIndex={0}
+                    aria-expanded={this.state.isOpen}
                     onKeyDown={this.handleKeyDown}
                 >
                     <div className="toggle-box__chevron">
