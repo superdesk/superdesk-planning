@@ -10,7 +10,7 @@ export const PRIORITY_CONFIG: Omit<IDropdownConfigManualSource, 'options'> = {
     multiple: false,
 };
 
-export const DEFAULT_PRIORITY_COLORS = {
+export const DEFAULT_PRIORITY_COLORS: {[qcode: number]: string} = {
     1: '#d33c44',
     2: '#ff6900',
     3: '#f5a623',

@@ -13,7 +13,7 @@ export const PriorityBadge: FunctionComponent<{priority: number | string}> = ({p
     const label = vocabularyItem == null
         ? priority.toString()
         : superdeskApi.entities.vocabulary.getVocabularyItemNameTranslated(vocabularyItem);
-    const backgroundColor = vocabularyItem?.color ?? DEFAULT_PRIORITY_COLORS[priority];
+    const backgroundColor = vocabularyItem?.color ?? DEFAULT_PRIORITY_COLORS[Number(priority)];
 
     if (backgroundColor == null) {
         return <span data-test-id="priority-badge">{label}</span>;
