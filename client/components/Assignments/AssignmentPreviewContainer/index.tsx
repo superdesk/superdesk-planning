@@ -53,7 +53,7 @@ interface IStateProps {
     lockedItems: ILockedItems;
     currentWorkspace: 'ASSIGNMENTS' | 'AUTHORING' | 'AUTHORING_WIDGET';
     contentTypes: Array<IG2ContentType>;
-    files: Array<IFile>;
+    files: {[key: string]: IFile};
     archiveItems: {[itemId: string]: IArticle};
 
     assignmentCoverageProfile: ICoverageContentProfile;
@@ -207,7 +207,7 @@ class AssignmentPreviewContainerComponent extends React.Component<IProps> {
                 {this.props.relatedEvents.length > 0 && (
                     <ContentBlock className="AssignmentPreview__event" padSmall={true}>
                         <h3 className="side-panel__heading side-panel__heading--big">
-                            {gettext('Associated Events')}
+                            {gettext('Related Events')}
                         </h3>
 
                         <Spacer v gap="8">
