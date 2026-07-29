@@ -7,6 +7,7 @@ import {appConfig} from 'appConfig';
 import planningApi from '../actions/planning/api';
 import eventsApi from '../actions/events/api';
 import {partition} from 'lodash';
+import {MAIN} from '../constants';
 
 export function cvsToString(
     items?: Array<{[key: string]: any}>,
@@ -48,7 +49,7 @@ export function convertCommonParams(params: ISearchParams): Partial<ISearchAPIPa
         lock_state: params.lock_state,
         directly_locked: params.directly_locked,
         page: params.page ?? 1,
-        max_results: params.max_results ?? 50,
+        max_results: params.max_results ?? MAIN.PAGE_SIZE,
         recurrence_id: params.recurrence_id,
         place: cvsToString(params.place),
         only_future: params.only_future,
