@@ -43,7 +43,8 @@ describe('<EventMetadata />', () => {
         expect(content.find('[data-test-id="field-name"] > p').text()).toBe('name1');
         expect(content.find('[data-test-id="field-dates"] > p').text()).toBe(eventDateText);
         expect(content.find('[data-test-id="field-occur_status"] > p').text()).toBe('Planned, occurs certainly');
-        expect(content.find('[data-test-id="field-definition_short"] > p').text()).toBe('definition_short 1');
+        // `definition_short` is truncatable, so its text renders inside <ExpandableText>
+        expect(content.find('[data-test-id="field-definition_short"] p').text()).toBe('definition_short 1');
         expect(content.find('[data-test-id="field-event_contact_info"] > p').text()).toBe('-');
         expect(content.find('[data-test-id="field-location"] a').text()).toBe('location1address1');
     });

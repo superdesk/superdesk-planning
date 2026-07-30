@@ -32,6 +32,14 @@ export class PreviewFormItem extends React.PureComponent<IBasePreviewProps> {
                         dangerouslySetInnerHTML={{__html: value}}
                     />
                 );
+            } else if (this.props.expandable) {
+                // ExpandableText handles newlines itself, so it always gets the raw string
+                children = (
+                    <ExpandableText
+                        value={this.props.value || this.props.defaultString || '-'}
+                        className={textClass}
+                    />
+                );
             } else {
                 const value = (
                     this.props.value?.length && this.props.convertNewlineToBreak ?
@@ -39,14 +47,10 @@ export class PreviewFormItem extends React.PureComponent<IBasePreviewProps> {
                         this.props.value
                 ) || this.props.defaultString || '-';
 
-                children = !this.props.expandable ? (
+                children = (
                     <p className={textClass}>
                         {value}
                     </p>
-                ) : (
-                    <ExpandableText
-                        value={value}
-                    />
                 );
             }
         }

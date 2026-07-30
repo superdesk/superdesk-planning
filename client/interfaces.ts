@@ -1151,7 +1151,9 @@ export interface IEditorProfileGroup {
 export interface IProfileFieldEntry {
     name: string;
     field: IProfileEditorField;
-    schema: IProfileSchemaType;
+
+    // Not every profile field carries a schema entry
+    schema?: IProfileSchemaType;
 }
 
 export interface IEditorProfile {

@@ -149,7 +149,7 @@ export class InputArray extends React.PureComponent<IProps> {
         const hasLabel = (label ?? '').length > 0;
         const addButtonElement = showAddButton && addButton;
         const labelElement = !hasLabel ? null : (
-            <Spacer h gap="0" justifyContent="space-between" alignItems="center" noWrap style={{paddingBlockStart: 8}}>
+            <Spacer h gap="0" justifyContent="space-between" alignItems="center" noWrap>
                 <div className={classNames('InputArray__label', labelClassName)}>{label}</div>
                 <div>
                     {buttonWithLabel && addButtonElement}

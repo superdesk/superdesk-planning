@@ -9,7 +9,6 @@ import {
     IPlanningCoverageItem,
     IPlanningItem,
     IPlanningNewsCoverageStatus,
-    PREVIEW_PANEL,
 } from '../../../interfaces';
 
 import {Row as PreviewRow} from '../../UI/Preview';
@@ -22,7 +21,7 @@ import {CoverageItem} from '../';
 import {CoveragePreviewTopBar} from './CoveragePreviewTopBar';
 import {ScheduledUpdate} from '../ScheduledUpdate';
 
-import {previewGroupToProfile, renderFieldsForPanel} from '../../fields';
+import {getCustomFieldSourcePaths, renderProfileFieldsFlat} from '../../fields';
 
 import {InternalNoteLabel} from '../../index';
 import '../style.scss';
@@ -42,7 +41,7 @@ interface IProps {
     item: IPlanningItem;
     canScheduleUpdates: boolean;
     createLink(file: IFile): string;
-    files: Array<IFile>;
+    files: {[key: string]: IFile};
 }
 
 export class CoveragePreview extends React.PureComponent<IProps> {
@@ -123,9 +122,9 @@ export class CoveragePreview extends React.PureComponent<IProps> {
                     />
                 </PreviewRow>
 
-                {renderFieldsForPanel(
+                {renderProfileFieldsFlat(
                     'form-preview',
-                    previewGroupToProfile(PREVIEW_PANEL.COVERAGE, formProfile),
+                    formProfile,
                     {
                         item: coverage,
                         language: coverage.planning.language ?? getUserInterfaceLanguageFromCV(),
@@ -133,6 +132,7 @@ export class CoveragePreview extends React.PureComponent<IProps> {
                         schema: formProfile?.schema,
                     },
                     {
+                        ...getCustomFieldSourcePaths(formProfile, 'planning'),
                         language: {field: 'planning.language', enabled: false},
                         slugline: {field: 'planning.slugline'},
                         ednote: {field: 'planning.ednote'},
@@ -143,7 +143,18 @@ export class CoveragePreview extends React.PureComponent<IProps> {
                         flags: {field: 'planning.flags'},
                         location: {field: 'planning.location'},
                         anpa_category: {field: 'planning.anpa_category'},
-                    }
+                        subject: {field: 'planning.subject'},
+                        headline: {field: 'planning.headline'},
+                        priority: {field: 'planning.priority'},
+                    },
+                    [
+                        'contact_info',
+                        'files',
+                        'xmp_file',
+                        'scheduled_updates',
+                        'add_coverage_to_workflow',
+                        'multiple_content',
+                    ],
                 )}
 
                 {planningUtils.showXMPFileUIControl(coverage) && (

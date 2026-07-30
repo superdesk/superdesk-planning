@@ -125,7 +125,7 @@ DEFAULT_PLANNING_PROFILE = {
             "group": "attachments",
             "index": 1,
         },
-        # Associated Event group
+        # Related Events group
         "associated_event": {
             "enabled": True,
             "group": "associated_event",
@@ -202,7 +202,7 @@ DEFAULT_PLANNING_PROFILE = {
         },
         "associated_event": {
             "_id": "associated_event",
-            "name": "Associated Event",
+            "name": "Related Events",
             "index": 6,
             "showBookmark": True,
             "icon": "calendar",

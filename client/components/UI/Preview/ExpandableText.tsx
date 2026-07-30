@@ -1,6 +1,5 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import {get} from 'lodash';
 
 import {gettext} from '../../../utils';
 
@@ -26,31 +25,65 @@ export class ExpandableText extends React.Component {
         this.dom.parent = ref;
     }
 
+    truncate(lines) {
+        const {expandAt, expandAtChars} = this.props;
+        const truncated = [];
+        let charsUsed = 0;
+
+        for (const line of lines) {
+            if (truncated.length >= expandAt || charsUsed >= expandAtChars) {
+                break;
+            }
+
+            const charsRemaining = expandAtChars - charsUsed;
+
+            truncated.push(line.length > charsRemaining ? line.slice(0, charsRemaining) : line);
+            charsUsed += Math.min(line.length, charsRemaining);
+        }
+
+        return truncated;
+    }
+
     render() {
-        const {value, className, expandAt} = this.props;
+        const {value, className, expandAt, expandAtChars} = this.props;
         const {expanded} = this.state;
 
         if (!value) {
             return null;
         }
 
-        let text = value.replace(/\r/g, '')
+        const lines = value.replace(/\r/g, '')
             .split('\n');
 
-        if (get(text, 'length', 0) > expandAt) {
-            if (!expanded) {
-                text = text.slice(0, expandAt);
-            }
+        // Count visible characters like truncate() does, so the link never appears when nothing is hidden
+        const contentLength = lines.reduce((total, line) => total + line.length, 0);
+        const needsTruncation = lines.length > expandAt || contentLength > expandAtChars;
+        let text = lines;
 
+        if (needsTruncation) {
             const linkText = expanded ?
                 gettext('Show less') :
                 gettext('Show all');
 
-            text.push(
-                <a className="sd-text__expandable-link" onClick={this.toggleExpanded}>
+            text = [
+                ...(expanded ? lines : this.truncate(lines)),
+                <a
+                    key="expandable-link"
+                    className="sd-text__expandable-link"
+                    role="button"
+                    tabIndex={0}
+                    aria-expanded={expanded}
+                    onClick={this.toggleExpanded}
+                    onKeyDown={(event) => {
+                        if (event.key === 'Enter' || event.key === ' ') {
+                            event.preventDefault();
+                            this.toggleExpanded();
+                        }
+                    }}
+                >
                     ... {linkText}
-                </a>
-            );
+                </a>,
+            ];
         }
 
         return (
@@ -67,8 +100,10 @@ ExpandableText.propTypes = {
     value: PropTypes.string,
     className: PropTypes.string,
     expandAt: PropTypes.number,
+    expandAtChars: PropTypes.number,
 };
 
 ExpandableText.defaultProps = {
     expandAt: 3,
+    expandAtChars: 500,
 };

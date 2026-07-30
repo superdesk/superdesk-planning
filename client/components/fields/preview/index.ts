@@ -14,6 +14,10 @@ import {PreviewFieldCustomVocabularies} from './CustomVocabularies';
 import {PreviewFieldUrgency} from './Urgency';
 import {PreviewFieldFlags} from './Flags';
 import {PreviewFieldRelatedArticles} from './RelatedArticles';
+import {PreviewFieldPriority} from './Priority';
+import {PreviewFieldFiles} from './Files';
+import {PreviewFieldLinks} from './Links';
+import {PreviewFieldPlace} from './Place';
 
 import * as selectors from '../../../selectors';
 import {planningUtils} from '../../../utils';
@@ -231,6 +235,7 @@ const multilingualFieldOptions: {[key: string]: IPreviewHocOptions} = {
         props: () => ({
             label: superdeskApi.localization.gettext('Description'),
             convertNewlineToBreak: true,
+            expandable: true,
         }),
         getValue: getPreviewString,
     },
@@ -238,6 +243,7 @@ const multilingualFieldOptions: {[key: string]: IPreviewHocOptions} = {
         props: () => ({
             label: superdeskApi.localization.gettext('Long Description'),
             convertNewlineToBreak: true,
+            expandable: true,
         }),
         getValue: getPreviewString,
     },
@@ -252,6 +258,7 @@ const multilingualFieldOptions: {[key: string]: IPreviewHocOptions} = {
         props: () => ({
             label: superdeskApi.localization.gettext('Ednote'),
             convertNewlineToBreak: true,
+            expandable: true,
         }),
         getValue: getPreviewString,
     },
@@ -263,6 +270,7 @@ const multilingualFieldOptions: {[key: string]: IPreviewHocOptions} = {
         props: () => ({
             label: superdeskApi.localization.gettext('Description'),
             convertNewlineToBreak: true,
+            expandable: true,
         }),
         getValue: getPreviewString,
     },
@@ -270,6 +278,7 @@ const multilingualFieldOptions: {[key: string]: IPreviewHocOptions} = {
         props: () => ({
             label: superdeskApi.localization.gettext('Registration Details'),
             convertNewlineToBreak: true,
+            expandable: true,
         }),
         getValue: getPreviewString,
     },
@@ -277,11 +286,15 @@ const multilingualFieldOptions: {[key: string]: IPreviewHocOptions} = {
         props: () => ({
             label: superdeskApi.localization.gettext('Invitation Details'),
             convertNewlineToBreak: true,
+            expandable: true,
         }),
         getValue: getPreviewString,
     },
     accreditation_info: {
-        props: () => ({label: superdeskApi.localization.gettext('Accreditation Info')}),
+        props: () => ({
+            label: superdeskApi.localization.gettext('Accreditation Info'),
+            expandable: true,
+        }),
         getValue: getPreviewString,
     },
     priority: {
@@ -322,6 +335,15 @@ FIELD_TO_PREVIEW_COMPONENT.custom_vocabularies = PreviewFieldCustomVocabularies;
 
 FIELD_TO_FORM_PREVIEW_COMPONENT.urgency = PreviewFieldUrgency;
 FIELD_TO_FORM_PREVIEW_COMPONENT.flags = PreviewFieldFlags;
+
+// Both profile field names for flags; the values live in `item.flags`
+FIELD_TO_FORM_PREVIEW_COMPONENT.marked_for_not_publication = PreviewFieldFlags;
+FIELD_TO_FORM_PREVIEW_COMPONENT.no_content_linking = PreviewFieldFlags;
+
+FIELD_TO_FORM_PREVIEW_COMPONENT.priority = PreviewFieldPriority;
+FIELD_TO_FORM_PREVIEW_COMPONENT.files = PreviewFieldFiles;
+FIELD_TO_FORM_PREVIEW_COMPONENT.links = PreviewFieldLinks;
+FIELD_TO_FORM_PREVIEW_COMPONENT.place = PreviewFieldPlace;
 
 FIELD_TO_FORM_PREVIEW_COMPONENT.related_items = PreviewFieldRelatedArticles;
 FIELD_TO_PREVIEW_COMPONENT.related_items = PreviewFieldRelatedArticles;

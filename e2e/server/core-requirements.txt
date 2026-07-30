@@ -240,7 +240,7 @@ pydantic==2.12.5
     # via superdesk-core
 pydantic-core==2.41.5
     # via pydantic
-pyjwt==2.10.1
+pyjwt==2.13.0
     # via superdesk-core
 pymemcache==4.0.0
     # via superdesk-core
