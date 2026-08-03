@@ -164,9 +164,12 @@ const handleItemsForLastFetchedDay = (
     // empty list while waiting for subsequent pages.
     if (itemsGrouped.length === 1 || params.page === 1) {
         const lastPage = Math.ceil(total / params.maxResults);
+        const hasMorePages = params.page < lastPage;
 
         // No pages left to fetch
-        if (params.page > lastPage + 1) {
+        if (!hasMorePages) {
+            dispatch(storeLastDayGroup([]));
+
             return Promise.resolve(itemsGrouped.flatMap((x) => x.events));
         }
 
