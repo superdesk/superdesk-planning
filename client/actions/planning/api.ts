@@ -185,7 +185,7 @@ const handleItemsForLastFetchedDay = (
         dispatch(planningUi.loadMore());
 
         return Promise.resolve(itemsGrouped.flatMap((x) => x.events));
-    } else if (Object.keys(itemsGrouped).length > 1) {
+    } else if (itemsGrouped.length > 1) {
         const lastGroup = itemsGrouped[itemsGrouped.length - 1];
 
         dispatch(storeLastDayGroup(lastGroup.events));
