@@ -10,6 +10,8 @@ import {PLANNING, SPIKED_STATE} from '../../../constants';
 import {MAIN} from '../../../constants';
 import contactsApi from '../../contacts';
 import {planningApis} from '../../../api';
+import planningUi from '../ui';
+import {planningUtils} from '../../../utils';
 
 describe('actions.planning.api', () => {
     let errorMessage;
@@ -189,6 +191,42 @@ describe('actions.planning.api', () => {
                     done();
                 })
                 .catch(done.fail);
+        });
+
+        it('keeps complete groups visible on first page while queueing loadMore', (done) => {
+            const p1 = {...data.plannings[0], _id: 'p1'};
+            const p2 = {...data.plannings[1], _id: 'p2'};
+
+            restoreSinonStub(planningApi.query);
+            restoreSinonStub(planningUi.loadMore);
+            sinon.stub(planningApi, 'query').callsFake(() => Promise.resolve({
+                _meta: {total: 100, max_results: 50, page: 1},
+                _items: [p1, p2],
+            }));
+            sinon.stub(planningUi, 'loadMore').callsFake(() => (() => Promise.resolve([])));
+
+            const groupedItems = [
+                {date: '2026-07-30', events: [p1]},
+                {date: '2026-07-31', events: [p2]},
+            ];
+
+            sinon.stub(planningUtils, 'getPlanningByDate').returns(groupedItems as any);
+
+            return store.test(done, planningApi.fetch({agendas: ['a1']} as any))
+                .then((items) => {
+                    expect(planningUi.loadMore.callCount).toBe(1);
+
+                    expect(planningApi.receivePlannings.callCount).toBe(1);
+                    expect(planningApi.receivePlannings.args[0]).toEqual([[p1]]);
+                    expect(items).toEqual([p1]);
+
+                    done();
+                })
+                .catch(done.fail)
+                .finally(() => {
+                    restoreSinonStub(planningUtils.getPlanningByDate);
+                    restoreSinonStub(planningUi.loadMore);
+                });
         });
     });
 
