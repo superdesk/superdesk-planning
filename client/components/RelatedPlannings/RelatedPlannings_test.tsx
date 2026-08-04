@@ -171,7 +171,7 @@ describe('<RelatedPlannings /> card view', () => {
             card_view: {
                 secondLine: [{fieldId: 'state'}],
             },
-        } as any;
+        };
 
         const listItem = renderPlannings({cardView: true}).find(RelatedPlanningListItem);
 

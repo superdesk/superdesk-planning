@@ -141,7 +141,7 @@ describe('<EventMetadata /> card view', () => {
             card_view: {
                 secondLine: [{fieldId: 'state'}],
             },
-        } as any;
+        };
 
         const listItem = renderEvent({cardView: true}).find(RelatedEventListItem);
 

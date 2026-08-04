@@ -251,7 +251,7 @@ declare module 'superdesk-api' {
                 // Cards for linked items shown inside item previews. A configured
                 // card_view fully describes the card: an omitted line renders nothing
                 card_view?: {
-                    firstLine: Array<ILineConfig>;
+                    firstLine?: Array<ILineConfig>;
                     secondLine?: Array<ILineConfig>;
                 };
             };
@@ -268,7 +268,7 @@ declare module 'superdesk-api' {
                 // Cards for linked items shown inside item previews. A configured
                 // card_view fully describes the card: an omitted line renders nothing
                 card_view?: {
-                    firstLine: Array<ILineConfig>;
+                    firstLine?: Array<ILineConfig>;
                     secondLine?: Array<ILineConfig>;
                 };
             };
