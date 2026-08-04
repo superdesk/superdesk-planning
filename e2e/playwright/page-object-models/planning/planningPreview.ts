@@ -18,21 +18,22 @@ export class PlanningPreview {
     }
 
     /**
-     * Collapsed entity cards (related event / related planning) inside a preview. No test id
-     * exists, so the collapsed-header class is the only hook. It also keeps an expanded
-     * CollapseBox, which renders its own list items and icon, out of scope.
+     * Entity cards (related event / related planning) inside a preview. A CollapseBox only renders
+     * its collapsed item while closed, so these match the cards and not an expanded card's content.
      */
     get entityCards(): Locator {
-        return this.element.locator('.sd-collapse-box__header li.sd-list-item');
+        return this.element.locator(
+            '[data-test-id="related-event-item"], [data-test-id="related-planning-item"]'
+        );
     }
 
     entityCard(index: number): Locator {
         return this.entityCards.nth(index);
     }
 
-    // `sd-list-item__item-type` is only applied by `ItemIcon`, so its absence means no icon rendered
+    // The column wrapping `ItemIcon` on a related event / planning item
     itemTypeIcons(scope?: Locator): Locator {
-        return (scope ?? this.element).locator('.sd-list-item__item-type');
+        return (scope ?? this.element).locator('[data-test-id="item-type-icon"]');
     }
 
     get actionMenu(): ActionMenu {

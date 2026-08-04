@@ -99,6 +99,7 @@ class RelatedPlanningListItemComponent extends React.PureComponent<IProps> {
 
         return (
             <List.Item
+                testId="related-planning-item"
                 noBg={this.props.noBg}
                 activated={this.props.active}
                 shadow={this.props.shadow}
@@ -122,7 +123,7 @@ class RelatedPlanningListItemComponent extends React.PureComponent<IProps> {
                 )}
 
                 {(this.props.cardView || !this.props.showIcon) ? null : (
-                    <List.Column>
+                    <List.Column testId="item-type-icon">
                         <ItemIcon
                             item={this.props.item}
                             color={ICON_COLORS.DARK_BLUE_GREY}

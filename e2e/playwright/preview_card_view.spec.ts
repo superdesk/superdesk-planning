@@ -98,10 +98,9 @@ test.describe('Planning: entity cards inside item previews', () => {
         await openPlanningPreview();
 
         await expect(preview.entityCard(0)).toContainText(EVENT.reference);
-        await expect(preview.itemTypeIcons(preview.entityCard(0))).toHaveCount(0);
 
-        // The panel header still renders one, so a zero count on the card is not a dead selector
-        await expect(preview.itemTypeIcons()).toHaveCount(1);
+        // The last test proves this id is live on the same component outside a card
+        await expect(preview.itemTypeIcons(preview.entityCard(0))).toHaveCount(0);
     });
 
     test('related planning card in an event preview has no content type icon', async () => {
@@ -109,8 +108,6 @@ test.describe('Planning: entity cards inside item previews', () => {
 
         await expect(preview.entityCard(0)).toContainText(PLANNING.headline);
         await expect(preview.itemTypeIcons(preview.entityCard(0))).toHaveCount(0);
-
-        await expect(preview.itemTypeIcons()).toHaveCount(1);
     });
 
     // The third `cardView` call site. It cannot be seeded: an assignment only exists once a
