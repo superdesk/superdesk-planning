@@ -1,10 +1,10 @@
 import {Page, test, expect} from '@playwright/test';
 
 import {setup, login, waitForPageLoad, addItems, forceUnlockItem, Modal, getMenuItem} from './utils/common';
-import {EventEditor, PlanningList} from './page-object-models/planning';
+import {EventEditor, PlanningEditor, PlanningList, AssignmentEditor} from './page-object-models/planning';
 
-import {TEST_PLANNINGS} from './utils/fixtures/planning';
-import {TEST_EVENTS} from './utils/fixtures/events';
+import {TEST_PLANNINGS, createPlanningFor} from './utils/fixtures/planning';
+import {TEST_EVENTS, createEventFor} from './utils/fixtures/events';
 
 test.describe('Planning: item locks', () => {
     let list: PlanningList;
@@ -173,6 +173,105 @@ test.describe('Planning: item locks', () => {
             await testCancelActionFromModal(page, 'Convert to Recurring Event');
             await testUnlockedFromModal(page, 'Convert to Recurring Event', 'events', 'event1');
             // No need to test editor actions, as this is not available in the Editor
+        });
+    });
+
+    // An event and its primary-linked planning items share one "chain" lock,
+    // stored server-side under the event id even when held by the planning
+    test.describe('chain locks with event-linked planning items', () => {
+        const EVENT_ID = 'chain_event_1';
+        const PLAN_ID = 'chain_plan_1';
+        let planningEditor: PlanningEditor;
+
+        test.beforeEach(async ({page}) => {
+            planningEditor = new PlanningEditor(page);
+
+            await addItems(page.request, 'events', [createEventFor.today({
+                guid: EVENT_ID,
+                name: 'Chain Event',
+                slugline: 'Chain Event',
+            })]);
+            await addItems(page.request, 'planning', [createPlanningFor.today({
+                guid: PLAN_ID,
+                slugline: 'Chain Planning',
+                related_events: [{_id: EVENT_ID, link_type: 'primary'}],
+            })]);
+            await login(page);
+            await waitForPageLoad.planning(page);
+        });
+
+        async function openLinkedPlanningForEdit(): Promise<void> {
+            if (!(await list.nestedPlanningItem(0, 0).isVisible())) {
+                await list.toggleAssociatedPlanning(0);
+            }
+            await list.nestedPlanningItem(0, 0).dblclick();
+            await planningEditor.waitTillOpen();
+        }
+
+        test('editor stays editable after assigning a coverage to a desk and saving', async ({page}) => {
+            await openLinkedPlanningForEdit();
+            await expect(planningEditor.fields.slugline.element).toBeEnabled();
+
+            await planningEditor.addCoverage('Text');
+
+            const coverageEditor = planningEditor.getCoverageEditor(0);
+            const assignmentEditor = new AssignmentEditor(page);
+
+            await coverageEditor.editAssignmentButton.click();
+            await assignmentEditor.waitTillOpen();
+            await assignmentEditor.type({desk: 'Politic Desk'});
+            await assignmentEditor.okButton.click();
+            await assignmentEditor.waitTillClosed();
+
+            const saveRequest = page.waitForResponse(
+                (response) => response.url().includes('/api/planning/') && response.request().method() === 'PATCH',
+            );
+
+            await planningEditor.saveButton.click();
+            await saveRequest;
+
+            // Save disabling marks the save as processed; the regression
+            // swapped the toolbar to Close/Edit at this point
+            await expect(planningEditor.saveButton).toBeDisabled();
+            await expect(coverageEditor.element).toContainText('Politic Desk');
+            await expect(planningEditor.editButton).not.toBeAttached();
+            await expect(planningEditor.fields.slugline.element).toBeEnabled();
+
+            // The session still holds the lock, so a reload must reopen
+            // straight into edit mode
+            await page.reload();
+            await waitForPageLoad.planning(page);
+            await openLinkedPlanningForEdit();
+
+            await expect(planningEditor.editButton).not.toBeAttached();
+            await expect(planningEditor.fields.slugline.element).toBeEnabled();
+        });
+
+        test('read-only planning item hides Edit while the linked event is being edited', async ({page}) => {
+            await list.item(0).dblclick();
+            await editor.waitTillOpen();
+            await expect(editor.fields.slugline.element).toBeEnabled();
+
+            await list.toggleAssociatedPlanning(0);
+            await list.nestedPlanningItem(0, 0).dblclick();
+            await planningEditor.waitTillOpen();
+
+            await expect(planningEditor.fields.slugline.element).toHaveValue('Chain Planning');
+            await expect(planningEditor.fields.slugline.element).toBeDisabled();
+            await expect(planningEditor.editButton).not.toBeAttached();
+
+            // Edit appearing after the unlock proves its absence was lock-driven.
+            // The "Item Unlocked" modal backdrop aria-hides the editor, so
+            // dismiss it before asserting
+            await forceUnlockItem(page.request, 'events', EVENT_ID);
+            await modal.waitTillOpen();
+            await modal.shouldContainTitle('Item Unlocked');
+            await modal.getFooterButton('OK').click();
+            await modal.waitTillClosed();
+
+            await expect(planningEditor.editButton).toBeVisible();
+            await planningEditor.editButton.click();
+            await expect(planningEditor.fields.slugline.element).toBeEnabled();
         });
     });
 
