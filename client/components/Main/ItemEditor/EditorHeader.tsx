@@ -134,6 +134,7 @@ export class EditorHeader extends React.Component<IProps> {
 
         states.showEdit = states.existingItem &&
             !states.isLockedInContext &&
+            !lockUtils.isItemLockedByAssociatedItem(initialValues as IEventItem, lockedItems) &&
             eventUtils.canEditEvent(initialValues as IEventItem, session, privileges, lockedItems);
 
         if (states.readOnly) {
@@ -170,6 +171,7 @@ export class EditorHeader extends React.Component<IProps> {
 
         states.showEdit = states.existingItem &&
             !states.isLockedInContext &&
+            !lockUtils.isItemLockedByAssociatedItem(initialVals, lockedItems) &&
             planningUtils.canEditPlanning(initialVals, null, session, privileges, lockedItems) &&
             !addNewsItemToPlanning;
 
