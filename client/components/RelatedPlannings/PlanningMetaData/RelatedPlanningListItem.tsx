@@ -12,7 +12,12 @@ import * as List from '../../UI/List';
 import {ICON_COLORS} from '../../../constants';
 import {ItemIcon} from '../../../components/ItemIcon';
 import {LineItems} from '../../../components/UI/List/LineItems';
-import {getPlanningSecondLineConfig, planningFirstLineConfig} from '../../../config';
+import {
+    getPlanningCardFirstLineConfig,
+    getPlanningCardSecondLineConfig,
+    getPlanningSecondLineConfig,
+    planningFirstLineConfig,
+} from '../../../config';
 import {getUserInterfaceLanguageFromCV} from '../../../utils/users';
 import {renderFields} from '../../../components/fields';
 import {ILineConfig} from 'globals';
@@ -24,6 +29,9 @@ interface IBaseProps {
     noBg?: boolean;
     showBorder?: boolean;
     showIcon?: boolean;
+
+    // Preview card variant: card_view config, no item type icon
+    cardView?: boolean;
     shadow?: number;
     editPlanningComponent?: React.ReactNode;
     isAgendaEnabled: boolean;
@@ -83,6 +91,12 @@ class RelatedPlanningListItemComponent extends React.PureComponent<IProps> {
             language,
         );
 
+        const {isAgendaEnabled} = this.props;
+        const firstLineConfig = this.props.cardView ? getPlanningCardFirstLineConfig() : planningFirstLineConfig;
+        const secondLineConfig = this.props.cardView ?
+            getPlanningCardSecondLineConfig({isAgendaEnabled}) :
+            getPlanningSecondLineConfig({isAgendaEnabled});
+
         return (
             <List.Item
                 noBg={this.props.noBg}
@@ -107,7 +121,7 @@ class RelatedPlanningListItemComponent extends React.PureComponent<IProps> {
                     </List.Column>
                 )}
 
-                {!this.props.showIcon ? null : (
+                {(this.props.cardView || !this.props.showIcon) ? null : (
                     <List.Column>
                         <ItemIcon
                             item={this.props.item}
@@ -122,11 +136,8 @@ class RelatedPlanningListItemComponent extends React.PureComponent<IProps> {
                     style={this.props.noColumnPadding ? undefined : {paddingBlock: 'var(--space--1)'}}
                 >
                     <LineItems
-                        firstLine={planningFirstLineConfig.filter(({fieldId}) => fieldId !== 'related_events')}
-                        secondLine={
-                            getPlanningSecondLineConfig({isAgendaEnabled: this.props.isAgendaEnabled})
-                                .filter(({fieldId}) => fieldId !== 'related_events')
-                        }
+                        firstLine={firstLineConfig.filter(({fieldId}) => fieldId !== 'related_events')}
+                        secondLine={secondLineConfig.filter(({fieldId}) => fieldId !== 'related_events')}
                         renderFieldsWithProps={renderFieldsWithProps}
                     />
                 </List.Column>

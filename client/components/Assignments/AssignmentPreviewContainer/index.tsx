@@ -220,6 +220,7 @@ class AssignmentPreviewContainerComponent extends React.Component<IProps> {
                                             createUploadLink={getFileDownloadURL}
                                             files={files}
                                             hideEditIcon={true}
+                                            cardView={true}
                                         />
 
                                         <PreviewFieldRelatedArticles
@@ -253,7 +254,7 @@ class AssignmentPreviewContainerComponent extends React.Component<IProps> {
                         desks={desks}
                         allowEditPlanning={false}
                         currentCoverageId={assignment.coverage_item}
-
+                        cardView={true}
                     />
                 </ContentBlock>
             </div>
