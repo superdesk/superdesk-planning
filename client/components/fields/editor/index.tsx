@@ -59,7 +59,7 @@ import {FIELD_TO_EDITOR_COMPONENT} from '../resources/registerEditorFields';
  * This is the single source of truth for field definitions, allows for registering
  * other fields from a different place through `registerEditorField`
 */
-Object.assign(FIELD_TO_EDITOR_COMPONENT, {
+const DEFAULT_EDITOR_FIELDS: typeof FIELD_TO_EDITOR_COMPONENT = {
     featured: EditorFieldFeatured,
     source: EditorFieldIngestSource,
     location: EditorFieldLocation,
@@ -148,11 +148,18 @@ Object.assign(FIELD_TO_EDITOR_COMPONENT, {
     scheduled_updates: EditorFieldScheduledUpdates,
     coverage_assignment_status: EditorFieldAssignedCoverageComponent,
     assignment_priority: EditorFieldAssignmentPriority,
-});
+};
+
+// The registrations from ../resources can run before or after this module,
+// depending on whether the compiler hoists the import below. Fill only fields
+// that are not registered yet, so registrations always win over these defaults,
+// as they did under statement-order evaluation.
+for (const field of Object.keys(DEFAULT_EDITOR_FIELDS)) {
+    if (FIELD_TO_EDITOR_COMPONENT[field] == null) {
+        FIELD_TO_EDITOR_COMPONENT[field] = DEFAULT_EDITOR_FIELDS[field];
+    }
+}
 
 export {FIELD_TO_EDITOR_COMPONENT};
 
-// Loads the registrations from ../resources; works regardless of whether the
-// compiler hoists this import, since the registry object lives in a module
-// with no circular dependencies.
 import '../resources/index';
