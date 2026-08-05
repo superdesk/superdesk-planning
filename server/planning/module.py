@@ -47,6 +47,7 @@ from planning.search import (
 from .planning_locks import planning_locks as planning_locks_endpoint
 from .planning_download import planning_download_endpoint
 from .unified.module import unified_planning_resource_config
+from .unified.signals import connect_signals
 from .unified.docs import unified_resource_docs_endpoints
 
 
@@ -78,6 +79,7 @@ def init_planning(app: SuperdeskAsyncApp):
     wsgi_app.on_session_end += cleanup_on_session_end
     on_get_available_filter_params.connect(add_agenda_to_filter_params)
     item_unlocked.connect(on_item_unlocked)
+    connect_signals()
 
     # register listeners for events planning filters signals
     connect_signals_listeners()

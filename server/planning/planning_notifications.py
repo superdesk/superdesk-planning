@@ -13,7 +13,7 @@ import logging
 
 from quart_babel import gettext as _
 
-from superdesk.core import get_app_config, get_current_app
+from superdesk.core import get_app_config, get_current_app, get_config
 from superdesk.core.emails import send_email, EmailAttachment
 from superdesk.resource_fields import ID_FIELD
 from superdesk.flask import render_template
@@ -25,8 +25,11 @@ from superdesk.errors import SuperdeskApiError
 from superdesk.celery_app import celery
 from planning.common import WORKFLOW_STATE, get_assignment_acceptance_email_address
 from apps.archive.common import get_user
-from planning.common import get_assginment_name
+from planning.common import get_assginment_name, get_coverage_type_name
 from superdesk.preferences import get_user_notification_preferences
+from superdesk.utc import utc_to_local
+
+from planning.types.unified import UnifiedPlanningResource, CoverageItem
 
 try:
     from slackclient import SlackClient
@@ -203,6 +206,50 @@ class PlanningNotifications:
     @celery.task(bind=True)
     async def _notify_email(self, target_user, contact_id, source, meta_message, data):
         await _send_user_email(target_user, contact_id, source, meta_message, data)
+
+    async def on_coverage_updated(
+        self, item: UnifiedPlanningResource, original_coverage: CoverageItem, updated_coverage: CoverageItem
+    ) -> None:
+        if not updated_coverage.assigned_to:
+            # There is no one to notify
+            return
+
+        target_user = updated_coverage.assigned_to.user
+        target_desk = updated_coverage.assigned_to.desk
+
+        contact_id = updated_coverage.assigned_to.contact
+
+        # If the internal note has changed send a notification, except if it's been cancelled
+        if (
+            updated_coverage.planning.internal_note != original_coverage.planning.internal_note
+            and updated_coverage.news_coverage_status.qcode != "ncostat:notint"
+        ):
+            await PlanningNotifications().notify_assignment(
+                coverage_status=updated_coverage.workflow_status,
+                target_desk=target_desk if target_user is None else None,
+                target_user=target_user,
+                contact_id=contact_id,
+                message="assignment_internal_note_msg",
+                coverage_type=get_coverage_type_name(updated_coverage.planning.g2_content_type),
+                slugline=updated_coverage.planning.slugline,
+                internal_note=updated_coverage.planning.internal_note,
+            )
+
+        # If the scheduled time for the coverage changes
+        if updated_coverage.planning.scheduled.strftime("%c") != original_coverage.planning.scheduled.strftime("%c"):
+            await PlanningNotifications().notify_assignment(
+                coverage_status=updated_coverage.workflow_status,
+                target_desk=target_desk if target_user is None else None,
+                target_user=target_user,
+                contact_id=contact_id,
+                message="assignment_due_time_msg",
+                due=utc_to_local(
+                    get_config(str, "DEFAULT_TIMEZONE"),
+                    updated_coverage.planning.scheduled,
+                ).strftime("%c"),
+                coverage_type=get_coverage_type_name(updated_coverage.planning.g2_content_type),
+                slugline=updated_coverage.planning.slugline,
+            )
 
 
 def _get_slack_client(token):

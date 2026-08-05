@@ -231,7 +231,7 @@ def get_planning_use_xmp_for_pic_slugline():
 
 
 def get_planning_xmp_slugline_mapping():
-    return get_app_config("PLANNING_XMP_SLUGLINE_MAPPING", "")
+    return get_app_config("PLANNING_XMP_SLUGLINE_MAPPING", {})
 
 
 def get_planning_allowed_coverage_link_types():
@@ -427,6 +427,16 @@ def get_coverage_type_name(qcode):
     coverage_types = get_resource_service("vocabularies").find_one(req=None, _id="g2_content_type")
 
     coverage_type = {}
+    if coverage_types:
+        coverage_type = next((x for x in coverage_types.get("items", []) if x["qcode"] == qcode), {})
+
+    return coverage_type.get("name", qcode)
+
+
+async def get_coverage_type_name_async(qcode: str) -> str | None:
+    coverage_types = await get_resource_service("vocabularies").find_one_async(req=None, _id="g2_content_type")
+
+    coverage_type: dict[str, str] = {}
     if coverage_types:
         coverage_type = next((x for x in coverage_types.get("items", []) if x["qcode"] == qcode), {})
 
@@ -886,21 +896,3 @@ def assignment_allows_multiple_content_linked(assignment: dict) -> bool:
         return assignment["planning"]["multiple_content"] is True
     except (KeyError, TypeError):
         return False
-
-
-def copy_translated_values_to_root_level_fields(item: dict, language: str) -> None:
-    """
-    Copies translated values from the 'translations' nested structure to the root level fields
-    in the given item. This ensures that language-specific values are set directly in
-    the item based on the provided language.
-
-    :param item: The item to update
-    :param language: The language code used to filter translations for copying to root level.
-    """
-
-    if not item.get("translations"):
-        return
-
-    for translation in item["translations"]:
-        if translation.get("language") == language:
-            item.setdefault(translation["field"], translation["value"])
