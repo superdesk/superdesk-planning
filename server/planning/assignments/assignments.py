@@ -36,7 +36,6 @@ from superdesk.metadata.item import (
 )
 from superdesk.resource import not_analyzed
 from superdesk.notification import push_notification
-from superdesk.utc import utcnow
 from superdesk.users.services import current_user_has_privilege
 
 from apps.archive.common import get_user, get_auth
@@ -84,10 +83,14 @@ from planning.utils import (
     get_first_event_item_for_planning_id,
 )
 from planning.coverage_assignments import update_planning_from_assignment_changes
+from planning.unified.coverages import remove_assignment_from_coverage
 
 logger = logging.getLogger(__name__)
-planning_type = deepcopy(superdesk.Resource.rel("planning", type="string", required=True))
-planning_type["mapping"] = not_analyzed
+
+# Disable data relation validation for now
+planning_type = {"type": "string", "required": True}
+# planning_type = deepcopy(superdesk.Resource.rel("planning", type="string", required=True))
+# planning_type["mapping"] = not_analyzed
 notification_source_ctx: ContextVar[str | None] = ContextVar("assignment_notification_source", default=None)
 
 
@@ -460,7 +463,7 @@ class AssignmentsService(AsyncBaseService):
                 ),
             )
 
-        event_item = get_first_event_item_for_planning_id(planning_id, "primary")
+        event_item = await get_first_event_item_for_planning_id(planning_id, "primary")
         if event_item:
             contacts = []
             for contact_id in event_item.get("event_contact_info", []):
@@ -1384,7 +1387,6 @@ class AssignmentsService(AsyncBaseService):
 
     async def on_deleted_async(self, doc, update_planning: bool = True):
         deleted_assignments = [doc.get(ID_FIELD)]
-        planning_service = get_resource_service("planning")
         await self.archive_delete_assignment(doc)
         marked_for_delete = False
         # Delete all assignments in that coverage
@@ -1401,7 +1403,7 @@ class AssignmentsService(AsyncBaseService):
 
         # Remove assignment information from coverage
         if update_planning:
-            updated_planning = await planning_service.remove_assignment(doc)
+            updated_planning = await remove_assignment_from_coverage(doc)
         else:
             updated_planning = doc
 

@@ -126,7 +126,7 @@ async def get_item_from_assignment(assignment, template=None):
     if genre:
         item["genre"] = deepcopy(genre)
 
-    keyword = planning_data.get("keyword", [])
+    keyword = planning_data.get("keyword") or []
     if len(keyword) > 0:
         item["keywords"] = keyword
 
