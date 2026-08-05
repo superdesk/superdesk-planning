@@ -1,13 +1,13 @@
 from typing import Annotated
-from datetime import datetime
 from enum import Enum, unique
 
 from pydantic import Field
 
 from superdesk.core.resources import BaseModel, Dataclass, fields
 from superdesk.core.resources.validators import validate_data_relation_async
+from superdesk.core.utils import generate_guid, GUID_NEWSML
 
-from ..enums import WorkflowState, AssignmentWorkflowState
+from ..enums import WorkflowState, AssignmentWorkflowState, UpdateMethods
 from .common import CVItem, Subject, ItemLocation
 from .system import AuditInformation
 
@@ -41,7 +41,7 @@ class CoverageAssignedTo(Dataclass):
         description="The workflow status of the assignment", default=AssignmentWorkflowState.DRAFT
     )
     contact: Annotated[fields.ObjectId | None, validate_data_relation_async("contacts")] = Field(
-        description="ID of the Contact for this Coverage", default=None
+        description="ID of the Contact this Coverage is assigned to", default=None
     )
     user: Annotated[fields.ObjectId | None, validate_data_relation_async("users")] = Field(
         description="ID of the User for this Coverage", default=None
@@ -49,6 +49,7 @@ class CoverageAssignedTo(Dataclass):
     desk: Annotated[fields.ObjectId | None, validate_data_relation_async("desks")] = Field(
         description="ID of the Desk for this Coverage", default=None
     )
+    coverage_provider: CVItem | None = Field(description="External provider of the coverage", default=None)
 
 
 class NewsContentCharacteristics(Dataclass):
@@ -68,8 +69,8 @@ class CustomCoverageField(Dataclass):
 
 
 class CoveragePlanning(Dataclass):
-    g2_content_type: fields.Keyword = Field(description="G2 Content Type of the Coverage")
-    scheduled: datetime = Field(description="Due date and time for this Coverage")
+    scheduled: fields.UTCDatetime = Field(description="Due date and time for this Coverage")
+    g2_content_type: fields.Keyword = Field(description="G2 Content Type of the Coverage", default="text")
     genre: list[CVItem] | None = Field(description="Genre(s) associated with this Coverage", default=None)
     slugline: fields.Slugline | None = Field(description="Slugline associated with this Coverage", default=None)
     headline: fields.HTML | None = Field(description="Headline associated with this Coverage", default=None)
@@ -77,7 +78,7 @@ class CoveragePlanning(Dataclass):
     internal_note: str | None = Field(description="Internal note for this Coverage", default=None)
     keyword: list[str] | None = Field(description="Keyword(s) associated with this Coverage", default=None)
     language: fields.Keyword | None = Field(description="Language associated with this Coverage", default=None)
-    coverage_provider: fields.Keyword | None = Field(
+    coverage_provider: CVItem | None = Field(
         description="The external provider for this Coverage", default=None
     )
     contact_info: Annotated[fields.ObjectId | None, validate_data_relation_async("contacts")] = Field(
@@ -102,9 +103,11 @@ class CoveragePlanning(Dataclass):
     location: Annotated[list[ItemLocation] | None, fields.dynamic_mapping(False)] = Field(
         description="List of locations related to the item", default=None
     )
-    files: Annotated[list[fields.ObjectId] | None, validate_data_relation_async("planning_files")] = Field(
-        description="List of file IDs associated with this Coverage", default=None
-    )
+    files: Annotated[
+        list[fields.ObjectId | str] | None,
+        fields.keyword_mapping(),
+        validate_data_relation_async("planning_files"),
+    ] = Field(description="List of file IDs associated with this Coverage", default=None)
     xmp_file: Annotated[fields.ObjectId | None, validate_data_relation_async("planning_files")] = Field(
         description="ID of the XMP file associated with this Coverage", default=None
     )
@@ -128,9 +131,7 @@ class CoveragePlanning(Dataclass):
 
 
 class CoverageScheduledUpdatePlanning(Dataclass):
-    scheduled: datetime = Field(
-        description="Due date and time for this Coverage",
-    )
+    scheduled: fields.UTCDatetime = Field(description="Due date and time for this Coverage")
     genre: list[CVItem] | None = Field(description="Genre(s) associated with this Coverage", default=None)
     internal_note: str | None = Field(description="Internal note for this Coverage", default=None)
     contact_info: Annotated[fields.ObjectId | None, validate_data_relation_async("contacts")] = Field(
@@ -145,12 +146,14 @@ class CoverageScheduledUpdatePlanning(Dataclass):
 
 
 class CoverageScheduledUpdate(Dataclass):
-    scheduled_update_id: fields.Keyword = Field(description="Scheduled update ID")
     coverage_id: fields.Keyword = Field(description="Parent Coverage ID")
     news_coverage_status: NewsCoverageStatus = Field(description="The news coverage status of the item")
+    scheduled_update_id: fields.Keyword = Field(
+        description="Scheduled update ID", default_factory=lambda _: f"tempId-{generate_guid(type=GUID_NEWSML)}"
+    )
     workflow_status: WorkflowState = Field(description="The workflow status of the item", default=WorkflowState.DRAFT)
-    assigned_to: CoverageAssignedTo = Field(
-        description="The Assignment and Contact for this Update Coverage", default_factory=CoverageAssignedTo
+    assigned_to: CoverageAssignedTo | None = Field(
+        description="The Assignment and Contact for this Update Coverage", default=None
     )
     previous_status: WorkflowState | None = Field(
         description="The previous workflow status of the item",
@@ -162,7 +165,9 @@ class CoverageScheduledUpdate(Dataclass):
 
 
 class CoverageItem(AuditInformation, BaseModel):
-    coverage_id: fields.Keyword = Field(description="Coverage ID")
+    coverage_id: fields.Keyword = Field(
+        description="Coverage ID", default_factory=lambda _: f"tempId-{generate_guid(type=GUID_NEWSML)}"
+    )
     original_coverage_id: fields.Keyword | None = Field(description="Original Coverage ID", default=None)
     guid: fields.Keyword | None = Field(description="Coverage GUID", default=None)  # is this used anywhere?
     profile: Annotated[fields.Keyword | None, validate_data_relation_async("coverage_profiles")] = Field(
@@ -175,8 +180,9 @@ class CoverageItem(AuditInformation, BaseModel):
         default=None,
     )
     flags: CoverageFlags = Field(description="Flags for the coverage item", default_factory=CoverageFlags)
-    assigned_to: CoverageAssignedTo = Field(
-        description="The Assignment and Contact for this Coverage", default_factory=CoverageAssignedTo
+    assigned_to: CoverageAssignedTo | None = Field(
+        description="The Assignment and Contact for this Coverage",
+        default=None,
     )
     planning: CoveragePlanning = Field(
         description="The planning information for this Coverage", default_factory=CoveragePlanning
@@ -194,10 +200,75 @@ class CoverageItem(AuditInformation, BaseModel):
     add_coverage_to_workflow: bool = Field(description="If True the item will be added to workflow", default=False)
 
 
-class ItemCoverage:
+class ItemCoverage(BaseModel):
     news_coverage_status: NewsCoverageStatus | None = Field(
         description="The news coverage status of the item", default=None
     )
     coverages: Annotated[list[CoverageItem] | None, fields.nested_list()] = Field(
         description="List of coverages associated with the unified planning resource", default=None
+    )
+
+
+class EmbeddedPlanningCoverage(Dataclass):
+    coverage_id: str = Field(
+        description="The ID of the Coverage item that this EmbeddedPlanningCoverage is linked to",
+        default_factory=lambda _: f"tempId-{generate_guid(type=GUID_NEWSML)}",
+    )
+    g2_content_type: str = Field(
+        description="The G2 content type of the Coverage item that this EmbeddedPlanningCoverage is linked to",
+        default="text",
+    )
+    news_coverage_status: str = Field(
+        description="The news coverage status of the Coverage item that this EmbeddedPlanningCoverage is linked to",
+        default="ncostat:int",
+    )
+    scheduled: fields.UTCDatetime | None = Field(
+        description="The scheduled date and time of the Coverage item that this EmbeddedPlanningCoverage is linked to",
+        default=None,
+    )
+    desk: fields.ObjectId | None = Field(
+        description="The desk of the Coverage item that this EmbeddedPlanningCoverage is linked to", default=None
+    )
+    user: Annotated[fields.ObjectId | None, validate_data_relation_async("users")] = Field(
+        description="The user of the Coverage item that this EmbeddedPlanningCoverage is linked to", default=None
+    )
+    language: str | None = Field(
+        description="The language of the Coverage item that this EmbeddedPlanningCoverage is linked to", default=None
+    )
+    genre: str | None = Field(
+        description="The genre of the Coverage item that this EmbeddedPlanningCoverage is linked to", default=None
+    )
+    slugline: str | None = Field(
+        description="The slugline of the Coverage item that this EmbeddedPlanningCoverage is linked to", default=None
+    )
+    headline: str | None = Field(
+        description="The headline of the Coverage item that this EmbeddedPlanningCoverage is linked to", default=None
+    )
+    ednote: str | None = Field(
+        description="The ednote of the Coverage item that this EmbeddedPlanningCoverage is linked to", default=None
+    )
+    internal_note: str | None = Field(
+        description="The internal note of the Coverage item that this EmbeddedPlanningCoverage is linked to",
+        default=None,
+    )
+    priority: int | None = Field(
+        description="The priority of the Coverage item that this EmbeddedPlanningCoverage is linked to", default=None
+    )
+    coverage_provider: CVItem | None = Field(
+        description="The coverage provider of the Coverage item that this EmbeddedPlanningCoverage is linked to",
+        default=None,
+    )
+
+
+class EmbeddedPlanningItem(BaseModel):
+    planning_id: Annotated[fields.Keyword | None, validate_data_relation_async("unified_planning")] = Field(
+        description="The ID of the Planning item that this EmbeddedPlanningItem is linked to", default=None
+    )
+    update_method: UpdateMethods | None = Field(
+        description="Used to determine the update method",
+        default=UpdateMethods.SINGLE,
+    )
+    coverages: dict[str, EmbeddedPlanningCoverage] = Field(
+        description="The coverages of the Planning item that this EmbeddedPlanningItem is linked to",
+        default_factory=dict,
     )

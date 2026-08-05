@@ -1,7 +1,7 @@
 from typing import Annotated
-from datetime import datetime
+from enum import Enum, unique
 
-from pydantic import Field
+from pydantic import Field, BaseModel
 
 from superdesk.core.resources import Dataclass, fields
 from superdesk.core.resources.validators import validate_data_relation_async
@@ -27,7 +27,7 @@ class Place(Dataclass):
     rel: fields.Keyword | None = Field(description="The relationship of the place", default=None)
 
 
-class ItemDescription:
+class ItemDescription(BaseModel):
     slugline: fields.Slugline | None = Field(
         description="Short editorial identifier or slugline for the item", default=None
     )
@@ -40,15 +40,17 @@ class ItemDescription:
     ednote: str | None = Field(description="Editorial note associated with the item", default=None)
 
 
-class ItemMetadata:
+class ItemMetadata(BaseModel):
     subject: Annotated[list[Subject] | None, fields.nested_list(include_in_parent=True, dynamic=False)] = Field(
         description="Item subjects", default=None
     )
     anpa_category: list[CVItem] | None = Field(description="Item ANPA categories", default=None)
     priority: int | None = Field(description="Priority of the item", default=None)
     urgency: int | None = Field(description="Urgency of the item", default=None)
-    language: fields.Keyword | None = Field(description="Language of the item", default=None)
-    languages: list[fields.Keyword] | None = Field(description="Languages of the item", default=None)
+    language: fields.Keyword = Field(description="Language of the item (defaults to the DEFAULT_LANGUAGE config)")
+    languages: list[fields.Keyword] = Field(
+        description="Languages of the item (defaults to the DEFAULT_LANGUAGE config)"
+    )
     calendars: list[CVItem] | None = Field(description="Calendars of the item", default=None)
     agendas: Annotated[list[fields.ObjectId] | None, validate_data_relation_async("agenda")] = Field(
         description="IDs for the agendas of the item",
@@ -81,7 +83,7 @@ class CompanyCode(Dataclass):
     )
 
 
-class ItemExtraDetails:
+class ItemExtraDetails(BaseModel):
     registration: str | None = Field(description="Registration details of the item", default=None)
     access_status: list[CVItem] | None = Field(description="Access status of the item", default=None)
     registration_details: str | None = Field(
@@ -96,7 +98,7 @@ class ItemExtraDetails:
         description="Details about the accreditation of the item",
         default=None,
     )
-    accreditation_deadline: datetime | None = Field(
+    accreditation_deadline: fields.Date | None = Field(
         description="Deadline for accreditation of the item",
         default=None,
     )
@@ -108,7 +110,11 @@ class ItemExtraDetails:
         description="Links to external resources related to the item",
         default=None,
     )
-    files: Annotated[list[fields.ObjectId] | None, validate_data_relation_async("planning_files")] = Field(
+    files: Annotated[
+        list[fields.ObjectId | str] | None,
+        fields.keyword_mapping(),
+        validate_data_relation_async("planning_files"),
+    ] = Field(
         description="IDs of the file(s) attached to the item",
         default=None,
     )
@@ -132,7 +138,7 @@ class ItemExtraDetails:
     )
 
 
-class ItemContactDetails:
+class ItemContactDetails(BaseModel):
     event_contact_info: Annotated[list[fields.ObjectId] | None, validate_data_relation_async("contacts")] = Field(
         description="List of contact IDs related to the item",
         default=None,
@@ -146,3 +152,23 @@ class ItemContactDetails:
         default=None,
     )
     organizer: list[CVItem] | None = Field(description="List of organizers for the item", default=None)
+
+
+@unique
+class RelatedEventLinkType(str, Enum):
+    PRIMARY = "primary"
+    SECONDARY = "secondary"
+
+
+class RelatedEventLink(Dataclass):
+    _id: Annotated[fields.Keyword, validate_data_relation_async("unified_planning")] = Field(
+        description="Related Event ID"
+    )
+    link_type: RelatedEventLinkType = Field(description="Type of link")
+    recurrence_id: fields.Keyword | None = Field(description="Recurrence ID of the related event", default=None)
+
+
+class RelatedItems(BaseModel):
+    related_events: Annotated[list[RelatedEventLink] | None, fields.nested_list()] = Field(
+        description="List of related events for the item", default=None
+    )

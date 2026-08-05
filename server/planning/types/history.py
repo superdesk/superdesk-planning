@@ -12,11 +12,11 @@ class HistoryResourceModel(ResourceModelWithObjectId):
 
 
 class PlanningHistoryResourceModel(HistoryResourceModel):
-    planning_id: Annotated[fields.Keyword, validate_data_relation_async("planning")]
+    planning_id: Annotated[fields.Keyword, validate_data_relation_async("unified_planning")]
 
 
 class EventsHistoryResourceModel(HistoryResourceModel):
-    event_id: Annotated[fields.Keyword, validate_data_relation_async("events")]
+    event_id: Annotated[fields.Keyword, validate_data_relation_async("unified_planning")]
 
 
 class AssignmentsHistoryResourceModel(HistoryResourceModel):
