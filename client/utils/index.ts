@@ -260,6 +260,8 @@ export const createStore = (params = {}, app = planningApp) => {
 export const getErrorMessage = (error, defaultMessage) => {
     if (get(error, 'data._message')) {
         return get(error, 'data._message');
+    } else if (get(error, '_message')) {
+        return get(error, '_message');
     } else if (get(error, 'data._issues.validator exception')) {
         return get(error, 'data._issues.validator exception');
     } else if (get(error, 'data._error.message')) {
