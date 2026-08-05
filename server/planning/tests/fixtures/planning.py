@@ -13,7 +13,7 @@ def plan1() -> dict:
         "coverages": [
             {
                 "coverage_id": PLAN1_TEXT_COVERAGE_1_ID,
-                "news_coverage_status": {"qcode": "ncostat:int"},
+                "news_coverage_status": {"qcode": "ncostat:int", "name": "coverage intended", "label": "Planned"},
                 "planning": {
                     "g2_content_type": "text",
                     "slugline": "test text 1",

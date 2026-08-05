@@ -7,6 +7,7 @@ from .expected_es_mapping import expected_es_mapping
 
 class TestUnifiedPlanningElasticsearch(TestCase):
     async def test_elastic_mapping(self):
+        self.maxDiff = None
         es_mapping = get_elastic_mapping_from_model(
             UnifiedPlanningResource.model_resource_name, UnifiedPlanningResource
         )
