@@ -88,7 +88,7 @@ class LockService(BaseComponent):
                 if action:
                     updates[LOCK_ACTION] = action
 
-                await item_service.update_async(item.get(ID_FIELD), updates, item)
+                await item_service.update_async(item.get(ID_FIELD), updates, item, skip_signals=True)
 
                 push_notification(
                     resource + ":lock",
@@ -142,7 +142,7 @@ class LockService(BaseComponent):
 
         # Unlock the item
         updates = {LOCK_USER: None, LOCK_SESSION: None, LOCK_TIME: None, LOCK_ACTION: None}
-        await item_service.update_async(item.get(ID_FIELD), updates, item)
+        await item_service.update_async(item.get(ID_FIELD), updates, item, skip_signals=True)
         item = await item_service.find_one_async(req=None, _id=item_id)
 
         # following line executes handlers attached to function:
