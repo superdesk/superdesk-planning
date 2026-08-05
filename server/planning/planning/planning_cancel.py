@@ -18,7 +18,8 @@ from superdesk.notification import push_notification
 from superdesk.errors import SuperdeskApiError
 from apps.archive.common import get_user, get_auth
 from copy import deepcopy
-from .planning import PlanningResource, planning_schema
+from .planning import PlanningResource
+from .planning_schema import planning_schema
 from planning.common import (
     WORKFLOW_STATE,
     ITEM_STATE,

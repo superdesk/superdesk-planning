@@ -35,7 +35,7 @@ from planning.common import (
 )
 from planning.planning.planning_history_async_service import PlanningHistoryAsyncService
 from planning.content_profiles.utils import is_cancel_planning_with_event_enabled
-from planning.utils import get_related_event_items_for_planning
+from planning.utils import get_related_event_items_for_planning_async
 from planning.types import Event, Planning
 
 logger = logging.getLogger(__name__)
@@ -43,7 +43,9 @@ logger = logging.getLogger(__name__)
 
 class PlanningPostResource(PlanningResource):
     schema = {
-        "planning": Resource.rel("planning", type="string", required=True),
+        # Disable data relation validation for now
+        "planning": {"type": "string", "required": True},
+        # "planning": Resource.rel("planning", type="string", required=True),
         "etag": {"type": "string", "required": True},
         "pubstatus": {"type": "string", "required": True, "allowed": tuple(POST_STATE)},
     }
@@ -62,7 +64,7 @@ class PlanningPostService(AsyncBaseService):
         cancel_plan_with_event_enabled = await is_cancel_planning_with_event_enabled()
         for doc in docs:
             plan = await get_resource_service("planning").find_one_async(req=None, _id=doc["planning"])
-            related_events = get_related_event_items_for_planning(plan, "primary")
+            related_events = await get_related_event_items_for_planning_async(plan, "primary")
 
             await self.validate_item(plan, related_events, doc["pubstatus"], cancel_plan_with_event_enabled)
 
@@ -177,7 +179,9 @@ class PlanningPostService(AsyncBaseService):
                     if coverage.get("planning", {}).pop("workflow_status_reason", None):
                         coverage["planning"]["workflow_status_reason"] = None
 
-        updated_plan = await get_resource_service("planning").update_async(plan["_id"], updates, plan)
+        updated_plan = await get_resource_service("planning").update_async(
+            plan["_id"], updates, plan, skip_signals=True
+        )
         plan.update(updated_plan)
 
         # Set a version number

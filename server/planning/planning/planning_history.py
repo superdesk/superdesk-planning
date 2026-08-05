@@ -36,7 +36,9 @@ class PlanningHistoryResource(Resource):
     resource_methods = ["GET"]
     item_methods = ["GET"]
     schema = {
-        "planning_id": Resource.rel("planning", True),
+        # Disable data relation validation for now
+        "planning_id": {"type": "string", "required": True},
+        # "planning_id": Resource.rel("planning", True),
         "user_id": Resource.rel("users", True),
         "operation": {"type": "string"},
         "update": {"type": "dict", "nullable": True},

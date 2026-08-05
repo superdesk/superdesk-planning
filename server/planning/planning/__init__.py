@@ -12,6 +12,7 @@ from planning import signals
 from quart_babel import lazy_gettext
 
 import superdesk
+from superdesk.eve_async.eve_to_pydantic_datalayer import EveToPydanticDataLayer
 
 from .planning import PlanningResource, PlanningService  # noqa
 from .planning_schema import coverage_schema  # noqa
@@ -63,7 +64,9 @@ def init_app(app):
 
     :param app: superdesk app
     """
-    planning_service = PlanningService(PlanningResource.endpoint_name, backend=superdesk.get_backend())
+    planning_service = PlanningService(
+        PlanningResource.endpoint_name, backend=EveToPydanticDataLayer("unified_planning")
+    )
     PlanningResource(PlanningResource.endpoint_name, app=app, service=planning_service)
 
     planning_lock_service = PlanningLockService("planning_lock", backend=superdesk.get_backend())
@@ -122,8 +125,6 @@ def init_app(app):
     signals.planning_postponed.connect(planning_history_async_service.on_postpone)
 
     # Still include the old signals
-    app.on_inserted_planning += planning_history_service.on_item_created
-    app.on_updated_planning += planning_history_service.on_item_updated
     app.on_updated_planning_cancel += planning_history_service.on_cancel
     app.on_updated_planning_reschedule += planning_history_service.on_reschedule
 

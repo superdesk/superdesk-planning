@@ -13,7 +13,8 @@ from superdesk.resource_fields import ID_FIELD
 from superdesk.notification import push_notification
 from apps.archive.common import get_user, get_auth
 from copy import deepcopy
-from .planning import PlanningResource, planning_schema
+from .planning import PlanningResource
+from .planning_schema import planning_schema
 from planning.common import WORKFLOW_STATE, ITEM_STATE, get_coverage_type_name
 from superdesk import get_resource_service
 from planning.planning_notifications import PlanningNotifications

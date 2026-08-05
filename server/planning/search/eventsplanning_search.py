@@ -27,7 +27,7 @@ from superdesk.resource_fields import ITEMS
 from superdesk.errors import SuperdeskApiError
 
 from planning.events.events_schema import events_schema
-from planning.planning.planning import planning_schema
+from planning.planning.planning_schema import planning_schema
 from planning.search.eventsplanning_filters_service import EventsPlanningFiltersAsyncService
 
 from .queries.planning import PLANNING_PARAMS, PLANNING_SEARCH_FILTERS

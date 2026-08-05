@@ -21,7 +21,7 @@ from apps.common.components.utils import get_component
 
 from planning.item_lock import LockService
 from planning.common import update_returned_document
-from planning.planning.planning import planning_schema
+from .planning_schema import planning_schema
 from planning.utils import get_related_event_links_for_planning
 
 CUSTOM_HATEOAS_PLANNING = {"self": {"title": "Planning", "href": "/planning/{_id}"}}

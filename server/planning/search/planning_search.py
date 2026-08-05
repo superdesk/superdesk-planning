@@ -22,7 +22,7 @@ from superdesk.resource_fields import ITEMS
 from superdesk.metadata.utils import item_url
 
 from planning.events.events_schema import events_schema
-from planning.planning.planning import planning_schema
+from planning.planning.planning_schema import planning_schema
 from planning.types import EventResourceModel, PlanningResourceModel, AssignmentResourceModel
 
 logger = logging.getLogger(__name__)

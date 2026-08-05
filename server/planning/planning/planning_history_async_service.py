@@ -29,6 +29,9 @@ class PlanningHistoryAsyncService(HistoryAsyncService[PlanningHistoryResourceMod
             add_to_planning = strtobool(request.args.get("add_to_planning", "false"))
         await super().on_item_created(items, "add_to_planning" if add_to_planning else None)
 
+    async def on_item_deleted(self, doc: dict):
+        await self.delete_many(lookup={"planning_id": doc[ID_FIELD]})
+
     async def _save_history(self, item, update: dict[str, Any], operation: str | None = None):
         user = await self.get_user_id()
         if operation == AssignmentHistoryActions.CONFIRM.value and user is None:
@@ -100,7 +103,10 @@ class PlanningHistoryAsyncService(HistoryAsyncService[PlanningHistoryResourceMod
         original_coverages = {c.get("coverage_id"): c for c in (original or {}).get("coverages") or []}
         updates_coverages = {c.get("coverage_id"): c for c in (updates or {}).get("coverages") or []}
         added, deleted, updated = [], [], []
-        add_to_planning = strtobool(request.args.get("add_to_planning", "false"))
+        if request and hasattr(request, "args"):
+            add_to_planning = strtobool(request.args.get("add_to_planning", "false"))
+        else:
+            add_to_planning = False
 
         for coverage_id, coverage in updates_coverages.items():
             original_coverage = original_coverages.get(coverage_id)
@@ -153,7 +159,7 @@ class PlanningHistoryAsyncService(HistoryAsyncService[PlanningHistoryResourceMod
 
                     await self._save_history(item, diff, operation)
 
-                if cov.get("assigned_to", {}).get("assignment_id") and not (
+                if (cov.get("assigned_to") or {}).get("assignment_id") and not (
                     original_coverage.get("assigned_to") or {}
                 ).get("assignment_id"):
                     diff = {
