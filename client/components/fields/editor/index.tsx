@@ -53,11 +53,13 @@ import {EditorFieldAddCoverageToWorkflow} from './AddCoverageToWorkflow';
 import {EditorFieldAssignmentPriority} from './AssignmentPriority';
 import {EditorFieldCreationDate} from './CreationDate';
 
+import {FIELD_TO_EDITOR_COMPONENT} from '../resources/registerEditorFields';
+
 /**
  * This is the single source of truth for field definitions, allows for registering
  * other fields from a different place through `registerEditorField`
 */
-export const FIELD_TO_EDITOR_COMPONENT = {
+Object.assign(FIELD_TO_EDITOR_COMPONENT, {
     featured: EditorFieldFeatured,
     source: EditorFieldIngestSource,
     location: EditorFieldLocation,
@@ -146,7 +148,11 @@ export const FIELD_TO_EDITOR_COMPONENT = {
     scheduled_updates: EditorFieldScheduledUpdates,
     coverage_assignment_status: EditorFieldAssignedCoverageComponent,
     assignment_priority: EditorFieldAssignmentPriority,
-};
+});
 
-// Import resource fields so that registration happens after the above
+export {FIELD_TO_EDITOR_COMPONENT};
+
+// Loads the registrations from ../resources; works regardless of whether the
+// compiler hoists this import, since the registry object lives in a module
+// with no circular dependencies.
 import '../resources/index';
