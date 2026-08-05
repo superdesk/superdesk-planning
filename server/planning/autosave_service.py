@@ -9,6 +9,7 @@ from superdesk.core.resources import AsyncResourceService
 from superdesk.errors import SuperdeskApiError
 
 from planning.types import EventAutosaveResourceModel, PlanningAutosaveResourceModel
+from planning.unified.files import delete_item_files
 
 
 logger = logging.getLogger(__name__)
@@ -29,11 +30,9 @@ class AutosaveAsyncService(AsyncResourceService):
 
         # TODO-ASYNC: We should also delete Planning files on autosave delete as well
         # This can include:
-        # * files
         # * coverages.planning.files
         # * coverages.planning.xmp_file
-        if doc.item_type == "event" and doc.files:
-            await get_resource_service("events").delete_event_files({}, doc.to_dict())
+        await delete_item_files(doc.item_type, doc.files)
 
     @staticmethod
     def _validate(doc: EventAutosaveResourceModel | PlanningAutosaveResourceModel):
