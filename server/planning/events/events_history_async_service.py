@@ -30,12 +30,12 @@ class EventsHistoryAsyncService(HistoryAsyncService[EventsHistoryResourceModel])
             if isinstance(item, EventResourceModel):
                 item = item.to_dict()
 
-            planning_items = await get_related_planning_for_events_async([item[ID_FIELD]], "primary")
-            if len(planning_items) > 0:
-                item["created_from_planning"] = planning_items[0].get("_id")
+            planning_item_id = item.get("_planning_item")
+            if planning_item_id:
+                item["created_from_planning"] = planning_item_id
                 created_from_planning.append(item)
             else:
-                regular_events.append((item))
+                regular_events.append(item)
 
         await super().on_item_created(created_from_planning, "created_from_planning")
         await super().on_item_created(regular_events)
@@ -55,6 +55,10 @@ class EventsHistoryAsyncService(HistoryAsyncService[EventsHistoryResourceModel])
 
         if not operation:
             operation = "convert_recurring" if original.get(LOCK_ACTION) == "convert_recurring" else "edited"
+
+        if operation == "edited" and list(diff.keys()) == ["duplicate_to"]:
+            # No need to add an entry here, as we should already have a "duplicate" entry already
+            return
 
         await self._save_history(item, diff, operation)
 

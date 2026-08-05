@@ -112,7 +112,7 @@ async def process_postpone_event(updates: dict[str, Any], original: dict[str, An
 
     # Update the original event in the database
     event_id = original[ID_FIELD]
-    await events_service.update_async(event_id, updates, original)
+    await events_service.update_async(event_id, updates, original, skip_signals=True)
     await signals.event_postponed.send(updates, original)
     postponed_event = await events_service.find_one_async(req=None, _id=event_id)
     assert postponed_event is not None, "Expected postponed_event to be a dict, got None"

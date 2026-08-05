@@ -40,7 +40,9 @@ from planning.content_profiles.utils import is_post_planning_with_event_enabled,
 
 class EventsPostResource(EventsResource):
     schema = {
-        "event": Resource.rel("events", type="string", required=True),
+        # Disable data relation validation for now
+        "event": {"type": "string", "required": True},
+        # "event": Resource.rel("events", type="string", required=True),
         "etag": {"type": "string", "required": True},
         "pubstatus": {"type": "string", "required": True, "allowed": tuple(POST_STATE)},
         # The update method used for recurring events
@@ -211,7 +213,7 @@ class EventsPostService(AsyncBaseService):
                 updates["actioned_date"] = None
 
         event_id = event[ID_FIELD]
-        await events_service.update_async(event_id, updates, event)
+        await events_service.update_async(event_id, updates, event, skip_signals=True)
         event.update(updates)
 
         # enqueue the event

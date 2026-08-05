@@ -263,7 +263,7 @@ async def process_spike_event(updates: dict[str, Any], original: dict[str, Any])
     updates.pop("skip_on_update", None)
 
     # Update the original event in the database
-    await events_service.update_async(original[ID_FIELD], updates, original)
+    await events_service.update_async(original[ID_FIELD], updates, original, skip_signals=True)
     await signals.event_spiked.send(updates, original)
     spiked_event = await events_service.find_one_async(req=None, _id=original[ID_FIELD])
     assert spiked_event is not None, "Expected spiked_event to be a dict, got None"
@@ -313,7 +313,7 @@ async def process_unspike_event(updates: dict[str, Any], original: dict[str, Any
     unspiked_items = updates.pop("_unspiked_items", [])
 
     # Update the original event in the database
-    await events_service.update_async(original[ID_FIELD], updates, original)
+    await events_service.update_async(original[ID_FIELD], updates, original, skip_signals=True)
     await signals.event_unspiked.send(updates, original)
     unspiked_event = await events_service.find_one_async(req=None, _id=original[ID_FIELD])
     assert unspiked_event is not None, "Expected unspiked_event to be a dict, got None"

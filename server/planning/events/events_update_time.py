@@ -65,7 +65,7 @@ async def process_update_time(
     set_planning_schedule(updates)
 
     # Update the original event in the database
-    await events_service.update_async(original[ID_FIELD], updates, original)
+    await events_service.update_async(original[ID_FIELD], updates, original, skip_signals=True)
 
     # Perform post update actions
     await post_update_event_actions(updates, original, ACTION)

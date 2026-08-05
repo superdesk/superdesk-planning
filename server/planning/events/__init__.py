@@ -11,6 +11,8 @@
 import superdesk
 from quart_babel import lazy_gettext
 
+from superdesk.eve_async.eve_to_pydantic_datalayer import EveToPydanticDataLayer
+
 from planning import signals
 from .events import EventsResource, EventsService
 from .events_files import EventsFilesResource, EventsFilesService
@@ -55,7 +57,9 @@ def init_app(app):
     events_unlock_service = EventsUnlockService("events_unlock", backend=superdesk.get_backend())
     EventsUnlockResource("events_unlock", app=app, service=events_unlock_service)
 
-    events_search_service = EventsService(EventsResource.endpoint_name, backend=superdesk.get_backend())
+    events_search_service = EventsService(
+        EventsResource.endpoint_name, backend=EveToPydanticDataLayer("unified_planning")
+    )
     EventsResource(EventsResource.endpoint_name, app=app, service=events_search_service)
 
     events_post_service = EventsPostService("events_post", backend=superdesk.get_backend())
@@ -84,7 +88,6 @@ def init_app(app):
     events_history_async_service = EventsHistoryAsyncService()
 
     # listen to async signals
-    signals.events_created.connect(events_history_async_service.on_item_created)
     signals.event_time_updated.connect(events_history_async_service.on_update_time)
     signals.event_spiked.connect(events_history_async_service.on_spike)
     signals.event_unspiked.connect(events_history_async_service.on_unspike)
@@ -92,11 +95,6 @@ def init_app(app):
     signals.event_cancel.connect(events_history_async_service.on_cancel)
     signals.event_reschedule.connect(events_history_async_service.on_reschedule)
     signals.event_rescheduled.connect(events_history_async_service.on_reschedule)
-
-    app.on_updated_events += events_history_service.on_item_updated
-
-    # TODO-ASYNC: remove `on_inserted_events` when `events_reschedule` is async
-    app.on_inserted_events += events_history_service.on_item_created
 
     app.on_deleted_item_events -= events_history_service.on_item_deleted
     app.on_deleted_item_events += events_history_service.on_item_deleted
