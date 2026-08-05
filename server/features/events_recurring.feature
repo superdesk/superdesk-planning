@@ -467,10 +467,7 @@ Feature: Events Recurring
                     "planning": {
                         "internal_note": "Please write words."
                     },
-                    "news_coverage_status": {
-                        "qcode": "ncostat:int",
-                        "name": "Coverage intended"
-                    }
+                    "news_coverage_status": {"qcode": "ncostat:int", "name": "coverage intended", "label": "Planned"}
                 }
             ],
             "planning_date": "2016-01-02"

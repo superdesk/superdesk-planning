@@ -38,6 +38,7 @@ Feature: Planning & Content ContentAPI
             "planning_date": "2042-01-01T10:00:00+0000",
             "coverages": [{
                 "workflow_status": "active",
+                "news_coverage_status": {"qcode": "ncostat:int", "name": "coverage intended", "label": "Planned"},
                 "planning": {
                     "g2_content_type": "text",
                     "headline": "Sporting Plan 1",

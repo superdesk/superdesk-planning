@@ -396,7 +396,7 @@ Feature: Events
             "name": "event 123",
             "state": "draft",
             "type": "event",
-            "occur_status": {"qcode": "eocstat:eos5"},
+            "occur_status": {"qcode": "eocstat:eos5", "name": "Planned, occurs certainly", "label": "Planned, occurs certainly"},
             "dates": {
                 "start": "2016-01-02",
                 "end": "2016-01-03"
@@ -426,7 +426,7 @@ Feature: Events
             "state": "draft",
             "type": "event",
             "original_creator": "#CONTEXT_USER_ID#",
-            "occur_status": {"qcode": "eocstat:eos5"},
+            "occur_status": {"qcode": "eocstat:eos5", "name": "Planned, occurs certainly", "label": "Planned, occurs certainly"},
             "duplicate_from": "123"
         }
         """
@@ -494,7 +494,7 @@ Feature: Events
                 "tz": "Australia/Sydney"
             },
             "state": "draft",
-            "expired": "__no_value__"
+            "expired": false
         }
         """
 
@@ -610,7 +610,7 @@ Feature: Events
         [{
             "name": "event 123",
             "state": "draft",
-            "occur_status": {"qcode": "eocstat:eos5"},
+            "occur_status": {"qcode": "eocstat:eos5", "name": "Planned, occurs certainly", "label": "Planned, occurs certainly"},
             "dates": {
                 "start": "2016-01-02",
                 "end": "2016-01-03"
@@ -636,7 +636,7 @@ Feature: Events
             "_id": "#events._id#",
             "name": "event 123",
             "state": "draft",
-            "occur_status": {"qcode": "eocstat:eos5"},
+            "occur_status": {"qcode": "eocstat:eos5", "name": "Planned, occurs certainly", "label": "Planned, occurs certainly"},
             "duplicate_from": "123"
         }
         """
@@ -726,10 +726,13 @@ Feature: Events
             }
         """
         When we get "/planning_history"
-        Then we get a list with 1 items
+        Then we get a list with 2 items
         """
             {
                 "_items": [{
+                    "operation": "create",
+                    "planning_id": "#planning._id#"
+                }, {
                     "operation": "create_event",
                     "planning_id": "#planning._id#",
                     "update": {
@@ -744,6 +747,7 @@ Feature: Events
     @auth
     @notification
     Scenario: Link and unlink event as secondary to a Planning item
+        Given we have sessions "/sessions"
         Given config update
         """
         {"PLANNING_EVENT_LINK_METHOD": "one_primary_many_secondary"}
@@ -880,13 +884,14 @@ Feature: Events
             "guid": "plan1",
             "slugline": "TestEvent",
             "state": "draft",
-            "lock_user": "ident2",
+            "lock_user": "#CONTEXT_USER_ID#",
             "lock_session": "#SESSION_ID#",
             "lock_action": "add_as_event",
             "lock_time": "#DATE#",
             "planning_date": "2016-01-02"
         }]
         """
+        When we login as user "bar" with password "foobar" and user type "administrator"
         When we post to "events"
         """
         {
@@ -906,7 +911,6 @@ Feature: Events
         """
 
     @auth
-
     Scenario: Deletes file if no longer used by any event during a patch call
         Given we have sessions "/sessions"
         When we upload a file "bike.jpg" to "/events_files"
@@ -1160,10 +1164,10 @@ Feature: Events
         {
             "name": "duplicate 123",
             "duplicate_from": "123",
-            "original_creator": "",
+            "original_creator": null,
             "dates": {
-                    "start": "2099-01-01",
-                    "end": "2099-01-02"
+                "start": "2099-01-01",
+                "end": "2099-01-02"
             }
         }
         """
@@ -1184,7 +1188,7 @@ Feature: Events
                 "slugline": "event-123",
                 "definition_short": "short value",
                 "definition_long": "long value",
-                "dates": { }
+                "dates": {"start": "2099-01-01"}
             }
         ]
         """
@@ -1196,37 +1200,11 @@ Feature: Events
     @auth
     @notification
     @vocabularies
+    @planning_cvs
     Scenario: Marking an event as complete will cancel related coverages
         Given "desks"
         """
         [{"name": "Sports", "content_expiry": 60}]
-        """
-        And "vocabularies"
-        """
-        [{
-            "_id": "newscoveragestatus",
-            "display_name": "News Coverage Status",
-            "type": "manageable",
-            "unique_field": "qcode",
-            "items": [
-                {"is_active": true, "qcode": "ncostat:int", "name": "coverage intended", "label": "Planned"},
-                {"is_active": true, "qcode": "ncostat:notdec", "name": "coverage not decided yet",
-                    "label": "On merit"},
-                {"is_active": true, "qcode": "ncostat:notint", "name": "coverage not intended",
-                    "label": "Not planned"},
-                {"is_active": true, "qcode": "ncostat:onreq", "name": "coverage upon request",
-                    "label": "On request"}
-            ]
-        }, {
-              "_id": "g2_content_type",
-              "display_name": "Coverage content types",
-              "type": "manageable",
-              "unique_field": "qcode",
-              "selection_type": "do not show",
-              "items": [
-                  {"is_active": true, "name": "Text", "qcode": "text", "content item type": "text"}
-              ]
-        }]
         """
         When we post to "/planning"
         """
@@ -1244,8 +1222,10 @@ Feature: Events
                 "planning": {
                     "ednote": "test coverage, I want 250 words",
                     "slugline": "test slugline",
-                    "g2_content_type": "text"
+                    "g2_content_type": "text",
+                    "scheduled": "2029-11-21T13:00:00.000Z"
                 },
+                "news_coverage_status": {"qcode": "ncostat:int", "name": "coverage intended", "label": "Planned"},
                 "assigned_to": {
                     "desk": "#desks._id#",
                     "user": "#CONTEXT_USER_ID#"
@@ -1338,37 +1318,11 @@ Feature: Events
     @auth
     @notification
     @vocabularies
+    @planning_cvs
     Scenario: Marking an event as complete will unlink related news items
         Given "desks"
         """
         [{"name": "Sports", "content_expiry": 60}]
-        """
-        And "vocabularies"
-        """
-        [{
-            "_id": "newscoveragestatus",
-            "display_name": "News Coverage Status",
-            "type": "manageable",
-            "unique_field": "qcode",
-            "items": [
-                {"is_active": true, "qcode": "ncostat:int", "name": "coverage intended", "label": "Planned"},
-                {"is_active": true, "qcode": "ncostat:notdec", "name": "coverage not decided yet",
-                    "label": "On merit"},
-                {"is_active": true, "qcode": "ncostat:notint", "name": "coverage not intended",
-                    "label": "Not planned"},
-                {"is_active": true, "qcode": "ncostat:onreq", "name": "coverage upon request",
-                    "label": "On request"}
-            ]
-        }, {
-              "_id": "g2_content_type",
-              "display_name": "Coverage content types",
-              "type": "manageable",
-              "unique_field": "qcode",
-              "selection_type": "do not show",
-              "items": [
-                  {"is_active": true, "name": "Text", "qcode": "text", "content item type": "text"}
-              ]
-        }]
         """
         When we post to "/archive"
         """
@@ -1395,12 +1349,14 @@ Feature: Events
         """
         {
             "coverages": [{
-                "workflow_status": "assigned",
+                "workflow_status": "active",
                 "planning": {
                     "ednote": "test coverage, I want 250 words",
                     "slugline": "test slugline",
-                    "g2_content_type": "text"
+                    "g2_content_type": "text",
+                    "scheduled": "2029-11-21T13:00:00.000Z"
                 },
+                "news_coverage_status": {"qcode": "ncostat:int", "name": "coverage intended", "label": "Planned"},
                 "assigned_to": {
                     "desk": "#desks._id#",
                     "user": "#CONTEXT_USER_ID#"
@@ -1744,6 +1700,7 @@ Feature: Events
 
     @auth
     Scenario: Link new Event with many_secondary link method
+        Given we have sessions "/sessions"
         Given config update
         """
         {"PLANNING_EVENT_LINK_METHOD": "many_secondary"}
@@ -1794,6 +1751,7 @@ Feature: Events
      
     @auth
     Scenario: Link new Event with one_primary link method
+        Given we have sessions "/sessions"
         Given config update
         """
         {"PLANNING_EVENT_LINK_METHOD": "one_primary"}

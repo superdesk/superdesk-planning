@@ -35,10 +35,7 @@ Feature: Planning Spike
                     "internal_note": "Cover something please!"
                 },
                 "workflow_status": "draft",
-                "news_coverage_status": {
-                    "qcode": "ncostat:int",
-                    "name": "Coverage intended"
-                }
+                "news_coverage_status": {"qcode": "ncostat:int", "name": "coverage intended", "label": "Planned"},
             }]
 
         }]

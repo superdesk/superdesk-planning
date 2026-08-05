@@ -37,7 +37,7 @@ Feature: Assignment with multiple linked content
                     "desk": "#desks._id#",
                     "user": "#CONTEXT_USER_ID#"
                 },
-                "news_coverage_status": {"qcode": "ncostat:int"},
+                "news_coverage_status": {"qcode": "ncostat:int", "name": "coverage intended", "label": "Planned"},
                 "workflow_status": "assigned"
             }]
         }]
@@ -77,7 +77,7 @@ Feature: Assignment with multiple linked content
                     "desk": "#desks._id#",
                     "user": "#CONTEXT_USER_ID#"
                 },
-                "news_coverage_status": {"qcode": "ncostat:int"},
+                "news_coverage_status": {"qcode": "ncostat:int", "name": "coverage intended", "label": "Planned"},
                 "workflow_status": "assigned"
             }]
         }
@@ -667,7 +667,7 @@ Feature: Assignment with multiple linked content
                 "desk": "#desks._id#",
                 "user": "#CONTEXT_USER_ID#"
             },
-            "news_coverage_status": {"qcode": "ncostat:int"},
+            "news_coverage_status": {"qcode": "ncostat:int", "name": "coverage intended", "label": "Planned"},
             "workflow_status": "assigned"
         }]}
         """

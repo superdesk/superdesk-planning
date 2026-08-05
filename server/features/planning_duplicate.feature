@@ -364,10 +364,7 @@ Feature: Duplicate Planning
                     "scheduled": "2012-11-21T14:00:00.000Z"
                 },
                 "planning_item": "plan1",
-                "news_coverage_status": {
-                    "qcode": "ncostat:int",
-                    "name": "Coverage intended"
-                },
+                "news_coverage_status": {"qcode": "ncostat:int", "name": "coverage intended", "label": "Planned"},
                 "assigned_to": {
                     "desk": "#desks._id#",
                     "user": "#CONTEXT_USER_ID#"

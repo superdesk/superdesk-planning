@@ -38,7 +38,8 @@ Feature: Events & Planning Content API
                     "desk": "#desks._id#",
                     "user": "#CONTEXT_USER_ID#"
                 },
-                "workflow_status": "draft"
+                "workflow_status": "draft",
+                "news_coverage_status": {"qcode": "ncostat:int", "name": "coverage intended", "label": "Planned"}
             }]
         }]
         """

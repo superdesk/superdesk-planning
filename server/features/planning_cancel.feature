@@ -23,9 +23,7 @@ Feature: Cancel all coverage
                     "g2_content_type": "text"
                 },
                 "workflow_status": "draft",
-                "news_coverage_status": {
-                    "qcode": "ncostat:int"
-                }
+                "news_coverage_status": {"qcode": "ncostat:int", "name": "coverage intended", "label": "Planned"},
             }
           ]
       }]
@@ -85,9 +83,7 @@ Feature: Cancel all coverage
           "lock_action": "planning_cancel",
           "coverages": [{
               "workflow_status": "draft",
-              "news_coverage_status": {
-                  "qcode": "ncostat:int"
-              },
+              "news_coverage_status": {"qcode": "ncostat:int", "name": "coverage intended", "label": "Planned"},
               "planning": {
                   "ednote": "test coverage, 250 words",
                   "headline": "test headline",
@@ -178,11 +174,7 @@ Feature: Cancel all coverage
                       "scheduled": "2029-11-21T14:00:00.000Z",
                       "g2_content_type": "text"
                   },
-                  "news_coverage_status": {
-                      "qcode": "ncostat:int",
-                      "name": "coverage intended",
-                      "label": "Planned"
-                  },
+                  "news_coverage_status": {"qcode": "ncostat:int", "name": "coverage intended", "label": "Planned"},
                   "workflow_status": "draft"
               }
           ],
@@ -306,11 +298,7 @@ Feature: Cancel all coverage
                       "scheduled": "2029-11-21T14:00:00.000Z",
                       "g2_content_type": "text"
                   },
-                  "news_coverage_status": {
-                      "qcode": "ncostat:int",
-                      "name": "coverage intended",
-                      "label": "Planned"
-                  },
+                  "news_coverage_status": {"qcode": "ncostat:int", "name": "coverage intended", "label": "Planned"},
                   "workflow_status": "draft"
               }
           ],
@@ -749,9 +737,7 @@ Feature: Cancel all coverage
                     "g2_content_type": "text"
                 },
                 "workflow_status": "draft",
-                "news_coverage_status": {
-                    "qcode": "ncostat:int"
-                }
+                "news_coverage_status": {"qcode": "ncostat:int", "name": "coverage intended", "label": "Planned"}
             }
           ]
       }]

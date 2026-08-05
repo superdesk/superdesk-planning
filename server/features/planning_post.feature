@@ -25,9 +25,7 @@ Feature: Post Planning
             "coverages": [
                 {
                     "workflow_status": "draft",
-                    "news_coverage_status": {
-                      "qcode": "ncostat:int"
-                    },
+                    "news_coverage_status": {"qcode": "ncostat:int", "name": "coverage intended", "label": "Planned"},
                     "planning": {
                         "ednote": "test coverage, I want 250 words",
                         "headline": "test headline",
@@ -202,7 +200,8 @@ Feature: Post Planning
                     "user": "#CONTEXT_USER_ID#",
                     "state": "assigned"
                 },
-                "workflow_status": "active"
+                "workflow_status": "active",
+                "news_coverage_status": {"qcode": "ncostat:int", "name": "coverage intended", "label": "Planned"}
             }],
             "lock_user": "#CONTEXT_USER_ID#",
             "lock_session": "#SESSION_ID#"
@@ -480,7 +479,7 @@ Feature: Post Planning
             }, {
                 "coverage_id": "plan1cov2",
                 "workflow_status": "draft",
-                "news_coverage_status": {"qcode": "ncostat:int"},
+                "news_coverage_status": {"qcode": "ncostat:int", "name": "coverage intended", "label": "Planned"},
                 "planning": {
                     "headline": "Plan 1 Cov 2",
                     "slugline": "plan-1-cov-2",

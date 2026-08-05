@@ -51,9 +51,7 @@ Feature: Planning Files
             "coverages": [
                 {
                     "workflow_status": "draft",
-                    "news_coverage_status": {
-                      "qcode": "ncostat:int"
-                    },
+                    "news_coverage_status": {"qcode": "ncostat:int", "name": "coverage intended", "label": "Planned"},
                     "planning": {
                         "ednote": "test coverage, I want 250 words",
                         "headline": "test headline",

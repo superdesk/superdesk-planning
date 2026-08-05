@@ -229,9 +229,7 @@ Feature: Assignments
                             "name": "Stringer"}
                     },
                     "workflow_status": "draft",
-                    "news_coverage_status": {
-                        "qcode": "ncostat:int"
-                    }
+                    "news_coverage_status": {"qcode": "ncostat:int", "name": "coverage intended", "label": "Planned"}
                 }
             ]
         }
@@ -327,9 +325,7 @@ Feature: Assignments
                         "coverage_provider": {"name": "Stringer"},
                         "state": "draft"
                     },
-                    "news_coverage_status": {
-                        "qcode": "ncostat:int"
-                    }
+                    "news_coverage_status": {"qcode": "ncostat:int", "name": "coverage intended", "label": "Planned"}
                 }
             ]
         }
@@ -2502,7 +2498,7 @@ Feature: Assignments
                     "user": "#CONTEXT_USER_ID#",
                     "priority": 1
                 },
-                "news_coverage_status": {"qcode": "ncostat:int"},
+                "news_coverage_status": {"qcode": "ncostat:int", "name": "coverage intended", "label": "Planned"},
                 "workflow_status": "assigned"
             }, {
                 "planning": {
@@ -2517,7 +2513,7 @@ Feature: Assignments
                         "name": "Stringer"
                     }
                 },
-                "news_coverage_status": {"qcode": "ncostat:int"},
+                "news_coverage_status": {"qcode": "ncostat:int", "name": "coverage intended", "label": "Planned"},
                 "workflow_status": "assigned"
             }]
         }]
@@ -2572,7 +2568,7 @@ Feature: Assignments
                 },
                 "priority": 3
             },
-            "news_coverage_status": {"qcode": "ncostat:int"},
+            "news_coverage_status": {"qcode": "ncostat:int", "name": "coverage intended", "label": "Planned"},
             "workflow_status": "assigned"
         }, {
             "coverage_id": "#COVERAGE_2_ID#",
@@ -2586,7 +2582,7 @@ Feature: Assignments
                 "user": "#CONTEXT_USER_ID#",
                 "priority": 2
             },
-            "news_coverage_status": {"qcode": "ncostat:int"},
+            "news_coverage_status": {"qcode": "ncostat:int", "name": "coverage intended", "label": "Planned"},
             "workflow_status": "assigned"
         }]}
         """

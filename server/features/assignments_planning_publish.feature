@@ -84,9 +84,7 @@ Feature: For posted planning item changes in assignment state post a planning it
             "coverages": [
                 {
                     "workflow_status": "draft",
-                    "news_coverage_status": {
-                      "qcode": "ncostat:int"
-                    },
+                    "news_coverage_status": {"qcode": "ncostat:int", "name": "coverage intended", "label": "Planned"},
                     "planning": {
                         "ednote": "test coverage, I want 250 words",
                         "headline": "test headline",
@@ -185,9 +183,7 @@ Feature: For posted planning item changes in assignment state post a planning it
                 {
                     "coverage_id": "#firstcoverage#",
                     "workflow_status": "active",
-                    "news_coverage_status": {
-                      "qcode": "ncostat:int"
-                    },
+                    "news_coverage_status": {"qcode": "ncostat:int", "name": "coverage intended", "label": "Planned"},
                     "planning": {
                         "ednote": "test coverage, I want 250 words",
                         "headline": "test headline",
@@ -521,9 +517,7 @@ Feature: For posted planning item changes in assignment state post a planning it
                 {
                     "coverage_id": "#firstcoverage#",
                     "workflow_status": "active",
-                    "news_coverage_status": {
-                      "qcode": "ncostat:int"
-                    },
+                    "news_coverage_status": {"qcode": "ncostat:int", "name": "coverage intended", "label": "Planned"},
                     "planning": {
                         "ednote": "test coverage, I want 250 words",
                         "headline": "test headline",
@@ -705,9 +699,7 @@ Feature: For posted planning item changes in assignment state post a planning it
                 {
                     "coverage_id": "#firstcoverage#",
                     "workflow_status": "active",
-                    "news_coverage_status": {
-                      "qcode": "ncostat:int"
-                    },
+                    "news_coverage_status": {"qcode": "ncostat:int", "name": "coverage intended", "label": "Planned"},
                     "planning": {
                         "ednote": "test coverage, I want 250 words",
                         "headline": "test headline",
@@ -1001,9 +993,7 @@ Feature: For posted planning item changes in assignment state post a planning it
                 {
                     "coverage_id": "#firstcoverage#",
                     "workflow_status": "active",
-                    "news_coverage_status": {
-                      "qcode": "ncostat:int"
-                    },
+                    "news_coverage_status": {"qcode": "ncostat:int", "name": "coverage intended", "label": "Planned"},
                     "planning": {
                         "ednote": "test coverage, I want 250 words",
                         "headline": "test headline",
@@ -1211,9 +1201,7 @@ Feature: For posted planning item changes in assignment state post a planning it
             "coverages": [
                 {
                     "workflow_status": "active",
-                    "news_coverage_status": {
-                      "qcode": "ncostat:int"
-                    },
+                    "news_coverage_status": {"qcode": "ncostat:int", "name": "coverage intended", "label": "Planned"},
                     "planning": {
                         "ednote": "test coverage, I want 250 words",
                         "headline": "test headline",
