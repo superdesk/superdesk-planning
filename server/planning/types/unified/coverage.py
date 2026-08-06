@@ -147,7 +147,7 @@ class CoverageScheduledUpdate(Dataclass):
     coverage_id: fields.Keyword = Field(description="Parent Coverage ID")
     news_coverage_status: NewsCoverageStatus = Field(description="The news coverage status of the item")
     scheduled_update_id: fields.Keyword = Field(
-        description="Scheduled update ID", default_factory=lambda _: f"tempId-{generate_guid(type=GUID_NEWSML)}"
+        description="Scheduled update ID", default_factory=lambda: f"tempId-{generate_guid(type=GUID_NEWSML)}"
     )
     workflow_status: WorkflowState = Field(description="The workflow status of the item", default=WorkflowState.DRAFT)
     assigned_to: CoverageAssignedTo | None = Field(
@@ -164,7 +164,7 @@ class CoverageScheduledUpdate(Dataclass):
 
 class CoverageItem(AuditInformation, BaseModel):
     coverage_id: fields.Keyword = Field(
-        description="Coverage ID", default_factory=lambda _: f"tempId-{generate_guid(type=GUID_NEWSML)}"
+        description="Coverage ID", default_factory=lambda: f"tempId-{generate_guid(type=GUID_NEWSML)}"
     )
     original_coverage_id: fields.Keyword | None = Field(description="Original Coverage ID", default=None)
     guid: fields.Keyword | None = Field(description="Coverage GUID", default=None)  # is this used anywhere?
@@ -210,7 +210,7 @@ class ItemCoverage(BaseModel):
 class EmbeddedPlanningCoverage(Dataclass):
     coverage_id: str = Field(
         description="The ID of the Coverage item that this EmbeddedPlanningCoverage is linked to",
-        default_factory=lambda _: f"tempId-{generate_guid(type=GUID_NEWSML)}",
+        default_factory=lambda: f"tempId-{generate_guid(type=GUID_NEWSML)}",
     )
     g2_content_type: str = Field(
         description="The G2 content type of the Coverage item that this EmbeddedPlanningCoverage is linked to",
