@@ -343,9 +343,6 @@ def generate_recurring_events(
         new_event.recurrence_id = recurrence_id or event.id
         _overwrite_event_expiry_date(new_event)
         set_planning_schedule(new_event)
-
-        new_event.id = generate_guid(type=GUID_NEWSML)
-        setattr(new_event, "_id", generate_guid(type=GUID_NEWSML))
         generated_events.append(new_event)
 
     return generated_events
