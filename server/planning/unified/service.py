@@ -111,7 +111,7 @@ class UnifiedPlanningResourceService(AsyncResourceService[UnifiedPlanningResourc
 
         # And add those values back onto the updates dict
         for field, value in field_values_not_stored.items():
-            field_values_not_stored[field] = value
+            updates[field] = value
 
         return rtn
 
@@ -182,8 +182,9 @@ class UnifiedPlanningResourceService(AsyncResourceService[UnifiedPlanningResourc
             else:
                 await on_event_created(doc)
 
-            await super().on_created(docs)
             send_created_notifications(doc, notifications_sent)
+
+        await super().on_created(docs)
 
     async def on_update(self, updates: dict[str, Any], original: UnifiedPlanningResource) -> None:
         await super().on_update(updates, original)
@@ -204,7 +205,7 @@ class UnifiedPlanningResourceService(AsyncResourceService[UnifiedPlanningResourc
             else:
                 updates.pop("version_creator", None)
                 updates.pop("versioncreated", None)
-        if user_id:
+        elif user_id:
             updates["version_creator"] = user_id
 
         if original.lock_user and str(original.lock_user) != str_user_id:
