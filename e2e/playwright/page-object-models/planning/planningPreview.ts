@@ -17,6 +17,25 @@ export class PlanningPreview {
         return this.element.locator('.icon-close-small');
     }
 
+    /**
+     * Entity cards (related event / related planning) inside a preview. A CollapseBox only renders
+     * its collapsed item while closed, so these match the cards and not an expanded card's content.
+     */
+    get entityCards(): Locator {
+        return this.element.locator(
+            '[data-test-id="related-event-item"], [data-test-id="related-planning-item"]'
+        );
+    }
+
+    entityCard(index: number): Locator {
+        return this.entityCards.nth(index);
+    }
+
+    // The column wrapping `ItemIcon` on a related event / planning item
+    itemTypeIcons(scope?: Locator): Locator {
+        return (scope ?? this.element).locator('[data-test-id="item-type-icon"]');
+    }
+
     get actionMenu(): ActionMenu {
         return new ActionMenu(this.page, () => this.element);
     }

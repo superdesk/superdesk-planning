@@ -24,6 +24,7 @@ export const RelatedPlanningsComponent = ({
     allowEditPlanning,
     contentTypes,
     currentCoverageId,
+    cardView,
 }) => (
     (
         <div>
@@ -42,6 +43,7 @@ export const RelatedPlanningsComponent = ({
                         contentTypes={contentTypes}
                         tabEnabled={true}
                         currentCoverageId={currentCoverageId}
+                        cardView={cardView}
                     />
                 ))
                 :
@@ -131,6 +133,7 @@ RelatedPlanningsComponent.propTypes = {
     allowEditPlanning: PropTypes.bool,
     contentTypes: PropTypes.array,
     currentCoverageId: PropTypes.string,
+    cardView: PropTypes.bool,
 };
 
 RelatedPlanningsComponent.defaultProps = {short: false};

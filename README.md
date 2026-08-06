@@ -19,6 +19,8 @@ It allows to ingest and manage events, to create planning within agenda, and to 
     * [Assignments](#assignments-config)
     * [Authoring](#authoring-config)
     * [Search Filters](#search-filters-config)
+* [Client Config](#client-config)
+    * [List item config](#list-item-config)
 * [Slack Integration](#slack-integration)
 * [Celery Tasks](#celery-tasks)
     * [Expire Items](#celery-tasks-expire-items)
@@ -418,6 +420,81 @@ Example: Add a custom text field with `_id` of `sttregistrationinfo` to Assignme
 To enable, create a local storage entry called "devtools" with a value `'["redux-logger"]'`. It can be done by running the following command in the console:
 
     localStorage.setItem('devtools', '["redux-logger"]')
+
+
+## Client Config
+Unlike the sections above, these options are defined in `superdesk.config.js`, not in `settings.py`.
+
+### List item config
+Controls which fields are rendered on Event, Planning and Assignment list rows, and on the entity cards that represent linked items inside item previews. Everything lives under the `planning` key:
+
+```js
+planning: {
+    event_list_item: {firstLine: [...], secondLine: [...]},
+    planning_list_item: {firstLine: [...], secondLine: [...]},
+    assignment_list_item: {firstLine: [...], secondLine: [...]},
+}
+```
+
+`firstLine` and `secondLine` are arrays of field configs:
+
+```js
+{fieldId: 'slugline'}
+{fieldId: 'event_datetime', position: 'end'}
+{fieldId: 'anpa_category', fieldOptions: {hideLabel: true}}
+{fieldId: 'vocabulary', fieldOptions: {vocabularyId: 'event_type', hideVocabularyName: true}}
+```
+
+* `fieldId` is required.
+* `position` is either `start` (the default) or `end`. Fields marked `end` are pushed to the opposite side of the line.
+* `fieldOptions` is field specific. `anpa_category` and `priority` accept `hideLabel`, `vocabulary` requires `vocabularyId` and accepts `hideVocabularyName`.
+
+Omitting a block falls back to the built-in defaults in `client/config.ts`.
+
+`assignmentsList` is a deprecated older format for the assignments list, superseded by `planning.assignment_list_item`.
+
+#### View variants
+`event_list_item` and `planning_list_item` accept two optional blocks alongside `firstLine` and `secondLine`:
+
+* `compact_view` is used by the "Compact list" view option, which only appears in the view menu when this block is configured. Only its `firstLine` is rendered, the second line is always empty.
+* `card_view` is used by the cards that represent linked items inside Event, Planning and Assignment previews, for example the related Event shown on a Planning item and vice versa. A configured `card_view` fully describes the card, so an omitted `firstLine` or `secondLine` renders nothing rather than falling back to the list config. Cards never render the item type icon, and `related_events` / `related_plannings` are ignored inside a card so that cards cannot nest.
+
+`assignment_list_item` has no view variants.
+
+```js
+planning_list_item: {
+    firstLine: [
+        {fieldId: 'anpa_category', fieldOptions: {hideLabel: true}},
+        {fieldId: 'slugline'},
+        {fieldId: 'coverages', position: 'end'},
+    ],
+    secondLine: [
+        {fieldId: 'state'},
+        {fieldId: 'internalnote'},
+        {fieldId: 'related_events', position: 'end'},
+    ],
+    card_view: {
+        firstLine: [
+            {fieldId: 'slugline'},
+            {fieldId: 'coverages', position: 'end'},
+        ],
+        secondLine: [
+            {fieldId: 'state'},
+        ],
+    },
+},
+```
+
+#### Available field ids
+Events and Planning items, registered in `client/components/fields/index.tsx`:
+
+`name`, `slugline`, `headline`, `description`, `definition_short`, `internalnote`, `state`, `event_datetime`, `related_events`, `related_plannings`, `urgency`, `priority`, `calendars`, `location`, `files`, `featured`, `agendas`, `coverages`, `reference`, `vocabulary`, `anpa_category`
+
+Not every field is meaningful for both item types. `calendars` and `related_plannings` apply to Events, while `agendas`, `coverages` and `related_events` apply to Planning items. An id that is not registered is skipped silently.
+
+Assignments use a separate set, defined in `client/components/Assignments/AssignmentItem/fields/index.ts`:
+
+`accepted`, `content`, `description_text`, `desk`, `due_date`, `genre`, `headline`, `internal`, `name`, `priority`, `slugline`, `state`, `language`, `anpa_category`, `vocabulary`
 
 
 ## Slack Integration

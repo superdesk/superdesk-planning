@@ -221,6 +221,7 @@ export class PlanningPreviewContentComponent extends React.PureComponent<IProps>
                                 createUploadLink={getFileDownloadURL}
                                 files={files}
                                 hideEditIcon={hideEditIcon}
+                                cardView={true}
                             />
                         ))}
                     </>
