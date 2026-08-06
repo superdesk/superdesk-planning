@@ -7,7 +7,7 @@ import {
     PlanningEditor,
     PlanningList,
     PlanningPreview,
-} from './page-object-models/planning';
+} from './utils/planning';
 import {createEventFor} from './utils/fixtures/events';
 import {createPlanningFor} from './utils/fixtures/planning';
 
