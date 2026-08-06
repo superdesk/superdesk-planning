@@ -80,7 +80,6 @@ class UnifiedPlanningResourceService(AsyncResourceService[UnifiedPlanningResourc
             if len(embedded_planning):
                 embedded_planning_lists.append((doc, embedded_planning))
 
-
         # Remove all fields we don't want in storage
         field_values_not_stored: dict = {}
         for field in FIELDS_NOT_STORED_IN_DB:

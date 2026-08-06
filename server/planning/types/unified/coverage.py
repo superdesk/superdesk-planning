@@ -78,9 +78,7 @@ class CoveragePlanning(Dataclass):
     internal_note: str | None = Field(description="Internal note for this Coverage", default=None)
     keyword: list[str] | None = Field(description="Keyword(s) associated with this Coverage", default=None)
     language: fields.Keyword | None = Field(description="Language associated with this Coverage", default=None)
-    coverage_provider: CVItem | None = Field(
-        description="The external provider for this Coverage", default=None
-    )
+    coverage_provider: CVItem | None = Field(description="The external provider for this Coverage", default=None)
     contact_info: Annotated[fields.ObjectId | None, validate_data_relation_async("contacts")] = Field(
         description="ID of the Contact for this Coverage", default=None
     )

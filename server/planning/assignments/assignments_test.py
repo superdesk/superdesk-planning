@@ -55,9 +55,7 @@ class AssignmentsTestCase(TestCase):
                     "desk": desks[0]["_id"],
                     "state": "in_progress",
                 },
-                "planning": {
-                    "g2_content_type": "text"
-                }
+                "planning": {"g2_content_type": "text"},
             }
         ],
         "lock_user": users[0]["_id"],

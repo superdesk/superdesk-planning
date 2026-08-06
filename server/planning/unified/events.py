@@ -481,10 +481,7 @@ async def _link_to_planning(event: UnifiedPlanningResource) -> None:
         if not planning_item.recurrence_id and link_type == RelatedEventLinkType.PRIMARY:
             updates["recurrence_id"] = event.recurrence_id
 
-    updates["related_events"] = [
-        link.to_dict()
-        for link in (planning_item.related_events or []) + [related_planning]
-    ]
+    updates["related_events"] = [link.to_dict() for link in (planning_item.related_events or []) + [related_planning]]
 
     # TODO-UNIFIED: We need to use `system_update`, but also apply some further validation
     # because we need to update the Planning item, but without the `_etag` update
