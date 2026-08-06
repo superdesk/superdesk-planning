@@ -29,4 +29,4 @@ async def delete_item_files(
     for file_id in files_to_delete:
         events_using_file = await resource_service.count({"files": file_id}, use_mongo=True)
         if events_using_file == 0:
-            await files_service.delete_action_async({"_id": file_id})
+            await files_service.delete_action_async(lookup={"_id": file_id})
