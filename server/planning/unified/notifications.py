@@ -25,7 +25,7 @@ def send_created_notifications(item: UnifiedPlanningResource, notifications_sent
 
     # Don't send notification if one has already been sent
     # This is to ensure recurring events doesn't send multiple notifications
-    if item_id in notifications_sent or "previous_recurrence_id" in item:
+    if item_id in notifications_sent or item.previous_recurrence_id:
         return
 
     notifications_sent.add(item_id)
