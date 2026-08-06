@@ -11,7 +11,12 @@ import * as selectors from '../../../selectors';
 import * as List from '../../UI/List';
 import {ItemIcon} from '../../ItemIcon';
 import {LineItems} from '../../../components/UI/List/LineItems';
-import {eventFirstLineConfig, eventSecondLineConfig} from '../../../config';
+import {
+    eventFirstLineConfig,
+    eventSecondLineConfig,
+    getEventCardFirstLineConfig,
+    getEventCardSecondLineConfig,
+} from '../../../config';
 import {renderFields} from '../../../components/fields';
 import {getUserInterfaceLanguageFromCV} from '../../../utils/users';
 import {ILineConfig} from 'globals';
@@ -23,6 +28,9 @@ interface IBaseProps {
     noBg?: boolean;
     showBorder?: boolean;
     showIcon?: boolean;
+
+    // Preview card variant: card_view config, no item type icon
+    cardView?: boolean;
     shadow?: number;
     dateOnly?: boolean;
     eventActions?: React.ReactNode;
@@ -73,8 +81,12 @@ class RelatedEventListItemComponent extends React.PureComponent<IProps> {
             language,
         );
 
+        const firstLineConfig = this.props.cardView ? getEventCardFirstLineConfig() : eventFirstLineConfig;
+        const secondLineConfig = this.props.cardView ? getEventCardSecondLineConfig() : eventSecondLineConfig;
+
         return (
             <List.Item
+                testId="related-event-item"
                 noBg={this.props.noBg}
                 activated={this.props.active}
                 shadow={this.props.shadow}
@@ -99,8 +111,8 @@ class RelatedEventListItemComponent extends React.PureComponent<IProps> {
                     </List.Column>
                 )}
 
-                {!this.props.showIcon ? null : (
-                    <List.Column>
+                {(this.props.cardView || !this.props.showIcon) ? null : (
+                    <List.Column testId="item-type-icon">
                         <ItemIcon
                             item={this.props.item}
                             color={ICON_COLORS.DARK_BLUE_GREY}
@@ -114,8 +126,8 @@ class RelatedEventListItemComponent extends React.PureComponent<IProps> {
                     style={this.props.noColumnPadding ? undefined : {paddingBlock: 'var(--space--1)'}}
                 >
                     <LineItems
-                        firstLine={eventFirstLineConfig.filter(({fieldId}) => fieldId !== 'related_plannings')}
-                        secondLine={eventSecondLineConfig.filter(({fieldId}) => fieldId !== 'related_plannings')}
+                        firstLine={firstLineConfig.filter(({fieldId}) => fieldId !== 'related_plannings')}
+                        secondLine={secondLineConfig.filter(({fieldId}) => fieldId !== 'related_plannings')}
                         renderFieldsWithProps={renderFieldsWithProps}
                     />
                 </List.Column>
