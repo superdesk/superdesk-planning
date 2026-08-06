@@ -1,4 +1,25 @@
 import {defineConfig, devices} from '@playwright/test';
+import fs from 'fs';
+import path from 'path';
+
+/**
+ * e2e-up.sh --slot writes the slot's environment (backend URL, client URL,
+ * timezone) to .e2e-slot.env so tests run from this checkout target that slot
+ * without any manual setup. Real environment variables win over the file.
+ * Workers inherit process.env from this process, so setting values here also
+ * covers playwright/utils (SUPERDESK_URL).
+ */
+const slotEnvPath = path.join(__dirname, '.e2e-slot.env');
+
+if (fs.existsSync(slotEnvPath)) {
+    for (const line of fs.readFileSync(slotEnvPath, 'utf-8').split('\n')) {
+        const match = line.match(/^([A-Z_]+)=(.*)$/);
+
+        if (match != null && process.env[match[1]] == null) {
+            process.env[match[1]] = match[2];
+        }
+    }
+}
 
 /**
  * See https://playwright.dev/docs/test-configuration.
@@ -22,7 +43,7 @@ export default defineConfig({
     /* Shared settings for all the projects below. See https://playwright.dev/docs/api/class-testoptions. */
     use: {
         /* Base URL to use in actions like `await page.goto('/')`. */
-        baseURL: 'http://localhost:9000',
+        baseURL: process.env.CLIENT_URL || 'http://localhost:9000',
 
         viewport: {width: 1280, height: 800},
 

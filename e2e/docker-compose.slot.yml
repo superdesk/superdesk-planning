@@ -1,0 +1,48 @@
+# One superdesk backend for a numbered e2e slot (see e2e/scripts/e2e-up.sh
+# --slot). Runs only the server; mongo, elastic and redis come from the shared
+# default project (docker-compose.yml), whose bridge network this service
+# joins. Every value that differs between slots arrives via environment, and
+# the project name is set with `docker compose -p sd-planning-e2e-s<N>` so
+# slots never collide with each other or with the default project.
+#
+# Not meant to be run by hand. e2e-up.sh exports the required variables; the
+# `:?` markers make a bare `docker compose up` fail loudly instead of
+# starting a server on the default ports.
+
+services:
+    server:
+        image: superdesk-planning-e2e-server:latest
+        networks:
+            - e2e
+        ports:
+            - "${PORT:?run via e2e-up.sh --slot}:5000"
+            - "${WSPORT:?}:5100"
+        environment:
+            - WEB_CONCURRENCY=2
+            - WEBPACK_MANIFEST_PATH=/opt/client-dist/manifest.json
+            - MONGO_URI=mongodb://mongo/${E2E_DB:?}
+            - ARCHIVED_MONGO_URI=mongodb://mongo/${E2E_DB}_archived
+            - ARCHIVED_URI=mongodb://mongo/${E2E_DB}_archived
+            - LEGAL_ARCHIVE_URI=mongodb://mongo/${E2E_DB}_legal
+            # Separate name family (sd_e2e_capi_s<N>, not <E2E_DB>_capi): the
+            # elastic flush on reset deletes indices matching <prefix>_*, so
+            # the contentapi index must not extend the main index prefix.
+            - CONTENTAPI_MONGO_URI=mongodb://mongo/${E2E_CAPI_DB:?}
+            - PUBLICAPI_MONGO_URI=mongodb://mongo/${E2E_PAPI_DB:?}
+            - ELASTICSEARCH_URL=http://elastic:9200
+            - ELASTICSEARCH_INDEX=${E2E_DB}
+            - CONTENTAPI_ELASTICSEARCH_INDEX=${E2E_CAPI_DB}
+            - CELERY_BROKER_URL=${REDIS_URL:?}
+            - REDIS_URL=${REDIS_URL:?}
+            - DEFAULT_TIMEZONE=Australia/Sydney
+            - SECRET_KEY=e2e
+            # CORS: some endpoints (e.g. /api/subscribers) echo CLIENT_URL as
+            # Access-Control-Allow-Origin instead of a wildcard, so it must
+            # name this slot's client origin or the planning UI bootstrap
+            # blocks on a CORS-failed request and never renders.
+            - SUPERDESK_CLIENT_URL=${CLIENT_URL:?}
+
+networks:
+    e2e:
+        external: true
+        name: superdesk-planning-e2e_e2e
