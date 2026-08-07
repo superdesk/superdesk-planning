@@ -25,7 +25,7 @@
         "check-types": "tsc --noEmit --resolveJsonModule",
         "playwright": "playwright test --workers 1",
         "playwright-interactive": "playwright test --ui",
-        "start-client-server": "http-server dist -p 9000 -s &"
+        "start-client-server": "http-server dist -p ${CLIENT_PORT:-9000} -s &"
     },
     "volta": {
         "node": "22.22.0"
