@@ -22,7 +22,11 @@ test.describe('Search.Planning: searching planning items', () => {
         await waitForPageLoad.planning(page);
     });
 
-    test('can search planning metadata', async ({page}) => {
+    test('can search planning metadata', {
+        annotation: [
+            {type: 'confluence', description: '1311835175 partial'}, // Search planning (Mikayel)
+        ],
+    }, async ({page}) => {
         await addItems(
             page.request,
             'planning',

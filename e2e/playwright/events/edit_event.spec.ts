@@ -7,7 +7,11 @@ import {EventEditor, PlanningList} from '../page-object-models/planning';
 import {createEventFor, TEST_EVENTS} from '../utils/fixtures/events';
 import {setupPlanningPublishing} from '../utils/fixtures/publish_config';
 
-test.describe('Planning.Events: edit metadata', () => {
+test.describe('Planning.Events: edit metadata', {
+    annotation: [
+        {type: 'confluence', description: '1311835122 complete'}, // Assign event to calendar
+    ],
+}, () => {
     let editor: EventEditor;
     let list: PlanningList;
     let subnav: SubNavBar;
@@ -52,7 +56,11 @@ test.describe('Planning.Events: edit metadata', () => {
         await editor.waitTillOpen();
     });
 
-    test('can create an Event', async () => {
+    test('can create an Event', {
+        annotation: [
+            {type: 'confluence', description: '1311835116 complete'}, // Create new event
+        ],
+    }, async () => {
         await list.expectEmpty();
         await editor.expectItemType();
         await workqueue.expectTitle(0, 'Untitled*');
@@ -129,7 +137,11 @@ test.describe('Planning.Events: edit metadata', () => {
         ).toContainText('Scheduled');
     });
 
-    test('Post updates the initial values', async ({page}) => {
+    test('Post updates the initial values', {
+        annotation: [
+            {type: 'confluence', description: '1311835145 complete'}, // Post event
+        ],
+    }, async ({page}) => {
         await setupPlanningPublishing(page.request);
         // Enter minimum Event metadata
         await editor.expectItemType();
@@ -164,7 +176,11 @@ test.describe('Planning.Events: edit metadata', () => {
     });
 });
 
-test.describe('Planing.Events: edit existing events', () => {
+test.describe('Planing.Events: edit existing events', {
+    annotation: [
+        {type: 'confluence', description: '1311835118 complete'}, // Edit event
+    ],
+}, () => {
     let list: PlanningList;
     let editor: EventEditor;
 
