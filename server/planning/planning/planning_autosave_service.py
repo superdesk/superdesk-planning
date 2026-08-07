@@ -17,6 +17,11 @@ class PlanningAutosaveAsyncService(AutosaveAsyncService):
 
         if not item:
             # Item is not currently being edited (No current autosave item)
+            logger.debug(
+                "planning:autosave_assignment_removed_skipped planning_id=%s coverage_id=%s reason=no_autosave_item",
+                planning_id,
+                coverage_id,
+            )
             return
 
         coverages = item.get("coverages") or []
@@ -35,6 +40,12 @@ class PlanningAutosaveAsyncService(AutosaveAsyncService):
             coverage_update.pop("assigned_to", None)
             coverage_update["workflow_status"] = WORKFLOW_STATE.DRAFT
 
+        logger.info(
+            "planning:autosave_assignment_removed planning_id=%s coverage_id=%s scheduled_updates=%s",
+            planning_id,
+            coverage_id,
+            len(coverage.get("scheduled_updates") or []),
+        )
         await self.system_update(planning_id, {"coverages": coverages})
 
     async def on_assignment_updated(self, updates: dict, original: dict) -> None:
@@ -48,14 +59,30 @@ class PlanningAutosaveAsyncService(AutosaveAsyncService):
 
         if "assigned_to" not in updates and "priority" not in updates:
             # Relevant Assignment data was not updated, no need to update the Planning autosave
+            logger.debug(
+                "planning:autosave_assignment_sync_skipped assignment_id=%s reason=no_relevant_fields",
+                original.get("_id"),
+            )
             return
 
         current_request = get_current_app().get_current_request()
         if current_request and "/planning" in current_request.path:
             # This request came from the Planning endpoint itself,
             # no need to respond to an Assignment update here
+            logger.debug(
+                "planning:autosave_assignment_sync_skipped assignment_id=%s reason=planning_request_path path=%s",
+                original.get("_id"),
+                current_request.path,
+            )
             return
 
         assignment = original.copy()
         assignment.update(updates)
+        logger.info(
+            "planning:autosave_assignment_sync assignment_id=%s planning_item=%s coverage_item=%s updated_fields=%s",
+            assignment.get("_id"),
+            assignment.get("planning_item"),
+            assignment.get("coverage_item"),
+            sorted(list(updates.keys())),
+        )
         await update_planning_from_assignment_changes(assignment, is_autosave=True)

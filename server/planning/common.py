@@ -394,7 +394,47 @@ async def update_post_item(updates, original):
         # From item actions
         pub_status = POST_STATE.USABLE
 
+    # Ignore technical/system-only updates (for example lock/unlock metadata updates)
+    # to avoid creating unexpected repost/history side effects.
+    repost_ignored_fields = {
+        LOCK_USER,
+        LOCK_SESSION,
+        LOCK_TIME,
+        LOCK_ACTION,
+        "_etag",
+        "_updated",
+        "version",
+        "versioncreated",
+        "versionposted",
+        "update_method",
+    }
+
+    changed_fields = sorted([field for field, value in updates.items() if value != original.get(field)])
+
+    def has_meaningful_changes() -> bool:
+        for field, value in updates.items():
+            if field in repost_ignored_fields:
+                continue
+
+            if value != original.get(field):
+                return True
+
+        return False
+
     if pub_status is not None:
+        # Respect explicit publish/unpublish requests even if there are no other
+        # editorial changes in the patch payload.
+        explicit_post_state_change = updates.get("pubstatus") is not None or updates.get("ingest_pubstatus") is not None
+
+        if not explicit_post_state_change and not has_meaningful_changes():
+            logger.debug(
+                "planning:repost_skipped item=%s type=%s reason=system_only_update changed_fields=%s",
+                original.get(ID_FIELD),
+                original.get(ITEM_TYPE),
+                changed_fields,
+            )
+            return None
+
         if original.get(ITEM_TYPE):
             resource_name = "events_post" if original.get(ITEM_TYPE) == "event" else "planning_post"
             item_post_service = get_resource_service(resource_name)
@@ -403,7 +443,23 @@ async def update_post_item(updates, original):
                 original.get(ITEM_TYPE): original.get(ID_FIELD),
                 "pubstatus": pub_status,
             }
+            logger.info(
+                "planning:repost_triggered item=%s type=%s resource=%s explicit_post_state_change=%s pubstatus=%s changed_fields=%s",
+                original.get(ID_FIELD),
+                original.get(ITEM_TYPE),
+                resource_name,
+                explicit_post_state_change,
+                pub_status,
+                changed_fields,
+            )
             return await item_post_service.post_async([doc])
+
+    logger.debug(
+        "planning:repost_not_required item=%s type=%s changed_fields=%s",
+        original.get(ID_FIELD),
+        original.get(ITEM_TYPE),
+        changed_fields,
+    )
 
 
 def get_coverage_type_name(qcode):

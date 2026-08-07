@@ -71,6 +71,19 @@ class LockService(BaseComponent):
             raise SuperdeskApiError.forbiddenError(message="Item is locked by another user.")
 
         try:
+            request_id = request.headers.get("X-Request-Id") if request and getattr(request, "headers", None) else None
+            client_id = request.args.get("clientId") if request else None
+            logger.info(
+                "planning:item_lock: lock_requested resource=%s item=%s user=%s session=%s action=%s request_id=%s client_id=%s",
+                resource,
+                item_id,
+                user_id,
+                session_id,
+                action,
+                request_id,
+                client_id,
+            )
+
             can_user_lock, error_message = self.can_lock(item, user_id, session_id, resource)
 
             if can_user_lock:
@@ -101,6 +114,17 @@ class LockService(BaseComponent):
                     type=item.get("type"),
                     clientId=request.args.get("clientId") if request else None,
                 )
+
+                logger.info(
+                    "planning:item_lock: lock_applied resource=%s item=%s user=%s session=%s action=%s etag=%s request_id=%s",
+                    resource,
+                    item.get(ID_FIELD),
+                    user_id,
+                    session_id,
+                    updates.get(LOCK_ACTION),
+                    updates.get("_etag"),
+                    request_id,
+                )
             else:
                 raise SuperdeskApiError.forbiddenError(message=error_message)
 
@@ -128,6 +152,20 @@ class LockService(BaseComponent):
 
         item_service = get_resource_service(resource)
         item_id = item.get(ID_FIELD)
+        request_id = request.headers.get("X-Request-Id") if request and getattr(request, "headers", None) else None
+        client_id = request.args.get("clientId") if request else None
+        logger.info(
+            "planning:item_lock: unlock_requested resource=%s item=%s user=%s session=%s previous_lock_user=%s previous_lock_session=%s previous_lock_action=%s request_id=%s client_id=%s",
+            resource,
+            item_id,
+            user_id,
+            session_id,
+            item.get(LOCK_USER),
+            item.get(LOCK_SESSION),
+            item.get(LOCK_ACTION),
+            request_id,
+            client_id,
+        )
 
         can_user_unlock, error_message = self.can_unlock(item, user_id, resource)
 
@@ -160,6 +198,16 @@ class LockService(BaseComponent):
             clientId=request.args.get("clientId") if request else None,
         )
 
+        logger.info(
+            "planning:item_lock: unlock_applied resource=%s item=%s user=%s session=%s etag=%s request_id=%s",
+            resource,
+            item.get(ID_FIELD),
+            user_id,
+            session_id,
+            updates.get("_etag") or item.get("_etag"),
+            request_id,
+        )
+
         return item
 
     async def unlock_session(self, user_id, session_id, is_last_session):
@@ -181,8 +229,19 @@ class LockService(BaseComponent):
         logger.info(f"planning:item_lock: Unlocking {resource} resources")
         item_service = get_resource_service(resource)
         term_filter = {LOCK_USER: str(user_id)} if is_last_session else {LOCK_SESSION: str(session_id)}
+        unlocked_count = 0
         async for item in await item_service.search_async({"query": {"bool": {"filter": {"term": term_filter}}}}):
             await self.unlock(item, user_id, session_id, resource)
+            unlocked_count += 1
+
+        logger.info(
+            "planning:item_lock: unlock_session_complete resource=%s user=%s session=%s is_last_session=%s unlocked_count=%s",
+            resource,
+            user_id,
+            session_id,
+            is_last_session,
+            unlocked_count,
+        )
 
     def can_lock(self, item, user_id, session_id, resource):
         """
