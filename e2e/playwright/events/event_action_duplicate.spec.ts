@@ -49,7 +49,11 @@ test.describe('Planning.Events: duplicate event', () => {
         await waitForPageLoad.planning(page);
     });
 
-    test('can duplicate an event', async() => {
+    test('can duplicate an event', {
+        annotation: [
+            {type: 'confluence', description: '1311835120 complete'}, // Duplicate event
+        ],
+    }, async() => {
         // 1. Duplicate from the list
         await subnav.createEvent();
         await editor.createAndClose(event);

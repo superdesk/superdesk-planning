@@ -33,7 +33,11 @@ test.describe('Planning.Planning: cancel planning item', () => {
         await waitForPageLoad.planning(page);
     });
 
-    test('can cancel a Planning item', async ({page}) => {
+    test('can cancel a Planning item', {
+        annotation: [
+            {type: 'confluence', description: '1311835153 complete'}, // Planning item preview
+        ],
+    }, async ({page}) => {
         const reason = 'Not covering anymore';
         await list.item(0).click();
 

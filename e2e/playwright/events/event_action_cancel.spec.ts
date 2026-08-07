@@ -80,7 +80,11 @@ test.describe('Planning.Events: event cancel action', () => {
         await expect(editor.element.getByTestId('internal-note-label')).toContainText(reason);
     }
 
-    test('can cancel from the list', async({page}) => {
+    test('can cancel from the list', {
+        annotation: [
+            {type: 'confluence', description: '1311835124 complete'}, // Cancel event
+        ],
+    }, async({page}) => {
         // 1. Cancel Event from list
         // 1.a Create the Event
         reason = 'Cancelled due to some reason';
@@ -108,7 +112,11 @@ test.describe('Planning.Events: event cancel action', () => {
         await editor.closeButton.click();
     });
 
-    test('can cancel from the preview', async() => {
+    test('can cancel from the preview', {
+        annotation: [
+            {type: 'confluence', description: '1311835147 complete'}, // Event preview
+        ],
+    }, async() => {
         // 2. Cancel Event from preview
         // 2.a Create the Event
         reason = 'Cancelling2 something else';

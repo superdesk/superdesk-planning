@@ -5,7 +5,11 @@ import {PlanningList, PlanningEditor, PlanningPreview, FeaturedModal} from '../p
 import {createPlanningFor} from '../utils/fixtures/planning';
 import {setupPlanningPublishing} from '../utils/fixtures/publish_config';
 
-test.describe('Planning.Featured', () => {
+test.describe('Planning.Featured', {
+    annotation: [
+        {type: 'confluence', description: '1311835163 complete'}, // Featured stories
+    ],
+}, () => {
     let subnav: SubNavBar;
     let modal: FeaturedModal;
     let uiFrameworkModal: UiFrameworkModal;

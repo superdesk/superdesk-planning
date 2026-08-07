@@ -5,7 +5,11 @@ import {setup, login, waitForPageLoad, SubNavBar, Workqueue, CLIENT_FORMAT} from
 import {PlanningList, PlanningEditor, AssignmentEditor} from '../page-object-models/planning';
 import {setupPlanningPublishing} from '../utils/fixtures/publish_config';
 
-test.describe('Planning.Planning: edit metadata', () => {
+test.describe('Planning.Planning: edit metadata', {
+    annotation: [
+        {type: 'confluence', description: '1311835155 complete'}, // Edit planning item
+    ],
+}, () => {
     let editor: PlanningEditor;
     let list: PlanningList;
     let subnav: SubNavBar;
@@ -25,7 +29,11 @@ test.describe('Planning.Planning: edit metadata', () => {
         await editor.waitTillOpen();
     });
 
-    test('can create a Planning item', async () => {
+    test('can create a Planning item', {
+        annotation: [
+            {type: 'confluence', description: '1311835114 complete'}, // Create new planning item
+        ],
+    }, async () => {
         const plan = {
             slugline: 'slugline of the planning',
             'planning_date.date': moment().format(CLIENT_FORMAT),
@@ -69,7 +77,11 @@ test.describe('Planning.Planning: edit metadata', () => {
         await workqueue.expectTitle(0, 'slugline of the planning');
     });
 
-    test('can add coverage to workflow', async ({page}) => {
+    test('can add coverage to workflow', {
+        annotation: [
+            {type: 'confluence', description: '1311835171 complete'}, // Add coverage
+        ],
+    }, async ({page}) => {
         await editor.type({
             slugline: 'Plan',
             'planning_date.date': moment().format(CLIENT_FORMAT),
@@ -142,7 +154,11 @@ test.describe('Planning.Planning: edit metadata', () => {
         await expect(editor.postButton).toBeVisible();
     });
 
-    test('Post updates the initial values', async () => {
+    test('Post updates the initial values', {
+        annotation: [
+            {type: 'confluence', description: '1311835143 complete'}, // Post planning item
+        ],
+    }, async () => {
         // Enter minimum Planning metadata
         await editor.expectItemType();
         await editor.type({

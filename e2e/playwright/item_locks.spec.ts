@@ -141,35 +141,55 @@ test.describe('Planning: item locks', () => {
             await testUnlockedFromEditPanel(page, 'Cancel', 'events', 'event1');
         });
 
-        test('spike action', async ({page}) => {
+        test('spike action', {
+            annotation: [
+                {type: 'confluence', description: '1311835127 complete'}, // Spike event
+            ],
+        }, async ({page}) => {
             await testCancelActionFromModal(page, 'Spike');
             await testUnlockedFromModal(page, 'Spike', 'events', 'event1');
             await testCancelActionFromEditPanel('Cancel');
             await testUnlockedFromEditPanel(page, 'Cancel', 'events', 'event1');
         });
 
-        test('update time action', async ({page}) => {
+        test('update time action', {
+            annotation: [
+                {type: 'confluence', description: '1311835131 complete'}, // Update event time
+            ],
+        }, async ({page}) => {
             await testCancelActionFromModal(page, 'Update time');
             await testUnlockedFromModal(page, 'Update time', 'events', 'event1');
             await testCancelActionFromEditPanel('Update time');
             await testUnlockedFromEditPanel(page, 'Update time', 'events', 'event1');
         });
 
-        test('mark as postponed action', async ({page}) => {
+        test('mark as postponed action', {
+            annotation: [
+                {type: 'confluence', description: '1311835133 complete'}, // Mark event as postponed
+            ],
+        }, async ({page}) => {
             await testCancelActionFromModal(page, 'Mark as Postponed');
             await testUnlockedFromModal(page, 'Mark as Postponed', 'events', 'event1');
             await testCancelActionFromEditPanel('Mark as Postponed');
             await testUnlockedFromEditPanel(page, 'Mark as Postponed', 'events', 'event1');
         });
 
-        test('reschedule action', async ({page}) => {
+        test('reschedule action', {
+            annotation: [
+                {type: 'confluence', description: '1311835135 complete'}, // Reschedule event
+            ],
+        }, async ({page}) => {
             await testCancelActionFromModal(page, 'Reschedule');
             await testUnlockedFromModal(page, 'Reschedule', 'events', 'event1');
             await testCancelActionFromEditPanel('Reschedule');
             await testUnlockedFromEditPanel(page, 'Reschedule', 'events', 'event1');
         });
 
-        test('convert to recurring action', async ({page}) => {
+        test('convert to recurring action', {
+            annotation: [
+                {type: 'confluence', description: '1311835137 complete'}, // Convert to recurring event
+            ],
+        }, async ({page}) => {
             await testCancelActionFromModal(page, 'Convert to Recurring Event');
             await testUnlockedFromModal(page, 'Convert to Recurring Event', 'events', 'event1');
             // No need to test editor actions, as this is not available in the Editor
@@ -289,7 +309,11 @@ test.describe('Planning: item locks', () => {
             await waitForPageLoad.planning(page);
         });
 
-        test('spike action', async ({page}) => {
+        test('spike action', {
+            annotation: [
+                {type: 'confluence', description: '1311835167 complete'}, // Spike planning
+            ],
+        }, async ({page}) => {
             await testCancelActionFromModal(page, 'Spike');
             await testUnlockedFromModal(page, 'Spike', 'planning', 'plan1');
             await testCancelActionFromEditPanel('Spike');
