@@ -15,10 +15,11 @@ import click
 from bson import ObjectId
 from bson.errors import InvalidId
 
-from superdesk import get_resource_service
 from superdesk.commands import cli
 
 from planning.coverage_assignments import copy_assigned_to_fields
+from planning.types.unified import UnifiedPlanningResource
+from planning.utils import get_service
 
 
 @cli.command("planning:sync_assignment_coverages")
@@ -43,18 +44,19 @@ async def sync_assignment_coverages_command(dry_run: bool) -> None:
 class SyncAssignmentCoveragesCommand:
     async def run(self, dry_run: bool) -> None:
         print("Syncing assignment details into planning coverages")
+        service = UnifiedPlanningResource.get_service()
         updated = 0
-        for planning in self.iter_planning():
+        async for planning in self.iter_planning():
             coverages = planning.get("coverages") or []
             assignment_ids = self.collect_assignment_ids(coverages)
             if not assignment_ids:
                 continue
 
-            assignments = self.fetch_assignments(assignment_ids)
+            assignments = await self.fetch_assignments(assignment_ids)
             if not assignments:
                 continue
 
-            changed = self.sync_coverages(coverages, assignments)
+            changed = await self.sync_coverages(coverages, assignments)
             if not changed:
                 continue
 
@@ -62,31 +64,33 @@ class SyncAssignmentCoveragesCommand:
             if dry_run:
                 print(f"update {planning.get('_id')}")
             else:
-                planning_service = get_resource_service("planning")
-                planning_service.backend.system_update(
-                    planning_service.datasource,
-                    planning.get("_id"),
-                    {"coverages": coverages},
-                    planning,
-                )
+                await service.system_update(planning["_id"], {"coverages": coverages})
                 print(".", end="")
 
         if not dry_run and updated:
             print("")
         print(f"Done. Updated {updated} planning items")
 
-    def iter_planning(self):
-        planning_service = get_resource_service("planning")
-        query = {
+    async def iter_planning(self):
+        service = UnifiedPlanningResource.get_service()
+        query: dict[str, Any] = {
+            "type": "planning",
             "$or": [
                 {"coverages.assigned_to.assignment_id": {"$exists": True}},
                 {"coverages.scheduled_updates.assigned_to.assignment_id": {"$exists": True}},
-            ]
+            ],
         }
-        page_size = 500
+        size = 500
+        last_id = None
 
-        for planning in planning_service.get_all_batch(size=page_size, lookup=query):
-            yield planning
+        while True:
+            lookup = query if last_id is None else {"$and": [query, {"_id": {"$gt": last_id}}]}
+            items = await service.mongo_async.find(lookup).sort("_id").limit(size).to_list(length=size)
+            if not items:
+                break
+            for planning in items:
+                yield planning
+                last_id = planning["_id"]
 
     def collect_assignment_ids(self, coverages: list[dict[str, Any]]) -> list[ObjectId]:
         assignment_ids: list[ObjectId] = []
@@ -109,12 +113,12 @@ class SyncAssignmentCoveragesCommand:
 
         return assignment_ids
 
-    def fetch_assignments(self, assignment_ids: list[ObjectId]) -> dict[str, dict[str, Any]]:
-        assignments_service = get_resource_service("assignments")
-        cursor = assignments_service.get_from_mongo(req=None, lookup={"_id": {"$in": assignment_ids}})
-        return {str(doc.get("_id")): doc for doc in cursor}
+    async def fetch_assignments(self, assignment_ids: list[ObjectId]) -> dict[str, dict[str, Any]]:
+        assignments_service = get_service("assignments")
+        docs = await assignments_service.mongo_async.find({"_id": {"$in": assignment_ids}}).to_list(length=None)
+        return {str(doc.get("_id")): doc for doc in docs}
 
-    def sync_coverages(self, coverages: list[dict[str, Any]], assignments: dict[str, dict[str, Any]]) -> bool:
+    async def sync_coverages(self, coverages: list[dict[str, Any]], assignments: dict[str, dict[str, Any]]) -> bool:
         updated = False
 
         for coverage in coverages:
@@ -127,7 +131,7 @@ class SyncAssignmentCoveragesCommand:
                     continue
                 assignment = assignments.get(str(assignment_id))
                 if assignment is None:
-                    assignment = self.find_assignment_by_id(assignment_id)
+                    assignment = await self.find_assignment_by_id(assignment_id)
                     if assignment is not None:
                         assignments[str(assignment.get("_id"))] = assignment
 
@@ -149,7 +153,7 @@ class SyncAssignmentCoveragesCommand:
                     continue
                 assignment = assignments.get(str(scheduled_assignment_id))
                 if assignment is None:
-                    assignment = self.find_assignment_by_id(scheduled_assignment_id)
+                    assignment = await self.find_assignment_by_id(scheduled_assignment_id)
                     if assignment is not None:
                         assignments[str(assignment.get("_id"))] = assignment
 
@@ -166,9 +170,6 @@ class SyncAssignmentCoveragesCommand:
 
         return updated
 
-    def find_assignment_by_id(self, assignment_id: ObjectId) -> dict[str, Any] | None:
-        assignments_service = get_resource_service("assignments")
-        cursor = assignments_service.get_from_mongo(req=None, lookup={"_id": {"$in": [assignment_id]}})
-        for doc in cursor:
-            return doc
-        return None
+    async def find_assignment_by_id(self, assignment_id: ObjectId) -> dict[str, Any] | None:
+        assignments_service = get_service("assignments")
+        return await assignments_service.mongo_async.find_one({"_id": assignment_id})
