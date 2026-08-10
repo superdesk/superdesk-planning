@@ -196,6 +196,29 @@ class DeleteSpikedItemsTest(BaseDeleteSpikedItemsTest):
         await delete_spiked_items_handler()
         await self.assertDeleteOperation("events", ["e1", "e2"])
 
+    async def test_event_series_delete_preserves_linked_planning(self):
+        # A non-spiked planning item that shares the series recurrence_id (and has no
+        # dates.end) must not be deleted when the recurring event series is purged
+        await self.insert(
+            "events",
+            [
+                {"guid": "e1", **expired["event"], "recurrence_id": "r123"},
+                {
+                    "guid": "e2",
+                    "recurrence_id": "r123",
+                    "dates": {"start": two_days_ago, "end": two_days_ago + timedelta(hours=1)},
+                    "state": WORKFLOW_STATE.SPIKED,
+                },
+            ],
+        )
+        await self.insert(
+            "planning",
+            [{"guid": "p_linked", "dates": {"start": now}, "state": "draft", "recurrence_id": "r123"}],
+        )
+        await delete_spiked_items_handler()
+        await self.assertDeleteOperation("events", ["e1", "e2"])
+        await self.assertDeleteOperation("planning", ["p_linked"], not_deleted=True)
+
     async def test_planning(self):
         await self.insert(
             "planning",

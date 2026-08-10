@@ -10,6 +10,7 @@ from superdesk.utc import utcnow
 from planning.types import WorkflowState
 from planning.types.unified import (
     UnifiedPlanningResource,
+    PlanningItemType,
     RelatedEventLink,
     RelatedEventLinkType,
     ItemScheduleEntry,
@@ -193,7 +194,13 @@ async def get_recurring_timeline(
     if not postponed:
         excluded_states.append(WorkflowState.POSTPONED)
 
-    query: dict = {"$and": [{"recurrence_id": selected.recurrence_id}, {"_id": {"$ne": selected.id}}]}
+    query: dict = {
+        "$and": [
+            {"type": PlanningItemType.EVENT.value},
+            {"recurrence_id": selected.recurrence_id},
+            {"_id": {"$ne": selected.id}},
+        ]
+    }
 
     if excluded_states:
         query["$and"].append({"state": {"$nin": excluded_states}})

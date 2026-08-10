@@ -138,7 +138,7 @@ async def flag_expired_items(resource_type: Literal["event", "planning"], expiry
                 for plan in item_plans:
                     plan_id: str = plan[ID_FIELD]
                     planning_to_expire.add(plan_id)
-                    plans_expired.update(plan_id)
+                    plans_expired.add(plan_id)
 
             items_expired.add(item_id)
 

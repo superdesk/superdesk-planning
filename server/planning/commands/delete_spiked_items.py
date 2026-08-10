@@ -102,9 +102,9 @@ async def delete_spiked_events(expiry_datetime):
             await events_service.delete_many({"_id": event_id})
             events_deleted.add(event_id)
 
-    # Delete recurring series
+    # Delete recurring series (events only; planning items share the recurrence_id)
     for recurrence_id, series_events in series_to_delete.items():
-        await events_service.delete_many({"recurrence_id": recurrence_id})
+        await events_service.delete_many({"recurrence_id": recurrence_id, "type": "event"})
         events_deleted.update(event.id for event in series_events)
 
     logger.info(f"{log_msg} {len(events_deleted)} Events deleted: {list(events_deleted)}")
