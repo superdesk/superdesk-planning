@@ -52,7 +52,7 @@ Feature: Recurring Events & Planning
             "planning_date": "2050-11-21T12:00:00.000Z",
             "coverages": [{
                 "workflow_status": "draft",
-                "news_coverage_status": {"qcode": "ncostat:int"},
+                "news_coverage_status": {"qcode": "ncostat:int", "name": "coverage intended", "label": "Planned"},
                 "planning": {
                     "headline": "test headline",
                     "slugline": "test slugline",
@@ -61,7 +61,7 @@ Feature: Recurring Events & Planning
                 }
             }, {
                 "workflow_status": "draft",
-                "news_coverage_status": {"qcode": "ncostat:int"},
+                "news_coverage_status": {"qcode": "ncostat:int", "name": "coverage intended", "label": "Planned"},
                 "planning": {
                     "headline": "test headline",
                     "slugline": "test slugline",
@@ -100,7 +100,7 @@ Feature: Recurring Events & Planning
             "update_method": "future",
             "coverages": [{
                 "workflow_status": "draft",
-                "news_coverage_status": {"qcode": "ncostat:int"},
+                "news_coverage_status": {"qcode": "ncostat:int", "name": "coverage intended", "label": "Planned"},
                 "planning": {
                     "headline": "test headline",
                     "slugline": "test slugline",
@@ -109,7 +109,7 @@ Feature: Recurring Events & Planning
                 }
             }, {
                 "workflow_status": "draft",
-                "news_coverage_status": {"qcode": "ncostat:int"},
+                "news_coverage_status": {"qcode": "ncostat:int", "name": "coverage intended", "label": "Planned"},
                 "planning": {
                     "headline": "test headline",
                     "slugline": "test slugline",
@@ -159,7 +159,7 @@ Feature: Recurring Events & Planning
             "update_method": "all",
             "coverages": [{
                 "workflow_status": "draft",
-                "news_coverage_status": {"qcode": "ncostat:int"},
+                "news_coverage_status": {"qcode": "ncostat:int", "name": "coverage intended", "label": "Planned"},
                 "planning": {
                     "headline": "test headline",
                     "slugline": "test slugline",
@@ -168,7 +168,7 @@ Feature: Recurring Events & Planning
                 }
             }, {
                 "workflow_status": "draft",
-                "news_coverage_status": {"qcode": "ncostat:int"},
+                "news_coverage_status": {"qcode": "ncostat:int", "name": "coverage intended", "label": "Planned"},
                 "planning": {
                     "headline": "test headline",
                     "slugline": "test slugline",

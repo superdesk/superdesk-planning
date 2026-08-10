@@ -61,6 +61,7 @@ def _field_in_updates(updates: dict, field: str) -> bool:
 
 
 # TODO-ASYNC: use resource models instead of typed dicts
+# TODO-UNIFIED: Remove once Unified resources is completed
 async def sync_event_metadata_with_planning_items(
     original: Optional[Event],
     updates: Event,

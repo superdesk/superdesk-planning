@@ -10,7 +10,7 @@ Feature: Planning Content API
             "anpa_category": [{"name": "Sports", "qcode": "sports"}],
             "coverages": [{
                 "workflow_status": "draft",
-                "news_coverage_status": {"qcode": "ncostat:int"},
+                "news_coverage_status": {"qcode": "ncostat:int", "name": "coverage intended", "label": "Planned"},
                 "planning": {
                     "ednote": "test coverage, I want 250 words",
                     "headline": "test headline",
@@ -38,7 +38,7 @@ Feature: Planning Content API
             "anpa_category": [{"name": "Finance", "qcode": "finance"}],
             "coverages": [{
                 "workflow_status": "draft",
-                "news_coverage_status": {"qcode": "ncostat:int"},
+                "news_coverage_status": {"qcode": "ncostat:int", "name": "coverage intended", "label": "Planned"},
                 "planning": {
                     "ednote": "test coverage, I want 250 words",
                     "headline": "test headline",
@@ -48,7 +48,7 @@ Feature: Planning Content API
                 }
             }, {
                 "workflow_status": "draft",
-                "news_coverage_status": {"qcode": "ncostat:int"},
+                "news_coverage_status": {"qcode": "ncostat:int", "name": "coverage intended", "label": "Planned"},
                 "planning": {
                     "ednote": "test coverage, I want 250 words",
                     "headline": "test headline",
@@ -251,7 +251,7 @@ Feature: Planning Content API
             "coverages": [{
                 "coverage_id": "txt-cov-1",
                 "workflow_status": "draft",
-                "news_coverage_status": {"qcode": "ncostat:int"},
+                "news_coverage_status": {"qcode": "ncostat:int", "name": "coverage intended", "label": "Planned"},
                 "planning": {
                     "ednote": "test coverage, I want 250 words",
                     "headline": "test headline",
@@ -374,7 +374,7 @@ Feature: Planning Content API
             "coverages": [{
                 "coverage_id": "txt-cov-1",
                 "workflow_status": "active",
-                "news_coverage_status": {"qcode": "ncostat:int"},
+                "news_coverage_status": {"qcode": "ncostat:int", "name": "coverage intended", "label": "Planned"},
                 "planning": {
                     "ednote": "test coverage, I want 250 words",
                     "headline": "test headline",
@@ -444,6 +444,10 @@ Feature: Planning Content API
         When we set capi auth token to "#subscriber_token_0._id#"
         Given empty "planning"
         And empty "planning_capi"
+        And "desks"
+        """
+        [{"name": "Sports", "content_expiry": 60, "members": [{"user": "#CONTEXT_USER_ID#"}]}]
+        """
         When we post to "planning"
         """
         [{
@@ -456,7 +460,7 @@ Feature: Planning Content API
             "coverages": [{
                 "coverage_id": "txt-cov-1",
                 "workflow_status": "active",
-                "news_coverage_status": {"qcode": "ncostat:int"},
+                "news_coverage_status": {"qcode": "ncostat:int", "name": "coverage intended", "label": "Planned"},
                 "_time_to_be_confirmed": true,
                 "planning": {
                     "headline": "test headline",
@@ -493,7 +497,7 @@ Feature: Planning Content API
             "coverages": [{
                 "coverage_id": "txt-cov-2",
                 "workflow_status": "active",
-                "news_coverage_status": {"qcode": "ncostat:int"},
+                "news_coverage_status": {"qcode": "ncostat:int", "name": "coverage intended", "label": "Planned"},
                 "_time_to_be_confirmed": false,
                 "planning": {
                     "headline": "test headline",

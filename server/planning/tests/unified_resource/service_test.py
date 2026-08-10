@@ -13,7 +13,10 @@ class TestUnifiedPlanningResourceService(TestCase):
             [
                 {
                     "type": "event",
-                    "dates": {"start": "2029-10-12T14:00:00+0000"},
+                    "dates": {
+                        "start": "2029-10-12T14:00:00+0000",
+                        "end": "2029-10-12T16:00:00+0000",
+                    },
                 }
             ]
         )

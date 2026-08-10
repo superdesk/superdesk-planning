@@ -388,10 +388,7 @@ Feature: Events Cancel
                     "g2_content_type": "text"
                 },
                 "planning_item": "plan1",
-                "news_coverage_status": {
-                    "qcode": "ncostat:int",
-                    "name": "Coverage intended"
-                },
+                "news_coverage_status": {"qcode": "ncostat:int", "name": "coverage intended", "label": "Planned"},
                 "assigned_to": {
                     "desk": "#desks._id#",
                     "user": "#CONTEXT_USER_ID#",

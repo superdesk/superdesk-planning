@@ -127,7 +127,7 @@ async def process_spike_planning_item(updates: dict[str, Any], original: dict[st
     await remove_autosave_on_spike(original)
 
     planning_item_id = original[ID_FIELD]
-    await planning_service.update_async(planning_item_id, updates, original)
+    await planning_service.update_async(planning_item_id, updates, original, skip_signals=True)
     await signals.planning_spiked.send(updates, original)
     spiked_planning_item = await planning_service.find_one_async(req=None, _id=planning_item_id)
     assert spiked_planning_item is not None, "Expected spiked_planning to be a dict, got None"
@@ -174,7 +174,7 @@ async def process_unspike_planning_item(updates: dict[str, Any], original: dict[
     remove_lock_information(updates)
 
     planning_item_id = original[ID_FIELD]
-    await planning_service.update_async(planning_item_id, updates, original)
+    await planning_service.update_async(planning_item_id, updates, original, skip_signals=True)
     await signals.planning_unspiked.send(updates, original)
     unspiked_planning_item = await planning_service.find_one_async(req=None, _id=planning_item_id)
     assert unspiked_planning_item is not None, "Expected unspiked_planning to be a dict, got None"

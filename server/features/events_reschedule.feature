@@ -163,11 +163,7 @@ Feature: Events Reschedule
                     "user": "#CONTEXT_USER_ID#",
                     "state": "assigned"
                 },
-                "news_coverage_status" : {
-                "qcode" : "ncostat:int",
-                "label" : "Planned",
-                "name" : "coverage intended"
-            }
+                "news_coverage_status": {"qcode": "ncostat:int", "name": "coverage intended", "label": "Planned"}
             }],
             "planning_date": "2016-01-02"
         }]
@@ -905,7 +901,7 @@ Feature: Events Reschedule
                         "scheduled": "2035-11-23T14:00:00.000Z",
                         "g2_content_type": "text"
                     },
-                    "news_coverage_status": {"qcode": "ncostat:int"},
+                    "news_coverage_status": {"qcode": "ncostat:int", "name": "coverage intended", "label": "Planned"},
                     "workflow_status" : "draft"
                 }],
                 "planning_date": "2035-01-04"
@@ -1722,7 +1718,7 @@ Feature: Events Reschedule
             "coverages": [{
                 "coverage_id": "plan1_cov1",
                 "workflow_status": "draft",
-                "news_coverage_status": {"qcode" : "ncostat:int"}
+                "news_coverage_status": {"qcode": "ncostat:int", "name": "coverage intended", "label": "Planned"}
             }]
         }, {
             "guid": "plan2",
@@ -1732,7 +1728,7 @@ Feature: Events Reschedule
             "coverages": [{
                 "coverage_id": "plan2_cov1",
                 "workflow_status": "draft",
-                "news_coverage_status": {"qcode" : "ncostat:int"}
+                "news_coverage_status": {"qcode": "ncostat:int", "name": "coverage intended", "label": "Planned"}
             }]
         }]
         """

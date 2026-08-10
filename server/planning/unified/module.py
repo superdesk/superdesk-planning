@@ -13,6 +13,11 @@ unified_planning_resource_config = ResourceConfig(
     mongo=MongoResourceConfig(
         indexes=[
             MongoIndexOptions(
+                name="item_type_1",
+                keys=[("type", 1)],
+                background=True,
+            ),
+            MongoIndexOptions(
                 name="recurrence_id_1",
                 keys=[("recurrence_id", 1)],
                 background=True,

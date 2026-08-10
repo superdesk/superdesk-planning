@@ -47,6 +47,7 @@ from .enums import (
     SearchWeekDay,
     SearchDateRange,
     LinkType,
+    AssignmentWorkflowState,
 )
 from .agendas import AgendasResourceModel, AgendaItem
 from .planning_types import PlanningTypesResourceModel
@@ -87,6 +88,8 @@ __all__ = [
     "SearchScheduleFrequency",
     "SearchWeekDay",
     "SearchDateRange",
+    "LinkType",
+    "AssignmentWorkflowState",
     "ContentFieldSchema",
     "ContentFieldEditor",
     "BaseProfile",

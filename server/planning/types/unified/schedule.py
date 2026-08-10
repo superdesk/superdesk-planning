@@ -1,8 +1,7 @@
 from typing import Annotated
-from datetime import datetime
 from enum import Enum, unique
 
-from pydantic import Field
+from pydantic import Field, BaseModel
 
 from superdesk.core.resources import Dataclass, fields
 
@@ -27,16 +26,23 @@ class ItemRecurringDates(Dataclass):
     end_repeat_mode: RecurringEndMode = Field(
         alias="endRepeatMode", description="The end repeat mode of the recurring item", default=RecurringEndMode.COUNT
     )
-    until: datetime | None = Field(description="The end date and time of the recurring item", default=None)
+    until: fields.UTCDatetime | None = Field(description="The end date and time of the recurring item", default=None)
     count: int | None = Field(description="The end count of the recurring item", default=None)
     created_externally: bool = Field(
         description="Whether the item was created externally", default=False, alias="_created_externally"
     )
+    byday: str | None = Field(
+        description="A space separated string of weekday values",
+        default=None,
+        examples=["MO TU WE TH FR SA SU"],
+    )
 
 
 class ItemDates(Dataclass):
-    start: datetime = Field(description="Scheduled start date, and optional time, of the item")
-    end: datetime | None = Field(description="Scheduled end date, and optional time, of the item", default=None)
+    start: fields.UTCDatetime = Field(description="Scheduled start date, and optional time, of the item")
+    end: fields.UTCDatetime | None = Field(
+        description="Scheduled end date, and optional time, of the item", default=None
+    )
     tz: fields.Keyword | None = Field(
         description="An optional timezone of the item, in IANA format",
         examples=["Europe/Prague", "Australia/Sydney"],
@@ -48,7 +54,7 @@ class ItemDates(Dataclass):
 
 
 class ItemScheduleEntry(Dataclass):
-    scheduled: datetime = Field(description="The scheduled date of the item schedule entry")
+    scheduled: fields.UTCDatetime = Field(description="The scheduled date of the item schedule entry")
     coverage_id: fields.Keyword | None = Field(
         description="The coverage ID of the item schedule entry (if this schedule entry is for a Coverage)",
         default=None,
@@ -56,7 +62,7 @@ class ItemScheduleEntry(Dataclass):
 
 
 class ItemUpdateScheduleEntry(Dataclass):
-    scheduled: datetime = Field(description="The scheduled date of the item schedule entry")
+    scheduled: fields.UTCDatetime = Field(description="The scheduled date of the item schedule entry")
     scheduled_update_id: fields.Keyword | None = Field(
         description="The coverage ID of the item schedule entry (if this schedule entry is for a Coverage)",
         default=None,
@@ -80,7 +86,7 @@ class OccurStatus(Dataclass):
     label: fields.Keyword = Field(description="The label of the occur status")
 
 
-class ItemSchedule:
+class ItemSchedule(BaseModel):
     dates: ItemDates = Field(description="The dates of the item")
     occur_status: OccurStatus | None = Field(description="The occur status of the item", default=None)
     time_to_be_confirmed: bool = Field(

@@ -1,27 +1,30 @@
 from typing import Annotated
-from datetime import datetime
 
-from pydantic import Field
+from pydantic import Field, BaseModel
 
 from superdesk.core.resources import Dataclass, fields
-from superdesk.core.resources.validators import validate_data_relation_async
+from superdesk.core.resources.validators import validate_data_relation_async, validate_unique_value_async
 from superdesk.utc import utcnow
 
 from ..enums import WorkflowState, PostStates, LinkType
 
 
-class AuditInformation:
+class AuditInformation(BaseModel):
     original_creator: Annotated[fields.ObjectId | None, validate_data_relation_async("users")] = Field(
         description="ID of the user who originally created the item, `null` if was created by the system", default=None
     )
     version_creator: Annotated[fields.ObjectId | None, validate_data_relation_async("users")] = Field(
         description="ID of the user who last updated this item, `null` if it was updated by the system", default=None
     )
-    firstcreated: datetime = Field(default_factory=utcnow, description="Date and time when the item was first created")
-    versioncreated: datetime = Field(default_factory=utcnow, description="Date and time when the item was last updated")
+    firstcreated: fields.UTCDatetime = Field(
+        default_factory=utcnow, description="Date and time when the item was first created"
+    )
+    versioncreated: fields.UTCDatetime = Field(
+        default_factory=utcnow, description="Date and time when the item was last updated"
+    )
 
 
-class IngestDetails:
+class IngestDetails(BaseModel):
     ingest_id: fields.Keyword | None = Field(description="The ID provided by the ingest provider", default=None)
     ingest_provider: Annotated[fields.ObjectId | None, validate_data_relation_async("ingest_providers")] = Field(
         description="The internal ID of the ingest provider", default=None
@@ -29,10 +32,10 @@ class IngestDetails:
     ingest_provider_sequence: fields.Keyword | None = Field(
         description="The sequence number provided by the ingest provider", default=None
     )
-    ingest_firstcreated: datetime | None = Field(
+    ingest_firstcreated: fields.UTCDatetime | None = Field(
         description="Date and time when the item was first created by the ingest provider", default=None
     )
-    ingest_versioncreated: datetime | None = Field(
+    ingest_versioncreated: fields.UTCDatetime | None = Field(
         description="Date and time when the item was last updated by the ingest provider", default=None
     )
     ingest_pubstatus: PostStates | None = Field(
@@ -40,18 +43,18 @@ class IngestDetails:
     )
 
 
-class LockFields:
+class LockFields(BaseModel):
     lock_user: Annotated[fields.ObjectId, validate_data_relation_async("users")] | None = Field(
         description="The internal ID of the user who has locked the item", default=None
     )
-    lock_time: datetime | None = Field(description="Date and time when the item was locked", default=None)
+    lock_time: fields.UTCDatetime | None = Field(description="Date and time when the item was locked", default=None)
     lock_session: Annotated[fields.ObjectId, validate_data_relation_async("auth")] | None = Field(
         description="The internal ID of the session that has locked the item", default=None
     )
     lock_action: fields.Keyword | None = Field(description="The action that has locked the item", default=None)
 
 
-class SourceDetails:
+class SourceDetails(BaseModel):
     # TODO: Should these be keywords?
     source: str | None = Field(description="The name of the source of the item", default=None)
     original_source: str | None = Field(description="The name of the original source of the item", default=None)
@@ -84,7 +87,7 @@ class RelatedContentItem(Dataclass):
     version: int | None = Field(description="Version of the related item", default=None)
     headline: fields.Keyword | None = Field(description="Headline of the related item", default=None)
     slugline: fields.Keyword | None = Field(description="Slugline of the related item", default=None)
-    versioncreated: datetime | None = Field(
+    versioncreated: fields.UTCDatetime | None = Field(
         description="Date and time when the related item was last updated", default=None
     )
     search: fields.Keyword | None = Field(description="Search term of the related item", default=None)
@@ -94,8 +97,8 @@ class RelatedContentItem(Dataclass):
     word_count: int | None = Field(description="Word count of the related item", default=None)
 
 
-class ItemSystemFields:
-    guid: fields.Keyword | None = Field(description="Global unique identifier of the item", default=None)
+class ItemSystemFields(BaseModel):
+    guid: fields.Keyword = Field(description="Global unique identifier of the item")
     recurrence_id: fields.Keyword | None = Field(
         description="Global unique identifier of the recurrence of the item",
         default=None,
@@ -111,11 +114,11 @@ class ItemSystemFields:
     )
 
     # TODO: These seem specific to Events, could we use this for ingested Planning too?
-    event_created: datetime | None = Field(
+    event_created: fields.UTCDatetime | None = Field(
         description="Date and time when the item was created",
         default=None,
     )
-    event_lastmodified: datetime | None = Field(
+    event_lastmodified: fields.UTCDatetime | None = Field(
         description="Date and time when the item was last modified",
         default=None,
     )
@@ -126,7 +129,7 @@ class ItemSystemFields:
         description="Reason for the workflow state of the item, such as when cancelled",
         default=None,
     )
-    expiry: datetime | None = Field(description="Date and time when the item is to expire", default=None)
+    expiry: fields.UTCDatetime | None = Field(description="Date and time when the item is to expire", default=None)
     expired: bool = Field(
         description="Whether the item has expired and should no longer be used",
         default=False,
@@ -149,12 +152,12 @@ class ItemSystemFields:
     reschedule_to: fields.Keyword | None = Field(
         description="ID of the item that this item was rescheduled to", default=None
     )
-    reschedule_from_schedule: datetime | None = Field(
+    reschedule_from_schedule: fields.UTCDatetime | None = Field(
         alias="_reschedule_from_schedule",
         description="The date and time that this item was rescheduled from",
         default=None,
     )
-    actioned_date: datetime | None = Field(
+    actioned_date: fields.UTCDatetime | None = Field(
         description="The date and time that this item was actioned",
         default=None,
     )
@@ -170,10 +173,14 @@ class ItemSystemFields:
 
     # TODO: This requires global uniqueness, do we really need that?
     unique_id: fields.Keyword | None = Field(description="Unique ID of the item", default=None)
-    unique_name: fields.Keyword | None = Field(description="Unique name of the item", default=None)
+    unique_name: Annotated[
+        fields.Keyword | None,
+        Field(description="Unique name of the item", default=None),
+        validate_unique_value_async("unified_planning", "unique_name"),
+    ]
 
     flags: PlanningFlags = Field(description="Flags to control logic for this item", default_factory=PlanningFlags)
-    versionposted: datetime | None = Field(
+    versionposted: fields.UTCDatetime | None = Field(
         description="The date and time that this item was posted",
         default=None,
     )

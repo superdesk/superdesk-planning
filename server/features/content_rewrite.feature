@@ -139,9 +139,7 @@ Feature: Rewrite content
             "coverages": [
                 {
                     "workflow_status": "draft",
-                    "news_coverage_status": {
-                      "qcode": "ncostat:int"
-                    },
+                    "news_coverage_status": {"qcode": "ncostat:int", "name": "coverage intended", "label": "Planned"},
                     "planning": {
                         "ednote": "test coverage, I want 250 words",
                         "slugline": "test slugline",
@@ -161,7 +159,7 @@ Feature: Rewrite content
                 "slugline": "test slugline",
                 "scheduled": "2029-10-12T14:00:00.000"
             },
-            "news_coverage_status": {"qcode": "ncostat:int"},
+            "news_coverage_status": {"qcode": "ncostat:int", "name": "coverage intended", "label": "Planned"},
             "assigned_to": {
                 "desk": "#desks._id#",
                 "user": "#CONTEXT_USER_ID#",
@@ -387,9 +385,7 @@ Feature: Rewrite content
             "coverages": [
                 {
                     "workflow_status": "draft",
-                    "news_coverage_status": {
-                      "qcode": "ncostat:int"
-                    },
+                    "news_coverage_status": {"qcode": "ncostat:int", "name": "coverage intended", "label": "Planned"},
                     "planning": {
                         "ednote": "test coverage, I want 250 words",
                         "slugline": "test slugline",
@@ -410,7 +406,7 @@ Feature: Rewrite content
                 "slugline": "test slugline",
                 "scheduled": "2029-10-12T14:00:00.000"
             },
-            "news_coverage_status": {"qcode": "ncostat:int"},
+            "news_coverage_status": {"qcode": "ncostat:int", "name": "coverage intended", "label": "Planned"},
             "assigned_to": {
                 "desk": "#desks._id#",
                 "user": "#CONTEXT_USER_ID#",
@@ -589,9 +585,7 @@ Feature: Rewrite content
             "coverages": [
                 {
                     "workflow_status": "draft",
-                    "news_coverage_status": {
-                      "qcode": "ncostat:int"
-                    },
+                    "news_coverage_status": {"qcode": "ncostat:int", "name": "coverage intended", "label": "Planned"},
                     "planning": {
                         "ednote": "test coverage, I want 250 words",
                         "slugline": "test slugline",
@@ -611,7 +605,7 @@ Feature: Rewrite content
                 "slugline": "test slugline",
                 "scheduled": "2029-10-12T14:00:00.000"
             },
-            "news_coverage_status": {"qcode": "ncostat:int"},
+            "news_coverage_status": {"qcode": "ncostat:int", "name": "coverage intended", "label": "Planned"},
             "assigned_to": {
                 "desk": "#desks._id#",
                 "user": "#CONTEXT_USER_ID#",
@@ -920,7 +914,7 @@ Feature: Rewrite content
                     "slugline": "test slugline",
                     "scheduled": "2029-10-12T14:00:00.000"
                 },
-                "news_coverage_status": {"qcode": "ncostat:int"},
+                "news_coverage_status": {"qcode": "ncostat:int", "name": "coverage intended", "label": "Planned"},
                 "assigned_to": {
                     "desk": "#desks._id#",
                     "user": "#CONTEXT_USER_ID#",
@@ -936,7 +930,7 @@ Feature: Rewrite content
                     "slugline": "test slugline",
                     "scheduled": "2029-10-12T16:00:00.000"
                 },
-                "news_coverage_status": {"qcode": "ncostat:int"},
+                "news_coverage_status": {"qcode": "ncostat:int", "name": "coverage intended", "label": "Planned"},
                 "assigned_to": {
                     "desk": "#desks._id#",
                     "user": "#CONTEXT_USER_ID#",
@@ -1569,9 +1563,7 @@ Feature: Rewrite content
             "coverages": [
                 {
                     "workflow_status": "draft",
-                    "news_coverage_status": {
-                      "qcode": "ncostat:int"
-                    },
+                    "news_coverage_status": {"qcode": "ncostat:int", "name": "coverage intended", "label": "Planned"},
                     "planning": {
                         "ednote": "test coverage, I want 250 words",
                         "slugline": "test slugline",
@@ -1591,7 +1583,7 @@ Feature: Rewrite content
                 "slugline": "test slugline",
                 "scheduled": "2029-10-12T14:00:00.000"
             },
-            "news_coverage_status": {"qcode": "ncostat:int"},
+            "news_coverage_status": {"qcode": "ncostat:int", "name": "coverage intended", "label": "Planned"},
             "assigned_to": {
                 "desk": "#desks._id#",
                 "user": "#CONTEXT_USER_ID#",
@@ -1822,9 +1814,7 @@ Feature: Rewrite content
             "coverages": [
                 {
                     "workflow_status": "draft",
-                    "news_coverage_status": {
-                      "qcode": "ncostat:int"
-                    },
+                    "news_coverage_status": {"qcode": "ncostat:int", "name": "coverage intended", "label": "Planned"},
                     "planning": {
                         "ednote": "test coverage, I want 250 words",
                         "slugline": "test slugline",
@@ -1844,7 +1834,7 @@ Feature: Rewrite content
                 "slugline": "test slugline",
                 "scheduled": "2029-10-12T14:00:00.000"
             },
-            "news_coverage_status": {"qcode": "ncostat:int"},
+            "news_coverage_status": {"qcode": "ncostat:int", "name": "coverage intended", "label": "Planned"},
             "assigned_to": {
                 "desk": "#desks._id#",
                 "user": "#CONTEXT_USER_ID#",
@@ -2035,9 +2025,7 @@ Feature: Rewrite content
             "coverages": [
                 {
                     "workflow_status": "draft",
-                    "news_coverage_status": {
-                      "qcode": "ncostat:int"
-                    },
+                    "news_coverage_status": {"qcode": "ncostat:int", "name": "coverage intended", "label": "Planned"},
                     "planning": {
                         "ednote": "test coverage, I want 250 words",
                         "slugline": "test slugline",
@@ -2057,7 +2045,7 @@ Feature: Rewrite content
                 "slugline": "test slugline",
                 "scheduled": "2029-10-12T14:00:00.000"
             },
-            "news_coverage_status": {"qcode": "ncostat:int"},
+            "news_coverage_status": {"qcode": "ncostat:int", "name": "coverage intended", "label": "Planned"},
             "assigned_to": {
                 "desk": "#desks._id#",
                 "user": "#CONTEXT_USER_ID#",
@@ -2271,9 +2259,7 @@ Feature: Rewrite content
             "coverages": [
                 {
                     "workflow_status": "draft",
-                    "news_coverage_status": {
-                      "qcode": "ncostat:int"
-                    },
+                    "news_coverage_status": {"qcode": "ncostat:int", "name": "coverage intended", "label": "Planned"},
                     "planning": {
                         "ednote": "test coverage, I want 250 words",
                         "slugline": "test slugline",
@@ -2293,7 +2279,7 @@ Feature: Rewrite content
                 "slugline": "test slugline",
                 "scheduled": "2029-10-12T14:00:00.000"
             },
-            "news_coverage_status": {"qcode": "ncostat:int"},
+            "news_coverage_status": {"qcode": "ncostat:int", "name": "coverage intended", "label": "Planned"},
             "assigned_to": {
                 "desk": "#desks._id#",
                 "user": "#CONTEXT_USER_ID#",
@@ -2544,9 +2530,7 @@ Feature: Rewrite content
             "coverages": [
                 {
                     "workflow_status": "draft",
-                    "news_coverage_status": {
-                      "qcode": "ncostat:int"
-                    },
+                    "news_coverage_status": {"qcode": "ncostat:int", "name": "coverage intended", "label": "Planned"},
                     "planning": {
                         "ednote": "test coverage, I want 250 words",
                         "slugline": "test slugline",

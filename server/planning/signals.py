@@ -12,12 +12,14 @@ import blinker
 from bson import ObjectId
 
 from superdesk.core import AsyncSignal
+from planning.types.unified import UnifiedPlanningResource
 
 __all__ = [
     "planning_created",
     "planning_ingested",
     "events_update",
     "item_unlocked",
+    "on_unified_planning_duplicated",
 ]
 
 signals = blinker.Namespace()
@@ -90,3 +92,7 @@ assignments_deleted = AsyncSignal[dict]("assignments:delete")
 
 #: Signal for when an item has been unlocked
 item_unlocked = AsyncSignal[str, dict, ObjectId]("item:unlocked")
+
+on_unified_planning_duplicated = AsyncSignal[UnifiedPlanningResource, UnifiedPlanningResource](
+    "unified_planning:duplicated"
+)

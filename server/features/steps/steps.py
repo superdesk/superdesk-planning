@@ -277,7 +277,7 @@ async def then_assignment_not_created_for_coverage(context, index):
     response = await get_json_data(context.response)
     assert len(response.get("coverages")), "Coverage are not defined."
     coverage = response.get("coverages")[index]
-    assert not coverage.get("assigned_to", {}).get("assignment_id"), "Coverage has an assignment"
+    assert not (coverage.get("assigned_to") or {}).get("assignment_id"), "Coverage has an assignment"
 
 
 @then("assignment {index} is scheduled for end of today")

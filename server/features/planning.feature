@@ -1,4 +1,12 @@
 Feature: Planning
+    Background: Setup data
+        Given "desks"
+        """
+        [
+            {"name": "Politic Desk", "members": [{"user": "#CONTEXT_USER_ID#"}]},
+            {"name": "Sports", "content_expiry": 60, "members": [{"user": "#CONTEXT_USER_ID#"}]}
+        ]
+        """
 
     @auth
     Scenario: Empty planning list
@@ -257,7 +265,6 @@ Feature: Planning
         """
         [{
             "guid": "123",
-            "item_class": "item class value",
             "headline": "test headline",
             "slugline": "test slugline",
             "planning_date": "2016-01-02"
@@ -271,10 +278,10 @@ Feature: Planning
                 {
                     "profile": "#coverage_profiles._id#",
                     "workflow_status": "draft",
-                    "news_coverage_status": {
-                      "qcode": "ncostat:int"
-                    },
+                    "news_coverage_status": {"qcode": "ncostat:int", "name": "coverage intended", "label": "Planned"},
                     "planning": {
+                        "g2_content_type": "text",
+                        "scheduled": "2016-01-02",
                         "ednote": "test coverage, I want 250 words",
                         "headline": "test headline",
                         "slugline": "test slugline",
@@ -297,7 +304,6 @@ Feature: Planning
         {
             "_id": "#planning._id#",
             "guid": "123",
-            "item_class": "item class value",
             "headline": "test headline",
             "slugline": "test slugline",
             "coverages": [
@@ -325,10 +331,10 @@ Feature: Planning
                 {
                     "coverage_id": "#firstcoverage#",
                     "workflow_status": "draft",
-                    "news_coverage_status": {
-                      "qcode": "ncostat:int"
-                    },
+                    "news_coverage_status": {"qcode": "ncostat:int", "name": "coverage intended", "label": "Planned"},
                     "planning": {
+                        "g2_content_type": "text",
+                        "scheduled": "2016-01-02",
                         "ednote": "test coverage, I want 250 words",
                         "headline": "test headline",
                         "slugline": "test slugline",
@@ -340,8 +346,8 @@ Feature: Planning
                         ]
                     },
                     "assigned_to": {
-                        "desk": "Politic Desk",
-                        "user": "507f191e810c19729de870eb"
+                        "desk": "#desks_0._id#",
+                        "user": "#CONTEXT_USER_ID#"
                     }
                 }
             ]
@@ -354,7 +360,6 @@ Feature: Planning
         {
             "_id": "#planning._id#",
             "guid": "123",
-            "item_class": "item class value",
             "headline": "test headline",
             "slugline": "test slugline",
             "coverages": [
@@ -373,8 +378,8 @@ Feature: Planning
          
                     },
                     "assigned_to": {
-                        "desk": "Politic Desk",
-                        "user": "507f191e810c19729de870eb",
+                        "desk": "#desks_0._id#",
+                        "user": "#CONTEXT_USER_ID#",
                         "assignment_id": "#firstassignment#"
                     }
                 }
@@ -422,7 +427,10 @@ Feature: Planning
         {
             "coverages": [
                 {
+                    "news_coverage_status": {"qcode": "ncostat:int", "name": "coverage intended", "label": "Planned"},
                     "planning": {
+                        "g2_content_type": "text",
+                        "scheduled": "2016-01-02",
                         "ednote": "test coverage, I want 250 words",
                         "headline": "test headline",
                         "slugline": "test slugline"
@@ -477,14 +485,17 @@ Feature: Planning
         {
             "coverages": [
                 {
+                    "news_coverage_status": {"qcode": "ncostat:int", "name": "coverage intended", "label": "Planned"},
                     "planning": {
                         "ednote": "test coverage, I want 250 words",
                         "headline": "test headline",
-                        "slugline": "test slugline"
+                        "slugline": "test slugline",
+                        "scheduled": "2016-01-02",
+                        "g2_content_type": "text"
                     },
                     "assigned_to": {
-                        "desk": "Politic Desk",
-                        "user": "507f191e810c19729de870eb"
+                        "desk": "#desks_0._id#",
+                        "user": "#CONTEXT_USER_ID#"
                     }
                 }
             ]
@@ -506,8 +517,8 @@ Feature: Planning
                         "slugline": "test slugline"
                     },
                     "assigned_to": {
-                        "desk": "Politic Desk",
-                        "user": "507f191e810c19729de870eb",
+                        "desk": "#desks_0._id#",
+                        "user": "#CONTEXT_USER_ID#",
                         "assignment_id": "#firstassignment#"
                     }
                 }
@@ -533,8 +544,8 @@ Feature: Planning
                         "slugline": "test slugline"
                     },
                     "assigned_to": {
-                        "desk": "Politic Desk",
-                        "user": "507f191e810c19729de870eb",
+                        "desk": "#desks_0._id#",
+                        "user": "#CONTEXT_USER_ID#",
                         "assignment_id": "#firstassignment#",
                         "state": "assigned"
                     }
@@ -584,6 +595,7 @@ Feature: Planning
           "planning_date": "2016-01-02"
         }]
         """
+        Then we store coverage id in "firstcoverage" from coverage 0
         When we patch "/planning/#planning._id#"
         """
         {
@@ -591,8 +603,9 @@ Feature: Planning
               {
                   "coverage_id": "#firstcoverage#",
                   "news_coverage_status": {
-                      "name" : "coverage not intended",
-                      "qcode" : "ncostat:notint"
+                      "name": "coverage not intended",
+                      "qcode": "ncostat:notint",
+                      "label": "Not planned"
                   },
                   "planning": {
                       "ednote": "test coverage, 250 words",
@@ -627,11 +640,12 @@ Feature: Planning
                   "planning": {
                       "ednote": "test coverage, 250 words",
                       "g2_content_type": "text",
-                      "internal_note" : "\n\n------------------------------------------------------------\nCoverage cancelled\n"
+                      "internal_note" : "------------------------------------------------------------\nCoverage cancelled"
                   },
                   "news_coverage_status": {
-                      "name" : "coverage not intended",
-                      "qcode" : "ncostat:notint"
+                      "name": "coverage not intended",
+                      "qcode": "ncostat:notint",
+                      "label": "Not planned"
                   }
               }
           ]
@@ -642,10 +656,6 @@ Feature: Planning
     @notification
     @vocabulary
     Scenario: Cancelling coverage also cancels related assignment
-        Given "desks"
-        """
-        [{"_id": "desk_123", "name": "Politic Desk"}]
-        """
         Given "users"
         """
         [{"_id": "507f191e810c19729de871eb", "name":"testfoo", "email":"foo@122d.com", "username":"johnfoo"}]
@@ -673,12 +683,13 @@ Feature: Planning
                       "slugline": "test slugline"
                   },
                   "assigned_to": {
-                      "desk": "desk_123",
-                      "user": "507f191e810c19729de870eb"
+                      "desk": "#desks_0._id#",
+                      "user": "#CONTEXT_USER_ID#"
                   },
                   "news_coverage_status": {
-                      "name" : "coverage intended",
-                      "qcode" : "ncostat:int"
+                      "name": "coverage intended",
+                      "qcode": "ncostat:int",
+                      "label": "Planned"
                   },
                   "workflow_status": "active"
               }
@@ -706,8 +717,8 @@ Feature: Planning
                       "slugline": "test slugline"
                   },
                   "assigned_to": {
-                      "desk": "desk_123",
-                      "user": "507f191e810c19729de870eb",
+                      "desk": "#desks_0._id#",
+                      "user": "#CONTEXT_USER_ID#",
                       "assignment_id": "#firstassignment#"
                   },
                   "workflow_status": "active"
@@ -727,8 +738,8 @@ Feature: Planning
               "slugline": "test slugline"
           },
           "assigned_to": {
-              "desk": "desk_123",
-              "user": "507f191e810c19729de870eb",
+              "desk": "#desks_0._id#",
+              "user": "#CONTEXT_USER_ID#",
               "state": "assigned"
           }
         }
@@ -744,15 +755,16 @@ Feature: Planning
                       "headline": "test headline",
                       "slugline": "test slugline",
                       "g2_content_type": "text",
-                      "internal_note" : "\n\n------------------------------------------------------------\nCoverage cancelled\n"
+                      "internal_note" : "------------------------------------------------------------\nCoverage cancelled"
                   },
                   "news_coverage_status": {
-                      "name" : "coverage not intended",
-                      "qcode" : "ncostat:notint"
+                      "name": "coverage not intended",
+                      "qcode": "ncostat:notint",
+                      "label": "Not planned"
                   },
                   "assigned_to": {
-                      "desk": "desk_123",
-                      "user": "507f191e810c19729de870eb",
+                      "desk": "#desks_0._id#",
+                      "user": "#CONTEXT_USER_ID#",
                       "assignment_id": "#firstassignment#"
                   },
                   "workflow_status": "cancelled"
@@ -773,8 +785,8 @@ Feature: Planning
               "slugline": "test slugline"
           },
           "assigned_to": {
-              "desk": "desk_123",
-              "user": "507f191e810c19729de870eb",
+              "desk": "#desks_0._id#",
+              "user": "#CONTEXT_USER_ID#",
               "state": "cancelled"
           }
         }
@@ -791,7 +803,7 @@ Feature: Planning
                     "user": "test_user",
                     "slugline": "test slugline"
                  },
-                 "recipients": [{"user_id": "507f191e810c19729de870eb"}]
+                 "recipients": [{"user_id": "#CONTEXT_USER_ID#"}]
             }
         ]}
         """
@@ -808,8 +820,9 @@ Feature: Planning
                       "ednote": "test coverage, I want 250 words"
                   },
                   "news_coverage_status": {
-                      "name" : "coverage not intended",
-                      "qcode" : "ncostat:notint"
+                      "name": "coverage not intended",
+                      "qcode": "ncostat:notint",
+                      "label": "Not planned"
                   },
                   "workflow_status": "cancelled"
               }
@@ -828,8 +841,8 @@ Feature: Planning
               "slugline": "test slugline"
           },
           "assigned_to": {
-              "desk": "desk_123",
-              "user": "507f191e810c19729de870eb",
+              "desk": "#desks_0._id#",
+              "user": "#CONTEXT_USER_ID#",
               "state": "cancelled"
           }
         }
@@ -847,8 +860,9 @@ Feature: Planning
                       "ednote": "test coverage, I want 250 words"
                   },
                   "news_coverage_status": {
-                      "name" : "coverage not intended",
-                      "qcode" : "ncostat:notint"
+                      "name": "coverage not intended",
+                      "qcode": "ncostat:notint",
+                      "label": "Not planned"
                   },
                   "assigned_to": { "state": "cancelled" },
                   "workflow_status": "cancelled"
@@ -947,18 +961,12 @@ Feature: Planning
                 "dates": {
                     "start": "2016-11-17T12:00:00.000Z",
                     "end": "2016-11-17T14:00:00.000Z",
-                    "tz": "Europe/Berlin",
-                    "recurring_rule": {
-                        "frequency": "WEEKLY",
-                        "interval": 1,
-                        "byday": "FR",
-                        "count": 3,
-                        "endRepeatMode": "count"
-                    }
+                    "tz": "Europe/Berlin"
                 },
                 "occur_status": {
                     "name": "Planned, occurs certainly",
-                    "qcode": "eocstat:eos5"
+                    "qcode": "eocstat:eos5",
+                    "label": "Planned, occurs certainly"
                 }
             }
         ]
@@ -984,23 +992,22 @@ Feature: Planning
             ]}
         """
         When we get "/events_history"
-        Then we get a list with 1 items
+        Then we get a list with 2 items
         """
-            {"_items": [{
-                "event_id": "#events._id#",
-                "operation": "planning_created",
-                "update": {"planning_id": "#planning._id#"}}
-            ]}
+        {"_items": [{
+            "event_id": "#events._id#",
+            "operation": "create"
+        }, {
+            "event_id": "#events._id#",
+            "operation": "planning_created",
+            "update": {"planning_id": "#planning._id#"}
+        }]}
         """
 
     @auth
     @notification
     @vocabulary
     Scenario: Updating the internal note sends a notification
-        Given "desks"
-        """
-        [{"_id": "desk_123", "name": "Politic Desk"}]
-        """
         When we post to "planning" with success
         """
         [{
@@ -1013,7 +1020,11 @@ Feature: Planning
               {
                   "coverage_id": "cov_123",
                   "workflow_status": "active",
-                  "news_coverage_status": {"qcode": "ncostat:int"},
+                  "news_coverage_status": {
+                      "name": "coverage intended",
+                      "qcode": "ncostat:int",
+                      "label": "Planned"
+                  },
                   "planning": {
                       "ednote": "test coverage, 250 words",
                       "headline": "test headline",
@@ -1038,7 +1049,7 @@ Feature: Planning
               {
                   "coverage_id": "cov_123",
                   "workflow_status": "active",
-                  "news_coverage_status": {"qcode": "ncostat:int"},
+                  "news_coverage_status": {"qcode": "ncostat:int", "name": "coverage intended", "label": "Planned"},
                   "planning": {
                       "internal_note" : "Mostly harmless",
                       "g2_content_type": "text",
@@ -1076,10 +1087,6 @@ Feature: Planning
     @vocabulary
     Scenario: Updating the scheduled time send a notification
         When we reset notifications
-        Given "desks"
-        """
-        [{"_id": "desk_123", "name": "Politic Desk"}]
-        """
         When we post to "planning" with success
         """
         [{
@@ -1092,7 +1099,7 @@ Feature: Planning
               {
                   "coverage_id": "cov_123",
                   "workflow_status": "active",
-                  "news_coverage_status": {"qcode": "ncostat:int"},
+                  "news_coverage_status": {"qcode": "ncostat:int", "name": "coverage intended", "label": "Planned"},
                   "planning": {
                       "ednote": "test coverage, 250 words",
                       "headline": "test headline",
@@ -1117,7 +1124,7 @@ Feature: Planning
               {
                   "coverage_id": "cov_123",
                   "workflow_status": "active",
-                  "news_coverage_status": {"qcode": "ncostat:int"},
+                  "news_coverage_status": {"qcode": "ncostat:int", "name": "coverage intended", "label": "Planned"},
                   "planning": {
                       "g2_content_type": "text",
                       "slugline": "test slugline",
@@ -1149,25 +1156,8 @@ Feature: Planning
 
     @auth
     @notification
+    @planning_cvs
     Scenario: Published planning gets updated on cancel planing
-      Given "vocabularies"
-      """
-      [{
-          "_id": "newscoveragestatus",
-          "display_name": "News Coverage Status",
-          "type": "manageable",
-          "unique_field": "qcode",
-          "items": [
-              {"is_active": true, "qcode": "ncostat:int", "name": "coverage intended", "label": "Planned"},
-              {"is_active": true, "qcode": "ncostat:notdec", "name": "coverage not decided yet",
-                  "label": "On merit"},
-              {"is_active": true, "qcode": "ncostat:notint", "name": "coverage not intended",
-                  "label": "Not planned"},
-              {"is_active": true, "qcode": "ncostat:onreq", "name": "coverage upon request",
-                  "label": "On request"}
-          ]
-      }]
-      """
       When we post to "planning" with success
       """
       [{
@@ -1251,18 +1241,14 @@ Feature: Planning
                       "g2_content_type": "text"
 
                   },
-                  "news_coverage_status": {
-                      "qcode" : "ncostat:notint"
-                  }
+                  "news_coverage_status": {"qcode": "ncostat:notint", "name": "coverage not intended", "label": "Not planned"},
               },
               {
                   "planning": {
                       "ednote": "test coverage2, 250 words",
                       "g2_content_type": "text"
                   },
-                  "news_coverage_status": {
-                      "qcode" : "ncostat:notint"
-                  }
+                  "news_coverage_status": {"qcode": "ncostat:notint", "name": "coverage not intended", "label": "Not planned"},
               }
           ]
       }
@@ -1342,6 +1328,7 @@ Feature: Planning
           "coverages": [
               {
                   "coverage_id": "cov_123",
+                  "news_coverage_status": {"qcode": "ncostat:int", "name": "coverage intended", "label": "Planned"},
                   "planning": {
                       "ednote": "test coverage, 250 words",
                       "headline": "test headline",
@@ -1382,7 +1369,7 @@ Feature: Planning
         """
         Then we get error 400
         """
-        {"_issues": { "validator exception": "403: Agenda 'Disabled Agenda' is not enabled" }}
+        {"_issues": { "validator exception": "400: Agenda 'Disabled Agenda' is not enabled" }}
         """
 
 
@@ -1407,9 +1394,7 @@ Feature: Planning
             "coverages": [
                 {
                     "workflow_status": "draft",
-                    "news_coverage_status": {
-                      "qcode": "ncostat:int"
-                    },
+                    "news_coverage_status": {"qcode": "ncostat:int", "name": "coverage intended", "label": "Planned"},
                     "planning": {
                         "ednote": "test coverage, I want 250 words",
                         "headline": "test headline",
@@ -1449,17 +1434,15 @@ Feature: Planning
                 {
                     "coverage_id": "#firstcoverage#",
                     "workflow_status": "draft",
-                    "news_coverage_status": {
-                      "qcode": "ncostat:int"
-                    },
+                    "news_coverage_status": {"qcode": "ncostat:int", "name": "coverage intended", "label": "Planned"},
                     "planning": {
                         "ednote": "test coverage, I want 250 words",
                         "headline": "test headline",
                         "slugline": "test slugline"
                     },
                     "assigned_to": {
-                        "desk": "Politic Desk",
-                        "user": "507f191e810c19729de870eb",
+                        "desk": "#desks_0._id#",
+                        "user": "#CONTEXT_USER_ID#",
                         "state": "draft"
                     }
                 }
@@ -1485,8 +1468,8 @@ Feature: Planning
                         "slugline": "test slugline"
                     },
                     "assigned_to": {
-                        "desk": "Politic Desk",
-                        "user": "507f191e810c19729de870eb",
+                        "desk": "#desks_0._id#",
+                        "user": "#CONTEXT_USER_ID#",
                         "assignment_id": "#firstassignment#"
                     }
                 }
@@ -1500,8 +1483,8 @@ Feature: Planning
             "_id": "#firstassignment#",
             "type": "assignment",
             "assigned_to": {
-                "desk": "Politic Desk",
-                "user": "507f191e810c19729de870eb",
+                "desk": "#desks_0._id#",
+                "user": "#CONTEXT_USER_ID#",
                 "state": "draft"
             }
         }]}
@@ -1518,9 +1501,7 @@ Feature: Planning
                         "slugline": "test slugline"
                     },
                     "workflow_status": "draft",
-                    "news_coverage_status": {
-                      "qcode": "ncostat:int"
-                    }
+                    "news_coverage_status": {"qcode": "ncostat:int", "name": "coverage intended", "label": "Planned"}
                 }
             ]
         }
@@ -1533,11 +1514,6 @@ Feature: Planning
     @notification
     @vocabulary
     Scenario: Updating the internal note sends a notification to all coverages
-        Given "desks"
-        """
-        [{"_id": "desk_123", "name": "Politic Desk",
-         "members": [{"user": "#CONTEXT_USER_ID#"}]}]
-        """
         When we post to "planning" with success
         """
         [{
@@ -1549,6 +1525,7 @@ Feature: Planning
             "internal_note": "Thanks for all the ",
             "coverages": [
                 {
+                    "news_coverage_status": {"qcode": "ncostat:int", "name": "coverage intended", "label": "Planned"},
                     "planning": {
                         "ednote": "test coverage, 250 words",
                         "headline": "test headline",
@@ -1586,7 +1563,7 @@ Feature: Planning
                 "internal_note": "Harmless"
             },
             "assigned_to": {
-                "desk": "desk_123",
+                "desk": "#desks._id#",
                 "user": "#CONTEXT_USER_ID#",
                 "state": "assigned"
             }
@@ -1757,9 +1734,7 @@ Feature: Planning
         {
             "coverages": [
                 {
-                    "news_coverage_status": {
-                      "qcode": "ncostat:int"
-                    },
+                    "news_coverage_status": {"qcode": "ncostat:int", "name": "coverage intended", "label": "Planned"},
                     "planning": {
                         "ednote": "test coverage, I want 250 words",
                         "headline": "test headline",
@@ -1815,17 +1790,15 @@ Feature: Planning
         {
             "coverages": [
                 {
-                    "news_coverage_status": {
-                      "qcode": "ncostat:int"
-                    },
+                    "news_coverage_status": {"qcode": "ncostat:int", "name": "coverage intended", "label": "Planned"},
                     "planning": {
                         "ednote": "test coverage, I want 250 words",
                         "headline": "test headline",
                         "slugline": "test slugline"
                     },
                     "assigned_to": {
-                        "desk": "Politic Desk",
-                        "user": "507f191e810c19729de870eb"
+                        "desk": "#desks_0._id#",
+                        "user": "#CONTEXT_USER_ID#"
                     }
                 }
             ]
@@ -1841,17 +1814,15 @@ Feature: Planning
                 {
                     "coverage_id": "#firstcoverage#",
                     "workflow_status": "active",
-                    "news_coverage_status": {
-                      "qcode": "ncostat:int"
-                    },
+                    "news_coverage_status": {"qcode": "ncostat:int", "name": "coverage intended", "label": "Planned"},
                     "planning": {
                         "ednote": "test coverage, I want 250 words",
                         "headline": "test headline",
                         "slugline": "test slugline"
                     },
                     "assigned_to": {
-                        "desk": "Politic Desk",
-                        "user": "507f191e810c19729de870eb",
+                        "desk": "#desks_0._id#",
+                        "user": "#CONTEXT_USER_ID#",
                         "assignment_id": "#firstassignment#"
                     }
                 }
@@ -1877,8 +1848,8 @@ Feature: Planning
                         "slugline": "test slugline"
                     },
                     "assigned_to": {
-                        "desk": "Politic Desk",
-                        "user": "507f191e810c19729de870eb",
+                        "desk": "#desks_0._id#",
+                        "user": "#CONTEXT_USER_ID#",
                         "assignment_id": "#firstassignment#",
                         "state": "assigned"
                     }
@@ -1895,17 +1866,15 @@ Feature: Planning
                 {
                     "coverage_id": "#firstcoverage#",
                     "workflow_status": "active",
-                    "news_coverage_status": {
-                      "qcode": "ncostat:int"
-                    },
+                    "news_coverage_status": {"qcode": "ncostat:int", "name": "coverage intended", "label": "Planned"},
                     "planning": {
                         "ednote": "test coverage, I want 250 words",
                         "headline": "test headline",
                         "slugline": "test slugline"
                     },
                     "assigned_to": {
-                        "desk": "Politic Desk",
-                        "user": "507f191e810c19729de870eb",
+                        "desk": "#desks_0._id#",
+                        "user": "#CONTEXT_USER_ID#",
                         "assignment_id": "#firstassignment#",
                         "state": "draft"
                     }
@@ -1931,8 +1900,8 @@ Feature: Planning
                         "slugline": "test slugline"
                     },
                     "assigned_to": {
-                        "desk": "Politic Desk",
-                        "user": "507f191e810c19729de870eb",
+                        "desk": "#desks_0._id#",
+                        "user": "#CONTEXT_USER_ID#",
                         "assignment_id": "#firstassignment#",
                         "state": "assigned"
                     }
@@ -1952,12 +1921,10 @@ Feature: Planning
                         "headline": "test headline",
                         "slugline": "test slugline"
                     },
-                    "news_coverage_status": {
-                      "qcode": "ncostat:int"
-                    },
+                    "news_coverage_status": {"qcode": "ncostat:int", "name": "coverage intended", "label": "Planned"},
                     "assigned_to": {
-                        "desk": "Sports Desk",
-                        "user": "507f191e810c19729de870eb",
+                        "desk": "#desks_1._id#",
+                        "user": "#CONTEXT_USER_ID#",
                         "assignment_id": "#firstassignment#",
                         "state": "assigned"
                     }
@@ -1983,8 +1950,8 @@ Feature: Planning
                         "slugline": "test slugline"
                     },
                     "assigned_to": {
-                        "desk": "Sports Desk",
-                        "user": "507f191e810c19729de870eb",
+                        "desk": "#desks_1._id#",
+                        "user": "#CONTEXT_USER_ID#",
                         "assignment_id": "#firstassignment#",
                         "state": "assigned"
                     }
@@ -2031,17 +1998,15 @@ Feature: Planning
         {
             "coverages": [
                 {
-                    "news_coverage_status": {
-                      "qcode": "ncostat:int"
-                    },
+                    "news_coverage_status": {"qcode": "ncostat:int", "name": "coverage intended", "label": "Planned"},
                     "planning": {
                         "ednote": "test coverage, I want 250 words",
                         "headline": "test headline",
                         "slugline": "test slugline"
                     },
                     "assigned_to": {
-                        "desk": "Politic Desk",
-                        "user": "507f191e810c19729de870eb"
+                        "desk": "#desks_0._id#",
+                        "user": "#CONTEXT_USER_ID#"
                     },
                     "workflow_status": "active"
                 }
@@ -2069,8 +2034,8 @@ Feature: Planning
                         "slugline": "test slugline"
                     },
                     "assigned_to": {
-                        "desk": "Politic Desk",
-                        "user": "507f191e810c19729de870eb",
+                        "desk": "#desks_0._id#",
+                        "user": "#CONTEXT_USER_ID#",
                         "assignment_id": "#firstassignment#",
                         "state": "assigned"
                     }
@@ -2112,9 +2077,7 @@ Feature: Planning
                     "g2_content_type": "text"
                 },
                 "workflow_status": "draft",
-                "news_coverage_status": {
-                    "qcode": "ncostat:int"
-                }
+                "news_coverage_status": {"qcode": "ncostat:int", "name": "coverage intended", "label": "Planned"}
             }
           ]
         }]
@@ -2135,10 +2098,6 @@ Feature: Planning
     @auth
     @notification
     Scenario: no_content_linking flag cannot be updated if coverage is active
-        Given "desks"
-        """
-        [{"name": "Sports", "content_expiry": 60}]
-        """
         When we post to "planning" with success
         """
         [{
@@ -2158,9 +2117,7 @@ Feature: Planning
                     "g2_content_type": "text"
                 },
                 "workflow_status": "draft",
-                "news_coverage_status": {
-                    "qcode": "ncostat:int"
-                }
+                "news_coverage_status": {"qcode": "ncostat:int", "name": "coverage intended", "label": "Planned"}
             }
           ]
         }]
@@ -2181,9 +2138,7 @@ Feature: Planning
                     "g2_content_type": "text"
                 },
                 "workflow_status": "draft",
-                "news_coverage_status": {
-                    "qcode": "ncostat:int"
-                },
+                "news_coverage_status": {"qcode": "ncostat:int", "name": "coverage intended", "label": "Planned"},
                 "flags": { "no_content_linking": true}
             }
             ]
@@ -2204,14 +2159,12 @@ Feature: Planning
                     "g2_content_type": "text"
                 },
                 "workflow_status": "draft",
-                "news_coverage_status": {
-                    "qcode": "ncostat:int"
-                },
+                "news_coverage_status": {"qcode": "ncostat:int", "name": "coverage intended", "label": "Planned"},
                 "flags": { "no_content_linking": true},
                 "assigned_to": {
                     "desk": "#desks._id#",
                     "user": "#CONTEXT_USER_ID#",
-                    "state": "active"
+                    "state": "assigned"
                 }
             }]
         }
@@ -2231,14 +2184,12 @@ Feature: Planning
                     "g2_content_type": "text"
                 },
                 "workflow_status": "active",
-                "news_coverage_status": {
-                    "qcode": "ncostat:int"
-                },
+                "news_coverage_status": {"qcode": "ncostat:int", "name": "coverage intended", "label": "Planned"},
                 "flags": { "no_content_linking": false},
                 "assigned_to": {
                     "desk": "#desks._id#",
                     "user": "#CONTEXT_USER_ID#",
-                    "state": "active"
+                    "state": "assigned"
                 }
             }]
         }
@@ -2271,9 +2222,7 @@ Feature: Planning
             "coverages": [
                 {
                     "workflow_status": "draft",
-                    "news_coverage_status": {
-                      "qcode": "ncostat:int"
-                    },
+                    "news_coverage_status": {"qcode": "ncostat:int", "name": "coverage intended", "label": "Planned"},
                     "planning": {
                         "ednote": "test coverage, I want 250 words",
                         "headline": "test headline",
@@ -2313,9 +2262,7 @@ Feature: Planning
                 {
                     "coverage_id": "#firstcoverage#",
                     "workflow_status": "draft",
-                    "news_coverage_status": {
-                      "qcode": "ncostat:int"
-                    },
+                    "news_coverage_status": {"qcode": "ncostat:int", "name": "coverage intended", "label": "Planned"},
                     "planning": {
                         "ednote": "test coverage, I want 250 words",
                         "headline": "test headline",
@@ -2324,9 +2271,7 @@ Feature: Planning
                     "scheduled_updates": [{
                         "coverage_id": "#firstcoverage#",
                         "workflow_status": "draft",
-                        "news_coverage_status": {
-                          "qcode": "ncostat:int"
-                        },
+                        "news_coverage_status": {"qcode": "ncostat:int", "name": "coverage intended", "label": "Planned"},
                         "planning": {
                             "internal_note": "Int. note",
                             "scheduled": "2029-11-21T14:00:00.000Z"
@@ -2356,9 +2301,7 @@ Feature: Planning
                     "scheduled_updates": [{
                         "coverage_id": "#firstcoverage#",
                         "workflow_status": "draft",
-                        "news_coverage_status": {
-                          "qcode": "ncostat:int"
-                        },
+                        "news_coverage_status": {"qcode": "ncostat:int", "name": "coverage intended", "label": "Planned"},
                         "planning": {
                             "internal_note": "Int. note",
                             "scheduled": "2029-11-21T14:00:00+0000"
@@ -2391,9 +2334,7 @@ Feature: Planning
             "coverages": [
                 {
                     "workflow_status": "draft",
-                    "news_coverage_status": {
-                      "qcode": "ncostat:int"
-                    },
+                    "news_coverage_status": {"qcode": "ncostat:int", "name": "coverage intended", "label": "Planned"},
                     "planning": {
                         "ednote": "test coverage, I want 250 words",
                         "headline": "test headline",
@@ -2432,9 +2373,7 @@ Feature: Planning
                 {
                     "coverage_id": "#firstcoverage#",
                     "workflow_status": "draft",
-                    "news_coverage_status": {
-                      "qcode": "ncostat:int"
-                    },
+                    "news_coverage_status": {"qcode": "ncostat:int", "name": "coverage intended", "label": "Planned"},
                     "planning": {
                         "ednote": "test coverage, I want 250 words",
                         "headline": "test headline",
@@ -2443,9 +2382,7 @@ Feature: Planning
                     "scheduled_updates": [{
                         "coverage_id": "#firstcoverage#",
                         "workflow_status": "draft",
-                        "news_coverage_status": {
-                          "qcode": "ncostat:int"
-                        },
+                        "news_coverage_status": {"qcode": "ncostat:int", "name": "coverage intended", "label": "Planned"},
                         "planning": {
                             "internal_note": "Int. note",
                             "scheduled": "2029-11-21T14:00:00.000Z"
@@ -2481,9 +2418,7 @@ Feature: Planning
             "coverages": [
                 {
                     "workflow_status": "draft",
-                    "news_coverage_status": {
-                      "qcode": "ncostat:int"
-                    },
+                    "news_coverage_status": {"qcode": "ncostat:int", "name": "coverage intended", "label": "Planned"},
                     "planning": {
                         "ednote": "test coverage, I want 250 words",
                         "headline": "test headline",
@@ -2522,9 +2457,7 @@ Feature: Planning
                 {
                     "coverage_id": "#firstcoverage#",
                     "workflow_status": "draft",
-                    "news_coverage_status": {
-                      "qcode": "ncostat:int"
-                    },
+                    "news_coverage_status": {"qcode": "ncostat:int", "name": "coverage intended", "label": "Planned"},
                     "planning": {
                         "ednote": "test coverage, I want 250 words",
                         "headline": "test headline",
@@ -2534,9 +2467,7 @@ Feature: Planning
                     "scheduled_updates": [{
                         "coverage_id": "#firstcoverage#",
                         "workflow_status": "draft",
-                        "news_coverage_status": {
-                          "qcode": "ncostat:int"
-                        },
+                        "news_coverage_status": {"qcode": "ncostat:int", "name": "coverage intended", "label": "Planned"},
                         "planning": {
                             "internal_note": "Int. note",
                             "scheduled": "2029-11-20T14:00:00.000Z"
@@ -2557,9 +2488,7 @@ Feature: Planning
                 {
                     "coverage_id": "#firstcoverage#",
                     "workflow_status": "draft",
-                    "news_coverage_status": {
-                      "qcode": "ncostat:int"
-                    },
+                    "news_coverage_status": {"qcode": "ncostat:int", "name": "coverage intended", "label": "Planned"},
                     "planning": {
                         "ednote": "test coverage, I want 250 words",
                         "headline": "test headline",
@@ -2569,9 +2498,7 @@ Feature: Planning
                     "scheduled_updates": [{
                         "coverage_id": "#firstcoverage#",
                         "workflow_status": "draft",
-                        "news_coverage_status": {
-                          "qcode": "ncostat:int"
-                        },
+                        "news_coverage_status": {"qcode": "ncostat:int", "name": "coverage intended", "label": "Planned"},
                         "planning": {
                             "internal_note": "Int. note",
                             "scheduled": "2029-11-25T14:00:00.000Z"
@@ -2579,9 +2506,7 @@ Feature: Planning
                     }, {
                         "coverage_id": "#firstcoverage#",
                         "workflow_status": "draft",
-                        "news_coverage_status": {
-                          "qcode": "ncostat:int"
-                        },
+                        "news_coverage_status": {"qcode": "ncostat:int", "name": "coverage intended", "label": "Planned"},
                         "planning": {
                             "internal_note": "Int. note",
                             "scheduled": "2029-11-23T14:00:00.000Z"
@@ -2617,17 +2542,15 @@ Feature: Planning
             "coverages": [
                 {
                     "workflow_status": "draft",
-                    "news_coverage_status": {
-                      "qcode": "ncostat:int"
-                    },
+                    "news_coverage_status": {"qcode": "ncostat:int", "name": "coverage intended", "label": "Planned"},
                     "planning": {
                         "ednote": "test coverage, I want 250 words",
                         "headline": "test headline",
                         "slugline": "test slugline"
                     },
                     "assigned_to": {
-                        "desk": "Politic Desk",
-                        "user": "507f191e810c19729de870eb"
+                        "desk": "#desks_0._id#",
+                        "user": "#CONTEXT_USER_ID#"
                     }
                 }
             ]
@@ -2663,9 +2586,7 @@ Feature: Planning
                 {
                     "coverage_id": "#firstcoverage#",
                     "workflow_status": "draft",
-                    "news_coverage_status": {
-                      "qcode": "ncostat:int"
-                    },
+                    "news_coverage_status": {"qcode": "ncostat:int", "name": "coverage intended", "label": "Planned"},
                     "planning": {
                         "ednote": "test coverage, I want 250 words",
                         "headline": "test headline",
@@ -2673,20 +2594,18 @@ Feature: Planning
                         "scheduled": "2029-11-21T14:00:00.000Z"
                     },
                     "assigned_to": {
-                        "desk": "Politic Desk",
-                        "user": "507f191e810c19729de870eb"
+                        "desk": "#desks_0._id#",
+                        "user": "#CONTEXT_USER_ID#"
                     },
                     "scheduled_updates": [{
                         "assigned_to": {
-                            "desk": "Politic Desk",
-                            "user": "507f191e810c19729de870eb",
+                            "desk": "#desks_0._id#",
+                            "user": "#CONTEXT_USER_ID#",
                             "state": "active"
                         },
                         "coverage_id": "#firstcoverage#",
                         "workflow_status": "active",
-                        "news_coverage_status": {
-                          "qcode": "ncostat:int"
-                        },
+                        "news_coverage_status": {"qcode": "ncostat:int", "name": "coverage intended", "label": "Planned"},
                         "planning": {
                             "internal_note": "Int. note",
                             "scheduled": "2029-11-27T14:00:00.000Z"
@@ -2722,17 +2641,15 @@ Feature: Planning
             "coverages": [
                 {
                     "workflow_status": "active",
-                    "news_coverage_status": {
-                      "qcode": "ncostat:int"
-                    },
+                    "news_coverage_status": {"qcode": "ncostat:int", "name": "coverage intended", "label": "Planned"},
                     "planning": {
                         "ednote": "test coverage, I want 250 words",
                         "headline": "test headline",
                         "slugline": "test slugline"
                     },
                     "assigned_to": {
-                        "desk": "Politic Desk",
-                        "user": "507f191e810c19729de870eb",
+                        "desk": "#desks_0._id#",
+                        "user": "#CONTEXT_USER_ID#",
                         "state": "active"
                     }
                 }
@@ -2759,8 +2676,8 @@ Feature: Planning
                         "slugline": "test slugline"
                     },
                     "assigned_to": {
-                        "desk": "Politic Desk",
-                        "user": "507f191e810c19729de870eb",
+                        "desk": "#desks_0._id#",
+                        "user": "#CONTEXT_USER_ID#",
                         "state": "active"
                     }
                 }
@@ -2774,9 +2691,7 @@ Feature: Planning
                 {
                     "coverage_id": "#firstcoverage#",
                     "workflow_status": "active",
-                    "news_coverage_status": {
-                      "qcode": "ncostat:int"
-                    },
+                    "news_coverage_status": {"qcode": "ncostat:int", "name": "coverage intended", "label": "Planned"},
                     "planning": {
                         "ednote": "test coverage, I want 250 words",
                         "headline": "test headline",
@@ -2784,20 +2699,18 @@ Feature: Planning
                         "scheduled": "2029-11-21T14:00:00.000Z"
                     },
                     "assigned_to": {
-                        "desk": "Politic Desk",
-                        "user": "507f191e810c19729de870eb"
+                        "desk": "#desks_0._id#",
+                        "user": "#CONTEXT_USER_ID#"
                     },
                     "scheduled_updates": [{
                         "assigned_to": {
-                            "desk": "Politic Desk",
-                            "user": "507f191e810c19729de870eb",
+                            "desk": "#desks_0._id#",
+                            "user": "#CONTEXT_USER_ID#",
                             "state": "active"
                         },
                         "coverage_id": "#firstcoverage#",
                         "workflow_status": "active",
-                        "news_coverage_status": {
-                          "qcode": "ncostat:int"
-                        },
+                        "news_coverage_status": {"qcode": "ncostat:int", "name": "coverage intended", "label": "Planned"},
                         "planning": {
                             "internal_note": "Int. note",
                             "scheduled": "2029-11-27T14:00:00.000Z"
@@ -2819,9 +2732,7 @@ Feature: Planning
                 {
                     "coverage_id": "#firstcoverage#",
                     "workflow_status": "active",
-                    "news_coverage_status": {
-                      "qcode": "ncostat:int"
-                    },
+                    "news_coverage_status": {"qcode": "ncostat:int", "name": "coverage intended", "label": "Planned"},
                     "planning": {
                         "ednote": "test coverage, I want 250 words",
                         "headline": "test headline",
@@ -2829,20 +2740,18 @@ Feature: Planning
                         "scheduled": "2029-11-21T14:00:00+0000"
                     },
                     "assigned_to": {
-                        "desk": "Politic Desk",
-                        "user": "507f191e810c19729de870eb"
+                        "desk": "#desks_0._id#",
+                        "user": "#CONTEXT_USER_ID#"
                     },
                     "scheduled_updates": [{
                         "assigned_to": {
-                            "desk": "Politic Desk",
-                            "user": "507f191e810c19729de870eb",
+                            "desk": "#desks_0._id#",
+                            "user": "#CONTEXT_USER_ID#",
                             "state": "active"
                         },
                         "coverage_id": "#firstcoverage#",
                         "workflow_status": "active",
-                        "news_coverage_status": {
-                          "qcode": "ncostat:int"
-                        },
+                        "news_coverage_status": {"qcode": "ncostat:int", "name": "coverage intended", "label": "Planned"},
                         "planning": {
                             "internal_note": "Int. note",
                             "scheduled": "2029-11-27T14:00:00+0000"
@@ -2874,17 +2783,15 @@ Feature: Planning
             "coverages": [
                 {
                     "workflow_status": "draft",
-                    "news_coverage_status": {
-                      "qcode": "ncostat:int"
-                    },
+                    "news_coverage_status": {"qcode": "ncostat:int", "name": "coverage intended", "label": "Planned"},
                     "planning": {
                         "ednote": "test coverage, I want 250 words",
                         "headline": "test headline",
                         "slugline": "test slugline"
                     },
                     "assigned_to": {
-                        "desk": "Politic Desk",
-                        "user": "507f191e810c19729de870eb",
+                        "desk": "#desks_0._id#",
+                        "user": "#CONTEXT_USER_ID#",
                         "state": "draft"
                     }
                 }
@@ -2911,8 +2818,8 @@ Feature: Planning
                         "slugline": "test slugline"
                     },
                     "assigned_to": {
-                        "desk": "Politic Desk",
-                        "user": "507f191e810c19729de870eb",
+                        "desk": "#desks_0._id#",
+                        "user": "#CONTEXT_USER_ID#",
                         "state": "draft"
                     }
                 }
@@ -2926,9 +2833,7 @@ Feature: Planning
                 {
                     "coverage_id": "#firstcoverage#",
                     "workflow_status": "draft",
-                    "news_coverage_status": {
-                      "qcode": "ncostat:int"
-                    },
+                    "news_coverage_status": {"qcode": "ncostat:int", "name": "coverage intended", "label": "Planned"},
                     "planning": {
                         "ednote": "test coverage, I want 250 words",
                         "headline": "test headline",
@@ -2936,20 +2841,18 @@ Feature: Planning
                         "scheduled": "2029-11-21T14:00:00.000Z"
                     },
                     "assigned_to": {
-                        "desk": "Politic Desk",
-                        "user": "507f191e810c19729de870eb"
+                        "desk": "#desks_0._id#",
+                        "user": "#CONTEXT_USER_ID#"
                     },
                     "scheduled_updates": [{
                         "assigned_to": {
-                            "desk": "Politic Desk",
-                            "user": "507f191e810c19729de870eb",
+                            "desk": "#desks_0._id#",
+                            "user": "#CONTEXT_USER_ID#",
                             "state": "draft"
                         },
                         "coverage_id": "#firstcoverage#",
                         "workflow_status": "draft",
-                        "news_coverage_status": {
-                          "qcode": "ncostat:int"
-                        },
+                        "news_coverage_status": {"qcode": "ncostat:int", "name": "coverage intended", "label": "Planned"},
                         "planning": {
                             "internal_note": "Int. note",
                             "scheduled": "2029-11-27T14:00:00.000Z"
@@ -2971,9 +2874,7 @@ Feature: Planning
                 {
                     "coverage_id": "#firstcoverage#",
                     "workflow_status": "draft",
-                    "news_coverage_status": {
-                      "qcode": "ncostat:int"
-                    },
+                    "news_coverage_status": {"qcode": "ncostat:int", "name": "coverage intended", "label": "Planned"},
                     "planning": {
                         "ednote": "test coverage, I want 250 words",
                         "headline": "test headline",
@@ -2981,20 +2882,18 @@ Feature: Planning
                         "scheduled": "2029-11-21T14:00:00+0000"
                     },
                     "assigned_to": {
-                        "desk": "Politic Desk",
-                        "user": "507f191e810c19729de870eb"
+                        "desk": "#desks_0._id#",
+                        "user": "#CONTEXT_USER_ID#"
                     },
                     "scheduled_updates": [{
                         "assigned_to": {
-                            "desk": "Politic Desk",
-                            "user": "507f191e810c19729de870eb",
+                            "desk": "#desks_0._id#",
+                            "user": "#CONTEXT_USER_ID#",
                             "state": "draft"
                         },
                         "coverage_id": "#firstcoverage#",
                         "workflow_status": "draft",
-                        "news_coverage_status": {
-                          "qcode": "ncostat:int"
-                        },
+                        "news_coverage_status": {"qcode": "ncostat:int", "name": "coverage intended", "label": "Planned"},
                         "planning": {
                             "internal_note": "Int. note",
                             "scheduled": "2029-11-27T14:00:00+0000"
@@ -3054,17 +2953,15 @@ Feature: Planning
             "coverages": [
                 {
                     "workflow_status": "draft",
-                    "news_coverage_status": {
-                      "qcode": "ncostat:int"
-                    },
+                    "news_coverage_status": {"qcode": "ncostat:int", "name": "coverage intended", "label": "Planned"},
                     "planning": {
                         "ednote": "test coverage, I want 250 words",
                         "headline": "test headline",
                         "slugline": "test slugline"
                     },
                     "assigned_to": {
-                        "desk": "Politic Desk",
-                        "user": "507f191e810c19729de870eb",
+                        "desk": "#desks_0._id#",
+                        "user": "#CONTEXT_USER_ID#",
                         "state": "draft"
                     }
                 }
@@ -3091,8 +2988,8 @@ Feature: Planning
                         "slugline": "test slugline"
                     },
                     "assigned_to": {
-                        "desk": "Politic Desk",
-                        "user": "507f191e810c19729de870eb",
+                        "desk": "#desks_0._id#",
+                        "user": "#CONTEXT_USER_ID#",
                         "state": "draft"
                     }
                 }
@@ -3106,9 +3003,7 @@ Feature: Planning
                 {
                     "coverage_id": "#firstcoverage#",
                     "workflow_status": "draft",
-                    "news_coverage_status": {
-                      "qcode": "ncostat:int"
-                    },
+                    "news_coverage_status": {"qcode": "ncostat:int", "name": "coverage intended", "label": "Planned"},
                     "planning": {
                         "ednote": "test coverage, I want 250 words",
                         "headline": "test headline",
@@ -3116,20 +3011,18 @@ Feature: Planning
                         "scheduled": "2029-11-21T14:00:00.000Z"
                     },
                     "assigned_to": {
-                        "desk": "Politic Desk",
-                        "user": "507f191e810c19729de870eb"
+                        "desk": "#desks_0._id#",
+                        "user": "#CONTEXT_USER_ID#"
                     },
                     "scheduled_updates": [{
                         "assigned_to": {
-                            "desk": "Politic Desk",
-                            "user": "507f191e810c19729de870eb",
+                            "desk": "#desks_0._id#",
+                            "user": "#CONTEXT_USER_ID#",
                             "state": "draft"
                         },
                         "coverage_id": "#firstcoverage#",
                         "workflow_status": "draft",
-                        "news_coverage_status": {
-                          "qcode": "ncostat:int"
-                        },
+                        "news_coverage_status": {"qcode": "ncostat:int", "name": "coverage intended", "label": "Planned"},
                         "planning": {
                             "internal_note": "Int. note",
                             "scheduled": "2029-11-27T14:00:00.000Z"
@@ -3137,15 +3030,13 @@ Feature: Planning
                     },
                     {
                         "assigned_to": {
-                            "desk": "Politic Desk",
-                            "user": "507f191e810c19729de870eb",
+                            "desk": "#desks_0._id#",
+                            "user": "#CONTEXT_USER_ID#",
                             "state": "draft"
                         },
                         "coverage_id": "#firstcoverage#",
                         "workflow_status": "draft",
-                        "news_coverage_status": {
-                          "qcode": "ncostat:int"
-                        },
+                        "news_coverage_status": {"qcode": "ncostat:int", "name": "coverage intended", "label": "Planned"},
                         "planning": {
                             "internal_note": "Int. note",
                             "scheduled": "2029-11-28T14:00:00+0000"
@@ -3167,9 +3058,7 @@ Feature: Planning
                 {
                     "coverage_id": "#firstcoverage#",
                     "workflow_status": "draft",
-                    "news_coverage_status": {
-                      "qcode": "ncostat:int"
-                    },
+                    "news_coverage_status": {"qcode": "ncostat:int", "name": "coverage intended", "label": "Planned"},
                     "planning": {
                         "ednote": "test coverage, I want 250 words",
                         "headline": "test headline",
@@ -3177,20 +3066,18 @@ Feature: Planning
                         "scheduled": "2029-11-21T14:00:00+0000"
                     },
                     "assigned_to": {
-                        "desk": "Politic Desk",
-                        "user": "507f191e810c19729de870eb"
+                        "desk": "#desks_0._id#",
+                        "user": "#CONTEXT_USER_ID#"
                     },
                     "scheduled_updates": [{
                         "assigned_to": {
-                            "desk": "Politic Desk",
-                            "user": "507f191e810c19729de870eb",
+                            "desk": "#desks_0._id#",
+                            "user": "#CONTEXT_USER_ID#",
                             "state": "draft"
                         },
                         "coverage_id": "#firstcoverage#",
                         "workflow_status": "draft",
-                        "news_coverage_status": {
-                          "qcode": "ncostat:int"
-                        },
+                        "news_coverage_status": {"qcode": "ncostat:int", "name": "coverage intended", "label": "Planned"},
                         "planning": {
                             "internal_note": "Int. note",
                             "scheduled": "2029-11-27T14:00:00+0000"
@@ -3198,15 +3085,13 @@ Feature: Planning
                     },
                     {
                         "assigned_to": {
-                            "desk": "Politic Desk",
-                            "user": "507f191e810c19729de870eb",
+                            "desk": "#desks_0._id#",
+                            "user": "#CONTEXT_USER_ID#",
                             "state": "draft"
                         },
                         "coverage_id": "#firstcoverage#",
                         "workflow_status": "draft",
-                        "news_coverage_status": {
-                          "qcode": "ncostat:int"
-                        },
+                        "news_coverage_status": {"qcode": "ncostat:int", "name": "coverage intended", "label": "Planned"},
                         "planning": {
                             "internal_note": "Int. note",
                             "scheduled": "2029-11-28T14:00:00+0000"
@@ -3223,9 +3108,7 @@ Feature: Planning
                 {
                     "coverage_id": "#firstcoverage#",
                     "workflow_status": "active",
-                    "news_coverage_status": {
-                      "qcode": "ncostat:int"
-                    },
+                    "news_coverage_status": {"qcode": "ncostat:int", "name": "coverage intended", "label": "Planned"},
                     "planning": {
                         "ednote": "test coverage, I want 250 words",
                         "headline": "test headline",
@@ -3233,20 +3116,18 @@ Feature: Planning
                         "scheduled": "2029-11-21T14:00:00.000Z"
                     },
                     "assigned_to": {
-                        "desk": "Politic Desk",
-                        "user": "507f191e810c19729de870eb"
+                        "desk": "#desks_0._id#",
+                        "user": "#CONTEXT_USER_ID#"
                     },
                     "scheduled_updates": [{
                         "assigned_to": {
-                            "desk": "Politic Desk",
-                            "user": "507f191e810c19729de870eb",
+                            "desk": "#desks_0._id#",
+                            "user": "#CONTEXT_USER_ID#",
                             "state": "active"
                         },
                         "coverage_id": "#firstcoverage#",
                         "workflow_status": "active",
-                        "news_coverage_status": {
-                          "qcode": "ncostat:int"
-                        },
+                        "news_coverage_status": {"qcode": "ncostat:int", "name": "coverage intended", "label": "Planned"},
                         "planning": {
                             "internal_note": "Int. note",
                             "scheduled": "2029-11-27T14:00:00.000Z"
@@ -3254,15 +3135,13 @@ Feature: Planning
                     },
                     {
                         "assigned_to": {
-                            "desk": "Politic Desk",
-                            "user": "507f191e810c19729de870eb",
+                            "desk": "#desks_0._id#",
+                            "user": "#CONTEXT_USER_ID#",
                             "state": "active"
                         },
                         "coverage_id": "#firstcoverage#",
                         "workflow_status": "active",
-                        "news_coverage_status": {
-                          "qcode": "ncostat:int"
-                        },
+                        "news_coverage_status": {"qcode": "ncostat:int", "name": "coverage intended", "label": "Planned"},
                         "planning": {
                             "internal_note": "Int. note",
                             "scheduled": "2029-11-28T14:00:00+0000"
@@ -3284,9 +3163,7 @@ Feature: Planning
                 {
                     "coverage_id": "#firstcoverage#",
                     "workflow_status": "active",
-                    "news_coverage_status": {
-                      "qcode": "ncostat:int"
-                    },
+                    "news_coverage_status": {"qcode": "ncostat:int", "name": "coverage intended", "label": "Planned"},
                     "planning": {
                         "ednote": "test coverage, I want 250 words",
                         "headline": "test headline",
@@ -3294,20 +3171,18 @@ Feature: Planning
                         "scheduled": "2029-11-21T14:00:00+0000"
                     },
                     "assigned_to": {
-                        "desk": "Politic Desk",
-                        "user": "507f191e810c19729de870eb"
+                        "desk": "#desks_0._id#",
+                        "user": "#CONTEXT_USER_ID#"
                     },
                     "scheduled_updates": [{
                         "assigned_to": {
-                            "desk": "Politic Desk",
-                            "user": "507f191e810c19729de870eb",
+                            "desk": "#desks_0._id#",
+                            "user": "#CONTEXT_USER_ID#",
                             "state": "active"
                         },
                         "coverage_id": "#firstcoverage#",
                         "workflow_status": "active",
-                        "news_coverage_status": {
-                          "qcode": "ncostat:int"
-                        },
+                        "news_coverage_status": {"qcode": "ncostat:int", "name": "coverage intended", "label": "Planned"},
                         "planning": {
                             "internal_note": "Int. note",
                             "scheduled": "2029-11-27T14:00:00+0000"
@@ -3315,15 +3190,13 @@ Feature: Planning
                     },
                     {
                         "assigned_to": {
-                            "desk": "Politic Desk",
-                            "user": "507f191e810c19729de870eb",
+                            "desk": "#desks_0._id#",
+                            "user": "#CONTEXT_USER_ID#",
                             "state": "active"
                         },
                         "coverage_id": "#firstcoverage#",
                         "workflow_status": "active",
-                        "news_coverage_status": {
-                          "qcode": "ncostat:int"
-                        },
+                        "news_coverage_status": {"qcode": "ncostat:int", "name": "coverage intended", "label": "Planned"},
                         "planning": {
                             "internal_note": "Int. note",
                             "scheduled": "2029-11-28T14:00:00+0000"
@@ -3338,10 +3211,6 @@ Feature: Planning
     @notification
     @vocabulary
     Scenario: Cancelling a coverage will cancel all its scheduled_updates
-        Given "desks"
-        """
-        [{"_id": "desk_123", "name": "Politic Desk"}]
-        """
         Given empty "planning"
         When we post to "planning"
         """
@@ -3360,17 +3229,15 @@ Feature: Planning
             "coverages": [
                 {
                     "workflow_status": "draft",
-                    "news_coverage_status": {
-                      "qcode": "ncostat:int"
-                    },
+                    "news_coverage_status": {"qcode": "ncostat:int", "name": "coverage intended", "label": "Planned"},
                     "planning": {
                         "ednote": "test coverage, I want 250 words",
                         "headline": "test headline",
                         "slugline": "test slugline"
                     },
                     "assigned_to": {
-                        "desk": "desk_123",
-                        "user": "507f191e810c19729de870eb",
+                        "desk": "#desks._id#",
+                        "user": "#CONTEXT_USER_ID#",
                         "state": "draft"
                     }
                 }
@@ -3399,8 +3266,8 @@ Feature: Planning
                     },
                     "assigned_to": {
                         "assignment_id": "#firstassignment#",
-                        "desk": "desk_123",
-                        "user": "507f191e810c19729de870eb",
+                        "desk": "#desks._id#",
+                        "user": "#CONTEXT_USER_ID#",
                         "state": "draft"
                     }
                 }
@@ -3419,9 +3286,7 @@ Feature: Planning
                 {
                     "coverage_id": "#firstcoverage#",
                     "workflow_status": "draft",
-                    "news_coverage_status": {
-                      "qcode": "ncostat:int"
-                    },
+                    "news_coverage_status": {"qcode": "ncostat:int", "name": "coverage intended", "label": "Planned"},
                     "planning": {
                         "ednote": "test coverage, I want 250 words",
                         "headline": "test headline",
@@ -3430,20 +3295,18 @@ Feature: Planning
                     },
                     "assigned_to": {
                         "assignment_id": "#firstassignment#",
-                        "desk": "desk_123",
-                        "user": "507f191e810c19729de870eb"
+                        "desk": "#desks._id#",
+                        "user": "#CONTEXT_USER_ID#"
                     },
                     "scheduled_updates": [{
                         "assigned_to": {
-                            "desk": "desk_123",
-                            "user": "507f191e810c19729de870eb",
+                            "desk": "#desks._id#",
+                            "user": "#CONTEXT_USER_ID#",
                             "state": "draft"
                         },
                         "coverage_id": "#firstcoverage#",
                         "workflow_status": "draft",
-                        "news_coverage_status": {
-                          "qcode": "ncostat:int"
-                        },
+                        "news_coverage_status": {"qcode": "ncostat:int", "name": "coverage intended", "label": "Planned"},
                         "planning": {
                             "internal_note": "Int. note",
                             "scheduled": "2029-11-27T14:00:00.000Z"
@@ -3451,15 +3314,13 @@ Feature: Planning
                     },
                     {
                         "assigned_to": {
-                            "desk": "desk_123",
-                            "user": "507f191e810c19729de870eb",
+                            "desk": "#desks._id#",
+                            "user": "#CONTEXT_USER_ID#",
                             "state": "draft"
                         },
                         "coverage_id": "#firstcoverage#",
                         "workflow_status": "draft",
-                        "news_coverage_status": {
-                          "qcode": "ncostat:int"
-                        },
+                        "news_coverage_status": {"qcode": "ncostat:int", "name": "coverage intended", "label": "Planned"},
                         "planning": {
                             "internal_note": "Int. note",
                             "scheduled": "2029-11-28T14:00:00+0000"
@@ -3485,9 +3346,7 @@ Feature: Planning
                 {
                     "coverage_id": "#firstcoverage#",
                     "workflow_status": "draft",
-                    "news_coverage_status": {
-                      "qcode": "ncostat:int"
-                    },
+                    "news_coverage_status": {"qcode": "ncostat:int", "name": "coverage intended", "label": "Planned"},
                     "planning": {
                         "ednote": "test coverage, I want 250 words",
                         "headline": "test headline",
@@ -3496,21 +3355,19 @@ Feature: Planning
                     },
                     "assigned_to": {
                         "assignment_id": "#firstassignment#",
-                        "desk": "desk_123",
-                        "user": "507f191e810c19729de870eb"
+                        "desk": "#desks._id#",
+                        "user": "#CONTEXT_USER_ID#"
                     },
                     "scheduled_updates": [{
                         "assigned_to": {
                             "assignment_id": "#firstscheduledassignment#",
-                            "desk": "desk_123",
-                            "user": "507f191e810c19729de870eb",
+                            "desk": "#desks._id#",
+                            "user": "#CONTEXT_USER_ID#",
                             "state": "draft"
                         },
                         "coverage_id": "#firstcoverage#",
                         "workflow_status": "draft",
-                        "news_coverage_status": {
-                          "qcode": "ncostat:int"
-                        },
+                        "news_coverage_status": {"qcode": "ncostat:int", "name": "coverage intended", "label": "Planned"},
                         "planning": {
                             "internal_note": "Int. note",
                             "scheduled": "2029-11-27T14:00:00+0000"
@@ -3519,15 +3376,13 @@ Feature: Planning
                     {
                         "assigned_to": {
                             "assignment_id": "#secondscheduledassignment#",
-                            "desk": "desk_123",
-                            "user": "507f191e810c19729de870eb",
+                            "desk": "#desks._id#",
+                            "user": "#CONTEXT_USER_ID#",
                             "state": "draft"
                         },
                         "coverage_id": "#firstcoverage#",
                         "workflow_status": "draft",
-                        "news_coverage_status": {
-                          "qcode": "ncostat:int"
-                        },
+                        "news_coverage_status": {"qcode": "ncostat:int", "name": "coverage intended", "label": "Planned"},
                         "planning": {
                             "internal_note": "Int. note",
                             "scheduled": "2029-11-28T14:00:00+0000"
@@ -3554,9 +3409,7 @@ Feature: Planning
                 {
                     "coverage_id": "#firstcoverage#",
                     "workflow_status": "active",
-                    "news_coverage_status": {
-                      "qcode": "ncostat:int"
-                    },
+                    "news_coverage_status": {"qcode": "ncostat:int", "name": "coverage intended", "label": "Planned"},
                     "planning": {
                         "ednote": "test coverage, I want 250 words",
                         "headline": "test headline",
@@ -3565,22 +3418,20 @@ Feature: Planning
                     },
                     "assigned_to": {
                         "assignment_id": "#firstassignment#",
-                        "desk": "desk_123",
-                        "user": "507f191e810c19729de870eb"
+                        "desk": "#desks._id#",
+                        "user": "#CONTEXT_USER_ID#"
                     },
                     "scheduled_updates": [{
                         "scheduled_update_id": "#firstscheduled#",
                         "assigned_to": {
                             "assignment_id": "#firstscheduledassignment#",
-                            "desk": "desk_123",
-                            "user": "507f191e810c19729de870eb",
+                            "desk": "#desks._id#",
+                            "user": "#CONTEXT_USER_ID#",
                             "state": "active"
                         },
                         "coverage_id": "#firstcoverage#",
                         "workflow_status": "active",
-                        "news_coverage_status": {
-                          "qcode": "ncostat:int"
-                        },
+                        "news_coverage_status": {"qcode": "ncostat:int", "name": "coverage intended", "label": "Planned"},
                         "planning": {
                             "internal_note": "Int. note",
                             "scheduled": "2029-11-27T14:00:00.000Z"
@@ -3590,15 +3441,13 @@ Feature: Planning
                         "scheduled_update_id": "#secondscheduled#",
                         "assigned_to": {
                             "assignment_id": "#secondscheduledassignment#",
-                            "desk": "desk_123",
-                            "user": "507f191e810c19729de870eb",
+                            "desk": "#desks._id#",
+                            "user": "#CONTEXT_USER_ID#",
                             "state": "active"
                         },
                         "coverage_id": "#firstcoverage#",
                         "workflow_status": "active",
-                        "news_coverage_status": {
-                          "qcode": "ncostat:int"
-                        },
+                        "news_coverage_status": {"qcode": "ncostat:int", "name": "coverage intended", "label": "Planned"},
                         "planning": {
                             "internal_note": "Int. note",
                             "scheduled": "2029-11-28T14:00:00+0000"
@@ -3620,9 +3469,7 @@ Feature: Planning
                 {
                     "coverage_id": "#firstcoverage#",
                     "workflow_status": "active",
-                    "news_coverage_status": {
-                      "qcode": "ncostat:int"
-                    },
+                    "news_coverage_status": {"qcode": "ncostat:int", "name": "coverage intended", "label": "Planned"},
                     "planning": {
                         "ednote": "test coverage, I want 250 words",
                         "headline": "test headline",
@@ -3631,22 +3478,20 @@ Feature: Planning
                     },
                     "assigned_to": {
                         "assignment_id": "#firstassignment#",
-                        "desk": "desk_123",
-                        "user": "507f191e810c19729de870eb"
+                        "desk": "#desks._id#",
+                        "user": "#CONTEXT_USER_ID#"
                     },
                     "scheduled_updates": [{
                         "scheduled_update_id": "#firstscheduled#",
                         "assigned_to": {
                             "assignment_id": "#firstscheduledassignment#",
-                            "desk": "desk_123",
-                            "user": "507f191e810c19729de870eb",
+                            "desk": "#desks._id#",
+                            "user": "#CONTEXT_USER_ID#",
                             "state": "assigned"
                         },
                         "coverage_id": "#firstcoverage#",
                         "workflow_status": "active",
-                        "news_coverage_status": {
-                          "qcode": "ncostat:int"
-                        },
+                        "news_coverage_status": {"qcode": "ncostat:int", "name": "coverage intended", "label": "Planned"},
                         "planning": {
                             "internal_note": "Int. note",
                             "scheduled": "2029-11-27T14:00:00+0000"
@@ -3656,15 +3501,13 @@ Feature: Planning
                         "scheduled_update_id": "#secondscheduled#",
                         "assigned_to": {
                             "assignment_id": "#secondscheduledassignment#",
-                            "desk": "desk_123",
-                            "user": "507f191e810c19729de870eb",
+                            "desk": "#desks._id#",
+                            "user": "#CONTEXT_USER_ID#",
                             "state": "assigned"
                         },
                         "coverage_id": "#firstcoverage#",
                         "workflow_status": "active",
-                        "news_coverage_status": {
-                          "qcode": "ncostat:int"
-                        },
+                        "news_coverage_status": {"qcode": "ncostat:int", "name": "coverage intended", "label": "Planned"},
                         "planning": {
                             "internal_note": "Int. note",
                             "scheduled": "2029-11-28T14:00:00+0000"
@@ -3704,15 +3547,15 @@ Feature: Planning
                     },
                     "assigned_to": {
                         "assignment_id": "#firstassignment#",
-                        "desk": "desk_123",
-                        "user": "507f191e810c19729de870eb"
+                        "desk": "#desks._id#",
+                        "user": "#CONTEXT_USER_ID#"
                     },
                     "scheduled_updates": [{
                         "scheduled_update_id": "#firstscheduled#",
                         "assigned_to": {
                             "assignment_id": "#firstscheduledassignment#",
-                            "desk": "desk_123",
-                            "user": "507f191e810c19729de870eb",
+                            "desk": "#desks._id#",
+                            "user": "#CONTEXT_USER_ID#",
                             "state": "cancelled"
                         },
                         "coverage_id": "#firstcoverage#",
@@ -3726,8 +3569,8 @@ Feature: Planning
                         "scheduled_update_id": "#secondscheduled#",
                         "assigned_to": {
                             "assignment_id": "#secondscheduledassignment#",
-                            "desk": "desk_123",
-                            "user": "507f191e810c19729de870eb",
+                            "desk": "#desks._id#",
+                            "user": "#CONTEXT_USER_ID#",
                             "state": "cancelled"
                         },
                         "coverage_id": "#firstcoverage#",
@@ -3763,17 +3606,15 @@ Feature: Planning
             "coverages": [
                 {
                     "workflow_status": "draft",
-                    "news_coverage_status": {
-                      "qcode": "ncostat:int"
-                    },
+                    "news_coverage_status": {"qcode": "ncostat:int", "name": "coverage intended", "label": "Planned"},
                     "planning": {
                         "headline": "test headline",
                         "slugline": "test slugline",
                         "g2_content_type": "picture"
                     },
                     "assigned_to": {
-                        "desk": "Politic Desk",
-                        "user": "507f191e810c19729de870eb"
+                        "desk": "#desks_0._id#",
+                        "user": "#CONTEXT_USER_ID#"
                     }
                 }
             ]
@@ -3789,9 +3630,7 @@ Feature: Planning
                 {
                     "coverage_id": "#firstcoverage#",
                     "workflow_status": "draft",
-                    "news_coverage_status": {
-                      "qcode": "ncostat:int"
-                    },
+                    "news_coverage_status": {"qcode": "ncostat:int", "name": "coverage intended", "label": "Planned"},
                     "planning": {
                         "headline": "test headline",
                         "slugline": "test slugline",
@@ -3799,8 +3638,8 @@ Feature: Planning
                         "xmp_file": "#planning_files._id#"
                     },
                     "assigned_to": {
-                        "desk": "Politic Desk",
-                        "user": "507f191e810c19729de870eb",
+                        "desk": "#desks_0._id#",
+                        "user": "#CONTEXT_USER_ID#",
                         "assignment_id": "#firstassignment#"
                     }
                 }
@@ -3817,9 +3656,7 @@ Feature: Planning
             "coverages": [
                 {
                     "workflow_status": "draft",
-                    "news_coverage_status": {
-                      "qcode": "ncostat:int"
-                    },
+                    "news_coverage_status": {"qcode": "ncostat:int", "name": "coverage intended", "label": "Planned"},
                     "planning": {
                         "headline": "test headline",
                         "slugline": "test slugline",
@@ -3827,8 +3664,8 @@ Feature: Planning
                         "xmp_file": "#planning_files._id#"
                     },
                     "assigned_to": {
-                        "desk": "Politic Desk",
-                        "user": "507f191e810c19729de870eb"
+                        "desk": "#desks_0._id#",
+                        "user": "#CONTEXT_USER_ID#"
                     }
                 }
             ]
@@ -3857,17 +3694,15 @@ Feature: Planning
             "coverages": [
                 {
                     "workflow_status": "draft",
-                    "news_coverage_status": {
-                      "qcode": "ncostat:int"
-                    },
+                    "news_coverage_status": {"qcode": "ncostat:int", "name": "coverage intended", "label": "Planned"},
                     "planning": {
                         "headline": "test headline",
                         "slugline": "test slugline",
                         "g2_content_type": "picture"
                     },
                     "assigned_to": {
-                        "desk": "Politic Desk",
-                        "user": "507f191e810c19729de870eb"
+                        "desk": "#desks_0._id#",
+                        "user": "#CONTEXT_USER_ID#"
                     }
                 }
             ]
@@ -3883,9 +3718,7 @@ Feature: Planning
                 {
                     "coverage_id": "#firstcoverage#",
                     "workflow_status": "draft",
-                    "news_coverage_status": {
-                      "qcode": "ncostat:int"
-                    },
+                    "news_coverage_status": {"qcode": "ncostat:int", "name": "coverage intended", "label": "Planned"},
                     "planning": {
                         "headline": "test headline",
                         "slugline": "test slugline",
@@ -3893,8 +3726,8 @@ Feature: Planning
                         "xmp_file": "#planning_files._id#"
                     },
                     "assigned_to": {
-                        "desk": "Politic Desk",
-                        "user": "507f191e810c19729de870eb",
+                        "desk": "#desks_0._id#",
+                        "user": "#CONTEXT_USER_ID#",
                         "assignment_id": "#firstassignment#"
                     }
                 }
@@ -3911,9 +3744,7 @@ Feature: Planning
             "coverages": [
                 {
                     "workflow_status": "draft",
-                    "news_coverage_status": {
-                      "qcode": "ncostat:int"
-                    },
+                    "news_coverage_status": {"qcode": "ncostat:int", "name": "coverage intended", "label": "Planned"},
                     "planning": {
                         "headline": "test headline",
                         "slugline": "test slugline",
@@ -3921,8 +3752,8 @@ Feature: Planning
                         "xmp_file": "#planning_files._id#"
                     },
                     "assigned_to": {
-                        "desk": "Politic Desk",
-                        "user": "507f191e810c19729de870eb"
+                        "desk": "#desks_0._id#",
+                        "user": "#CONTEXT_USER_ID#"
                     }
                 }
             ]
@@ -3953,17 +3784,15 @@ Feature: Planning
             "coverages": [
                 {
                     "workflow_status": "draft",
-                    "news_coverage_status": {
-                      "qcode": "ncostat:int"
-                    },
+                    "news_coverage_status": {"qcode": "ncostat:int", "name": "coverage intended", "label": "Planned"},
                     "planning": {
                         "headline": "test headline",
                         "slugline": "test slugline",
                         "g2_content_type": "picture"
                     },
                     "assigned_to": {
-                        "desk": "Politic Desk",
-                        "user": "507f191e810c19729de870eb"
+                        "desk": "#desks_0._id#",
+                        "user": "#CONTEXT_USER_ID#"
                     }
                 }
             ]
@@ -3979,9 +3808,7 @@ Feature: Planning
                 {
                     "coverage_id": "#firstcoverage#",
                     "workflow_status": "draft",
-                    "news_coverage_status": {
-                      "qcode": "ncostat:int"
-                    },
+                    "news_coverage_status": {"qcode": "ncostat:int", "name": "coverage intended", "label": "Planned"},
                     "planning": {
                         "headline": "test headline",
                         "slugline": "test slugline",
@@ -3989,8 +3816,8 @@ Feature: Planning
                         "xmp_file": "#planning_files._id#"
                     },
                     "assigned_to": {
-                        "desk": "Politic Desk",
-                        "user": "507f191e810c19729de870eb",
+                        "desk": "#desks_0._id#",
+                        "user": "#CONTEXT_USER_ID#",
                         "assignment_id": "#firstassignment#"
                     }
                 }
@@ -4007,9 +3834,7 @@ Feature: Planning
             "coverages": [
                 {
                     "workflow_status": "draft",
-                    "news_coverage_status": {
-                      "qcode": "ncostat:int"
-                    },
+                    "news_coverage_status": {"qcode": "ncostat:int", "name": "coverage intended", "label": "Planned"},
                     "planning": {
                         "headline": "test headline",
                         "slugline": "test slugline",
@@ -4017,8 +3842,8 @@ Feature: Planning
                         "xmp_file": "#planning_files._id#"
                     },
                     "assigned_to": {
-                        "desk": "Politic Desk",
-                        "user": "507f191e810c19729de870eb"
+                        "desk": "#desks_0._id#",
+                        "user": "#CONTEXT_USER_ID#"
                     }
                 }
             ]
@@ -4048,17 +3873,15 @@ Feature: Planning
             "coverages": [
                 {
                     "workflow_status": "draft",
-                    "news_coverage_status": {
-                      "qcode": "ncostat:int"
-                    },
+                    "news_coverage_status": {"qcode": "ncostat:int", "name": "coverage intended", "label": "Planned"},
                     "planning": {
                         "headline": "test headline",
                         "slugline": "test slugline",
                         "g2_content_type": "picture"
                     },
                     "assigned_to": {
-                        "desk": "Politic Desk",
-                        "user": "507f191e810c19729de870eb"
+                        "desk": "#desks_0._id#",
+                        "user": "#CONTEXT_USER_ID#"
                     }
                 }
             ]
@@ -4074,9 +3897,7 @@ Feature: Planning
                 {
                     "coverage_id": "#firstcoverage#",
                     "workflow_status": "draft",
-                    "news_coverage_status": {
-                      "qcode": "ncostat:int"
-                    },
+                    "news_coverage_status": {"qcode": "ncostat:int", "name": "coverage intended", "label": "Planned"},
                     "planning": {
                         "headline": "test headline",
                         "slugline": "test slugline",
@@ -4084,8 +3905,8 @@ Feature: Planning
                         "xmp_file": "#planning_files._id#"
                     },
                     "assigned_to": {
-                        "desk": "Politic Desk",
-                        "user": "507f191e810c19729de870eb",
+                        "desk": "#desks_0._id#",
+                        "user": "#CONTEXT_USER_ID#",
                         "assignment_id": "#firstassignment#"
                     }
                 }
@@ -4102,9 +3923,7 @@ Feature: Planning
             "coverages": [
                 {
                     "workflow_status": "draft",
-                    "news_coverage_status": {
-                      "qcode": "ncostat:int"
-                    },
+                    "news_coverage_status": {"qcode": "ncostat:int", "name": "coverage intended", "label": "Planned"},
                     "planning": {
                         "headline": "test headline",
                         "slugline": "REMEMBRANCE DAY SYDNEY OPERA HOUSE",
@@ -4112,8 +3931,8 @@ Feature: Planning
                         "xmp_file": "#planning_files._id#"
                     },
                     "assigned_to": {
-                        "desk": "Politic Desk",
-                        "user": "507f191e810c19729de870eb"
+                        "desk": "#desks_0._id#",
+                        "user": "#CONTEXT_USER_ID#"
                     }
                 }
             ]
@@ -4140,17 +3959,15 @@ Feature: Planning
             "coverages": [
                 {
                     "workflow_status": "draft",
-                    "news_coverage_status": {
-                      "qcode": "ncostat:int"
-                    },
+                    "news_coverage_status": {"qcode": "ncostat:int", "name": "coverage intended", "label": "Planned"},
                     "planning": {
                         "headline": "test headline",
                         "slugline": "test slugline",
                         "g2_content_type": "picture"
                     },
                     "assigned_to": {
-                        "desk": "Politic Desk",
-                        "user": "507f191e810c19729de870eb"
+                        "desk": "#desks_0._id#",
+                        "user": "#CONTEXT_USER_ID#"
                     }
                 }
             ]
@@ -4166,9 +3983,7 @@ Feature: Planning
                 {
                     "coverage_id": "#firstcoverage#",
                     "workflow_status": "draft",
-                    "news_coverage_status": {
-                      "qcode": "ncostat:int"
-                    },
+                    "news_coverage_status": {"qcode": "ncostat:int", "name": "coverage intended", "label": "Planned"},
                     "planning": {
                         "headline": "test headline",
                         "slugline": "test slugline",
@@ -4176,8 +3991,8 @@ Feature: Planning
                         "xmp_file": "#planning_files._id#"
                     },
                     "assigned_to": {
-                        "desk": "Politic Desk",
-                        "user": "507f191e810c19729de870eb",
+                        "desk": "#desks_0._id#",
+                        "user": "#CONTEXT_USER_ID#",
                         "assignment_id": "#firstassignment#"
                     }
                 }
@@ -4194,9 +4009,7 @@ Feature: Planning
             "coverages": [
                 {
                     "workflow_status": "draft",
-                    "news_coverage_status": {
-                      "qcode": "ncostat:int"
-                    },
+                    "news_coverage_status": {"qcode": "ncostat:int", "name": "coverage intended", "label": "Planned"},
                     "planning": {
                         "headline": "test headline",
                         "slugline": "test slugline",
@@ -4204,8 +4017,8 @@ Feature: Planning
                         "xmp_file": "#planning_files._id#"
                     },
                     "assigned_to": {
-                        "desk": "Politic Desk",
-                        "user": "507f191e810c19729de870eb"
+                        "desk": "#desks_0._id#",
+                        "user": "#CONTEXT_USER_ID#"
                     }
                 }
             ]
@@ -4233,9 +4046,7 @@ Feature: Planning
             "coverages": [
                 {
                     "workflow_status": "draft",
-                    "news_coverage_status": {
-                      "qcode": "ncostat:int"
-                    },
+                    "news_coverage_status": {"qcode": "ncostat:int", "name": "coverage intended", "label": "Planned"},
                     "planning": {
                         "headline": "test headline",
                         "slugline": "test slugline",
@@ -4243,8 +4054,8 @@ Feature: Planning
                         "xmp_file": "#planning_files._id#"
                     },
                     "assigned_to": {
-                        "desk": "Politic Desk",
-                        "user": "507f191e810c19729de870eb"
+                        "desk": "#desks_0._id#",
+                        "user": "#CONTEXT_USER_ID#"
                     }
                 }
             ]
@@ -4262,9 +4073,7 @@ Feature: Planning
             "coverages": [
                 {
                     "workflow_status": "active",
-                    "news_coverage_status": {
-                      "qcode": "ncostat:int"
-                    },
+                    "news_coverage_status": {"qcode": "ncostat:int", "name": "coverage intended", "label": "Planned"},
                     "planning": {
                         "headline": "test headline",
                         "slugline": "test slugline",
@@ -4272,8 +4081,8 @@ Feature: Planning
                         "xmp_file": "#planning_files._id#"
                     },
                     "assigned_to": {
-                        "desk": "Politic Desk",
-                        "user": "507f191e810c19729de870eb"
+                        "desk": "#desks_0._id#",
+                        "user": "#CONTEXT_USER_ID#"
                     }
                 }
             ]
@@ -4429,7 +4238,7 @@ Feature: Planning
         {"coverages": [{
             "profile": "#coverage_profiles._id#",
             "workflow_status": "draft",
-            "news_coverage_status": {"qcode": "ncostat:int"},
+            "news_coverage_status": {"qcode": "ncostat:int", "name": "coverage intended", "label": "Planned"},
             "planning": {
                 "ednote": "testing stuff",
                 "g2_content_type": "text",
@@ -4444,7 +4253,7 @@ Feature: Planning
             "coverages": [{
                 "planning": {
                     "slugline": "test slugline",
-                    "anpa_category": "__no_value__",
+                    "anpa_category": null,
                     "subject": [
                         {"qcode": "b", "name": "Option B", "scheme": "my_options"}
                     ]

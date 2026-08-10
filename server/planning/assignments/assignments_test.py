@@ -34,7 +34,7 @@ class AssignmentsTestCase(TestCase):
         "coverage_item": "cov1",
         "assigned_to": {
             "state": "in_progress",
-            "user": "aaaaaaaaaaaaaaaaaaaaaaaa",
+            "user": users[0]["_id"],
             "desk": desks[0]["_id"],
         },
         "lock_user": users[0]["_id"],
@@ -45,10 +45,17 @@ class AssignmentsTestCase(TestCase):
     planning_item = {
         "_id": "plan1",
         "guid": "plan1",
+        "planning_date": "2032-07-03T14:00:00+0000",
         "coverages": [
             {
                 "coverage_id": "cov1",
-                "assigned_to": {"user": "aaaaaaaaaaaaaaaaaaaaaaaa", "desk": desks[0]["_id"]},
+                "news_coverage_status": {"qcode": "ncostat:int", "name": "coverage intended", "label": "Planned"},
+                "assigned_to": {
+                    "user": users[0]["_id"],
+                    "desk": desks[0]["_id"],
+                    "state": "in_progress",
+                },
+                "planning": {"g2_content_type": "text"},
             }
         ],
         "lock_user": users[0]["_id"],
@@ -72,7 +79,7 @@ class AssignmentsTestCase(TestCase):
         self.app.data.insert("auth", self.auth)
         self.app.data.insert("archive", [self.archive_item])
         self.app.data.insert("assignments", [self.assignment_item])
-        self.app.data.insert("planning", [self.planning_item])
+        await self.app.data.insert_async("planning", [self.planning_item])
         self.app.data.insert("delivery", [self.delivery_item])
 
         g.user = self.users[0]

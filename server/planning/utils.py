@@ -297,10 +297,10 @@ async def get_related_event_items_for_planning_async(
     return events
 
 
-def get_first_event_item_for_planning_id(
+async def get_first_event_item_for_planning_id(
     planning_id: str, link_type: Optional[PLANNING_RELATED_EVENT_LINK_TYPE] = None
 ) -> Optional[Event]:
-    planning_item = get_resource_service("planning").find_one(req=None, _id=planning_id)
+    planning_item = await get_resource_service("planning").find_one_async(req=None, _id=planning_id)
     if not planning_item:
         return None
 
@@ -308,8 +308,7 @@ def get_first_event_item_for_planning_id(
     if not first_event_id:
         return None
 
-    # TODO-ASYNC[EventsService] - Convert this to async when function is updated to async
-    return get_resource_service("events").find_one(req=None, _id=first_event_id)
+    return await get_resource_service("events").find_one_async(req=None, _id=first_event_id)
 
 
 def get_planning_event_link_method() -> types.PLANNING_EVENT_LINK_METHOD:
@@ -348,8 +347,8 @@ def is_coverage_planning_modified(updates: dict[str, Any], original: dict[str, A
 
 
 def is_coverage_assignment_modified(updates: dict[str, Any], original: dict[str, Any]):
-    assigned_to_updates = updates.get("assigned_to", {})
-    assigned_to_original = original.get("assigned_to", {})
+    assigned_to_updates = updates.get("assigned_to") or {}
+    assigned_to_original = original.get("assigned_to") or {}
 
     if assigned_to_updates:
         keys = ["desk", "user", "state", "coverage_provider"]

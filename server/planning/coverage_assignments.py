@@ -158,33 +158,10 @@ def get_metadata_updates_between_entities(
         destination_updated = True
 
     if destination == "assignment":
-        if not coverage.get("assigned_to"):
+        result = _copy_destination_assignment(updates, assignment, coverage, planning)
+        if result is None:
             return {}
-        elif not coverage["assigned_to"].get("assignment_id"):
-            # We're attempting to create a new Assignment
-
-            if not coverage["assigned_to"].get("user") and not coverage["assigned_to"].get("desk"):
-                # No assignee details, do not create an Assignment yet
-                return {}
-
-            _copy_metadata_to_new_assignment(updates, planning, coverage)
-            destination_updated = True
-        else:
-            # We're attempting to update an existing Assignment'
-            if assignment["assigned_to"]["state"] in [
-                ASSIGNMENT_WORKFLOW_STATE.COMPLETED,
-                ASSIGNMENT_WORKFLOW_STATE.CANCELLED,
-            ]:
-                # This Assignment is either marked as completed or is cancelled, do not update it
-                return {}
-
-            if _copy_metadata_to_existing_assignment(updates, assignment, planning, coverage):
-                destination_updated = True
-
-        if _copy_translated_values_to_assignment(updates, planning):
-            destination_updated = True
-
-        if _set_assignment_state(updates, coverage, assignment):
+        elif result:
             destination_updated = True
 
     if not updates.get("assigned_to"):
@@ -193,6 +170,41 @@ def get_metadata_updates_between_entities(
         updates.pop("planning", None)
 
     return updates if destination_updated else {}
+
+
+def _copy_destination_assignment(updates: dict, assignment: dict, coverage: dict, planning: dict) -> bool | None:
+    destination_updated: bool = False
+
+    if not coverage.get("assigned_to"):
+        return None
+    elif not coverage["assigned_to"].get("assignment_id"):
+        # We're attempting to create a new Assignment
+
+        if not coverage["assigned_to"].get("user") and not coverage["assigned_to"].get("desk"):
+            # No assignee details, do not create an Assignment yet
+            return None
+
+        _copy_metadata_to_new_assignment(updates, planning, coverage)
+        destination_updated = True
+    else:
+        # We're attempting to update an existing Assignment'
+        if assignment["assigned_to"]["state"] in [
+            ASSIGNMENT_WORKFLOW_STATE.COMPLETED,
+            ASSIGNMENT_WORKFLOW_STATE.CANCELLED,
+        ]:
+            # This Assignment is either marked as completed or is cancelled, do not update it
+            return None
+
+        if _copy_metadata_to_existing_assignment(updates, assignment, planning, coverage):
+            destination_updated = True
+
+    if _copy_translated_values_to_assignment(updates, planning):
+        destination_updated = True
+
+    if _set_assignment_state(updates, coverage, assignment):
+        destination_updated = True
+
+    return destination_updated
 
 
 def copy_assigned_to_fields(

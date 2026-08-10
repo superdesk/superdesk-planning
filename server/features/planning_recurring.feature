@@ -49,7 +49,7 @@ Feature: Recurring Events & Planning
             "update_method": "all",
             "coverages": [{
                 "workflow_status": "draft",
-                "news_coverage_status": {"qcode": "ncostat:int"},
+                "news_coverage_status": {"qcode": "ncostat:int", "name": "coverage intended", "label": "Planned"},
                 "planning": {
                     "slugline": "test text slugline",
                     "g2_content_type": "text",
@@ -57,7 +57,7 @@ Feature: Recurring Events & Planning
                 }
             }, {
                 "workflow_status": "draft",
-                "news_coverage_status": {"qcode": "ncostat:int"},
+                "news_coverage_status": {"qcode": "ncostat:int", "name": "coverage intended", "label": "Planned"},
                 "planning": {
                     "slugline": "test pic slugline",
                     "g2_content_type": "picture",
@@ -175,7 +175,7 @@ Feature: Recurring Events & Planning
                     "coverage_id": "#TEXT_COVERAGE_2_ID#",
                     "original_coverage_id": "#TEXT_COVERAGE_1_ID#",
                     "workflow_status": "draft",
-                    "news_coverage_status": {"qcode": "ncostat:int"},
+                    "news_coverage_status": {"qcode": "ncostat:int", "name": "coverage intended", "label": "Planned"},
                     "planning": {
                         "slugline": "test text slugline v2",
                         "g2_content_type": "text",
@@ -187,12 +187,12 @@ Feature: Recurring Events & Planning
                     "coverage_id": "#PIC_COVERAGE_2_ID#",
                     "original_coverage_id": "#PIC_COVERAGE_1_ID#",
                     "workflow_status": "draft",
-                    "news_coverage_status": {"qcode": "ncostat:int"},
+                    "news_coverage_status": {"qcode": "ncostat:int", "name": "coverage intended", "label": "Planned"},
                     "planning": {
                         "slugline": "test pic slugline v2",
                         "g2_content_type": "picture",
                         "scheduled": "2024-11-22T16:00:00.000Z",
-                        "news_coverage_status": {"qcode": "ncostat:int"}
+                        "news_coverage_status": {"qcode": "ncostat:int", "name": "coverage intended", "label": "Planned"},
                     }
                 }
             ]
@@ -393,24 +393,22 @@ Feature: Recurring Events & Planning
                     "coverage_id": "#TEXT_COVERAGE_2_ID#",
                     "original_coverage_id": "#TEXT_COVERAGE_1_ID#",
                     "workflow_status": "draft",
-                    "news_coverage_status": {"qcode": "ncostat:int"},
+                    "news_coverage_status": {"qcode": "ncostat:int", "name": "coverage intended", "label": "Planned"},
                     "planning": {
                         "slugline": "test text slugline v2",
                         "g2_content_type": "text",
-                        "scheduled": "2024-11-22T17:00:00.000Z",
-                        "news_coverage_status": {"qcode": "ncostat:int"}
+                        "scheduled": "2024-11-22T17:00:00.000Z"
                     }
                 },
                 {
                     "coverage_id": "#PIC_COVERAGE_2_ID#",
                     "original_coverage_id": "#PIC_COVERAGE_1_ID#",
                     "workflow_status": "draft",
-                    "news_coverage_status": {"qcode": "ncostat:int"},
+                    "news_coverage_status": {"qcode": "ncostat:int", "name": "coverage intended", "label": "Planned"},
                     "planning": {
                         "slugline": "test pic slugline v2",
                         "g2_content_type": "picture",
-                        "scheduled": "2024-11-22T18:00:00.000Z",
-                        "news_coverage_status": {"qcode": "ncostat:int"}
+                        "scheduled": "2024-11-22T18:00:00.000Z"
                     }
                 }
             ]
@@ -496,24 +494,22 @@ Feature: Recurring Events & Planning
                     "coverage_id": "#TEXT_COVERAGE_2_ID#",
                     "original_coverage_id": "#TEXT_COVERAGE_1_ID#",
                     "workflow_status": "draft",
-                    "news_coverage_status": {"qcode": "ncostat:int"},
+                    "news_coverage_status": {"qcode": "ncostat:int", "name": "coverage intended", "label": "Planned"},
                     "planning": {
                         "slugline": "test text slugline v2",
                         "g2_content_type": "text",
-                        "scheduled": "2024-11-22T17:00:00.000Z",
-                        "news_coverage_status": {"qcode": "ncostat:int"}
+                        "scheduled": "2024-11-22T17:00:00.000Z"
                     }
                 },
                 {
                     "coverage_id": "#PIC_COVERAGE_2_ID#",
                     "original_coverage_id": "#PIC_COVERAGE_1_ID#",
                     "workflow_status": "draft",
-                    "news_coverage_status": {"qcode": "ncostat:int"},
+                    "news_coverage_status": {"qcode": "ncostat:int", "name": "coverage intended", "label": "Planned"},
                     "planning": {
                         "slugline": "test pic slugline v2",
                         "g2_content_type": "picture",
-                        "scheduled": "2024-11-22T18:00:00.000Z",
-                        "news_coverage_status": {"qcode": "ncostat:int"}
+                        "scheduled": "2024-11-22T18:00:00.000Z"
                     }
                 }
             ]
