@@ -154,7 +154,7 @@ async def get_series(
     page = 1
 
     while True:
-        results = await service.find(query, sort=sort, page=page, max_results=max_results)
+        results = await service.find(query, sort=sort, page=page, max_results=max_results, use_mongo=True)
 
         docs = await results.to_list()
         if not docs:
