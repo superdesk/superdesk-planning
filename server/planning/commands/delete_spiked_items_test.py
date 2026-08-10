@@ -11,18 +11,24 @@ from pytest import mark
 
 from datetime import timedelta
 
+from bson import ObjectId
+
 from superdesk import get_resource_service
 from superdesk.utc import utcnow
 from superdesk.flask import g
 from superdesk.tests import utils as test_utils, fixtures
 
-from planning.tests import TestCase
+from planning.tests import TestCase, fixtures as planning_fixtures
 from planning.common import WORKFLOW_STATE
+from planning.types.unified import UnifiedPlanningResource
 from .delete_spiked_items import delete_spiked_items_handler
 
 now = utcnow()
 yesterday = now - timedelta(hours=48)
 two_days_ago = now - timedelta(hours=96)
+
+DESK_1 = ObjectId("600000000000000000000001")
+DESK_2 = ObjectId("600000000000000000000002")
 
 active = {
     "event": {
@@ -33,19 +39,23 @@ active = {
         "dates": {"start": yesterday, "end": now},
         "state": WORKFLOW_STATE.SPIKED,
     },
-    "plan": {"planning_date": now, "state": WORKFLOW_STATE.SPIKED},
-    "coverage": {"planning": {"scheduled": now}},
+    "plan": {"dates": {"start": now}, "state": WORKFLOW_STATE.SPIKED},
+    "coverage": {
+        "news_coverage_status": {"qcode": "ncostat:int", "name": "Intended", "label": "Coverage Intended"},
+        "planning": {"scheduled": now, "g2_content_type": "text"},
+        "assigned_to": {"desk": fixtures.desks.SPORTS_DESK_ID, "state": "draft"},
+    },
     "assignment_d1": {
         "workflow_status": "draft",
-        "news_coverage_status": {"qcode": "ncostat:int"},
+        "news_coverage_status": {"qcode": "ncostat:int", "name": "Intended", "label": "Coverage Intended"},
         "planning": {"scheduled": now},
-        "assigned_to": {"desk": "d1", "state": "draft"},
+        "assigned_to": {"desk": DESK_1, "state": "draft"},
     },
     "assignment_d2": {
         "workflow_status": "draft",
-        "news_coverage_status": {"qcode": "ncostat:int"},
+        "news_coverage_status": {"qcode": "ncostat:int", "name": "Intended", "label": "Coverage Intended"},
         "planning": {"scheduled": now},
-        "assigned_to": {"desk": "d2", "state": "draft"},
+        "assigned_to": {"desk": DESK_2, "state": "draft"},
     },
 }
 
@@ -54,19 +64,23 @@ expired = {
         "dates": {"start": yesterday, "end": yesterday + timedelta(hours=1)},
         "state": WORKFLOW_STATE.SPIKED,
     },
-    "plan": {"planning_date": yesterday, "state": WORKFLOW_STATE.SPIKED},
-    "coverage": {"planning": {"scheduled": yesterday}},
+    "plan": {"dates": {"start": yesterday}, "state": WORKFLOW_STATE.SPIKED},
+    "coverage": {
+        "news_coverage_status": {"qcode": "ncostat:int", "name": "Intended", "label": "Coverage Intended"},
+        "planning": {"scheduled": yesterday, "g2_content_type": "text"},
+        "assigned_to": {"desk": fixtures.desks.SPORTS_DESK_ID, "state": "draft"},
+    },
     "assignment_d1": {
         "workflow_status": "draft",
-        "news_coverage_status": {"qcode": "ncostat:int"},
+        "news_coverage_status": {"qcode": "ncostat:int", "name": "Intended", "label": "Coverage Intended"},
         "planning": {"scheduled": yesterday},
-        "assigned_to": {"desk": "d1", "state": "draft"},
+        "assigned_to": {"desk": DESK_1, "state": "draft"},
     },
     "assignment_d2": {
         "workflow_status": "draft",
-        "news_coverage_status": {"qcode": "ncostat:int"},
+        "news_coverage_status": {"qcode": "ncostat:int", "name": "Intended", "label": "Coverage Intended"},
         "planning": {"scheduled": yesterday},
-        "assigned_to": {"desk": "d2", "state": "draft"},
+        "assigned_to": {"desk": DESK_2, "state": "draft"},
     },
 }
 
@@ -81,23 +95,25 @@ class BaseDeleteSpikedItemsTest(TestCase):
     async def asyncSetUp(self):
         await super().asyncSetUp()
 
-        self.event_service = get_resource_service("events")
-        self.planning_service = get_resource_service("planning")
+        self.planning_service = UnifiedPlanningResource.get_service()
         self.assignment_service = get_resource_service("assignments")
 
         await test_utils.post_items("users", fixtures.users.all_users())
         g.user = fixtures.users.admin().to_dict()
+        await test_utils.post_items("vocabularies", planning_fixtures.cvs.all_cvs())
         await test_utils.post_items("desks", fixtures.desks.all_desks())
+        await test_utils.post_items("stages", fixtures.stages.all_stages())
 
     async def insert(self, item_type, items):
-        service = self.event_service if item_type == "events" else self.planning_service
-        await service.post_async(items)
+        item_type_value = "event" if item_type == "events" else "planning"
+        await self.planning_service.create([{**item, "type": item_type_value} for item in items])
+        # unified resource is not force-refreshed in tests; refresh so the command's search sees the items
+        client = self.planning_service.elastic
+        await client.elastic.indices.refresh(index=client.config.index)
 
     async def assertDeleteOperation(self, item_type, ids, not_deleted=False):
-        service = self.event_service if item_type == "events" else self.planning_service
-
         for item_id in ids:
-            item = await service.find_one_async(guid=item_id, req=None)
+            item = await self.planning_service.find_by_id(item_id)
             if not_deleted:
                 self.assertIsNotNone(item)
             else:
@@ -219,7 +235,7 @@ class DeleteSpikedItemsTest(BaseDeleteSpikedItemsTest):
         await self.assertDeleteOperation("planning", ["p5", "p7"])
 
     async def test_planning_assignment_deletion(self):
-        self.app.data.insert("desks", [{"_id": "d1", "name": "d1"}, {"_id": "d2", "name": "d2"}])
+        self.app.data.insert("desks", [{"_id": DESK_1, "name": "d1"}, {"_id": DESK_2, "name": "d2"}])
         await self.insert(
             "planning",
             [
@@ -249,7 +265,7 @@ class DeleteSpikedItemsTest(BaseDeleteSpikedItemsTest):
         # Map plannings to assignments
         assignments = {}
         for plan_id in ["p1", "p2", "p3", "p4"]:
-            planning = await self.planning_service.find_one_async(req=None, guid=plan_id)
+            planning = await self.planning_service.find_by_id_raw(plan_id)
             if planning:
                 assignments[plan_id] = planning["coverages"][0]["assigned_to"]["assignment_id"]
 

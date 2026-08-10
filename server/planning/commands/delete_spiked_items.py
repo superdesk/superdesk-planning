@@ -19,7 +19,8 @@ from superdesk.utc import utcnow
 from superdesk.celery_task_utils import get_lock_id
 from superdesk.lock import lock, unlock, remove_locks
 from planning.common import WORKFLOW_STATE
-from planning.events.events_utils import get_recurring_timeline
+from planning.types.unified import UnifiedPlanningResource
+from planning.unified.common import get_recurring_timeline
 from superdesk.commands import cli
 from .utils import iterate_expired_items
 
@@ -79,7 +80,7 @@ async def delete_spiked_items_handler():
 async def delete_spiked_events(expiry_datetime):
     log_msg = log_msg_context.get()
     logger.info(f"{log_msg} Starting to delete spiked events")
-    events_service = get_resource_service("events")
+    events_service = UnifiedPlanningResource.get_service()
 
     events_deleted = set()
     series_to_delete = dict()
@@ -94,37 +95,39 @@ async def delete_spiked_events(expiry_datetime):
 
     for event_id, event in events.items():
         if event.get("recurrence_id") and event["recurrence_id"] not in series_to_delete:
-            spiked, events = await is_series_expired_and_spiked(event, expiry_datetime)
+            spiked, series_events = await is_series_expired_and_spiked(event, expiry_datetime)
             if spiked:
-                series_to_delete[event["recurrence_id"]] = events
+                series_to_delete[event["recurrence_id"]] = series_events
         else:
-            await events_service.delete_async(lookup={"_id": event_id})
+            await events_service.delete_many({"_id": event_id})
             events_deleted.add(event_id)
 
     # Delete recurring series
-    for recurrence_id, events in series_to_delete.items():
-        await events_service.delete_async(lookup={"recurrence_id": recurrence_id})
-        events_deleted.update([event["_id"] for event in events])
+    for recurrence_id, series_events in series_to_delete.items():
+        await events_service.delete_many({"recurrence_id": recurrence_id})
+        events_deleted.update(event.id for event in series_events)
 
     logger.info(f"{log_msg} {len(events_deleted)} Events deleted: {list(events_deleted)}")
 
 
 async def is_series_expired_and_spiked(event, expiry_datetime):
-    historic, past, future = await get_recurring_timeline(event, spiked=True, postponed=True)
+    service = UnifiedPlanningResource.get_service()
+    selected = service.get_model_instance_from_dict(event)
+    historic, past, future = await get_recurring_timeline(selected, spiked=True, postponed=True)
 
     # There are future events, so the entire series is not expired.
     if len(future) > 0:
         return False, []
 
     def check_series_expired_and_spiked(series):
-        for event in series:
-            if event.get("state") != WORKFLOW_STATE.SPIKED or event["dates"]["end"] > expiry_datetime:
+        for item in series:
+            if item.state != WORKFLOW_STATE.SPIKED or item.dates.end > expiry_datetime:
                 return False
 
         return True
 
     if check_series_expired_and_spiked(historic) and check_series_expired_and_spiked(past):
-        return True, [historic + past]
+        return True, historic + past
 
     return False, []
 
@@ -132,7 +135,7 @@ async def is_series_expired_and_spiked(event, expiry_datetime):
 async def delete_spiked_planning(expiry_datetime):
     log_msg = log_msg_context.get()
     logger.info(f"{log_msg} Starting to delete spiked planning items")
-    planning_service = get_resource_service("planning")
+    planning_service = UnifiedPlanningResource.get_service()
 
     # Obtain the full list of Planning items that we're to process first
     # As subsequent queries will change the list of returnd items
@@ -154,7 +157,7 @@ async def delete_spiked_planning(expiry_datetime):
                 assignments_to_delete.append(assignment_id)
 
         # Now, delete the planning item
-        await planning_service.delete_async(lookup={"_id": plan_id})
+        await planning_service.delete_many({"_id": plan_id})
         plans_deleted.add(plan_id)
 
     # Delete assignments
