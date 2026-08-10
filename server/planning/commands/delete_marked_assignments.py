@@ -8,10 +8,7 @@
 # AUTHORS and LICENSE files distributed with this source code, or
 # at https://www.sourcefabric.org/superdesk/license
 
-from eve.utils import ParsedRequest
-
 from superdesk.commands import cli
-from superdesk.core import json
 from superdesk.resource_fields import ID_FIELD
 from superdesk.errors import SuperdeskApiError
 from superdesk import get_resource_service
@@ -63,20 +60,8 @@ class DeleteMarkedAssignments:
         logger.info("{} Starting to delete marked assignments".format(self.log_msg))
         assignments_service = get_resource_service("assignments")
 
-        query = {
-            "query": {
-                "filtered": {
-                    "filter": {
-                        "bool": {
-                            "must": {"term": {"_to_delete": True}},
-                        }
-                    }
-                }
-            }
-        }
-        req = ParsedRequest()
-        req.args = {"source": json.dumps(query)}
-        assignments_to_delete = await assignments_service.get_async(req=req, lookup=None)
+        query = {"query": {"bool": {"filter": [{"term": {"_to_delete": True}}]}}}
+        assignments_to_delete = await assignments_service.search_async(query)
         failed_assignments = []
         assignments_deleted = []
 
