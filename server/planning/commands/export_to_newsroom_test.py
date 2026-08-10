@@ -14,10 +14,9 @@ from datetime import timedelta
 from superdesk.utc import utcnow
 
 from planning.tests import TestCase
-from planning.events.events_service import EventsAsyncService
+from planning.types.unified import UnifiedPlanningResource
 
 from .export_to_newsroom import ExportToNewsroom
-from ..planning import PlanningAsyncService
 
 
 class MockTransmitter:
@@ -35,8 +34,7 @@ class ExportToNewsroomTest(TestCase):
     async def asyncSetUp(self):
         await super().asyncSetUp()
 
-        self.event_service = EventsAsyncService()
-        self.planning_service = PlanningAsyncService()
+        self.planning_service = UnifiedPlanningResource.get_service()
 
     async def setup_data(self):
         utc_now = utcnow()
@@ -220,8 +218,15 @@ class ExportToNewsroomTest(TestCase):
             },
         ]
 
-        await self.event_service.create(events)
+        # planning shares the unified collection with events, so give it distinct ids + dates.start
+        for plan in planning:
+            plan["guid"] = f"planning-{plan['guid']}"
+            plan["dates"] = {"start": plan.pop("planning_date")}
+
+        await self.planning_service.create(events)
         await self.planning_service.create(planning)
+        client = self.planning_service.elastic
+        await client.elastic.indices.refresh(index=client.config.index)
 
     @mock.patch("planning.commands.export_to_newsroom.NewsroomHTTPTransmitter")
     async def test_events_events_planning(self, mock_transmitter):
@@ -230,7 +235,14 @@ class ExportToNewsroomTest(TestCase):
 
             mock_transmitter.return_value = MockTransmitter()
             await ExportToNewsroom().run(assets_url="foo", resource_url="bar")
-            valid_ids = ["scheduled", "postponed", "rescheduled"]
+            valid_ids = [
+                "scheduled",
+                "postponed",
+                "rescheduled",
+                "planning-scheduled",
+                "planning-postponed",
+                "planning-rescheduled",
+            ]
 
             for item_id in mock_transmitter.return_value.events:
                 self.assertIn(item_id, valid_ids)
