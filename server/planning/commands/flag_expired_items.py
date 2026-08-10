@@ -3,7 +3,7 @@ from bson.objectid import ObjectId
 from contextvars import ContextVar
 from typing import Any, Literal
 
-from superdesk.core import get_config, get_current_async_app
+from superdesk.core import get_config
 from superdesk.core.utils import str_to_date
 from superdesk.commands import cli
 from superdesk.resource_fields import ID_FIELD
@@ -17,7 +17,9 @@ from superdesk.notification import push_notification
 from planning.common import remove_lock_information
 from planning.search.queries import elastic
 
-from planning.utils import get_related_planning_for_events_async, get_related_event_ids_for_planning
+from planning.utils import get_related_event_ids_for_planning
+from planning.unified.common import get_related_planning_for_events
+from planning.types.unified import UnifiedPlanningResource, RelatedEventLinkType
 from .utils import iterate_expired_items
 
 
@@ -140,14 +142,9 @@ async def flag_expired_items(resource_type: Literal["event", "planning"], expiry
 
             items_expired.add(item_id)
 
-        resource_updates: list[tuple[str, set[str], dict]] = []
-        if events_to_expire:
-            resource_updates.append(("events", events_to_expire, updates.copy()))
-        if planning_to_expire:
-            resource_updates.append(("planning", planning_to_expire, updates.copy()))
-
-        if resource_updates:
-            await get_current_async_app().resources.bulk_update_resources(resource_updates)
+        ids_to_expire = events_to_expire | planning_to_expire
+        if ids_to_expire:
+            await UnifiedPlanningResource.get_service().bulk_update(ids_to_expire, updates.copy())
 
         logger.info(
             f"{log_msg} {len(events_to_expire)} Events expired, {len(planning_to_expire)} Planning items expired"
@@ -182,8 +179,9 @@ async def get_event_plans(events: list[dict[str, Any]]) -> dict[str, list[dict]]
     plans: dict[str, list[dict]] = {}
     event_ids = [event[ID_FIELD] for event in events]
 
-    projection = {"_planning_schedule": 1, "planning_date": 1, "related_events": 1}
-    for plan in await get_related_planning_for_events_async(event_ids, "primary", projection=projection):
+    projection = {"_planning_schedule": 1, "dates": 1, "related_events": 1}
+    cursor = await get_related_planning_for_events(event_ids, RelatedEventLinkType.PRIMARY, projection=projection)
+    for plan in await cursor.to_list_raw():
         for related_event_id in get_related_event_ids_for_planning(plan, "primary"):
             plans.setdefault(related_event_id, []).append(plan)
     return plans
@@ -211,7 +209,9 @@ def get_latest_scheduled_date(event: dict[str, Any], plans: list[dict]) -> datet
 
     # Check related plans' planning dates
     for plan in plans:
-        planning_date = plan.get("planning_date", latest_scheduled)
+        planning_date = (plan.get("dates") or {}).get("start") or latest_scheduled
+        if isinstance(planning_date, str):
+            planning_date = str_to_date(planning_date)
 
         # First check the Planning item's planning date
         # and compare to the Event's end date
