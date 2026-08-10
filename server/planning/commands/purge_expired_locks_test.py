@@ -15,7 +15,17 @@ from bson import ObjectId
 from planning.utils import get_service
 from superdesk.utc import utcnow
 from planning.tests import TestCase
+from planning.types.unified import UnifiedPlanningResource
 from .purge_expired_locks import purge_expired_locks_handler
+
+LOCK_FIELDS = ("lock_user", "lock_session", "lock_time", "lock_action")
+
+
+def lock_service(resource):
+    if resource in ("events", "planning"):
+        return UnifiedPlanningResource.get_service()
+    return get_service(resource)
+
 
 now = utcnow()
 assignment_1_id = ObjectId()
@@ -86,7 +96,6 @@ class PurgeExpiredLocksTest(TestCase):
                         "lock_session": ObjectId(),
                         "lock_time": now - timedelta(hours=23),
                         "lock_action": "edit",
-                        "planning_item": "active_plan_1",
                     },
                     {
                         "_id": assignment_2_id,
@@ -95,7 +104,6 @@ class PurgeExpiredLocksTest(TestCase):
                         "lock_session": ObjectId(),
                         "lock_time": now - timedelta(hours=25),
                         "lock_action": "edit",
-                        "planning_item": "expired_plan_1",
                     },
                 ],
             )
@@ -111,11 +119,40 @@ class PurgeExpiredLocksTest(TestCase):
             )
 
     async def insert(self, item_type, items):
-        await get_service(item_type).create(items)
+        if item_type == "assignments":
+            # Assignments still reference a planning item in the legacy resource (SDBELGA-1122)
+            legacy_planning = get_service("planning")
+            await legacy_planning.create([{"_id": "legacy_plan", "guid": "legacy_plan", "planning_date": now}])
+            for item in items:
+                item["planning_item"] = "legacy_plan"
+            service = get_service(item_type)
+            await service.create(items)
+            client = service.elastic
+            await client.elastic.indices.refresh(index=client.config.index)
+            return
+
+        # Unified create validates lock_user/lock_session as data relations, so create the
+        # items unlocked and set the lock fields via system_update (a raw, unvalidated write)
+        service = UnifiedPlanningResource.get_service()
+        item_type_value = "event" if item_type == "events" else "planning"
+        locks_by_id = {}
+        for item in items:
+            item["type"] = item_type_value
+            if "planning_date" in item:
+                item["dates"] = {"start": item.pop("planning_date")}
+            locks_by_id[item["_id"]] = {field: item.pop(field) for field in LOCK_FIELDS if field in item}
+
+        await service.create(items)
+        for item_id, locks in locks_by_id.items():
+            if locks:
+                await service.system_update(item_id, locks)
+
+        client = service.elastic
+        await client.elastic.indices.refresh(index=client.config.index)
 
     async def assertLockState(self, item_tests: List[Tuple[str, Union[str, ObjectId], bool]]):
         for resource, item_id, is_locked in item_tests:
-            service = get_service(resource)
+            service = lock_service(resource)
             item = await service.find_by_id_raw(item_id)
             if not item:
                 raise AssertionError(f"{resource} item with ID {item_id} not found")

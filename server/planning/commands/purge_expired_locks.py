@@ -20,11 +20,19 @@ from superdesk.lock import lock, unlock
 from superdesk.celery_task_utils import get_lock_id
 from planning.item_lock import LOCK_ACTION, LOCK_SESSION, LOCK_TIME, LOCK_USER
 from planning.utils import get_service, try_cast_object_id
+from planning.types.unified import UnifiedPlanningResource
 from planning.events import EventsAutosaveAsyncService
 from planning.planning import PlanningAutosaveAsyncService
 from superdesk.commands import cli
 
 logger = logging.getLogger(__name__)
+
+
+def get_lock_service(resource: str):
+    # Events & Planning now live in the unified resource; assignments is still separate
+    if resource in ("events", "planning"):
+        return UnifiedPlanningResource.get_service()
+    return get_service(resource)
 
 
 @cli.command("planning:purge_expired_locks")
@@ -89,7 +97,7 @@ async def purge_expired_locks_handler(resource: str, expire_hours: int = 24):
 
 async def purge_item_locks(resource: str, expiry_datetime: datetime):
     logger.info(f"Purging expired locks for {resource}")
-    resource_service = get_service(resource)
+    resource_service = get_lock_service(resource)
 
     autosave_service = None
     if resource == "events":
@@ -140,12 +148,15 @@ async def purge_item_locks(resource: str, expiry_datetime: datetime):
 
 
 async def get_locked_items(resource: str, expiry_datetime: datetime) -> AsyncGenerator[list[dict[str, Any]], None]:
-    resource_service = get_service(resource)
+    resource_service = get_lock_service(resource)
     total_received = 0
+    filters: list[dict[str, Any]] = [{"range": {LOCK_TIME: {"lt": date_to_str(expiry_datetime)}}}]
+    if resource in ("events", "planning"):
+        filters.append({"term": {"type": "event" if resource == "events" else "planning"}})
     query: dict[str, Any] = {
         "query": {
             "bool": {
-                "filter": {"range": {LOCK_TIME: {"lt": date_to_str(expiry_datetime)}}},
+                "filter": filters,
             },
         },
         "size": get_app_config("MAX_EXPIRY_QUERY_LIMIT"),
