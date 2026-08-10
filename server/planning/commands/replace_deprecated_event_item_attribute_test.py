@@ -14,6 +14,7 @@ from superdesk.utc import utcnow
 
 from planning.tests import TestCase
 from planning.types import PlanningRelatedEventLink
+from planning.types.unified import UnifiedPlanningResource
 from .replace_deprecated_event_item_attribute import ReplaceDeprecatedEventItemAttributeCommand
 
 
@@ -25,63 +26,55 @@ class ReplaceDeprecatedEventItemAttributeTest(TestCase):
         await super().asyncSetUp()
 
         self.command = ReplaceDeprecatedEventItemAttributeCommand()
-        self.app.data.insert(
-            "events",
+        service = UnifiedPlanningResource.get_service()
+        await service.create(
             [
                 {
                     "_id": "event1",
+                    "type": "event",
                     "name": "Event1",
                     "dates": {"start": now, "end": now + timedelta(days=1), "tz": "Australia/Sydney"},
-                }
-            ],
-        )
-        self.app.data.insert(
-            "planning",
-            [
-                {
-                    "_id": "plan1",
-                    "slugline": "test-plan-1",
-                    "planning_date": now,
-                    "event_item": "event1",
                 },
-                {
-                    "_id": "plan2",
-                    "slugline": "test-plan-2",
-                    "planning_date": now,
-                },
-            ],
+                {"_id": "plan1", "type": "planning", "slugline": "test-plan-1", "dates": {"start": now}},
+                {"_id": "plan2", "type": "planning", "slugline": "test-plan-2", "dates": {"start": now}},
+            ]
         )
+        # event_item is off-schema (deprecated), so add it with a raw mongo write
+        await service.mongo_async.update_one({"_id": "plan1"}, {"$set": {"event_item": "event1"}})
 
-    def _get_planning_item(self, plan_id):
-        return self.app.data.mongo.pymongo("planning").db["planning"].find_one({"_id": plan_id})
+    async def _get_planning_item(self, plan_id):
+        return await UnifiedPlanningResource.get_service().mongo_async.find_one({"_id": plan_id})
+
+    async def _item_ids(self, for_upgrade):
+        return [item["_id"] async for item in self.command.get_items(for_upgrade)]
 
     async def test_get_items(self):
         async with self.app.app_context():
             # Test original data
-            self.assertEqual([item["_id"] for item in self.command.get_items(True)], ["plan1"])
-            self.assertEqual([item["_id"] for item in self.command.get_items(False)], [])
+            self.assertEqual(await self._item_ids(True), ["plan1"])
+            self.assertEqual(await self._item_ids(False), [])
 
             # Test after data upgrade
             await self.command.run(dry_run=False, revert=False)
-            self.assertEqual([item["_id"] for item in self.command.get_items(True)], [])
-            self.assertEqual([item["_id"] for item in self.command.get_items(False)], ["plan1"])
+            self.assertEqual(await self._item_ids(True), [])
+            self.assertEqual(await self._item_ids(False), ["plan1"])
 
             # Test after data downgrade
             await self.command.run(dry_run=False, revert=True)
-            self.assertEqual([item["_id"] for item in self.command.get_items(True)], ["plan1"])
-            self.assertEqual([item["_id"] for item in self.command.get_items(False)], [])
+            self.assertEqual(await self._item_ids(True), ["plan1"])
+            self.assertEqual(await self._item_ids(False), [])
 
     async def test_dry_run(self):
         async with self.app.app_context():
             # Upgrade data
             await self.command.run(dry_run=True, revert=False)
-            plan1 = self._get_planning_item("plan1")
+            plan1 = await self._get_planning_item("plan1")
             self.assertEqual(plan1["event_item"], "event1")
             self.assertIsNone(plan1.get("related_events"))
 
             # Downgrade data
             await self.command.run(dry_run=True, revert=True)
-            plan1 = self._get_planning_item("plan1")
+            plan1 = await self._get_planning_item("plan1")
             self.assertEqual(plan1["event_item"], "event1")
             self.assertIsNone(plan1.get("related_events"))
 
@@ -89,12 +82,12 @@ class ReplaceDeprecatedEventItemAttributeTest(TestCase):
         async with self.app.app_context():
             # Upgrade data
             await self.command.run(dry_run=False, revert=False)
-            plan1 = self._get_planning_item("plan1")
+            plan1 = await self._get_planning_item("plan1")
             self.assertIsNone(plan1["event_item"])
             self.assertEqual(plan1["related_events"], [PlanningRelatedEventLink(_id="event1", link_type="primary")])
 
             # Downgrade data
             await self.command.run(dry_run=False, revert=True)
-            plan1 = self._get_planning_item("plan1")
+            plan1 = await self._get_planning_item("plan1")
             self.assertEqual(plan1["event_item"], "event1")
             self.assertEqual(plan1["related_events"], [])
