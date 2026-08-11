@@ -1,11 +1,8 @@
 import json
 import click
 
-from eve.utils import ParsedRequest
-
 from superdesk.commands import cli
 from superdesk.resource_fields import VERSION
-from superdesk import get_resource_service
 from superdesk.logging import logger
 from superdesk.celery_task_utils import get_lock_id
 from superdesk.lock import lock, unlock
@@ -13,6 +10,7 @@ from superdesk.utils import json_serialize_datetime_objectId
 from superdesk.publish.transmitters.http_push import HTTPPushService
 from planning.common import get_version_item_for_post
 from planning.output_formatters import JsonPlanningFormatter, JsonEventFormatter
+from planning.types.unified import UnifiedPlanningResource
 
 
 class NewsroomHTTPTransmitter(HTTPPushService):
@@ -76,75 +74,58 @@ class ExportToNewsroom:
 
         logger.info("Completed export events and planning.")
 
-    async def _fetch_items(self, fetch_callback):
+    async def _fetch_items(self, item_type):
         query = {
             "query": {
                 "bool": {
                     "must": [
+                        {"term": {"type": item_type}},
                         {"term": {"pubstatus": "usable"}},
                         {"terms": {"state": ["scheduled", "postponed", "rescheduled"]}},
                     ]
                 }
             },
             "sort": [{"versioncreated": {"order": "asc"}}],
-            "size": 0,
         }
-        req = ParsedRequest()
-        req.args = {"source": json.dumps(query)}
-        cursor = await fetch_callback(req=req, lookup=None)
-        total_documents = await cursor.count()
-
-        if total_documents > 0:
-            query["size"] = self.page_size
-            total_pages = len(range(0, total_documents, self.page_size))
-            for page_num in range(0, total_pages):
-                query["from"] = page_num * self.page_size
-                req = ParsedRequest()
-                req.args = {"source": json.dumps(query)}
-                cursor = await fetch_callback(req=req, lookup=None)
-                items = await cursor.to_list()
-                yield items
+        service = UnifiedPlanningResource.get_service()
+        async for item in service.get_all_batch_elastic_raw(query, size=self.page_size):
+            yield item
 
     async def _export_events(self):
         """Export events"""
         logger.info("Starting to export events")
-        events_service = get_resource_service("events")
 
         formatter = JsonEventFormatter()
         destination = self._get_destination("json_event")
         formatter.set_destination(destination=destination, subscriber=self.subscriber)
         transmitter = NewsroomHTTPTransmitter()
-        async for items in self._fetch_items(events_service.get_async):
-            for item in items:
-                try:
-                    logger.info("Processing event item: {}".format(item.get("_id")))
-                    version, event = get_version_item_for_post(item)
-                    queue_item = self._get_queue_item(event, formatter._format_item, destination)
-                    transmitter.transmit(queue_item)
-                    logger.info("Processing processed item: {}".format(item.get("_id")))
-                except Exception:
-                    logger.exception("Failed to export event: {}".format(item.get("_id")))
+        async for item in self._fetch_items("event"):
+            try:
+                logger.info("Processing event item: {}".format(item.get("_id")))
+                version, event = get_version_item_for_post(item)
+                queue_item = self._get_queue_item(event, formatter._format_item, destination)
+                transmitter.transmit(queue_item)
+                logger.info("Processing processed item: {}".format(item.get("_id")))
+            except Exception:
+                logger.exception("Failed to export event: {}".format(item.get("_id")))
 
     async def _export_planning(self):
-        """Export events"""
+        """Export planning"""
         logger.info("Starting to export planning")
-        # TODO-ASYNC[PlanningService] - Convert this to async when function is updated to async
-        planning_service = get_resource_service("planning")
 
         formatter = JsonPlanningFormatter()
         destination = self._get_destination("json_planning")
         formatter.set_destination(destination=destination, subscriber=self.subscriber)
         transmitter = NewsroomHTTPTransmitter()
-        async for items in self._fetch_items(planning_service.get_async):
-            for item in items:
-                try:
-                    logger.info("Processing planning item: {}".format(item.get("_id")))
-                    version, plan = get_version_item_for_post(item)
-                    queue_item = self._get_queue_item(plan, formatter._format_item, destination)
-                    transmitter.transmit(queue_item)
-                    logger.info("Processed planning item: {}".format(item.get("item_id")))
-                except Exception:
-                    logger.exception("Failed to export planning item: {}".format(item.get("_id")))
+        async for item in self._fetch_items("planning"):
+            try:
+                logger.info("Processing planning item: {}".format(item.get("_id")))
+                version, plan = get_version_item_for_post(item)
+                queue_item = self._get_queue_item(plan, formatter._format_item, destination)
+                transmitter.transmit(queue_item)
+                logger.info("Processed planning item: {}".format(item.get("item_id")))
+            except Exception:
+                logger.exception("Failed to export planning item: {}".format(item.get("_id")))
 
     def _get_queue_item(self, item, format_callback, destination):
         """Get the queue item

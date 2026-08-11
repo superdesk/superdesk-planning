@@ -1,11 +1,10 @@
 from typing import Literal, AsyncGenerator
 from datetime import datetime
 
-from planning.events import EventsAsyncService
-from planning.planning import PlanningAsyncService
 from superdesk.core import get_config
 from superdesk.core.utils import date_to_str
 from planning.search.queries import elastic
+from planning.types.unified import UnifiedPlanningResource
 
 
 async def iterate_expired_items(
@@ -17,12 +16,14 @@ async def iterate_expired_items(
     if projection is not None and "_updated" not in projection:
         projection.append("_updated")
 
-    resource_service = EventsAsyncService() if resource_type == "event" else PlanningAsyncService()
+    resource_service = UnifiedPlanningResource.get_service()
 
     query = elastic.ElasticQuery()
     query.sort = [{"_updated": "asc"}]
     query.size = get_config(int, "MAX_EXPIRY_QUERY_LIMIT")
     query.extend_query(base_query or {})
+
+    query.filter.append(elastic.term("type", resource_type))
 
     if resource_type == "event":
         query.filter.append(
@@ -48,7 +49,7 @@ async def iterate_expired_items(
             [
                 elastic.field_range(
                     elastic.ElasticRangeParams(
-                        field="planning_date",
+                        field="dates.start",
                         lt=date_to_str(expiry_datetime),
                         time_zone="UTC",
                     )

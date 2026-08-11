@@ -10,14 +10,13 @@
 
 import logging
 import click
-from typing import Dict, Any, Iterator
+from typing import Dict, Any, AsyncGenerator
 
-from superdesk import get_resource_service
 from superdesk.commands import cli
-from superdesk.core import get_current_app
 from superdesk.errors import SuperdeskApiError
 
 from planning.types import PlanningRelatedEventLink, Planning
+from planning.types.unified import UnifiedPlanningResource
 from planning.utils import get_first_related_event_id_for_planning
 
 
@@ -53,7 +52,7 @@ class ReplaceDeprecatedEventItemAttributeCommand:
 
     async def upgrade(self, dry_run: bool):
         updated = 0
-        for original in self.get_items(True):
+        async for original in self.get_items(True):
             related_event = PlanningRelatedEventLink(_id=original["event_item"], link_type="primary")
             if original.get("recurrence_id"):
                 related_event["recurrence_id"] = original["recurrence_id"]
@@ -69,7 +68,7 @@ class ReplaceDeprecatedEventItemAttributeCommand:
     async def downgrade(self, dry_run: bool):
         updated = 0
 
-        for original in self.get_items(False):
+        async for original in self.get_items(False):
             updates: Dict[str, Any] = {
                 "event_item": get_first_related_event_id_for_planning(original),
                 "related_events": [],
@@ -85,7 +84,7 @@ class ReplaceDeprecatedEventItemAttributeCommand:
             print("update", original["_id"], updates)
         else:
             try:
-                await get_resource_service("planning").system_update_async(original["_id"], updates, original)
+                await UnifiedPlanningResource.get_service().system_update(original["_id"], updates)
                 print(".", end="")
             except SuperdeskApiError as err:
                 print("x")  # Add line break so the exception starts on its own line
@@ -94,23 +93,22 @@ class ReplaceDeprecatedEventItemAttributeCommand:
 
         return 1
 
-    def get_items(self, for_upgrade: bool) -> Iterator[Planning]:
+    async def get_items(self, for_upgrade: bool) -> AsyncGenerator[Planning, None]:
         last_id = None
         size = 500
         max_iterations = 10000
 
-        # Use pymongo directly, as ``event_item`` is not in the planning resource schema anymore
-        app = get_current_app()
-        planning_db = app.data.mongo.pymongo("planning").db["planning"]
+        # Query mongo directly, as ``event_item`` is not in the unified resource schema anymore
+        collection = UnifiedPlanningResource.get_service().mongo_async
         lookup: Dict[str, Any] = (
-            {"event_item": {"$ne": None}} if for_upgrade else {"related_events": {"$exists": True, "$nin": [None, []]}}
+            {"type": "planning", "event_item": {"$ne": None}}
+            if for_upgrade
+            else {"type": "planning", "related_events": {"$exists": True, "$nin": [None, []]}}
         )
-        _lookup = lookup
 
         for i in range(max_iterations):
-            if last_id is not None:
-                _lookup = {"$and": [lookup.copy(), {"_id": {"$gt": last_id}}]}
-            items = list(planning_db.find(_lookup).sort("_id").limit(size))
+            _lookup = lookup if last_id is None else {"$and": [lookup, {"_id": {"$gt": last_id}}]}
+            items = await collection.find(_lookup).sort("_id").limit(size).to_list(length=size)
             if not len(items):
                 break
             for item in items:

@@ -17,8 +17,9 @@ from superdesk.flask import g
 from superdesk.utc import utcnow
 from superdesk.tests import utils as test_utils, fixtures
 
-from planning.tests import TestCase
+from planning.tests import TestCase, fixtures as planning_fixtures
 from planning.types import PlanningRelatedEventLink
+from planning.types.unified import UnifiedPlanningResource
 from .flag_expired_items import flag_expired_items_handler
 
 now = utcnow()
@@ -27,14 +28,22 @@ two_days_ago = now - timedelta(hours=48)
 active = {
     "event": {"dates": {"start": now - timedelta(hours=1), "end": now}},
     "overnightEvent": {"dates": {"start": two_days_ago, "end": now}},
-    "plan": {"planning_date": now},
-    "coverage": {"planning": {"scheduled": now}},
+    "plan": {"dates": {"start": now}},
+    "coverage": {
+        "news_coverage_status": {"qcode": "ncostat:int", "name": "Intended", "label": "Coverage Intended"},
+        "planning": {"scheduled": now, "g2_content_type": "text"},
+        "assigned_to": {"desk": fixtures.desks.SPORTS_DESK_ID, "state": "draft"},
+    },
 }
 
 expired = {
     "event": {"dates": {"start": two_days_ago, "end": two_days_ago + timedelta(hours=1)}},
-    "plan": {"planning_date": two_days_ago},
-    "coverage": {"planning": {"scheduled": two_days_ago}},
+    "plan": {"dates": {"start": two_days_ago}},
+    "coverage": {
+        "news_coverage_status": {"qcode": "ncostat:int", "name": "Intended", "label": "Coverage Intended"},
+        "planning": {"scheduled": two_days_ago, "g2_content_type": "text"},
+        "assigned_to": {"desk": fixtures.desks.SPORTS_DESK_ID, "state": "draft"},
+    },
 }
 
 
@@ -44,29 +53,29 @@ class BaseFlagExpiredItemsTest(TestCase):
         # Expire items that are scheduled more than 24 hours from now
         "PLANNING_EXPIRY_MINUTES": 24 * 60,
         "PUBLISH_QUEUE_EXPIRY_MINUTES": 24 * 60,
+        "ELASTICSEARCH_FORCE_REFRESH": True,
     }
 
     async def asyncSetUp(self):
         await super().asyncSetUp()
 
-        self.event_service = get_resource_service("events")
-        self.planning_service = get_resource_service("planning")
+        self.planning_service = UnifiedPlanningResource.get_service()
 
         await test_utils.post_items("users", fixtures.users.all_users())
         g.user = fixtures.users.admin().to_dict()
+        await test_utils.post_items("vocabularies", planning_fixtures.cvs.all_cvs())
+        await test_utils.post_items("desks", fixtures.desks.all_desks())
+        await test_utils.post_items("stages", fixtures.stages.all_stages())
 
     async def assertExpired(self, item_type, results):
-        service = self.event_service if item_type == "events" else self.planning_service
-
         for item_id, expected_value in results.items():
-            item = await service.find_one_async(guid=item_id, req=None)
+            item = await self.planning_service.find_by_id(item_id)
             if item:
-                self.assertIsNotNone(item)
-                self.assertEqual(item.get("expired", False), expected_value, f"Failed for item: `{item_id}`")
+                self.assertEqual(item.expired or False, expected_value, f"Failed for item: `{item_id}`")
 
     async def insert(self, item_type, items):
-        service = self.event_service if item_type == "events" else self.planning_service
-        await service.post_async(items)
+        item_type_value = "event" if item_type == "events" else "planning"
+        await self.planning_service.create([{**item, "type": item_type_value} for item in items])
 
 
 class FlagExpiredItemsTest(BaseFlagExpiredItemsTest):
@@ -614,6 +623,7 @@ class DisabledFlagExpiredItemsTest(BaseFlagExpiredItemsTest):
         **TestCase.app_config.copy(),
         # Expire items that are scheduled more than 24 hours from now
         "PLANNING_EXPIRY_MINUTES": 0,
+        "ELASTICSEARCH_FORCE_REFRESH": True,
     }
 
     async def test_expire_disabled(self):
