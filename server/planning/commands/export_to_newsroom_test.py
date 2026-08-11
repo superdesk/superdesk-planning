@@ -31,6 +31,11 @@ class MockTransmitter:
 
 
 class ExportToNewsroomTest(TestCase):
+    app_config = {
+        **TestCase.app_config.copy(),
+        "ELASTICSEARCH_FORCE_REFRESH": True,
+    }
+
     async def asyncSetUp(self):
         await super().asyncSetUp()
 
@@ -225,8 +230,6 @@ class ExportToNewsroomTest(TestCase):
 
         await self.planning_service.create(events)
         await self.planning_service.create(planning)
-        client = self.planning_service.elastic
-        await client.elastic.indices.refresh(index=client.config.index)
 
     @mock.patch("planning.commands.export_to_newsroom.NewsroomHTTPTransmitter")
     async def test_events_events_planning(self, mock_transmitter):

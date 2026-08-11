@@ -53,6 +53,7 @@ class BaseFlagExpiredItemsTest(TestCase):
         # Expire items that are scheduled more than 24 hours from now
         "PLANNING_EXPIRY_MINUTES": 24 * 60,
         "PUBLISH_QUEUE_EXPIRY_MINUTES": 24 * 60,
+        "ELASTICSEARCH_FORCE_REFRESH": True,
     }
 
     async def asyncSetUp(self):
@@ -75,9 +76,6 @@ class BaseFlagExpiredItemsTest(TestCase):
     async def insert(self, item_type, items):
         item_type_value = "event" if item_type == "events" else "planning"
         await self.planning_service.create([{**item, "type": item_type_value} for item in items])
-        # unified resource is not force-refreshed in tests; refresh so the command's search sees the items
-        client = self.planning_service.elastic
-        await client.elastic.indices.refresh(index=client.config.index)
 
 
 class FlagExpiredItemsTest(BaseFlagExpiredItemsTest):
@@ -625,6 +623,7 @@ class DisabledFlagExpiredItemsTest(BaseFlagExpiredItemsTest):
         **TestCase.app_config.copy(),
         # Expire items that are scheduled more than 24 hours from now
         "PLANNING_EXPIRY_MINUTES": 0,
+        "ELASTICSEARCH_FORCE_REFRESH": True,
     }
 
     async def test_expire_disabled(self):

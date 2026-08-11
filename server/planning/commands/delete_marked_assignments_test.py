@@ -24,6 +24,11 @@ a3_id = ObjectId()
 
 
 class DeleteMarkedAssignmentsTest(TestCase):
+    app_config = {
+        **TestCase.app_config.copy(),
+        "ELASTICSEARCH_FORCE_REFRESH": True,
+    }
+
     users = [{"_id": ObjectId(), "username": "u1"}, {"_id": ObjectId(), "username": "u2"}]
 
     auth = [
@@ -57,8 +62,6 @@ class DeleteMarkedAssignmentsTest(TestCase):
             # Assignments still reference planning items in the legacy resource (SDBELGA-1122)
             await get_service("planning").create([{**plan, "planning_date": now} for plan in self.plans])
             await self.assignment_service.create(self.assignments)
-            client = self.assignment_service.elastic
-            await client.elastic.indices.refresh(index=client.config.index)
 
             g.user = self.users[0]
             g.auth = self.auth[0]

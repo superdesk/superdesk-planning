@@ -90,6 +90,7 @@ class BaseDeleteSpikedItemsTest(TestCase):
         **TestCase.app_config.copy(),
         # Expire items that are scheduled more than 24 hours from now
         "PLANNING_DELETE_SPIKED_MINUTES": 1440,
+        "ELASTICSEARCH_FORCE_REFRESH": True,
     }
 
     async def asyncSetUp(self):
@@ -107,9 +108,6 @@ class BaseDeleteSpikedItemsTest(TestCase):
     async def insert(self, item_type, items):
         item_type_value = "event" if item_type == "events" else "planning"
         await self.planning_service.create([{**item, "type": item_type_value} for item in items])
-        # unified resource is not force-refreshed in tests; refresh so the command's search sees the items
-        client = self.planning_service.elastic
-        await client.elastic.indices.refresh(index=client.config.index)
 
     async def assertDeleteOperation(self, item_type, ids, not_deleted=False):
         for item_id in ids:

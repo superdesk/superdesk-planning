@@ -34,6 +34,11 @@ assignment_2_id = ObjectId()
 
 # TODO: Add Assignments
 class PurgeExpiredLocksTest(TestCase):
+    app_config = {
+        **TestCase.app_config.copy(),
+        "ELASTICSEARCH_FORCE_REFRESH": True,
+    }
+
     async def asyncSetUp(self) -> None:
         await super().asyncSetUp()
 
@@ -127,8 +132,6 @@ class PurgeExpiredLocksTest(TestCase):
                 item["planning_item"] = "legacy_plan"
             service = get_service(item_type)
             await service.create(items)
-            client = service.elastic
-            await client.elastic.indices.refresh(index=client.config.index)
             return
 
         # Unified create validates lock_user/lock_session as data relations, so create the
@@ -146,9 +149,6 @@ class PurgeExpiredLocksTest(TestCase):
         for item_id, locks in locks_by_id.items():
             if locks:
                 await service.system_update(item_id, locks)
-
-        client = service.elastic
-        await client.elastic.indices.refresh(index=client.config.index)
 
     async def assertLockState(self, item_tests: List[Tuple[str, Union[str, ObjectId], bool]]):
         for resource, item_id, is_locked in item_tests:
