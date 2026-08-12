@@ -271,7 +271,7 @@ async def get_all_items_in_relationship(
             yield item
 
 
-def format_item_addresses(item: UnifiedPlanningResource, seperator: str = " ") -> None:
+def format_item_addresses(item: UnifiedPlanningResource, separator: str = " ") -> None:
     if not item.location:
         return
 
@@ -289,4 +289,4 @@ def format_item_addresses(item: UnifiedPlanningResource, seperator: str = " ") -
         formatted_address.append(address.state or address.locality or "")
         formatted_address.append(address.postal_code or "")
         formatted_address.append(address.country or "")
-        location.formatted_address = seperator.join([a for a in formatted_address if a]).strip()
+        location.formatted_address = separator.join([a for a in formatted_address if a]).strip()
