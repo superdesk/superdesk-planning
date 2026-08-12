@@ -123,14 +123,7 @@ async def _get_item_from_request[T: AssignmentEventOrPlanning](request: Request,
     if not item_id:
         raise SuperdeskApiError.badRequestError(gettext("Item ID is required"))
 
-    try:
-        item = await resource_model.get_service().find_by_id(item_id)
-    except Exception as e:
-        from pprint import pprint
-
-        pprint(e)
-        raise Exception("FUCK")
-
+    item = await resource_model.get_service().find_by_id(item_id)
     if not item:
         raise SuperdeskApiError.notFoundError(gettext("Item not found"))
 
