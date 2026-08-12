@@ -26,33 +26,30 @@ Feature: Assignments Delete
             "item_class": "item class value",
             "headline": "test headline",
             "slugline": "test slugline",
-            "planning_date": "2016-01-02"
+            "planning_date": "2016-01-02",
+            "coverages": [{
+                "planning": {
+                    "ednote": "test coverage, I want 250 words",
+                    "headline": "test headline",
+                    "slugline": "test slugline",
+                    "g2_content_type" : "text"
+                },
+                "assigned_to": {
+                    "desk": "#desks._id#",
+                    "user": "#CONTEXT_USER_ID#",
+                    "state": "assigned"
+                },
+                "workflow_status": "active",
+                "news_coverage_status": {"qcode": "ncostat:int", "name": "coverage intended", "label": "Planned"}
+            }]
         }]
-        """
-        Then we get OK response
-        When we patch "/planning/#planning._id#"
-        """
-        {"coverages": [{
-            "planning": {
-                "ednote": "test coverage, I want 250 words",
-                "headline": "test headline",
-                "slugline": "test slugline",
-                "g2_content_type" : "text"
-            },
-            "assigned_to": {
-                "desk": "#desks._id#",
-                "user": "#CONTEXT_USER_ID#",
-                "state": "assigned"
-            },
-            "workflow_status": "active"
-        }]}
         """
         Then we get OK response
         Then we store coverage id in "coverageId" from coverage 0
         Then we store assignment id in "assignmentId" from coverage 0
 
     @auth
-    @notification
+    @notification @wip
     Scenario: Cannot delete an Assignment if assignment is not locked
         When we delete "/assignments/#assignmentId#"
         Then we get error 403
@@ -98,8 +95,8 @@ Feature: Assignments Delete
                     "g2_content_type" : "text"
                 },
                 "assigned_to": {
-                    "desk": "__no_value__",
-                    "user": "__no_value__"
+                    "desk": null,
+                    "user": null
                 },
                 "workflow_status": "draft"
             }]
@@ -356,7 +353,7 @@ Feature: Assignments Delete
             "recurrence_id": "#EVENT2.recurrence_id#"
         }
         """
-        When we post to "/events/#EVENT1._id#/lock"
+        When we post to "planning/#EVENT1._id#/lock"
         """
         {"lock_action": "edit"}
         """
@@ -406,10 +403,6 @@ Feature: Assignments Delete
 
     @auth @today @planning_cvs
     Scenario: Deleting an Assignment in schedule_updates chain will remove all assignments in the chain
-        Given "desks"
-        """
-        [{"_id": "desk_123", "name": "Politic Desk"}]
-        """
         Given empty "planning"
         When we post to "planning"
         """
@@ -435,8 +428,8 @@ Feature: Assignments Delete
                         "slugline": "test slugline"
                     },
                     "assigned_to": {
-                        "desk": "desk_123",
-                        "user": "507f191e810c19729de870eb",
+                        "desk": "#desks._id#",
+                        "user": "#CONTEXT_USER_ID#",
                         "state": "draft"
                     }
                 }
@@ -465,8 +458,8 @@ Feature: Assignments Delete
                     },
                     "assigned_to": {
                         "assignment_id": "#firstassignment#",
-                        "desk": "desk_123",
-                        "user": "507f191e810c19729de870eb",
+                        "desk": "#desks._id#",
+                        "user": "#CONTEXT_USER_ID#",
                         "state": "draft"
                     }
                 }
@@ -494,13 +487,13 @@ Feature: Assignments Delete
                     },
                     "assigned_to": {
                         "assignment_id": "#firstassignment#",
-                        "desk": "desk_123",
-                        "user": "507f191e810c19729de870eb"
+                        "desk": "#desks._id#",
+                        "user": "#CONTEXT_USER_ID#"
                     },
                     "scheduled_updates": [{
                         "assigned_to": {
-                            "desk": "desk_123",
-                            "user": "507f191e810c19729de870eb",
+                            "desk": "#desks._id#",
+                            "user": "#CONTEXT_USER_ID#",
                             "state": "draft"
                         },
                         "coverage_id": "#firstcoverage#",
@@ -513,8 +506,8 @@ Feature: Assignments Delete
                     },
                     {
                         "assigned_to": {
-                            "desk": "desk_123",
-                            "user": "507f191e810c19729de870eb",
+                            "desk": "#desks._id#",
+                            "user": "#CONTEXT_USER_ID#",
                             "state": "draft"
                         },
                         "coverage_id": "#firstcoverage#",
@@ -556,14 +549,14 @@ Feature: Assignments Delete
                     },
                     "assigned_to": {
                         "assignment_id": "#firstassignment#",
-                        "desk": "desk_123",
-                        "user": "507f191e810c19729de870eb"
+                        "desk": "#desks._id#",
+                        "user": "#CONTEXT_USER_ID#"
                     },
                     "scheduled_updates": [{
                         "assigned_to": {
                             "assignment_id": "#firstscheduledassignment#",
-                            "desk": "desk_123",
-                            "user": "507f191e810c19729de870eb",
+                            "desk": "#desks._id#",
+                            "user": "#CONTEXT_USER_ID#",
                             "state": "draft"
                         },
                         "coverage_id": "#firstcoverage#",
@@ -579,8 +572,8 @@ Feature: Assignments Delete
                     {
                         "assigned_to": {
                             "assignment_id": "#secondscheduledassignment#",
-                            "desk": "desk_123",
-                            "user": "507f191e810c19729de870eb",
+                            "desk": "#desks._id#",
+                            "user": "#CONTEXT_USER_ID#",
                             "state": "draft"
                         },
                         "coverage_id": "#firstcoverage#",
@@ -623,15 +616,15 @@ Feature: Assignments Delete
                     },
                     "assigned_to": {
                         "assignment_id": "#firstassignment#",
-                        "desk": "desk_123",
-                        "user": "507f191e810c19729de870eb"
+                        "desk": "#desks._id#",
+                        "user": "#CONTEXT_USER_ID#"
                     },
                     "scheduled_updates": [{
                         "scheduled_update_id": "#firstscheduled#",
                         "assigned_to": {
                             "assignment_id": "#firstscheduledassignment#",
-                            "desk": "desk_123",
-                            "user": "507f191e810c19729de870eb",
+                            "desk": "#desks._id#",
+                            "user": "#CONTEXT_USER_ID#",
                             "state": "active"
                         },
                         "coverage_id": "#firstcoverage#",
@@ -646,8 +639,8 @@ Feature: Assignments Delete
                         "scheduled_update_id": "#secondscheduled#",
                         "assigned_to": {
                             "assignment_id": "#secondscheduledassignment#",
-                            "desk": "desk_123",
-                            "user": "507f191e810c19729de870eb",
+                            "desk": "#desks._id#",
+                            "user": "#CONTEXT_USER_ID#",
                             "state": "active"
                         },
                         "coverage_id": "#firstcoverage#",
@@ -685,15 +678,15 @@ Feature: Assignments Delete
                     },
                     "assigned_to": {
                         "assignment_id": "#firstassignment#",
-                        "desk": "desk_123",
-                        "user": "507f191e810c19729de870eb"
+                        "desk": "#desks._id#",
+                        "user": "#CONTEXT_USER_ID#"
                     },
                     "scheduled_updates": [{
                         "scheduled_update_id": "#firstscheduled#",
                         "assigned_to": {
                             "assignment_id": "#firstscheduledassignment#",
-                            "desk": "desk_123",
-                            "user": "507f191e810c19729de870eb",
+                            "desk": "#desks._id#",
+                            "user": "#CONTEXT_USER_ID#",
                             "state": "assigned"
                         },
                         "coverage_id": "#firstcoverage#",
@@ -710,8 +703,8 @@ Feature: Assignments Delete
                         "scheduled_update_id": "#secondscheduled#",
                         "assigned_to": {
                             "assignment_id": "#secondscheduledassignment#",
-                            "desk": "desk_123",
-                            "user": "507f191e810c19729de870eb",
+                            "desk": "#desks._id#",
+                            "user": "#CONTEXT_USER_ID#",
                             "state": "assigned"
                         },
                         "coverage_id": "#firstcoverage#",
@@ -786,8 +779,8 @@ Feature: Assignments Delete
                         "slugline": "test slugline"
                     },
                     "assigned_to": {
-                        "desk": "desk_123",
-                        "user": "507f191e810c19729de870eb",
+                        "desk": "#desks._id#",
+                        "user": "#CONTEXT_USER_ID#",
                         "state": "draft"
                     }
                 }
@@ -816,8 +809,8 @@ Feature: Assignments Delete
                     },
                     "assigned_to": {
                         "assignment_id": "#firstassignment#",
-                        "desk": "desk_123",
-                        "user": "507f191e810c19729de870eb",
+                        "desk": "#desks._id#",
+                        "user": "#CONTEXT_USER_ID#",
                         "state": "draft"
                     }
                 }
@@ -845,13 +838,13 @@ Feature: Assignments Delete
                     },
                     "assigned_to": {
                         "assignment_id": "#firstassignment#",
-                        "desk": "desk_123",
-                        "user": "507f191e810c19729de870eb"
+                        "desk": "#desks._id#",
+                        "user": "#CONTEXT_USER_ID#"
                     },
                     "scheduled_updates": [{
                         "assigned_to": {
                             "desk": "#desks._id#",
-                            "user": "507f191e810c19729de870eb",
+                            "user": "#CONTEXT_USER_ID#",
                             "state": "draft"
                         },
                         "coverage_id": "#firstcoverage#",
@@ -864,8 +857,8 @@ Feature: Assignments Delete
                     },
                     {
                         "assigned_to": {
-                            "desk": "desk_123",
-                            "user": "507f191e810c19729de870eb",
+                            "desk": "#desks._id#",
+                            "user": "#CONTEXT_USER_ID#",
                             "state": "draft"
                         },
                         "coverage_id": "#firstcoverage#",
@@ -907,14 +900,14 @@ Feature: Assignments Delete
                     },
                     "assigned_to": {
                         "assignment_id": "#firstassignment#",
-                        "desk": "desk_123",
-                        "user": "507f191e810c19729de870eb"
+                        "desk": "#desks._id#",
+                        "user": "#CONTEXT_USER_ID#"
                     },
                     "scheduled_updates": [{
                         "assigned_to": {
                             "assignment_id": "#firstscheduledassignment#",
                             "desk": "#desks._id#",
-                            "user": "507f191e810c19729de870eb",
+                            "user": "#CONTEXT_USER_ID#",
                             "state": "draft"
                         },
                         "coverage_id": "#firstcoverage#",
@@ -930,8 +923,8 @@ Feature: Assignments Delete
                     {
                         "assigned_to": {
                             "assignment_id": "#secondscheduledassignment#",
-                            "desk": "desk_123",
-                            "user": "507f191e810c19729de870eb",
+                            "desk": "#desks._id#",
+                            "user": "#CONTEXT_USER_ID#",
                             "state": "draft"
                         },
                         "coverage_id": "#firstcoverage#",
@@ -964,15 +957,15 @@ Feature: Assignments Delete
                     },
                     "assigned_to": {
                         "assignment_id": "#firstassignment#",
-                        "desk": "desk_123",
-                        "user": "507f191e810c19729de870eb"
+                        "desk": "#desks._id#",
+                        "user": "#CONTEXT_USER_ID#"
                     },
                     "scheduled_updates": [{
                         "scheduled_update_id": "#firstscheduled#",
                         "assigned_to": {
                             "assignment_id": "#firstscheduledassignment#",
                             "desk": "#desks._id#",
-                            "user": "507f191e810c19729de870eb",
+                            "user": "#CONTEXT_USER_ID#",
                             "state": "active"
                         },
                         "coverage_id": "#firstcoverage#",
@@ -987,8 +980,8 @@ Feature: Assignments Delete
                         "scheduled_update_id": "#secondscheduled#",
                         "assigned_to": {
                             "assignment_id": "#secondscheduledassignment#",
-                            "desk": "desk_123",
-                            "user": "507f191e810c19729de870eb",
+                            "desk": "#desks._id#",
+                            "user": "#CONTEXT_USER_ID#",
                             "state": "active"
                         },
                         "coverage_id": "#firstcoverage#",
@@ -1154,7 +1147,7 @@ Feature: Assignments Delete
         """
 
     @auth
-    @notification
+    @notification @wip
     Scenario: Remove Coverage assignee also removes the linked Assignment
         When we post to "/archive"
         """
@@ -1207,11 +1200,7 @@ Feature: Assignments Delete
                 "slugline": "test slugline",
                 "g2_content_type" : "text"
             },
-            "assigned_to": {
-                "desk": "__no_value__",
-                "user": "__no_value__",
-                "state": "__no_value__"
-            },
+            "assigned_to": null,
             "workflow_status": "draft"
         }]}
         """

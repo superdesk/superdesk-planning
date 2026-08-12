@@ -112,19 +112,19 @@ Feature: Search Events and Planning Locks
             {"slugline": "ep-p-locked", "type": "planning"}
         ]}
         """
-        When we post to "/events/event_2/lock" with success
+        When we post to "planning/event_2/lock" with success
         """
         {"lock_action": "edit"}
         """
-        When we post to "/events/event_4/lock" with success
+        When we post to "planning/event_4/lock" with success
         """
         {"lock_action": "edit"}
         """
-        When we post to "/planning/planning_2/lock" with success
+        When we post to "planning/planning_2/lock" with success
         """
         {"lock_action": "edit"}
         """
-        When we post to "/planning/planning_5/lock" with success
+        When we post to "planning/planning_5/lock" with success
         """
         {"lock_action": "edit"}
         """
@@ -150,11 +150,11 @@ Feature: Search Events and Planning Locks
             {"slugline": "ep-unlocked", "type": "planning"}
         ]}
         """
-        When we post to "/events/event_1/lock" with success
+        When we post to "planning/event_1/lock" with success
         """
         {"lock_action": "edit"}
         """
-        When we post to "/events/event_3/lock" with success
+        When we post to "planning/event_3/lock" with success
         """
         {"lock_action": "edit"}
         """

@@ -198,7 +198,7 @@ Feature: Events Update Time
         Then we store "EVENT2" with 2 item
         Then we store "EVENT3" with 3 item
         Then we store "EVENT4" with 4 item
-        When we post to "/events/#EVENT2._id#/lock" with success
+        When we post to "planning/#EVENT2._id#/lock" with success
         """
         {"lock_action": "update_time"}
         """
@@ -315,7 +315,7 @@ Feature: Events Update Time
         Then we store "EVENT2" with 2 item
         Then we store "EVENT3" with 3 item
         Then we store "EVENT4" with 4 item
-        When we post to "/events/#EVENT2._id#/lock" with success
+        When we post to "planning/#EVENT2._id#/lock" with success
         """
         {"lock_action": "update_time"}
         """
@@ -432,7 +432,7 @@ Feature: Events Update Time
         Then we store "EVENT2" with 2 item
         Then we store "EVENT3" with 3 item
         Then we store "EVENT4" with 4 item
-        When we post to "/events/#EVENT2._id#/lock" with success
+        When we post to "planning/#EVENT2._id#/lock" with success
         """
         {"lock_action": "update_time"}
         """
@@ -559,7 +559,7 @@ Feature: Events Update Time
             "planning_date": "2016-01-02"
         }]
         """
-        When we post to "/events/#EVENT3._id#/lock" with success
+        When we post to "planning/#EVENT3._id#/lock" with success
         """
         {"lock_action": "reschedule"}
         """
@@ -576,7 +576,7 @@ Feature: Events Update Time
         """
         Then we get OK response
         Then we store "DUPLICATE" from last rescheduled item
-        When we post to "/events/#EVENT2._id#/lock" with success
+        When we post to "planning/#EVENT2._id#/lock" with success
         """
         {"lock_action": "update_time"}
         """
@@ -679,13 +679,13 @@ Feature: Events Update Time
             "planning_date": "2016-01-02"
         }]
         """
-        When we post to "/events/#EVENT3._id#/lock" with success
+        When we post to "planning/#EVENT3._id#/lock" with success
         """
         {"lock_action": "postpone"}
         """
         When we perform postpone on events "#EVENT3._id#"
         Then we get OK response
-        When we post to "/events/#EVENT2._id#/lock" with success
+        When we post to "planning/#EVENT2._id#/lock" with success
         """
         {"lock_action": "update_time"}
         """
@@ -780,13 +780,13 @@ Feature: Events Update Time
             "planning_date": "2016-01-02"
         }]
         """
-        When we post to "/events/#EVENT3._id#/lock" with success
+        When we post to "planning/#EVENT3._id#/lock" with success
         """
         {"lock_action": "cancel"}
         """
         When we perform cancel on events "#EVENT3._id#"
         Then we get OK response
-        When we post to "/events/#EVENT2._id#/lock" with success
+        When we post to "planning/#EVENT2._id#/lock" with success
         """
         {"lock_action": "update_time"}
         """
