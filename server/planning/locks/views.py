@@ -68,7 +68,7 @@ async def unlock_planning_endpoint(request: Request) -> Response:
     return Response(response, status_code=201)
 
 
-@planning_lock_endpoints.endpoint("assignments/<string:item_id>/unlock", name="planning_unlock", methods=["POST"])
+@planning_lock_endpoints.endpoint("assignments/<string:item_id>/unlock", name="assignments_unlock", methods=["POST"])
 async def unlock_assignment_endpoint(request: Request) -> Response:
     item = await _get_item_from_request(request, AssignmentResourceModel)
     updated = await unlock_item(item)
