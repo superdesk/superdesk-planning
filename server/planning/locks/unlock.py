@@ -17,6 +17,7 @@ from planning.types import (
 from planning.types.unified import UnifiedPlanningResource, PlanningItemType
 from planning import signals
 from planning.unified.common import get_related_event_ids
+from planning.common import get_item_type_name
 
 from .common import validate_lock_permission
 
@@ -82,14 +83,14 @@ async def _remove_item_lock[T: AssignmentEventOrPlanning](original: T) -> T:
         "lock_action": None,
     }
 
-    item_type = "events" if original.item_type == PlanningItemType.EVENT else original.item_type
+    item_type_name = get_item_type_name(original)
     original_dict = original.to_dict()
-    await getattr(app, f"on_unlock_{item_type}").call_async(original_dict, updates)
+    await getattr(app, f"on_unlock_{item_type_name}").call_async(original_dict, updates)
     await signals.on_item_unlock.send(original)
 
     updated = await service.update(original.id, updates, original=original, skip_signals=True)
     push_notification(
-        f"{item_type}:unlock",
+        f"{item_type_name}:unlock",
         item=original.id,
         user=str(original.lock_user),
         lock_session=(original.lock_session),
@@ -100,7 +101,7 @@ async def _remove_item_lock[T: AssignmentEventOrPlanning](original: T) -> T:
         clientId=current_request.get_url_arg("clientId") if current_request else None,
     )
 
-    await getattr(app, f"on_unlocked_{item_type}").call_async(updated.to_dict())
+    await getattr(app, f"on_unlocked_{item_type_name}").call_async(updated.to_dict())
     await signals.on_item_unlocked.send(updated)
 
     return updated

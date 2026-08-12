@@ -934,3 +934,12 @@ def get_hateoas_links(item: AssignmentEventOrPlanning) -> dict:
         links["self"] = {"title": "Planning", "href": f"/planning/{item.id}"}
 
     return links
+
+
+def get_item_type_name(item: AssignmentEventOrPlanning) -> str:
+    if isinstance(item, AssignmentResourceModel):
+        return "assignments"
+    elif item.item_type == PlanningItemType.EVENT:
+        return "events"
+    else:
+        return item.item_type.value

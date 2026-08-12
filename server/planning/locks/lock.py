@@ -20,6 +20,7 @@ from planning.unified.common import (
     get_related_event_ids,
 )
 from planning import signals
+from planning.common import get_item_type_name
 
 from .common import validate_lock_permission
 
@@ -188,14 +189,14 @@ async def _update_item_lock[T: AssignmentEventOrPlanning](original: T, lock_data
         recurrence_id = None
 
     with _item_lock_guard(original):
-        item_type = "events" if original.item_type == PlanningItemType.EVENT else original.item_type
+        item_type_name = get_item_type_name(original)
         original_dict = original.to_dict()
-        await getattr(app, f"on_lock_{item_type}").call_async(original_dict, lock_data.lock_user)
+        await getattr(app, f"on_lock_{item_type_name}").call_async(original_dict, lock_data.lock_user)
         await signals.on_item_lock.send(original, lock_data)
 
         updated = await service.update(original.id, lock_data.to_dict(), original=original, skip_signals=True)
         push_notification(
-            f"{item_type}:lock",
+            f"{item_type_name}:lock",
             item=original.id,
             user=str(lock_data.lock_user),
             lock_time=updated.lock_time,
@@ -208,7 +209,7 @@ async def _update_item_lock[T: AssignmentEventOrPlanning](original: T, lock_data
             clientId=current_request.get_url_arg("clientId") if current_request else None,
         )
 
-        await getattr(app, f"on_locked_{item_type}").call_async(original_dict, updated.to_dict())
+        await getattr(app, f"on_locked_{item_type_name}").call_async(original_dict, updated.to_dict())
         await signals.on_item_locked.send(original, updated)
 
         return updated
