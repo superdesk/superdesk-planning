@@ -106,7 +106,7 @@ class IngestRuleHandlerTestCase(TestCase):
             ],
         )
         event = self.event_items[0]
-        self.app.data.insert("events", [event])
+        await self.app.data.insert_async("events", [event])
         original = self.app.data.find_one("events", req=None, _id=event["_id"])
 
         await self.handler.apply_rule({"actions": {"extra": {"calendars": [self.calendars[0]["qcode"]]}}}, event, {})
@@ -129,7 +129,7 @@ class IngestRuleHandlerTestCase(TestCase):
             ],
         )
         event = self.event_items[1]
-        self.app.data.insert("events", [event])
+        await self.app.data.insert_async("events", [event])
         original = self.app.data.find_one("events", req=None, _id=event["_id"])
 
         await self.handler.apply_rule(
@@ -148,7 +148,7 @@ class IngestRuleHandlerTestCase(TestCase):
     async def test_adds_planning_agendas(self):
         self.app.data.insert("agenda", self.agendas)
         plan = self.planning_items[0]
-        self.app.data.insert("planning", [plan])
+        await self.app.data.insert_async("planning", [plan])
         original = self.app.data.find_one("planning", req=None, _id=plan["_id"])
 
         await self.handler.apply_rule({"actions": {"extra": {"agendas": [self.agendas[0]["_id"]]}}}, plan, {})
@@ -162,7 +162,7 @@ class IngestRuleHandlerTestCase(TestCase):
     async def test_skips_disabled_and_existing_agendas(self):
         self.app.data.insert("agenda", self.agendas)
         plan = self.planning_items[1]
-        self.app.data.insert("planning", [plan])
+        await self.app.data.insert_async("planning", [plan])
         original = self.app.data.find_one("planning", req=None, _id=plan["_id"])
 
         await self.handler.apply_rule(

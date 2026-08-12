@@ -34,7 +34,7 @@ class IngestCancelledTestCase(TestCase):
             ],
         }
 
-        self.app.data.insert("planning", [planning])
+        await self.app.data.insert_async("planning", [planning])
 
         await update_post_item({"pubstatus": "cancelled"}, planning)
 
