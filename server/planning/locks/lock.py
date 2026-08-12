@@ -199,7 +199,7 @@ async def _update_item_lock[T: AssignmentEventOrPlanning](original: T, lock_data
             item=original.id,
             user=str(lock_data.lock_user),
             lock_time=updated.lock_time,
-            lock_sessoin=str(updated.lock_session),
+            lock_session=str(updated.lock_session),
             lock_action=updated.lock_action,
             etag=updated.etag,
             event_ids=related_event_ids,
