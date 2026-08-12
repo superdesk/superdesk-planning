@@ -21,7 +21,7 @@ from werkzeug.datastructures import MultiDict
 from quart_babel import gettext
 
 from superdesk.core import get_app_config, get_current_app, get_config
-from superdesk.resource_fields import ID_FIELD, VERSION
+from superdesk.resource_fields import ID_FIELD, VERSION, LINKS
 from superdesk.resource import not_analyzed, build_custom_hateoas
 from superdesk.publish_async.commands import publish_item
 from superdesk import get_resource_service, logger
@@ -39,9 +39,13 @@ from planning.types import (
     Event,
     EventAutosaveResourceModel,
     PlanningAutosaveResourceModel,
+    AssignmentEventOrPlanning,
+    AssignmentResourceModel,
+    UnifiedPlanningResource,
 )
+from planning.types.unified import PlanningItemType
 
-from .item_lock import LOCK_SESSION, LOCK_ACTION, LOCK_TIME, LOCK_USER
+from apps.item_lock.components.item_lock import LOCK_USER, LOCK_SESSION, LOCK_ACTION, LOCK_TIME
 
 ITEM_STATE = "state"
 ITEM_EXPIRY = "expiry"
@@ -896,3 +900,37 @@ def assignment_allows_multiple_content_linked(assignment: dict) -> bool:
         return assignment["planning"]["multiple_content"] is True
     except (KeyError, TypeError):
         return False
+
+
+def get_hateoas_links(item: AssignmentEventOrPlanning) -> dict:
+    """
+    Generate HATEOAS links for a given item based on its type.
+
+    This function generates a dictionary of HATEOAS links for a given item. The
+    links vary depending on whether the item is an assignment, an event, or a
+    planning item. Each link includes a title and an href pointing to the
+    appropriate resource.
+
+    :param item: The object for which HATEOAS links are to be generated. This can be an
+                 instance of AssignmentResourceModel, or an object with `item_type`
+                 indicating it is an event or a planning item.
+    :return: A dictionary containing the HATEOAS links for the given item. The
+             specific keys and values depend on the type of the provided item.
+    """
+
+    links: dict = {}
+
+    if isinstance(item, AssignmentResourceModel):
+        links["self"] = {
+            "title": "Assignments",
+            "href": f"/assignments/{item.id}",
+        }
+    elif item.item_type == PlanningItemType.EVENT:
+        links["self"] = {
+            "title": "Events",
+            "href": f"/events/{item.id}",
+        }
+    elif item.item_type == PlanningItemType.PLANNING:
+        links["self"] = {"title": "Planning", "href": f"/planning/{item.id}"}
+
+    return links
