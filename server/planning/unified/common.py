@@ -2,10 +2,13 @@ from collections.abc import AsyncGenerator
 import logging
 from dataclasses import dataclass
 
+from quart_babel import gettext
+
 from superdesk.core import get_config
 from superdesk.core.types import ProjectedFieldArg
 from superdesk.core.resources.cursor import ResourceCursorAsync
 from superdesk.utc import utcnow
+from superdesk.errors import SuperdeskApiError
 
 from planning.types import WorkflowState
 from planning.types.unified import (
@@ -15,6 +18,7 @@ from planning.types.unified import (
     RelatedEventLinkType,
     ItemScheduleEntry,
     ItemUpdateScheduleEntry,
+    PlanningItemType,
 )
 
 
@@ -235,3 +239,54 @@ async def get_recurring_timeline(
             future.append(event)
 
     return historic, past, future
+
+
+async def get_all_items_in_relationship(
+    item: UnifiedPlanningResource,
+    link_type: RelatedEventLinkType = RelatedEventLinkType.PRIMARY,
+) -> AsyncGenerator[UnifiedPlanningResource, None]:
+    service = UnifiedPlanningResource.get_service()
+
+    if item.item_type == PlanningItemType.PLANNING:
+        event_id = get_first_related_event_id(item, link_type)
+        if not event_id:
+            # This Planning item is not linked to any Event (of the provided ``link_type``)
+            # safely return without yielding any items
+            return
+        elif not item.recurrence_id:
+            event = await service.find_by_id(event_id)
+            if not event:
+                raise SuperdeskApiError.badRequestError(gettext("Planning's related Event not found"))
+
+            yield event
+            async for item in await get_related_planning_for_events([event_id], link_type):
+                yield item
+
+    if item.recurrence_id:
+        # This is a recurring series, get all Events & Planning items in the series
+        async for item in await service.find({"recurrence_id": item.recurrence_id}):
+            yield item
+    else:
+        async for item in await get_related_planning_for_events([item.id], link_type):
+            yield item
+
+
+def format_item_addresses(item: UnifiedPlanningResource, seperator: str = " ") -> None:
+    if not item.location:
+        return
+
+    for location in item.location:
+        address = location.address
+        if not address:
+            location.formatted_address = ""
+            continue
+
+        formatted_address: list[str] = []
+        if address.line:
+            formatted_address.append(address.line[0])
+
+        formatted_address.append(address.city or address.area or "")
+        formatted_address.append(address.state or address.locality or "")
+        formatted_address.append(address.postal_code or "")
+        formatted_address.append(address.country or "")
+        location.formatted_address = seperator.join([a for a in formatted_address if a]).strip()
