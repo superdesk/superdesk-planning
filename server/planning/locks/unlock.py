@@ -119,7 +119,7 @@ async def _unlock_session_for_resource(
 
 async def _unlock_featured_planning(user_id: ObjectId, session_id: ObjectId, is_last_session: bool) -> None:
     service = PlanningFeaturedLockResource.get_service()
-    query = {"lock_user": str(user_id)} if is_last_session else {"lock_session": str(session_id)}
+    query = {"lock_user": user_id} if is_last_session else {"lock_session": session_id}
     count = await service.count(query, use_mongo=True)
     if count:
         await service.delete_many({})
