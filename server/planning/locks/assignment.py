@@ -1,6 +1,7 @@
 from bson import ObjectId
 from quart_babel import gettext
 
+from superdesk import get_resource_service
 from superdesk.errors import SuperdeskApiError
 from apps.archive.common import get_auth
 from superdesk.utc import utcnow
@@ -47,8 +48,8 @@ async def sync_content_lock_to_assignment(item: dict, user_id: ObjectId) -> None
         # in which case there is no lock data to sync
         return
 
-    archive_service = AssignmentResourceModel.get_service()
-    if not item.get("rewrite_of") or await archive_service.count({"assignment_id": assignment.id}) <= 1:
+    archive_service = get_resource_service("archive")
+    if not item.get("rewrite_of") or await archive_service.count_async({"assignment_id": assignment.id}) <= 1:
         lock_data = LockFields(
             lock_user=user_id or item.get("version_creator"),
             lock_action="content_edit",
