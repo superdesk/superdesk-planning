@@ -48,7 +48,9 @@ class CVItem(Dataclass):
 class LocationAddress(Dataclass):
     boundingbox: list[str] | None = Field(description="Bounding box of the address", default=None)
     city: fields.Keyword | None = Field(description="City of the address", default=None)
+    area: fields.Keyword | None = Field(description="Area of the address", default=None)
     state: fields.Keyword | None = Field(description="State of the address", default=None)
+    postal_code: fields.Keyword | None = Field(description="Postal code of the address", default=None)
     country: fields.Keyword | None = Field(description="Country of the address", default=None)
     line: list[str] | None = Field(description="Line of the address", default=None)
     locality: fields.Keyword | None = Field(description="Locality of the address", default=None)

@@ -5,12 +5,13 @@ from typing_extensions import Self
 
 from superdesk.utc import utcnow
 from superdesk.core import get_config
-from superdesk.core.resources import dataclass, fields, Dataclass
+from superdesk.core.resources import dataclass, fields, Dataclass, BaseModel
 from superdesk.core.elastic.mapping import json_schema_to_elastic_mapping
 from superdesk.core.resources.validators import validate_data_relation_async
 from superdesk.core.utils import generate_guid, GUID_NEWSML
 
 from .enums import LinkType
+from .unified.system import AuditInformation
 
 
 class NameAnalyzedField(str, fields.CustomStringField):
@@ -267,6 +268,7 @@ class PlanningCoverage(Dataclass):
     flags: CoverageFlags = Field(default_factory=CoverageFlags)
     time_to_be_confirmed: TimeToBeConfirmedType = False
     scheduled_updates: list[ScheduledUpdate] = Field(default_factory=list)
+    multiple_content: bool = False
 
     # @model_validator(mode="before")
     @classmethod
@@ -292,8 +294,10 @@ class PlanningCoverage(Dataclass):
         return values
 
 
-class AssignmentCoverage(PlanningCoverage):
+class AssignmentCoverage(AuditInformation, BaseModel):
     contact: fields.Keyword | None = None
+    planning: CoverageInternalPlanning = Field(default_factory=CoverageInternalPlanning)
+    news_coverage_status: NewsCoverageStatus = Field(default_factory=NewsCoverageStatus)
 
 
 class LockFieldsMixin:
