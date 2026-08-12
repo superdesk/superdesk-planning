@@ -168,7 +168,7 @@ describe('planningApi.locks', () => {
                     // `dataApi` was called with the correct URL and params
                     expect(superdeskApi.dataApi.create.callCount).toBe(1);
                     expect(superdeskApi.dataApi.create.args[0]).toEqual([
-                        'events/e1/lock',
+                        'planning/e1/lock',
                         {lock_action: 'edit'},
                         {clientId: 'abcd123'},
                     ]);
