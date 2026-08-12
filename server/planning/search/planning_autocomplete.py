@@ -1,7 +1,7 @@
 from typing import Dict, Any
 from datetime import timedelta
 
-from superdesk.core import get_app_config, get_current_async_app
+from superdesk.core import get_app_config
 from superdesk.utc import utcnow
 from apps.archive.autocomplete import (
     SETTING_LIMIT as AUTOCOMPLETE_LIMIT,
@@ -12,8 +12,6 @@ from apps.archive.autocomplete import (
 
 from planning.common import WORKFLOW_STATE, POST_STATE
 from planning.types.unified import PlanningItemType, UnifiedPlanningResource
-
-UNIFIED_RESOURCE = "unified_planning"
 
 
 async def get_planning_suggestions(field: str, language: str) -> Dict[str, int]:
@@ -61,11 +59,8 @@ async def get_event_suggestions(field: str, language: str) -> Dict[str, int]:
 
 
 async def _run_suggestions_query(query: Dict[str, Any]) -> Dict[str, int]:
-    async_app = get_current_async_app()
-    index = async_app.elastic.get_elastic_index_name(UNIFIED_RESOURCE)
-    elastic = UnifiedPlanningResource.get_service().elastic
-    res = await elastic.search(query, [index])
-    return _get_aggregation_values(res["aggregations"])
+    res = await UnifiedPlanningResource.get_service().search(query)
+    return _get_aggregation_values(res.hits["aggregations"])
 
 
 def _get_aggregation_values(aggregations) -> Dict[str, int]:
