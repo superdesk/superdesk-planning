@@ -20,6 +20,7 @@ from datetime import datetime
 from dateutil import parser
 
 from eve.methods.common import resolve_document_etag
+from eve.utils import ParsedRequest
 from quart_babel import gettext as _
 
 import superdesk
@@ -27,12 +28,14 @@ from superdesk.core import get_app_config, get_current_app
 from superdesk.resource_fields import ID_FIELD
 from superdesk import get_resource_service
 from superdesk.eve_async.service import AsyncBaseService
+from superdesk.eve_async.cursors import AsyncEveCursor
 from superdesk.errors import SuperdeskApiError
 from superdesk.users.services import current_user_has_privilege
 from superdesk.publish_async.utils import get_next_sequence_number
 
 from planning.events.events_history_async_service import EventsHistoryAsyncService
 from planning.types import Event, PLANNING_RELATED_EVENT_LINK_TYPE
+from planning.types.unified import PlanningItemType
 from planning.common import (
     prepare_ingested_item_for_storage,
     format_address,
@@ -164,6 +167,15 @@ class EventsService(AsyncBaseService):
         # this is to fix the existing events have original creator as empty string
         if not doc.get("original_creator"):
             doc.pop("original_creator", None)
+
+    async def get_async(self, req: ParsedRequest | None, lookup: dict | None) -> AsyncEveCursor:
+        if req is None:
+            req = ParsedRequest()
+
+        if not lookup:
+            lookup = {}
+            lookup["type"] = PlanningItemType.EVENT.value
+        return await self.backend.get_async(self.datasource, req=req, lookup=lookup)
 
     async def get_all_items_in_relationship(
         self, item: Event, event_link_type: PLANNING_RELATED_EVENT_LINK_TYPE = "primary"
