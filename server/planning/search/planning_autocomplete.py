@@ -1,7 +1,7 @@
 from typing import Dict, Any
 from datetime import timedelta
 
-from superdesk.core import get_app_config, get_current_app
+from superdesk.core import get_app_config
 from superdesk.utc import utcnow
 from apps.archive.autocomplete import (
     SETTING_LIMIT as AUTOCOMPLETE_LIMIT,
@@ -11,10 +11,11 @@ from apps.archive.autocomplete import (
 )
 
 from planning.common import WORKFLOW_STATE, POST_STATE
+from planning.types.unified import PlanningItemType, UnifiedPlanningResource
 
 
-def get_planning_suggestions(field: str, language: str) -> Dict[str, int]:
-    bool_query = _construct_bool_query(language)
+async def get_planning_suggestions(field: str, language: str) -> Dict[str, int]:
+    bool_query = _construct_bool_query(language, PlanningItemType.PLANNING)
     bool_query["should"].append(
         {
             "nested": {
@@ -41,21 +42,24 @@ def get_planning_suggestions(field: str, language: str) -> Dict[str, int]:
     query = {
         "query": {"bool": bool_query},
         "aggs": aggs_query,
+        "size": 0,
     }
 
-    app = get_current_app()
-    res = app.data.elastic.search(query, "planning", params={"size": 0})
-    return _get_aggregation_values(res.hits["aggregations"])
+    return await _run_suggestions_query(query)
 
 
-def get_event_suggestions(field: str, language: str) -> Dict[str, int]:
+async def get_event_suggestions(field: str, language: str) -> Dict[str, int]:
     query = {
-        "query": {"bool": _construct_bool_query(language)},
+        "query": {"bool": _construct_bool_query(language, PlanningItemType.EVENT)},
         "aggs": _construct_aggs_query(field, language),
+        "size": 0,
     }
 
-    app = get_current_app()
-    res = app.data.elastic.search(query, "events", params={"size": 0})
+    return await _run_suggestions_query(query)
+
+
+async def _run_suggestions_query(query: Dict[str, Any]) -> Dict[str, int]:
+    res = await UnifiedPlanningResource.get_service().search(query)
     return _get_aggregation_values(res.hits["aggregations"])
 
 
@@ -97,7 +101,7 @@ def agg_field_suggestion(field):
     }
 
 
-def _construct_bool_query(language: str) -> Dict[str, Any]:
+def _construct_bool_query(language: str, item_type: PlanningItemType) -> Dict[str, Any]:
     versioncreated_min = (
         utcnow() - timedelta(days=get_app_config(AUTOCOMPLETE_DAYS), hours=get_app_config(AUTOCOMPLETE_HOURS))
     ).replace(
@@ -106,6 +110,7 @@ def _construct_bool_query(language: str) -> Dict[str, Any]:
 
     return {
         "must": [
+            {"term": {"type": item_type.value}},
             {"term": {"pubstatus": POST_STATE.USABLE}},
             {"terms": {"state": [WORKFLOW_STATE.SCHEDULED, WORKFLOW_STATE.POSTPONED, WORKFLOW_STATE.RESCHEDULED]}},
             {"range": {"versioncreated": {"gte": versioncreated_min}}},
