@@ -26,7 +26,7 @@ from superdesk.metadata.item import get_schema
 from apps.auth import get_user_id
 from apps.templates.content_templates import get_item_from_template
 
-from planning.types import UnifiedPlanningResource
+from planning.types import UnifiedPlanningResource, SearchItemType
 from planning.common import (
     WORKFLOW_STATE,
     format_address,
@@ -73,11 +73,13 @@ async def get_items(ids, resource_type):
     ids_string = [str(item_id) for item_id in ids]
 
     query: dict = {"_id": {"$in": ids}}
-    if resource_type:
-        query["type"] = resource_type
+    if resource_type and resource_type != SearchItemType.COMBINED.value:
+        query["type"] = "event" if resource_type == SearchItemType.PLANNING.value else resource_type
 
     cursor = await service.find(query, use_mongo=True, max_results=EXPORT_FETCH_PAGE_SIZE)
-    items = sorted([item.to_dict() async for item in cursor], key=lambda item: ids_string.index(item.id))
+    items = sorted(
+        [item.to_dict() async for item in cursor], key=lambda item: ids_string.index(str(item["_id"]))
+    )
 
     for item in items:
         item_type = item.get("type")
