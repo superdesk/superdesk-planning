@@ -125,12 +125,6 @@ autosave_resource_config = ResourceConfig(
                 background=True,
                 unique=False,
             ),
-            MongoIndexOptions(
-                name="planning_autosave_session",
-                keys=[("lock_session", 1)],
-                background=True,
-                unique=False,
-            ),
         ]
     ),
     rest_endpoints=RestEndpointConfig(
