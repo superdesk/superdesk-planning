@@ -1,5 +1,6 @@
 import React from 'react';
 import {mount, ReactWrapper} from 'enzyme';
+import {Label} from 'superdesk-ui-framework/react';
 import {appConfig} from 'appConfig';
 
 import '../../utils/testUtils';
@@ -13,18 +14,18 @@ describe('<CoverageItem />', () => {
     });
 
     interface IRenderOptions {
-        autoAssignToWorkflow: boolean;
+        autoAssignToWorkflow?: boolean;
         overrideAutoAssignToWorkflow?: boolean;
         workflowStatus?: string;
         isPreview?: boolean;
     }
 
     const renderCoverageItem = ({
-        autoAssignToWorkflow,
+        autoAssignToWorkflow = false,
         overrideAutoAssignToWorkflow,
         workflowStatus = 'active',
         isPreview = true,
-    }: IRenderOptions): ReactWrapper => {
+    }: IRenderOptions = {}): ReactWrapper => {
         appConfig.planning_auto_assign_to_workflow = autoAssignToWorkflow;
 
         // The component reads only a handful of fields off each entity, so the fixtures are
@@ -56,16 +57,19 @@ describe('<CoverageItem />', () => {
         return wrapper;
     };
 
-    it('shows "Added to workflow" when adding to workflow is not automatic', () => {
+    const labelTexts = (wrapper: ReactWrapper): Array<string> =>
+        wrapper.find(Label).map((label) => label.prop('text'));
+
+    it('shows "Added to workflow" instead of the status when someone added the coverage', () => {
         const wrapper = renderCoverageItem({autoAssignToWorkflow: false});
 
-        expect(wrapper.text()).toContain('Added to workflow');
+        expect(labelTexts(wrapper)).toEqual(['Added to workflow']);
     });
 
-    it('hides "Added to workflow" when the coverage was added to workflow automatically', () => {
+    it('shows the status instead of "Added to workflow" when the coverage was added automatically', () => {
         const wrapper = renderCoverageItem({autoAssignToWorkflow: true});
 
-        expect(wrapper.text()).not.toContain('Added to workflow');
+        expect(labelTexts(wrapper)).toEqual(['active']);
     });
 
     it('shows "Added to workflow" when the planning item overrides auto assign to workflow', () => {
@@ -74,28 +78,23 @@ describe('<CoverageItem />', () => {
             overrideAutoAssignToWorkflow: true,
         });
 
-        expect(wrapper.text()).toContain('Added to workflow');
+        expect(labelTexts(wrapper)).toEqual(['Added to workflow']);
     });
 
-    it('hides "Added to workflow" when the coverage is not in workflow', () => {
-        const wrapper = renderCoverageItem({
-            autoAssignToWorkflow: false,
-            workflowStatus: 'draft',
-        });
+    it('shows the status when the coverage is not in workflow', () => {
+        const wrapper = renderCoverageItem({workflowStatus: 'draft'});
 
-        expect(wrapper.text()).not.toContain('Added to workflow');
+        expect(labelTexts(wrapper)).toEqual(['draft']);
     });
 
     it('omits the "Desk" label in previews', () => {
-        const wrapper = renderCoverageItem({autoAssignToWorkflow: false, isPreview: true});
+        const wrapper = renderCoverageItem({isPreview: true});
 
         expect(wrapper.text()).toContain('Sports');
         expect(wrapper.text()).not.toContain('Desk:');
     });
 
     it('renders the "Desk" label outside previews', () => {
-        const wrapper = renderCoverageItem({autoAssignToWorkflow: false, isPreview: false});
-
-        expect(wrapper.text()).toContain('Desk:');
+        expect(renderCoverageItem({isPreview: false}).text()).toContain('Desk:');
     });
 });
