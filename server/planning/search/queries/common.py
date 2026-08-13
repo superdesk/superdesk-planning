@@ -342,6 +342,7 @@ async def search_locked(params: Dict[str, Any], query: elastic.ElasticQuery):
         locked_items = await service.find(
             {"query": {"bool": {"must": elastic.field_exists("lock_session")}}},
             projection=["_id", "type", "dates", "recurrence_id", "related_events"],
+            max_results=1_000,
         )
 
         if not await locked_items.count():
