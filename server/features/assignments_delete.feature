@@ -1105,6 +1105,7 @@ Feature: Assignments Delete
         """
         [{
             "_id": "#planning._id#",
+            "type": "planning",
             "coverages": [{
                 "coverage_id": "#coverageId#",
                 "planning": {
