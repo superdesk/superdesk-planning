@@ -3,6 +3,7 @@ import {connect} from 'react-redux';
 import {get, isEqual} from 'lodash';
 
 import {IDesk, IUser} from 'superdesk-api';
+import {appConfig} from 'appConfig';
 import {IContactItem, IG2ContentType, IPlanningCoverageItem, IPlanningItem} from '../../interfaces';
 
 import * as selectors from '../../selectors';
@@ -179,7 +180,10 @@ export class CoverageItemComponent extends React.Component<IProps, IState> {
     renderFirstRow() {
         return (
             <Row paddingBottom>
-                <span className="sd-overflow-ellipsis sd-list-item--element-grow">
+                <span
+                    className="sd-overflow-ellipsis sd-list-item--element-grow"
+                    title={gettext('Coverage type')}
+                >
                     {this.state.displayContentType}
                 </span>
                 <time>
@@ -199,7 +203,14 @@ export class CoverageItemComponent extends React.Component<IProps, IState> {
         const {
             coverage,
             item,
+            isPreview,
         } = this.props;
+
+        // The label only says something when adding to workflow was a manual step. The server adds
+        // automatically when PLANNING_AUTO_ASSIGN_TO_WORKFLOW is on and the planning item does not
+        // set the override flag (see `planning_service.py`).
+        const addedToWorkflowAutomatically = appConfig.planning_auto_assign_to_workflow === true &&
+            item.flags?.overide_auto_assign_to_workflow !== true;
 
         return (
             <Row>
@@ -213,10 +224,15 @@ export class CoverageItemComponent extends React.Component<IProps, IState> {
                 )}
 
                 {this.state.deskAssigned && (
-                    <span className="sd-overflow-ellipsis sd-list-item--element-grow">
-                        <span className="sd-list-item__text-label sd-list-item__text-label--normal">
-                            {gettext('Desk: ')}
-                        </span>
+                    <span
+                        className="sd-overflow-ellipsis sd-list-item--element-grow"
+                        title={gettext('Desk')}
+                    >
+                        {isPreview ? null : (
+                            <span className="sd-list-item__text-label sd-list-item__text-label--normal">
+                                {gettext('Desk: ')}
+                            </span>
+                        )}
                         {get(this.state.deskAssigned, 'name')}
                     </span>
                 )}
@@ -231,7 +247,7 @@ export class CoverageItemComponent extends React.Component<IProps, IState> {
                             `${this.state.internalNoteFieldPrefix}.workflow_status` : 'state'}
                         showHeaderText={false}
                     />
-                    {this.state.addedToWorkflow && (
+                    {(this.state.addedToWorkflow && !addedToWorkflowAutomatically) && (
                         <Label
                             text={gettext('Added to workflow')}
                             type="success"
