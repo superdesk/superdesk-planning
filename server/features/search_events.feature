@@ -8,16 +8,20 @@ Feature: Event Search
             {"name": "entertainment", "_id": "68e5df45ac0f6c8b678c17b3", "is_enabled": true}
         ]
         """
+        And "ingest_providers"
+        """
+        [{"name": "agency", "source": "YYY"}]
+        """
         And "events"
             """
             [
                 {
                     "guid": "event_123",
                     "unique_id": "123",
-                    "unique_name": "name",
+                    "unique_name": "name 123",
                     "recurrence_id": "recur1",
                     "state": "ingested",
-                    "ingest_provider": "5923b82f1d41c858e1a5b0ce",
+                    "ingest_provider": "#ingest_providers._id#",
                     "name": "event 123",
                     "slugline": "test1 slugline",
                     "definition_short": "short value",
@@ -40,7 +44,7 @@ Feature: Event Search
                 {
                     "guid": "event_456",
                     "unique_id": "456",
-                    "unique_name": "name",
+                    "unique_name": "name 456",
                     "state": "draft",
                     "name": "event 456",
                     "slugline": "test2 slugline",
@@ -74,7 +78,7 @@ Feature: Event Search
                 {
                     "guid": "event_786",
                     "unique_id": "786",
-                    "unique_name": "name",
+                    "unique_name": "name 789",
                     "name": "event 786",
                     "state": "active",
                     "pubstatus": "usable",
@@ -282,7 +286,7 @@ Feature: Event Search
             {"_id": "event_123"}
         ]}
         """
-        When we get "/events_planning_search?repo=events&only_future=false&source=5923b82f1d41c858e1a5b0ce"
+        When we get "/events_planning_search?repo=events&only_future=false&source=#ingest_providers._id#"
         Then we get list with 1 items
         """
         {"_items": [
@@ -315,19 +319,23 @@ Feature: Event Search
 
     @auth
     Scenario: Users can only see their events without the planning_global_filters privilege
-        Given empty "events"
-        Given "events"
+        Given "users"
+        """
+        [{"username": "John"}]
+        """
+        And empty "events"
+        And "events"
         """
         [{
             "guid": "user_1_event_1",
             "name": "event1 for user 1",
             "dates": {"start": "2016-01-02T00:00:00+0000", "end": "2016-01-03T00:00:00+0000"},
-            "original_creator": "user_1"
+            "original_creator": "#users._id#"
         }, {
             "guid": "user_1_event_2",
             "name": "event2 for user 1",
             "dates": {"start": "2016-01-02T00:00:00+0000", "end": "2016-01-03T00:00:00+0000"},
-            "original_creator": "user_1"
+            "original_creator": "#users._id#"
         }, {
             "guid": "user_2_event_1",
             "name": "event1 for user 2",

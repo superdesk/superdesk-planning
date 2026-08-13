@@ -22,7 +22,7 @@ Feature: Search Feature
                 }
             ]
             """
-        When we get "/planning_search"
+        When we get "/events_planning_search?only_future=false"
         Then we get list with 1 items
 
     @auth
@@ -38,7 +38,7 @@ Feature: Search Feature
             }
         ]
         """
-        When we get "/planning_search"
+        When we get "/events_planning_search?only_future=false"
         Then we get list with 1 items
 
     @auth
@@ -75,7 +75,7 @@ Feature: Search Feature
                 }
             ]
             """
-        When we get "/planning_search"
+        When we get "/events_planning_search?only_future=false"
         Then we get list with 2 items
         """
         {
@@ -85,7 +85,7 @@ Feature: Search Feature
             ]
         }
         """
-        When we get "/planning_search?source=%7B%22query%22%3A%7B%22bool%22%3A%7B%22must%22%3A%5B%7B%22query_string%22%3A%7B%22query%22%3A%22slugline%3Aslugline%22%7D%7D%5D%7D%7D%7D"
+        When we get "/events_planning_search?only_future=false&slugline=slugline"
         Then we get list with 2 items
         """
         {
@@ -95,7 +95,7 @@ Feature: Search Feature
             ]
         }
         """
-        When we get "/planning_search?source=%7B%22query%22%3A%7B%22bool%22%3A%7B%22must%22%3A%5B%7B%22query_string%22%3A%7B%22query%22%3A%22headline%3Atest%22%7D%7D%5D%7D%7D%7D"
+        When we get "/events_planning_search?repo=planning&only_future=false&headline=test"
         Then we get list with 1 items
         """
         {
@@ -205,7 +205,7 @@ Feature: Search Feature
                 {
                     "guid": "event_123",
                     "unique_id": "123",
-                    "unique_name": "name",
+                    "unique_name": "name 123",
                     "name": "event 123",
                     "slugline": "test slugline",
                     "definition_short": "short value",
@@ -224,7 +224,7 @@ Feature: Search Feature
                 {
                     "guid": "event_456",
                     "unique_id": "456",
-                    "unique_name": "name",
+                    "unique_name": "name 456",
                     "name": "event 456",
                     "slugline": "test slugline",
                     "definition_short": "short value",
@@ -242,7 +242,7 @@ Feature: Search Feature
                 {
                     "guid": "event_786",
                     "unique_id": "786",
-                    "unique_name": "name",
+                    "unique_name": "name 789",
                     "name": "event 786",
                     "slugline": "test slugline",
                     "definition_short": "short value",
@@ -632,9 +632,7 @@ Feature: Search Feature
     Scenario: Search planning by assigned user
         Given "users"
         """
-        [
-            {"username": "John"}
-        ]
+        [{"username": "John"}]
         """
         Given "planning"
         """
@@ -644,9 +642,11 @@ Feature: Search Feature
                 "name": "event",
                 "planning_date": "2035-07-31T00:00:00+0000",
                 "coverages": [
-                    {"assigned_to": {
-                        "user": "#users._id#"
-                    }}
+                    {
+                        "workflow_status": "draft",
+                        "news_coverage_status": {"qcode": "ncostat:int", "name": "coverage intended", "label": "Planned"},
+                        "assigned_to": {"user": "#users._id#"}
+                    }
                 ]
             }
         ]
