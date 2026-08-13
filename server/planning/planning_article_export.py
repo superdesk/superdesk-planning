@@ -77,9 +77,7 @@ async def get_items(ids, resource_type):
         query["type"] = "event" if resource_type == SearchItemType.PLANNING.value else resource_type
 
     cursor = await service.find(query, use_mongo=True, max_results=EXPORT_FETCH_PAGE_SIZE)
-    items = sorted(
-        [item.to_dict() async for item in cursor], key=lambda item: ids_string.index(str(item["_id"]))
-    )
+    items = sorted([item.to_dict() async for item in cursor], key=lambda item: ids_string.index(str(item["_id"])))
 
     for item in items:
         item_type = item.get("type")
