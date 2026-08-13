@@ -206,9 +206,9 @@ export class CoverageItemComponent extends React.Component<IProps, IState> {
             isPreview,
         } = this.props;
 
-        // The label only says something when adding to workflow was a manual step. The server adds
-        // automatically when PLANNING_AUTO_ASSIGN_TO_WORKFLOW is on and the planning item does not
-        // set the override flag (see `planning_service.py`).
+        // Nobody chose to add this coverage to workflow: the server did it on creation, and the
+        // action that would have done it by hand is hidden in this state. The status label says
+        // "active" instead, which is all there is to say.
         const addedToWorkflowAutomatically = appConfig.planning_auto_assign_to_workflow === true &&
             item.flags?.overide_auto_assign_to_workflow !== true;
 
@@ -247,31 +247,32 @@ export class CoverageItemComponent extends React.Component<IProps, IState> {
                             `${this.state.internalNoteFieldPrefix}.workflow_status` : 'state'}
                         showHeaderText={false}
                     />
-                    {(this.state.addedToWorkflow && !addedToWorkflowAutomatically) && (
+                    {(this.state.addedToWorkflow && !addedToWorkflowAutomatically) ? (
                         <Label
                             text={gettext('Added to workflow')}
                             type="success"
                         />
-                    )}
-                    <Label
-                        text={this.props.coverage.workflow_status}
-                        style="hollow"
-                        type={(() => {
-                            const {coverage} = this.props;
+                    ) : (
+                        <Label
+                            text={this.props.coverage.workflow_status}
+                            style="hollow"
+                            type={(() => {
+                                const {coverage} = this.props;
 
-                            if (coverage.workflow_status === 'draft') {
-                                return 'default';
-                            } else if (coverage.workflow_status === 'assigned') {
-                                return 'primary';
-                            } else if (coverage.workflow_status === 'spiked') {
-                                return 'alert';
-                            } else if (coverage.workflow_status === 'active') {
-                                return 'success';
-                            } else {
-                                return 'warning';
-                            }
-                        })()}
-                    />
+                                if (coverage.workflow_status === 'draft') {
+                                    return 'default';
+                                } else if (coverage.workflow_status === 'assigned') {
+                                    return 'primary';
+                                } else if (coverage.workflow_status === 'spiked') {
+                                    return 'alert';
+                                } else if (coverage.workflow_status === 'active') {
+                                    return 'success';
+                                } else {
+                                    return 'warning';
+                                }
+                            })()}
+                        />
+                    )}
                 </span>
             </Row>
         );
