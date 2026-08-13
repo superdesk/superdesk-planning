@@ -117,7 +117,7 @@ class UnifiedPlanningResource(
                         scheduled_update.planning.scheduled = coverage.planning.scheduled
             else:
                 if not coverage.get("coverage_id"):
-                    coverage["coverage_id"] = f":-{generate_guid(type=GUID_NEWSML)}"
+                    coverage["coverage_id"] = f"tempId-{generate_guid(type=GUID_NEWSML)}"
                 if not coverage.get("planning") or not coverage["planning"].get("scheduled"):
                     coverage.setdefault("planning", {})["scheduled"] = data["dates"]["start"]
 
