@@ -119,8 +119,9 @@ class FileProvidersTestCase(TestCase):
         mock_app = MockApp(test_file)
         dest = {"config": {"assets_url": "http://example.com", "secret_token": "foo"}}
 
-        with aioresponses() as http_mock, mock.patch(
-            "superdesk.publish.transmitters.http_push.get_current_app", return_value=mock_app
+        with (
+            aioresponses() as http_mock,
+            mock.patch("superdesk.publish.transmitters.http_push.get_current_app", return_value=mock_app),
         ):
             http_mock.get("http://example.com/event_file", repeat=True, status=404, payload={})
             http_mock.post("http://example.com", repeat=True, status=201, payload={})
@@ -152,8 +153,9 @@ class FileProvidersTestCase(TestCase):
         mock_app = MockApp(test_file)
         dest = {"config": {"assets_url": "http://example.com", "secret_token": "foo"}}
 
-        with aioresponses() as http_mock, mock.patch(
-            "superdesk.publish.transmitters.http_push.get_current_app", return_value=mock_app
+        with (
+            aioresponses() as http_mock,
+            mock.patch("superdesk.publish.transmitters.http_push.get_current_app", return_value=mock_app),
         ):
             http_mock.get("http://example.com/plan_file", repeat=True, status=404, payload={})
             http_mock.post("http://example.com", repeat=True, status=201, payload={})
