@@ -20,6 +20,7 @@ __all__ = [
     "events_update",
     "item_unlocked",
     "on_unified_planning_duplicated",
+    "on_assignment_removed_from_coverage",
 ]
 
 signals = blinker.Namespace()
@@ -95,4 +96,11 @@ item_unlocked = AsyncSignal[str, dict, ObjectId]("item:unlocked")
 
 on_unified_planning_duplicated = AsyncSignal[UnifiedPlanningResource, UnifiedPlanningResource](
     "unified_planning:duplicated"
+)
+
+#: Signal for when an Assignment is removed from a Coverage
+#: param original: The original UnifiedPlanningResource item
+#: param coverage_id: The ID of the Coverage that the Assignment was removed from
+on_assignment_removed_from_coverage = AsyncSignal[UnifiedPlanningResource, str](
+    "coverage:assignment_removed"
 )

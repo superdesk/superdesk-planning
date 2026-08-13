@@ -15,7 +15,7 @@ from planning.common import (
     TO_BE_CONFIRMED_FIELD,
     get_config_assignment_manual_reassignment_only,
 )
-from planning.types import PlanningAutosaveResourceModel
+from planning.types import AutosaveResourceModel
 
 __all__ = [
     "update_planning_from_assignment_changes",
@@ -51,7 +51,7 @@ async def update_planning_from_assignment_changes(
 
     planning_item: dict | None
     if is_autosave:
-        planning_item = await PlanningAutosaveResourceModel.get_service().find_by_id_raw(item_id=planning_id)
+        planning_item = await AutosaveResourceModel.get_service().find_by_id_raw(planning_id)
     else:
         planning_item = await get_resource_service("planning").find_one_async(req=None, _id=planning_id)
 
@@ -114,7 +114,7 @@ async def update_planning_from_assignment_changes(
     coverage.update(coverage_updates)
 
     if is_autosave:
-        await PlanningAutosaveResourceModel.get_service().system_update(
+        await AutosaveResourceModel.get_service().system_update(
             planning_item[ID_FIELD], updates={"coverages": coverages}
         )
     else:

@@ -18,7 +18,6 @@ from planning.common import (
     set_item_expiry,
     WORKFLOW_STATE,
     get_coverage_type_name,
-    remove_autosave_on_spike,
     remove_lock_information,
 )
 from planning.item_lock import LOCK_USER
@@ -123,9 +122,6 @@ async def process_spike_planning_item(updates: dict[str, Any], original: dict[st
     # Mark item as unlocked directly in order to avoid more queries and notifications
     # coming from lockservice.
     remove_lock_information(updates)
-
-    await remove_autosave_on_spike(original)
-
     planning_item_id = original[ID_FIELD]
     await planning_service.update_async(planning_item_id, updates, original, skip_signals=True)
     await signals.planning_spiked.send(updates, original)

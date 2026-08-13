@@ -39,7 +39,8 @@ from planning.content_profiles.utils import (
 from planning.coverage_assignments import get_metadata_updates_between_entities
 from planning.planning_notifications import PlanningNotifications
 from planning.assignments.assignments_history_async import AssignmentsHistoryAsyncService
-from planning.planning.planning_autosave_service import PlanningAutosaveAsyncService
+# from planning.planning.planning_autosave_service import PlanningAutosaveAsyncService
+from planning import signals
 
 from .common import ItemUpdateRequest, get_related_event_links
 
@@ -715,7 +716,7 @@ async def remove_assignment_from_coverage(assignment: dict) -> dict:
 
     updates = {"coverages": planning_item.to_dict()["coverages"]}
     await planning_service.system_update(planning_item.id, updates)
-    await PlanningAutosaveAsyncService().on_assignment_removed(planning_item.id, coverage_id)
+    await signals.on_assignment_removed_from_coverage.send(planning_item, coverage_id)
 
     updates["related_events"] = get_related_event_links(planning_item)
     return updates
