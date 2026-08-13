@@ -5,6 +5,7 @@ from quart_babel import gettext
 
 from superdesk.core.resources import AsyncResourceService, ResourceModelType
 from superdesk.errors import SuperdeskApiError
+from superdesk.utc import utcnow
 from apps.auth import get_user_id
 
 from planning.types.unified import (
@@ -85,6 +86,8 @@ class UnifiedPlanningResourceService(AsyncResourceService[UnifiedPlanningResourc
         for field in FIELDS_NOT_STORED_IN_DB:
             field_values_not_stored[field] = getattr(doc, field, None)
             setattr(doc, field, None)
+
+        doc.created = doc.updated = utcnow()
         db_response = await super().insert_into_dbs(doc)
 
         # And add those values back onto the model
@@ -107,6 +110,7 @@ class UnifiedPlanningResourceService(AsyncResourceService[UnifiedPlanningResourc
             if field in updates:
                 field_values_not_stored[field] = updates.pop(field)
 
+        updates["_updated"] = validated_updates["_updated"] = utcnow()
         rtn = await super().update_in_dbs(item_id, original, updates, validated_updates)
 
         # And add those values back onto the updates dict
@@ -202,11 +206,13 @@ class UnifiedPlanningResourceService(AsyncResourceService[UnifiedPlanningResourc
         if original.item_type == PlanningItemType.PLANNING:
             if user_id and self._should_update_version_creator(updates, original):
                 updates["version_creator"] = user_id
+                updates["versioncreated"] = utcnow()
             else:
                 updates.pop("version_creator", None)
                 updates.pop("versioncreated", None)
         elif user_id:
             updates["version_creator"] = user_id
+            updates["versioncreated"] = utcnow()
 
         if original.lock_user and str(original.lock_user) != str_user_id:
             raise SuperdeskApiError.forbiddenError(gettext("The item was locked by another user"))
