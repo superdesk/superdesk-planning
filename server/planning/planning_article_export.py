@@ -6,6 +6,7 @@
 # AUTHORS and LICENSE files distributed with this source code, or
 # at https://www.sourcefabric.org/superdesk/license
 
+import logging
 from dateutil import tz, parser
 from bson import ObjectId
 
@@ -25,6 +26,7 @@ from superdesk.metadata.item import get_schema
 from apps.auth import get_user_id
 from apps.templates.content_templates import get_item_from_template
 
+from planning.types import UnifiedPlanningResource
 from planning.common import (
     WORKFLOW_STATE,
     format_address,
@@ -32,12 +34,12 @@ from planning.common import (
     ASSIGNMENT_WORKFLOW_STATE,
     get_first_paragraph_text,
 )
-from planning.events import EventsAsyncService
 from planning.agendas_async import AgendasAsyncService
 from planning.utils import get_related_planning_for_events_async, get_first_related_event_id_for_planning
 from planning.archive import create_item_from_template
 
 
+logger = logging.getLogger(__name__)
 PLACEHOLDER_TEXT = r"{{content}}"
 PLACEHOLDER_HTML = "<p>%s</p>" % PLACEHOLDER_TEXT
 EXPORT_FETCH_PAGE_SIZE = 1000
@@ -67,22 +69,33 @@ class PlanningArticleExportResource(Resource):
 
 
 async def get_items(ids, resource_type):
+    service = UnifiedPlanningResource.get_service()
     ids_string = [str(item_id) for item_id in ids]
-    items = await get_resource_service("events_planning_search").search_repos(
-        resource_type,
-        {"item_ids": ",".join(ids_string), "only_future": False},
-        page_size=EXPORT_FETCH_PAGE_SIZE,
-    )
-    items = sorted([item async for item in items], key=lambda i: ids_string.index(str(i.get("_id"))))
 
-    events_service = EventsAsyncService()
+    query: dict = {"_id": {"$in": ids}}
+    if resource_type:
+        query["type"] = resource_type
+
+    cursor = await service.find(query, use_mongo=True, max_results=EXPORT_FETCH_PAGE_SIZE)
+    items = sorted([item.to_dict() async for item in cursor], key=lambda item: ids_string.index(item.id))
+
     for item in items:
         item_type = item.get("type")
 
         if item_type == "planning":
             event_id = get_first_related_event_id_for_planning(item, "primary")
             if event_id:
-                item["event"] = await events_service.find_by_id_raw(event_id)
+                event = await service.find_by_id(event_id)
+                if not event:
+                    logger.error(
+                        "Failed to find Event linked to the Planning item",
+                        extra=dict(
+                            planning_id=item["_id"],
+                            event_id=event_id,
+                        ),
+                    )
+                else:
+                    item["event"] = event.to_dict()
         elif item_type == "event":
             item["plannings"] = await get_related_planning_for_events_async([item["_id"]], "primary")
             item["coverages"] = []
