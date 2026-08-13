@@ -7,8 +7,9 @@ from superdesk.core.resources import fields, dataclass
 from superdesk.core.resources.validators import validate_data_relation_async
 
 from .base import BasePlanningModelWithObjectId
-from .common import LockFieldsMixin, AssignmentCoverage
+from .common import AssignmentCoverage
 from .enums import AssignmentPublishedState, AssignmentWorkflowState
+from .unified import LockFields
 
 
 @dataclass
@@ -32,7 +33,7 @@ class AssignedTo:
     coverage_provider: CoverageProvider | None = None
 
 
-class AssignmentResourceModel(BasePlanningModelWithObjectId, LockFieldsMixin):
+class AssignmentResourceModel(BasePlanningModelWithObjectId, LockFields):
     firstcreated: datetime = Field(default_factory=utcnow)
     versioncreated: datetime = Field(default_factory=utcnow)
 

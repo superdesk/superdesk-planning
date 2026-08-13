@@ -52,7 +52,7 @@ from .enums import (
 from .agendas import AgendasResourceModel, AgendaItem
 from .planning_types import PlanningTypesResourceModel
 from .planning_featured import PlanningFeaturedResourceModel
-from .autosave import EventAutosaveResourceModel, PlanningAutosaveResourceModel
+from .autosave import AutosaveResourceModel
 from .locations import LocationResourceModel
 from .filters import EventPlanningFilter
 from . import ninjs3
@@ -99,8 +99,7 @@ __all__ = [
     "AgendasResourceModel",
     "AgendaItem",
     "PlanningFeaturedResourceModel",
-    "EventAutosaveResourceModel",
-    "PlanningAutosaveResourceModel",
+    "AutosaveResourceModel",
     "LocationResourceModel",
     "EventPlanningFilter",
     "AssignmentsHistoryResourceModel",
