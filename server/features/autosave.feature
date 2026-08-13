@@ -3,10 +3,11 @@ Feature: Events Autosave
     @auth
     Scenario: Create a new Event Autosave
         Given we have sessions "/sessions"
-        When we post to "event_autosave"
+        When we post to "planning_autosave"
         """
         {
             "_id": "event1",
+            "type": "event",
             "slugline": "Test Event",
             "lock_user": "#CONTEXT_USER_ID#",
             "lock_session": "#SESSION_ID#",
@@ -15,7 +16,7 @@ Feature: Events Autosave
         }
         """
         Then we get OK response
-        When we get "/event_autosave/#event_autosave._id#"
+        When we get "/planning_autosave/#planning_autosave._id#"
         Then we get existing resource
         """
         {
@@ -31,10 +32,11 @@ Feature: Events Autosave
     @auth
     Scenario: Delete Event Autosaves on session end
         Given we have sessions "/sessions"
-        Given "event_autosave"
+        Given "planning_autosave"
         """
         [{
             "_id": "event1",
+            "type": "event",
             "slugline": "Test Event 1",
             "lock_user": "#CONTEXT_USER_ID#",
             "lock_session": "#SESSION_ID#",
@@ -42,6 +44,7 @@ Feature: Events Autosave
             "lock_time": "2018-06-01T05:19:02+0000"
         }, {
             "_id": "event2",
+            "type": "event",
             "slugline": "Test Event 2",
             "lock_user": "#CONTEXT_USER_ID#",
             "lock_session": "2822e25fc5be08b7cdb27490",
@@ -49,6 +52,7 @@ Feature: Events Autosave
             "lock_time": "2018-06-01T05:19:02+0000"
         }, {
             "_id": "event3",
+            "type": "event",
             "slugline": "Test Event 3",
             "lock_user": "3822e25fc5be08b7cdb27490",
             "lock_session": "2822e25fc5be08b7cdb27491",
@@ -61,7 +65,7 @@ Feature: Events Autosave
         """
         {"user_type": "user", "email": "foo.bar@foobar.org"}
         """
-        When we get "/event_autosave"
+        When we get "/planning_autosave"
         Then we get list with 1 items
         """
         {"_items": [{"_id": "event3"}]}
@@ -77,7 +81,7 @@ Feature: Events Autosave
         """
         {"_items": [{ "_id": "#events_files._id#" }]}
         """
-        When we post to "event_autosave"
+        When we post to "planning_autosave"
         """
         {
             "type": "event",
@@ -91,11 +95,11 @@ Feature: Events Autosave
         }
         """
         Then we get OK response
-        When we get "/event_autosave/#event_autosave._id#"
+        When we get "/planning_autosave/#planning_autosave._id#"
         Then we get existing resource
         """
         {
-            "_id": "#event_autosave._id#",
+            "_id": "#planning_autosave._id#",
             "type": "event",
             "slugline": "Test Event",
             "lock_user": "#CONTEXT_USER_ID#",
@@ -105,7 +109,7 @@ Feature: Events Autosave
             "files": ["#events_files._id#"]
         }
         """
-        When we delete "/event_autosave/#event_autosave._id#"
+        When we delete "/planning_autosave/#planning_autosave._id#"
         Then we get OK response
         When we get "events_files/"
         Then we get list with 0 items
@@ -120,6 +124,7 @@ Feature: Events Autosave
         """
         [{
             "_id": "plan1",
+            "type": "planning",
             "slugline": "Test Plan 1",
             "lock_user": "#CONTEXT_USER_ID#",
             "lock_session": "#SESSION_ID#",
@@ -127,6 +132,7 @@ Feature: Events Autosave
             "lock_time": "2018-06-01T05:19:02+0000"
         }, {
             "_id": "plan2",
+            "type": "planning",
             "slugline": "Test Plan 2",
             "lock_user": "#CONTEXT_USER_ID#",
             "lock_session": "2822e25fc5be08b7cdb27490",
@@ -134,6 +140,7 @@ Feature: Events Autosave
             "lock_time": "2018-06-01T05:19:02+0000"
         }, {
             "_id": "plan3",
+            "type": "planning",
             "slugline": "Test Plan 3",
             "lock_user": "3822e25fc5be08b7cdb27490",
             "lock_session": "2822e25fc5be08b7cdb27491",
@@ -155,10 +162,11 @@ Feature: Events Autosave
     @auth
     Scenario: Fails to create a new Event Autosave if user or session not supplied
         Given we have sessions "/sessions"
-        When we post to "event_autosave"
+        When we post to "planning_autosave"
         """
         {
             "_id": "event1",
+            "type": "event",
             "slugline": "Test Event",
             "lock_user": "#CONTEXT_USER_ID#",
             "lock_action": "edit",
@@ -172,10 +180,11 @@ Feature: Events Autosave
             "_message": "Autosave failed, User Session not supplied"
         }
         """
-        When we post to "event_autosave"
+        When we post to "planning_autosave"
         """
         {
             "_id": "event1",
+            "type": "event",
             "slugline": "Test Event",
             "lock_session": "#SESSION_ID#",
             "lock_action": "edit",
@@ -211,10 +220,11 @@ Feature: Events Autosave
             "lock_time": "#DATE#"
         }]
         """
-        When we post to "event_autosave"
+        When we post to "planning_autosave"
         """
         {
             "_id": "event1",
+            "type": "event",
             "slugline": "Test Event",
             "lock_user": "#CONTEXT_USER_ID#",
             "lock_session": "#SESSION_ID#",
@@ -223,14 +233,14 @@ Feature: Events Autosave
         }
         """
         Then we get OK response
-        When we get "/event_autosave/#event_autosave._id#"
+        When we get "/planning_autosave/#planning_autosave._id#"
         Then we get OK response
         When we post to "/events/#events._id#/unlock"
         """
         {}
         """
         Then we get OK response
-        When we get "/event_autosave/#event_autosave._id#"
+        When we get "/planning_autosave/#planning_autosave._id#"
         Then we get error 404
 
     @auth
@@ -254,6 +264,7 @@ Feature: Events Autosave
         """
         {
             "_id": "plan1",
+            "type": "planning",
             "slugline": "Test Plan",
             "lock_user": "#CONTEXT_USER_ID#",
             "lock_session": "#SESSION_ID#",
