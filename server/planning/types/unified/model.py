@@ -1,9 +1,11 @@
 from typing import Annotated, Any
 from enum import Enum, unique
+from datetime import datetime
 
 from pydantic import Field, model_validator, BaseModel, model_serializer
 from pydantic_core import PydanticCustomError
 from quart_babel import gettext
+from pytz.exceptions import UnknownTimeZoneError
 
 from superdesk.core import get_config
 from superdesk.core.resources import ResourceModel, fields, Dataclass
@@ -90,7 +92,7 @@ class UnifiedPlanningResource(
                     raise SuperdeskApiError(message=gettext("Planning item should have a date"))
 
         if not len(data.get("languages") or []):
-            data["languages"] = [get_config(str, "DEFAULT_LANGUAGE")]
+            data["languages"] = [data.get("language") or get_config(str, "DEFAULT_LANGUAGE")]
         if not data.get("language"):
             data["language"] = data["languages"][0]
 
@@ -102,11 +104,28 @@ class UnifiedPlanningResource(
 
         for coverage in data.get("coverages") or []:
             if isinstance(coverage, CoverageItem):
+                if not coverage.coverage_id:
+                    coverage.coverage_id = f"tempId-{generate_guid(type=GUID_NEWSML)}"
+
                 if not coverage.planning or not coverage.planning.scheduled:
                     coverage.planning.scheduled = data["dates"]["start"]
+
+                for scheduled_update in coverage.scheduled_updates or []:
+                    if not scheduled_update.coverage_id:
+                        scheduled_update.coverage_id = coverage.coverage_id
+                    if not scheduled_update.planning or not scheduled_update.planning.scheduled:
+                        scheduled_update.planning.scheduled = coverage.planning.scheduled
             else:
+                if not coverage.get("coverage_id"):
+                    coverage["coverage_id"] = f":-{generate_guid(type=GUID_NEWSML)}"
                 if not coverage.get("planning") or not coverage["planning"].get("scheduled"):
                     coverage.setdefault("planning", {})["scheduled"] = data["dates"]["start"]
+
+                for scheduled_update in coverage.get("scheduled_updates") or []:
+                    if not scheduled_update.get("coverage_id"):
+                        scheduled_update["coverage_id"] = coverage["coverage_id"]
+                    if not scheduled_update.get("planning") or not scheduled_update["planning"].get("scheduled"):
+                        scheduled_update.setdefault("planning", {})["scheduled"] = coverage["planning"]["scheduled"]
 
         return data
 
@@ -115,7 +134,10 @@ class UnifiedPlanningResource(
         if self.item_type == PlanningItemType.EVENT:
             if not self.dates.start or not self.dates.end:
                 raise SuperdeskApiError(message=gettext("Event START DATE and END DATE are mandatory."))
-            if self.dates.no_end_time and self.dates.end.date() < utc_to_local(self.dates.start, self.dates.tz).date():
+            if (
+                self.dates.no_end_time
+                and self.dates.end.date() < _get_local_date(self.dates.start, self.dates.tz).date()
+            ):
                 raise SuperdeskApiError(message=gettext("END TIME should be after START TIME"))
             elif not self.dates.no_end_time and self.dates.end < self.dates.start:
                 raise SuperdeskApiError(message=gettext("END TIME should be after START TIME"))
@@ -152,3 +174,13 @@ class UnifiedPlanningResource(
             if not coverage.get("assigned_to"):
                 coverage["assigned_to"] = None
         return super().clone_with(updates)
+
+
+def _get_local_date(date: datetime, tz: str | None) -> datetime:
+    if tz is None:
+        return date
+
+    try:
+        return utc_to_local(tz, date)
+    except UnknownTimeZoneError:
+        return date
