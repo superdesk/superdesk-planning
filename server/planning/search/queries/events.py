@@ -36,7 +36,7 @@ def get_dates(params: Dict[str, Any]):
 
 
 def search_events(_: Dict[str, Any], query: elastic.ElasticQuery):
-    query.must.append(elastic.term(field="type", value="event"))
+    query.filter.append(elastic.term(field="type", value="event"))
 
 
 def search_slugline(params: Dict[str, Any], query: elastic.ElasticQuery):
