@@ -25,17 +25,24 @@ export class LineItems extends React.PureComponent<IProps> {
             flexGrow: 1,
         };
 
+        // Pushes the `end` items to the far side of the row. It is a zero-width flex item, so it
+        // would collect the row gap on both sides; the negative margin cancels one of them and
+        // leaves a single gap between the last `start` item and the first `end` one.
+        const endDivider = (items: Array<ILineConfig>) => items.length < 1 ? null : (
+            <div className="ms-auto" style={{marginInlineEnd: '-8px'}} />
+        );
+
         return (
             <Spacer v gap="4" noWrap alignItems="stretch">
                 <Spacer h gap="8" justifyContent="start" noWrap noGrow style={firstLineStyles}>
                     {renderFieldsWithProps(firstLineStart)}
-                    <div className="ms-auto" />
+                    {endDivider(firstLineEnd)}
                     {renderFieldsWithProps(firstLineEnd)}
                 </Spacer>
 
                 <Spacer h gap="8" justifyContent="start" noWrap noGrow style={secondLineStyles}>
                     {renderFieldsWithProps(secondLineStart)}
-                    <div className="ms-auto" />
+                    {endDivider(secondLineEnd)}
                     {renderFieldsWithProps(secondLineEnd)}
                 </Spacer>
             </Spacer>
