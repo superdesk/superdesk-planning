@@ -92,6 +92,9 @@ async def _remove_autosave_on_spike(updates: dict, original: dict) -> None:
 
 
 async def _on_item_unlocked(resource: str, item: dict, user_id: ObjectId) -> None:
+    if resource not in ("events", "planning"):
+        return
+
     try:
         # Delete any autosave items associated with this item
         await AutosaveResourceModel.get_service().delete_many(lookup={"_id": item["_id"]})
