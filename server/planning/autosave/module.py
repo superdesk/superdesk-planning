@@ -134,5 +134,5 @@ autosave_resource_config = ResourceConfig(
         resource_methods=["GET", "POST"],
         item_methods=["GET", "PUT", "PATCH", "DELETE"],
         enable_cors=True,
-    )
+    ),
 )
