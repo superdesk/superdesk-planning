@@ -24,6 +24,7 @@ from superdesk.core.types import SearchRequest
 from superdesk.core.resources.cursor import DictCursorAsync
 from superdesk.core.resources.utils import get_projection_arg
 from superdesk.eve_async.service import AsyncBaseService
+from superdesk.eve_async.cursors import AsyncListCursor
 from superdesk.resource_fields import ITEMS, LINKS
 from superdesk.errors import SuperdeskApiError
 
@@ -173,7 +174,8 @@ class EventsPlanningService(AsyncBaseService):
                     field: False for field in projection_fields if field not in ("type", "dates")
                 }
 
-        return DictCursorAsync(await UnifiedPlanningResource.get_service().find(search_request))
+        cursor = DictCursorAsync(await UnifiedPlanningResource.get_service().find(search_request))
+        return AsyncListCursor(await cursor.to_list())
 
     async def get_async(self, req: ParsedRequest | None, lookup: dict | None):
         """Retrieve a list of events and planning that match the filter criteria (if any) passed along the HTTP request.
@@ -212,7 +214,7 @@ class EventsPlanningService(AsyncBaseService):
 
         if on_fetched_resource:
             app = get_current_app().as_any()
-            types = ["assignment"] if repo == "assignments" else ["events", "planning"]
+            types = ["assignments"] if repo == "assignments" else ["events", "planning"]
             for resource in types:
                 response = {ITEMS: [doc async for doc in cursor if get_item_type_name(doc) == resource]}
                 await getattr(app, "on_fetched_resource").call_async(resource, response)
