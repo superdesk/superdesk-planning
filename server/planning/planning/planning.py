@@ -101,12 +101,16 @@ class PlanningService(AsyncBaseService):
         for doc in docs:
             doc["type"] = "planning"
             doc.setdefault("dates", {})["start"] = doc.pop("planning_date", None)
+            if description_text := doc.pop("description_text", None):
+                doc["definition_long"] = description_text
 
         response = await self.backend.create_async(self.datasource, docs, skip_signals=skip_signals, **kwargs)
 
         for doc in docs:
             dates = doc.pop("dates", {})
             doc["planning_date"] = dates.get("start")
+            if definition_long := doc.pop("definition_long", None):
+                doc["description_text"] = definition_long
 
         return response
 
@@ -118,6 +122,8 @@ class PlanningService(AsyncBaseService):
         if item:
             dates = item.pop("dates", {})
             item["planning_date"] = dates.get("start")
+            if definition_long := item.pop("definition_long", None):
+                item["description_text"] = definition_long
 
         return item
 
@@ -173,12 +179,17 @@ class PlanningService(AsyncBaseService):
         if "planning_date" in updates:
             updates["dates"] = (original.get("dates") or {}).copy()
             updates["dates"]["start"] = updates.pop("planning_date")
+        if "description_text" in updates:
+            updates["definition_long"] = updates.pop("description_text")
 
         new_updates = await self.backend.update_async(self.datasource, id, updates, original, skip_signals=skip_signals)
 
         if (updates.get("dates") or {}).get("start"):
             updates["planning_date"] = updates["dates"]["start"]
             updates.pop("dates")
+
+        if "definition_long" in updates:
+            updates["description_text"] = updates.pop("definition_long")
 
         return new_updates
 
