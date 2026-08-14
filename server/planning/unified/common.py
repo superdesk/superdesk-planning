@@ -259,16 +259,17 @@ async def get_all_items_in_relationship(
                 raise SuperdeskApiError.badRequestError(gettext("Planning's related Event not found"))
 
             yield event
-            async for item in await get_related_planning_for_events([event_id], link_type):
-                yield item
+            async for related_item in await get_related_planning_for_events([event_id], link_type):
+                yield related_item
+            return
 
     if item.recurrence_id:
         # This is a recurring series, get all Events & Planning items in the series
-        async for item in await service.find({"recurrence_id": item.recurrence_id}):
-            yield item
+        async for related_item in await service.find({"recurrence_id": item.recurrence_id}):
+            yield related_item
     else:
-        async for item in await get_related_planning_for_events([item.id], link_type):
-            yield item
+        async for related_item in await get_related_planning_for_events([item.id], link_type):
+            yield related_item
 
 
 def format_item_addresses(item: UnifiedPlanningResource, separator: str = " ") -> None:
