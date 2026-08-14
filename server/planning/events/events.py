@@ -172,9 +172,8 @@ class EventsService(AsyncBaseService):
         if req is None:
             req = ParsedRequest()
 
-        if not lookup:
-            lookup = {}
-            lookup["type"] = PlanningItemType.EVENT.value
+        lookup = dict(lookup or {})
+        lookup["type"] = PlanningItemType.EVENT.value
         return await self.backend.get_async(self.datasource, req=req, lookup=lookup)
 
     async def get_all_items_in_relationship(

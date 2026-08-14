@@ -212,9 +212,8 @@ class PlanningService(AsyncBaseService):
         if req is None:
             req = ParsedRequest()
 
-        if not lookup:
-            lookup = {}
-            lookup["type"] = PlanningItemType.PLANNING.value
+        lookup = dict(lookup or {})
+        lookup["type"] = PlanningItemType.PLANNING.value
         return await self.backend.get_async(self.datasource, req=req, lookup=lookup)
 
     async def get_all_items_in_relationship(
