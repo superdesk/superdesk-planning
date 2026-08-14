@@ -14,15 +14,11 @@ from apps.archive.common import get_user, get_auth
 
 from planning.types import AssignmentResourceModel, AssignmentEventOrPlanning, AssignmentWorkflowState, WorkflowState
 from planning.types.unified import UnifiedPlanningResource, LockFields, RelatedEventLinkType, PlanningItemType
-from planning.unified.common import (
-    get_first_related_event_id,
-    get_all_items_in_relationship,
-    get_related_event_ids,
-)
+from planning.unified.common import get_first_related_event_id, get_all_items_in_relationship
 from planning import signals
 from planning.common import get_item_type_name
 
-from .common import validate_lock_permission
+from .common import validate_lock_permission, get_service_and_ids_for_locks
 
 __all__ = ["lock_item"]
 
@@ -177,16 +173,7 @@ async def _update_item_lock[T: AssignmentEventOrPlanning](original: T, lock_data
     if not lock_data.lock_time:
         lock_data.lock_time = utcnow()
 
-    related_event_ids: list[str]
-    recurrence_id: str | None
-    if isinstance(original, UnifiedPlanningResource):
-        service = UnifiedPlanningResource.get_service()
-        related_event_ids = get_related_event_ids(original)
-        recurrence_id = original.recurrence_id
-    else:
-        service = AssignmentResourceModel.get_service()
-        related_event_ids = []
-        recurrence_id = None
+    service, recurrence_id, related_event_ids = get_service_and_ids_for_locks(original)
 
     with _item_lock_guard(original):
         item_type_name = get_item_type_name(original)

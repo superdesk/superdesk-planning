@@ -19,7 +19,7 @@ from planning import signals
 from planning.unified.common import get_related_event_ids
 from planning.common import get_item_type_name
 
-from .common import validate_lock_permission
+from .common import validate_lock_permission, get_service_and_ids_for_locks
 
 logger = logging.getLogger(__name__)
 
@@ -84,16 +84,7 @@ async def _remove_item_lock[T: AssignmentEventOrPlanning](original: T) -> T:
     }
 
     item_type_name = get_item_type_name(original)
-    related_event_ids: list[str]
-    recurrence_id: str | None
-    if isinstance(original, UnifiedPlanningResource):
-        service = UnifiedPlanningResource.get_service()
-        related_event_ids = get_related_event_ids(original)
-        recurrence_id = original.recurrence_id
-    else:
-        service = AssignmentResourceModel.get_service()
-        related_event_ids = []
-        recurrence_id = None
+    service, recurrence_id, related_event_ids = get_service_and_ids_for_locks(original)
 
     original_dict = original.to_dict()
     await getattr(app, f"on_unlock_{item_type_name}").call_async(original_dict, updates)
