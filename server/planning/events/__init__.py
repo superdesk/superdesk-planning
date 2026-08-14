@@ -15,7 +15,7 @@ from superdesk.eve_async.eve_to_pydantic_datalayer import EveToPydanticDataLayer
 
 from planning import signals
 from .events import EventsResource, EventsService
-from .events_files import EventsFilesResource, EventsFilesService
+from planning.files import EventsFilesResource, FilesAsyncService
 from .events_history import EventsHistoryResource, EventsHistoryService
 from .events_lock import (
     EventsLockResource,
@@ -65,7 +65,7 @@ def init_app(app):
     events_post_service = EventsPostService("events_post", backend=superdesk.get_backend())
     EventsPostResource("events_post", app=app, service=events_post_service)
 
-    files_service = EventsFilesService("events_files", backend=superdesk.get_backend())
+    files_service = FilesAsyncService("events_files", backend=superdesk.get_backend())
     EventsFilesResource("events_files", app=app, service=files_service)
 
     events_history_service = EventsHistoryService("events_history", backend=superdesk.get_backend())
