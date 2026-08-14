@@ -308,6 +308,7 @@ export class CoverageItemComponent extends React.Component<IProps, IState> {
 
         return (
             <Item
+                testId="coverage-item"
                 noBg={!showBackground && !active}
                 activated={active}
                 shadow={shadow}
