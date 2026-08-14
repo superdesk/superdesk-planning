@@ -8,7 +8,7 @@ export const reference = ({item}) => {
         return null;
     }
 
-    return (<span className="sd-list-item__text-strong sd-list-item__element-lm-10">{item.reference}</span>);
+    return (<span className="sd-list-item__text-strong">{item.reference}</span>);
 };
 
 reference.propTypes = {

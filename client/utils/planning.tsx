@@ -381,6 +381,8 @@ function canCancelCoverage(
         );
 }
 
+// Exported but never called. The `? :` below also binds looser than the `&&` chain, so the
+// draft and assigned checks are dropped whenever `ignoreAutoAssignConfig` is unset.
 function canAddCoverageToWorkflow(
     coverage: IPlanningCoverageItem,
     planning: Partial<IPlanningItem>,
