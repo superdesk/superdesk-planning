@@ -49,7 +49,7 @@ async def _existing_item_not_locked(item: AssignmentEventOrPlanning) -> bool:
             except KeyError:
                 user_id = None
             if archive_item and user_id and archive_item.get("lock_user") == user_id:
-                return False
+                return True
 
     return item.lock_user is None and item.lock_session is None and item.lock_action is None
 
