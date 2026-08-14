@@ -1,7 +1,7 @@
-import type {Locator} from '@playwright/test';
+import {expect, Locator} from '@playwright/test';
 
 import {Editor} from '../../../utils/common/editor';
-import {Input, SelectInput, ActionMenu, ToggleInput} from '../../../utils/common';
+import {Input, SelectInput, ActionMenu, ToggleInput, UrgencyTreeSelectInput} from '../../../utils/common';
 import {PlanningEditor} from './planningEditor';
 
 /**
@@ -38,6 +38,8 @@ export class CoverageEditor extends Editor {
                 '[data-test-id="field-g2_content_type"] select',
             ),
             genre: new SelectInput(parentEditor.page, getParent, '[data-test-id="field-genre"] select'),
+            headline: new Input(parentEditor.page, getParent, '[data-test-id="field-headline"] input'),
+            priority: new UrgencyTreeSelectInput(parentEditor.page, getParent, '[data-test-id="field-priority"]'),
             slugline: new Input(parentEditor.page, getParent, '[data-test-id="field-slugline"] input'),
             ednote: new Input(parentEditor.page, getParent, '[data-test-id="field-ednote"] textarea'),
             internal_note: new Input(parentEditor.page, getParent, '[data-test-id="field-internal_note"] textarea'),
@@ -115,6 +117,23 @@ export class CoverageEditor extends Editor {
 
         await menu.open();
         await menu.getAction(label).click();
+    }
+
+    // Selecting a value on a fresh coverage races the autosave-driven remount,
+    // which can drop the selection. Retry until it sticks in the field.
+    async setPriority(value: string): Promise<void> {
+        await expect(async () => {
+            await this.getField('priority').type(value);
+            await expect(this.element.getByTestId('field-priority')).toContainText(value, {timeout: 3000});
+        }).toPass({timeout: 20000});
+    }
+
+    async collapse(): Promise<void> {
+        await this.element.getByRole('button', {name: 'Collapse', exact: true}).click();
+    }
+
+    async expand(): Promise<void> {
+        await this.element.locator('.sd-collapse-box__header').click();
     }
 
     async toggleAddToWorkflow(): Promise<void> {

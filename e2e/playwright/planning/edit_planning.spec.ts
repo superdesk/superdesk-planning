@@ -4,6 +4,7 @@ import moment from 'moment/moment';
 import {setup, login, waitForPageLoad, SubNavBar, Workqueue, CLIENT_FORMAT} from '../utils/common';
 import {PlanningList, PlanningEditor, AssignmentEditor} from '../page-object-models/planning';
 import {setupPlanningPublishing} from '../utils/fixtures/publish_config';
+import {enableCoverageExtraFields} from '../utils/fixtures/coverage_profile';
 
 test.describe('Planning.Planning: edit metadata', () => {
     let editor: PlanningEditor;
@@ -173,5 +174,61 @@ test.describe('Planning.Planning: edit metadata', () => {
         await editor.waitForAutosave();
         await expect(editor.postButton).not.toBeVisible();
         await expect(editor.unpostButton).toBeVisible();
+    });
+});
+
+test.describe('Planning.Coverage: field persistence on collapse/expand', () => {
+    let editor: PlanningEditor;
+    let subnav: SubNavBar;
+
+    test.beforeEach(async ({page}) => {
+        editor = new PlanningEditor(page);
+        subnav = new SubNavBar(page);
+
+        await setup(page, 'planning_prepopulate_data', '/#/planning');
+        await enableCoverageExtraFields(page.request);
+        await login(page);
+        await waitForPageLoad.planning(page);
+        await subnav.createPlanning();
+        await editor.waitTillOpen();
+    });
+
+    test('coverage field values persist after collapsing and expanding', async () => {
+        const coverage = {
+            content_type: 'Text',
+            genre: 'Factbox',
+            slugline: 'coverage slugline',
+            headline: 'coverage headline',
+            ednote: 'something to write about',
+            internal_note: 'internal to us',
+            news_coverage_status: 'On merit',
+            'scheduled.date': moment().format(CLIENT_FORMAT),
+            'scheduled.time': '13:15',
+            priority: '2',
+        };
+
+        await editor.type({
+            slugline: 'Plan with coverage',
+            'planning_date.date': moment().format(CLIENT_FORMAT),
+            'planning_date.time': '12:13',
+        });
+
+        await editor.addCoverage('Text');
+        const coverageEditor = editor.getCoverageEditor(0);
+
+        // content_type is already set by addCoverage; re-selecting it resets the coverage.
+        const {content_type, priority, ...textFields} = coverage;
+
+        await coverageEditor.type(textFields);
+        await editor.waitForAutosave();
+        await coverageEditor.setPriority(priority);
+
+        await coverageEditor.expect(coverage);
+
+        await coverageEditor.collapse();
+        await coverageEditor.expand();
+
+        // SDESK-7989: priority rendered empty here before the fix
+        await coverageEditor.expect(coverage);
     });
 });
