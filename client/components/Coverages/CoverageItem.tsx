@@ -4,7 +4,13 @@ import {get, isEqual} from 'lodash';
 
 import {IDesk, IUser} from 'superdesk-api';
 import {appConfig} from 'appConfig';
-import {IContactItem, IG2ContentType, IPlanningCoverageItem, IPlanningItem} from '../../interfaces';
+import {
+    IContactItem,
+    IG2ContentType,
+    IPlanningCoverageItem,
+    IPlanningItem,
+    IPlanningWorkflowStatus,
+} from '../../interfaces';
 
 import * as selectors from '../../selectors';
 import * as actions from '../../actions';
@@ -49,6 +55,16 @@ interface IState {
     coverageDateText?: string;
     internalNoteFieldPrefix?: string;
 }
+
+type ILabelType = React.ComponentProps<typeof Label>['type'];
+
+// Statuses without an entry fall back to 'warning'
+const WORKFLOW_STATUS_LABEL_TYPES: Partial<Record<IPlanningWorkflowStatus, ILabelType>> = {
+    draft: 'default',
+    assigned: 'primary',
+    active: 'success',
+    spiked: 'alert',
+};
 
 const mapStateToProps = (state) => ({
     users: selectors.general.users(state),
@@ -254,23 +270,9 @@ export class CoverageItemComponent extends React.Component<IProps, IState> {
                         />
                     ) : (
                         <Label
-                            text={this.props.coverage.workflow_status}
+                            text={coverage.workflow_status}
                             style="hollow"
-                            type={(() => {
-                                const {coverage} = this.props;
-
-                                if (coverage.workflow_status === 'draft') {
-                                    return 'default';
-                                } else if (coverage.workflow_status === 'assigned') {
-                                    return 'primary';
-                                } else if (coverage.workflow_status === 'spiked') {
-                                    return 'alert';
-                                } else if (coverage.workflow_status === 'active') {
-                                    return 'success';
-                                } else {
-                                    return 'warning';
-                                }
-                            })()}
+                            type={WORKFLOW_STATUS_LABEL_TYPES[coverage.workflow_status] ?? 'warning'}
                         />
                     )}
                 </span>

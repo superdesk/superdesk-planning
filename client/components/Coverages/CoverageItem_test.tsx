@@ -87,6 +87,17 @@ describe('<CoverageItem />', () => {
         expect(labelTexts(wrapper)).toEqual(['draft']);
     });
 
+    it('colours the status label by workflow status, falling back for unmapped ones', () => {
+        const labelType = (workflowStatus: string) => renderCoverageItem({workflowStatus})
+            .find(Label)
+            .first()
+            .prop('type');
+
+        expect(labelType('draft')).toBe('default');
+        expect(labelType('spiked')).toBe('alert');
+        expect(labelType('cancelled')).toBe('warning');
+    });
+
     it('omits the "Desk" label in previews', () => {
         const wrapper = renderCoverageItem({isPreview: true});
 
