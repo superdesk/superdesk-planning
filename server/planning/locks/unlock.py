@@ -84,6 +84,17 @@ async def _remove_item_lock[T: AssignmentEventOrPlanning](original: T) -> T:
     }
 
     item_type_name = get_item_type_name(original)
+    related_event_ids: list[str]
+    recurrence_id: str | None
+    if isinstance(original, UnifiedPlanningResource):
+        service = UnifiedPlanningResource.get_service()
+        related_event_ids = get_related_event_ids(original)
+        recurrence_id = original.recurrence_id
+    else:
+        service = AssignmentResourceModel.get_service()
+        related_event_ids = []
+        recurrence_id = None
+
     original_dict = original.to_dict()
     await getattr(app, f"on_unlock_{item_type_name}").call_async(original_dict, updates)
     await signals.on_item_unlock.send(original)
@@ -95,8 +106,8 @@ async def _remove_item_lock[T: AssignmentEventOrPlanning](original: T) -> T:
         user=str(original.lock_user),
         lock_session=(original.lock_session),
         etag=updated.etag,
-        event_ids=get_related_event_ids(original),
-        recurrence_id=original.recurrence_id,
+        event_ids=related_event_ids,
+        recurrence_id=recurrence_id,
         type=original.item_type,
         clientId=current_request.get_url_arg("clientId") if current_request else None,
     )
