@@ -1,7 +1,7 @@
 import {test, expect} from '@playwright/test';
 
 import {setup, login, waitForPageLoad, addItems} from '../utils/common';
-import {AdvancedSearch, PlanningList, PlanningPreview} from '../page-object-models/planning';
+import {AdvancedSearch, PlanningList, PlanningPreview} from '../utils/planning';
 import {createPlanningFor} from '../utils/fixtures/planning';
 
 const PLANNING = {
