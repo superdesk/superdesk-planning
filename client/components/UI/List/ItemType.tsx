@@ -16,7 +16,7 @@ import {Checkbox} from '../Form';
 export const ItemType = ({hasCheck, checked, onCheckToggle, item, color}) => (
     <Column hasCheck={hasCheck} checked={checked} >
         {hasCheck && (
-            <div className="sd-list-item__checkbox-container">
+            <div className="sd-list-item__checkbox-container" data-test-id="multi-select-checkbox">
                 <Checkbox
                     value={checked}
                     onChange={(field, value, shiftKey) => {
