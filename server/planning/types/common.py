@@ -140,8 +140,7 @@ class RelatedEvent(Dataclass):
 RelatedEvents = Annotated[list[RelatedEvent] | None, fields.nested_list()]
 
 
-@dataclass
-class CoverageInternalPlanning:
+class CoverageInternalPlanning(BaseModel):
     ednote: fields.HTML | None = None
     g2_content_type: fields.Keyword | None = None
     coverage_provider: fields.Keyword | None = None
@@ -294,9 +293,8 @@ class PlanningCoverage(Dataclass):
         return values
 
 
-class AssignmentCoverage(AuditInformation, BaseModel):
+class AssignmentCoverage(AuditInformation, CoverageInternalPlanning, BaseModel):
     contact: fields.Keyword | None = None
-    planning: CoverageInternalPlanning = Field(default_factory=CoverageInternalPlanning)
     news_coverage_status: NewsCoverageStatus = Field(default_factory=NewsCoverageStatus)
 
 
