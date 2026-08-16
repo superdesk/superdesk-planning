@@ -313,9 +313,12 @@ def test_reassignment_resets_assignment_state_to_assigned():
         "planning": {},
     }
 
-    with mock.patch("planning.coverage_assignments.get_user", return_value=None), mock.patch(
-        "planning.coverage_assignments.get_config_assignment_manual_reassignment_only",
-        return_value=True,
+    with (
+        mock.patch("planning.coverage_assignments.get_user", return_value=None),
+        mock.patch(
+            "planning.coverage_assignments.get_config_assignment_manual_reassignment_only",
+            return_value=True,
+        ),
     ):
         updates = get_metadata_updates_between_entities(assignment, planning, coverage, destination="assignment")
 
@@ -346,9 +349,12 @@ def test_reassignment_does_not_reset_state_when_manual_reassignment_disabled():
         "planning": {},
     }
 
-    with mock.patch("planning.coverage_assignments.get_user", return_value=None), mock.patch(
-        "planning.coverage_assignments.get_config_assignment_manual_reassignment_only",
-        return_value=False,
+    with (
+        mock.patch("planning.coverage_assignments.get_user", return_value=None),
+        mock.patch(
+            "planning.coverage_assignments.get_config_assignment_manual_reassignment_only",
+            return_value=False,
+        ),
     ):
         updates = get_metadata_updates_between_entities(assignment, planning, coverage, destination="assignment")
 

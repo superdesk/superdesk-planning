@@ -8,9 +8,11 @@ from planning.types import EventResourceModel
 from planning.types import EventsHistoryResourceModel
 from superdesk.core.types import SearchRequest
 from superdesk.resource_fields import ID_FIELD
+
+from apps.item_lock.components.item_lock import LOCK_ACTION
+
 from planning.utils import get_related_planning_for_events_async
 from planning.history_async_service import HistoryAsyncService
-from planning.item_lock import LOCK_ACTION
 
 logger = logging.getLogger(__name__)
 

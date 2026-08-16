@@ -41,12 +41,11 @@ from superdesk.users.services import current_user_has_privilege
 from apps.archive.common import get_user, get_auth
 from apps.duplication.archive_move import ITEM_MOVE
 from apps.publish.content.common import ITEM_PUBLISH, ITEM_CORRECT, ITEM_KILL, ITEM_TAKEDOWN, ITEM_UNPUBLISH
-from apps.common.components.utils import get_component
 from apps.content import push_content_notification
+from apps.item_lock.components.item_lock import LOCK_SESSION, LOCK_ACTION
 
 from planning.errors import AssignmentApiError
 from planning.planning.planning_schema import coverage_schema, planning_schema
-from planning.item_lock import LockService, LOCK_USER, LOCK_ACTION, LOCK_SESSION
 from planning.common import (
     ASSIGNMENT_WORKFLOW_STATE,
     assignment_workflow_state,
@@ -68,7 +67,7 @@ from planning.common import (
     set_original_creator,
 )
 
-from planning.types import EventResourceModel
+from planning.types import EventResourceModel, AssignmentResourceModel
 from planning.planning_notifications import PlanningNotifications
 from planning.common import format_address, get_assginment_name, assignment_allows_multiple_content_linked
 from .assignments_history import ASSIGNMENT_HISTORY_ACTIONS
@@ -84,6 +83,7 @@ from planning.utils import (
 )
 from planning.coverage_assignments import update_planning_from_assignment_changes
 from planning.unified.coverages import remove_assignment_from_coverage
+from planning.locks.unlock import unlock_item
 
 logger = logging.getLogger(__name__)
 
@@ -1094,8 +1094,7 @@ class AssignmentsService(AsyncBaseService):
             # As the `publish` service(s) unlocks the archive item on update
             user_id = assignment_update_data.get("item_user_id")
             if assignment.get(LOCK_SESSION) and user_id:
-                lock_service = get_component(LockService)
-                await lock_service.unlock(assignment, user_id, get_auth()["_id"], "assignments")
+                await unlock_item(AssignmentResourceModel.from_dict(assignment))
 
     async def on_events_updated(self, updates: dict[str, Any], original: EventResourceModel):
         """Send assignment notifications if any relevant Event metadata has changed"""
@@ -1239,43 +1238,6 @@ class AssignmentsService(AsyncBaseService):
 
         return assignment_update_data.get("assignment")
 
-    async def validate_assignment_lock(self, item, user_id):
-        assignment = await self._get_assignment_from_archive_item({}, item)
-        if (
-            assignment
-            and assignment.get("lock_user")
-            and assignment.get("lock_action") != "content_edit"
-            and (assignment["lock_session"] != get_auth()["_id"] or assignment["lock_user"] != user_id)
-        ):
-            raise SuperdeskApiError.badRequestError(message=gettext("Lock Failed: Related assignment is locked."))
-
-    async def sync_assignment_lock(self, item, user_id):
-        # If more than one archive item is associated with the assignment
-        # No need to lock assignment in case of a rewrite document
-        assignment = await self._get_assignment_from_archive_item({}, item)
-        if not assignment:
-            return
-
-        if not assignment_allows_multiple_content_linked(assignment) and (
-            not item.get("rewrite_of")
-            or await get_resource_service("archive").count_async({"assignment_id": assignment[ID_FIELD]}) <= 1
-        ):
-            lock_service = get_component(LockService)
-            await lock_service.lock(assignment, user_id, get_auth()["_id"], "content_edit", "assignments")
-
-    async def sync_assignment_unlock(self, item, user_id):
-        assignment = await self._get_assignment_from_archive_item({}, item)
-        if not assignment:
-            return
-
-        if (
-            not assignment_allows_multiple_content_linked(assignment)
-            and assignment.get(LOCK_USER)
-            and assignment.get(LOCK_ACTION) == "content_edit"
-        ):
-            lock_service = get_component(LockService)
-            await lock_service.unlock(assignment, user_id, get_auth()["_id"], "assignments")
-
     def can_work_on_content(self, _item, _user_id):
         """Check if user can work on assignment content (lock/unlock for content operations).
 
@@ -1291,25 +1253,6 @@ class AssignmentsService(AsyncBaseService):
         if not current_user_has_privilege("planning_planning_management"):
             return False, lazy_gettext("User does not have sufficient permissions.")
         return True, ""
-
-    async def is_associated_planning_or_event_locked(self, planning_item):
-        if is_locked_in_this_session(planning_item):
-            return True
-
-        first_primary_event_id = get_first_related_event_id_for_planning(planning_item, "primary")
-        if not first_primary_event_id:
-            return False
-
-        event = await get_resource_service("events").find_one_async(req=None, _id=first_primary_event_id)
-        if not planning_item.get("recurrence_id"):
-            return is_locked_in_this_session(event)
-        else:
-            lock_service = get_component(LockService)
-            try:
-                await lock_service.validate_relationship_locks(event, "events")
-            except SuperdeskApiError:
-                # Something along the relationship line is locked - allow remove
-                return True
 
     async def on_delete_async(self, doc):
         """

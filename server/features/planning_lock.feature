@@ -161,13 +161,12 @@ Feature: Planning Item Locking
       When we post to "/planning" with success
       """
       [{
-          "_id": "plan1",
           "guid": "plan1",
           "related_events": [{"_id": "#events._id#", "link_type": "primary"}],
           "planning_date": "2016-01-02"
        }]
       """
-      When we post to "/events/#events._id#/lock"
+      When we post to "planning/#events._id#/lock"
       """
       {"lock_action": "edit"}
       """
@@ -214,13 +213,11 @@ Feature: Planning Item Locking
       """
       [
             {
-                "_id": "plan1",
                 "guid": "plan1",
                 "related_events": [{"_id": "#events._id#", "link_type": "primary"}],
                 "planning_date": "2016-01-02"
             },
             {
-                "_id": "plan2",
                 "guid": "plan2",
                 "related_events": [{"_id": "#events._id#", "link_type": "primary"}],
                 "planning_date": "2016-01-02"
@@ -469,7 +466,7 @@ Feature: Planning Item Locking
             }]
           }
       """
-      When we post to "/events/#EVENT3._id#/lock"
+      When we post to "planning/#EVENT3._id#/lock"
       """
       {"lock_action": "edit"}
       """
@@ -527,7 +524,7 @@ Feature: Planning Item Locking
             ]
         }]
         """
-        When we post to "/events/event1/lock" with success
+        When we post to "planning/event1/lock" with success
         """
         {"lock_action": "edit"}
         """
@@ -536,11 +533,11 @@ Feature: Planning Item Locking
         {"lock_action": "edit"}
         """
         Then we get error 403
-        When we post to "/events/event1/unlock" with success
+        When we post to "planning/event1/unlock" with success
         """
         {}
         """
-        When we post to "/events/event2/lock" with success
+        When we post to "planning/event2/lock" with success
         """
         {"lock_action": "edit"}
         """

@@ -23,6 +23,7 @@ from eve.utils import ParsedRequest
 
 from superdesk.core import json, get_app_config, get_current_app
 from superdesk.eve_async.service import AsyncBaseService
+from superdesk.eve_async.cursors import AsyncEveCursor
 from superdesk.flask import request
 from superdesk.resource_fields import ID_FIELD
 from superdesk import get_resource_service, Resource
@@ -36,6 +37,7 @@ from apps.archive.common import get_user, get_auth
 
 from planning.errors import AssignmentApiError
 from planning.types import Planning, PLANNING_RELATED_EVENT_LINK_TYPE
+from planning.types.unified import PlanningItemType
 from planning.common import (
     WORKFLOW_STATE,
     prepare_ingested_item_for_storage,
@@ -205,6 +207,14 @@ class PlanningService(AsyncBaseService):
         req = ParsedRequest()
         req.args = {"source": json.dumps(query)}
         return await super().get_async(req=req, lookup=None)
+
+    async def get_async(self, req: ParsedRequest | None, lookup: dict | None) -> AsyncEveCursor:
+        if req is None:
+            req = ParsedRequest()
+
+        lookup = dict(lookup or {})
+        lookup["type"] = PlanningItemType.PLANNING.value
+        return await self.backend.get_async(self.datasource, req=req, lookup=lookup)
 
     async def get_all_items_in_relationship(
         self, item: Planning, event_link_type: PLANNING_RELATED_EVENT_LINK_TYPE = "primary"

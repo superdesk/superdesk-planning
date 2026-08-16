@@ -316,7 +316,7 @@ Feature: Events Cancel
         }]
         """
         Then we get OK response
-        When we post to "/events/#EVENT3._id#/lock" with success
+        When we post to "planning/#EVENT3._id#/lock" with success
         """
         {"lock_action": "cancel"}
         """
@@ -610,7 +610,7 @@ Feature: Events Cancel
         {"state": "cancelled"}
         """
         Then we get OK response
-        When we post to "/events/#EVENT4._id#/lock" with success
+        When we post to "planning/#EVENT4._id#/lock" with success
         """
         {"lock_action": "cancel"}
         """
@@ -854,7 +854,7 @@ Feature: Events Cancel
         }]
         """
         Then we get OK response
-        When we post to "/events/#EVENT3._id#/lock" with success
+        When we post to "planning/#EVENT3._id#/lock" with success
         """
         {"lock_action": "cancel"}
         """

@@ -204,7 +204,7 @@ Feature: Events Recurring
         """
         And we store "EVENT_ID" with value "#events._id#" to context
         When we reset notifications
-        When we post to "/events/#events._id#/lock" with success
+        When we post to "planning/#events._id#/lock" with success
         """
         {"lock_action": "convert_recurring"}
         """
@@ -251,7 +251,7 @@ Feature: Events Recurring
         """
         And we store "EVENT_ID" with value "#events._id#" to context
         When we reset notifications
-        When we post to "/events/#events._id#/lock" with success
+        When we post to "planning/#events._id#/lock" with success
         """
         {"lock_action": "convert_recurring"}
         """
@@ -278,7 +278,7 @@ Feature: Events Recurring
         When we get "/events"
         Then we get list with 3 items
         And we store "EVENT2" with 2 item
-        When we post to "/events/#EVENT2._id#/lock" with success
+        When we post to "planning/#EVENT2._id#/lock" with success
         """
         {"lock_action": "convert_recurring"}
         """
@@ -337,7 +337,7 @@ Feature: Events Recurring
         """
         And we store "EVENT_ID" with value "#events._id#" to context
         When we reset notifications
-        When we post to "/events/#events._id#/lock" with success
+        When we post to "planning/#events._id#/lock" with success
         """
         {"lock_action": "convert_recurring"}
         """
@@ -596,7 +596,7 @@ Feature: Events Recurring
         """
         Then we get OK response
         And we store "EVENT_ID" with value "#events._id#" to context
-        When we post to "/events/#events._id#/lock" with success
+        When we post to "planning/#events._id#/lock" with success
         """
         {"lock_action": "convert_recurring"}
         """
@@ -1281,7 +1281,7 @@ Feature: Events Recurring
         Then we store "EVENT1" with first item
         Then we store "EVENT2" with 2 item
         Then we store "EVENT3" with 3 item
-        When we post to "/events/#EVENT1._id#/lock" with success
+        When we post to "planning/#EVENT1._id#/lock" with success
         """
         {"lock_action": "assign_calendar"}
         """
@@ -1309,11 +1309,11 @@ Feature: Events Recurring
             "calendars": [{"qcode": "ann", "name": "Anniversaries", "is_active": true}]
         }]}
         """
-        When we post to "/events/#EVENT1._id#/unlock" with success
+        When we post to "planning/#EVENT1._id#/unlock" with success
         """
         {}
         """
-        When we post to "/events/#EVENT2._id#/lock" with success
+        When we post to "planning/#EVENT2._id#/lock" with success
         """
         {"lock_action": "assign_calendar"}
         """
@@ -1406,7 +1406,7 @@ Feature: Events Recurring
         Then we store "EVENT1" with first item
         Then we store "EVENT2" with 2 item
         Then we store "EVENT3" with 3 item
-        When we post to "/events/#EVENT2._id#/lock" with success
+        When we post to "planning/#EVENT2._id#/lock" with success
         """
         {"lock_action": "assign_calendar"}
         """
@@ -1434,11 +1434,11 @@ Feature: Events Recurring
             "calendars": [{"qcode": "ann", "name": "Anniversaries", "is_active": true}]
         }]}
         """
-        When we post to "/events/#EVENT2._id#/unlock" with success
+        When we post to "planning/#EVENT2._id#/unlock" with success
         """
         {}
         """
-        When we post to "/events/#EVENT1._id#/lock" with success
+        When we post to "planning/#EVENT1._id#/lock" with success
         """
         {"lock_action": "assign_calendar"}
         """
@@ -1491,7 +1491,7 @@ Feature: Events Recurring
         Then we store "EVENT1" with first item
         Then we store "EVENT2" with 2 item
         Then we store "EVENT3" with 3 item
-        When we post to "/events/#EVENT2._id#/lock" with success
+        When we post to "planning/#EVENT2._id#/lock" with success
         """
         {"lock_action": "assign_calendar"}
         """
@@ -1519,11 +1519,11 @@ Feature: Events Recurring
             "calendars": [{"qcode": "ann", "name": "Anniversaries", "is_active": true}]
         }]}
         """
-        When we post to "/events/#EVENT2._id#/unlock" with success
+        When we post to "planning/#EVENT2._id#/unlock" with success
         """
         {}
         """
-        When we post to "/events/#EVENT1._id#/lock" with success
+        When we post to "planning/#EVENT1._id#/lock" with success
         """
         {"lock_action": "edit"}
         """

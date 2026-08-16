@@ -14,8 +14,8 @@ from bson import ObjectId
 from superdesk.core import get_current_app
 from superdesk import Service
 from superdesk.resource_fields import ID_FIELD
-from .item_lock import LOCK_ACTION, LOCK_USER, LOCK_TIME, LOCK_SESSION
 from superdesk.metadata.item import ITEM_TYPE
+from apps.item_lock.components.item_lock import LOCK_USER, LOCK_SESSION, LOCK_ACTION, LOCK_TIME
 
 
 fields_to_remove = [
