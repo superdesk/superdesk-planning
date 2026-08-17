@@ -35,8 +35,8 @@ from planning.events.events_utils import (
     remove_fields,
     generate_recurring_dates,
 )
-from planning.planning.planning_history_async_service import PlanningHistoryAsyncService
-from planning.types import EventsHistoryResourceModel
+from planning.history.planning import UnifiedPlanningHistoryService
+from planning.types import UnifiedPlanningHistoryResource
 from planning.utils import get_related_planning_for_events_async, event_has_planning_items
 
 from superdesk.core import get_current_app
@@ -79,7 +79,7 @@ def mark_event_rescheduled(updates: dict[str, Any], reason: str, keep_dates: boo
 async def reschedule_event_plannings(original: dict[str, Any], reason: str, plans=None, state=None):
     planning_cancel_service = get_resource_service("planning_cancel")
     planning_reschedule_service = get_resource_service("planning_reschedule")
-    planning_history_service = PlanningHistoryAsyncService()
+    planning_history_service = UnifiedPlanningHistoryService()
 
     plan_updates = {"reason": reason, "state": state}
     for plan in plans or await get_related_planning_for_events_async([original[ID_FIELD]], "primary"):
@@ -100,7 +100,7 @@ async def reschedule_event_plannings(original: dict[str, Any], reason: str, plan
 
 async def duplicate_event(updates: dict[str, Any], original: dict[str, Any]):
     events_service = get_resource_service("events")
-    events_history_service = EventsHistoryResourceModel.get_service()
+    events_history_service = UnifiedPlanningHistoryResource.get_service()
 
     new_event = deepcopy(original)
     new_event.update(updates)

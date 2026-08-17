@@ -6,9 +6,8 @@ from superdesk.core.resources import (
     RestEndpointConfig,
 )
 
-from planning.types import EventResourceModel, EventsHistoryResourceModel, EventAutosaveResourceModel
+from planning.types import EventResourceModel, EventAutosaveResourceModel
 from .events_service import EventsAsyncService
-from .events_history_async_service import EventsHistoryAsyncService
 from .events_autosave_service import EventsAutosaveAsyncService
 
 events_resource_config: ResourceConfig = ResourceConfig(
@@ -31,26 +30,6 @@ events_resource_config: ResourceConfig = ResourceConfig(
     ),
     # TODO-ASYNC: Use eve resource for elastic mapping - as this one is not working there
     elastic=ElasticResourceConfig(auto_create_index=False),
-)
-
-events_history_resource_config: ResourceConfig = ResourceConfig(
-    name="events_history",
-    data_class=EventsHistoryResourceModel,
-    service=EventsHistoryAsyncService,
-    mongo=MongoResourceConfig(
-        indexes=[
-            MongoIndexOptions(
-                name="event_id_1",
-                keys=[("event_id", 1)],
-                unique=False,
-            ),
-        ],
-    ),
-    rest_endpoints=RestEndpointConfig(
-        resource_methods=["GET"],
-        item_methods=["GET"],
-        enable_cors=True,
-    ),
 )
 
 events_autosave_resource_config: ResourceConfig = ResourceConfig(

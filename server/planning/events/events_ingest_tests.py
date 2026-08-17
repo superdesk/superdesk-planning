@@ -4,7 +4,7 @@ from datetime import datetime, timedelta
 from planning.tests import TestCase
 from superdesk.flask import g
 
-from planning.events import EventsHistoryAsyncService
+from planning.history.planning import UnifiedPlanningHistoryService
 
 
 class EventIngestTestCase(TestCase):
@@ -13,7 +13,7 @@ class EventIngestTestCase(TestCase):
     async def test_ingest_updated_event(self):
         async with self.app.app_context():
             events_service = get_resource_service("events")
-            events_history_service = EventsHistoryAsyncService()
+            events_history_service = UnifiedPlanningHistoryService()
             dates = {"start": datetime.now(), "end": datetime.now() + timedelta(days=1)}
             old_event = {
                 "guid": "1",
@@ -27,8 +27,8 @@ class EventIngestTestCase(TestCase):
 
             # event is created
             events_service.post_in_mongo([old_event])
-            history = await events_history_service.get_by_id("1")
-            assert 1 == len(history)
+            history_count = await events_history_service.count({"item_id": "1"})
+            assert 1 == history_count
 
             # user updates the event
             updates = {
@@ -41,8 +41,8 @@ class EventIngestTestCase(TestCase):
             events_service.patch(old_event["_id"], updates)
             await events_history_service.on_item_updated(updates, old_event, "edited")
 
-            history = await events_history_service.get_by_id("1")
-            assert 2 == len(history)
+            history_count = await events_history_service.count({"item_id": "1"})
+            assert 2 == history_count
 
             new_event = {
                 "guid": "1",

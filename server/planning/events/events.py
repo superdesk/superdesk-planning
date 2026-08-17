@@ -31,7 +31,7 @@ from superdesk.errors import SuperdeskApiError
 from superdesk.users.services import current_user_has_privilege
 from superdesk.publish_async.utils import get_next_sequence_number
 
-from planning.events.events_history_async_service import EventsHistoryAsyncService
+from planning.history.planning import UnifiedPlanningHistoryService
 from planning.types import Event, PLANNING_RELATED_EVENT_LINK_TYPE
 from planning.common import (
     prepare_ingested_item_for_storage,
@@ -88,18 +88,6 @@ def is_event_updated(new_item: Event, old_item: Event) -> bool:
     return False
 
 
-async def get_user_updated_keys(event_id: str) -> set[str]:
-    history_service = EventsHistoryAsyncService()
-    updates = await history_service.get_by_id(event_id)
-    updated_keys: set[str] = set()
-    for update in updates:
-        if update.get("operation") == "ingested" or not update.get("user_id"):
-            continue
-        if update.get("update"):
-            updated_keys.update(update["update"].keys())
-    return updated_keys
-
-
 class EventsService(AsyncBaseService):
     """Service class for the events model."""
 
@@ -122,7 +110,7 @@ class EventsService(AsyncBaseService):
         prepare_ingested_item_for_storage(document)
 
         content_fields = get_current_app().config.get("EVENT_INGEST_CONTENT_FIELDS", CONTENT_FIELDS)
-        updated_keys = await get_user_updated_keys(_id)
+        updated_keys = await UnifiedPlanningHistoryService().get_user_updated_keys(_id)
         for key in updated_keys:
             if key in document and key in content_fields and original.get(key):
                 document[key] = original[key]
@@ -130,7 +118,7 @@ class EventsService(AsyncBaseService):
         set_planning_schedule(document)
         update_ingest_on_patch(document, original)
 
-        events_history = EventsHistoryAsyncService()
+        events_history = UnifiedPlanningHistoryService()
         await events_history.on_item_updated(document, original, "ingested")
 
         response = await self.backend.update_in_mongo_async(self.datasource, _id, document, original)

@@ -33,7 +33,7 @@ from planning.common import (
 
 from planning.validate import validate_docs
 from planning.events.events_utils import get_recurring_timeline, get_update_method
-from planning.types import EventsHistoryResourceModel
+from planning.types import UnifiedPlanningHistoryResource
 from planning.utils import try_cast_object_id, get_related_planning_for_events_async
 from planning.content_profiles.utils import is_post_planning_with_event_enabled, is_cancel_planning_with_event_enabled
 
@@ -187,7 +187,7 @@ class EventsPostService(AsyncBaseService):
 
     async def post_event(self, event, new_post_state, repost):
         events_service = get_resource_service("events")
-        events_history_service = EventsHistoryResourceModel.get_service()
+        events_history_service = UnifiedPlanningHistoryResource.get_service()
 
         # update the event with new state
         if repost:

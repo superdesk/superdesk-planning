@@ -37,7 +37,7 @@ from planning.events.events_utils import (
     generate_recurring_dates,
 )
 from planning.events.events_cancel import cancel_single_event, validate_states
-from planning.types import EventsHistoryResourceModel
+from planning.types import UnifiedPlanningHistoryResource
 from planning.item_lock import LOCK_ACTION
 from planning.utils import event_has_planning_items
 
@@ -110,7 +110,7 @@ def create_event(date, updates: dict[str, Any], original: dict[str, Any], time_d
 
 async def update_event(updated_rule: dict[str, Any], original: dict[str, Any]):
     events_service = get_resource_service("events")
-    events_history_service = EventsHistoryResourceModel.get_service()
+    events_history_service = UnifiedPlanningHistoryResource.get_service()
 
     event_id = original[ID_FIELD]
     updates = update_rules(original, updated_rule)
@@ -139,7 +139,7 @@ async def get_internal_series(original: dict[str, Any]) -> list:
 
 async def update_event_repetitions(updates: dict[str, Any], original: dict[str, Any]):
     events_service = get_resource_service("events")
-    events_history_service = EventsHistoryResourceModel.get_service()
+    events_history_service = UnifiedPlanningHistoryResource.get_service()
     remove_lock_information(updates)
 
     updated_rule = deepcopy(updates["dates"]["recurring_rule"])
