@@ -45,8 +45,8 @@ from planning.common import (
     # sync_assignment_details_to_coverages,
 )
 from planning.core.service import BasePlanningAsyncService
-from planning.assignments.assignments_history_async import AssignmentsHistoryAsyncService
-from planning.planning.planning_history_async_service import PlanningHistoryAsyncService
+from planning.history.assignments import AssignmentsHistoryService
+from planning.history.planning import UnifiedPlanningHistoryService
 from planning.content_profiles.planning_types_async_service import PlanningTypesAsyncService
 from planning.types import (
     PlanningResourceModel,
@@ -348,7 +348,7 @@ class PlanningAsyncService(BasePlanningAsyncService[PlanningResourceModel]):
         planning_type = await PlanningTypesAsyncService().find_one(name="planning")
         assert planning_type is not None, "Expexted planning_type to not be None"
 
-        history_service = PlanningHistoryAsyncService()
+        history_service = UnifiedPlanningHistoryService()
         generated_planning_items = []
 
         for doc in docs:
@@ -1078,7 +1078,7 @@ class PlanningAsyncService(BasePlanningAsyncService[PlanningResourceModel]):
         if coverage_doc.get("scheduled_update"):
             assignment["scheduled_update_id"] = coverage_doc.get("scheduled_update_id")
 
-        await AssignmentsHistoryAsyncService().on_item_deleted(assignment)
+        await AssignmentsHistoryService().on_item_deleted(assignment)
 
     def _cancel_coverage_if_needed(
         self, original_coverage: dict[str, Any], coverage_updates: dict[str, Any], original_assignment: dict[str, Any]
@@ -1509,10 +1509,11 @@ class PlanningAsyncService(BasePlanningAsyncService[PlanningResourceModel]):
         )
 
     async def _update_event_history(self, doc: dict[str, Any]):
-        from planning.events import EventsAsyncService, EventsHistoryAsyncService
+        from planning.history.planning import UnifiedPlanningHistoryService
+        from planning.events import EventsAsyncService
 
         events_service = EventsAsyncService()
-        events_history_service = EventsHistoryAsyncService()
+        events_history_service = UnifiedPlanningHistoryService()
 
         for original_event in get_related_event_items_for_planning(doc, "primary"):
             await events_service.system_update(

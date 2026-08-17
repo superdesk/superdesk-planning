@@ -50,12 +50,12 @@ from planning.common import (
     update_ingest_on_patch,
 )
 
-from planning.events.events_history_async_service import EventsHistoryAsyncService
+from planning.history.planning import UnifiedPlanningHistoryService
 from planning.signals import planning_ingested
 from planning.utils import (
     get_related_planning_for_events_async,
     get_first_related_event_id_for_planning,
-    get_related_event_items_for_planning,
+    get_related_event_items_for_planning_async,
 )
 
 logger = logging.getLogger(__name__)
@@ -123,9 +123,10 @@ class PlanningService(AsyncBaseService):
 
     async def _update_event_history(self, doc: Planning):
         events_service = get_resource_service("events")
-        events_history_service = EventsHistoryAsyncService()
+        events_history_service = UnifiedPlanningHistoryService()
 
-        for original_event in get_related_event_items_for_planning(doc, "primary"):
+        # TODO-PR: Move this to history section (maybe using a signal?)
+        for original_event in await get_related_event_items_for_planning_async(doc, "primary"):
             await events_service.system_update_async(
                 original_event[ID_FIELD],
                 {

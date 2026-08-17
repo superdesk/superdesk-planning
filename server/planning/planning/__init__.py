@@ -14,9 +14,9 @@ from quart_babel import lazy_gettext
 import superdesk
 from superdesk.eve_async.eve_to_pydantic_datalayer import EveToPydanticDataLayer
 
+from planning.history.planning import UnifiedPlanningHistoryService
 from .planning import PlanningResource, PlanningService  # noqa
 from .planning_schema import coverage_schema  # noqa
-from .planning_history import PlanningHistoryResource, PlanningHistoryService
 from .planning_lock import (
     PlanningLockResource,
     PlanningLockService,
@@ -37,12 +37,10 @@ from .planning_files import PlanningFilesResource, PlanningFilesService
 from .module import (
     planning_resource_config,
     planning_resource_config,
-    planning_history_resource_config,
     planning_featured_resource_config,
     planning_autosave_resource_config,
 )
 from .planning_service import PlanningAsyncService
-from .planning_history_async_service import PlanningHistoryAsyncService
 from .planning_featured_async_service import PlanningFeaturedAsyncService
 from .planning_autosave_service import PlanningAutosaveAsyncService
 
@@ -50,8 +48,6 @@ from .planning_autosave_service import PlanningAutosaveAsyncService
 __all__ = [
     "planning_resource_config",
     "PlanningAsyncService",
-    "PlanningHistoryAsyncService",
-    "planning_history_resource_config",
     "PlanningFeaturedAsyncService",
     "planning_featured_resource_config",
     "PlanningAutosaveAsyncService",
@@ -95,9 +91,6 @@ def init_app(app):
         service=planning_reschedule_service,
     )
 
-    planning_history_service = PlanningHistoryService("planning_history", backend=superdesk.get_backend())
-    PlanningHistoryResource("planning_history", app=app, service=planning_history_service)
-
     planning_featured_lock_service = PlanningFeaturedLockService(
         PlanningFeaturedLockResource.endpoint_name, backend=superdesk.get_backend()
     )
@@ -116,7 +109,7 @@ def init_app(app):
         service=planning_featured_unlock_service,
     )
 
-    planning_history_async_service = PlanningHistoryAsyncService()
+    planning_history_async_service = UnifiedPlanningHistoryService()
 
     # listen to async signals
     signals.planning_updated.connect(planning_history_async_service.on_item_updated)
@@ -125,8 +118,8 @@ def init_app(app):
     signals.planning_postponed.connect(planning_history_async_service.on_postpone)
 
     # Still include the old signals
-    app.on_updated_planning_cancel += planning_history_service.on_cancel
-    app.on_updated_planning_reschedule += planning_history_service.on_reschedule
+    app.on_updated_planning_cancel += planning_history_async_service.on_cancel
+    app.on_updated_planning_reschedule += planning_history_async_service.on_reschedule
 
     app.on_updated_assignments += PlanningAutosaveAsyncService().on_assignment_updated
 
