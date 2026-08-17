@@ -396,7 +396,7 @@ Feature: Events Post
         """
         { "state": "scheduled", "pubstatus": "usable" }
         """
-        When we post to "/events/#events._id#/lock"
+        When we post to "planning/#events._id#/lock"
         """
         { "lock_action": "edit" }
         """
@@ -538,7 +538,7 @@ Feature: Events Post
         """
         { "state": "scheduled", "pubstatus": "usable" }
         """
-        When we post to "/events/#events._id#/lock"
+        When we post to "planning/#events._id#/lock"
         """
         { "lock_action": "edit" }
         """
@@ -679,7 +679,7 @@ Feature: Events Post
         """
         { "state": "scheduled", "pubstatus": "usable" }
         """
-        When we post to "/events/#events._id#/lock"
+        When we post to "planning/#events._id#/lock"
         """
         { "lock_action": "edit" }
         """
@@ -923,7 +923,7 @@ Feature: Events Post
         """
         { "state": "draft" }
         """
-        When we post to "/events/#events._id#/lock" with success
+        When we post to "planning/#events._id#/lock" with success
         """
         {"lock_action": "postpone"}
         """
@@ -1004,7 +1004,7 @@ Feature: Events Post
         """
         { "state": "draft" }
         """
-        When we post to "/events/#events._id#/lock" with success
+        When we post to "planning/#events._id#/lock" with success
         """
         {"lock_action": "cancel"}
         """

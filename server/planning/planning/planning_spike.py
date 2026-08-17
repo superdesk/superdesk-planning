@@ -9,6 +9,7 @@ from superdesk.notification import push_notification
 from superdesk.errors import SuperdeskApiError
 from apps.auth import get_user, get_user_id
 from apps.archive.common import get_auth
+from apps.item_lock.components.item_lock import LOCK_USER
 
 from planning import signals
 from planning.assignments import AssignmentsAsyncService
@@ -21,7 +22,6 @@ from planning.common import (
     remove_autosave_on_spike,
     remove_lock_information,
 )
-from planning.item_lock import LOCK_USER
 from planning.planning.planning_utils import delete_assignments_for_coverages
 from planning.planning_notifications import PlanningNotifications
 from planning.utils import get_related_event_ids_for_planning, get_first_related_event_id_for_planning

@@ -6,8 +6,8 @@ from planning.types import HistoryResourceModel
 from superdesk.core import get_current_app
 from superdesk.core.resources import AsyncResourceService
 from superdesk.resource_fields import ID_FIELD
-from apps.item_lock.components.item_lock import LOCK_ACTION, LOCK_USER, LOCK_TIME, LOCK_SESSION
 from superdesk.metadata.item import ITEM_TYPE
+from apps.item_lock.components.item_lock import LOCK_ACTION, LOCK_USER, LOCK_TIME, LOCK_SESSION
 
 
 HistoryResourceModelType = TypeVar("HistoryResourceModelType", bound=HistoryResourceModel)

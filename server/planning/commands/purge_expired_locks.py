@@ -18,7 +18,8 @@ from superdesk.core.utils import date_to_str
 from superdesk.utc import utcnow
 from superdesk.lock import lock, unlock
 from superdesk.celery_task_utils import get_lock_id
-from planning.item_lock import LOCK_ACTION, LOCK_SESSION, LOCK_TIME, LOCK_USER
+from apps.item_lock.components.item_lock import LOCK_USER, LOCK_SESSION, LOCK_ACTION, LOCK_TIME
+
 from planning.utils import get_service, try_cast_object_id
 from planning.types.unified import UnifiedPlanningResource
 from planning.events import EventsAutosaveAsyncService

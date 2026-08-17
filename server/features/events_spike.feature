@@ -259,7 +259,7 @@ Feature: Events Spike
         }]
         """
         Then we get OK response
-        When we post to "/events/#EVENT3._id#/lock"
+        When we post to "planning/#EVENT3._id#/lock"
         """
         {"lock_action": "edit"}
         """
@@ -271,7 +271,7 @@ Feature: Events Spike
         """
         {"_message": "Spike failed. An event in the series is locked."}
         """
-        When we post to "/events/#EVENT3._id#/unlock"
+        When we post to "planning/#EVENT3._id#/unlock"
         """
         {}
         """
@@ -472,7 +472,7 @@ Feature: Events Spike
             "planning_date": "2016-01-02"
         }]
         """
-        When we post to "/events/#EVENT4._id#/lock" with success
+        When we post to "planning/#EVENT4._id#/lock" with success
         """
         {"lock_action": "reschedule"}
         """
@@ -499,7 +499,7 @@ Feature: Events Spike
             "planning_date": "2016-01-02"
         }]
         """
-        When we post to "/events/#EVENT6._id#/lock" with success
+        When we post to "planning/#EVENT6._id#/lock" with success
         """
         {"lock_action": "cancel"}
         """

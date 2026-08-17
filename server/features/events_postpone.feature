@@ -229,7 +229,7 @@ Feature: Events Postpone
         }]
         """
         Then we get OK response
-        When we post to "/events/#EVENT3._id#/lock" with success
+        When we post to "planning/#EVENT3._id#/lock" with success
         """
         {"lock_action": "postpone"}
         """
@@ -287,7 +287,7 @@ Feature: Events Postpone
         }]
         """
         Then we get OK response
-        When we post to "/events/#EVENT3._id#/lock" with success
+        When we post to "planning/#EVENT3._id#/lock" with success
         """
         {"lock_action": "postpone"}
         """
@@ -731,7 +731,7 @@ Feature: Events Postpone
         }]
         """
         Then we get OK response
-        When we post to "/events/#EVENT3._id#/lock" with success
+        When we post to "planning/#EVENT3._id#/lock" with success
         """
         {"lock_action": "postpone"}
         """

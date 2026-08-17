@@ -15,7 +15,7 @@ Feature: Events Locking
             }
         }]
         """
-        When we post to "/events/#events._id#/lock"
+        When we post to "planning/#events._id#/lock"
         """
         {"lock_action": "edit"}
         """
@@ -55,7 +55,7 @@ Feature: Events Locking
             }
         }]
         """
-        When we post to "/events/#events._id#/lock"
+        When we post to "planning/#events._id#/lock"
         """
         {"lock_action": "edit"}
         """
@@ -105,7 +105,7 @@ Feature: Events Locking
             "planning_date": "2016-01-02"
         }]
         """
-        When we post to "/planning/#planning._id#/lock"
+        When we post to "planning/#planning._id#/lock"
         """
         {"lock_action": "edit"}
         """
@@ -118,7 +118,7 @@ Feature: Events Locking
         }
 
         """
-        When we post to "/events/#events._id#/lock"
+        When we post to "planning/#events._id#/lock"
         """
         {"lock_action": "edit"}
         """
@@ -142,7 +142,7 @@ Feature: Events Locking
             }
         }]
         """
-        When we post to "/events/#events._id#/lock"
+        When we post to "planning/#events._id#/lock"
         """
         {"lock_action": "edit"}
         """
@@ -161,7 +161,7 @@ Feature: Events Locking
         }
         """
         When we setup test user
-        When we post to "/events/#events._id#/lock"
+        When we post to "planning/#events._id#/lock"
         """
         {"lock_action": "edit"}
         """
@@ -242,7 +242,7 @@ Feature: Events Locking
         ]
         """
         Then we get OK response
-        When we post to "/planning/#planning._id#/lock"
+        When we post to "planning/#planning._id#/lock"
         """
         {"lock_action": "edit"}
         """
@@ -256,7 +256,7 @@ Feature: Events Locking
         }
         """
         # Try to obtain lock for a different event (EVENT1) in the series
-        When we post to "/events/#EVENT1._id#/lock"
+        When we post to "planning/#EVENT1._id#/lock"
         """
         {"lock_action": "edit"}
         """
@@ -280,7 +280,7 @@ Feature: Events Locking
           }
       }]
       """
-      When we post to "/events/#events._id#/lock"
+      When we post to "planning/#events._id#/lock"
       """
       {"lock_action": "edit"}
       """
@@ -304,7 +304,7 @@ Feature: Events Locking
       {"user_type": "user", "privileges": {"planning_event_management":0}}
       """
       Then we get OK response
-      When we post to "/events/#events._id#/unlock"
+      When we post to "planning/#events._id#/unlock"
       """
       {}
       """
@@ -325,7 +325,7 @@ Feature: Events Locking
           }
       }]
       """
-      When we post to "/events/#events._id#/lock"
+      When we post to "planning/#events._id#/lock"
       """
       {"lock_action": "edit"}
       """
@@ -344,12 +344,12 @@ Feature: Events Locking
       }
       """
       When we switch user
-      And we post to "/events/#events._id#/unlock"
+      And we post to "planning/#events._id#/unlock"
       """
       {}
       """
       Then we get OK response
-      When we post to "/events/#events._id#/lock"
+      When we post to "planning/#events._id#/lock"
       """
       {"lock_action": "edit"}
       """
@@ -432,7 +432,7 @@ Feature: Events Locking
             }
         ]}
         """
-      When we post to "/events/#EVENT1._id#/lock"
+      When we post to "planning/#EVENT1._id#/lock"
       """
       {"lock_action": "edit"}
       """
@@ -444,7 +444,7 @@ Feature: Events Locking
         "lock_user": "#CONTEXT_USER_ID#"
       }
       """
-      When we post to "/events/#EVENT3._id#/lock"
+      When we post to "planning/#EVENT3._id#/lock"
       """
       {"lock_action": "edit"}
       """
@@ -526,7 +526,7 @@ Feature: Events Locking
           }
       ]}
       """
-      When we post to "/events/#EVENT1._id#/lock"
+      When we post to "planning/#EVENT1._id#/lock"
       """
       {"lock_action": "edit"}
       """

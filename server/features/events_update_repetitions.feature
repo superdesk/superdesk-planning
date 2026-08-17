@@ -59,7 +59,7 @@ Feature: Events Update Repetitions
         """
         Then we get OK response
 
-        When we post to "/events/#EVENT2._id#/lock" with success
+        When we post to "planning/#EVENT2._id#/lock" with success
         """
         {"lock_action": "update_repetitions"}
         """
@@ -344,7 +344,7 @@ Feature: Events Update Repetitions
             {"_id": "#EVENT4._id#", "recurrence_id": "#EVENT1.recurrence_id#"}
         ]}
         """
-        When we post to "/events/#EVENT2._id#/lock" with success
+        When we post to "planning/#EVENT2._id#/lock" with success
         """
         {"lock_action": "update_repetitions"}
         """
@@ -435,7 +435,7 @@ Feature: Events Update Repetitions
             {"_id": "#EVENT4._id#", "recurrence_id": "#EVENT1.recurrence_id#"}
         ]}
         """
-        When we post to "/events/#EVENT2._id#/lock" with success
+        When we post to "planning/#EVENT2._id#/lock" with success
         """
         {"lock_action": "update_repetitions"}
         """
@@ -583,7 +583,7 @@ Feature: Events Update Repetitions
             {"_id": "#EVENT4._id#", "recurrence_id": "#EVENT1.recurrence_id#"}
         ]}
         """
-        When we post to "/events/#EVENT2._id#/lock" with success
+        When we post to "planning/#EVENT2._id#/lock" with success
         """
         {"lock_action": "update_repetitions"}
         """
@@ -674,7 +674,7 @@ Feature: Events Update Repetitions
             {"_id": "#EVENT4._id#", "recurrence_id": "#EVENT1.recurrence_id#"}
         ]}
         """
-        When we post to "/events/#EVENT2._id#/lock" with success
+        When we post to "planning/#EVENT2._id#/lock" with success
         """
         {"lock_action": "update_repetitions"}
         """
@@ -828,7 +828,7 @@ Feature: Events Update Repetitions
             {"_id": "#EVENT4._id#", "recurrence_id": "#EVENT1.recurrence_id#"}
         ]}
         """
-        When we post to "/events/#EVENT2._id#/lock" with success
+        When we post to "planning/#EVENT2._id#/lock" with success
         """
         {"lock_action": "update_repetitions"}
         """
@@ -1008,13 +1008,13 @@ Feature: Events Update Repetitions
             "planning_date": "2016-01-02"
         }]
         """
-        When we post to "/events/#EVENT5._id#/lock" with success
+        When we post to "planning/#EVENT5._id#/lock" with success
         """
         {"lock_action": "cancel"}
         """
         When we perform cancel on events "#EVENT5._id#"
         Then we get OK response
-        When we post to "/events/#EVENT6._id#/lock" with success
+        When we post to "planning/#EVENT6._id#/lock" with success
         """
         {"lock_action": "postpone"}
         """
@@ -1022,7 +1022,7 @@ Feature: Events Update Repetitions
         Then we get OK response
         When we spike events "#EVENT7._id#"
         Then we get OK response
-        When we post to "/events/#EVENT2._id#/lock" with success
+        When we post to "planning/#EVENT2._id#/lock" with success
         """
         {"lock_action": "update_repetitions"}
         """
@@ -1175,7 +1175,7 @@ Feature: Events Update Repetitions
         """
         Then we get OK response
         Then we store "EVENT1" with first item
-        When we post to "/events/#EVENT1._id#/lock" with success
+        When we post to "planning/#EVENT1._id#/lock" with success
         """
         {"lock_action": "update_repetitions"}
         """
@@ -1412,7 +1412,7 @@ Feature: Events Update Repetitions
             {"_id": "#EVENT4._id#", "recurrence_id": "#EVENT1.recurrence_id#", "state": "scheduled"}
         ]}
         """
-        When we post to "/events/#EVENT2._id#/lock" with success
+        When we post to "planning/#EVENT2._id#/lock" with success
         """
         {"lock_action": "update_repetitions"}
         """

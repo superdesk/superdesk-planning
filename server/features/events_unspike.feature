@@ -319,13 +319,13 @@ Feature: Events Unspike
         And we store "EVENT3" with 3 item
         And we store "EVENT4" with 4 item
         And we store "EVENT5" with 5 item
-        When we post to "/events/#EVENT3._id#/lock" with success
+        When we post to "planning/#EVENT3._id#/lock" with success
         """
         {"lock_action": "postpone"}
         """
         When we perform postpone on events "#EVENT3._id#"
         Then we get OK response
-        When we post to "/events/#EVENT4._id#/lock" with success
+        When we post to "planning/#EVENT4._id#/lock" with success
         """
         {"lock_action": "cancel"}
         """

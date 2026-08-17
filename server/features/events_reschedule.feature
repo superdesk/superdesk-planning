@@ -296,7 +296,7 @@ Feature: Events Reschedule
         }]
         """
         Then we get OK response
-        When we post to "/events/#EVENT2._id#/lock" with success
+        When we post to "planning/#EVENT2._id#/lock" with success
         """
         {"lock_action": "reschedule"}
         """
@@ -457,7 +457,7 @@ Feature: Events Reschedule
         ]}
         """
         When we reset notifications
-        When we post to "/events/#EVENT1._id#/lock" with success
+        When we post to "planning/#EVENT1._id#/lock" with success
         """
         {"lock_action": "reschedule"}
         """
@@ -664,7 +664,7 @@ Feature: Events Reschedule
         Then we store "EVENT3" with 3 item
         Then we store "EVENT4" with 4 item
         Then we store "EVENT5" with 5 item
-        When we post to "/events/#EVENT3._id#/lock" with success
+        When we post to "planning/#EVENT3._id#/lock" with success
         """
         {"lock_action": "reschedule"}
         """
@@ -786,7 +786,7 @@ Feature: Events Reschedule
         """
         Then we get OK response
         Then we store "EVENT1" with first item
-        When we post to "/events/#EVENT1._id#/lock" with success
+        When we post to "planning/#EVENT1._id#/lock" with success
         """
         {"lock_action": "reschedule"}
         """
@@ -951,7 +951,7 @@ Feature: Events Reschedule
             "pubstatus": "usable"
         }
         """
-        When we post to "/events/#EVENT1._id#/lock" with success
+        When we post to "planning/#EVENT1._id#/lock" with success
         """
         {"lock_action": "postpone"}
         """
@@ -1017,7 +1017,7 @@ Feature: Events Reschedule
             }
         ]}
         """
-        When we post to "/events/#EVENT1._id#/lock" with success
+        When we post to "planning/#EVENT1._id#/lock" with success
         """
         {"lock_action": "reschedule"}
         """

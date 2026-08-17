@@ -9,6 +9,7 @@ from superdesk.core.resources import AsyncResourceService
 from superdesk.errors import SuperdeskApiError
 
 from planning.types import EventAutosaveResourceModel, PlanningAutosaveResourceModel
+from planning.types.unified import UnifiedPlanningResource, PlanningItemType
 from planning.unified.files import delete_item_files
 
 
@@ -45,17 +46,16 @@ class AutosaveAsyncService(AsyncResourceService):
             raise SuperdeskApiError.badRequestError(message=_("Autosave failed, User Session not supplied"))
 
 
-async def on_item_unlocked(resource: str, item: dict, user_id: ObjectId) -> None:
-    # raise Exception("on_item_unlocked not implemented")
-    if resource == "events":
+async def on_item_unlocked(item: UnifiedPlanningResource) -> None:
+    if item.item_type == PlanningItemType.EVENT:
         autosave_service = EventAutosaveResourceModel.get_service()
-    elif resource == "planning":
+    elif item.item_type == PlanningItemType.PLANNING:
         autosave_service = PlanningAutosaveResourceModel.get_service()
     else:
         return
 
     try:
         # Delete any autosave items associated with this item
-        await autosave_service.delete_many(lookup={"_id": item["_id"]})
+        await autosave_service.delete_many(lookup={"_id": item.id})
     except Exception as err:
         logger.exception(f"Failed to delete autosave item(s) ({err})")

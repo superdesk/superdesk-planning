@@ -2,13 +2,14 @@ import logging
 from copy import deepcopy
 from typing import Any
 
-from planning.types import UnifiedPlanningHistoryResource
-from planning.types.enums import AssignmentHistoryActions, AssignmentWorkflowState, ItemActions, WorkflowState
 from superdesk.flask import request
 from superdesk.resource_fields import ID_FIELD
 from superdesk.default_settings import strtobool
 
-from planning.item_lock import LOCK_ACTION
+from apps.item_lock.components.item_lock import LOCK_ACTION
+
+from planning.types import UnifiedPlanningHistoryResource
+from planning.types.enums import AssignmentHistoryActions, AssignmentWorkflowState, ItemActions, WorkflowState
 from planning.utils import (
     get_related_event_links_for_planning,
     is_coverage_planning_modified,

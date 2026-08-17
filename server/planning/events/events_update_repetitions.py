@@ -19,6 +19,8 @@ from superdesk import get_resource_service
 from superdesk.metadata.utils import generate_guid
 from superdesk.metadata.item import GUID_NEWSML
 
+from apps.item_lock.components.item_lock import LOCK_ACTION
+
 from planning import signals
 from planning.common import (
     remove_lock_information,
@@ -38,7 +40,6 @@ from planning.events.events_utils import (
 )
 from planning.events.events_cancel import cancel_single_event, validate_states
 from planning.types import UnifiedPlanningHistoryResource
-from planning.item_lock import LOCK_ACTION
 from planning.utils import event_has_planning_items
 
 

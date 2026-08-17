@@ -17,21 +17,9 @@ from superdesk.eve_async.eve_to_pydantic_datalayer import EveToPydanticDataLayer
 from planning.history.planning import UnifiedPlanningHistoryService
 from .planning import PlanningResource, PlanningService  # noqa
 from .planning_schema import coverage_schema  # noqa
-from .planning_lock import (
-    PlanningLockResource,
-    PlanningLockService,
-    PlanningUnlockResource,
-    PlanningUnlockService,
-)
 from .planning_post import PlanningPostService, PlanningPostResource
 from .planning_cancel import PlanningCancelService, PlanningCancelResource
 from .planning_reschedule import PlanningRescheduleService, PlanningRescheduleResource
-from .planning_featured_lock import (
-    PlanningFeaturedLockResource,
-    PlanningFeaturedLockService,
-    PlanningFeaturedUnlockResource,
-    PlanningFeaturedUnlockService,
-)
 from .planning_files import PlanningFilesResource, PlanningFilesService
 
 from .module import (
@@ -65,12 +53,6 @@ def init_app(app):
     )
     PlanningResource(PlanningResource.endpoint_name, app=app, service=planning_service)
 
-    planning_lock_service = PlanningLockService("planning_lock", backend=superdesk.get_backend())
-    PlanningLockResource("planning_lock", app=app, service=planning_lock_service)
-
-    planning_unlock_service = PlanningUnlockService("planning_unlock", backend=superdesk.get_backend())
-    PlanningUnlockResource("planning_unlock", app=app, service=planning_unlock_service)
-
     planning_post_service = PlanningPostService("planning_post", backend=superdesk.get_backend())
     PlanningPostResource("planning_post", app=app, service=planning_post_service)
 
@@ -91,35 +73,17 @@ def init_app(app):
         service=planning_reschedule_service,
     )
 
-    planning_featured_lock_service = PlanningFeaturedLockService(
-        PlanningFeaturedLockResource.endpoint_name, backend=superdesk.get_backend()
-    )
-    PlanningFeaturedLockResource(
-        PlanningFeaturedLockResource.endpoint_name,
-        app=app,
-        service=planning_featured_lock_service,
-    )
-
-    planning_featured_unlock_service = PlanningFeaturedUnlockService(
-        PlanningFeaturedUnlockResource.endpoint_name, backend=superdesk.get_backend()
-    )
-    PlanningFeaturedUnlockResource(
-        PlanningFeaturedUnlockResource.endpoint_name,
-        app=app,
-        service=planning_featured_unlock_service,
-    )
-
-    planning_history_async_service = UnifiedPlanningHistoryService()
+    planning_history_service = UnifiedPlanningHistoryService()
 
     # listen to async signals
-    signals.planning_updated.connect(planning_history_async_service.on_item_updated)
-    signals.planning_spiked.connect(planning_history_async_service.on_spike)
-    signals.planning_unspiked.connect(planning_history_async_service.on_unspike)
-    signals.planning_postponed.connect(planning_history_async_service.on_postpone)
+    signals.planning_updated.connect(planning_history_service.on_item_updated)
+    signals.planning_spiked.connect(planning_history_service.on_spike)
+    signals.planning_unspiked.connect(planning_history_service.on_unspike)
+    signals.planning_postponed.connect(planning_history_service.on_postpone)
 
     # Still include the old signals
-    app.on_updated_planning_cancel += planning_history_async_service.on_cancel
-    app.on_updated_planning_reschedule += planning_history_async_service.on_reschedule
+    app.on_updated_planning_cancel += planning_history_service.on_cancel
+    app.on_updated_planning_reschedule += planning_history_service.on_reschedule
 
     app.on_updated_assignments += PlanningAutosaveAsyncService().on_assignment_updated
 
@@ -158,5 +122,3 @@ def init_app(app):
         label=lazy_gettext("Planning - Featured Stories"),
         description=lazy_gettext("Ability to create and modify a featured stories list from planning items"),
     )
-
-    superdesk.intrinsic_privilege(PlanningUnlockResource.endpoint_name, method=["POST"])

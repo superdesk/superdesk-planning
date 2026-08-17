@@ -190,12 +190,14 @@ async def get_related_planning_for_events_async(
         related_events_filters.append({"term": {"related_events.link_type": link_type}})
 
     bool_query: Dict[str, Any] = {
-        "filter": {
-            "nested": {
-                "path": "related_events",
-                "query": {"bool": {"filter": related_events_filters}},
-            },
-        }
+        "filter": [
+            {
+                "nested": {
+                    "path": "related_events",
+                    "query": {"bool": {"filter": related_events_filters}},
+                },
+            }
+        ]
     }
 
     if len(exclude_planning_ids or []) > 0:
