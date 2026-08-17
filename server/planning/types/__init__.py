@@ -29,8 +29,7 @@ from .delivery import DeliveryResourceModel
 from .event import EventResourceModel
 from .history import (
     HistoryResourceModel,
-    EventsHistoryResourceModel,
-    PlanningHistoryResourceModel,
+    UnifiedPlanningHistoryResource,
     AssignmentsHistoryResourceModel,
 )
 from .planning import PlanningResourceModel
@@ -56,16 +55,16 @@ from .autosave import EventAutosaveResourceModel, PlanningAutosaveResourceModel
 from .locations import LocationResourceModel
 from .filters import EventPlanningFilter
 from . import ninjs3
+from .unified import UnifiedPlanningResource, PlanningItemType
 
 
 __all__ = [
     "BasePlanningModel",
     "DeliveryResourceModel",
     "EventResourceModel",
-    "EventsHistoryResourceModel",
     "HistoryResourceModel",
     "PlanningResourceModel",
-    "PlanningHistoryResourceModel",
+    "UnifiedPlanningHistoryResource",
     "AssignmentResourceModel",
     "CoverageProvider",
     "PublishedPlanningModel",
@@ -105,6 +104,8 @@ __all__ = [
     "EventPlanningFilter",
     "AssignmentsHistoryResourceModel",
     "ninjs3",
+    "UnifiedPlanningResource",
+    "PlanningItemType",
 ]
 
 
