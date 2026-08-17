@@ -1,31 +1,24 @@
-from asyncio import gather
-from bson import ObjectId
+from typing import cast
 from quart_babel import gettext
 
 from superdesk.core.module import Module, SuperdeskAsyncApp
-
 from superdesk.types import FilterConditionFieldParam, FilterConditionOperator
+from superdesk.factory.app import SuperdeskApp
 from superdesk.publish_async.signals import on_get_available_filter_params
-from apps.item_lock.components.item_lock import LOCK_SESSION, LOCK_USER
 
 from planning.types import AgendasResourceModel
-from planning import signals
-from planning.autosave_service import on_item_unlocked
 from planning.agendas_async import agendas_resource_config
 from planning.content_api import (
     content_api_event_resource_config,
     content_api_planning_resource_config,
 )
 
-from planning.events import events_resource_config, events_autosave_resource_config
-from planning.events.events_autosave_service import EventsAutosaveAsyncService
+from planning.events import events_resource_config
 from planning.planning import (
     planning_resource_config,
     planning_featured_resource_config,
-    planning_autosave_resource_config,
 )
 from planning.events.views import events_endpoints_group
-from planning.planning.planning_autosave_service import PlanningAutosaveAsyncService
 from planning.planning.views import planning_endpoint_group
 from planning.locations import locations_resource_config
 from planning.published import published_resource_config
@@ -43,15 +36,8 @@ from .unified.module import unified_planning_resource_config
 from .unified.signals import connect_signals
 from .unified.docs import unified_resource_docs_endpoints
 from .history.module import assignments_history_resource_config, planning_history_resource_config
+from .autosave.module import init_autosave_module, autosave_resource_config
 from .locks.module import planning_lock_endpoints, planning_featured_lock_resource, connect_signals_to_locks
-
-
-async def cleanup_on_session_end(user_id: ObjectId, session_id: ObjectId, is_last_session: bool) -> None:
-    lookup = {LOCK_USER: user_id} if is_last_session else {LOCK_SESSION: session_id}
-    await gather(
-        EventsAutosaveAsyncService().delete_many(lookup),
-        PlanningAutosaveAsyncService().delete_many(lookup),
-    )
 
 
 async def add_agenda_to_filter_params(fields: list[FilterConditionFieldParam]) -> None:
@@ -70,17 +56,15 @@ async def add_agenda_to_filter_params(fields: list[FilterConditionFieldParam]) -
 
 
 def init_planning(app: SuperdeskAsyncApp):
-    wsgi_app = app.wsgi.as_any()
-    wsgi_app.on_session_end += cleanup_on_session_end
     on_get_available_filter_params.connect(add_agenda_to_filter_params)
-    signals.on_item_unlocked.connect(on_item_unlocked)
     connect_signals()
 
     # register listeners for events planning filters signals
     connect_signals_listeners()
+    init_autosave_module(app)
 
     # register listeners for lock functionality
-    connect_signals_to_locks(wsgi_app)
+    connect_signals_to_locks(cast(SuperdeskApp, app.wsgi))
 
 
 module = Module(
@@ -103,10 +87,8 @@ module = Module(
         planning_types_resource_config,
         planning_history_resource_config,
         agendas_resource_config,
-        events_autosave_resource_config,
         planning_featured_resource_config,
         planning_featured_lock_resource,
-        planning_autosave_resource_config,
         locations_resource_config,
         events_planning_filters_resource_config,
         assignments_history_resource_config,
@@ -115,6 +97,7 @@ module = Module(
         content_api_planning_resource_config,
         # unified resource
         unified_planning_resource_config,
+        autosave_resource_config,
     ],
     privileges=events_planning_filters_privileges,
 )

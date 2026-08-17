@@ -7,14 +7,6 @@ from quart_babel import lazy_gettext
 
 from . import settings
 from .agendas import AgendasResource, AgendasService
-from .planning_export_templates import (
-    PlanningExportTemplatesResource,
-    PlanningExportTemplatesService,
-)
-from .planning_article_export import (
-    PlanningArticleExportResource,
-    PlanningArticleExportService,
-)
 from .common import (
     get_max_recurrent_events,
     get_street_map_url,
@@ -68,6 +60,15 @@ import planning.output_formatters  # noqa
 import planning.io  # noqa
 import planning.content_api.output_formatters  # noqa  - Included so ContentAPI formatters are registered
 from planning.search.planning_autocomplete import init_app as init_planning_autocomplete_app
+
+from .planning_export_templates import (
+    PlanningExportTemplatesResource,
+    PlanningExportTemplatesService,
+)
+from .planning_article_export import (
+    PlanningArticleExportResource,
+    PlanningArticleExportService,
+)
 from .locks.unlock import unlock_session
 
 from .module import module  # noqa

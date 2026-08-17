@@ -16,7 +16,7 @@ from superdesk.eve_async.eve_to_pydantic_datalayer import EveToPydanticDataLayer
 from planning import signals
 from planning.history.planning import UnifiedPlanningHistoryService
 from .events import EventsResource, EventsService
-from .events_files import EventsFilesResource, EventsFilesService
+from planning.files import EventsFilesResource, FilesAsyncService
 from .events_post import EventsPostService, EventsPostResource
 from .events_template import (
     EventsTemplateResource,
@@ -26,14 +26,12 @@ from .events_template import (
 )
 
 from .events_service import EventsAsyncService
-from .events_autosave_service import EventsAutosaveAsyncService
-from .module import events_resource_config, events_autosave_resource_config
+from .module import events_resource_config
+
 
 __all__ = [
     "EventsAsyncService",
     "events_resource_config",
-    "EventsAutosaveAsyncService",
-    "events_autosave_resource_config",
 ]
 
 
@@ -51,7 +49,7 @@ def init_app(app):
     events_post_service = EventsPostService("events_post", backend=superdesk.get_backend())
     EventsPostResource("events_post", app=app, service=events_post_service)
 
-    files_service = EventsFilesService("events_files", backend=superdesk.get_backend())
+    files_service = FilesAsyncService("events_files", backend=superdesk.get_backend())
     EventsFilesResource("events_files", app=app, service=files_service)
 
     events_template_service = EventsTemplateService(

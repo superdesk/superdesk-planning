@@ -109,16 +109,18 @@ export const getTestActionStore = () => {
 
                 contacts: {query: sinon.spy(() => Promise.resolve(store.data.contacts))},
 
-                event_autosave: {
-                    query: sinon.spy(() => store.spies.api._query('event_autosave')),
-                    getById: sinon.spy((id) => store.spies.api._getById('event_autosave', id)),
-                    save: sinon.spy((ori, item) => store.spies.api._save('event_autosave', ori, item)),
-                    remove: sinon.spy((item) => store.spies.api._remove('event_autosave', item)),
-                },
-
                 planning_autosave: {
-                    query: sinon.spy(() => store.spies.api._query('planning_autosave')),
-                    getById: sinon.spy((id) => store.spies.api._getById('planning_autosave', id)),
+                    query: sinon.spy((query) => {
+                        if (query.where.includes('event')) {
+                            return store.spies.api._query('event_autosave');
+                        } else {
+                            return store.spies.api._query('planning_autosave');
+                        }
+                    }),
+                    getById: sinon.spy((id) => {
+                        store.data.autosaves = store.data.event_autosave.concat(store.data.planning_autosave);
+                        return store.spies.api._getById('autosaves', id);
+                    }),
                     save: sinon.spy((ori, item) => store.spies.api._save('planning_autosave', ori, item)),
                     remove: sinon.spy((item) => store.spies.api._remove('planning_autosave', item)),
                 },

@@ -32,7 +32,7 @@ from .common import (
 
 
 def search_planning(_: Dict[str, Any], query: elastic.ElasticQuery):
-    query.must.append(elastic.term(field="type", value="planning"))
+    query.filter.append(elastic.term(field="type", value="planning"))
 
 
 def search_agendas(params: Dict[str, Any], query: elastic.ElasticQuery):
@@ -249,18 +249,17 @@ def set_search_sort(params: Dict[str, Any], query: elastic.ElasticQuery):
     order = get_sort_order(params, "ascending")
 
     if field == "schedule":
-        query.sort.append(
-            {
-                "_planning_schedule.scheduled": {
-                    "order": order,
-                    "mode": "min",
-                    "nested": {
-                        "path": "_planning_schedule",
-                        "filter": query.extra.get("sort_filter", None),
-                    },
-                }
-            }
-        )
+        sort_query: dict = {
+            "order": order,
+            "mode": "min",
+            "nested": {
+                "path": "_planning_schedule",
+            },
+        }
+        if query.extra.get("sort_filter"):
+            sort_query["nested"]["filter"] = query.extra["sort_filter"]
+
+        query.sort.append({"_planning_schedule.scheduled": sort_query})
     else:
         query.sort.append({field: {"order": order}})
 
@@ -338,7 +337,7 @@ def search_coverage_assignment_status(params: Dict[str, Any], query: elastic.Ela
 
 
 def search_description_text(params: Params, query: elastic.ElasticQuery):
-    search_text_field(params, query, "description_text")
+    search_text_field(params, query, "description_text", search_field="definition_long")
 
 
 def search_abstract(params: Params, query: elastic.ElasticQuery):

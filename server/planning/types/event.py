@@ -14,7 +14,6 @@ from .enums import PostStates, UpdateMethods, WorkflowState
 from .common import (
     CoverageStatus,
     KeywordQCodeName,
-    LockFieldsMixin,
     PlanningSchedule,
     RelationshipItem,
     SubjectListType,
@@ -22,6 +21,7 @@ from .common import (
     TimeToBeConfirmedType,
     RelatedEvents,
 )
+from .unified import LockFields
 
 
 class LocationAddress(Dataclass):
@@ -124,7 +124,7 @@ class RelatedItem:
     word_count: int | None = None
 
 
-class EventResourceModel(BasePlanningModel, LockFieldsMixin):
+class EventResourceModel(BasePlanningModel, LockFields):
     guid: fields.Keyword | None = None
     unique_id: int | None = None
     unique_name: fields.Keyword | None = None

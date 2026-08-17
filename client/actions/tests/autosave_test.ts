@@ -43,10 +43,11 @@ describe('actions.autosave', () => {
         it('fetches items and saves them to redux', (done) => (
             store.test(done, autosave.fetch('event'))
                 .then(() => {
-                    expect(services.api('event_autosave').query.callCount).toBe(1);
-                    expect(services.api('event_autosave').query.args[0]).toEqual([{
+                    expect(services.api('planning_autosave').query.callCount).toBe(1);
+                    expect(services.api('planning_autosave').query.args[0]).toEqual([{
                         where: JSON.stringify({
                             lock_user: store.initialState.session.identity._id,
+                            type: 'event',
                         }),
                     }]);
 
@@ -63,7 +64,7 @@ describe('actions.autosave', () => {
         ));
 
         it('notifies user if failed to load autosave items', (done) => {
-            services.api('event_autosave').query = sinon.spy(() => Promise.reject(errorMessage));
+            services.api('planning_autosave').query = sinon.spy(() => Promise.reject(errorMessage));
             store.test(done, autosave.fetch('event'))
                 .then(done.fail, (error) => {
                     expect(error).toEqual(errorMessage);
@@ -114,8 +115,8 @@ describe('actions.autosave', () => {
                         eventUtils.modifyForClient(data.event_autosave[0])
                     );
 
-                    expect(services.api('event_autosave').getById.callCount).toBe(1);
-                    expect(services.api('event_autosave').getById.args[0]).toEqual([data.events[0]._id]);
+                    expect(services.api('planning_autosave').getById.callCount).toBe(1);
+                    expect(services.api('planning_autosave').getById.args[0]).toEqual([data.events[0]._id]);
 
                     done();
                 }, done.fail);
@@ -151,8 +152,8 @@ describe('actions.autosave', () => {
                         ),
                     }]);
 
-                    expect(services.api('event_autosave').save.callCount).toBe(1);
-                    expect(services.api('event_autosave').save.args[0]).toEqual([
+                    expect(services.api('planning_autosave').save.callCount).toBe(1);
+                    expect(services.api('planning_autosave').save.args[0]).toEqual([
                         {},
                         jasmine.objectContaining(modifyForServer(expectedItem)),
                     ]);
@@ -193,8 +194,8 @@ describe('actions.autosave', () => {
                         payload: autosaveItem,
                     }]);
 
-                    expect(services.api('event_autosave').save.callCount).toBe(1);
-                    expect(services.api('event_autosave').save.args[0]).toEqual([
+                    expect(services.api('planning_autosave').save.callCount).toBe(1);
+                    expect(services.api('planning_autosave').save.args[0]).toEqual([
                         data.event_autosave[0],
                         jasmine.objectContaining(omit(expectedItem, ['_startTime', '_endTime'])),
                     ]);
@@ -204,7 +205,7 @@ describe('actions.autosave', () => {
         ));
 
         it('notifies the user if saving fails', (done) => {
-            services.api('event_autosave').save = sinon.spy(() => Promise.reject(errorMessage));
+            services.api('planning_autosave').save = sinon.spy(() => Promise.reject(errorMessage));
             store.test(done, autosave.save(data.event_autosave[0], data.event_autosave[0]))
                 .then(done.fail, (error) => {
                     expect(error).toEqual(errorMessage);
@@ -226,8 +227,8 @@ describe('actions.autosave', () => {
                         payload: data.event_autosave[0],
                     }]);
 
-                    expect(services.api('event_autosave').remove.callCount).toBe(1);
-                    expect(services.api('event_autosave').remove.args[0]).toEqual(
+                    expect(services.api('planning_autosave').remove.callCount).toBe(1);
+                    expect(services.api('planning_autosave').remove.args[0]).toEqual(
                         [data.event_autosave[0]]
                     );
 
@@ -244,7 +245,7 @@ describe('actions.autosave', () => {
                         payload: data.event_autosave[0],
                     }]);
 
-                    expect(services.api('event_autosave').remove.callCount).toBe(0);
+                    expect(services.api('planning_autosave').remove.callCount).toBe(0);
 
                     done();
                 }, done.fail);
@@ -258,8 +259,8 @@ describe('actions.autosave', () => {
                         payload: data.event_autosave[0],
                     }]);
 
-                    expect(services.api('event_autosave').remove.callCount).toBe(1);
-                    expect(services.api('event_autosave').remove.args[0]).toEqual(
+                    expect(services.api('planning_autosave').remove.callCount).toBe(1);
+                    expect(services.api('planning_autosave').remove.args[0]).toEqual(
                         [data.event_autosave[0]]
                     );
 
@@ -284,7 +285,7 @@ describe('actions.autosave', () => {
                             payload: {_id: data.events[0]._id, type: 'event'},
                         }]);
 
-                        expect(services.api('event_autosave').remove.callCount).toBe(0);
+                        expect(services.api('planning_autosave').remove.callCount).toBe(0);
 
                         done();
                     }, done.fail)

@@ -20,9 +20,10 @@ import {
  */
 const fetch = (itemType) => (
     (dispatch, getState, {api, notify}) => (
-        api(`${itemType}_autosave`).query({
+        api('planning_autosave').query({
             where: JSON.stringify({
                 lock_user: selectors.general.currentUserId(getState()),
+                type: itemType,
             }),
         })
             .then(
@@ -58,7 +59,7 @@ const fetchAll = () => (
  */
 const fetchById = (itemType, itemId) => (
     (dispatch, getState, {api, notify}) => (
-        api(`${itemType}_autosave`).getById(itemId)
+        api('planning_autosave').getById(itemId)
             .then((item) => (
                 Promise.resolve(modifyForClient(item))
             ), (error) => {
@@ -121,7 +122,7 @@ const save = (original, updates) => (
             updateFields._unsaved_related_events = newEvents;
         }
 
-        return api(`${itemType}_autosave`).save(
+        return api('planning_autosave').save(
             original || {},
             updateFields
         )
@@ -169,7 +170,7 @@ const remove = (autosave) => (
             return Promise.resolve();
         }
 
-        return api(`${itemType}_autosave`).remove(autosave)
+        return api('planning_autosave').remove(autosave)
             .then(() => Promise.resolve(), () => Promise.resolve());
     }
 );
@@ -182,7 +183,7 @@ const remove = (autosave) => (
  */
 const removeById = (itemType, itemId) => (
     (dispatch, getState, {notify, api}) => (
-        api(`${itemType}_autosave`).getById(itemId)
+        api('planning_autosave').getById(itemId)
             .then((autosaveItem) => {
                 if (autosaveItem) {
                     return dispatch(self.remove({

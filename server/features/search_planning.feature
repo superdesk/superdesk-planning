@@ -14,7 +14,7 @@ Feature: Planning Search
                 {
                     "guid": "event_123",
                     "unique_id": "123",
-                    "unique_name": "name",
+                    "unique_name": "name 123",
                     "name": "event 123",
                     "slugline": "test slugline",
                     "definition_short": "short value",
@@ -33,7 +33,7 @@ Feature: Planning Search
                 {
                     "guid": "event_456",
                     "unique_id": "456",
-                    "unique_name": "name",
+                    "unique_name": "name 456",
                     "recurrence_id": "recur1",
                     "name": "event 456",
                     "slugline": "test slugline",
@@ -52,7 +52,7 @@ Feature: Planning Search
                 {
                     "guid": "event_786",
                     "unique_id": "786",
-                    "unique_name": "name",
+                    "unique_name": "name 789",
                     "name": "event 786",
                     "slugline": "test slugline",
                     "definition_short": "short value",
@@ -84,6 +84,8 @@ Feature: Planning Search
                 "coverages": [
                     {
                         "coverage_id": "cov1",
+                        "workflow_status": "draft",
+                        "news_coverage_status": {"qcode": "ncostat:int", "name": "coverage intended", "label": "Planned"},
                         "planning": {
                             "slugline": "slug0123",
                             "g2_content_type": "text"
@@ -105,6 +107,8 @@ Feature: Planning Search
                 "coverages": [
                     {
                         "coverage_id": "cov2",
+                        "workflow_status": "draft",
+                        "news_coverage_status": {"qcode": "ncostat:int", "name": "coverage intended", "label": "Planned"},
                         "planning": {
                             "slugline": "slug0456",
                             "g2_content_type": "text"
@@ -130,6 +134,8 @@ Feature: Planning Search
                 "coverages": [
                     {
                         "coverage_id": "cov3",
+                        "workflow_status": "draft",
+                        "news_coverage_status": {"qcode": "ncostat:int", "name": "coverage intended", "label": "Planned"},
                         "planning": {
                             "slugline": "slug0789",
                             "g2_content_type": "photo"
@@ -542,6 +548,8 @@ Feature: Planning Search
             "coverages": [
                 {
                     "coverage_id": "c1",
+                    "workflow_status": "draft",
+                    "news_coverage_status": {"qcode": "ncostat:int", "name": "coverage intended", "label": "Planned"},
                     "planning": {"scheduled": "2025-11-06T08:00:00+0000"}
                 }
             ]
@@ -555,12 +563,16 @@ Feature: Planning Search
             "coverages": [
                 {
                     "coverage_id": "c1",
+                    "workflow_status": "draft",
+                    "news_coverage_status": {"qcode": "ncostat:int", "name": "coverage intended", "label": "Planned"},
                     "planning": {
                         "scheduled": "2025-11-01T00:00:00+0000"
                     },
                     "scheduled_updates": [
                         {
-                            "coverage_id": "c2",
+                            "coverage_id": "c1",
+                            "workflow_status": "draft",
+                            "news_coverage_status": {"qcode": "ncostat:int", "name": "coverage intended", "label": "Planned"},
                             "planning": {
                                 "scheduled": "2025-11-06T08:00:00+0000"
                             }
@@ -597,6 +609,8 @@ Feature: Planning Search
             "planning_date": "#DATE-1#",
             "coverages": [{
                 "coverage_id": "cov1",
+                "workflow_status": "draft",
+                "news_coverage_status": {"qcode": "ncostat:int", "name": "coverage intended", "label": "Planned"},
                 "planning": {
                     "slugline": "slug0123",
                     "g2_content_type": "text",
@@ -604,6 +618,8 @@ Feature: Planning Search
                 }
             }, {
                 "coverage_id": "cov2",
+                "workflow_status": "draft",
+                "news_coverage_status": {"qcode": "ncostat:int", "name": "coverage intended", "label": "Planned"},
                 "planning": {
                     "slugline": "slug0123",
                     "g2_content_type": "text",
@@ -617,6 +633,8 @@ Feature: Planning Search
             "planning_date": "2016-01-01T12:00:00+0000",
             "coverages": [{
                 "coverage_id": "cov3",
+                "workflow_status": "draft",
+                "news_coverage_status": {"qcode": "ncostat:int", "name": "coverage intended", "label": "Planned"},
                 "planning": {
                     "slugline": "slug0456",
                     "g2_content_type": "text",
@@ -624,6 +642,8 @@ Feature: Planning Search
                 }
             }, {
                 "coverage_id": "cov4",
+                "workflow_status": "draft",
+                "news_coverage_status": {"qcode": "ncostat:int", "name": "coverage intended", "label": "Planned"},
                 "planning": {
                     "slugline": "slug0456",
                     "g2_content_type": "text",
@@ -637,6 +657,8 @@ Feature: Planning Search
             "planning_date": "2016-01-01T12:00:00+0000",
             "coverages": [{
                 "coverage_id": "cov4",
+                "workflow_status": "draft",
+                "news_coverage_status": {"qcode": "ncostat:int", "name": "coverage intended", "label": "Planned"},
                 "planning": {
                     "slugline": "slug0789",
                     "g2_content_type": "text",
@@ -644,6 +666,8 @@ Feature: Planning Search
                 }
             }, {
                 "coverage_id": "cov5",
+                "workflow_status": "draft",
+                "news_coverage_status": {"qcode": "ncostat:int", "name": "coverage intended", "label": "Planned"},
                 "planning": {
                     "slugline": "slug0789",
                     "g2_content_type": "text",
@@ -657,6 +681,8 @@ Feature: Planning Search
             "planning_date": "#DATE-1#",
             "coverages": [{
                 "coverage_id": "cov6",
+                "workflow_status": "draft",
+                "news_coverage_status": {"qcode": "ncostat:int", "name": "coverage intended", "label": "Planned"},
                 "planning": {
                     "slugline": "slug0123",
                     "g2_content_type": "text",
@@ -664,6 +690,8 @@ Feature: Planning Search
                 }
             }, {
                 "coverage_id": "cov7",
+                "workflow_status": "draft",
+                "news_coverage_status": {"qcode": "ncostat:int", "name": "coverage intended", "label": "Planned"},
                 "planning": {
                     "slugline": "slug0123",
                     "g2_content_type": "text",
@@ -709,19 +737,23 @@ Feature: Planning Search
 
     @auth
     Scenario: Users can only see their planning items without the planning_global_filters privilege
-        Given empty "planning"
-        Given "planning"
+        Given "users"
+        """
+        [{"username": "John"}]
+        """
+        And empty "planning"
+        And "planning"
         """
         [{
             "guid": "user_1_plan_1",
             "headline": "plan1 for user 1",
             "planning_date": "2016-01-01T12:00:00+0000",
-            "original_creator": "user_1"
+            "original_creator": "#users._id#"
         }, {
             "guid": "user_1_plan_2",
             "headline": "plan2 for user 1",
             "planning_date": "2016-01-01T12:00:00+0000",
-            "original_creator": "user_1"
+            "original_creator": "#users._id#"
         }, {
             "guid": "user_2_plan_1",
             "headline": "plan1 for user 2",

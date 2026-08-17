@@ -2694,6 +2694,7 @@ Feature: Assignments
         """
         {
             "_id": "#planning._id#",
+            "type": "planning",
             "item_class": "item class value",
             "headline": "test headline",
             "slugline": "test slugline",

@@ -83,7 +83,8 @@ Feature: Assignment Search
                     "desk": "50ca3437a4f1ec225c378f41",
                     "priority": 1
                 },
-                "workflow_status": "active"
+                "workflow_status": "active",
+                "news_coverage_status": {"qcode": "ncostat:int", "name": "coverage intended", "label": "Planned"}
             }, {
                 "planning": {
                     "scheduled": "#DATE#",
@@ -101,7 +102,8 @@ Feature: Assignment Search
                     "user": "60ca3437a4f1ec225c378f41",
                     "priority": 3
                 },
-                "workflow_status": "active"
+                "workflow_status": "active",
+                "news_coverage_status": {"qcode": "ncostat:int", "name": "coverage intended", "label": "Planned"}
             }, {
                 "planning": {
                     "scheduled": "#DATE+1#",
@@ -113,7 +115,8 @@ Feature: Assignment Search
                     "user": "60ca3437a4f1ec225c378f41",
                     "priority": 3
                 },
-                "workflow_status": "active"
+                "workflow_status": "active",
+                "news_coverage_status": {"qcode": "ncostat:int", "name": "coverage intended", "label": "Planned"}
             }, {
                 "planning": {
                     "scheduled": "#DATE+2#",
@@ -128,7 +131,8 @@ Feature: Assignment Search
                     "user": "60ca3437a4f1ec225c378f42",
                     "priority": 2
                 },
-                "workflow_status": "active"
+                "workflow_status": "active",
+                "news_coverage_status": {"qcode": "ncostat:int", "name": "coverage intended", "label": "Planned"}
             }]
         }]
         """
@@ -340,6 +344,7 @@ Feature: Assignment Search
             "planning_date": "2042-06-30T12:00:00+0000",
             "coverages": [{
                 "workflow_status": "active",
+                "news_coverage_status": {"qcode": "ncostat:int", "name": "coverage intended", "label": "Planned"},
                 "planning": {
                     "g2_content_type": "text"
                 },
@@ -349,6 +354,7 @@ Feature: Assignment Search
                 },
                 "scheduled_updates": [{
                     "workflow_status": "active",
+                    "news_coverage_status": {"qcode": "ncostat:int", "name": "coverage intended", "label": "Planned"},
                     "assigned_to": {
                         "desk": "50ca3437a4f1ec225c378f41",
                         "priority": 1

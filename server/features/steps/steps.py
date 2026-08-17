@@ -515,7 +515,7 @@ async def create_autosave_from_context_item(context, resource, name):
         item.pop(field, None)
 
     context.response = await context.client.post(
-        get_prefixed_url(context.app, f"/{resource}_autosave"), data=json.dumps(item), headers=context.headers
+        get_prefixed_url(context.app, "/planning_autosave"), data=json.dumps(item), headers=context.headers
     )
 
 
