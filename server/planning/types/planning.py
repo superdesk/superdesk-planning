@@ -13,7 +13,6 @@ from .base import BasePlanningModel
 from .enums import PostStates, UpdateMethods, WorkflowState
 from .common import (
     CoverageAssignedTo,
-    LockFieldsMixin,
     PlanningSchedule,
     RelatedEvents,
     SlugLineField,
@@ -22,6 +21,7 @@ from .common import (
     TimeToBeConfirmedType,
     UpdatesSchedule,
 )
+from .unified import LockFields
 
 
 @dataclass
@@ -31,7 +31,7 @@ class Flags:
     overide_auto_assign_to_workflow: bool = False
 
 
-class PlanningResourceModel(BasePlanningModel, LockFieldsMixin):
+class PlanningResourceModel(BasePlanningModel, LockFields):
     guid: Annotated[fields.Keyword, Field(default_factory=lambda: generate_guid(type=GUID_NEWSML))]
     unique_id: fields.Keyword | None = None
 

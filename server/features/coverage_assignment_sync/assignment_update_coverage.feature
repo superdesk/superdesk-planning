@@ -203,6 +203,7 @@ Feature: Coverages are updated when an Assignment is updated
         """
         {
             "_id": "#planning._id#",
+            "type": "planning",
             "state": "draft",
             "slugline": "test slugline",
             "planning_date": "2035-06-30T14:00:00+0000",

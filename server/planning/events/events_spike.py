@@ -14,7 +14,6 @@ from planning.common import (
     UPDATE_FUTURE,
     UPDATE_SINGLE,
     WORKFLOW_STATE,
-    remove_autosave_on_spike,
     remove_lock_information,
     set_item_expiry,
 )
@@ -259,7 +258,6 @@ async def process_spike_event(updates: dict[str, Any], original: dict[str, Any])
 
     # Clean updates before persisting change
     spiked_items = updates.pop("_spiked_items", [])
-    await remove_autosave_on_spike(original)
     updates.pop("update_method", None)
     updates.pop("skip_on_update", None)
 

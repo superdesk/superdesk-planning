@@ -27,12 +27,10 @@ from .module import (
     planning_resource_config,
     planning_history_resource_config,
     planning_featured_resource_config,
-    planning_autosave_resource_config,
 )
 from .planning_service import PlanningAsyncService
 from .planning_history_async_service import PlanningHistoryAsyncService
 from .planning_featured_async_service import PlanningFeaturedAsyncService
-from .planning_autosave_service import PlanningAutosaveAsyncService
 
 
 __all__ = [
@@ -42,8 +40,6 @@ __all__ = [
     "planning_history_resource_config",
     "PlanningFeaturedAsyncService",
     "planning_featured_resource_config",
-    "PlanningAutosaveAsyncService",
-    "planning_autosave_resource_config",
 ]
 
 
@@ -91,8 +87,6 @@ def init_app(app):
     # Still include the old signals
     app.on_updated_planning_cancel += planning_history_service.on_cancel
     app.on_updated_planning_reschedule += planning_history_service.on_reschedule
-
-    app.on_updated_assignments += PlanningAutosaveAsyncService().on_assignment_updated
 
     superdesk.privilege(
         name="planning_planning_management",

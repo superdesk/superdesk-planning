@@ -9,7 +9,7 @@ import {IEventItem} from '../../interfaces';
 
 export const authoringStorageEventItemHttp: IAuthoringStorage<IEventItem> = {
     autosave: new AutoSaveHttp<IEventItem>(
-        'event_autosave',
+        'planning_autosave',
         (item) => eventUtils.modifyForServer(item) as IEventItem,
         (item) => eventUtils.modifyForClient(item) as IEventItem,
         1000,

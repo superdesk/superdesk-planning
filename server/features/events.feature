@@ -1608,7 +1608,7 @@ Feature: Events
     @auth
     Scenario: Autosave events with related items and coverages
     Given we have sessions "/sessions"
-    When we post to "/event_autosave"
+    When we post to "/planning_autosave"
     """
     {
         "type": "event",

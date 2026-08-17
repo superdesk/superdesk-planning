@@ -52,12 +52,12 @@ from .enums import (
 from .agendas import AgendasResourceModel, AgendaItem
 from .planning_types import PlanningTypesResourceModel
 from .planning_featured import PlanningFeaturedResourceModel
+from .autosave import AutosaveResourceModel
 from .planning_featured_lock import PlanningFeaturedLockResource
-from .autosave import EventAutosaveResourceModel, PlanningAutosaveResourceModel
 from .locations import LocationResourceModel
 from .filters import EventPlanningFilter
 from . import ninjs3
-from .unified import UnifiedPlanningResource, PlanningItemType
+from .unified import UnifiedPlanningResource, PlanningItemType, LockFields
 
 
 __all__ = [
@@ -101,15 +101,15 @@ __all__ = [
     "AgendasResourceModel",
     "AgendaItem",
     "PlanningFeaturedResourceModel",
+    "AutosaveResourceModel",
     "PlanningFeaturedLockResource",
-    "EventAutosaveResourceModel",
-    "PlanningAutosaveResourceModel",
     "LocationResourceModel",
     "EventPlanningFilter",
     "AssignmentsHistoryResourceModel",
     "ninjs3",
     "UnifiedPlanningResource",
     "PlanningItemType",
+    "LockFields",
     "AssignmentEventOrPlanning",
 ]
 

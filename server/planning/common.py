@@ -32,20 +32,17 @@ from superdesk.errors import SuperdeskApiError
 from apps.archive.common import get_user, get_auth
 from apps.publish.content.common import ITEM_PUBLISH
 from superdesk.etree import parse_html
+from apps.item_lock.components.item_lock import LOCK_USER, LOCK_SESSION, LOCK_ACTION, LOCK_TIME
 
 from planning.types import (
     Planning,
     Coverage,
     Event,
-    EventAutosaveResourceModel,
-    PlanningAutosaveResourceModel,
     AssignmentEventOrPlanning,
     AssignmentResourceModel,
     UnifiedPlanningResource,
     PlanningItemType,
 )
-
-from apps.item_lock.components.item_lock import LOCK_USER, LOCK_SESSION, LOCK_ACTION, LOCK_TIME
 
 ITEM_STATE = "state"
 ITEM_EXPIRY = "expiry"
@@ -445,16 +442,6 @@ async def get_coverage_type_name_async(qcode: str) -> str | None:
         coverage_type = next((x for x in coverage_types.get("items", []) if x["qcode"] == qcode), {})
 
     return coverage_type.get("name", qcode)
-
-
-async def remove_autosave_on_spike(item):
-    if item.get("lock_action") == "edit":
-        if item.get("type") == "event":
-            autosave_service = EventAutosaveResourceModel.get_service()
-        else:
-            autosave_service = PlanningAutosaveResourceModel.get_service()
-
-        await autosave_service.delete_many(lookup={"_id": item.get(ID_FIELD)})
 
 
 def update_returned_document(doc, item, custom_hateoas):

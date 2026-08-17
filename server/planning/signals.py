@@ -12,7 +12,7 @@ import blinker
 from bson import ObjectId
 
 from superdesk.core import AsyncSignal
-from planning.types.unified import UnifiedPlanningResource, LockFields
+from planning.types import UnifiedPlanningResource, AssignmentEventOrPlanning, LockFields
 
 __all__ = [
     "planning_created",
@@ -23,6 +23,7 @@ __all__ = [
     "on_item_unlock",
     "on_item_unlocked",
     "on_unified_planning_duplicated",
+    "on_assignment_removed_from_coverage",
 ]
 
 signals = blinker.Namespace()
@@ -96,8 +97,13 @@ assignments_deleted = AsyncSignal[dict]("assignments:delete")
 on_item_lock = AsyncSignal[UnifiedPlanningResource, LockFields]("item:lock")
 on_item_locked = AsyncSignal[UnifiedPlanningResource, UnifiedPlanningResource]("item:locked")
 on_item_unlock = AsyncSignal[UnifiedPlanningResource]("item:unlock")
-on_item_unlocked = AsyncSignal[UnifiedPlanningResource, UnifiedPlanningResource]("item:unlocked")
+on_item_unlocked = AsyncSignal[AssignmentEventOrPlanning]("item:unlocked")
 
 on_unified_planning_duplicated = AsyncSignal[UnifiedPlanningResource, UnifiedPlanningResource](
     "unified_planning:duplicated"
 )
+
+#: Signal for when an Assignment is removed from a Coverage
+#: param original: The original UnifiedPlanningResource item
+#: param coverage_id: The ID of the Coverage that the Assignment was removed from
+on_assignment_removed_from_coverage = AsyncSignal[UnifiedPlanningResource, str]("coverage:assignment_removed")

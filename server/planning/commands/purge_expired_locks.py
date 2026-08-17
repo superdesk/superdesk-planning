@@ -15,15 +15,15 @@ from typing import AsyncGenerator, Any
 
 from superdesk.core import get_app_config
 from superdesk.core.utils import date_to_str
+from superdesk.core.resources import AsyncResourceService
 from superdesk.utc import utcnow
 from superdesk.lock import lock, unlock
 from superdesk.celery_task_utils import get_lock_id
 from apps.item_lock.components.item_lock import LOCK_USER, LOCK_SESSION, LOCK_ACTION, LOCK_TIME
 
+from planning.types import AutosaveResourceModel, UnifiedPlanningResource
 from planning.utils import get_service, try_cast_object_id
-from planning.types.unified import UnifiedPlanningResource
-from planning.events import EventsAutosaveAsyncService
-from planning.planning import PlanningAutosaveAsyncService
+
 from superdesk.commands import cli
 
 logger = logging.getLogger(__name__)
@@ -100,11 +100,11 @@ async def purge_item_locks(resource: str, expiry_datetime: datetime):
     logger.info(f"Purging expired locks for {resource}")
     resource_service = get_lock_service(resource)
 
-    autosave_service = None
-    if resource == "events":
-        autosave_service = EventsAutosaveAsyncService()
-    elif resource == "planning":
-        autosave_service = PlanningAutosaveAsyncService()
+    autosave_service: AsyncResourceService | None
+    if resource in ("events", "planning"):
+        autosave_service = AutosaveResourceModel.get_service()
+    else:
+        autosave_service = None
 
     async for items in get_locked_items(resource, expiry_datetime):
         failed_ids = []
