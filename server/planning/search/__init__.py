@@ -15,7 +15,6 @@ from superdesk.core.auth.privilege_rules import http_method_privilege_based_rule
 from superdesk.core.privileges import Privilege
 
 from planning.types import EventPlanningFilter
-from .planning_search import PlanningSearchResource, PlanningSearchService
 from .eventsplanning_search import EventsPlanningResource, EventsPlanningService
 from .eventsplanning_filters_service import EventsPlanningFiltersAsyncService, connect_signals_listeners
 
@@ -52,13 +51,6 @@ events_planning_filters_resource_config: ResourceConfig = ResourceConfig(
 
 
 def init_app(app):
-    superdesk.register_resource(
-        PlanningSearchResource.endpoint_name,
-        PlanningSearchResource,
-        PlanningSearchService,
-        _app=app,
-    )
-
     superdesk.register_resource(
         EventsPlanningResource.endpoint_name,
         EventsPlanningResource,
