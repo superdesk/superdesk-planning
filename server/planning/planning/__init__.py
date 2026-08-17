@@ -20,7 +20,7 @@ from .planning_history import PlanningHistoryResource, PlanningHistoryService
 from .planning_post import PlanningPostService, PlanningPostResource
 from .planning_cancel import PlanningCancelService, PlanningCancelResource
 from .planning_reschedule import PlanningRescheduleService, PlanningRescheduleResource
-from .planning_files import PlanningFilesResource, PlanningFilesService
+from planning.files import PlanningFilesResource, FilesAsyncService
 
 from .module import (
     planning_resource_config,
@@ -60,7 +60,7 @@ def init_app(app):
     planning_post_service = PlanningPostService("planning_post", backend=superdesk.get_backend())
     PlanningPostResource("planning_post", app=app, service=planning_post_service)
 
-    files_service = PlanningFilesService("planning_files", backend=superdesk.get_backend())
+    files_service = FilesAsyncService("planning_files", backend=superdesk.get_backend())
     PlanningFilesResource("planning_files", app=app, service=files_service)
 
     planning_cancel_service = PlanningCancelService(
