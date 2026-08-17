@@ -118,6 +118,13 @@ class PlanningService(AsyncBaseService):
 
         pass
 
+    async def find_one_async(self, req, **lookup):
+        item = await super().find_one_async(req, **lookup)
+        if item:
+            self._map_unified_to_legacy_schema(item)
+
+        return item
+
     async def create_async(self, docs: list[dict], skip_signals: bool = True, **kwargs):
         for doc in docs:
             self._map_legacy_to_unified_schema(doc)
