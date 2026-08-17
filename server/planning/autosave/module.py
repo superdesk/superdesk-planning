@@ -8,8 +8,7 @@ from superdesk.core.resources import ResourceConfig, MongoIndexOptions, MongoRes
 from apps.item_lock.components.item_lock import LOCK_SESSION, LOCK_USER
 
 from planning import signals
-from planning.types import WorkflowState
-from planning.types.unified import UnifiedPlanningResource
+from planning.types import WorkflowState, UnifiedPlanningResource, AssignmentEventOrPlanning
 from planning.coverage_assignments import update_planning_from_assignment_changes
 
 from .service import AutosaveResourceModel, AutosaveAsyncService
@@ -27,7 +26,7 @@ def init_autosave_module(app: SuperdeskAsyncApp) -> None:
     signals.on_assignment_removed_from_coverage.connect(_on_assignment_removed)
     signals.event_spiked.connect(_remove_autosave_on_spike)
     signals.planning_spiked.connect(_remove_autosave_on_spike)
-    signals.item_unlocked.connect(_on_item_unlocked)
+    signals.on_item_unlocked.connect(_on_item_unlocked)
 
 
 async def _cleanup_on_session_end(user_id: ObjectId, session_id: ObjectId, is_last_session: bool):
@@ -91,13 +90,13 @@ async def _remove_autosave_on_spike(updates: dict, original: dict) -> None:
     await AutosaveResourceModel.get_service().delete_many(lookup={"_id": original["_id"]})
 
 
-async def _on_item_unlocked(resource: str, item: dict, user_id: ObjectId) -> None:
-    if resource not in ("events", "planning"):
+async def _on_item_unlocked(item: AssignmentEventOrPlanning) -> None:
+    if not isinstance(item, UnifiedPlanningResource):
         return
 
     try:
         # Delete any autosave items associated with this item
-        await AutosaveResourceModel.get_service().delete_many(lookup={"_id": item["_id"]})
+        await AutosaveResourceModel.get_service().delete_many(lookup={"_id": item.id})
     except Exception as err:
         logger.exception(f"Failed to delete autosave item(s) ({err})")
 

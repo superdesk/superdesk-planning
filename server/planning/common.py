@@ -38,8 +38,6 @@ from planning.types import (
     Planning,
     Coverage,
     Event,
-    EventAutosaveResourceModel,
-    PlanningAutosaveResourceModel,
     AssignmentEventOrPlanning,
     AssignmentResourceModel,
     UnifiedPlanningResource,

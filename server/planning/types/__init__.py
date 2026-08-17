@@ -57,7 +57,7 @@ from .planning_featured_lock import PlanningFeaturedLockResource
 from .locations import LocationResourceModel
 from .filters import EventPlanningFilter
 from . import ninjs3
-from .unified import UnifiedPlanningResource, PlanningItemType
+from .unified import UnifiedPlanningResource, PlanningItemType, LockFields
 
 
 __all__ = [
@@ -109,6 +109,7 @@ __all__ = [
     "ninjs3",
     "UnifiedPlanningResource",
     "PlanningItemType",
+    "LockFields",
     "AssignmentEventOrPlanning",
 ]
 

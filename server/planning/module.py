@@ -1,8 +1,9 @@
+from typing import cast
 from quart_babel import gettext
 
 from superdesk.core.module import Module, SuperdeskAsyncApp
-
 from superdesk.types import FilterConditionFieldParam, FilterConditionOperator
+from superdesk.factory.app import SuperdeskApp
 from superdesk.publish_async.signals import on_get_available_filter_params
 
 from planning.types import AgendasResourceModel
@@ -67,7 +68,7 @@ def init_planning(app: SuperdeskAsyncApp):
     init_autosave_module(app)
 
     # register listeners for lock functionality
-    connect_signals_to_locks(wsgi_app)
+    connect_signals_to_locks(cast(SuperdeskApp, app.wsgi))
 
 
 module = Module(
