@@ -27,12 +27,6 @@ from .assignments_complete import (
     AssignmentsCompleteService,
 )
 from .assignments_revert import AssignmentsRevertResource, AssignmentsRevertService
-from .assignments_lock import (
-    AssignmentsLockResource,
-    AssignmentsLockService,
-    AssignmentsUnlockResource,
-    AssignmentsUnlockService,
-)
 from .delivery import DeliveryResource, DeliveryService
 
 from .service import AssignmentsAsyncService
@@ -55,20 +49,6 @@ def init_app(app):
 
     :param app: superdesk app
     """
-
-    assignments_lock_service = AssignmentsLockService(
-        AssignmentsLockResource.endpoint_name, backend=superdesk.get_backend()
-    )
-    AssignmentsLockResource(AssignmentsLockResource.endpoint_name, app=app, service=assignments_lock_service)
-
-    assignments_unlock_service = AssignmentsUnlockService(
-        AssignmentsUnlockResource.endpoint_name, backend=superdesk.get_backend()
-    )
-    AssignmentsUnlockResource(
-        AssignmentsUnlockResource.endpoint_name,
-        app=app,
-        service=assignments_unlock_service,
-    )
 
     assignments_publish_service = AssignmentsService("assignments", backend=superdesk.get_backend())
     AssignmentsResource("assignments", app=app, service=assignments_publish_service)
@@ -115,9 +95,6 @@ def init_app(app):
     # Updating data/lock on assignments based on content item updates from authoring
     app.on_updated_archive += assignments_publish_service.update_assignment_on_archive_update
     app.on_archive_item_updated += assignments_publish_service.update_assignment_on_archive_operation
-    app.on_item_lock += assignments_publish_service.validate_assignment_lock
-    app.on_item_locked += assignments_publish_service.sync_assignment_lock
-    app.on_item_unlocked += assignments_publish_service.sync_assignment_unlock
 
     # Track updates for an assignment if it's news story was updated
     if app.config.get("PLANNING_LINK_UPDATES_TO_COVERAGES", True):
@@ -152,9 +129,6 @@ def init_app(app):
 
     item_duplicate_async.connect(on_archive_item_duplicate)
     item_duplicated_async.connect(on_archive_item_duplicated)
-
-    # Privileges
-    superdesk.intrinsic_privilege(AssignmentsUnlockResource.endpoint_name, method=["POST"])
 
     # User Preferences
     superdesk.register_default_user_preference(

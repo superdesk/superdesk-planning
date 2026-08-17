@@ -9,7 +9,7 @@ from superdesk.resource_fields import ID_FIELD
 from superdesk.default_settings import strtobool
 
 from planning.history_async_service import HistoryAsyncService
-from planning.item_lock import LOCK_ACTION
+from apps.item_lock.components.item_lock import LOCK_ACTION
 from planning.utils import (
     get_related_event_links_for_planning,
     is_coverage_planning_modified,

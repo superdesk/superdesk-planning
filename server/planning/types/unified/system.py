@@ -1,8 +1,8 @@
 from typing import Annotated
 
-from pydantic import Field, BaseModel
+from pydantic import Field
 
-from superdesk.core.resources import Dataclass, fields
+from superdesk.core.resources import Dataclass, fields, BaseModel
 from superdesk.core.resources.validators import validate_data_relation_async, validate_unique_value_async
 from superdesk.utc import utcnow
 
@@ -172,7 +172,7 @@ class ItemSystemFields(BaseModel):
     )
 
     # TODO: This requires global uniqueness, do we really need that?
-    unique_id: fields.Keyword | None = Field(description="Unique ID of the item", default=None)
+    unique_id: int | None = Field(description="Unique ID of the item", default=None)
     unique_name: Annotated[
         fields.Keyword | None,
         Field(description="Unique name of the item", default=None),

@@ -150,7 +150,6 @@ function reloadSoftLocksForAssociatedPlannings(event: IEventItem): void {
 function getLockResourceName(itemType: IAssignmentOrPlanningItem['type']) {
     switch (itemType) {
     case 'event':
-        return 'events';
     case 'planning':
         return 'planning';
     case 'assignment':

@@ -7,6 +7,7 @@ from bson import ObjectId
 from mock import Mock, patch
 from datetime import datetime, timedelta
 
+from planning.types.unified import UnifiedPlanningResource, PlanningItemType, LockFields
 from planning.types.common import RelatedEvent
 from superdesk.utc import utcnow
 from superdesk import get_resource_service
@@ -15,13 +16,13 @@ from superdesk.tests import utils as test_utils, fixtures
 
 from planning.tests import TestCase, fixtures as planning_fixtures
 from planning.common import format_address, POST_STATE, TO_BE_CONFIRMED_FIELD
-from planning.item_lock import LockService
 from planning.events.events_utils import generate_recurring_dates
 from planning.types import PlanningRelatedEventLink
 from planning.events.events_utils import get_recurring_timeline
 from planning.events.events_reschedule import process_reschedule_event
 from planning.events.events_update_time import process_update_time
 from planning.events.events_update_repetitions import process_update_repetitions
+from planning.locks.lock import lock_item
 from planning.content_api.resources import ContentAPIPlanningService, ContentAPIEventService
 
 from .events import is_event_updated
@@ -132,7 +133,7 @@ class EventTestCase(EventsBaseTestCase):
 
     async def test_get_recurring_timeline(self):
         generated_events = generate_recurring_events(10)
-        self.app.data.insert("events", generated_events)
+        await self.app.data.insert_async("events", generated_events)
 
         selected = await self.events_service.find_one_async(req=None, name="Event 5")
         self.assertEqual("Event 5", selected["name"])
@@ -234,6 +235,10 @@ class EventPlanningSchedule(EventsBaseTestCase):
     async def _get_all_events_raw(self) -> list[dict[str, Any]]:
         events_cursor = await self.events_service.get_from_mongo_async(req=None, lookup=None)
         return await events_cursor.to_list()
+
+    async def _get_all_events(self) -> list[UnifiedPlanningResource]:
+        cursor = await UnifiedPlanningResource.get_service().find({"type": PlanningItemType.EVENT.value})
+        return await cursor.to_list()
 
     def assertPlanningSchedule(self, events, event_count):
         self.assertEqual(len(events), event_count)
@@ -390,9 +395,10 @@ class EventPlanningSchedule(EventsBaseTestCase):
         events = await self._get_all_events_raw()
         self.assertPlanningSchedule(events, 5)
 
-    # @patch("planning.events.events.get_user")
-    async def test_planning_schedule_convert_to_recurring(self):
-        # get_user_mock.return_value = {"_id": "None"}
+    @patch("planning.locks.lock.get_auth")
+    async def test_planning_schedule_convert_to_recurring(self, get_auth_mock):
+        session_id = ObjectId()
+        get_auth_mock.return_value = {"_id": session_id}
         event = {
             "name": "Friday Club",
             "dates": {
@@ -403,14 +409,16 @@ class EventPlanningSchedule(EventsBaseTestCase):
         }
 
         await self.events_service.post_async([event])
-        events = await self._get_all_events_raw()
-        self.assertPlanningSchedule(events, 1)
+        events = await self._get_all_events()
+        event = events[0]
+        event_dict = event.to_dict()
 
-        lock_service = LockService(self.app)
-        locked_event = await lock_service.lock(events[0], g.user["_id"], ObjectId(), "convert_recurring", "events")
-        self.assertEqual(locked_event.get("lock_action"), "convert_recurring")
+        self.assertPlanningSchedule([event_dict], 1)
 
-        schedule = deepcopy(events[0].get("dates"))
+        locked_event = await lock_item(event, LockFields(lock_action="convert_recurring"))
+        self.assertEqual(locked_event.lock_action, "convert_recurring")
+
+        schedule = deepcopy(event_dict.get("dates"))
         schedule["start"] = datetime(2099, 11, 21, 12, 00, 00, tzinfo=pytz.UTC)
         schedule["end"] = datetime(2099, 11, 21, 14, 00, 00, tzinfo=pytz.UTC)
         schedule["recurring_rule"] = {
@@ -420,7 +428,7 @@ class EventPlanningSchedule(EventsBaseTestCase):
             "end_repeat_mode": "count",
         }
 
-        await self.events_service.patch_async(events[0].get("_id"), {"dates": schedule})
+        await self.events_service.patch_async(event.id, {"dates": schedule})
         events = await self._get_all_events_raw()
         self.assertPlanningSchedule(events, 3)
 

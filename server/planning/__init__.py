@@ -33,8 +33,7 @@ from .common import (
     get_start_of_week,
     get_manual_news_coverage_status_config,
 )
-from apps.common.components.utils import register_component
-from .item_lock import LockService
+
 from .planning_notifications import PlanningNotifications
 from planning.content_profiles import init_app as init_content_profiles
 from planning.events import init_app as init_events_app
@@ -69,6 +68,7 @@ import planning.output_formatters  # noqa
 import planning.io  # noqa
 import planning.content_api.output_formatters  # noqa  - Included so ContentAPI formatters are registered
 from planning.search.planning_autocomplete import init_app as init_planning_autocomplete_app
+from .locks.unlock import unlock_session
 
 from .module import module  # noqa
 
@@ -97,8 +97,6 @@ def init_app(app):
         app=app,
         service=export_template_service,
     )
-
-    register_component(LockService(app))
 
     init_content_profiles(app)
     init_locations_app(app)
@@ -169,6 +167,7 @@ def init_app(app):
     )
 
     app.on_update_users += PlanningNotifications().user_update
+    app.on_session_end += unlock_session
 
     superdesk.register_default_user_preference(
         "slack:notification",

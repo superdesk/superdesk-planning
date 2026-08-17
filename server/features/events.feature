@@ -1270,7 +1270,7 @@ Feature: Events
         """
         {"related_events": [{"_id": "#events._id#", "link_type": "primary"}]}
         """
-        When we post to "/events/#events._id#/lock"
+        When we post to "planning/#events._id#/lock"
         """
         {
             "lock_action": "mark_completed"
@@ -1435,7 +1435,7 @@ Feature: Events
         """
         {"related_events": [{"_id": "#events._id#", "link_type": "primary"}]}
         """
-        When we post to "/events/#events._id#/lock"
+        When we post to "planning/#events._id#/lock"
         """
         {
             "lock_action": "mark_completed"

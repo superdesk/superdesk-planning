@@ -52,10 +52,12 @@ from .enums import (
 from .agendas import AgendasResourceModel, AgendaItem
 from .planning_types import PlanningTypesResourceModel
 from .planning_featured import PlanningFeaturedResourceModel
+from .planning_featured_lock import PlanningFeaturedLockResource
 from .autosave import EventAutosaveResourceModel, PlanningAutosaveResourceModel
 from .locations import LocationResourceModel
 from .filters import EventPlanningFilter
 from . import ninjs3
+from .unified import UnifiedPlanningResource
 
 
 __all__ = [
@@ -99,15 +101,18 @@ __all__ = [
     "AgendasResourceModel",
     "AgendaItem",
     "PlanningFeaturedResourceModel",
+    "PlanningFeaturedLockResource",
     "EventAutosaveResourceModel",
     "PlanningAutosaveResourceModel",
     "LocationResourceModel",
     "EventPlanningFilter",
     "AssignmentsHistoryResourceModel",
     "ninjs3",
+    "AssignmentEventOrPlanning",
 ]
 
 
+type AssignmentEventOrPlanning = AssignmentResourceModel | UnifiedPlanningResource
 UPDATE_METHOD = Literal["single", "future", "all"]
 PLANNING_RELATED_EVENT_LINK_TYPE = Literal["primary", "secondary"]
 PLANNING_EVENT_LINK_METHOD = Literal["one_primary", "many_secondary", "one_primary_many_secondary"]
