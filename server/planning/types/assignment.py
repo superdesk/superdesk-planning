@@ -10,7 +10,6 @@ from .unified import LockFields
 from .base import BasePlanningModelWithObjectId
 from .common import AssignmentCoverage
 from .enums import AssignmentPublishedState, AssignmentWorkflowState
-from .unified import LockFields
 
 
 @dataclass

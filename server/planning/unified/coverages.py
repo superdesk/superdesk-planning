@@ -40,7 +40,6 @@ from planning.coverage_assignments import get_metadata_updates_between_entities
 from planning.planning_notifications import PlanningNotifications
 from planning.assignments.assignments_history_async import AssignmentsHistoryAsyncService
 
-# from planning.planning.planning_autosave_service import PlanningAutosaveAsyncService
 from planning import signals
 
 from .common import ItemUpdateRequest, get_related_event_links
