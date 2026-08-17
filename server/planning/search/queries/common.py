@@ -357,7 +357,7 @@ async def search_locked(params: Dict[str, Any], query: elastic.ElasticQuery):
             if item.recurrence_id:
                 # This item is associated with a recurring series of events
                 # Add `recurrence_id` to the query (common field to both events & planning)
-                recurrence_ids.add(item["recurrence_id"])
+                recurrence_ids.add(item.recurrence_id)
             elif len(related_primary_events):
                 # This is a Planning item associated with an event
                 # Add queries for ``related_events`` and `_id` with the ID of the Event
