@@ -6,7 +6,13 @@
 # AUTHORS and LICENSE files distributed with this source code, or
 # at https://www.sourcefabric.org/superdesk/license
 
-"""Superdesk Files"""
+"""Superdesk Planning Files.
+
+Event & Planning file attachments are stored in a single ``events_files`` mongo
+collection and served by one shared service. The two endpoints (``events_files``
+and ``planning_files``) are kept for backwards compatibility with the client and
+to preserve their distinct privileges.
+"""
 
 import io
 import logging
@@ -15,43 +21,32 @@ import os
 
 from quart_babel import gettext as _
 
-from superdesk import Resource, get_resource_service
+from superdesk import Resource
 from superdesk.core import get_current_app
 from superdesk.errors import SuperdeskApiError
 from superdesk.eve_async.service import AsyncBaseService
 from superdesk.media.media_operations import process_file_from_stream
 
+from planning.types.unified import UnifiedPlanningResource
+
 
 logger = logging.getLogger(__name__)
 
 
-class EventsFilesResource(Resource):
-    schema = {
-        "media": {"type": "media"},
-        "mimetype": {"type": "string"},
-        "filemeta": {"type": "dict"},
-    }
-    datasource = {
-        "source": "events_files",
-        "projection": {
-            "mimetype": 1,
-            "filemeta": 1,
-            "_created": 1,
-            "_updated": 1,
-            "_etag": 1,
-            "media": 1,
-        },
-    }
-    url = "events_files"
-    item_methods = ["GET", "DELETE"]
-    resource_methods = ["GET", "POST"]
-    privileges = {
-        "POST": "planning_event_management",
-        "DELETE": "planning_event_management",
-    }
+FILES_SOURCE = "events_files"
+FILES_PROJECTION = {
+    "mimetype": 1,
+    "filemeta": 1,
+    "_created": 1,
+    "_updated": 1,
+    "_etag": 1,
+    "media": 1,
+}
 
 
-class EventsFilesService(AsyncBaseService):
+class FilesAsyncService(AsyncBaseService):
+    """Shared service backing both the events_files and planning_files endpoints."""
+
     async def on_create_async(self, docs):
         app = get_current_app()
         for doc in docs:
@@ -73,11 +68,23 @@ class EventsFilesService(AsyncBaseService):
                 doc["media"]["name"] = doc["media"]["name"].split("/")[1]
 
     async def on_delete_async(self, doc):
-        if await get_resource_service("events").count_async({"files": doc.get("_id")}) > 0:
-            raise SuperdeskApiError.forbiddenError(_("Delete failed. File still used by other events."))
+        # A file may be referenced by an Event/Planning item directly (``files``) or
+        # by a Coverage on a Planning item (``coverages.planning.files`` / ``xmp_file``).
+        # Both Events & Planning now live in the single unified resource.
+        file_id = doc.get("_id")
+        find_clause = {
+            "$or": [
+                {"files": file_id},
+                {"coverages.planning.files": file_id},
+                {"coverages.planning.xmp_file": file_id},
+            ],
+        }
+        items_using_file = await UnifiedPlanningResource.get_service().count(find_clause, use_mongo=True)
+        if items_using_file > 0:
+            raise SuperdeskApiError.forbiddenError(_("Delete failed. File still used by other items."))
 
     async def ingest_file(self, content, filename, content_type=None):
-        """Upload binary content to media storage and create an events_files record."""
+        """Upload binary content to media storage and create a files record."""
 
         media_id = None
         stream = None
@@ -101,7 +108,7 @@ class EventsFilesService(AsyncBaseService):
                 filename=file_name or os.path.basename(filename),
                 content_type=content_type,
                 metadata=metadata,
-                resource="events_files",
+                resource=FILES_SOURCE,
             )
 
             payload = {"media": media_id, "mimetype": content_type}
@@ -111,7 +118,7 @@ class EventsFilesService(AsyncBaseService):
             ids = await self.post_async([payload])
             saved_id = next(iter(ids or []), None)
             if saved_id:
-                logger.info("Ingested event file %s as %s", filename, saved_id)
+                logger.info("Ingested file %s as %s", filename, saved_id)
                 return saved_id
         except Exception as ex:
             logger.warning("Failed to ingest file %s: %s", filename, ex)
@@ -130,3 +137,41 @@ class EventsFilesService(AsyncBaseService):
                         logger.warning("Failed to close stream for %s", filename)
 
         return None
+
+
+class EventsFilesResource(Resource):
+    schema = {
+        "media": {"type": "media"},
+        "mimetype": {"type": "string"},
+        "filemeta": {"type": "dict"},
+    }
+    datasource = {
+        "source": FILES_SOURCE,
+        "projection": FILES_PROJECTION,
+    }
+    url = "events_files"
+    item_methods = ["GET", "DELETE"]
+    resource_methods = ["GET", "POST"]
+    privileges = {
+        "POST": "planning_event_management",
+        "DELETE": "planning_event_management",
+    }
+
+
+class PlanningFilesResource(Resource):
+    schema = {
+        "media": {"type": "media"},
+        "mimetype": {"type": "string"},
+        "filemeta": {"type": "dict"},
+    }
+    datasource = {
+        "source": FILES_SOURCE,
+        "projection": FILES_PROJECTION,
+    }
+    url = "planning_files"
+    item_methods = ["GET", "DELETE"]
+    resource_methods = ["GET", "POST"]
+    privileges = {
+        "POST": "planning_planning_management",
+        "DELETE": "planning_planning_management",
+    }

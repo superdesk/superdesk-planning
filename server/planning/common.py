@@ -889,7 +889,7 @@ def assignment_allows_multiple_content_linked(assignment: dict) -> bool:
         return False
 
 
-def get_hateoas_links(item: AssignmentEventOrPlanning) -> dict:
+def get_hateoas_links(item: AssignmentEventOrPlanning | dict) -> dict:
     """
     Generate HATEOAS links for a given item based on its type.
 
@@ -905,26 +905,29 @@ def get_hateoas_links(item: AssignmentEventOrPlanning) -> dict:
              specific keys and values depend on the type of the provided item.
     """
 
-    links: dict = {}
-
-    if isinstance(item, AssignmentResourceModel):
-        links["self"] = {
-            "title": "Assignments",
-            "href": f"/assignments/{item.id}",
+    type_name = get_item_type_name(item)
+    item_id = item["_id"] if isinstance(item, dict) else item.id
+    return {
+        "self": {
+            "title": type_name.title(),
+            "href": f"/{type_name}/{item_id}",
         }
-    elif item.item_type == PlanningItemType.EVENT:
-        links["self"] = {
-            "title": "Events",
-            "href": f"/events/{item.id}",
-        }
-    elif item.item_type == PlanningItemType.PLANNING:
-        links["self"] = {"title": "Planning", "href": f"/planning/{item.id}"}
-
-    return links
+    }
 
 
-def get_item_type_name(item: AssignmentEventOrPlanning) -> str:
-    if isinstance(item, AssignmentResourceModel):
+def get_item_type_name(item: AssignmentEventOrPlanning | dict) -> str:
+    if isinstance(item, dict):
+        try:
+            item_type: str = item["type"]
+        except KeyError:
+            raise SuperdeskApiError.badRequestError(gettext("Unknown item type"))
+
+        if item_type == "assignment":
+            return "assignments"
+        elif item_type == "event":
+            return "events"
+        return item_type
+    elif isinstance(item, AssignmentResourceModel):
         return "assignments"
     elif item.item_type == PlanningItemType.EVENT:
         return "events"

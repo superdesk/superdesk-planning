@@ -17,17 +17,18 @@ from quart_babel import gettext as _
 
 from eve.utils import str_to_date as _str_to_date, date_to_str
 
-from superdesk import get_resource_service
 from superdesk.errors import SuperdeskApiError
 from superdesk.default_settings import strtobool as _strtobool
 from superdesk.users.services import current_user_has_privilege
 
 from apps.auth import get_user_id
 
-from planning.utils import get_related_event_ids_for_planning, parse_date
+from planning.types.unified import UnifiedPlanningResource, RelatedEventLinkType, PlanningItemType
+from planning.utils import parse_date
 from planning.search.queries import elastic
 from planning.common import POST_STATE, WORKFLOW_STATE
 from planning.content_profiles.utils import get_multilingual_fields
+from planning.unified.common import get_related_event_ids
 
 logger = logging.getLogger(__name__)
 
@@ -35,7 +36,7 @@ logger = logging.getLogger(__name__)
 Params = Dict[str, Any]
 
 
-FilterFunctionType = (
+type FilterFunctionType = (
     Callable[[Params, elastic.ElasticQuery], None] | Callable[[Params, elastic.ElasticQuery], Awaitable[None]]
 )
 
@@ -333,12 +334,15 @@ async def search_locked(params: Dict[str, Any], query: elastic.ElasticQuery):
             add_field_exist_query()
             return
 
-        search_service = get_resource_service("events_planning_search")
+        service = UnifiedPlanningResource.get_service()
         ids = set()
         event_items = set()
         recurrence_ids = set()
-        locked_items = await search_service.get_locked_items(
-            projections=["_id", "type", "recurrence_id", "related_events"]
+
+        locked_items = await service.find(
+            {"query": {"bool": {"must": elastic.field_exists("lock_session")}}},
+            projection=["_id", "type", "dates", "recurrence_id", "related_events"],
+            max_results=1_000,
         )
 
         if not await locked_items.count():
@@ -349,11 +353,11 @@ async def search_locked(params: Dict[str, Any], query: elastic.ElasticQuery):
             return
 
         async for item in locked_items:
-            related_primary_events = get_related_event_ids_for_planning(item, "primary")
-            if item.get("recurrence_id"):
+            related_primary_events = get_related_event_ids(item, RelatedEventLinkType.PRIMARY)
+            if item.recurrence_id:
                 # This item is associated with a recurring series of events
                 # Add `recurrence_id` to the query (common field to both events & planning)
-                recurrence_ids.add(item["recurrence_id"])
+                recurrence_ids.add(item.recurrence_id)
             elif len(related_primary_events):
                 # This is a Planning item associated with an event
                 # Add queries for ``related_events`` and `_id` with the ID of the Event
@@ -362,11 +366,11 @@ async def search_locked(params: Dict[str, Any], query: elastic.ElasticQuery):
                     ids.add(related_event_id)
             else:
                 # This item is locked, add query for it's ID
-                ids.add(item["_id"])
+                ids.add(item.id)
 
-                if item.get("type") == "event":
+                if item.item_type == PlanningItemType.EVENT:
                     # This is an Event, add another query for any associated Planning items
-                    event_items.add(item["_id"])
+                    event_items.add(item.id)
 
         terms = list()
         if len(ids):

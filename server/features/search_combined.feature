@@ -14,10 +14,9 @@ Feature: Search Events and Planning
                 {
                     "guid": "event_123",
                     "unique_id": "123",
-                    "unique_name": "name",
+                    "unique_name": "name 123",
                     "recurrence_id": "recur1",
                     "state": "ingested",
-                    "ingest_provider": "5923b82f1d41c858e1a5b0ce",
                     "name": "event 123",
                     "slugline": "test1 slugline",
                     "definition_short": "short value",
@@ -40,7 +39,7 @@ Feature: Search Events and Planning
                 {
                     "guid": "event_456",
                     "unique_id": "456",
-                    "unique_name": "name",
+                    "unique_name": "name 456",
                     "state": "draft",
                     "name": "event 456",
                     "slugline": "test2 slugline",
@@ -73,7 +72,7 @@ Feature: Search Events and Planning
                 {
                     "guid": "event_786",
                     "unique_id": "786",
-                    "unique_name": "name",
+                    "unique_name": "name 789",
                     "name": "event 786",
                     "state": "active",
                     "pubstatus": "usable",
@@ -120,7 +119,11 @@ Feature: Search Events and Planning
 
     @auth
     Scenario: Users can only see their events without the planning_global_filters privilege
-        Given empty "events"
+        Given "users"
+        """
+        [{"username": "foo", "email": "foo@bar.com", "sign_off": "foob"}]
+        """
+        And empty "events"
         And empty "planning"
         Given "events"
         """
@@ -128,12 +131,12 @@ Feature: Search Events and Planning
             "guid": "user_1_event_1",
             "name": "event1 for user 1",
             "dates": {"start": "2016-01-02T00:00:00+0000", "end": "2016-01-03T00:00:00+0000"},
-            "original_creator": "user_1"
+            "original_creator": "#users._id#"
         }, {
             "guid": "user_1_event_2",
             "name": "event2 for user 1",
             "dates": {"start": "2016-01-02T00:00:00+0000", "end": "2016-01-03T00:00:00+0000"},
-            "original_creator": "user_1"
+            "original_creator": "#users._id#"
         }, {
             "guid": "user_2_event_1",
             "name": "event1 for user 2",
@@ -152,13 +155,13 @@ Feature: Search Events and Planning
             "guid": "user_1_plan_1",
             "headline": "plan1 for user 1",
             "planning_date": "2016-01-01T12:00:00+0000",
-            "original_creator": "user_1",
+            "original_creator": "#users._id#",
             "related_events": [{"_id": "user_1_event_1", "link_type": "primary"}]
         }, {
             "guid": "user_1_plan_2",
             "headline": "plan2 for user 1",
             "planning_date": "2016-01-01T12:00:00+0000",
-            "original_creator": "user_1"
+            "original_creator": "#users._id#"
         }, {
             "guid": "user_2_plan_1",
             "headline": "plan1 for user 2",

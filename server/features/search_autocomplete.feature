@@ -58,11 +58,11 @@ Feature: Planning autocomplete
             "coverages": [{
                 "planning": {"language": "en", "slugline": "coverage-en-slugline"},
                 "workflow_state": "draft",
-                "news_coverage_status": {"qcode": "ncostat:int", "name": "coverage intended", "label": "Planned"},
+                "news_coverage_status": {"qcode": "ncostat:int", "name": "coverage intended", "label": "Planned"}
             }, {
                 "planning": {"language": "fr", "slugline": "coverage-fr-slugline"},
                 "workflow_state": "draft",
-                "news_coverage_status": {"qcode": "ncostat:int", "name": "coverage intended", "label": "Planned"},
+                "news_coverage_status": {"qcode": "ncostat:int", "name": "coverage intended", "label": "Planned"}
             }]
         }]
         """
@@ -198,7 +198,7 @@ Feature: Planning autocomplete
             "coverages": [{
                 "planning": {"language": "en", "slugline": "package-en-slugline"},
                 "workflow_state": "draft",
-                "news_coverage_status": {"qcode": "ncostat:int", "name": "coverage intended", "label": "Planned"},
+                "news_coverage_status": {"qcode": "ncostat:int", "name": "coverage intended", "label": "Planned"}
             }]
         }]
         """
