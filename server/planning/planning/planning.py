@@ -98,14 +98,6 @@ class PlanningService(AsyncBaseService):
     async def on_fetched_item_async(self, doc: dict) -> None:
         self._map_unified_to_legacy_schema(doc)
 
-    async def on_create_async(self, docs: list[dict]) -> None:
-        for doc in docs:
-            self._map_legacy_to_unified_schema(doc)
-
-    async def on_created_async(self, docs: list[dict]) -> None:
-        for doc in docs:
-            self._map_unified_to_legacy_schema(doc)
-
     async def on_update_async(self, updates: dict, original: dict) -> None:
         if "planning_date" in updates:
             updates["dates"] = (original.get("dates") or {}).copy()
@@ -142,7 +134,15 @@ class PlanningService(AsyncBaseService):
         pass
 
     async def create_async(self, docs: list[dict], skip_signals: bool = True, **kwargs):
-        return await self.backend.create_async(self.datasource, docs, skip_signals=skip_signals, **kwargs)
+        for doc in docs:
+            self._map_legacy_to_unified_schema(doc)
+
+        response = await self.backend.create_async(self.datasource, docs, skip_signals=skip_signals, **kwargs)
+
+        for doc in docs:
+            self._map_unified_to_legacy_schema(doc)
+
+        return response
 
     async def post_async(self, docs: list[dict], **kwargs):
         return await self.create_async(docs, skip_signals=False)
