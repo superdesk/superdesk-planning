@@ -193,7 +193,7 @@ const fetchAssignmentHistory = (assignment) => (
 
         // Query the API and sort by created
         return api('assignments_history').query({
-            where: {assignment_id: assignment._id},
+            where: {item_id: assignment._id},
             max_results: 200,
             sort: '[(\'_created\', 1)]',
         })
