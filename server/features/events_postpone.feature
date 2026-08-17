@@ -46,11 +46,17 @@ Feature: Events Postpone
             "lock_session": null
         }]}
         """
-        When we get "/events_history?where=event_id==%22event1%22"
-        Then we get list with 1 items
+        When we get "/planning_history?where=item_id==%22event1%22"
+        Then we get list with 2 items
         """
         {"_items": [{
-            "event_id": "event1",
+            "item_id": "event1",
+            "item_type": "event",
+            "operation": "create",
+            "update": {"state": "draft"}
+        }, {
+            "item_id": "event1",
+            "item_type": "event",
             "operation": "postpone",
             "update": {"state": "postponed"}
         }]}
@@ -149,38 +155,37 @@ Feature: Events Postpone
             }
         ]}
         """
-        When we get "/events_history"
-        Then we get list with 3 items
+        When we get "/planning_history"
+        Then we get list with 5 items
         """
         {"_items": [
             {
-                "event_id": "event1",
+                "item_id": "event1",
+                "item_type": "event",
                 "operation": "planning_created",
                 "update": {"planning_id": "plan1"}
             },
             {
-                "event_id": "event1",
+                "item_id": "event1",
+                "item_type": "event",
                 "operation": "planning_created",
                 "update": {"planning_id": "plan2"}
             },
             {
-                "event_id": "event1",
-                "operation": "postpone",
-                "update": {"state": "postponed"}
-            }
-        ]}
-        """
-        When we get "/planning_history"
-        Then we get list with 2 items
-        """
-        {"_items": [
-            {
-                "planning_id": "plan1",
+                "item_id": "event1",
+                "item_type": "event",
                 "operation": "postpone",
                 "update": {"state": "postponed"}
             },
             {
-                "planning_id": "plan2",
+                "item_id": "plan1",
+                "item_type": "planning",
+                "operation": "postpone",
+                "update": {"state": "postponed"}
+            },
+            {
+                "item_id": "plan2",
+                "item_type": "planning",
                 "operation": "postpone",
                 "update": {"state": "postponed"}
             }

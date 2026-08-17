@@ -62,35 +62,43 @@ Feature: Events Post
             }
         }]
         """
-        When we get "/events_history"
+        When we get "/planning_history"
         Then we get a list with 8 items
         """
         {"_items": [{
-            "event_id": "#EVENT1._id#",
+            "item_id": "#EVENT1._id#",
+            "item_type": "event",
             "operation": "create"
         }, {
-            "event_id": "#EVENT1._id#",
+            "item_id": "#EVENT1._id#",
+            "item_type": "event",
             "operation": "post",
             "update": {"state": "scheduled"}
         }, {
-            "event_id": "#EVENT2._id#",
+            "item_id": "#EVENT2._id#",
+            "item_type": "event",
             "operation": "create"
         }, {
-            "event_id": "#EVENT2._id#",
+            "item_id": "#EVENT2._id#",
+            "item_type": "event",
             "operation": "post",
             "update": {"state": "scheduled"}
         }, {
-            "event_id": "#EVENT3._id#",
+            "item_id": "#EVENT3._id#",
+            "item_type": "event",
             "operation": "create"
         }, {
-            "event_id": "#EVENT3._id#",
+            "item_id": "#EVENT3._id#",
+            "item_type": "event",
             "operation": "post",
             "update": {"state": "scheduled"}
         }, {
-            "event_id": "#EVENT4._id#",
+            "item_id": "#EVENT4._id#",
+            "item_type": "event",
             "operation": "create"
         }, {
-            "event_id": "#EVENT4._id#",
+            "item_id": "#EVENT4._id#",
+            "item_type": "event",
             "operation": "post",
             "update": {"state": "scheduled"}
         }]}
@@ -162,31 +170,38 @@ Feature: Events Post
             }
         }]
         """
-        When we get "/events_history"
+        When we get "/planning_history"
         Then we get a list with 7 items
         """
         {"_items": [{
-            "event_id": "#EVENT1._id#",
+            "item_id": "#EVENT1._id#",
+            "item_type": "event",
             "operation": "create"
         }, {
-            "event_id": "#EVENT2._id#",
+            "item_id": "#EVENT2._id#",
+            "item_type": "event",
             "operation": "create"
         }, {
-            "event_id": "#EVENT2._id#",
+            "item_id": "#EVENT2._id#",
+            "item_type": "event",
             "operation": "post",
             "update": {"state": "scheduled"}
         }, {
-            "event_id": "#EVENT3._id#",
+            "item_id": "#EVENT3._id#",
+            "item_type": "event",
             "operation": "create"
         }, {
-            "event_id": "#EVENT3._id#",
+            "item_id": "#EVENT3._id#",
+            "item_type": "event",
             "operation": "post",
             "update": {"state": "scheduled"}
         }, {
-            "event_id": "#EVENT4._id#",
+            "item_id": "#EVENT4._id#",
+            "item_type": "event",
             "operation": "create"
         }, {
-            "event_id": "#EVENT4._id#",
+            "item_id": "#EVENT4._id#",
+            "item_type": "event",
             "operation": "post",
             "update": {"state": "scheduled"}
         }]}
@@ -239,24 +254,29 @@ Feature: Events Post
             }
         }]
         """
-        When we get "/events_history"
+        When we get "/planning_history"
         Then we get a list with 5 items
         """
         {"_items": [{
-            "event_id": "#EVENT1._id#",
+            "item_id": "#EVENT1._id#",
+            "item_type": "event",
             "operation": "create"
         }, {
-            "event_id": "#EVENT2._id#",
+            "item_id": "#EVENT2._id#",
+            "item_type": "event",
             "operation": "create"
         }, {
-            "event_id": "#EVENT2._id#",
+            "item_id": "#EVENT2._id#",
+            "item_type": "event",
             "operation": "post",
             "update": {"state": "scheduled"}
         }, {
-            "event_id": "#EVENT3._id#",
+            "item_id": "#EVENT3._id#",
+            "item_type": "event",
             "operation": "create"
         }, {
-            "event_id": "#EVENT4._id#",
+            "item_id": "#EVENT4._id#",
+            "item_type": "event",
             "operation": "create"
         }]}
         """

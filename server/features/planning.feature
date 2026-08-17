@@ -71,7 +71,8 @@ Feature: Planning
         Then we get a list with 1 items
         """
             {"_items": [{
-                "planning_id":  "#planning._id#",
+                "item_id":  "#planning._id#",
+                "item_type": "planning",
                 "operation": "create",
                 "update": {
                     "original_creator": "__any_value__",
@@ -163,7 +164,8 @@ Feature: Planning
         """
             {"_items": [
                 {
-                    "planning_id":  "#planning._id#",
+                    "item_id":  "#planning._id#",
+                    "item_type": "planning",
                     "operation": "create",
                     "update": {
                         "original_creator": "__any_value__",
@@ -937,17 +939,20 @@ Feature: Planning
         When we get "/planning_history"
         Then we get a list with 2 items
         """
-            {"_items": [{
-                "planning_id":  "#planning._id#",
-                "operation": "create",
-                "update": {
-                    "original_creator": "__any_value__",
-                    "item_class": "item class value",
-                    "headline": "test headline"}},
-                {"planning_id":  "#planning._id#",
-                "operation": "edited",
-                "update": {"headline": "updated test headline"}}
-            ]}
+        {"_items": [{
+            "item_id":  "#planning._id#",
+            "item_type": "planning",
+            "operation": "create",
+            "update": {
+                "original_creator": "__any_value__",
+                "item_class": "item class value",
+                "headline": "test headline"}
+        }, {
+            "item_id":  "#planning._id#",
+            "item_type": "planning",
+            "operation": "edited",
+            "update": {"headline": "updated test headline"}}
+        ]}
         """
 
     @auth
@@ -984,24 +989,26 @@ Feature: Planning
         """
         Then we get OK response
         When we get "/planning_history"
-        Then we get a list with 1 items
+        Then we get a list with 3 items
         """
-            {"_items": [{
-                "planning_id":  "#planning._id#",
-                "operation": "create"}
-            ]}
-        """
-        When we get "/events_history"
-        Then we get a list with 2 items
-        """
-        {"_items": [{
-            "event_id": "#events._id#",
-            "operation": "create"
-        }, {
-            "event_id": "#events._id#",
-            "operation": "planning_created",
-            "update": {"planning_id": "#planning._id#"}
-        }]}
+        {"_items": [
+            {
+                "item_id":  "#planning._id#",
+                "item_type": "planning",
+                "operation": "create"
+            },
+            {
+                "item_id": "#events._id#",
+                "item_type": "event",
+                "operation": "create"
+            },
+            {
+                "item_id": "#events._id#",
+                "item_type": "event",
+                "operation": "planning_created",
+                "update": {"planning_id": "#planning._id#"}
+            }
+        ]}
         """
 
     @auth
@@ -1292,20 +1299,24 @@ Feature: Planning
         """
         {"_items": [
             {
-                "planning_id":  "#planning._id#",
+                "item_id":  "#planning._id#",
+                "item_type": "planning",
                 "operation": "create"
             },
             {
-                "planning_id":  "#planning._id#",
+                "item_id":  "#planning._id#",
+                "item_type": "planning",
                 "operation": "post"
             },
             {
-                "planning_id":  "#planning._id#",
+                "item_id":  "#planning._id#",
+                "item_type": "planning",
                 "operation": "edited",
                 "update": { "slugline": "test test test" }
             },
             {
-                "planning_id":  "#planning._id#",
+                "item_id":  "#planning._id#",
+                "item_type": "planning",
                 "operation": "post"
             }
         ]}

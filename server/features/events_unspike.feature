@@ -41,11 +41,12 @@ Feature: Events Unspike
             "state": "draft"
         }
         """
-        When we get "/events_history"
+        When we get "/planning_history"
         Then we get list with 1 items
         """
         {"_items": [{
-            "event_id": "#events._id#",
+            "item_id": "#events._id#",
+            "item_type": "event",
             "operation": "unspiked",
             "update": {"state" : "draft"}
         }]}
@@ -106,19 +107,19 @@ Feature: Events Unspike
             {"_id": "#EVENT4._id#", "state": "spiked", "revert_state": "draft"}
         ]}
         """
-        When we get "/events_history"
+        When we get "/planning_history"
         Then we get list with 9 items
         """
         {"_items": [
-            {"event_id": "#EVENT1._id#", "operation": "create"},
-            {"event_id": "#EVENT2._id#", "operation": "create"},
-            {"event_id": "#EVENT3._id#", "operation": "create"},
-            {"event_id": "#EVENT4._id#", "operation": "create"},
-            {"event_id": "#EVENT1._id#", "operation": "spiked", "update": {"state": "spiked", "revert_state": "draft"}},
-            {"event_id": "#EVENT2._id#", "operation": "spiked", "update": {"state": "spiked", "revert_state": "draft"}},
-            {"event_id": "#EVENT3._id#", "operation": "spiked", "update": {"state": "spiked", "revert_state": "draft"}},
-            {"event_id": "#EVENT4._id#", "operation": "spiked", "update": {"state": "spiked", "revert_state": "draft"}},
-            {"event_id": "#EVENT2._id#", "operation": "unspiked", "update": {"state": "draft"}}
+            {"item_id": "#EVENT1._id#", "item_type": "event", "operation": "create"},
+            {"item_id": "#EVENT2._id#", "item_type": "event", "operation": "create"},
+            {"item_id": "#EVENT3._id#", "item_type": "event", "operation": "create"},
+            {"item_id": "#EVENT4._id#", "item_type": "event", "operation": "create"},
+            {"item_id": "#EVENT1._id#", "item_type": "event", "operation": "spiked", "update": {"state": "spiked", "revert_state": "draft"}},
+            {"item_id": "#EVENT2._id#", "item_type": "event", "operation": "spiked", "update": {"state": "spiked", "revert_state": "draft"}},
+            {"item_id": "#EVENT3._id#", "item_type": "event", "operation": "spiked", "update": {"state": "spiked", "revert_state": "draft"}},
+            {"item_id": "#EVENT4._id#", "item_type": "event", "operation": "spiked", "update": {"state": "spiked", "revert_state": "draft"}},
+            {"item_id": "#EVENT2._id#", "item_type": "event", "operation": "unspiked", "update": {"state": "draft"}}
         ]}
         """
 
@@ -200,22 +201,22 @@ Feature: Events Unspike
             {"_id": "#EVENT4._id#", "state": "draft"}
         ]}
         """
-        When we get "/events_history"
+        When we get "/planning_history"
         Then we get list with 12 items
         """
         {"_items": [
-            {"event_id": "#EVENT1._id#", "operation": "create"},
-            {"event_id": "#EVENT2._id#", "operation": "create"},
-            {"event_id": "#EVENT3._id#", "operation": "create"},
-            {"event_id": "#EVENT4._id#", "operation": "create"},
-            {"event_id": "#EVENT1._id#", "operation": "spiked", "update": {"state": "spiked", "revert_state": "draft"}},
-            {"event_id": "#EVENT2._id#", "operation": "spiked", "update": {"state": "spiked", "revert_state": "draft"}},
-            {"event_id": "#EVENT3._id#", "operation": "spiked", "update": {"state": "spiked", "revert_state": "draft"}},
-            {"event_id": "#EVENT4._id#", "operation": "spiked", "update": {"state": "spiked", "revert_state": "draft"}},
-            {"event_id": "#EVENT1._id#", "operation": "unspiked", "update": {"state": "draft"}},
-            {"event_id": "#EVENT2._id#", "operation": "unspiked", "update": {"state": "draft"}},
-            {"event_id": "#EVENT3._id#", "operation": "unspiked", "update": {"state": "draft"}},
-            {"event_id": "#EVENT4._id#", "operation": "unspiked", "update": {"state": "draft"}}
+            {"item_id": "#EVENT1._id#", "item_type": "event", "operation": "create"},
+            {"item_id": "#EVENT2._id#", "item_type": "event", "operation": "create"},
+            {"item_id": "#EVENT3._id#", "item_type": "event", "operation": "create"},
+            {"item_id": "#EVENT4._id#", "item_type": "event", "operation": "create"},
+            {"item_id": "#EVENT1._id#", "item_type": "event", "operation": "spiked", "update": {"state": "spiked", "revert_state": "draft"}},
+            {"item_id": "#EVENT2._id#", "item_type": "event", "operation": "spiked", "update": {"state": "spiked", "revert_state": "draft"}},
+            {"item_id": "#EVENT3._id#", "item_type": "event", "operation": "spiked", "update": {"state": "spiked", "revert_state": "draft"}},
+            {"item_id": "#EVENT4._id#", "item_type": "event", "operation": "spiked", "update": {"state": "spiked", "revert_state": "draft"}},
+            {"item_id": "#EVENT1._id#", "item_type": "event", "operation": "unspiked", "update": {"state": "draft"}},
+            {"item_id": "#EVENT2._id#", "item_type": "event", "operation": "unspiked", "update": {"state": "draft"}},
+            {"item_id": "#EVENT3._id#", "item_type": "event", "operation": "unspiked", "update": {"state": "draft"}},
+            {"item_id": "#EVENT4._id#", "item_type": "event", "operation": "unspiked", "update": {"state": "draft"}}
         ]}
         """
 
@@ -274,20 +275,20 @@ Feature: Events Unspike
             {"_id": "#EVENT4._id#", "state": "draft"}
         ]}
         """
-        When we get "/events_history"
+        When we get "/planning_history"
         Then we get list with 10 items
         """
         {"_items": [
-            {"event_id": "#EVENT1._id#", "operation": "create"},
-            {"event_id": "#EVENT2._id#", "operation": "create"},
-            {"event_id": "#EVENT3._id#", "operation": "create"},
-            {"event_id": "#EVENT4._id#", "operation": "create"},
-            {"event_id": "#EVENT1._id#", "operation": "spiked", "update": {"state": "spiked", "revert_state": "draft"}},
-            {"event_id": "#EVENT2._id#", "operation": "spiked", "update": {"state": "spiked", "revert_state": "draft"}},
-            {"event_id": "#EVENT3._id#", "operation": "spiked", "update": {"state": "spiked", "revert_state": "draft"}},
-            {"event_id": "#EVENT4._id#", "operation": "spiked", "update": {"state": "spiked", "revert_state": "draft"}},
-            {"event_id": "#EVENT3._id#", "operation": "unspiked", "update": {"state": "draft"}},
-            {"event_id": "#EVENT4._id#", "operation": "unspiked", "update": {"state": "draft"}}
+            {"item_id": "#EVENT1._id#", "item_type": "event", "operation": "create"},
+            {"item_id": "#EVENT2._id#", "item_type": "event", "operation": "create"},
+            {"item_id": "#EVENT3._id#", "item_type": "event", "operation": "create"},
+            {"item_id": "#EVENT4._id#", "item_type": "event", "operation": "create"},
+            {"item_id": "#EVENT1._id#", "item_type": "event", "operation": "spiked", "update": {"state": "spiked", "revert_state": "draft"}},
+            {"item_id": "#EVENT2._id#", "item_type": "event", "operation": "spiked", "update": {"state": "spiked", "revert_state": "draft"}},
+            {"item_id": "#EVENT3._id#", "item_type": "event", "operation": "spiked", "update": {"state": "spiked", "revert_state": "draft"}},
+            {"item_id": "#EVENT4._id#", "item_type": "event", "operation": "spiked", "update": {"state": "spiked", "revert_state": "draft"}},
+            {"item_id": "#EVENT3._id#", "item_type": "event", "operation": "unspiked", "update": {"state": "draft"}},
+            {"item_id": "#EVENT4._id#", "item_type": "event", "operation": "unspiked", "update": {"state": "draft"}}
         ]}
         """
 
@@ -362,28 +363,28 @@ Feature: Events Unspike
             {"_id": "#EVENT5._id#", "state": "draft"}
         ]}
         """
-        When we get "/events_history"
+        When we get "/planning_history"
         Then we get list with 16 items
         """
         {"_items": [
-            {"event_id": "#EVENT1._id#", "operation": "create"},
-            {"event_id": "#EVENT2._id#", "operation": "create"},
-            {"event_id": "#EVENT3._id#", "operation": "create"},
-            {"event_id": "#EVENT4._id#", "operation": "create"},
-            {"event_id": "#EVENT5._id#", "operation": "create"},
+            {"item_id": "#EVENT1._id#", "item_type": "event", "operation": "create"},
+            {"item_id": "#EVENT2._id#", "item_type": "event", "operation": "create"},
+            {"item_id": "#EVENT3._id#", "item_type": "event", "operation": "create"},
+            {"item_id": "#EVENT4._id#", "item_type": "event", "operation": "create"},
+            {"item_id": "#EVENT5._id#", "item_type": "event", "operation": "create"},
 
-            {"event_id": "#EVENT1._id#", "operation": "spiked", "update": {"state": "spiked", "revert_state": "draft"}},
-            {"event_id": "#EVENT2._id#", "operation": "spiked", "update": {"state": "spiked", "revert_state": "draft"}},
-            {"event_id": "#EVENT3._id#", "operation": "spiked", "update": {"state": "spiked", "revert_state": "postponed"}},
-            {"event_id": "#EVENT4._id#", "operation": "spiked", "update": {"state": "spiked", "revert_state": "cancelled"}},
-            {"event_id": "#EVENT5._id#", "operation": "spiked", "update": {"state": "spiked", "revert_state": "draft"}},
+            {"item_id": "#EVENT1._id#", "item_type": "event", "operation": "spiked", "update": {"state": "spiked", "revert_state": "draft"}},
+            {"item_id": "#EVENT2._id#", "item_type": "event", "operation": "spiked", "update": {"state": "spiked", "revert_state": "draft"}},
+            {"item_id": "#EVENT3._id#", "item_type": "event", "operation": "spiked", "update": {"state": "spiked", "revert_state": "postponed"}},
+            {"item_id": "#EVENT4._id#", "item_type": "event", "operation": "spiked", "update": {"state": "spiked", "revert_state": "cancelled"}},
+            {"item_id": "#EVENT5._id#", "item_type": "event", "operation": "spiked", "update": {"state": "spiked", "revert_state": "draft"}},
 
-            {"event_id": "#EVENT3._id#", "operation": "postpone", "update": {"state": "postponed"}},
-            {"event_id": "#EVENT4._id#", "operation": "events_cancel", "update": {"state": "cancelled"}},
+            {"item_id": "#EVENT3._id#", "item_type": "event", "operation": "postpone", "update": {"state": "postponed"}},
+            {"item_id": "#EVENT4._id#", "item_type": "event", "operation": "events_cancel", "update": {"state": "cancelled"}},
 
-            {"event_id": "#EVENT2._id#", "operation": "unspiked", "update": {"state": "draft"}},
-            {"event_id": "#EVENT3._id#", "operation": "unspiked", "update": {"state": "postponed"}},
-            {"event_id": "#EVENT4._id#", "operation": "unspiked", "update": {"state": "cancelled"}},
-            {"event_id": "#EVENT5._id#", "operation": "unspiked", "update": {"state": "draft"}}
+            {"item_id": "#EVENT2._id#", "item_type": "event", "operation": "unspiked", "update": {"state": "draft"}},
+            {"item_id": "#EVENT3._id#", "item_type": "event", "operation": "unspiked", "update": {"state": "postponed"}},
+            {"item_id": "#EVENT4._id#", "item_type": "event", "operation": "unspiked", "update": {"state": "cancelled"}},
+            {"item_id": "#EVENT5._id#", "item_type": "event", "operation": "unspiked", "update": {"state": "draft"}}
         ]}
         """

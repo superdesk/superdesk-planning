@@ -62,11 +62,12 @@ Feature: Planning Spike
             "revert_state": "draft"
         }
         """
-        When we get "/planning_history?where={\"planning_id\": \"#planning._id#\"}"
+        When we get "/planning_history?where={\"item_id\": \"#planning._id#\"}"
         Then we get list with 1 items
         """
         {"_items": [{
-            "planning_id": "#planning._id#",
+            "item_id": "#planning._id#",
+            "item_type": "planning",
             "operation": "spiked",
             "update": {"state" : "spiked", "revert_state": "draft"}
             }
@@ -106,11 +107,12 @@ Feature: Planning Spike
             "state": "draft"
         }
         """
-        When we get "/planning_history?where={\"planning_id\": \"#planning._id#\"}"
+        When we get "/planning_history?where={\"item_id\": \"#planning._id#\"}"
         Then we get list with 1 items
         """
         {"_items": [{
-            "planning_id": "#planning._id#",
+            "item_id": "#planning._id#",
+            "item_type": "planning",
             "operation": "unspiked",
             "update": {"state" : "draft"}}
         ]}
