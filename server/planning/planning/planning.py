@@ -98,21 +98,6 @@ class PlanningService(AsyncBaseService):
     async def on_fetched_item_async(self, doc: dict) -> None:
         self._map_unified_to_legacy_schema(doc)
 
-    async def on_update_async(self, updates: dict, original: dict) -> None:
-        if "planning_date" in updates:
-            updates["dates"] = (original.get("dates") or {}).copy()
-            updates["dates"]["start"] = updates.pop("planning_date")
-        if "description_text" in updates:
-            updates["definition_long"] = updates.pop("description_text")
-
-    async def on_updated_async(self, updates, original):
-        if (updates.get("dates") or {}).get("start"):
-            updates["planning_date"] = updates["dates"]["start"]
-            updates.pop("dates")
-
-        if "definition_long" in updates:
-            updates["description_text"] = updates.pop("definition_long")
-
     def _map_legacy_to_unified_schema(self, doc: dict) -> None:
         doc["type"] = "planning"
         doc.setdefault("dates", {})["start"] = doc.pop("planning_date", None)
@@ -196,7 +181,22 @@ class PlanningService(AsyncBaseService):
         item["ingest_provider_sequence"] = str(sequence_number)
 
     async def update_async(self, id, updates, original, skip_signals: bool = True):
-        return await self.backend.update_async(self.datasource, id, updates, original, skip_signals=skip_signals)
+        if "planning_date" in updates:
+            updates["dates"] = (original.get("dates") or {}).copy()
+            updates["dates"]["start"] = updates.pop("planning_date")
+        if "description_text" in updates:
+            updates["definition_long"] = updates.pop("description_text")
+
+        new_updates = await self.backend.update_async(self.datasource, id, updates, original, skip_signals=skip_signals)
+
+        if (new_updates.get("dates") or {}).get("start"):
+            new_updates["planning_date"] = new_updates["dates"]["start"]
+            new_updates.pop("dates")
+
+        if "definition_long" in new_updates:
+            new_updates["description_text"] = new_updates.pop("definition_long")
+
+        return new_updates
 
     async def patch_async(self, id, updates: dict):
         original = await self.find_one_async(req=None, _id=id)
