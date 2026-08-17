@@ -83,7 +83,10 @@ class UnifiedPlanningHistoryService(HistoryAsyncService[UnifiedPlanningHistoryRe
         }
 
         if not history.get("item_type"):
-            raise Exception("ITEM TYPE NOT SUPPLIED")
+            logger.warning(
+                "Received an invalid history entry, unable to determine 'item_type'", extra=dict(item_id=item[ID_FIELD])
+            )
+            return
 
         # a post action is recorded as a special case
         if operation == "update":
