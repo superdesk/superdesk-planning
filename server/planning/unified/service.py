@@ -14,8 +14,8 @@ from planning.types.unified import (
     EmbeddedPlanningItem,
 )
 from planning.events.events_sync import sync_event_metadata_with_planning_items
-from planning.events.events_history_async_service import EventsHistoryAsyncService
-from planning.history import fields_to_remove as history_fields_to_remove
+from planning.history.planning import UnifiedPlanningHistoryService
+from planning.history.base_service import fields_to_remove as history_fields_to_remove
 from planning.signals import on_unified_planning_duplicated
 
 from .common import set_planning_schedule, get_first_related_event_id, ItemUpdateRequest
@@ -133,7 +133,7 @@ class UnifiedPlanningResourceService(AsyncResourceService[UnifiedPlanningResourc
 
     async def on_created(self, docs: list[UnifiedPlanningResource]) -> None:
         notifications_sent: set[str] = set()
-        events_history_service = EventsHistoryAsyncService()
+        events_history_service = UnifiedPlanningHistoryService()
 
         for doc in docs:
             if doc.duplicate_from:

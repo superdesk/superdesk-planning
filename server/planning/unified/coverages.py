@@ -38,8 +38,8 @@ from planning.content_profiles.utils import (
 )
 from planning.coverage_assignments import get_metadata_updates_between_entities
 from planning.planning_notifications import PlanningNotifications
-from planning.assignments.assignments_history_async import AssignmentsHistoryAsyncService
 from planning.planning.planning_autosave_service import PlanningAutosaveAsyncService
+from planning.history.assignments import AssignmentsHistoryService
 
 from .common import ItemUpdateRequest, get_related_event_links
 
@@ -152,7 +152,7 @@ async def on_coverage_updated(original: UnifiedPlanningResource, updates: dict) 
         # if scheduled_update:
         #     assignment["scheduled_update_id"] = scheduled_update
 
-        await AssignmentsHistoryAsyncService().on_item_deleted(assignment)
+        await AssignmentsHistoryService().on_item_deleted(assignment)
 
 
 async def _remove_coverage(req: ItemUpdateRequest, coverage: CoverageItem) -> None:
