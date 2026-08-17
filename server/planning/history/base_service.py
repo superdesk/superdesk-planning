@@ -42,7 +42,9 @@ class HistoryAsyncService(AsyncResourceService[Generic[HistoryResourceModelType]
             if not item.get("duplicate_from"):
                 await self._save_history(
                     {
-                        ID_FIELD: ObjectId(item[ID_FIELD]) if ObjectId.is_valid(item[ID_FIELD]) else str(item[ID_FIELD]),
+                        ID_FIELD: (
+                            ObjectId(item[ID_FIELD]) if ObjectId.is_valid(item[ID_FIELD]) else str(item[ID_FIELD])
+                        ),
                         "type": item.get("type"),
                     },
                     deepcopy(item),

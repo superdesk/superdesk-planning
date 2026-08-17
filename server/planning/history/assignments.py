@@ -89,7 +89,9 @@ class AssignmentsHistoryService(HistoryAsyncService[AssignmentsHistoryResourceMo
                 cov_diff["assigned_to"] = diff["assigned_to"]
                 await self._save_history(item, diff, AssignmentHistoryActions.REASSIGNED.value)
                 await self._update_associated_planning_history(
-                    original, cov_diff, AssignmentHistoryActions.REASSIGNED.value,
+                    original,
+                    cov_diff,
+                    AssignmentHistoryActions.REASSIGNED.value,
                 )
 
     async def on_item_deleted(self, doc: dict[str, Any]):
@@ -148,17 +150,21 @@ class AssignmentsHistoryService(HistoryAsyncService[AssignmentsHistoryResourceMo
     async def _update_associated_planning_history(self, assignmnet: dict, updates: dict, operation: str | None) -> None:
         planning_id: str | None = assignmnet.get("planning_item")
         if not planning_id:
-            logger.error("Failed to update Assignments Planning history, no planning id on assignment", extra=dict(
-                assignment_id=assignmnet[ID_FIELD]
-            ))
+            logger.error(
+                "Failed to update Assignments Planning history, no planning id on assignment",
+                extra=dict(assignment_id=assignmnet[ID_FIELD]),
+            )
             return
 
         planning = await UnifiedPlanningResource.get_service().find_by_id(planning_id)
         if not planning:
-            logger.error("Failed to update Assignments Planning history, planning not found", extra=dict(
-                assignment_id=assignmnet[ID_FIELD],
-                planning_id=planning_id,
-            ))
+            logger.error(
+                "Failed to update Assignments Planning history, planning not found",
+                extra=dict(
+                    assignment_id=assignmnet[ID_FIELD],
+                    planning_id=planning_id,
+                ),
+            )
             return
 
         await UnifiedPlanningHistoryService()._save_history(

@@ -35,10 +35,10 @@ class UnifiedPlanningHistoryService(HistoryAsyncService[UnifiedPlanningHistoryRe
             elif item.get("type") == "planning":
                 planning.append(item)
             else:
-                logger.warning("Received an incorrect type for UnifiedPlanningHistory", extra=dict(
-                    item_id=item.get("_id"),
-                    item_type=item.get("type")
-                ))
+                logger.warning(
+                    "Received an incorrect type for UnifiedPlanningHistory",
+                    extra=dict(item_id=item.get("_id"), item_type=item.get("type")),
+                )
 
         # Process Planning history items
         if len(planning):
