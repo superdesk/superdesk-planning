@@ -383,13 +383,13 @@ describe('actions.events.api', () => {
     });
 
     describe('fetchEventHistory', () => {
-        it('calls events_history api and runs dispatch', (done) => {
+        it('calls planning_history with item_type==event and runs dispatch', (done) => {
             store.test(done, eventsApi.fetchEventHistory('e2'))
                 .then((data) => {
                     expect(data).toEqual(store.data.events_history);
-                    expect(store.services.api('events_history').query.callCount).toBe(1);
-                    expect(store.services.api('events_history').query.args[0]).toEqual([{
-                        where: {event_id: 'e2'},
+                    expect(store.services.api('planning_history').query.callCount).toBe(1);
+                    expect(store.services.api('planning_history').query.args[0]).toEqual([{
+                        where: {item_id: 'e2', item_type: 'event'},
                         max_results: 200,
                         sort: '[(\'_created\', 1)]',
                     }]);

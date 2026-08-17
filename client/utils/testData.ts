@@ -777,7 +777,8 @@ export const planningHistory = [
     {
         _id: 'ph1',
         _created: '2017-06-19T02:21:42+0000',
-        planning_id: 'p2',
+        item_id: 'p2',
+        item_type: 'planning',
         operation: 'create',
         update: {slugline: 'Test Planning item July'},
         user_id: '5923ac531d41c81e3290a5ee',
@@ -785,7 +786,8 @@ export const planningHistory = [
     {
         _id: 'ph2',
         _created: '2017-06-19T02:21:42+0000',
-        planning_id: 'p2',
+        item_id: 'p2',
+        item_type: 'planning',
         operation: 'update',
         update: {headline: 'Test Planning item July.'},
         user_id: '5923ac531d41c81e3290a5ee',
@@ -796,7 +798,8 @@ export const eventsHistory = [
     {
         _id: 'e2',
         _created: '2017-06-19T02:21:42+0000',
-        event_id: 'e2',
+        item_id: 'e2',
+        item_type: 'event',
         operation: 'create',
         update: {
             name: 'Test Event Wollongong',
@@ -811,7 +814,8 @@ export const eventsHistory = [
     {
         _id: 'e2',
         _created: '2017-06-19T02:21:42+0000',
-        event_id: 'e2',
+        item_id: 'e2',
+        item_type: 'event',
         operation: 'update',
         update: {name: 'Test Event Wollongong.'},
         user_id: '5923ac531d41c81e3290a5ee',

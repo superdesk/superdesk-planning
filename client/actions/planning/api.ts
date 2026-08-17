@@ -353,7 +353,7 @@ const fetchPlanningHistory = (currentPlanningId) => (
     (dispatch, getState, {api}) => (
         // Query the API and sort by created
         api('planning_history').query({
-            where: {planning_id: currentPlanningId},
+            where: {item_id: currentPlanningId, item_type: 'planning'},
             max_results: 200,
             sort: '[(\'_created\', 1)]',
         })

@@ -72,7 +72,7 @@ const getHistoryRowElement = (text, historyItem, users) => {
 const getPostedHistoryElement = (index, historyItems, users) => {
     let text;
     const historyItem = historyItems[index];
-    const itemType = 'event_id' in historyItem ? gettext('Event ') : gettext('Planning ');
+    const itemType = historyItem.item_type === 'event' ? gettext('Event ') : gettext('Planning ');
 
     if (historyItem.operation !== HISTORY_OPERATIONS.POST &&
         historyItem.operation !== HISTORY_OPERATIONS.EVENTS_CANCEL &&

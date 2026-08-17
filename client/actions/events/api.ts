@@ -514,8 +514,8 @@ const setEventPlannings = (event_id, planning_ids) => ({
 const fetchEventHistory = (eventId) => (
     (dispatch, getState, {api}) => (
         // Query the API and sort by created
-        api('events_history').query({
-            where: {event_id: eventId},
+        api('planning_history').query({
+            where: {item_id: eventId, item_type: 'event'},
             max_results: 200,
             sort: '[(\'_created\', 1)]',
         })
