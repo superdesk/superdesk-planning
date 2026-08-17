@@ -35,7 +35,7 @@ from planning.common import (
 )
 from planning.types import EventResourceModel, UpdateMethods
 from planning.types.event import EmbeddedPlanning, EmbeddedPlanningCoverage
-from planning.item_lock import LOCK_USER, LOCK_SESSION, LOCK_ACTION
+from apps.item_lock.components.item_lock import LOCK_USER, LOCK_SESSION, LOCK_ACTION
 
 
 FrequencyType = Literal["DAILY", "WEEKLY", "MONTHLY", "YEARLY"]

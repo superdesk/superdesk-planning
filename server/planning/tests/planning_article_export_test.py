@@ -52,8 +52,8 @@ class PlanningArticleExportTest(TestCase):
 
     async def test_get_items_in_supplied_order(self):
         async with self.app.app_context():
-            self.app.data.insert("planning", self.planning_items)
-            self.app.data.insert("events", self.event_items)
+            await self.app.data.insert_async("planning", self.planning_items)
+            await self.app.data.insert_async("events", self.event_items)
 
             items = await get_items(["plan1", "plan2", "plan3"], "planning")
             assert items[0]["_id"] == "plan1"

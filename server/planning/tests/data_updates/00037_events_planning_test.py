@@ -24,7 +24,7 @@ class FixAnpaCategorySchemeTestCase(TestCase):
     async def test_upgrade_events(self):
         service = EventResourceModel.get_service()
         dates = {"start": now, "end": now + timedelta(hours=1)}
-        self.app.data.insert(
+        await self.app.data.insert_async(
             "events",
             [
                 {"_id": "e1", "dates": dates},
@@ -59,7 +59,7 @@ class FixAnpaCategorySchemeTestCase(TestCase):
 
     async def test_upgrade_planning(self):
         service = PlanningResourceModel.get_service()
-        self.app.data.insert(
+        await self.app.data.insert_async(
             "planning",
             [
                 {"_id": "p1", "planning_date": now},

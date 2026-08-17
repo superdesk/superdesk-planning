@@ -164,7 +164,7 @@ class RelatedEventLink(Dataclass):
     _id: Annotated[fields.Keyword, validate_data_relation_async("unified_planning")] = Field(
         description="Related Event ID"
     )
-    link_type: RelatedEventLinkType = Field(description="Type of link")
+    link_type: RelatedEventLinkType = Field(description="Type of link", default=RelatedEventLinkType.PRIMARY)
     recurrence_id: fields.Keyword | None = Field(description="Recurrence ID of the related event", default=None)
 
 

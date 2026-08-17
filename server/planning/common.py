@@ -45,7 +45,7 @@ from planning.types import (
     PlanningItemType,
 )
 
-from .item_lock import LOCK_SESSION, LOCK_ACTION, LOCK_TIME, LOCK_USER
+from apps.item_lock.components.item_lock import LOCK_USER, LOCK_SESSION, LOCK_ACTION, LOCK_TIME
 
 ITEM_STATE = "state"
 ITEM_EXPIRY = "expiry"

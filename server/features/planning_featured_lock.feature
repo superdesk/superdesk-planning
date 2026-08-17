@@ -32,10 +32,10 @@ Feature: Planning Featured Lock
     """
     {"lock_user": "#CONTEXT_USER_ID#"}
     """
-    When we get "/planning_featured_lock"
-    Then we get list with 1 items
+    When we get "planning_locks"
+    Then we get OK response
     """
-    {"_items": [{"lock_user": "#CONTEXT_USER_ID#"}]}
+    {"featured": {"user": "#CONTEXT_USER_ID#"}}
     """
     When we switch user
     When we post to "planning_featured_lock"
@@ -59,10 +59,10 @@ Feature: Planning Featured Lock
       """
       {"lock_user": "#CONTEXT_USER_ID#"}
       """
-      When we get "/planning_featured_lock"
-      Then we get list with 1 items
+      When we get "planning_locks"
+      Then we get OK response
       """
-      {"_items": [{"lock_user": "#CONTEXT_USER_ID#"}]}
+      {"featured": {"user": "#CONTEXT_USER_ID#"}}
       """
       When we post to "planning_featured_unlock"
       """
@@ -76,5 +76,8 @@ Feature: Planning Featured Lock
          "extra": {"user": "#CONTEXT_USER_ID#"}
       }]
       """
-      When we get "/planning_featured_lock"
-      Then we get list with 0 items
+      When we get "planning_locks"
+      Then we get OK response
+      """
+      {"featured": null}
+      """

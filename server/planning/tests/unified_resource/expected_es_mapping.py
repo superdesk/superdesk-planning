@@ -131,11 +131,13 @@ expected_es_mapping = {
                                     "properties": {
                                         "boundingbox": {"type": "text"},
                                         "city": {"type": "keyword"},
+                                        "area": {"type": "keyword"},
                                         "country": {"type": "keyword"},
                                         "extra": {"enabled": False, "type": "object"},
                                         "line": {"type": "text"},
                                         "locality": {"type": "keyword"},
                                         "state": {"type": "keyword"},
+                                        "postal_code": {"type": "keyword"},
                                         "title": {"type": "text"},
                                         "type": {"type": "keyword"},
                                     }
@@ -335,11 +337,13 @@ expected_es_mapping = {
                     "properties": {
                         "boundingbox": {"type": "text"},
                         "city": {"type": "keyword"},
+                        "area": {"type": "keyword"},
                         "country": {"type": "keyword"},
                         "extra": {"enabled": False, "type": "object"},
                         "line": {"type": "text"},
                         "locality": {"type": "keyword"},
                         "state": {"type": "keyword"},
+                        "postal_code": {"type": "keyword"},
                         "title": {"type": "text"},
                         "type": {"type": "keyword"},
                     }
@@ -491,7 +495,7 @@ expected_es_mapping = {
             "type": "nested",
         },
         "type": {"type": "keyword"},
-        "unique_id": {"type": "keyword"},
+        "unique_id": {"type": "integer"},
         "unique_name": {"type": "keyword"},
         "update_method": {"type": "keyword"},
         "urgency": {"type": "integer"},

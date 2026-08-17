@@ -52,6 +52,7 @@ from .enums import (
 from .agendas import AgendasResourceModel, AgendaItem
 from .planning_types import PlanningTypesResourceModel
 from .planning_featured import PlanningFeaturedResourceModel
+from .planning_featured_lock import PlanningFeaturedLockResource
 from .autosave import EventAutosaveResourceModel, PlanningAutosaveResourceModel
 from .locations import LocationResourceModel
 from .filters import EventPlanningFilter
@@ -100,6 +101,7 @@ __all__ = [
     "AgendasResourceModel",
     "AgendaItem",
     "PlanningFeaturedResourceModel",
+    "PlanningFeaturedLockResource",
     "EventAutosaveResourceModel",
     "PlanningAutosaveResourceModel",
     "LocationResourceModel",
