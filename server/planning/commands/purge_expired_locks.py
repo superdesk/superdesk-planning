@@ -19,10 +19,9 @@ from superdesk.core.resources import AsyncResourceService
 from superdesk.utc import utcnow
 from superdesk.lock import lock, unlock
 from superdesk.celery_task_utils import get_lock_id
+from apps.item_lock.components.item_lock import LOCK_USER, LOCK_SESSION, LOCK_ACTION, LOCK_TIME
 
-from planning.types import AutosaveResourceModel
-from planning.types.unified import UnifiedPlanningResource
-from planning.item_lock import LOCK_ACTION, LOCK_SESSION, LOCK_TIME, LOCK_USER
+from planning.types import AutosaveResourceModel, UnifiedPlanningResource
 from planning.utils import get_service, try_cast_object_id
 
 from superdesk.commands import cli

@@ -15,7 +15,7 @@ class DuplicateCoverageTestCase(TestCase):
         await super().asyncSetUp()
         await test_utils.post_items("users", fixtures.users.all_users())
         g.user = fixtures.users.admin().to_dict()
-        self.app.data.insert(
+        await self.app.data.insert_async(
             "planning",
             [
                 {
@@ -116,7 +116,7 @@ class RemovedAssignmentsTestCase(TestCase):
                 }
             ],
         }
-        self.app.data.insert("planning", [original])
+        await self.app.data.insert_async("planning", [original])
         self.app.data.insert(
             "assignments",
             [

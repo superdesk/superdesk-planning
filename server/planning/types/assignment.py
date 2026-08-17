@@ -6,6 +6,7 @@ from superdesk.utc import utcnow
 from superdesk.core.resources import fields, dataclass
 from superdesk.core.resources.validators import validate_data_relation_async
 
+from .unified import LockFields
 from .base import BasePlanningModelWithObjectId
 from .common import AssignmentCoverage
 from .enums import AssignmentPublishedState, AssignmentWorkflowState
@@ -39,7 +40,7 @@ class AssignmentResourceModel(BasePlanningModelWithObjectId, LockFields):
 
     priority: int | None = None
     coverage_item: fields.Keyword | None = None
-    planning_item: Annotated[fields.Keyword, validate_data_relation_async("planning")]
+    planning_item: Annotated[fields.Keyword, validate_data_relation_async("unified_planning")]
     scheduled_update_id: fields.Keyword | None = None
 
     assigned_to: AssignedTo | None = None
@@ -53,7 +54,4 @@ class AssignmentResourceModel(BasePlanningModelWithObjectId, LockFields):
     published_at: datetime | None = None
     published_state: AssignmentPublishedState | None = None
 
-    # TODO-ASYNC: this field was in the original schema but we're not sure if it's really required
-    # also it would clash with the computed property `type` from ResourceModel
-    # leaving it here for now until we know if it is required or we can get rid of it
-    # item_type: Annotated[fields.Keyword, Field(alias="type")] = "assignment"
+    item_type: Annotated[fields.Keyword, Field(alias="type")] = "assignment"

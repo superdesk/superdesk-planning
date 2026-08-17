@@ -10,17 +10,16 @@
 
 import logging
 from copy import deepcopy
-from typing import Any
-
 
 from superdesk.flask import request
 from superdesk.resource_fields import ID_FIELD
 from superdesk import Resource, get_resource_service
 from superdesk.default_settings import strtobool
 
+from apps.item_lock.components.item_lock import LOCK_ACTION
+
 from planning.history import HistoryService
 from planning.common import WORKFLOW_STATE, ITEM_ACTIONS, ASSIGNMENT_WORKFLOW_STATE
-from planning.item_lock import LOCK_ACTION
 from planning.assignments.assignments_history import ASSIGNMENT_HISTORY_ACTIONS
 from planning.utils import get_related_event_links_for_planning
 

@@ -5,12 +5,13 @@ from typing_extensions import Self
 
 from superdesk.utc import utcnow
 from superdesk.core import get_config
-from superdesk.core.resources import dataclass, fields, Dataclass
+from superdesk.core.resources import dataclass, fields, Dataclass, BaseModel
 from superdesk.core.elastic.mapping import json_schema_to_elastic_mapping
 from superdesk.core.resources.validators import validate_data_relation_async
 from superdesk.core.utils import generate_guid, GUID_NEWSML
 
 from .enums import LinkType
+from .unified.system import AuditInformation
 
 
 class NameAnalyzedField(str, fields.CustomStringField):
@@ -139,8 +140,7 @@ class RelatedEvent(Dataclass):
 RelatedEvents = Annotated[list[RelatedEvent] | None, fields.nested_list()]
 
 
-@dataclass
-class CoverageInternalPlanning:
+class CoverageInternalPlanning(BaseModel):
     ednote: fields.HTML | None = None
     g2_content_type: fields.Keyword | None = None
     coverage_provider: fields.Keyword | None = None
@@ -267,6 +267,7 @@ class PlanningCoverage(Dataclass):
     flags: CoverageFlags = Field(default_factory=CoverageFlags)
     time_to_be_confirmed: TimeToBeConfirmedType = False
     scheduled_updates: list[ScheduledUpdate] = Field(default_factory=list)
+    multiple_content: bool = False
 
     # @model_validator(mode="before")
     @classmethod
@@ -292,8 +293,9 @@ class PlanningCoverage(Dataclass):
         return values
 
 
-class AssignmentCoverage(PlanningCoverage):
+class AssignmentCoverage(AuditInformation, CoverageInternalPlanning, BaseModel):
     contact: fields.Keyword | None = None
+    news_coverage_status: NewsCoverageStatus = Field(default_factory=NewsCoverageStatus)
 
 
 class MatchingProduct(Dataclass):

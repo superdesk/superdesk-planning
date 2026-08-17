@@ -716,29 +716,22 @@ async def remove_assignment_from_coverage(assignment: dict) -> dict:
     coverage_item.workflow_status = WorkflowState.DRAFT
 
     updates = {"coverages": planning_item.to_dict()["coverages"]}
+    try:
+        coverage_dict = next(c for c in updates["coverages"] if c.get("coverage_id") == coverage_id)
+    except StopIteration:
+        raise SuperdeskApiError.badRequestError(gettext("Coverage does not exist"))
+
+    for s in coverage_dict.get("scheduled_updates") or []:
+        if "assigned_to" in s:
+            s["assigned_to"] = {}
+        s["workflow_status"] = WorkflowState.DRAFT
+
+    if "assigned_to" in coverage_dict:
+        coverage_dict["assigned_to"] = {}
+    coverage_dict["workflow_status"] = WorkflowState.DRAFT
+
     await planning_service.system_update(planning_item.id, updates)
     await signals.on_assignment_removed_from_coverage.send(planning_item, coverage_id)
 
-    updates["related_events"] = get_related_event_links(planning_item)
+    updates["related_events"] = [link.to_dict() for link in get_related_event_links(planning_item)]
     return updates
-
-    """
-    for s in coverage_item.get("scheduled_updates") or []:
-        if "assigned_to" in s:
-            s["assigned_to"] = {}
-        s["workflow_status"] = WORKFLOW_STATE.DRAFT
-
-    if "assigned_to" in coverage_item:
-        coverage_item["assigned_to"] = {}
-    coverage_item["workflow_status"] = WORKFLOW_STATE.DRAFT
-
-    updated_planning = await self.system_update_async(
-        planning_item[ID_FIELD], {"coverages": coverages}, planning_item
-    )
-
-    await PlanningAutosaveAsyncService().on_assignment_removed(planning_item[ID_FIELD], coverage_id)
-
-    updated_planning["related_events"] = get_related_event_links_for_planning(planning_item)
-
-    return updated_planning
-    """

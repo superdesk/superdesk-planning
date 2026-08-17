@@ -235,7 +235,7 @@ Feature: Events Autosave
         Then we get OK response
         When we get "/planning_autosave/#planning_autosave._id#"
         Then we get OK response
-        When we post to "/events/#events._id#/unlock"
+        When we post to "planning/#events._id#/unlock"
         """
         {}
         """

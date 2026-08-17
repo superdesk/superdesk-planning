@@ -88,11 +88,11 @@ Feature: Event Search Locks
             {"slugline": "ep-p-locked", "type": "event"}
         ]}
         """
-        When we post to "/events/event_2/lock" with success
+        When we post to "planning/event_2/lock" with success
         """
         {"lock_action": "edit"}
         """
-        When we post to "/events/event_4/lock" with success
+        When we post to "planning/event_4/lock" with success
         """
         {"lock_action": "edit"}
         """
@@ -117,11 +117,11 @@ Feature: Event Search Locks
             {"slugline": "ep-unlocked", "type": "event"}
         ]}
         """
-        When we post to "/events/event_1/lock" with success
+        When we post to "planning/event_1/lock" with success
         """
         {"lock_action": "edit"}
         """
-        When we post to "/events/event_3/lock" with success
+        When we post to "planning/event_3/lock" with success
         """
         {"lock_action": "edit"}
         """
@@ -184,7 +184,7 @@ Feature: Event Search Locks
             {"_id": "#EVENT3._id#"}
         ]}
         """
-        When we post to "/events/#EVENT2._id#/lock" with success
+        When we post to "planning/#EVENT2._id#/lock" with success
         """
         {"lock_action": "edit"}
         """
@@ -199,7 +199,7 @@ Feature: Event Search Locks
         """
         When we get "/events_planning_search?repo=events&only_future=false&lock_state=unlocked"
         Then we get list with 0 items
-        When we post to "/events/#EVENT2._id#/unlock" with success
+        When we post to "planning/#EVENT2._id#/unlock" with success
         """
         {}
         """

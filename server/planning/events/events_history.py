@@ -16,9 +16,11 @@ from planning.types.event import EventResourceModel
 
 from superdesk.resource_fields import ID_FIELD
 from superdesk import Resource
+
+from apps.item_lock.components.item_lock import LOCK_ACTION
+
 from planning.utils import get_related_planning_for_events
 from planning.history import HistoryService
-from planning.item_lock import LOCK_ACTION
 
 logger = logging.getLogger(__name__)
 

@@ -22,7 +22,8 @@ from planning.common import (
 )
 from .assignments_history_async import AssignmentsHistoryAsyncService
 from apps.content import push_content_notification
-from planning.item_lock import LOCK_USER, LOCK_SESSION
+from apps.item_lock.components.item_lock import LOCK_USER, LOCK_SESSION
+
 from apps.archive.common import get_user, get_auth
 from planning.planning_notifications import PlanningNotifications
 from superdesk.notification import push_notification

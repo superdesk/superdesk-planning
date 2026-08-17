@@ -35,12 +35,12 @@ from planning.search import (
     events_planning_filters_privileges,
 )
 
-from .planning_locks import planning_locks as planning_locks_endpoint
 from .planning_download import planning_download_endpoint
 from .unified.module import unified_planning_resource_config
 from .unified.signals import connect_signals
 from .unified.docs import unified_resource_docs_endpoints
 from .autosave.module import init_autosave_module, autosave_resource_config
+from .locks.module import planning_lock_endpoints, planning_featured_lock_resource, connect_signals_to_locks
 
 
 async def add_agenda_to_filter_params(fields: list[FilterConditionFieldParam]) -> None:
@@ -66,17 +66,20 @@ def init_planning(app: SuperdeskAsyncApp):
     connect_signals_listeners()
     init_autosave_module(app)
 
+    # register listeners for lock functionality
+    connect_signals_to_locks(wsgi_app)
+
 
 module = Module(
     "planning",
     init=init_planning,
     endpoints=[
-        planning_locks_endpoint,
         planning_endpoint_group,
         events_endpoints_group,
         planning_download_endpoint,
         content_api_docs_endpoints,
         unified_resource_docs_endpoints,
+        planning_lock_endpoints,
     ],
     resources=[
         events_resource_config,
@@ -89,6 +92,7 @@ module = Module(
         planning_history_resource_config,
         agendas_resource_config,
         planning_featured_resource_config,
+        planning_featured_lock_resource,
         locations_resource_config,
         events_planning_filters_resource_config,
         assignments_history_resource_config,

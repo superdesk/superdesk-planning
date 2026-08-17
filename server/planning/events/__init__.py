@@ -17,12 +17,6 @@ from planning import signals
 from .events import EventsResource, EventsService
 from .events_files import EventsFilesResource, EventsFilesService
 from .events_history import EventsHistoryResource, EventsHistoryService
-from .events_lock import (
-    EventsLockResource,
-    EventsLockService,
-    EventsUnlockResource,
-    EventsUnlockService,
-)
 from .events_post import EventsPostService, EventsPostResource
 from .events_template import (
     EventsTemplateResource,
@@ -48,11 +42,6 @@ def init_app(app):
 
     :param app: superdesk app
     """
-    events_lock_service = EventsLockService("events_lock", backend=superdesk.get_backend())
-    EventsLockResource("events_lock", app=app, service=events_lock_service)
-
-    events_unlock_service = EventsUnlockService("events_unlock", backend=superdesk.get_backend())
-    EventsUnlockResource("events_unlock", app=app, service=events_unlock_service)
 
     events_search_service = EventsService(
         EventsResource.endpoint_name, backend=EveToPydanticDataLayer("unified_planning")
@@ -96,7 +85,6 @@ def init_app(app):
     app.on_deleted_item_events -= events_history_service.on_item_deleted
     app.on_deleted_item_events += events_history_service.on_item_deleted
     app.on_updated_events_reschedule += events_history_service.on_reschedule
-    app.on_locked_events += events_search_service.on_locked_event
 
     # Privileges
     superdesk.privilege(
@@ -136,5 +124,3 @@ def init_app(app):
     )
 
     superdesk.register_default_user_preference("events_templates:recent", {})
-
-    superdesk.intrinsic_privilege(EventsUnlockResource.endpoint_name, method=["POST"])

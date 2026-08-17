@@ -53,9 +53,11 @@ from .agendas import AgendasResourceModel, AgendaItem
 from .planning_types import PlanningTypesResourceModel
 from .planning_featured import PlanningFeaturedResourceModel
 from .autosave import AutosaveResourceModel
+from .planning_featured_lock import PlanningFeaturedLockResource
 from .locations import LocationResourceModel
 from .filters import EventPlanningFilter
 from . import ninjs3
+from .unified import UnifiedPlanningResource, PlanningItemType
 
 
 __all__ = [
@@ -100,13 +102,18 @@ __all__ = [
     "AgendaItem",
     "PlanningFeaturedResourceModel",
     "AutosaveResourceModel",
+    "PlanningFeaturedLockResource",
     "LocationResourceModel",
     "EventPlanningFilter",
     "AssignmentsHistoryResourceModel",
     "ninjs3",
+    "UnifiedPlanningResource",
+    "PlanningItemType",
+    "AssignmentEventOrPlanning",
 ]
 
 
+type AssignmentEventOrPlanning = AssignmentResourceModel | UnifiedPlanningResource
 UPDATE_METHOD = Literal["single", "future", "all"]
 PLANNING_RELATED_EVENT_LINK_TYPE = Literal["primary", "secondary"]
 PLANNING_EVENT_LINK_METHOD = Literal["one_primary", "many_secondary", "one_primary_many_secondary"]

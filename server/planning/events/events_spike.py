@@ -5,6 +5,8 @@ from quart_babel import gettext as _
 from superdesk import get_resource_service
 from apps.auth import get_auth, get_user
 
+from apps.item_lock.components.item_lock import LOCK_USER, LOCK_SESSION
+
 from planning import signals
 from planning.common import (
     ITEM_EXPIRY,
@@ -21,7 +23,6 @@ from planning.events.events_utils import (
     post_update_event_actions,
     pre_update_event_actions,
 )
-from planning.item_lock import LOCK_USER, LOCK_SESSION
 from planning.planning.planning_spike import process_spike_planning_item
 from planning.types.assignment import AssignmentResourceModel
 from planning.utils import (
