@@ -19,8 +19,8 @@ from superdesk.notification import push_notification
 from superdesk.errors import SuperdeskApiError
 from apps.archive.common import get_user, get_auth
 
+from planning.history.assignments import AssignmentsHistoryService
 from .assignments import AssignmentsResource, assignments_schema, AssignmentsService
-from .assignments_history_async import AssignmentsHistoryAsyncService
 from planning.common import (
     ASSIGNMENT_WORKFLOW_STATE,
     remove_lock_information,
@@ -131,7 +131,7 @@ class AssignmentsCompleteService(AsyncBaseService):
         await assignments_service.publish_planning(original["planning_item"])
 
         # Save history if user initiates complete
-        assignments_history_service = AssignmentsHistoryAsyncService()
+        assignments_history_service = AssignmentsHistoryService()
         if text_assignment:
             await assignments_history_service.on_item_complete(updates, original)
         else:

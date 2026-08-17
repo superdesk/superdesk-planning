@@ -13,6 +13,7 @@ from quart_babel import lazy_gettext
 
 from superdesk.signals import item_duplicate_async, item_duplicated_async
 from planning import signals
+from planning.history.assignments import AssignmentsHistoryService
 from .assignments import AssignmentsResource, AssignmentsService
 from .assignments_content import AssignmentsContentResource, AssignmentsContentService
 from .assignments_link import (
@@ -37,16 +38,13 @@ from .delivery import DeliveryResource, DeliveryService
 
 from .service import AssignmentsAsyncService
 from .delivery_service import DeliveryAsyncService
-from .assignments_history_async import AssignmentsHistoryAsyncService
-from .module import assignments_resource_config, delivery_resource_config, assignments_history_resource_config
+from .module import assignments_resource_config, delivery_resource_config
 
 __all__ = [
     "assignments_resource_config",
     "AssignmentsAsyncService",
     "delivery_resource_config",
     "DeliveryAsyncService",
-    "assignments_history_resource_config",
-    "AssignmentsHistoryAsyncService",
 ]
 
 
@@ -100,7 +98,7 @@ def init_app(app):
         service=assignments_revert_service,
     )
 
-    assignments_history_service = AssignmentsHistoryAsyncService()
+    assignments_history_service = AssignmentsHistoryService()
     signals.assignments_updated.connect(assignments_history_service.on_item_updated)
     signals.assignments_deleted.connect(assignments_history_service.on_item_deleted)
     app.on_updated_assignments += assignments_history_service.on_item_updated
