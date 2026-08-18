@@ -17,9 +17,7 @@ logger = logging.getLogger(__name__)
 
 
 def validate_post_state(new_post_state):
-    try:
-        assert new_post_state in tuple(POST_STATE)
-    except AssertionError:
+    if new_post_state not in tuple(POST_STATE):
         abort(409)
 
 
