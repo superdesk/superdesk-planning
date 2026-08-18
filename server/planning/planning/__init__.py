@@ -17,7 +17,6 @@ from superdesk.eve_async.eve_to_pydantic_datalayer import EveToPydanticDataLayer
 from .planning import PlanningResource, PlanningService  # noqa
 from .planning_schema import coverage_schema  # noqa
 from .planning_history import PlanningHistoryResource, PlanningHistoryService
-from .planning_post import PlanningPostService, PlanningPostResource
 from .planning_cancel import PlanningCancelService, PlanningCancelResource
 from .planning_reschedule import PlanningRescheduleService, PlanningRescheduleResource
 from planning.files import PlanningFilesResource, FilesAsyncService
@@ -52,9 +51,6 @@ def init_app(app):
         PlanningResource.endpoint_name, backend=EveToPydanticDataLayer("unified_planning")
     )
     PlanningResource(PlanningResource.endpoint_name, app=app, service=planning_service)
-
-    planning_post_service = PlanningPostService("planning_post", backend=superdesk.get_backend())
-    PlanningPostResource("planning_post", app=app, service=planning_post_service)
 
     files_service = FilesAsyncService("planning_files", backend=superdesk.get_backend())
     PlanningFilesResource("planning_files", app=app, service=files_service)

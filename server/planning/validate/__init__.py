@@ -8,6 +8,6 @@
 # AUTHORS and LICENSE files distributed with this source code, or
 # at https://www.sourcefabric.org/superdesk/license
 
-from .planning_validate import validate_docs
+from .planning_validate import validate_docs, validate_doc
 
-__all__ = ["validate_docs"]
+__all__ = ["validate_docs", "validate_doc"]
