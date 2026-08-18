@@ -143,6 +143,20 @@ class UnifiedResourceActionsTestCase(TestCase):
             await process_duplicate(original)
         self.assertEqual(400, ctx.exception.status_code)
 
+    async def test_posted_event_with_planning_cannot_be_spiked(self):
+        # The "Event has an associated Planning item" spike guard must read the
+        # unified index — the legacy `planning` index is empty under unified, which
+        # previously defeated this check.
+        event_id = await self._create_event(pubstatus="usable", state="killed")
+        await self._create_planning(
+            related_events=[{"_id": event_id, "link_type": "primary"}],
+        )
+
+        original = await self._event_dict(event_id)
+        with self.assertRaises(SuperdeskApiError) as ctx:
+            await process_spike({}, original)
+        self.assertIn("associated Planning item", str(ctx.exception))
+
     async def test_event_series_timeline_excludes_planning_items(self):
         # A Planning item sharing an Event's `recurrence_id` must NOT be pulled
         # into the event series (both live in the one `unified_planning` collection).

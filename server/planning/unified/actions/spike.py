@@ -45,9 +45,8 @@ from planning.planning.planning_utils import delete_assignments_for_coverages
 from planning.planning_notifications import PlanningNotifications
 from planning.types.assignment import AssignmentResourceModel
 from planning.types.unified import PlanningItemType, RelatedEventLinkType
-from planning.unified.common import get_related_planning_for_events
+from planning.unified.common import get_related_planning_for_events, event_has_planning_items
 from planning.utils import (
-    event_has_planning_items,
     get_first_related_event_id_for_planning,
     get_related_event_ids_for_planning,
 )
@@ -119,13 +118,13 @@ def can_spike_event(event: dict[str, Any], events_with_plans: list) -> bool:
     return "pubstatus" not in event and event[ID_FIELD] not in events_with_plans and "reschedule_from" not in event
 
 
-def validate_event_states(event: dict[str, Any]) -> None:
+async def validate_event_states(event: dict[str, Any]) -> None:
     # Public Events (except unposted) cannot be spiked
     if event.get("pubstatus") and event.get("state") != WORKFLOW_STATE.KILLED:
         raise SuperdeskApiError.badRequestError(message=_("Spike failed. Posted Events cannot be spiked."))
 
     # Posted Events with Planning items cannot be spiked
-    elif event.get("pubstatus") and event_has_planning_items(event[ID_FIELD], "primary"):
+    elif event.get("pubstatus") and await event_has_planning_items(event[ID_FIELD], RelatedEventLinkType.PRIMARY):
         raise SuperdeskApiError.badRequestError(message=_("Spike failed. Event has an associated Planning item."))
 
     # Event was created from a 'Reschedule' action or is 'Rescheduled'
@@ -144,7 +143,7 @@ async def validate_spike_event(event: dict[str, Any]) -> None:
             raise SuperdeskApiError.forbiddenError(
                 message="Spike failed. One or more related planning items are locked."
             )
-    validate_event_states(event)
+    await validate_event_states(event)
 
 
 async def validate_recurring_event(original: dict[str, Any], recurrence_id: str) -> list:
@@ -152,7 +151,7 @@ async def validate_recurring_event(original: dict[str, Any], recurrence_id: str)
     planning_service = get_resource_service("planning")
     events_with_plans = []
 
-    validate_event_states(original)
+    await validate_event_states(original)
 
     # Scope series lookups by `type` (shared collection, no datalayer filter)
     async for event in await events_service.find_async(

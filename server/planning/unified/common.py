@@ -152,6 +152,19 @@ async def get_related_planning_for_events(
     return await service.search({"query": {"bool": bool_query}}, projection=projection)
 
 
+async def event_has_planning_items(
+    event_id: str, link_type: RelatedEventLinkType | None = RelatedEventLinkType.PRIMARY
+) -> bool:
+    """Whether an Event has related Planning items, querying the unified index.
+
+    Replaces the legacy ``planning.utils.event_has_planning_items`` which reads the
+    (now empty) legacy ``planning`` elastic index.
+    """
+    async for _ in await get_related_planning_for_events([event_id], link_type):
+        return True
+    return False
+
+
 async def get_series(
     query: dict, sort: str | None = None, max_results: int = 25
 ) -> AsyncGenerator[UnifiedPlanningResource, None]:
