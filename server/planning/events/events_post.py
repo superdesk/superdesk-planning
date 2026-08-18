@@ -257,7 +257,7 @@ class EventsPostService(AsyncBaseService):
             logger.error("Failed to save planning version for event item id {}".format(event["_id"]))
 
     async def post_related_plannings(self, plannings, new_post_state):
-        from planning.planning.planning_spike import process_spike_planning_item
+        from planning.unified.actions import process_spike_planning_item
 
         planning_post_service = get_resource_service("planning_post")
         docs = []

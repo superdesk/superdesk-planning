@@ -34,6 +34,7 @@ from planning.common import (
     update_post_item,
 )
 from planning.types import EventResourceModel, UpdateMethods
+from planning.types.unified import PlanningItemType
 from planning.types.event import EmbeddedPlanning, EmbeddedPlanningCoverage
 from apps.item_lock.components.item_lock import LOCK_USER, LOCK_SESSION, LOCK_ACTION
 
@@ -239,6 +240,8 @@ async def get_recurring_timeline(
 
     query = {
         "$and": [
+            # Events & Planning share one collection now, so restrict the series to Events
+            {"type": PlanningItemType.EVENT.value},
             {"recurrence_id": selected["recurrence_id"]},
             {"_id": {"$ne": selected[ID_FIELD]}},
         ]

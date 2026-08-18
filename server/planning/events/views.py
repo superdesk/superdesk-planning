@@ -6,8 +6,7 @@ from planning.events.events_cancel import process_cancel_event
 from planning.events.events_reschedule import process_reschedule_event
 from planning.events.events_update_repetitions import process_update_repetitions
 from planning.events.events_update_time import process_update_time
-from planning.events.events_spike import process_spike_event, process_unspike_event
-from planning.events.events_postpone import process_postpone_event
+from planning.unified.actions import process_spike, process_unspike, process_postpone
 from planning.utils import get_json_or_400_async
 
 from superdesk.core.auth.privilege_rules import required_privilege_rule
@@ -77,7 +76,7 @@ async def spike_event(args: EventsArgs, params: None, request: Request) -> Respo
         await request.abort(404, "Event not found")
 
     updates = await get_json_or_400_async(request)
-    spiked_event = await process_spike_event(updates, original)
+    spiked_event = await process_spike(updates, original)
 
     return Response(spiked_event)
 
@@ -94,7 +93,7 @@ async def unspike_event(args: EventsArgs, params: None, request: Request) -> Res
         await request.abort(404, "Event not found")
 
     updates = await get_json_or_400_async(request)
-    unspiked_event = await process_unspike_event(updates, original)
+    unspiked_event = await process_unspike(updates, original)
 
     return Response(unspiked_event)
 
@@ -111,7 +110,7 @@ async def postpone_event(args: EventsArgs, params: None, request: Request) -> Re
         await request.abort(404, "Event not found")
 
     updates = await get_json_or_400_async(request)
-    postponed_event = await process_postpone_event(updates, original)
+    postponed_event = await process_postpone(updates, original)
 
     return Response(postponed_event)
 
