@@ -24,7 +24,6 @@ from apps.archive.common import BYLINE
 from apps.auth import get_user_id, get_user
 from apps.templates.content_templates import get_item_from_template
 
-from .assignments_history_async import AssignmentsHistoryAsyncService
 from planning.common import (
     ASSIGNMENT_WORKFLOW_STATE,
     get_coverage_type_name,
@@ -34,6 +33,7 @@ from planning.common import (
     assignment_allows_multiple_content_linked,
     get_config_assignment_manual_reassignment_only,
 )
+from planning.history.assignments import AssignmentsHistoryService
 from planning.planning_notifications import PlanningNotifications
 from planning.archive import create_item_from_template
 from planning.signals import assignment_content_create
@@ -254,7 +254,7 @@ class AssignmentsContentService(AsyncBaseService):
                     no_email=True,
                 )
             # Save history
-            await AssignmentsHistoryAsyncService().on_item_start_working(updates, assignment)
+            await AssignmentsHistoryService().on_item_start_working(updates, assignment)
 
         return ids
 

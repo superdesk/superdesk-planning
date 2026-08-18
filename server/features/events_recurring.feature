@@ -61,13 +61,13 @@ Feature: Events Recurring
         """
         When we get "/events?source={"query":{"match":{"recurrence_id": "#EVENT1.recurrence_id#"}}}"
         Then we get list with 3 items
-        When we get "/events_history"
+        When we get "/planning_history"
         Then we get list with 3 items
         """
         {"_items": [
-            {"operation": "create", "event_id": "#EVENT1._id#"},
-            {"operation": "create", "event_id": "#EVENT2._id#"},
-            {"operation": "create", "event_id": "#EVENT3._id#"}
+            {"operation": "create", "item_id": "#EVENT1._id#", "item_type": "event"},
+            {"operation": "create", "item_id": "#EVENT2._id#", "item_type": "event"},
+            {"operation": "create", "item_id": "#EVENT3._id#", "item_type": "event"}
         ]}
         """
 
@@ -400,14 +400,14 @@ Feature: Events Recurring
             }
         ]}
         """
-        When we get "/events_history"
+        When we get "/planning_history"
         Then we get list with 4 items
         """
         {"_items": [
-            {"operation": "create", "event_id": "__any_value__"},
-            {"operation": "create", "event_id": "__any_value__"},
-            {"operation": "create", "event_id": "__any_value__"},
-            {"operation": "convert_recurring", "event_id": "#EVENT_ID#", "update": {
+            {"operation": "create", "item_id": "__any_value__", "item_type": "event"},
+            {"operation": "create", "item_id": "__any_value__", "item_type": "event"},
+            {"operation": "create", "item_id": "__any_value__", "item_type": "event"},
+            {"operation": "convert_recurring", "item_id": "#EVENT_ID#", "item_type": "event", "update": {
                 "name": "Weekly Friday Club",
                 "dates": {
                     "start": "2019-11-22T12:00:00+0000",
@@ -566,17 +566,17 @@ Feature: Events Recurring
             "recurrence_id": "event1"
         }
         """
-        When we get "/events_history"
+        When we get "/planning_history"
         Then we get list with 10 items
         """
         {"_items": [
-            {"operation": "post", "event_id": "#events._id#"},
-            {"operation": "planning_created", "event_id": "#events._id#"},
-            {"operation": "reschedule_from", "event_id": "__any_value__"},
-            {"operation": "reschedule", "event_id": "#events._id#"},
-            {"operation": "create", "event_id": "__any_value__"},
-            {"operation": "create", "event_id": "__any_value__"},
-            {"operation": "convert_recurring", "event_id": "#events._id#"}
+            {"operation": "post", "item_id": "#events._id#", "item_type": "event"},
+            {"operation": "planning_created", "item_id": "#events._id#", "item_type": "event"},
+            {"operation": "reschedule_from", "item_id": "__any_value__", "item_type": "event"},
+            {"operation": "reschedule", "item_id": "#events._id#", "item_type": "event"},
+            {"operation": "create", "item_id": "__any_value__", "item_type": "event"},
+            {"operation": "create", "item_id": "__any_value__", "item_type": "event"},
+            {"operation": "convert_recurring", "item_id": "#events._id#", "item_type": "event"}
         ]}
         """
         When we get "publish_queue"
@@ -870,14 +870,14 @@ Feature: Events Recurring
 
         ]}
         """
-        When we get "/events_history"
+        When we get "/planning_history"
         Then we get list with 4 items
         """
         {"_items": [
-            {"operation": "create", "event_id": "#EVENT1._id#"},
-            {"operation": "create", "event_id": "#EVENT2._id#"},
-            {"operation": "create", "event_id": "#EVENT3._id#"},
-            {"operation": "edited", "event_id": "#EVENT2._id#", "update": {
+            {"operation": "create", "item_id": "#EVENT1._id#", "item_type": "event"},
+            {"operation": "create", "item_id": "#EVENT2._id#", "item_type": "event"},
+            {"operation": "create", "item_id": "#EVENT3._id#", "item_type": "event"},
+            {"operation": "edited", "item_id": "#EVENT2._id#", "item_type": "event", "update": {
                 "name": "Friday Club - altered",
                 "definition_short": "Something different today"
             }}
@@ -955,18 +955,18 @@ Feature: Events Recurring
             }
         ]}
         """
-        When we get "/events_history"
+        When we get "/planning_history"
         Then we get list with 5 items
         """
         {"_items": [
-            {"operation": "create", "event_id": "#EVENT1._id#"},
-            {"operation": "create", "event_id": "#EVENT2._id#"},
-            {"operation": "create", "event_id": "#EVENT3._id#"},
-            {"operation": "edited", "event_id": "#EVENT2._id#", "update": {
+            {"operation": "create", "item_id": "#EVENT1._id#", "item_type": "event"},
+            {"operation": "create", "item_id": "#EVENT2._id#", "item_type": "event"},
+            {"operation": "create", "item_id": "#EVENT3._id#", "item_type": "event"},
+            {"operation": "edited", "item_id": "#EVENT2._id#", "item_type": "event", "update": {
                 "name": "Friday Club - altered",
                 "definition_short": "Something different today"
             }},
-            {"operation": "edited", "event_id": "#EVENT3._id#", "update": {
+            {"operation": "edited", "item_id": "#EVENT3._id#", "item_type": "event", "update": {
                 "name": "Friday Club - altered",
                 "definition_short": "Something different today"
             }}
@@ -1048,22 +1048,22 @@ Feature: Events Recurring
             }
         ]}
         """
-        When we get "/events_history"
+        When we get "/planning_history"
         Then we get list with 6 items
         """
         {"_items": [
-            {"operation": "create", "event_id": "#EVENT1._id#"},
-            {"operation": "create", "event_id": "#EVENT2._id#"},
-            {"operation": "create", "event_id": "#EVENT3._id#"},
-            {"operation": "edited", "event_id": "#EVENT1._id#", "update": {
+            {"operation": "create", "item_id": "#EVENT1._id#", "item_type": "event"},
+            {"operation": "create", "item_id": "#EVENT2._id#", "item_type": "event"},
+            {"operation": "create", "item_id": "#EVENT3._id#", "item_type": "event"},
+            {"operation": "edited", "item_id": "#EVENT1._id#", "item_type": "event", "update": {
                 "name": "Friday Club - altered",
                 "definition_short": "Something different today"
             }},
-            {"operation": "edited", "event_id": "#EVENT2._id#", "update": {
+            {"operation": "edited", "item_id": "#EVENT2._id#", "item_type": "event", "update": {
                 "name": "Friday Club - altered",
                 "definition_short": "Something different today"
             }},
-            {"operation": "edited", "event_id": "#EVENT3._id#", "update": {
+            {"operation": "edited", "item_id": "#EVENT3._id#", "item_type": "event", "update": {
                 "name": "Friday Club - altered",
                 "definition_short": "Something different today"
             }}

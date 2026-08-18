@@ -83,10 +83,12 @@ Feature: Events
         Then we get list with 0 items
         When we get "/events?sort=[("dates.start",1)]&source={"query":{"range":{"dates.start":{"gte":"2016-01-02T00:00:00.000Z"}}}}"
         Then we get list with 1 items
-        When we get "/events_history"
+        When we get "/planning_history"
         Then we get a list with 1 items
         """
-            {"_items": [{"operation": "create", "event_id": "#events._id#", "update": {"name": "event 123"}}]}
+        {"_items": [
+            {"operation": "create", "item_id": "#events._id#", "item_type": "event", "update": {"name": "event 123"}}
+        ]}
         """
 
     @auth
@@ -265,19 +267,21 @@ Feature: Events
             }
         }]
         """
-        When we get "/events_history"
+        When we get "/planning_history"
         Then we get a list with 2 items
         """
-            {"_items": [{
-                "event_id": "#events._id#",
+        {"_items": [{
+                "item_id": "#events._id#",
+                "item_type": "event",
                 "operation": "create"
-                },
-                {
-                "event_id": "#events._id#",
+            },
+            {
+                "item_id": "#events._id#",
+                "item_type": "event",
                 "operation": "post",
                 "update": {"state": "scheduled"}
-                }
-            ]}
+            }
+        ]}
         """
         When we get "user_metrics"
         Then we get list with 1 items
@@ -304,24 +308,27 @@ Feature: Events
             }
         }]
         """
-        When we get "/events_history"
+        When we get "/planning_history"
         Then we get a list with 3 items
         """
-            {"_items": [{
-                "event_id": "#events._id#",
+        {"_items": [{
+                "item_id": "#events._id#",
+                "item_type": "event",
                 "operation": "create"
-                },
-                {
-                "event_id": "#events._id#",
+            },
+            {
+                "item_id": "#events._id#",
+                "item_type": "event",
                 "operation": "post",
                 "update": {"state": "scheduled"}
-                },
-                {
-                "event_id": "#events._id#",
+            },
+            {
+                "item_id": "#events._id#",
+                "item_type": "event",
                 "operation": "post",
                 "update": {"pubstatus": "cancelled"}
-                }
-            ]}
+            }
+        ]}
         """
         When we get "user_metrics"
         Then we get list with 1 items
@@ -430,23 +437,27 @@ Feature: Events
             "duplicate_from": "123"
         }
         """
-        When we get "/events_history"
+        When we get "/planning_history"
         Then we get list with 4 items
         """
         {"_items": [
             {
                 "operation": "create",
-                "event_id": "123"
+                "item_id": "123",
+                "item_type": "event"
             },
             {
                 "operation": "post",
+                "item_type": "event",
                 "update": { "state" : "scheduled", "pubstatus": "usable" }
             },
             {
+                "item_type": "event",
                 "operation": "duplicate",
                 "update": { "duplicate_id" : "#events._id#"}
             },
             {
+                "item_type": "event",
                 "operation": "duplicate_from",
                 "update": { "duplicate_id" : "123"}
             }
@@ -525,25 +536,29 @@ Feature: Events
         {"name": "New Event"}
         """
         Then we get OK response
-        When we get "/events_history"
+        When we get "/planning_history"
         Then we get list with 4 items
         """
         {"_items": [
             {
                 "operation": "create",
-                "event_id": "#events._id#"
+                "item_id": "#events._id#",
+                "item_type": "event"
             },
             {
                 "operation": "post",
-                "event_id": "#events._id#"
+                "item_id": "#events._id#",
+                "item_type": "event"
             },
             {
                 "operation": "edited",
+                "item_type": "event",
                 "update": { "name" : "New Event"}
             },
             {
                 "operation": "post",
-                "event_id": "#events._id#"
+                "item_id": "#events._id#",
+                "item_type": "event"
             }
         ]}
         """
@@ -640,24 +655,28 @@ Feature: Events
             "duplicate_from": "123"
         }
         """
-        When we get "/events_history"
+        When we get "/planning_history"
         Then we get list with 4 items
         """
         {"_items": [
             {
                 "operation": "create",
-                "event_id": "123"
+                "item_id": "123",
+                "item_type": "event"
             },
             {
                 "operation": "post",
+                "item_type": "event",
                 "update": { "state" : "scheduled", "pubstatus": "usable" }
             },
             {
                 "operation": "duplicate",
+                "item_type": "event",
                 "update": { "duplicate_id" : "#events._id#"}
             },
             {
                 "operation": "duplicate_from",
+                "item_type": "event",
                 "update": { "duplicate_id" : "123"}
             }
         ]}
@@ -711,37 +730,35 @@ Feature: Events
             "extra": {"item": "#events._id#"}
         }]
         """
-        When we get "/events_history"
-        Then we get a list with 1 items
-        """
-            {
-                "_items": [{
-                    "operation": "created_from_planning",
-                    "event_id": "#events._id#",
-                    "update": {
-                        "name": "TestEvent",
-                        "created_from_planning": "#planning._id#"
-                    }
-                }]
-            }
-        """
         When we get "/planning_history"
-        Then we get a list with 2 items
+        Then we get a list with 3 items
         """
+        {"_items": [
             {
-                "_items": [{
-                    "operation": "create",
-                    "planning_id": "#planning._id#"
-                }, {
-                    "operation": "create_event",
-                    "planning_id": "#planning._id#",
-                    "update": {
-                        "related_events": [
-                            {"_id": "#events._id#", "link_type": "primary"}
-                        ]
-                    }
-                }]
+                "operation": "created_from_planning",
+                "item_id": "#events._id#",
+                "item_type": "event",
+                "update": {
+                    "name": "TestEvent",
+                    "created_from_planning": "#planning._id#"
+                }
+            },
+            {
+                "operation": "create",
+                "item_id": "#planning._id#",
+                "item_type": "planning"
+            },
+            {
+                "operation": "create_event",
+                "item_id": "#planning._id#",
+                "item_type": "planning",
+                "update": {
+                    "related_events": [
+                        {"_id": "#events._id#", "link_type": "primary"}
+                    ]
+                }
             }
+        ]}
         """
 
     @auth

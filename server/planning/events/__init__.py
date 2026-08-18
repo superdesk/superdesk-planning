@@ -14,9 +14,9 @@ from quart_babel import lazy_gettext
 from superdesk.eve_async.eve_to_pydantic_datalayer import EveToPydanticDataLayer
 
 from planning import signals
+from planning.history.planning import UnifiedPlanningHistoryService
 from .events import EventsResource, EventsService
 from planning.files import EventsFilesResource, FilesAsyncService
-from .events_history import EventsHistoryResource, EventsHistoryService
 from .events_post import EventsPostService, EventsPostResource
 from .events_template import (
     EventsTemplateResource,
@@ -26,14 +26,12 @@ from .events_template import (
 )
 
 from .events_service import EventsAsyncService
-from .events_history_async_service import EventsHistoryAsyncService
-from .module import events_resource_config, events_history_resource_config
+from .module import events_resource_config
+
 
 __all__ = [
     "EventsAsyncService",
     "events_resource_config",
-    "EventsHistoryAsyncService",
-    "events_history_resource_config",
 ]
 
 
@@ -54,9 +52,6 @@ def init_app(app):
     files_service = FilesAsyncService("events_files", backend=superdesk.get_backend())
     EventsFilesResource("events_files", app=app, service=files_service)
 
-    events_history_service = EventsHistoryService("events_history", backend=superdesk.get_backend())
-    EventsHistoryResource("events_history", app=app, service=events_history_service)
-
     events_template_service = EventsTemplateService(
         EventsTemplateResource.endpoint_name, backend=superdesk.get_backend()
     )
@@ -71,18 +66,17 @@ def init_app(app):
         service=recent_events_template_service,
     )
 
-    events_history_async_service = EventsHistoryAsyncService()
+    events_history_service = UnifiedPlanningHistoryService()
 
     # listen to async signals
-    signals.event_time_updated.connect(events_history_async_service.on_update_time)
-    signals.event_spiked.connect(events_history_async_service.on_spike)
-    signals.event_unspiked.connect(events_history_async_service.on_unspike)
-    signals.event_postponed.connect(events_history_async_service.on_postpone)
-    signals.event_cancel.connect(events_history_async_service.on_cancel)
-    signals.event_reschedule.connect(events_history_async_service.on_reschedule)
-    signals.event_rescheduled.connect(events_history_async_service.on_reschedule)
+    signals.event_time_updated.connect(events_history_service.on_update_time)
+    signals.event_spiked.connect(events_history_service.on_spike)
+    signals.event_unspiked.connect(events_history_service.on_unspike)
+    signals.event_postponed.connect(events_history_service.on_postpone)
+    signals.event_cancel.connect(events_history_service.on_cancel)
+    signals.event_reschedule.connect(events_history_service.on_reschedule)
+    signals.event_rescheduled.connect(events_history_service.on_reschedule)
 
-    app.on_deleted_item_events -= events_history_service.on_item_deleted
     app.on_deleted_item_events += events_history_service.on_item_deleted
     app.on_updated_events_reschedule += events_history_service.on_reschedule
 

@@ -83,17 +83,17 @@ Feature: Events Reschedule
             "state_reason": "Changed to the next day!"
         }
         """
-        When we get "/events_history"
+        When we get "/planning_history"
         Then we get list with 3 items
         """
         {"_items": [
-            {"operation": "reschedule", "event_id": "event1", "update": {
+            {"operation": "reschedule", "item_id": "event1", "item_type": "event", "update": {
                 "reschedule_to": "#DUPLICATE.id#"
             }},
-            {"operation": "reschedule_from", "event_id": "#DUPLICATE.id#", "update": {
+            {"operation": "reschedule_from", "item_id": "#DUPLICATE.id#", "item_type": "event", "update": {
                 "reschedule_from": "event1"
             }},
-            {"operation": "post", "event_id": "event1"}
+            {"operation": "post", "item_id": "event1", "item_type": "event"}
         ]}
         """
 
@@ -544,14 +544,14 @@ Feature: Events Reschedule
             }
         ]}
         """
-        When we get "/events_history"
+        When we get "/planning_history"
         Then we get list with 7 items
         """
         {"_items": [
-            {"operation": "create", "event_id": "#EVENT1._id#"},
-            {"operation": "create", "event_id": "#EVENT2._id#"},
-            {"operation": "create", "event_id": "#EVENT3._id#"},
-            {"operation": "reschedule", "event_id": "#EVENT1._id#", "update": {
+            {"operation": "create", "item_id": "#EVENT1._id#", "item_type": "event"},
+            {"operation": "create", "item_id": "#EVENT2._id#", "item_type": "event"},
+            {"operation": "create", "item_id": "#EVENT3._id#", "item_type": "event"},
+            {"operation": "reschedule", "item_id": "#EVENT1._id#", "item_type": "event", "update": {
                 "dates": {
                     "start": "2035-11-23T12:00:00+0000",
                     "end": "2035-11-23T14:00:00+0000",
@@ -565,7 +565,7 @@ Feature: Events Reschedule
                     }
                 }
             }},
-            {"operation": "reschedule", "event_id": "#EVENT2._id#", "update": {
+            {"operation": "reschedule", "item_id": "#EVENT2._id#", "item_type": "event", "update": {
                 "dates": {
                     "start": "2035-11-30T12:00:00+0000",
                     "end": "2035-11-30T14:00:00+0000",
@@ -579,7 +579,7 @@ Feature: Events Reschedule
                     }
                 }
             }},
-            {"operation": "reschedule", "event_id": "#EVENT3._id#", "update": {
+            {"operation": "reschedule", "item_id": "#EVENT3._id#", "item_type": "event", "update": {
                 "dates": {
                     "start": "2035-12-07T12:00:00+0000",
                     "end": "2035-12-07T14:00:00+0000",
@@ -593,7 +593,7 @@ Feature: Events Reschedule
                     }
                 }
             }},
-            {"operation": "create", "event_id": "__any_value__", "update": {
+            {"operation": "create", "item_id": "__any_value__", "item_type": "event", "update": {
                 "dates": {
                     "start": "2035-12-14T12:00:00+0000",
                     "end": "2035-12-14T14:00:00+0000",
@@ -1426,12 +1426,13 @@ Feature: Events Reschedule
 
         }
         """
-        When we get "/events_history"
+        When we get "/planning_history"
         Then we get list with 1 items
         """
         {"_items": [
             {
-                "event_id": "event1",
+                "item_id": "event1",
+                "item_type": "event",
                 "operation": "reschedule",
                 "update": {
                   "state_reason": "Changed to the next day!",
@@ -1670,17 +1671,17 @@ Feature: Events Reschedule
             "state_reason": "Changed to the next day!"
         }
         """
-        When we get "/events_history"
+        When we get "/planning_history"
         Then we get list with 3 items
         """
         {"_items": [
-            {"operation": "reschedule", "event_id": "event1", "update": {
+            {"operation": "reschedule", "item_id": "event1", "item_type": "event", "update": {
                 "reschedule_to": "#DUPLICATE.id#"
             }},
-            {"operation": "reschedule_from", "event_id": "#DUPLICATE.id#", "update": {
+            {"operation": "reschedule_from", "item_id": "#DUPLICATE.id#", "item_type": "event", "update": {
                 "reschedule_from": "event1"
             }},
-            {"operation": "post", "event_id": "event1"}
+            {"operation": "post", "item_id": "event1", "item_type": "event"}
         ]}
         """
 

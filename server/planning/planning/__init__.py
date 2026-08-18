@@ -14,9 +14,9 @@ from quart_babel import lazy_gettext
 import superdesk
 from superdesk.eve_async.eve_to_pydantic_datalayer import EveToPydanticDataLayer
 
+from planning.history.planning import UnifiedPlanningHistoryService
 from .planning import PlanningResource, PlanningService  # noqa
 from .planning_schema import coverage_schema  # noqa
-from .planning_history import PlanningHistoryResource, PlanningHistoryService
 from .planning_post import PlanningPostService, PlanningPostResource
 from .planning_cancel import PlanningCancelService, PlanningCancelResource
 from .planning_reschedule import PlanningRescheduleService, PlanningRescheduleResource
@@ -25,19 +25,15 @@ from planning.files import PlanningFilesResource, FilesAsyncService
 from .module import (
     planning_resource_config,
     planning_resource_config,
-    planning_history_resource_config,
     planning_featured_resource_config,
 )
 from .planning_service import PlanningAsyncService
-from .planning_history_async_service import PlanningHistoryAsyncService
 from .planning_featured_async_service import PlanningFeaturedAsyncService
 
 
 __all__ = [
     "planning_resource_config",
     "PlanningAsyncService",
-    "PlanningHistoryAsyncService",
-    "planning_history_resource_config",
     "PlanningFeaturedAsyncService",
     "planning_featured_resource_config",
 ]
@@ -73,16 +69,13 @@ def init_app(app):
         service=planning_reschedule_service,
     )
 
-    planning_history_service = PlanningHistoryService("planning_history", backend=superdesk.get_backend())
-    PlanningHistoryResource("planning_history", app=app, service=planning_history_service)
-
-    planning_history_async_service = PlanningHistoryAsyncService()
+    planning_history_service = UnifiedPlanningHistoryService()
 
     # listen to async signals
-    signals.planning_updated.connect(planning_history_async_service.on_item_updated)
-    signals.planning_spiked.connect(planning_history_async_service.on_spike)
-    signals.planning_unspiked.connect(planning_history_async_service.on_unspike)
-    signals.planning_postponed.connect(planning_history_async_service.on_postpone)
+    signals.planning_updated.connect(planning_history_service.on_item_updated)
+    signals.planning_spiked.connect(planning_history_service.on_spike)
+    signals.planning_unspiked.connect(planning_history_service.on_unspike)
+    signals.planning_postponed.connect(planning_history_service.on_postpone)
 
     # Still include the old signals
     app.on_updated_planning_cancel += planning_history_service.on_cancel
