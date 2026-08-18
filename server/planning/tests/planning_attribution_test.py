@@ -5,9 +5,12 @@ import pytest
 from bson import ObjectId
 
 from planning.planning import planning as planning_module
-from planning.planning import planning_history as history_module
+
+# from planning.planning import planning_history as history_module
 from planning.planning.planning import PlanningService
-from planning.planning.planning_history import PlanningHistoryService
+from planning.history.planning import UnifiedPlanningHistoryService
+
+# from planning.planning.planning_history import PlanningHistoryService
 
 
 class DummyPlanningService(PlanningService):
@@ -24,12 +27,12 @@ class DummyPlanningService(PlanningService):
         return None
 
 
-class RecordingPlanningHistoryService(PlanningHistoryService):
+class RecordingPlanningHistoryService(UnifiedPlanningHistoryService):
     def __init__(self):
         super().__init__()
         self.entries = []
 
-    def _save_history(self, planning, update, operation):  # type: ignore[override]
+    async def _save_history(self, planning, update, operation):  # type: ignore[override]
         self.entries.append({"operation": operation, "update": deepcopy(update)})
 
 
@@ -170,15 +173,16 @@ async def test_should_update_version_creator_helper_method():
     ), "Mixed planning and coverage change should return True"
 
 
-def test_history_records_only_coverage_operations(monkeypatch):
+@pytest.mark.asyncio
+async def test_history_records_only_coverage_operations(monkeypatch):
     history_service = RecordingPlanningHistoryService()
-    stub_planning_service = SimpleNamespace(
-        is_coverage_planning_modified=lambda new, old: new.get("planning") != old.get("planning"),
-        is_coverage_assignment_modified=lambda new, old: new.get("assigned_to") != old.get("assigned_to"),
-    )
+    # stub_planning_service = SimpleNamespace(
+    #     is_coverage_planning_modified=lambda new, old: new.get("planning") != old.get("planning"),
+    #     is_coverage_assignment_modified=lambda new, old: new.get("assigned_to") != old.get("assigned_to"),
+    # )
 
-    monkeypatch.setattr(history_module, "get_resource_service", lambda name: stub_planning_service)
-    monkeypatch.setattr(history_module, "request", SimpleNamespace(args={}))
+    # monkeypatch.setattr(history_module, "get_resource_service", lambda name: stub_planning_service)
+    # monkeypatch.setattr(history_module, "request", SimpleNamespace(args={}))
 
     coverage_id = "cov-planning"
     original = {
@@ -214,7 +218,7 @@ def test_history_records_only_coverage_operations(monkeypatch):
         ]
     }
 
-    history_service.on_item_updated(deepcopy(updates), deepcopy(original))
+    await history_service.on_item_updated(deepcopy(updates), deepcopy(original))
 
     operations = [entry["operation"] for entry in history_service.entries]
 

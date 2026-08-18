@@ -20,14 +20,13 @@ from planning.common import (
     update_assignment_on_link_unlink,
     get_coverage_for_assignment,
 )
-from .assignments_history_async import AssignmentsHistoryAsyncService
 from apps.content import push_content_notification
 from apps.item_lock.components.item_lock import LOCK_USER, LOCK_SESSION
 
 from apps.archive.common import get_user, get_auth
 from planning.planning_notifications import PlanningNotifications
 from superdesk.notification import push_notification
-from .assignments_history import ASSIGNMENT_HISTORY_ACTIONS
+from planning.history.assignments import AssignmentsHistoryService, AssignmentHistoryActions
 
 
 class AssignmentsUnlinkService(AsyncBaseService):
@@ -106,10 +105,10 @@ class AssignmentsUnlinkService(AsyncBaseService):
                         updates["assigned_to"]["state"] = ASSIGNMENT_WORKFLOW_STATE.ASSIGNED
                         await assignments_service.patch_async(assignment.get(ID_FIELD), updates)
 
-                    assignment_history_service = AssignmentsHistoryAsyncService()
+                    assignment_history_service = AssignmentsHistoryService()
                     if spike:
                         await assignment_history_service.on_item_content_unlink(
-                            updates, assignment, ASSIGNMENT_HISTORY_ACTIONS.SPIKE_UNLINK
+                            updates, assignment, AssignmentHistoryActions.SPIKE_UNLINK
                         )
                     else:
                         await assignment_history_service.on_item_content_unlink(updates, assignment)

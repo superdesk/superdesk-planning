@@ -32,7 +32,7 @@ from planning.common import (
 )
 
 from planning.events.events_utils import get_recurring_timeline, get_update_method
-from planning.types import EventsHistoryResourceModel, UnifiedPlanningResource
+from planning.types import UnifiedPlanningHistoryResource, UnifiedPlanningResource
 from planning.utils import get_related_planning_for_events_async
 from planning.content_profiles.utils import is_post_planning_with_event_enabled, is_cancel_planning_with_event_enabled
 from planning.planning.planning_utils import delete_assignments_for_coverages
@@ -179,7 +179,7 @@ class EventsPostService(AsyncBaseService):
 
     async def post_event(self, event, new_post_state, repost, assignments_to_delete: list[dict]):
         events_service = UnifiedPlanningResource.get_service()
-        events_history_service = EventsHistoryResourceModel.get_service()
+        events_history_service = UnifiedPlanningHistoryResource.get_service()
 
         # update the event with new state
         if repost:

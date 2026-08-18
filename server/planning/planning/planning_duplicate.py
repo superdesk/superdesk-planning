@@ -27,7 +27,7 @@ from planning.common import (
     get_config_planning_duplicate_retain_assignee_details,
     get_config_planning_duplicate_retain_coverage_status,
 )
-from planning.planning import PlanningHistoryAsyncService
+from planning.history.planning import UnifiedPlanningHistoryService
 from planning.utils import get_related_event_links_for_planning, get_related_event_items_for_planning
 
 
@@ -120,7 +120,7 @@ async def process_planning_item_duplicate(parent_plan: dict[str, Any]) -> dict[s
     :return: List of new planning item guid.
     """
     planning_service = get_resource_service("planning")
-    history_service = PlanningHistoryAsyncService()
+    history_service = UnifiedPlanningHistoryService()
 
     parent_id = parent_plan[ID_FIELD]
     new_plan = duplicate_planning_item(parent_plan)

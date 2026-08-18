@@ -63,11 +63,12 @@ Feature: Events Spike
             "_etag": "#SPIKED._etag#"
         }
         """
-        When we get "/events_history?where=event_id==%22#events._id#%22"
+        When we get "/planning_history?where=item_id==%22#events._id#%22"
         Then we get list with 1 items
         """
         {"_items": [{
-            "event_id": "#events._id#",
+            "item_id": "#events._id#",
+            "item_type": "event",
             "operation": "spiked",
             "update": {"state" : "spiked"}
         }]}
@@ -213,11 +214,12 @@ Feature: Events Spike
             "lock_session": null
         }
         """
-        When we get "/events_history?where=event_id==%22#events._id#%22"
+        When we get "/planning_history?where=item_id==%22#events._id#%22"
         Then we get list with 1 items
         """
         {"_items": [{
-            "event_id": "#events._id#",
+            "item_id": "#events._id#",
+            "item_type": "event",
             "operation": "spiked",
             "update": {"state" : "spiked"}
         }]}

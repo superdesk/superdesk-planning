@@ -98,7 +98,8 @@ Feature: Duplicate Planning
         {"_items": [
             {
                 "operation": "create",
-                "planning_id": "123",
+                "item_id": "123",
+                "item_type": "planning",
                 "update": {
                     "headline": "test headline",
                     "slugline": "test slugline",
@@ -108,21 +109,25 @@ Feature: Duplicate Planning
             },
             {
                 "operation": "post",
-                "planning_id": "123"
+                "item_id": "123"
+                "item_type": "planning",
             },
             {
                 "operation": "coverage_created",
-                "planning_id": "123",
+                "item_id": "123",
+                "item_type": "planning",
                 "update": {"coverage_id": "__any_value__"}
             },
             {
                 "operation": "duplicate",
-                "planning_id": "123",
+                "item_id": "123",
+                "item_type": "planning",
                 "update": {"duplicate_id": "#duplicate._id#"}
             },
             {
                 "operation": "duplicate_from",
-                "planning_id": "#duplicate._id#",
+                "item_id": "#duplicate._id#",
+                "item_type": "planning",
                 "update": {
                     "duplicate_id": "123",
                     "headline": "test headline",
@@ -324,7 +329,8 @@ Feature: Duplicate Planning
         {"_items": [
             {
                 "operation": "create",
-                "planning_id": "126",
+                "item_id": "126",
+                "item_type": "planning",
                 "update": {
                     "headline": "test headline",
                     "slugline": "test slugline"
@@ -332,16 +338,19 @@ Feature: Duplicate Planning
             },
             {
                 "operation": "post",
-                "planning_id": "126"
+                "item_id": "126",
+                "item_type": "planning"
             },
             {
                 "operation": "duplicate",
-                "planning_id": "126",
+                "item_id": "126",
+                "item_type": "planning",
                 "update": {"duplicate_id": "#duplicate._id#"}
             },
             {
                 "operation": "duplicate_from",
-                "planning_id": "#duplicate._id#"
+                "item_id": "#duplicate._id#",
+                "item_type": "planning"
             }
         ]}
         """

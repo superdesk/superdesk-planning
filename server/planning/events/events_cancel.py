@@ -19,8 +19,8 @@ from planning.events.events_utils import (
     post_update_event_actions,
     pre_update_event_actions,
 )
-from planning.planning.planning_history_async_service import PlanningHistoryAsyncService
-from planning.types import EventsHistoryResourceModel
+from planning.history.planning import UnifiedPlanningHistoryService
+from planning.types import UnifiedPlanningHistoryResource
 from superdesk.resource_fields import ID_FIELD
 from superdesk.flask import request
 from superdesk import get_resource_service
@@ -43,7 +43,7 @@ async def patch_related_event_as_cancelled(
     updates: dict[str, Any], original: dict[str, Any], notifications: list[dict[str, Any]]
 ):
     events_service = get_resource_service("events")
-    events_history_service = EventsHistoryResourceModel.get_service()
+    events_history_service = UnifiedPlanningHistoryResource.get_service()
 
     if not validate_states(original):
         # Don't raise exception for related events in series - simply ignore
@@ -75,7 +75,7 @@ def validate_states(event: dict[str, Any]):
 
 async def cancel_event_plannings(updates: dict[str, Any], original: dict[str, Any]):
     planning_cancel_service = get_resource_service("planning_cancel")
-    planning_history_service = PlanningHistoryAsyncService()
+    planning_history_service = UnifiedPlanningHistoryService()
     reason = updates.get("reason", None)
 
     for plan in await get_related_planning_for_events_async([original[ID_FIELD]], "primary"):

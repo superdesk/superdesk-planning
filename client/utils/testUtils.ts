@@ -51,16 +51,15 @@ export const getTestActionStore = () => {
                 recent_events_template: {
                     query: sinon.spy(() => (store.spies.api._query('recent_events_template'))),
                 },
-                events_history: {
-                    query: sinon.spy(
-                        () => (store.spies.api._query('events_history'))
-                    ),
-                },
                 events_duplicate: {},
                 planning_history: {
-                    query: sinon.spy(
-                        () => (store.spies.api._query('planning_history'))
-                    ),
+                    query: sinon.spy((query) => {
+                        if (query.where.item_type === 'event') {
+                            return store.spies.api._query('events_history');
+                        } else {
+                            return store.spies.api._query('planning_history');
+                        }
+                    }),
                 },
                 planning_duplicate: {},
                 assignments: {

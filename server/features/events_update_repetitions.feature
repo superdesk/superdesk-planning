@@ -189,17 +189,18 @@ Feature: Events Update Repetitions
             }
         ]}
         """
-        When we get "/events_history"
+        When we get "/planning_history"
         Then we get list with 21 items
         """
         {"_items": [
-          {"operation": "create", "event_id": "#EVENT1._id#"},
-          {"operation": "create", "event_id": "#EVENT2._id#"},
-          {"operation": "create", "event_id": "#EVENT3._id#"},
-          {"operation": "create", "event_id": "#EVENT4._id#"},
+          {"operation": "create", "item_id": "#EVENT1._id#", "item_type": "event"},
+          {"operation": "create", "item_id": "#EVENT2._id#", "item_type": "event"},
+          {"operation": "create", "item_id": "#EVENT3._id#", "item_type": "event"},
+          {"operation": "create", "item_id": "#EVENT4._id#", "item_type": "event"},
           {
               "operation": "update_repetitions_update",
-              "event_id": "#EVENT1._id#",
+              "item_id": "#EVENT1._id#",
+              "item_type": "event",
               "update": {
                   "dates": {
                       "start": "2029-11-22T01:00:00+0000",
@@ -216,7 +217,8 @@ Feature: Events Update Repetitions
           },
           {
               "operation": "update_repetitions",
-              "event_id": "#EVENT2._id#",
+              "item_id": "#EVENT2._id#",
+              "item_type": "event",
               "update": {
                   "dates": {
                       "start": "2029-11-23T01:00:00+0000",
@@ -233,7 +235,8 @@ Feature: Events Update Repetitions
           },
           {
               "operation": "update_repetitions_update",
-              "event_id": "#EVENT3._id#",
+              "item_id": "#EVENT3._id#",
+              "item_type": "event",
               "update": {
                   "dates": {
                       "start": "2029-11-24T01:00:00+0000",
@@ -250,7 +253,8 @@ Feature: Events Update Repetitions
           },
           {
               "operation": "update_repetitions_update",
-              "event_id": "#EVENT4._id#",
+              "item_id": "#EVENT4._id#",
+              "item_type": "event",
               "update": {
                   "dates": {
                       "start": "2029-11-25T01:00:00+0000",
@@ -267,7 +271,8 @@ Feature: Events Update Repetitions
           },
           {
               "operation": "update_repetitions_create",
-              "event_id": "__any_value__",
+              "item_id": "__any_value__",
+              "item_type": "event",
               "update": {
                   "dates": {
                       "start": "2029-11-26T01:00:00+0000",
@@ -284,7 +289,8 @@ Feature: Events Update Repetitions
           },
           {
               "operation": "update_repetitions_create",
-              "event_id": "__any_value__",
+              "item_id": "__any_value__",
+              "item_type": "event",
               "update": {
                   "dates": {
                       "start": "2029-11-27T01:00:00+0000",
