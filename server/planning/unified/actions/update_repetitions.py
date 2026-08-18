@@ -8,6 +8,15 @@
 # AUTHORS and LICENSE files distributed with this source code, or
 # at https://www.sourcefabric.org/superdesk/license
 
+"""Event update-repetitions logic (SDBELGA-1120).
+
+Event-only action; relocated into the unified actions package. The internal
+series lookup is now scoped to ``type == event`` so Planning items sharing a
+``recurrence_id`` don't leak into the Event series (the shared ``unified_planning``
+collection applies no implicit type filter), and the "has related planning"
+check reads the unified index.
+"""
+
 import pytz
 from copy import deepcopy
 from typing import Any
@@ -38,9 +47,10 @@ from planning.events.events_utils import (
     set_planning_schedule,
     generate_recurring_dates,
 )
-from planning.events.events_cancel import cancel_single_event, validate_states
 from planning.types import EventsHistoryResourceModel
-from planning.utils import event_has_planning_items
+from planning.types.unified import PlanningItemType
+from planning.unified.actions.cancel import cancel_single_event, validate_states
+from planning.unified.actions.reschedule import event_has_planning_items
 
 
 def update_rules(event: dict[str, Any], updated_rules: dict[str, Any]):
@@ -78,7 +88,7 @@ async def cancel_event(event: dict[str, Any], updated_rule: dict[str, Any]):
 async def delete_event(event: dict[str, Any], updated_rule: dict[str, Any]):
     events_service = get_resource_service("events")
 
-    if event.get("pubstatus", None) is not None or event_has_planning_items(event[ID_FIELD], "primary"):
+    if event.get("pubstatus", None) is not None or await event_has_planning_items(event[ID_FIELD]):
         await cancel_event(event, updated_rule)
     else:
         await events_service.delete_action_async(lookup={"_id": event[ID_FIELD]})
@@ -125,7 +135,8 @@ async def update_event(updated_rule: dict[str, Any], original: dict[str, Any]):
 
 
 async def get_internal_series(original: dict[str, Any]) -> list:
-    query = {"$and": [{"recurrence_id": original["recurrence_id"]}]}
+    # Events & Planning share one collection now, so restrict the series to Events
+    query = {"$and": [{"type": PlanningItemType.EVENT.value}, {"recurrence_id": original["recurrence_id"]}]}
     sort = '[("dates.start", 1)]'
     max_results = get_max_recurrent_events()
 
