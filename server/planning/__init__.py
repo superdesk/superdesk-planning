@@ -34,7 +34,6 @@ from planning.assignments import init_app as init_assignments_app
 from planning.search import init_app as init_search_app
 from planning.locations import init_app as init_locations_app
 from superdesk.celery_app import celery
-from .published_planning import PublishedPlanningResource, PublishedPlanningService
 from superdesk.default_settings import (
     celery_queue,
     CELERY_TASK_ROUTES as CTR,
@@ -70,6 +69,7 @@ from .planning_article_export import (
     PlanningArticleExportService,
 )
 from .locks.unlock import unlock_session
+from .publish.module import init_publish_module
 
 from .module import module  # noqa
 
@@ -106,6 +106,7 @@ def init_app(app):
     init_assignments_app(app)
     init_search_app(app)
     init_planning_autocomplete_app(app)
+    init_publish_module(app)
 
     superdesk.register_resource(
         "planning_article_export",
@@ -114,10 +115,6 @@ def init_app(app):
         privilege="planning",
         _app=app,
     )
-
-    endpoint_name = "published_planning"
-    planning_published_service = PublishedPlanningService(endpoint_name, backend=superdesk.get_backend())
-    PublishedPlanningResource(endpoint_name, app=app, service=planning_published_service)
 
     superdesk.privilege(
         name="planning",

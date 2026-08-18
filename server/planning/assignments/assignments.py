@@ -67,7 +67,7 @@ from planning.common import (
     set_original_creator,
 )
 
-from planning.types import EventResourceModel, AssignmentResourceModel
+from planning.types import EventResourceModel, AssignmentResourceModel, UnifiedPlanningResource, WorkflowState
 from planning.planning_notifications import PlanningNotifications
 from planning.common import format_address, get_assginment_name, assignment_allows_multiple_content_linked
 from planning.history.assignments import AssignmentsHistoryService, AssignmentHistoryActions
@@ -1407,16 +1407,26 @@ class AssignmentsService(AsyncBaseService):
         to re-transmit the coverage/assignment changes.
         :param  planning_id: planning ID
         """
+
+        if not planning_id:
+            # No Planning ID provided
+            return
+
         try:
-            planning_service = get_resource_service("planning")
             published_service = get_resource_service("published_planning")
 
-            planning_item = await planning_service.find_one_async(req=None, _id=planning_id) if planning_id else None
-            published_planning_item = (
-                await published_service.get_last_published_item(planning_id) if planning_id else None
-            )
+            planning_item = await UnifiedPlanningResource.get_service().find_by_id(planning_id)
+            if not planning_item:
+                # Planning not found
+                return
+            elif planning_item.state == WorkflowState.KILLED:
+                # The planning item has been killed, don't update subscribers
+                return
 
-            if not planning_item or not published_planning_item or planning_item.get("state") == WORKFLOW_STATE.KILLED:
+            published_planning_item = await published_service.get_last_published_item(planning_id)
+
+            if not published_planning_item:
+                # Latest published Planning item not found
                 return
 
             async def _publish_planning(item):
@@ -1441,7 +1451,7 @@ class AssignmentsService(AsyncBaseService):
                 else:
                     logger.error("Failed to save planning version for planning item id {}".format(item["_id"]))
 
-            await _publish_planning(planning_item)
+            await _publish_planning(planning_item.to_dict())
         except Exception:
             logger.exception("Failed to publish assignment for planning.")
 

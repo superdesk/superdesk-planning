@@ -17,7 +17,6 @@ from planning import signals
 from planning.history.planning import UnifiedPlanningHistoryService
 from .events import EventsResource, EventsService
 from planning.files import EventsFilesResource, FilesAsyncService
-from .events_post import EventsPostService, EventsPostResource
 from .events_template import (
     EventsTemplateResource,
     EventsTemplateService,
@@ -45,9 +44,6 @@ def init_app(app):
         EventsResource.endpoint_name, backend=EveToPydanticDataLayer("unified_planning")
     )
     EventsResource(EventsResource.endpoint_name, app=app, service=events_search_service)
-
-    events_post_service = EventsPostService("events_post", backend=superdesk.get_backend())
-    EventsPostResource("events_post", app=app, service=events_post_service)
 
     files_service = FilesAsyncService("events_files", backend=superdesk.get_backend())
     EventsFilesResource("events_files", app=app, service=files_service)
