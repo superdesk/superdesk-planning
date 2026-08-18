@@ -41,7 +41,10 @@ from planning.common import (
     update_post_item,
 )
 from planning.history.planning import UnifiedPlanningHistoryService
-from planning.events.events_reschedule import reschedule_single_event
+from planning.unified.actions.reschedule import reschedule_single_event
+from planning.unified.actions.cancel import process_cancel_planning_item
+from planning.unified.common import get_related_planning_for_events
+from planning.types.unified import RelatedEventLinkType
 from planning.planning import PlanningAsyncService
 from planning.core.service import BasePlanningAsyncService
 from planning.utils import (
@@ -567,14 +570,13 @@ class EventsAsyncService(BasePlanningAsyncService[EventResourceModel]):
             if event.dates.start < updates["actioned_date"]:
                 return
 
-        for plan in await get_related_planning_for_events_async([event.id], "primary"):
+        async for plan_obj in await get_related_planning_for_events([event.id], RelatedEventLinkType.PRIMARY):
+            plan = plan_obj.to_dict()
             if plan.get("state") != WorkflowState.CANCELLED and len(plan.get("coverages", [])) > 0:
-                await get_resource_service("planning_cancel").patch_async(
-                    plan[ID_FIELD],
-                    {
-                        "reason": "Event Completed",
-                        "cancel_all_coverage": True,
-                    },
+                await process_cancel_planning_item(
+                    {"reason": "Event Completed"},
+                    plan,
+                    cancel_all_coverage=True,
                 )
 
     async def _convert_to_recurring_events(self, updates: dict[str, Any], original: EventResourceModel):

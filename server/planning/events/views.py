@@ -2,11 +2,15 @@ from pydantic import BaseModel
 from quart_babel import gettext
 from eve_elastic.elastic import parse_date
 
-from planning.events.events_cancel import process_cancel_event
-from planning.events.events_reschedule import process_reschedule_event
-from planning.events.events_update_repetitions import process_update_repetitions
-from planning.events.events_update_time import process_update_time
-from planning.unified.actions import process_spike, process_unspike, process_postpone
+from planning.unified.actions import (
+    process_spike,
+    process_unspike,
+    process_postpone,
+    process_cancel,
+    process_reschedule_event,
+    process_update_repetitions,
+    process_update_time,
+)
 from planning.utils import get_json_or_400_async
 
 from superdesk.core.auth.privilege_rules import required_privilege_rule
@@ -127,7 +131,7 @@ async def cancel_event(args: EventsArgs, params: None, request: Request) -> Resp
         await request.abort(404, "Event not found")
 
     updates = await get_json_or_400_async(request)
-    cancelled_event = await process_cancel_event(updates, original)
+    cancelled_event = await process_cancel(updates, original)
 
     return Response(cancelled_event)
 

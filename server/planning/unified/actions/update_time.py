@@ -1,3 +1,20 @@
+# -*- coding: utf-8; -*-
+#
+# This file is part of Superdesk.
+#
+# Copyright 2013, 2014 Sourcefabric z.u. and contributors.
+#
+# For the full copyright and license information, please see the
+# AUTHORS and LICENSE files distributed with this source code, or
+# at https://www.sourcefabric.org/superdesk/license
+
+"""Event update-time logic (SDBELGA-1120).
+
+Event-only action (Planning items have no schedule of their own); relocated into
+the unified actions package for cohesion. Reads/writes ``unified_planning`` via
+the ``events`` service proxy and uses the type-scoped recurring-series helpers.
+"""
+
 from typing import Any
 
 from superdesk.resource_fields import ID_FIELD
