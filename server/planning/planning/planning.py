@@ -17,14 +17,12 @@ from io import BytesIO
 from quart_babel import gettext as _
 
 from lxml import etree
-from bson import ObjectId
 from eve.methods.common import resolve_document_etag
 from eve.utils import ParsedRequest
 
 from superdesk.core import json, get_app_config, get_current_app
 from superdesk.eve_async.service import AsyncBaseService
 from superdesk.eve_async.cursors import AsyncEveCursor
-from superdesk.flask import request
 from superdesk.resource_fields import ID_FIELD
 from superdesk import get_resource_service, Resource
 from superdesk.errors import SuperdeskApiError
@@ -33,9 +31,8 @@ from superdesk.metadata.utils import item_url
 from superdesk.users.services import current_user_has_privilege
 from superdesk.notification import push_notification
 from superdesk.publish_async.utils import get_next_sequence_number
-from apps.archive.common import get_user, get_auth
+from apps.archive.common import get_auth
 
-from planning.errors import AssignmentApiError
 from planning.types import Planning, PLANNING_RELATED_EVENT_LINK_TYPE
 from planning.types.unified import PlanningItemType
 from planning.common import (
@@ -59,6 +56,7 @@ from planning.utils import (
     get_first_related_event_id_for_planning,
     get_related_event_items_for_planning,
 )
+from planning.unified.common import convert_unified_planning_to_legacy_format, convert_legacy_planning_to_unified_format
 
 logger = logging.getLogger(__name__)
 
@@ -93,22 +91,10 @@ class PlanningService(AsyncBaseService):
 
     async def on_fetched_async(self, docs: dict) -> None:
         for doc in docs["_items"]:
-            self._map_unified_to_legacy_schema(doc)
+            convert_unified_planning_to_legacy_format(doc)
 
     async def on_fetched_item_async(self, doc: dict) -> None:
-        self._map_unified_to_legacy_schema(doc)
-
-    def _map_legacy_to_unified_schema(self, doc: dict) -> None:
-        doc["type"] = "planning"
-        doc.setdefault("dates", {})["start"] = doc.pop("planning_date", None)
-        if description_text := doc.pop("description_text", None):
-            doc["definition_long"] = description_text
-
-    def _map_unified_to_legacy_schema(self, doc: dict) -> None:
-        dates = doc.pop("dates", {})
-        doc["planning_date"] = dates.get("start")
-        if definition_long := doc.pop("definition_long", None):
-            doc["description_text"] = definition_long
+        convert_unified_planning_to_legacy_format(doc)
 
     def is_new_version(self, new_item, old_item):
         return is_new_version(new_item, old_item)
@@ -121,18 +107,19 @@ class PlanningService(AsyncBaseService):
     async def find_one_async(self, req, **lookup):
         item = await super().find_one_async(req, **lookup)
         if item:
-            self._map_unified_to_legacy_schema(item)
+            convert_unified_planning_to_legacy_format(item)
 
         return item
 
     async def create_async(self, docs: list[dict], skip_signals: bool = True, **kwargs):
         for doc in docs:
-            self._map_legacy_to_unified_schema(doc)
+            doc["type"] = PlanningItemType.PLANNING
+            convert_legacy_planning_to_unified_format(doc)
 
         response = await self.backend.create_async(self.datasource, docs, skip_signals=skip_signals, **kwargs)
 
         for doc in docs:
-            self._map_unified_to_legacy_schema(doc)
+            convert_unified_planning_to_legacy_format(doc)
 
         return response
 
@@ -404,72 +391,6 @@ class PlanningService(AsyncBaseService):
                 return True
 
         return False
-
-    # TODO-UNIFIED: Remove once PlanningPost has been upgraaded
-    async def delete_assignments_for_coverages(self, coverages, notify=True):
-        failed_assignments = []
-        deleted_assignments = []
-        assignment_service = get_resource_service("assignments")
-        for coverage in coverages:
-            assign_id = coverage["assigned_to"].get("assignment_id")
-            if not assign_id:
-                continue
-            assign_planning = coverage.get("planning")
-            try:
-                await assignment_service.delete_action_async(lookup={"_id": assign_id})
-                deleted_assignments.append(
-                    {
-                        "id": assign_id,
-                        "slugline": assign_planning.get("slugline"),
-                        "type": assign_planning.get("g2_content_type"),
-                    }
-                )
-            except AssignmentApiError as e:
-                logger.error("There is a assignment '{}' is in progress".format(assign_id))
-                failed_assignments.append(
-                    {
-                        "state": "in Progress",
-                        "slugline": assign_planning.get("slugline"),
-                        "type": assign_planning.get("g2_content_type"),
-                    }
-                )
-            except SuperdeskApiError as e:
-                failed_assignments.append(
-                    {
-                        "error": str(e),
-                        "slugline": assign_planning.get("slugline"),
-                        "type": assign_planning.get("g2_content_type"),
-                    }
-                )
-                # Mark the assignment to be deleted.
-                original_assigment = await assignment_service.find_one_async(req=None, _id=assign_id)
-                if original_assigment:
-                    await assignment_service.system_update_async(
-                        ObjectId(assign_id),
-                        {"_to_delete": True},
-                        original_assigment,
-                        skip_planning_sync=True,
-                        notification_source="planning",
-                    )
-
-        if request:
-            session_id = get_auth().get("_id")
-            user_id = get_user().get(ID_FIELD)
-            if len(deleted_assignments) > 0:
-                push_notification(
-                    "assignments:delete",
-                    items=deleted_assignments,
-                    session=session_id,
-                    user=user_id,
-                )
-
-            if len(failed_assignments) > 0 and notify:
-                push_notification(
-                    "assignments:delete:fail",
-                    items=failed_assignments,
-                    session=session_id,
-                    user=user_id,
-                )
 
     # TODO-UNIFIED: Remove once Assignments has been upgraded
     async def get_xmp_file_for_updates(self, updates_coverage, original_coverage, for_slugline=False):

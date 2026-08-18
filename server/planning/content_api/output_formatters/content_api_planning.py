@@ -1,7 +1,7 @@
 from superdesk.core import get_config
-from superdesk import get_resource_service
 
 from planning.output_formatters.json_planning import JsonPlanningFormatter
+from planning.unified.common import convert_unified_planning_to_legacy_format
 
 from ..utils import format_base_content_api_item
 
@@ -18,7 +18,8 @@ class ContentApiPlanningFormatter(JsonPlanningFormatter):
     include_files = None
 
     async def _format_item(self, item: dict, subscribers: list[dict] | None = None) -> dict:
-        get_resource_service("planning").set_planning_schedule(item)
+        # TODO-UNIFIED: Remove once we upgrade ContentAPI to new schema
+        convert_unified_planning_to_legacy_format(item)
         capi_item = await self._get_resource_instance(await super()._format_item(item), subscribers)
 
         if get_config(bool, "CONTENTAPI_HIDE_COVERAGE_ASSIGNEES", False):

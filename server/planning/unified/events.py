@@ -30,6 +30,7 @@ from planning.common import (
     update_post_item,
 )
 from planning.utils import get_planning_event_link_method
+from planning.publish.common import validate_item_for_publish
 
 from .common import set_planning_schedule, ItemUpdateRequest, get_related_event_ids, get_related_planning_for_events
 from .notifications import send_unlock_notification
@@ -350,8 +351,7 @@ def generate_recurring_events(
 
 async def _update_single_event(req: ItemUpdateRequest) -> None:
     if _post_on_update_required(req):
-        # TODO-UNIFIED: Use newer events_post functionality when available
-        await get_resource_service("events_post").validate_item(req.updated.to_dict())
+        await validate_item_for_publish(req.updated.to_dict())
 
     # Determine if we're to convert this single event to a recurring of events, either through
     # conversion from recurring form or from within the event editor
