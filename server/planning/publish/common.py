@@ -36,7 +36,7 @@ async def validate_item_for_publish(item: dict) -> None:
         for coverage in item["coverages"]:
             coverage_errors = await validate_doc(deepcopy(coverage), "coverage", validate_on_post=True)
             if coverage_errors:
-                abort(400, description=errors)
+                abort(400, description=coverage_errors)
 
 
 async def enqueue_unified_planning(item: dict, version: int) -> None:
