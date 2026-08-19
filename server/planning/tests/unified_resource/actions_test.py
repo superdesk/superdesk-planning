@@ -5,7 +5,8 @@ from superdesk.errors import SuperdeskApiError
 from superdesk.flask import g
 from superdesk.tests import utils as test_utils, fixtures
 
-from planning.types.unified import UnifiedPlanningResource, PlanningItemType
+from planning.types.unified import UnifiedPlanningResource, PlanningItemType, LockFields
+from planning.locks.lock import lock_item
 from planning.unified.actions import process_spike, process_unspike, process_postpone, process_duplicate
 from planning.tests import TestCase, fixtures as planning_fixtures
 
@@ -30,7 +31,14 @@ class UnifiedResourceActionsTestCase(TestCase):
         self.planning_service = get_resource_service("planning")
 
         await test_utils.post_items("users", fixtures.users.all_users())
-        g.user = fixtures.users.admin().to_dict()
+        # Post the acting user so coverage `original_creator` data-relations resolve
+        admin = fixtures.users.admin().to_dict()
+        admin["_id"] = ObjectId()
+        admin["username"] = "action_tester"
+        admin["email"] = "action_tester@example.org"
+        await test_utils.post_items("users", [admin])
+        g.user = admin
+        g.auth = {"_id": ObjectId(), "user": g.user["_id"]}
         await test_utils.post_items("vocabularies", planning_fixtures.cvs.all_cvs())
         await test_utils.post_items("desks", fixtures.desks.all_desks())
         await test_utils.post_items("stages", fixtures.stages.all_stages())
@@ -62,6 +70,11 @@ class UnifiedResourceActionsTestCase(TestCase):
     async def _planning_dict(self, planning_id: str) -> dict:
         return await self.planning_service.find_one_async(req=None, _id=planning_id)
 
+    async def _lock_event(self, event_id: str, action: str) -> dict:
+        event_obj = await self.service.find_by_id(event_id)
+        await lock_item(event_obj, LockFields(lock_action=action))
+        return await self._event_dict(event_id)
+
     # planning items
     async def test_spike_and_unspike_planning_item(self):
         planning_id = await self._create_planning()
@@ -87,6 +100,34 @@ class UnifiedResourceActionsTestCase(TestCase):
         postponed = await process_postpone({"reason": "venue lost"}, original)
         self.assertEqual("postponed", postponed["state"])
         self.assertEqual("venue lost", postponed["state_reason"])
+
+    async def test_postpone_event(self):
+        # Event postpone routes through the UnifiedPlanningResource service.
+        event_id = await self._create_event()
+        original = await self._lock_event(event_id, "postpone")
+
+        postponed = await process_postpone({"reason": "venue lost"}, original)
+        self.assertEqual("postponed", postponed["state"])
+        self.assertEqual("venue lost", postponed["state_reason"])
+
+    async def test_postpone_event_processes_coverages(self):
+        # Events now carry coverages; postponing an Event must process them too.
+        event_id = await self._create_event(
+            coverages=[
+                {
+                    "coverage_id": "cov1",
+                    "original_creator": g.user["_id"],
+                    "workflow_status": "draft",
+                    "news_coverage_status": {"qcode": "ncostat:int", "name": "coverage intended", "label": "Planned"},
+                    "planning": {"g2_content_type": "text", "slugline": "story"},
+                }
+            ],
+        )
+        original = await self._lock_event(event_id, "postpone")
+
+        postponed = await process_postpone({"reason": "moved"}, original)
+        self.assertEqual("postponed", postponed["state"])
+        self.assertEqual("moved", postponed["coverages"][0]["planning"]["workflow_status_reason"])
 
     async def test_postpone_planning_fires_history_signal(self):
         # The direct planning postpone must fire `planning_postponed` (history);

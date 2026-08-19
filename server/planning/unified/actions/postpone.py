@@ -8,12 +8,17 @@
 # AUTHORS and LICENSE files distributed with this source code, or
 # at https://www.sourcefabric.org/superdesk/license
 
-"""Merged postpone logic for Event & Planning items (SDBELGA-1119)."""
+"""Merged postpone logic for Event & Planning items (SDBELGA-1119).
+
+Reads/writes go through the ``UnifiedPlanningResource`` Pydantic service — the Eve
+``events``/``planning`` services are now front-end-compat only, their business
+logic is gutted. Coverages are processed for both item types (Events carry
+coverages too now).
+"""
 
 from copy import deepcopy
 from typing import Any
 
-from superdesk import get_resource_service
 from superdesk.resource_fields import ID_FIELD
 from superdesk.notification import push_notification
 from apps.archive.common import get_user, get_auth
@@ -36,6 +41,7 @@ from planning.events.events_utils import (
     pre_update_event_actions,
 )
 from planning.planning_notifications import PlanningNotifications
+from planning.types import UnifiedPlanningResource
 from planning.types.unified import PlanningItemType, RelatedEventLinkType
 from planning.unified.common import get_related_planning_for_events
 
@@ -53,6 +59,16 @@ def set_event_postponed(updates):
     updates["state_reason"] = reason
 
 
+async def postpone_item_coverages(updates: dict[str, Any], original: dict[str, Any]):
+    """Postpone the coverages carried by the item (Events support coverages too)."""
+    coverages = deepcopy(original.get("coverages"))
+    if not coverages:
+        return
+    updates["coverages"] = coverages
+    for coverage in coverages:
+        await postpone_coverage(updates, coverage)
+
+
 async def postpone_event_plannings(updates: dict[str, Any], original: dict[str, Any]):
     reason = updates.get("reason", None)
 
@@ -64,11 +80,12 @@ async def postpone_event_plannings(updates: dict[str, Any], original: dict[str, 
 
 async def postpone_single_event(updates: dict[str, Any], original: dict[str, Any]):
     set_event_postponed(updates)
+    await postpone_item_coverages(updates, original)
     await postpone_event_plannings(updates, original)
 
 
 async def postpone_recurring_event(updates: dict[str, Any], original: dict[str, Any], update_method: str):
-    events_service = get_resource_service("events")
+    service = UnifiedPlanningResource.get_service()
     historic, past, future = await get_recurring_timeline(original)
 
     # Determine if the selected event is the first one, if so then
@@ -88,10 +105,12 @@ async def postpone_recurring_event(updates: dict[str, Any], original: dict[str, 
 
         # Mark the Event as being Postponed
         await postpone_event_plannings(new_updates, event)
+        await postpone_item_coverages(new_updates, event)
         new_updates["skip_on_update"] = True
-        await events_service.patch_async(event[ID_FIELD], new_updates)
+        await service.update(event[ID_FIELD], new_updates)
 
     await postpone_event_plannings(updates, original)
+    await postpone_item_coverages(updates, original)
 
 
 async def process_postpone_event(updates: dict[str, Any], original: dict[str, Any]) -> dict[str, Any]:
@@ -102,7 +121,7 @@ async def process_postpone_event(updates: dict[str, Any], original: dict[str, An
     :param original: The original event document.
     :return: The updated event document.
     """
-    events_service = get_resource_service("events")
+    service = UnifiedPlanningResource.get_service()
     ACTION = "postpone"
 
     # Perform pre update event actions
@@ -120,14 +139,15 @@ async def process_postpone_event(updates: dict[str, Any], original: dict[str, An
     reason = updates.pop("reason", None)
     set_actioned_date_to_event(updates, original)
     updates.pop("update_method", None)
-    updates.pop("skip_on_update", None)
 
-    # Update the original event in the database
+    # Update the original event in the database. Go through the service's on_update,
+    # but skip the (still unimplemented) recurring date-update logic via
+    # `skip_on_update`; on_update strips the flag before persisting.
+    updates["skip_on_update"] = True
     event_id = original[ID_FIELD]
-    await events_service.update_async(event_id, updates, original, skip_signals=True)
+    updated = await service.update(event_id, updates)
     await signals.event_postponed.send(updates, original)
-    postponed_event = await events_service.find_one_async(req=None, _id=event_id)
-    assert postponed_event is not None, "Expected postponed_event to be a dict, got None"
+    postponed_event = updated.to_dict()
 
     user = get_user(required=True).get(ID_FIELD, "")
     session = get_auth().get(ID_FIELD, "")
@@ -174,27 +194,25 @@ async def postpone_coverage(updates: dict[str, Any], coverage: dict[str, Any]):
 
 
 async def process_postpone_planning_item(updates: dict[str, Any], original: dict[str, Any]) -> dict[str, Any]:
-    planning_service = get_resource_service("planning")
+    service = UnifiedPlanningResource.get_service()
 
     # Postpone the planning_item using reason in updates
     updates["state_reason"] = updates.get("reason")
     updates[ITEM_STATE] = WORKFLOW_STATE.POSTPONED
 
-    updates["coverages"] = deepcopy(original.get("coverages"))
-    coverages = updates.get("coverages") or []
-
-    for coverage in coverages:
-        await postpone_coverage(updates, coverage)
+    await postpone_item_coverages(updates, original)
 
     reason = updates.get("reason", None)
     if "reason" in updates:
         del updates["reason"]
 
+    # Go through the service's on_update, but skip the (still unimplemented)
+    # recurring date-update logic via `skip_on_update`; on_update strips the flag.
+    updates["skip_on_update"] = True
     planning_item_id = original[ID_FIELD]
-    await planning_service.update_async(planning_item_id, updates, original, skip_signals=True)
+    updated = await service.update(planning_item_id, updates)
     await signals.planning_postponed.send(updates, original)
-    postponed_planning_item = await planning_service.find_one_async(req=None, _id=planning_item_id)
-    assert postponed_planning_item is not None, "Expected postponed_planning_item to be a dict, got None"
+    postponed_planning_item = updated.to_dict()
 
     user = get_user(required=True).get(ID_FIELD, "")
     session = get_auth().get(ID_FIELD, "")

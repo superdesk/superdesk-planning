@@ -15,7 +15,6 @@ from typing import Any
 
 from quart_babel import gettext as _
 
-from superdesk import get_resource_service
 from superdesk.errors import SuperdeskApiError
 from superdesk.notification import push_notification
 from superdesk.resource_fields import ID_FIELD
@@ -43,6 +42,7 @@ from planning.events.events_utils import (
 )
 from planning.planning.planning_utils import delete_assignments_for_coverages
 from planning.planning_notifications import PlanningNotifications
+from planning.types import UnifiedPlanningResource
 from planning.types.assignment import AssignmentResourceModel
 from planning.types.unified import PlanningItemType, RelatedEventLinkType
 from planning.unified.common import get_related_planning_for_events, event_has_planning_items
@@ -147,25 +147,29 @@ async def validate_spike_event(event: dict[str, Any]) -> None:
 
 
 async def validate_recurring_event(original: dict[str, Any], recurrence_id: str) -> list:
-    events_service = get_resource_service("events")
-    planning_service = get_resource_service("planning")
+    service = UnifiedPlanningResource.get_service()
     events_with_plans = []
 
     await validate_event_states(original)
 
-    # Scope series lookups by `type` (shared collection, no datalayer filter)
-    async for event in await events_service.find_async(
-        {"recurrence_id": recurrence_id, "type": PlanningItemType.EVENT.value}
-    ):
+    # Scope series lookups by `type` (shared collection, no datalayer filter).
+    # `max_results=0` disables the per-page cap so the whole series is checked.
+    events = await service.find(
+        {"recurrence_id": recurrence_id, "type": PlanningItemType.EVENT.value}, max_results=0, use_mongo=True
+    )
+    for event_obj in await events.to_list():
+        event = event_obj.to_dict()
         if event[ID_FIELD] == original[ID_FIELD]:
             continue
 
         if event.get(LOCK_USER) or event.get(LOCK_SESSION):
             raise SuperdeskApiError.forbiddenError(message=_("Spike failed. An event in the series is locked."))
 
-    async for planning in await planning_service.find_async(
-        {"recurrence_id": recurrence_id, "type": PlanningItemType.PLANNING.value}
-    ):
+    plannings = await service.find(
+        {"recurrence_id": recurrence_id, "type": PlanningItemType.PLANNING.value}, max_results=0, use_mongo=True
+    )
+    for planning_obj in await plannings.to_list():
+        planning = planning_obj.to_dict()
         if planning.get(LOCK_USER) or planning.get(LOCK_SESSION):
             raise SuperdeskApiError.forbiddenError(message=_("Spike failed. A related planning item is locked."))
 
@@ -188,7 +192,7 @@ async def unspike_single_event(updates: dict[str, Any], original: dict[str, Any]
 
 
 async def spike_recurring_events(updates: dict[str, Any], original: dict[str, Any], update_method: str) -> None:
-    events_service = get_resource_service("events")
+    service = UnifiedPlanningResource.get_service()
 
     # Ensure that no other Event or Planning item is currently locked
     events_with_plans = await validate_recurring_event(original, original["recurrence_id"])
@@ -214,10 +218,10 @@ async def spike_recurring_events(updates: dict[str, Any], original: dict[str, An
         if not can_spike_event(event, events_with_plans):
             continue
 
-        new_updates = {"skip_on_update": True}
+        # Go through on_update but skip the unimplemented recurring date logic
+        new_updates: dict[str, Any] = {"skip_on_update": True}
         set_item_spiked(new_updates, event)
-        await events_service.patch_async(event[ID_FIELD], new_updates)
-        item = await events_service.find_one_async(req=None, _id=event[ID_FIELD])
+        item = (await service.update(event[ID_FIELD], new_updates)).to_dict()
         await signals.event_spiked.send(new_updates, event)
 
         if item:
@@ -233,7 +237,7 @@ async def spike_recurring_events(updates: dict[str, Any], original: dict[str, An
 
 
 async def unspike_recurring_events(updates: dict[str, Any], original: dict[str, Any], update_method: str) -> None:
-    events_service = get_resource_service("events")
+    service = UnifiedPlanningResource.get_service()
 
     historic, past, future = await get_recurring_timeline(original, spiked=True)
     remove_lock_information(updates)
@@ -254,10 +258,10 @@ async def unspike_recurring_events(updates: dict[str, Any], original: dict[str, 
         if event.get(ITEM_STATE) != WORKFLOW_STATE.SPIKED:
             continue
 
-        new_updates = {"skip_on_update": True}
+        # Go through on_update but skip the unimplemented recurring date logic
+        new_updates: dict[str, Any] = {"skip_on_update": True}
         set_item_unspiked(new_updates, event)
-        await events_service.patch_async(event[ID_FIELD], new_updates)
-        item = await events_service.find_one_async(req=None, _id=event[ID_FIELD])
+        item = (await service.update(event[ID_FIELD], new_updates)).to_dict()
         await signals.event_unspiked.send(new_updates, event)
 
         if item:
@@ -280,7 +284,7 @@ async def process_spike_event(updates: dict[str, Any], original: dict[str, Any])
     :param original: The original event document.
     :return: The updated event document.
     """
-    events_service = get_resource_service("events")
+    service = UnifiedPlanningResource.get_service()
     ACTION = "spiked"
 
     # Perform pre update event actions
@@ -297,13 +301,13 @@ async def process_spike_event(updates: dict[str, Any], original: dict[str, Any])
     # Clean updates before persisting change
     spiked_items = updates.pop("_spiked_items", [])
     updates.pop("update_method", None)
-    updates.pop("skip_on_update", None)
 
-    # Update the original event in the database
-    await events_service.update_async(original[ID_FIELD], updates, original, skip_signals=True)
+    # Update the original event in the database. Go through on_update but skip the
+    # (still unimplemented) recurring date logic via `skip_on_update`.
+    updates["skip_on_update"] = True
+    updated = await service.update(original[ID_FIELD], updates)
     await signals.event_spiked.send(updates, original)
-    spiked_event = await events_service.find_one_async(req=None, _id=original[ID_FIELD])
-    assert spiked_event is not None, "Expected spiked_event to be a dict, got None"
+    spiked_event = updated.to_dict()
 
     user_id = get_user().get(ID_FIELD, "")
     if user_id:
@@ -332,7 +336,7 @@ async def process_unspike_event(updates: dict[str, Any], original: dict[str, Any
     :param original: The original event document.
     :return: The updated event document.
     """
-    events_service = get_resource_service("events")
+    service = UnifiedPlanningResource.get_service()
     ACTION = "unspiked"
 
     # Perform pre update event actions
@@ -349,11 +353,12 @@ async def process_unspike_event(updates: dict[str, Any], original: dict[str, Any
     # Clean updates before persisting change
     unspiked_items = updates.pop("_unspiked_items", [])
 
-    # Update the original event in the database
-    await events_service.update_async(original[ID_FIELD], updates, original, skip_signals=True)
+    # Update the original event in the database. Go through on_update but skip the
+    # (still unimplemented) recurring date logic via `skip_on_update`.
+    updates["skip_on_update"] = True
+    updated = await service.update(original[ID_FIELD], updates)
     await signals.event_unspiked.send(updates, original)
-    unspiked_event = await events_service.find_one_async(req=None, _id=original[ID_FIELD])
-    assert unspiked_event is not None, "Expected unspiked_event to be a dict, got None"
+    unspiked_event = updated.to_dict()
 
     user_id = get_user().get(ID_FIELD, "")
     if user_id:
@@ -389,7 +394,7 @@ def post_update_planning_item_actions(updates: dict[str, Any], original: dict[st
 
 async def post_planning_item_spike_actions(updates: dict[str, Any], original: dict[str, Any]):
     post_update_planning_item_actions(updates, original)
-    events_service = get_resource_service("events")
+    service = UnifiedPlanningResource.get_service()
 
     # Delete assignments in workflow
     assignments_to_delete = []
@@ -402,7 +407,7 @@ async def post_planning_item_spike_actions(updates: dict[str, Any], original: di
     first_event_id = get_first_related_event_id_for_planning(original, "primary")
 
     if first_event_id:
-        event = await events_service.find_one_async(req=None, _id=first_event_id)
+        event = await service.find_by_id_raw(first_event_id)
         notify_user_on_failed_assignment_deletes = not event or event.get("state") != WORKFLOW_STATE.SPIKED
 
     await delete_assignments_for_coverages(assignments_to_delete, notify_user_on_failed_assignment_deletes)
@@ -442,7 +447,7 @@ async def process_spike_planning_item(updates: dict[str, Any], original: dict[st
     :param original: The original planning document.
     :return: The updated planning document.
     """
-    planning_service = get_resource_service("planning")
+    service = UnifiedPlanningResource.get_service()
 
     if original.get("pubstatus") or original.get("state") not in [
         WORKFLOW_STATE.INGESTED,
@@ -467,11 +472,11 @@ async def process_spike_planning_item(updates: dict[str, Any], original: dict[st
     # Mark item as unlocked directly in order to avoid more queries and notifications
     # coming from lockservice.
     remove_lock_information(updates)
+    updates["skip_on_update"] = True
     planning_item_id = original[ID_FIELD]
-    await planning_service.update_async(planning_item_id, updates, original, skip_signals=True)
+    updated = await service.update(planning_item_id, updates)
     await signals.planning_spiked.send(updates, original)
-    spiked_planning_item = await planning_service.find_one_async(req=None, _id=planning_item_id)
-    assert spiked_planning_item is not None, "Expected spiked_planning to be a dict, got None"
+    spiked_planning_item = updated.to_dict()
 
     push_notification(
         "planning:spiked",
@@ -500,23 +505,22 @@ async def process_unspike_planning_item(updates: dict[str, Any], original: dict[
     :param original: The original planning document.
     :return: The updated planning document.
     """
-    planning_service = get_resource_service("planning")
-    events_service = get_resource_service("events")
+    service = UnifiedPlanningResource.get_service()
 
     first_event_id = get_first_related_event_id_for_planning(original, "primary")
     if first_event_id:
-        event = await events_service.find_one_async(req=None, _id=first_event_id)
+        event = await service.find_by_id_raw(first_event_id)
         if event and event.get("state") == WORKFLOW_STATE.SPIKED:
             raise SuperdeskApiError.badRequestError(message=_("Unspike failed. Associated event is spiked."))
 
     set_item_unspiked(updates, original)
     remove_lock_information(updates)
 
+    updates["skip_on_update"] = True
     planning_item_id = original[ID_FIELD]
-    await planning_service.update_async(planning_item_id, updates, original, skip_signals=True)
+    updated = await service.update(planning_item_id, updates)
     await signals.planning_unspiked.send(updates, original)
-    unspiked_planning_item = await planning_service.find_one_async(req=None, _id=planning_item_id)
-    assert unspiked_planning_item is not None, "Expected unspiked_planning to be a dict, got None"
+    unspiked_planning_item = updated.to_dict()
 
     push_notification(
         "planning:unspiked",

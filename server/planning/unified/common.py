@@ -156,12 +156,27 @@ async def event_has_planning_items(
 ) -> bool:
     """Whether an Event has related Planning items, querying the unified index.
 
-    Replaces the legacy ``planning.utils.event_has_planning_items`` which reads the
-    (now empty) legacy ``planning`` elastic index.
+    Uses an Elasticsearch ``count`` (no document retrieval) rather than fetching
+    the matched items. Replaces the legacy ``planning.utils.event_has_planning_items``
+    which reads the (now empty) legacy ``planning`` elastic index.
     """
-    async for _ in await get_related_planning_for_events([event_id], link_type):
-        return True
-    return False
+    related_events_filters: list[dict] = [{"terms": {"related_events._id": [event_id]}}]
+    if link_type is not None:
+        related_events_filters.append({"term": {"related_events.link_type": link_type}})
+
+    query = {
+        "query": {
+            "bool": {
+                "filter": {
+                    "nested": {
+                        "path": "related_events",
+                        "query": {"bool": {"filter": related_events_filters}},
+                    },
+                }
+            }
+        }
+    }
+    return await UnifiedPlanningResource.get_service().count(query) > 0
 
 
 async def get_series(

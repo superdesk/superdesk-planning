@@ -36,6 +36,7 @@ from planning.types import UnifiedPlanningHistoryResource, UnifiedPlanningResour
 from planning.utils import get_related_planning_for_events_async
 from planning.content_profiles.utils import is_post_planning_with_event_enabled, is_cancel_planning_with_event_enabled
 from planning.planning.planning_utils import delete_assignments_for_coverages
+from planning.unified.actions import process_spike_planning_item
 
 from .common import validate_post_state, validate_item_for_publish, enqueue_unified_planning
 
@@ -236,8 +237,6 @@ class EventsPostService(AsyncBaseService):
         return event, failed_planning_ids
 
     async def post_related_plannings(self, plannings, new_post_state):
-        from planning.unified.actions import process_spike_planning_item
-
         planning_post_service = get_resource_service("planning_post")
         docs = []
         failed_planning_ids = []
