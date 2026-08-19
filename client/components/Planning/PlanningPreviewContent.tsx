@@ -91,6 +91,33 @@ const mapDispatchToProps = (dispatch): IDispatchProps => ({
 });
 
 export class PlanningPreviewContentComponent extends React.PureComponent<IProps> {
+    // Do not turn this into a component defined inside render(): such a component gets a new type identity on
+    // every render, making React remount the coverage subtree and lose the CollapseBox open state
+    renderCoveragePreview(coverage: IPlanningCoverageItem, index: number) {
+        const {item, users, desks, newsCoverageStatus, inner, files} = this.props;
+        const {profile} = getCoverageFields(coverage.planning.g2_content_type);
+
+        return (
+            <CoveragePreview
+                item={item}
+                key={coverage.coverage_id}
+                index={index}
+                coverage={coverage}
+                users={users}
+                desks={desks}
+                newsCoverageStatus={newsCoverageStatus}
+                formProfile={profile}
+                inner={inner}
+                files={files}
+                createLink={getFileDownloadURL}
+                canScheduleUpdates={
+                    profile.editor.flags && appConfig.planning_allow_scheduled_updates
+                }
+                scrollInView={true}
+            />
+        );
+    }
+
     componentWillMount() {
         // If the planning item is associated with an event, get its files
         if ((this.props.relatedEvents?.length ?? 0) > 0) {
@@ -108,10 +135,7 @@ export class PlanningPreviewContentComponent extends React.PureComponent<IProps>
             users,
             formProfile,
             relatedEvents,
-            desks,
-            newsCoverageStatus,
             onEditEvent,
-            inner,
             noPadding,
             hideRelatedItems,
             hideEditIcon,
@@ -131,30 +155,6 @@ export class PlanningPreviewContentComponent extends React.PureComponent<IProps>
         const otherCoverages: Array<IPlanningCoverageItem> = this.props.currentCoverageId == null ?
             item.coverages ?? [] :
             (item.coverages ?? []).filter((coverage) => coverage.coverage_id !== this.props.currentCoverageId);
-
-        const CoveragesPreview = ({coverage, index}) => {
-            const {profile} = getCoverageFields(coverage.planning.g2_content_type);
-
-            return (
-                <CoveragePreview
-                    item={item}
-                    key={coverage.coverage_id}
-                    index={index}
-                    coverage={coverage}
-                    users= {users}
-                    desks= {desks}
-                    newsCoverageStatus={newsCoverageStatus}
-                    formProfile={profile}
-                    inner={inner}
-                    files={files}
-                    createLink={getFileDownloadURL}
-                    canScheduleUpdates={
-                        profile.editor.flags && appConfig.planning_allow_scheduled_updates
-                    }
-                    scrollInView={true}
-                />
-            );
-        };
 
         const primaryEventId = getRelatedEventIdsForPlanning(this.props.item, 'primary')[0];
         const primaryRelatedEvent = (relatedEvents ?? []).find((relatedEvent) => relatedEvent._id === primaryEventId);
@@ -183,21 +183,17 @@ export class PlanningPreviewContentComponent extends React.PureComponent<IProps>
                         {currentCoverage == null ? (
                             <>
                                 <h3 className="side-panel__heading--big">{gettext('Coverages')}</h3>
-                                {otherCoverages.map((coverage, i) => (
-                                    <CoveragesPreview key={i} coverage={coverage} index={i} />
-                                ))}
+                                {otherCoverages.map((coverage, i) => this.renderCoveragePreview(coverage, i))}
                             </>
                         ) : (
                             <>
                                 <h3 className="side-panel__heading--big">{gettext('This Coverage')}</h3>
-                                <CoveragesPreview coverage={currentCoverage} index={0} />
+                                {this.renderCoveragePreview(currentCoverage, 0)}
 
                                 {(otherCoverages ?? []).length > 0 && (
                                     <>
                                         <h3 className="side-panel__heading--big">{gettext('Other Coverages')}</h3>
-                                        {otherCoverages.map((coverage, i) => (
-                                            <CoveragesPreview key={i} coverage={coverage} index={i} />
-                                        ))}
+                                        {otherCoverages.map((coverage, i) => this.renderCoveragePreview(coverage, i))}
                                     </>
                                 )}
                             </>
