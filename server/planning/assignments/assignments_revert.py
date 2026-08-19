@@ -21,12 +21,12 @@ from apps.archive.common import get_user, get_auth
 
 from planning.coverage_assignments import update_planning_from_assignment_changes
 from .assignments import AssignmentsResource, assignments_schema
-from .assignments_history_async import AssignmentsHistoryAsyncService
 from planning.common import (
     ASSIGNMENT_WORKFLOW_STATE,
     remove_lock_information,
     assignment_allows_multiple_content_linked,
 )
+from planning.history.assignments import AssignmentsHistoryService
 
 
 assignments_revert_schema = deepcopy(assignments_schema)
@@ -77,7 +77,7 @@ class AssignmentsRevertService(AsyncBaseService):
         session = get_auth().get(ID_FIELD, "")
 
         # Save history
-        await AssignmentsHistoryAsyncService().on_item_revert_availability(updates, original)
+        await AssignmentsHistoryService().on_item_revert_availability(updates, original)
 
         assignment = deepcopy(original)
         assignment.update(updates)

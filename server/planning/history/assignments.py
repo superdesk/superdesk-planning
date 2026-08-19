@@ -9,23 +9,26 @@
 """Superdesk Files"""
 
 from typing import Any
-from planning.history_async_service import HistoryAsyncService
-from planning.types import AssignmentsHistoryResourceModel
-from superdesk.resource_fields import ID_FIELD
 from copy import deepcopy
 import logging
+
+from superdesk.resource_fields import ID_FIELD
+
+from planning.types import AssignmentsHistoryResourceModel, UnifiedPlanningResource
 from planning.common import WORKFLOW_STATE
 from planning.types.enums import AssignmentHistoryActions
-from planning.planning.planning_history_async_service import PlanningHistoryAsyncService
+
+from .base_service import HistoryAsyncService
+from .planning import UnifiedPlanningHistoryService
 
 logger = logging.getLogger(__name__)
 
 
-class AssignmentsHistoryAsyncService(HistoryAsyncService[AssignmentsHistoryResourceModel]):
+class AssignmentsHistoryService(HistoryAsyncService[AssignmentsHistoryResourceModel]):
     resource_name = "assignments_history"
 
     async def _save_history(self, item, update: dict[str, Any], operation: str | None = None):
-        user_id = await self.get_user_id()
+        user_id = self.get_user_id()
         # confirmation could be from external fulfillment, so set the user to the assignor
         if (
             operation
@@ -48,7 +51,8 @@ class AssignmentsHistoryAsyncService(HistoryAsyncService[AssignmentsHistoryResou
             update["assigned_to"] = {"user": user_id}
 
         history = {
-            "assignment_id": item[ID_FIELD],
+            "item_id": item[ID_FIELD],
+            "item_type": "assignment",
             "user_id": user_id,
             "operation": operation,
             "update": update,
@@ -68,7 +72,6 @@ class AssignmentsHistoryAsyncService(HistoryAsyncService[AssignmentsHistoryResou
 
         if diff:
             # Split an update to two actions if needed
-            planning_history_service = PlanningHistoryAsyncService()
             cov_diff: dict[str, Any] = {"coverage_id": original.get("coverage_item"), "assigned_to": {}}
 
             if "priority" in diff.keys():
@@ -78,23 +81,21 @@ class AssignmentsHistoryAsyncService(HistoryAsyncService[AssignmentsHistoryResou
                     {"priority": cov_diff["assigned_to"]["priority"]},
                     AssignmentHistoryActions.EDIT_PRIORITY.value,
                 )
-                await planning_history_service._save_history(
-                    {"_id": original.get("planning_item")},
-                    cov_diff,
-                    AssignmentHistoryActions.EDIT_PRIORITY.value,
+                await self._update_associated_planning_history(
+                    original, cov_diff, AssignmentHistoryActions.EDIT_PRIORITY.value
                 )
 
             if "assigned_to" in diff.keys():
                 cov_diff["assigned_to"] = diff["assigned_to"]
                 await self._save_history(item, diff, AssignmentHistoryActions.REASSIGNED.value)
-                await planning_history_service._save_history(
-                    {"_id": original.get("planning_item")},
+                await self._update_associated_planning_history(
+                    original,
                     cov_diff,
                     AssignmentHistoryActions.REASSIGNED.value,
                 )
 
     async def on_item_deleted(self, doc: dict[str, Any]):
-        planning = {"_id": doc.get("planning_item")}
+        planning = {"_id": doc.get("planning_item"), "type": doc.get("type")}
         coverage_diff = {
             "coverage_id": doc.get("coverage_item"),
             "workflow_status": WORKFLOW_STATE.DRAFT,
@@ -103,8 +104,8 @@ class AssignmentsHistoryAsyncService(HistoryAsyncService[AssignmentsHistoryResou
         if doc.get("scheduled_update_id"):
             coverage_diff["scheduled_update_id"] = doc["scheduled_update_id"]
 
-        await PlanningHistoryAsyncService()._save_history(
-            planning, coverage_diff, AssignmentHistoryActions.ASSIGNMENT_REMOVED.value
+        await self._update_associated_planning_history(
+            doc, coverage_diff, AssignmentHistoryActions.ASSIGNMENT_REMOVED.value
         )
 
     async def _update_assignment_coverage_history(
@@ -119,7 +120,7 @@ class AssignmentsHistoryAsyncService(HistoryAsyncService[AssignmentsHistoryResou
         if operation == AssignmentHistoryActions.ADD_TO_WORKFLOW.value:
             cov["workflow_status"] = WORKFLOW_STATE.ACTIVE
 
-        await PlanningHistoryAsyncService()._save_history({"_id": original.get("planning_item")}, cov, operation)
+        await self._update_associated_planning_history(original, cov, operation)
 
     async def on_item_add_to_workflow(self, updates: dict[str, Any], original: dict[str, Any]):
         await self._update_assignment_coverage_history(
@@ -144,4 +145,28 @@ class AssignmentsHistoryAsyncService(HistoryAsyncService[AssignmentsHistoryResou
     async def on_item_content_unlink(self, updates: dict[str, Any], original: dict[str, Any], operation=None):
         await self._update_assignment_coverage_history(
             updates, original, operation or AssignmentHistoryActions.UNLINK.value
+        )
+
+    async def _update_associated_planning_history(self, assignmnet: dict, updates: dict, operation: str | None) -> None:
+        planning_id: str | None = assignmnet.get("planning_item")
+        if not planning_id:
+            logger.error(
+                "Failed to update Assignments Planning history, no planning id on assignment",
+                extra=dict(assignment_id=assignmnet[ID_FIELD]),
+            )
+            return
+
+        planning = await UnifiedPlanningResource.get_service().find_by_id(planning_id)
+        if not planning:
+            logger.error(
+                "Failed to update Assignments Planning history, planning not found",
+                extra=dict(
+                    assignment_id=assignmnet[ID_FIELD],
+                    planning_id=planning_id,
+                ),
+            )
+            return
+
+        await UnifiedPlanningHistoryService()._save_history(
+            {"_id": planning.id, "type": planning.item_type}, updates, operation
         )

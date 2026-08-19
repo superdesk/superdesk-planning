@@ -13,23 +13,18 @@ from planning.content_api import (
     content_api_planning_resource_config,
 )
 
-from planning.events import events_resource_config, events_history_resource_config
+from planning.events import events_resource_config
 from planning.planning import (
     planning_resource_config,
-    planning_history_resource_config,
     planning_featured_resource_config,
 )
 from planning.events.views import events_endpoints_group
 from planning.planning.views import planning_endpoint_group
-from planning.assignments import (
-    assignments_resource_config,
-    delivery_resource_config,
-    assignments_history_resource_config,
-)
 from planning.locations import locations_resource_config
 from planning.published import published_resource_config
 from planning.content_profiles import planning_types_resource_config
 from planning.content_api.content_api_docs import content_api_docs_endpoints
+from planning.assignments import assignments_resource_config, delivery_resource_config
 from planning.search import (
     connect_signals_listeners,
     events_planning_filters_resource_config,
@@ -40,6 +35,7 @@ from .planning_download import planning_download_endpoint
 from .unified.module import unified_planning_resource_config
 from .unified.signals import connect_signals
 from .unified.docs import unified_resource_docs_endpoints
+from .history.module import assignments_history_resource_config, planning_history_resource_config
 from .autosave.module import init_autosave_module, autosave_resource_config
 from .locks.module import planning_lock_endpoints, planning_featured_lock_resource, connect_signals_to_locks
 
@@ -89,7 +85,6 @@ module = Module(
         published_resource_config,
         delivery_resource_config,
         planning_types_resource_config,
-        events_history_resource_config,
         planning_history_resource_config,
         agendas_resource_config,
         planning_featured_resource_config,

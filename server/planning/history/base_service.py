@@ -7,7 +7,7 @@ from superdesk.core import get_current_app
 from superdesk.core.resources import AsyncResourceService
 from superdesk.resource_fields import ID_FIELD
 from superdesk.metadata.item import ITEM_TYPE
-from apps.item_lock.components.item_lock import LOCK_USER, LOCK_SESSION, LOCK_ACTION, LOCK_TIME
+from apps.item_lock.components.item_lock import LOCK_ACTION, LOCK_USER, LOCK_TIME, LOCK_SESSION
 
 
 HistoryResourceModelType = TypeVar("HistoryResourceModelType", bound=HistoryResourceModel)
@@ -41,7 +41,12 @@ class HistoryAsyncService(AsyncResourceService[Generic[HistoryResourceModelType]
         for item in items:
             if not item.get("duplicate_from"):
                 await self._save_history(
-                    {ID_FIELD: ObjectId(item[ID_FIELD]) if ObjectId.is_valid(item[ID_FIELD]) else str(item[ID_FIELD])},
+                    {
+                        ID_FIELD: (
+                            ObjectId(item[ID_FIELD]) if ObjectId.is_valid(item[ID_FIELD]) else str(item[ID_FIELD])
+                        ),
+                        "type": item.get("type"),
+                    },
                     deepcopy(item),
                     operation or "create",
                 )
@@ -72,15 +77,14 @@ class HistoryAsyncService(AsyncResourceService[Generic[HistoryResourceModelType]
 
     async def on_reschedule_from(self, item: dict[str, Any]):
         new_item = deepcopy(item)
-        await self._save_history({ID_FIELD: str(item[ID_FIELD])}, new_item, "reschedule_from")
+        await self._save_history({ID_FIELD: str(item[ID_FIELD]), "type": item.get("type")}, new_item, "reschedule_from")
 
     async def on_postpone(self, updates: dict[str, Any], original: dict[str, Any]):
         await self.on_item_updated(updates, original, "postpone")
 
-    async def get_user_id(self):
+    def get_user_id(self) -> ObjectId | None:
         user = get_current_app().get_current_user_dict()
-        if user:
-            return user.get("_id")
+        return user.get("_id") if user else None
 
     async def _changes(self, original: dict[str, Any], updates: dict[str, Any]):
         """

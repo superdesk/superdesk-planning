@@ -500,13 +500,13 @@ describe('actions.planning.api', () => {
             restoreSinonStub(planningApi.fetchPlanningHistory);
         });
 
-        it('calls planning_history api and runs dispatch', (done) => (
+        it('calls planning_history with item_type==planning api and runs dispatch', (done) => (
             store.test(done, planningApi.fetchPlanningHistory('p2'))
                 .then((items) => {
                     expect(items).toEqual(data.planning_history);
                     expect(services.api('planning_history').query.callCount).toBe(1);
                     expect(services.api('planning_history').query.args[0]).toEqual([{
-                        where: {planning_id: 'p2'},
+                        where: {item_id: 'p2', item_type: 'planning'},
                         max_results: 200,
                         sort: '[(\'_created\', 1)]',
                     }]);

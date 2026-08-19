@@ -18,7 +18,6 @@ from planning.types.unified import (
     RelatedEventLinkType,
     ItemScheduleEntry,
     ItemUpdateScheduleEntry,
-    PlanningItemType,
 )
 
 
@@ -304,3 +303,21 @@ def format_item_addresses(item: UnifiedPlanningResource, separator: str = " ") -
         formatted_address.append(address.postal_code or "")
         formatted_address.append(address.country or "")
         location.formatted_address = separator.join([a for a in formatted_address if a]).strip()
+
+
+def convert_unified_planning_to_legacy_format(item: dict) -> None:
+    if item.get("type") == PlanningItemType.PLANNING.value:
+        dates = item.pop("dates", {})
+        if not item.get("planning_date"):
+            item["planning_date"] = dates.get("start")
+        if definition_long := item.pop("definition_long", None):
+            item["description_text"] = definition_long
+
+
+def convert_legacy_planning_to_unified_format(item: dict) -> None:
+    if item.get("type") == PlanningItemType.PLANNING.value:
+        item.setdefault("dates", {})
+        if not item["dates"].get("start"):
+            item["dates"]["start"] = item.pop("planning_date", None)
+        if description_text := item.pop("description_text", None):
+            item["definition_long"] = description_text

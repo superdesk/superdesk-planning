@@ -8,41 +8,41 @@
 # AUTHORS and LICENSE files distributed with this source code, or
 # at https://www.sourcefabric.org/superdesk/license
 
+from copy import deepcopy
+
 from superdesk.resource_fields import ID_FIELD
 from superdesk.flask import abort
 from superdesk.eve_async.service import AsyncBaseService
-from superdesk import get_resource_service, logger
-from superdesk.resource import Resource, not_analyzed
+from superdesk import get_resource_service
+from superdesk.resource import not_analyzed
 from superdesk.notification import push_notification
 from superdesk.users import user_metrics
 from superdesk.utc import utcnow
 from apps.auth import get_user
 
-from .events import EventsResource
+from planning.events import EventsResource
 from planning.common import (
     WORKFLOW_STATE,
     POST_STATE,
     UPDATE_SINGLE,
     UPDATE_METHODS,
     UPDATE_FUTURE,
-    get_contacts_from_item,
     get_item_post_state,
-    enqueue_planning_item,
     get_version_item_for_post,
 )
 
-from planning.validate import validate_docs
 from planning.events.events_utils import get_recurring_timeline, get_update_method
-from planning.types import EventsHistoryResourceModel
-from planning.utils import try_cast_object_id, get_related_planning_for_events_async
+from planning.types import UnifiedPlanningHistoryResource, UnifiedPlanningResource
+from planning.utils import get_related_planning_for_events_async
 from planning.content_profiles.utils import is_post_planning_with_event_enabled, is_cancel_planning_with_event_enabled
+from planning.planning.planning_utils import delete_assignments_for_coverages
+
+from .common import validate_post_state, validate_item_for_publish, enqueue_unified_planning
 
 
 class EventsPostResource(EventsResource):
     schema = {
-        # Disable data relation validation for now
         "event": {"type": "string", "required": True},
-        # "event": Resource.rel("events", type="string", required=True),
         "etag": {"type": "string", "required": True},
         "pubstatus": {"type": "string", "required": True, "allowed": tuple(POST_STATE)},
         # The update method used for recurring events
@@ -70,16 +70,17 @@ class EventsPostResource(EventsResource):
 
 class EventsPostService(AsyncBaseService):
     async def create_async(self, docs, **kwargs):
-        events_service = get_resource_service("events")
+        events_service = UnifiedPlanningResource.get_service()
 
         ids = []
+        assignments_to_delete: list[dict] = []
         for doc in docs:
-            event = await events_service.find_one_async(req=None, _id=doc["event"])
-            doc["failed_planning_ids"] = []
-
-            if not event:
+            original = await events_service.find_by_id(doc["event"])
+            if not original:
                 abort(412)
 
+            event = original.to_dict()
+            doc["failed_planning_ids"] = []
             update_method = get_update_method(doc, event)
 
             if (
@@ -90,37 +91,27 @@ class EventsPostService(AsyncBaseService):
                 user_metrics.incr("published_events", event["original_creator"])
 
             if update_method == UPDATE_SINGLE:
-                event_id, planning_ids = await self._post_single_event(doc, event)
+                event_id, planning_ids = await self._post_single_event(doc, event, assignments_to_delete)
             else:
-                event_id, planning_ids = await self._post_recurring_events(doc, event, update_method)
+                event_id, planning_ids = await self._post_recurring_events(
+                    doc, event, update_method, assignments_to_delete
+                )
 
             ids.append(event_id)
             if planning_ids:
                 doc["failed_planning_ids"].extend(planning_ids)
 
+        if assignments_to_delete:
+            await delete_assignments_for_coverages(assignments_to_delete)
         return ids
 
-    @staticmethod
-    def validate_post_state(new_post_state):
-        try:
-            assert new_post_state in tuple(POST_STATE)
-        except AssertionError:
-            abort(409)
-
-    @staticmethod
-    async def validate_item(doc):
-        errors_list = await validate_docs([{"validate_on_post": True, "type": "event", "validate": doc}])
-        errors = errors_list[0]
-
-        if errors:
-            # We use abort here instead of raising SuperdeskApiError.badRequestError
-            # as eve handles error responses differently between POST and PATCH methods
-            abort(400, description=errors)
-
-    async def _post_single_event(self, doc, event):
-        self.validate_post_state(doc["pubstatus"])
-        await self.validate_item(event)
-        updated_event, failed_planning_ids = await self.post_event(event, doc["pubstatus"], doc.get("repost_on_update"))
+    async def _post_single_event(self, doc, event, assignments_to_delete: list[dict]):
+        validate_post_state(doc["pubstatus"])
+        await validate_item_for_publish(event)
+        # await self.validate_item(event)
+        updated_event, failed_planning_ids = await self.post_event(
+            event, doc["pubstatus"], doc.get("repost_on_update"), assignments_to_delete
+        )
 
         event_type = "events:posted" if doc["pubstatus"] == POST_STATE.USABLE else "events:unposted"
         push_notification(
@@ -133,7 +124,7 @@ class EventsPostService(AsyncBaseService):
 
         return doc["event"], failed_planning_ids
 
-    async def _post_recurring_events(self, doc, original, update_method):
+    async def _post_recurring_events(self, doc, original, update_method, assignments_to_delete: list[dict]):
         post_to_state = doc["pubstatus"]
         historic, past, future = await get_recurring_timeline(
             original, cancelled=True if post_to_state == POST_STATE.CANCELLED else False
@@ -151,8 +142,9 @@ class EventsPostService(AsyncBaseService):
 
         # First we want to validate that all events can be posted
         for event in published_events:
-            self.validate_post_state(post_to_state)
-            await self.validate_item(event)
+            validate_post_state(post_to_state)
+            await validate_item_for_publish(event)
+            # await self.validate_item(event)
 
         # Next we perform the actual post
         updated_event = None
@@ -161,7 +153,7 @@ class EventsPostService(AsyncBaseService):
         failed_planning_ids = []
         for event in published_events:
             updated_event, failed_planning_ids = await self.post_event(
-                event, post_to_state, doc.get("repost_on_update")
+                event, post_to_state, doc.get("repost_on_update"), assignments_to_delete
             )
             ids.append(event[ID_FIELD])
             items.append({"id": event[ID_FIELD], "etag": updated_event["_etag"]})
@@ -185,9 +177,9 @@ class EventsPostService(AsyncBaseService):
 
         return ids, failed_planning_ids
 
-    async def post_event(self, event, new_post_state, repost):
-        events_service = get_resource_service("events")
-        events_history_service = EventsHistoryResourceModel.get_service()
+    async def post_event(self, event, new_post_state, repost, assignments_to_delete: list[dict]):
+        events_service = UnifiedPlanningResource.get_service()
+        events_history_service = UnifiedPlanningHistoryResource.get_service()
 
         # update the event with new state
         if repost:
@@ -212,9 +204,19 @@ class EventsPostService(AsyncBaseService):
             if not event.get("completed"):
                 updates["actioned_date"] = None
 
+        if new_post_state == POST_STATE.CANCELLED and len(event.get("coverages") or []):
+            updates["coverages"] = event["coverages"]
+            for coverage in updates["coverages"]:
+                if (coverage.get("assigned_to") or {}).get("assignment_id"):
+                    assignments_to_delete.append(deepcopy(coverage))
+                    coverage["assigned_to"] = {}
+                if coverage.get("workflow_status") != WORKFLOW_STATE.CANCELLED:
+                    coverage["workflow_status"] = WORKFLOW_STATE.CANCELLED
+                    (coverage.get("planning") or {}).pop("workflow_status_reason", None)
+
         event_id = event[ID_FIELD]
-        await events_service.update_async(event_id, updates, event, skip_signals=True)
-        event.update(updates)
+        updated_event = await events_service.update(event_id, updates, skip_signals=True)
+        event.update(updated_event.to_dict())
 
         # enqueue the event
         # these fields are set for enqueue process to work. otherwise not needed
@@ -226,35 +228,12 @@ class EventsPostService(AsyncBaseService):
         plannings = await get_related_planning_for_events_async([event[ID_FIELD]], "primary")
 
         event["plans"] = [p.get("_id") for p in plannings]
-        await self.publish_event(event, version)
+        await enqueue_unified_planning(event, version)
 
         if len(plannings) > 0:
             failed_planning_ids = await self.post_related_plannings(plannings, new_post_state)
 
         return event, failed_planning_ids
-
-    async def publish_event(self, event, version):
-        # check and remove private contacts while posting event, only public contact will be visible
-        event["event_contact_info"] = [
-            try_cast_object_id(contact["_id"]) async for contact in await get_contacts_from_item(event)
-        ]
-
-        """Enqueue the items for publish"""
-        version_id = await get_resource_service("published_planning").post_async(
-            [
-                {
-                    "item_id": event["_id"],
-                    "version": version,
-                    "type": "event",
-                    "published_item": event,
-                }
-            ]
-        )
-        if version_id:
-            # Enqueue the item for publishing.
-            await enqueue_planning_item(version_id[0])
-        else:
-            logger.error("Failed to save planning version for event item id {}".format(event["_id"]))
 
     async def post_related_plannings(self, plannings, new_post_state):
         from planning.unified.actions import process_spike_planning_item
@@ -304,14 +283,3 @@ class EventsPostService(AsyncBaseService):
         # unpost all required planning items
         if len(docs) > 0:
             await planning_post_service.post_async(docs)
-
-    @staticmethod
-    def _get_post_state(event, new_post_state):
-        if new_post_state == POST_STATE.CANCELLED:
-            return WORKFLOW_STATE.KILLED
-
-        if event.get("pubstatus") != POST_STATE.USABLE:
-            # Publishing for first time, default to 'schedule' state
-            return WORKFLOW_STATE.SCHEDULED
-
-        return event.get("state")

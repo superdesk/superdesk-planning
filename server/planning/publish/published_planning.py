@@ -16,9 +16,10 @@ from superdesk import Resource
 from superdesk.resource_fields import ID_FIELD
 from superdesk.eve_async import AsyncBaseService
 from superdesk.eve_async.cursors import AsyncListCursor
-from .events import EventsResource
-from .planning import PlanningResource
-from .types import PlanningFeaturedResourceModel
+
+from planning.events import EventsResource
+from planning.planning import PlanningResource
+from planning.types import PlanningFeaturedResourceModel
 
 logger = logging.getLogger(__name__)
 

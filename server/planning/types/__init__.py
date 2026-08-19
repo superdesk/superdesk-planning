@@ -29,8 +29,7 @@ from .delivery import DeliveryResourceModel
 from .event import EventResourceModel
 from .history import (
     HistoryResourceModel,
-    EventsHistoryResourceModel,
-    PlanningHistoryResourceModel,
+    UnifiedPlanningHistoryResource,
     AssignmentsHistoryResourceModel,
 )
 from .planning import PlanningResourceModel
@@ -64,10 +63,9 @@ __all__ = [
     "BasePlanningModel",
     "DeliveryResourceModel",
     "EventResourceModel",
-    "EventsHistoryResourceModel",
     "HistoryResourceModel",
     "PlanningResourceModel",
-    "PlanningHistoryResourceModel",
+    "UnifiedPlanningHistoryResource",
     "AssignmentResourceModel",
     "CoverageProvider",
     "PublishedPlanningModel",
