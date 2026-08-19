@@ -17,12 +17,6 @@ from planning import signals
 from planning.history.planning import UnifiedPlanningHistoryService
 from .events import EventsResource, EventsService
 from planning.files import EventsFilesResource, FilesAsyncService
-from .events_template import (
-    EventsTemplateResource,
-    EventsTemplateService,
-    RecentEventsTemplateResource,
-    RecentEventsTemplateService,
-)
 
 from .events_service import EventsAsyncService
 from .module import events_resource_config
@@ -47,20 +41,6 @@ def init_app(app):
 
     files_service = FilesAsyncService("events_files", backend=superdesk.get_backend())
     EventsFilesResource("events_files", app=app, service=files_service)
-
-    events_template_service = EventsTemplateService(
-        EventsTemplateResource.endpoint_name, backend=superdesk.get_backend()
-    )
-    EventsTemplateResource(EventsTemplateResource.endpoint_name, app=app, service=events_template_service)
-
-    recent_events_template_service = RecentEventsTemplateService(
-        RecentEventsTemplateResource.endpoint_name, backend=superdesk.get_backend()
-    )
-    EventsTemplateResource(
-        RecentEventsTemplateResource.endpoint_name,
-        app=app,
-        service=recent_events_template_service,
-    )
 
     events_history_service = UnifiedPlanningHistoryService()
 
