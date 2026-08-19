@@ -33,7 +33,7 @@ import {EventMetadata} from '../Events';
 import {FeatureLabel} from './FeaturedPlanning';
 import {renderProfileGroupedFields} from '../fields';
 import {PreviewFieldFiles} from '../fields/preview/Files';
-import {getRelatedEventIdsForPlanning} from '../../utils/planning';
+import {getRelatedEventIdsForPlanning, pickRelatedEventIdsForPlanning} from '../../utils/planning';
 import {coverageProfiles} from '../../selectors/coverageProfiles';
 import {getCoverageFields} from '../../api/editor/item_planning';
 import {appConfig} from 'appConfig';
@@ -130,11 +130,33 @@ export class PlanningPreviewContentComponent extends React.PureComponent<IProps>
     }
 
     render() {
+        const eventIds = pickRelatedEventIdsForPlanning(this.props.item, 'display');
+
+        if (eventIds.length < 1) {
+            return this.renderContent(null);
+        }
+
+        const {WithLiveResources} = superdeskApi.components;
+
+        // Related events are rendered from live resources rather than the redux store: the store
+        // copy is not refreshed on `events:updated` notifications outside the Events view, so it
+        // goes stale when an event changes while the preview is open
+        return (
+            <WithLiveResources resources={[{resource: 'events', ids: eventIds}]}>
+                {([res]) => this.renderContent(
+                    (res._items as Array<IEventItem>)
+                        .filter((event) => event != null)
+                        .map((event) => eventUtils.modifyForClient(event))
+                )}
+            </WithLiveResources>
+        );
+    }
+
+    renderContent(relatedEvents: Array<IEventItem> | null) {
         const {gettext} = superdeskApi.localization;
         const {item,
             users,
             formProfile,
-            relatedEvents,
             onEditEvent,
             noPadding,
             hideRelatedItems,
