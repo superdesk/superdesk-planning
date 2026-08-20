@@ -23,4 +23,4 @@ aiomoto[sqs]==0.5.3
 
 -e .
 # Install in editable state so we get feature fixtures
--e git+https://github.com/superdesk/superdesk-core.git@develop#egg=superdesk-core
+-e git+https://github.com/superdesk/superdesk-core.git@hg/fix-publish-queue-etag-on-transmit#egg=superdesk-core
