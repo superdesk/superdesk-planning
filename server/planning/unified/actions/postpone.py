@@ -106,6 +106,7 @@ async def postpone_recurring_event(updates: dict[str, Any], original: dict[str, 
         # Mark the Event as being Postponed
         await postpone_event_plannings(new_updates, event)
         await postpone_item_coverages(new_updates, event)
+        # skip on_update: its recurring-date branch is an unimplemented TODO that raises
         new_updates["skip_on_update"] = True
         await service.update(event[ID_FIELD], new_updates)
 
@@ -140,12 +141,8 @@ async def process_postpone_event(updates: dict[str, Any], original: dict[str, An
     set_actioned_date_to_event(updates, original)
     updates.pop("update_method", None)
 
-    # Update the original event in the database. Go through the service's on_update,
-    # but skip the (still unimplemented) recurring date-update logic via
-    # `skip_on_update`; on_update strips the flag before persisting.
-    updates["skip_on_update"] = True
     event_id = original[ID_FIELD]
-    updated = await service.update(event_id, updates)
+    updated = await service.update(event_id, updates, skip_signals=True)
     await signals.event_postponed.send(updates, original)
     postponed_event = updated.to_dict()
 
@@ -206,11 +203,8 @@ async def process_postpone_planning_item(updates: dict[str, Any], original: dict
     if "reason" in updates:
         del updates["reason"]
 
-    # Go through the service's on_update, but skip the (still unimplemented)
-    # recurring date-update logic via `skip_on_update`; on_update strips the flag.
-    updates["skip_on_update"] = True
     planning_item_id = original[ID_FIELD]
-    updated = await service.update(planning_item_id, updates)
+    updated = await service.update(planning_item_id, updates, skip_signals=True)
     await signals.planning_postponed.send(updates, original)
     postponed_planning_item = updated.to_dict()
 

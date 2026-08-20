@@ -44,6 +44,7 @@ from planning.planning.planning_utils import delete_assignments_for_coverages
 from planning.planning_notifications import PlanningNotifications
 from planning.types import UnifiedPlanningResource
 from planning.types.assignment import AssignmentResourceModel
+from planning.types.enums import WorkflowState
 from planning.types.unified import PlanningItemType, RelatedEventLinkType
 from planning.unified.common import get_related_planning_for_events, event_has_planning_items
 from planning.utils import (
@@ -157,7 +158,7 @@ async def validate_recurring_event(original: dict[str, Any], recurrence_id: str)
     events = await service.find(
         {"recurrence_id": recurrence_id, "type": PlanningItemType.EVENT.value}, max_results=0, use_mongo=True
     )
-    for event_obj in await events.to_list():
+    async for event_obj in events:
         event = event_obj.to_dict()
         if event[ID_FIELD] == original[ID_FIELD]:
             continue
@@ -168,7 +169,7 @@ async def validate_recurring_event(original: dict[str, Any], recurrence_id: str)
     plannings = await service.find(
         {"recurrence_id": recurrence_id, "type": PlanningItemType.PLANNING.value}, max_results=0, use_mongo=True
     )
-    for planning_obj in await plannings.to_list():
+    async for planning_obj in plannings:
         planning = planning_obj.to_dict()
         if planning.get(LOCK_USER) or planning.get(LOCK_SESSION):
             raise SuperdeskApiError.forbiddenError(message=_("Spike failed. A related planning item is locked."))
@@ -218,7 +219,7 @@ async def spike_recurring_events(updates: dict[str, Any], original: dict[str, An
         if not can_spike_event(event, events_with_plans):
             continue
 
-        # Go through on_update but skip the unimplemented recurring date logic
+        # skip on_update: its recurring-date branch is an unimplemented TODO that raises
         new_updates: dict[str, Any] = {"skip_on_update": True}
         set_item_spiked(new_updates, event)
         item = (await service.update(event[ID_FIELD], new_updates)).to_dict()
@@ -258,7 +259,7 @@ async def unspike_recurring_events(updates: dict[str, Any], original: dict[str, 
         if event.get(ITEM_STATE) != WORKFLOW_STATE.SPIKED:
             continue
 
-        # Go through on_update but skip the unimplemented recurring date logic
+        # skip on_update: its recurring-date branch is an unimplemented TODO that raises
         new_updates: dict[str, Any] = {"skip_on_update": True}
         set_item_unspiked(new_updates, event)
         item = (await service.update(event[ID_FIELD], new_updates)).to_dict()
@@ -302,10 +303,7 @@ async def process_spike_event(updates: dict[str, Any], original: dict[str, Any])
     spiked_items = updates.pop("_spiked_items", [])
     updates.pop("update_method", None)
 
-    # Update the original event in the database. Go through on_update but skip the
-    # (still unimplemented) recurring date logic via `skip_on_update`.
-    updates["skip_on_update"] = True
-    updated = await service.update(original[ID_FIELD], updates)
+    updated = await service.update(original[ID_FIELD], updates, skip_signals=True)
     await signals.event_spiked.send(updates, original)
     spiked_event = updated.to_dict()
 
@@ -353,10 +351,7 @@ async def process_unspike_event(updates: dict[str, Any], original: dict[str, Any
     # Clean updates before persisting change
     unspiked_items = updates.pop("_unspiked_items", [])
 
-    # Update the original event in the database. Go through on_update but skip the
-    # (still unimplemented) recurring date logic via `skip_on_update`.
-    updates["skip_on_update"] = True
-    updated = await service.update(original[ID_FIELD], updates)
+    updated = await service.update(original[ID_FIELD], updates, skip_signals=True)
     await signals.event_unspiked.send(updates, original)
     unspiked_event = updated.to_dict()
 
@@ -407,8 +402,8 @@ async def post_planning_item_spike_actions(updates: dict[str, Any], original: di
     first_event_id = get_first_related_event_id_for_planning(original, "primary")
 
     if first_event_id:
-        event = await service.find_by_id_raw(first_event_id)
-        notify_user_on_failed_assignment_deletes = not event or event.get("state") != WORKFLOW_STATE.SPIKED
+        event = await service.find_by_id(first_event_id)
+        notify_user_on_failed_assignment_deletes = not event or event.state != WorkflowState.SPIKED
 
     await delete_assignments_for_coverages(assignments_to_delete, notify_user_on_failed_assignment_deletes)
 
@@ -472,9 +467,8 @@ async def process_spike_planning_item(updates: dict[str, Any], original: dict[st
     # Mark item as unlocked directly in order to avoid more queries and notifications
     # coming from lockservice.
     remove_lock_information(updates)
-    updates["skip_on_update"] = True
     planning_item_id = original[ID_FIELD]
-    updated = await service.update(planning_item_id, updates)
+    updated = await service.update(planning_item_id, updates, skip_signals=True)
     await signals.planning_spiked.send(updates, original)
     spiked_planning_item = updated.to_dict()
 
@@ -509,16 +503,15 @@ async def process_unspike_planning_item(updates: dict[str, Any], original: dict[
 
     first_event_id = get_first_related_event_id_for_planning(original, "primary")
     if first_event_id:
-        event = await service.find_by_id_raw(first_event_id)
-        if event and event.get("state") == WORKFLOW_STATE.SPIKED:
+        event = await service.find_by_id(first_event_id)
+        if event and event.state == WorkflowState.SPIKED:
             raise SuperdeskApiError.badRequestError(message=_("Unspike failed. Associated event is spiked."))
 
     set_item_unspiked(updates, original)
     remove_lock_information(updates)
 
-    updates["skip_on_update"] = True
     planning_item_id = original[ID_FIELD]
-    updated = await service.update(planning_item_id, updates)
+    updated = await service.update(planning_item_id, updates, skip_signals=True)
     await signals.planning_unspiked.send(updates, original)
     unspiked_planning_item = updated.to_dict()
 
