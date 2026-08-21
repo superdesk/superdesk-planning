@@ -33,7 +33,8 @@ import {EventMetadata} from '../Events';
 import {FeatureLabel} from './FeaturedPlanning';
 import {renderProfileGroupedFields} from '../fields';
 import {PreviewFieldFiles} from '../fields/preview/Files';
-import {getRelatedEventIdsForPlanning} from '../../utils/planning';
+import {getRelatedEventIdsForPlanning, pickRelatedEventIdsForPlanning} from '../../utils/planning';
+import {RelatedEventsFilesFetcher} from './RelatedEventsFilesFetcher';
 import {coverageProfiles} from '../../selectors/coverageProfiles';
 import {getCoverageFields} from '../../api/editor/item_planning';
 import {appConfig} from 'appConfig';
@@ -48,7 +49,6 @@ interface IOwnProps {
 
 interface IReduxProps {
     item: IPlanningItem;
-    relatedEvents: Array<IEventItem> | null;
     session: ISession;
     privileges: any;
     users: Array<IUser>;
@@ -72,7 +72,6 @@ type IProps = IOwnProps & IReduxProps & IDispatchProps;
 
 const mapStateToProps = (state, ownProps): IReduxProps => ({
     item: selectors.planning.currentPlanning(state) || ownProps.item,
-    relatedEvents: selectors.events.getRelatedEventsForPlanning(state),
     session: selectors.general.session(state),
     privileges: selectors.general.privileges(state),
     users: selectors.general.users(state),
@@ -119,22 +118,48 @@ export class PlanningPreviewContentComponent extends React.PureComponent<IProps>
     }
 
     componentWillMount() {
-        // If the planning item is associated with an event, get its files
-        if ((this.props.relatedEvents?.length ?? 0) > 0) {
-            this.props.relatedEvents.forEach((relatedEvent) => (
-                this.props.fetchEventFiles(relatedEvent)
-            ));
-        }
-
+        // Related event files are fetched by RelatedEventsFilesFetcher from the live
+        // event data, so only the planning item's own files are needed here
         this.props.fetchPlanningFiles(this.props.item);
     }
 
     render() {
+        const eventIds = pickRelatedEventIdsForPlanning(this.props.item, 'display');
+
+        if (eventIds.length < 1) {
+            return this.renderContent(null);
+        }
+
+        const {WithLiveResources} = superdeskApi.components;
+
+        // Related events are rendered from live resources rather than the redux store: the store
+        // copy is not refreshed on `events:updated` notifications outside the Events view, so it
+        // goes stale when an event changes while the preview is open
+        return (
+            <WithLiveResources resources={[{resource: 'events', ids: eventIds}]}>
+                {([res]) => {
+                    const relatedEvents = (res._items as Array<IEventItem>)
+                        .filter((event) => event != null)
+                        .map((event) => eventUtils.modifyForClient(event));
+
+                    return (
+                        <RelatedEventsFilesFetcher
+                            events={relatedEvents}
+                            fetchEventFiles={this.props.fetchEventFiles}
+                        >
+                            {this.renderContent(relatedEvents)}
+                        </RelatedEventsFilesFetcher>
+                    );
+                }}
+            </WithLiveResources>
+        );
+    }
+
+    renderContent(relatedEvents: Array<IEventItem> | null) {
         const {gettext} = superdeskApi.localization;
         const {item,
             users,
             formProfile,
-            relatedEvents,
             onEditEvent,
             noPadding,
             hideRelatedItems,

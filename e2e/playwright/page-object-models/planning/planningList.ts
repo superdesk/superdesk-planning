@@ -65,6 +65,12 @@ export class PlanningList {
             .click();
     }
 
+    async toggleAssociatedEvents(index: number): Promise<void> {
+        await this.nestedItem(index)
+            .getByTestId('toggle-related-events')
+            .click();
+    }
+
     /**
      * The multi-select toolbar renders its actions as icon buttons carrying only an aria-label,
      * so this is a role lookup rather than a test id.
