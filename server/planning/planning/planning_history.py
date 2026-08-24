@@ -72,6 +72,14 @@ class PlanningHistoryService(HistoryService):
         if operation == "create" and update.get("state", "") == "ingested":
             history["operation"] = "ingested"
 
+        logger.debug(
+            "planning:history_save operation=%s planning_id=%s user_id=%s update_keys=%s",
+            history.get("operation"),
+            history.get("planning_id"),
+            history.get("user_id"),
+            sorted(list((history.get("update") or {}).keys())),
+        )
+
         self.post([history])
 
     def on_item_updated(self, updates, original, operation: str | None = None):
@@ -155,6 +163,12 @@ class PlanningHistoryService(HistoryService):
             original_coverage = original_coverages.get(cov.get("coverage_id"))
             diff = self._get_coverage_diff(cov, original_coverage)
             if len(diff.keys()) > 1:
+                logger.info(
+                    "planning:coverage_history_edited planning_id=%s coverage_id=%s diff_keys=%s",
+                    item.get(ID_FIELD),
+                    cov.get("coverage_id"),
+                    sorted(list(diff.keys())),
+                )
                 self._save_history(item, diff, "coverage_edited")
 
             if (
