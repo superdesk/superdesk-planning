@@ -325,9 +325,9 @@ async def _finalize_planning_cancel(updates: dict[str, Any], original: dict[str,
     """
     lock_action = original.get("lock_action")
     allowed_actions = [
-        ITEM_ACTIONS.EDIT,
-        ITEM_ACTIONS.PLANNING_CANCEL,
-        ITEM_ACTIONS.CANCEL_ALL_COVERAGE,
+        ITEM_ACTIONS.EDIT,  # type: ignore[attr-defined]
+        ITEM_ACTIONS.PLANNING_CANCEL,  # type: ignore[attr-defined]
+        ITEM_ACTIONS.CANCEL_ALL_COVERAGE,  # type: ignore[attr-defined]
     ]
     if event_cancellation or lock_action in allowed_actions or is_related_event_completed(updates, original):
         await update_post_item(updates, original)
