@@ -34,7 +34,8 @@ test.describe('Planning: edit coverages from the planning list', () => {
     test('updates a coverage status through Edit Coverages', async ({page}) => {
         await list.clickAction(0, 'Edit Coverages');
 
-        const modal = page.getByRole('dialog');
+        const modal = page.getByRole('dialog', {name: 'Add Coverages (advanced mode)'});
+        await expect(modal).toBeVisible();
         const status = modal.getByLabel('Status');
 
         await expect(status).toHaveValue('ncostat:int');
@@ -43,6 +44,7 @@ test.describe('Planning: edit coverages from the planning list', () => {
         await expect(modal).not.toBeVisible();
 
         await list.clickAction(0, 'Edit Coverages');
-        await expect(page.getByRole('dialog').getByLabel('Status')).toHaveValue('ncostat:notdec');
+        await expect(modal).toBeVisible();
+        await expect(modal.getByLabel('Status')).toHaveValue('ncostat:notdec');
     });
 });
