@@ -61,6 +61,8 @@ class PlanningItemComponent extends React.Component<IProps, IState> {
         this.onAddCoverageButtonClick = this.onAddCoverageButtonClick.bind(this);
         this.onItemHoverOn = this.onItemHoverOn.bind(this);
         this.onItemHoverOff = this.onItemHoverOff.bind(this);
+        this.openCoverageModal = this.openCoverageModal.bind(this);
+        this.closeCoverageModal = this.closeCoverageModal.bind(this);
         this.renderItemActions = this.renderItemActions.bind(this);
     }
 
