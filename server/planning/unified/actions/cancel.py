@@ -12,9 +12,10 @@
 
 The Planning side previously lived in the Eve ``PlanningCancelService`` (backed
 by the legacy ``planning`` collection); it is folded in here as
-``process_cancel_planning_item`` and now reads/writes ``unified_planning`` via
-``get_resource_service("planning")``. The event cascade queries the unified
-index (``get_related_planning_for_events``) instead of the empty legacy one.
+``process_cancel_planning_item`` and now writes ``unified_planning`` through the
+``UnifiedPlanningResource`` Pydantic service. The event cascade queries the
+unified index (``get_related_planning_for_events``) instead of the empty legacy
+one.
 """
 
 from copy import deepcopy
@@ -29,7 +30,7 @@ from planning.events.events_utils import (
     pre_update_event_actions,
 )
 from planning.history.planning import UnifiedPlanningHistoryService
-from planning.types import UnifiedPlanningHistoryResource
+from planning.types import UnifiedPlanningHistoryResource, UnifiedPlanningResource
 from planning.types.unified import PlanningItemType, RelatedEventLinkType
 from planning.unified.common import get_related_planning_for_events
 from superdesk.resource_fields import ID_FIELD
@@ -72,7 +73,7 @@ async def process_cancel(
 async def patch_related_event_as_cancelled(
     updates: dict[str, Any], original: dict[str, Any], notifications: list[dict[str, Any]]
 ):
-    events_service = get_resource_service("events")
+    service = UnifiedPlanningResource.get_service()
     events_history_service = UnifiedPlanningHistoryResource.get_service()
 
     if not validate_states(original):
@@ -80,11 +81,10 @@ async def patch_related_event_as_cancelled(
         return
 
     id = original[ID_FIELD]
+    # skip on_update: its recurring-date branch is an unimplemented TODO that raises
     updates["skip_on_update"] = True
 
-    await events_service.patch_async(id, updates)
-    updated_event = await events_service.find_one_async(req=None, _id=id)
-    assert updated_event is not None, "Expected updated_event to be a dict, got None"
+    updated_event = (await service.update(id, updates)).to_dict()
     await events_history_service.on_cancel(updated_event, original)
 
     notifications.append({"_id": id, "_etag": updated_event.get("_etag")})
@@ -175,7 +175,7 @@ async def process_cancel_event(updates: dict[str, Any], original: dict[str, Any]
     :param original: The original event document.
     :return: The updated event document.
     """
-    events_service = get_resource_service("events")
+    service = UnifiedPlanningResource.get_service()
     ACTION = "cancel"
 
     # Perform pre update event actions
@@ -193,14 +193,10 @@ async def process_cancel_event(updates: dict[str, Any], original: dict[str, Any]
     reason = updates.pop("reason", None)
     cancelled_items = updates.pop("_cancelled_events", [])
     updates.pop("update_method", None)
-    updates.pop("skip_on_update", None)
 
-    # Update the original event in the database
     event_id = original[ID_FIELD]
-    await events_service.update_async(event_id, updates, original, skip_signals=True)
+    canceled_event = (await service.update(event_id, updates, skip_signals=True)).to_dict()
     await signals.event_cancel.send(updates, original)
-    canceled_event = await events_service.find_one_async(req=None, _id=event_id)
-    assert canceled_event is not None, "Expected canceled_event to be a dict, got None"
 
     user = get_user(required=True).get(ID_FIELD, "")
     session = get_auth().get(ID_FIELD, "")
@@ -247,6 +243,7 @@ async def process_cancel_planning_item(
     cancel_all_coverage: bool = False,
     event_reschedule: bool = False,
 ) -> dict[str, Any]:
+    service = UnifiedPlanningResource.get_service()
     planning_service = get_resource_service("planning")
 
     if not await is_valid_event_planning_reason(updates, original):
@@ -283,8 +280,7 @@ async def process_cancel_planning_item(
     if cancel_all_coverage:
         item = None
         if len(ids) > 0:
-            await planning_service.update_async(planning_item_id, updates, original, skip_signals=True)
-            item = await planning_service.find_one_async(req=None, _id=planning_item_id)
+            item = (await service.update(planning_item_id, updates, skip_signals=True)).to_dict()
             push_notification(
                 "coverage:cancelled",
                 planning_item=str(planning_item_id),
@@ -302,9 +298,7 @@ async def process_cancel_planning_item(
     updates["state_reason"] = reason
     updates[ITEM_STATE] = WORKFLOW_STATE.CANCELLED
 
-    await planning_service.update_async(planning_item_id, updates, original, skip_signals=True)
-    cancelled_planning_item = await planning_service.find_one_async(req=None, _id=planning_item_id)
-    assert cancelled_planning_item is not None, "Expected cancelled_planning_item to be a dict, got None"
+    cancelled_planning_item = (await service.update(planning_item_id, updates, skip_signals=True)).to_dict()
 
     push_notification(
         "planning:cancelled",
