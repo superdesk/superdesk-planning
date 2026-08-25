@@ -33,6 +33,7 @@ from planning.history.planning import UnifiedPlanningHistoryService
 from planning.types import UnifiedPlanningHistoryResource, UnifiedPlanningResource
 from planning.types.unified import PlanningItemType, RelatedEventLinkType
 from planning.unified.common import get_related_planning_for_events
+from planning.unified.coverages import cancel_coverages
 from superdesk.resource_fields import ID_FIELD
 from superdesk import get_resource_service
 from superdesk.notification import push_notification
@@ -45,7 +46,6 @@ from planning.common import (
     WORKFLOW_STATE,
     ITEM_STATE,
     ITEM_ACTIONS,
-    ASSIGNMENT_WORKFLOW_STATE,
     update_post_item,
     is_valid_event_planning_reason,
     get_coverage_status_from_cv,
@@ -63,6 +63,22 @@ async def process_cancel(
     if original.get("type") == PlanningItemType.EVENT.value:
         return await process_cancel_event(updates, original)
     return await process_cancel_planning_item(updates, original, cancel_all_coverage=cancel_all_coverage)
+
+
+async def cancel_item_coverages(
+    updates: dict[str, Any],
+    original: dict[str, Any],
+    reason: str | None,
+    event_cancellation: bool = False,
+    event_reschedule: bool = False,
+) -> list[str]:
+    item = await UnifiedPlanningResource.get_service().find_by_id(original[ID_FIELD])
+    if not item:
+        return []
+    ids = await cancel_coverages(item, reason, event_cancellation, event_reschedule)
+    if item.coverages:
+        updates["coverages"] = [coverage.to_dict() for coverage in item.coverages]
+    return ids
 
 
 # ---------------------------------------------------------------------------
@@ -137,6 +153,7 @@ async def get_cancel_state():
 async def cancel_single_event(updates: dict[str, Any], original: dict[str, Any]):
     occur_cancel_state = await get_cancel_state()
     set_event_cancelled(updates, original, occur_cancel_state)
+    await cancel_item_coverages(updates, original, updates.get("reason"), event_cancellation=True)
     await cancel_event_plannings(updates, original)
 
 
@@ -161,9 +178,11 @@ async def cancel_recurring_event(updates: dict[str, Any], original: dict[str, An
     for event in cancelled_events:
         new_updates = deepcopy(updates)
         await cancel_event_plannings(new_updates, event)
+        await cancel_item_coverages(new_updates, event, new_updates.get("reason"), event_cancellation=True)
         await patch_related_event_as_cancelled(new_updates, event, notifications)
 
     await cancel_event_plannings(updates, original)
+    await cancel_item_coverages(updates, original, updates.get("reason"), event_cancellation=True)
     updates["_cancelled_events"] = notifications
 
 
@@ -244,7 +263,6 @@ async def process_cancel_planning_item(
     event_reschedule: bool = False,
 ) -> dict[str, Any]:
     service = UnifiedPlanningResource.get_service()
-    planning_service = get_resource_service("planning")
 
     if not await is_valid_event_planning_reason(updates, original):
         raise SuperdeskApiError.badRequestError(message=_("Reason is required field."))
@@ -256,31 +274,13 @@ async def process_cancel_planning_item(
     coverage_cancel_state.pop("is_active", None)
 
     planning_item_id = original[ID_FIELD]
-    ids = []
-    updates["coverages"] = deepcopy(original.get("coverages"))
-    coverages = updates.get("coverages") or []
     reason = updates.pop("reason", None)
-
-    for coverage in coverages:
-        if coverage["workflow_status"] not in [
-            WORKFLOW_STATE.CANCELLED,
-            ASSIGNMENT_WORKFLOW_STATE.COMPLETED,
-        ]:
-            ids.append(coverage.get("coverage_id"))
-            await planning_service.cancel_coverage(
-                coverage,
-                coverage_cancel_state,
-                coverage.get("workflow_status"),
-                None,
-                reason,
-                event_cancellation,
-                event_reschedule,
-            )
+    ids = await cancel_item_coverages(updates, original, reason, event_cancellation, event_reschedule)
 
     if cancel_all_coverage:
-        item = None
+        cancelled = None
         if len(ids) > 0:
-            item = (await service.update(planning_item_id, updates, skip_signals=True)).to_dict()
+            cancelled = (await service.update(planning_item_id, updates, skip_signals=True)).to_dict()
             push_notification(
                 "coverage:cancelled",
                 planning_item=str(planning_item_id),
@@ -288,12 +288,14 @@ async def process_cancel_planning_item(
                 session=str(session),
                 reason=reason,
                 coverage_state=coverage_cancel_state,
-                etag=item.get("_etag"),
+                etag=cancelled.get("_etag"),
                 ids=ids,
             )
-            # Re-post + history (was the Eve on_updated_async + on_updated_planning_cancel signal)
             await _finalize_planning_cancel(updates, original, event_cancellation)
-        return item if item else await planning_service.find_one_async(req=None, _id=planning_item_id)
+        if cancelled:
+            return cancelled
+        found = await service.find_by_id(planning_item_id)
+        return found.to_dict() if found else {}
 
     updates["state_reason"] = reason
     updates[ITEM_STATE] = WORKFLOW_STATE.CANCELLED

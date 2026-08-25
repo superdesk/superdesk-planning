@@ -124,6 +124,25 @@ class UnifiedResourceLifecycleActionsTestCase(TestCase):
         linked = await self._planning_dict(planning_id)
         self.assertEqual("cancelled", linked["state"])
 
+    async def test_cancel_event_cancels_its_own_coverages(self):
+        event_id = await self._create_event(
+            coverages=[
+                {
+                    "coverage_id": "cov1",
+                    "original_creator": g.user["_id"],
+                    "workflow_status": "draft",
+                    "news_coverage_status": {"qcode": "ncostat:int", "name": "coverage intended", "label": "Planned"},
+                    "planning": {"g2_content_type": "text", "slugline": "story"},
+                }
+            ],
+        )
+        original = await self._lock_event(event_id, "cancel")
+
+        cancelled = await process_cancel({"reason": "off"}, original)
+
+        self.assertEqual("cancelled", cancelled["state"])
+        self.assertEqual("cancelled", cancelled["coverages"][0]["workflow_status"])
+
     async def test_cancel_all_coverage_cancels_coverages_not_item(self):
         planning_id = await self._create_planning(
             coverages=[

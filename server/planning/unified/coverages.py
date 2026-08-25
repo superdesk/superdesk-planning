@@ -607,6 +607,32 @@ async def _cancel_coverage(
         )
 
 
+async def cancel_coverages(
+    item: UnifiedPlanningResource,
+    reason: str | None,
+    event_cancellation: bool = False,
+    event_reschedule: bool = False,
+) -> list[str]:
+    cancel_state = NewsCoverageStatus(**get_coverage_status_from_cv("ncostat:notint"))
+    cancelled_ids: list[str] = []
+
+    for coverage in item.coverages or []:
+        if coverage.workflow_status in (WorkflowState.CANCELLED, AssignmentWorkflowState.COMPLETED):
+            continue
+
+        cancelled_ids.append(coverage.coverage_id)
+        coverage.planning.workflow_status_reason = reason
+        await _cancel_coverage(coverage, coverage, cancel_state, None, event_cancellation, event_reschedule)
+
+        for scheduled_update in coverage.scheduled_updates or []:
+            scheduled_update.planning.workflow_status_reason = reason
+            await _cancel_coverage(
+                scheduled_update, scheduled_update, cancel_state, None, event_cancellation, event_reschedule
+            )
+
+    return cancelled_ids
+
+
 def _set_scheduled_update_active(
     item: UnifiedPlanningResource, coverage: CoverageItem, scheduled_update: CoverageScheduledUpdate
 ) -> None:
