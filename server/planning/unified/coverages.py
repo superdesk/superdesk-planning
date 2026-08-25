@@ -58,11 +58,8 @@ def validate_scheduled_updates(item: UnifiedPlanningResource) -> None:
         scheduled_updates = list(coverage.scheduled_updates)
         scheduled_updates.reverse()
 
-        print(f"coverage_schedule: {coverage_schedule}, tzinfo: {coverage_schedule.tzinfo}")
-
         for i, scheduled_update in enumerate(scheduled_updates):
             scheduled_update_schedule = scheduled_update.planning.scheduled
-            print(f"scheduled_update_schedule: {scheduled_update_schedule}, tzinfo: {scheduled_update_schedule.tzinfo}")
             if not scheduled_update_schedule:
                 continue
             elif coverage_schedule and scheduled_update_schedule < coverage_schedule:
