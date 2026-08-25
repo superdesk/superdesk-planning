@@ -58,6 +58,7 @@ class PlanningTemplatesResourceService(AsyncResourceService[PlanningTemplateReso
             raise SuperdeskApiError.badRequestError(gettext("Original item for template not found"))
 
         template.data.update(item.to_dict())
+        template.data.pop("template", None)
         for field in DUPLICATE_EVENT_IGNORED_FIELDS:
             template.data.pop(field, None)
 
