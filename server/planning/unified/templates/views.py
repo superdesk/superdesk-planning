@@ -37,7 +37,8 @@ async def get_recent_templates_endpoint(args: None, params: RecentTemplateParams
     ]
 
     # keep `templates_ids` ordering
-    templates.sort(key=lambda template: templates_ids.index(template.id))
+    template_id_order = {template_id: index for index, template_id in enumerate(templates_ids)}
+    templates.sort(key=lambda template: order.get(template.id, len(template_id_order)))
 
     # query not used templates
     templates += [
