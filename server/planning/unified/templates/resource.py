@@ -75,9 +75,9 @@ planning_templates_resource_config = ResourceConfig(
         auth=http_method_privilege_based_rules(
             {
                 "GET": "planning_event_management",
-                "POST": "planning_event_management",
-                "DELETE": "planning_event_management",
-                "PATCH": "planning_event_management",
+                "POST": "planning_event_templates",
+                "DELETE": "planning_event_templates",
+                "PATCH": "planning_event_templates",
             }
         ),
     ),
