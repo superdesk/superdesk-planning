@@ -11,7 +11,7 @@ template_endpoints = EndpointGroup("planning_templates", __name__)
 
 
 class RecentTemplateParams(BaseModel):
-    limit: int = Field(default=500, description="The maximum number of recent templates to prefix on the list")
+    limit: int = Field(default=5, description="The maximum number of recent templates to prefix on the list")
 
 
 @template_endpoints.endpoint("recent_events_template", name="recent_events_template", methods=["GET"])
