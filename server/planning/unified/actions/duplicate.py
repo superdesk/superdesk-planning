@@ -8,12 +8,21 @@
 # AUTHORS and LICENSE files distributed with this source code, or
 # at https://www.sourcefabric.org/superdesk/license
 
-import logging
+"""Merged duplicate logic for Event & Planning items (SDBELGA-1119).
+
+Only Planning items expose a dedicated ``duplicate`` action endpoint. Events are
+duplicated client-side by creating a new item with ``duplicate_from`` set, which
+is handled generically by ``UnifiedPlanningResourceService.on_created``.
+"""
+
 from copy import deepcopy
 from typing import Any
 
+from quart_babel import gettext as _
+
 from superdesk.core import get_app_config
 from superdesk import get_resource_service
+from superdesk.errors import SuperdeskApiError
 from superdesk.resource_fields import ID_FIELD
 from superdesk.metadata.utils import generate_guid
 from superdesk.metadata.item import GUID_NEWSML
@@ -28,10 +37,17 @@ from planning.common import (
     get_config_planning_duplicate_retain_coverage_status,
 )
 from planning.history.planning import UnifiedPlanningHistoryService
+from planning.types.unified import PlanningItemType
 from planning.utils import get_related_event_links_for_planning, get_related_event_items_for_planning
 
 
-logger = logging.getLogger(__name__)
+async def process_duplicate(original: dict[str, Any]) -> dict[str, Any]:
+    if original.get("type") == PlanningItemType.EVENT.value:
+        # Events duplicate via create-with-`duplicate_from`, not this endpoint
+        raise SuperdeskApiError.badRequestError(
+            message=_("Event duplication is performed via item creation, not the duplicate action.")
+        )
+    return await process_planning_item_duplicate(original)
 
 
 def duplicate_planning_item(original: dict[str, Any]) -> dict:

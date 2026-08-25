@@ -6,7 +6,7 @@ from superdesk.tests import utils as test_utils, fixtures
 
 from planning.tests import TestCase
 from planning.tests.fixtures import cvs
-from planning.planning.planning_duplicate import duplicate_planning_item
+from planning.unified.actions import duplicate_planning_item
 
 
 class PlanningDuplicateTestCase(TestCase):
