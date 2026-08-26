@@ -14,7 +14,7 @@ import logging
 from quart_babel import gettext as _
 
 from superdesk.core import get_app_config, get_current_app
-from superdesk.core.emails import send_email, EmailAttachment
+from superdesk.core.emails import send_email_async, EmailAttachment
 from superdesk.resource_fields import ID_FIELD
 from superdesk.flask import render_template
 
@@ -383,7 +383,7 @@ async def _send_user_email(user_id, contact_id, source, meta_message, data):
             name = get_assginment_name(data.get("assignment"))
             attachments.append(EmailAttachment(filename=name, content_type="text/calendar", data=ics))
 
-    await send_email(
+    await send_email_async(
         subject=data["subject"],
         sender=admins[0],
         recipients=[email_address],
