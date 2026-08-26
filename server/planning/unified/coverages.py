@@ -1,4 +1,5 @@
 import logging
+from io import BytesIO
 from copy import deepcopy
 
 from quart_babel import gettext
@@ -8,6 +9,7 @@ from superdesk.errors import SuperdeskApiError
 from superdesk.core.utils import generate_guid, GUID_NEWSML
 from superdesk import get_resource_service
 from superdesk.etree import etree
+from superdesk.notification import push_notification
 from superdesk.storage.superdesk_file import SuperdeskAsyncFile
 from superdesk.utc import utcnow
 from apps.auth import get_user_id
@@ -344,6 +346,74 @@ def _is_xmp_updated(
     original: CoverageItem | CoverageScheduledUpdate, updates: CoverageItem | CoverageScheduledUpdate
 ) -> bool:
     return bool(updates.planning.xmp_file) and original.planning.xmp_file != updates.planning.xmp_file
+
+
+async def set_assignment_xmp_file_info(assignment: dict) -> None:
+    planning = assignment.get("planning") or {}
+    xmp_file_id = planning.get("xmp_file")
+    if not xmp_file_id:
+        return
+
+    if get_coverage_type_name(planning.get("g2_content_type")) not in ["Picture", "picture"]:
+        return
+
+    if not get_planning_use_xmp_for_pic_assignments() or not get_planning_xmp_assignment_mapping():
+        return
+
+    assignment_id = assignment.get("_id") or (assignment.get("assigned_to") or {}).get("assignment_id")
+    if not assignment_id:
+        return
+
+    files_service = get_resource_service("planning_files")
+    xmp_file = await files_service.find_one_async(req=None, _id=xmp_file_id)
+    if not xmp_file:
+        logger.error("Attached xmp_file not found", extra=dict(assignment_id=assignment_id, xmp_file=xmp_file_id))
+        return
+
+    app = get_current_app()
+    media_file = app.media.get(xmp_file["media"], resource="planning_files")
+    if not media_file:
+        logger.error(
+            "xmp_file not found in media storage", extra=dict(assignment_id=assignment_id, xmp_file=xmp_file_id)
+        )
+        return
+
+    try:
+        parsed = etree.parse(media_file)
+        mapping = get_planning_xmp_assignment_mapping()
+        tags = parsed.xpath(mapping["xpath"], namespaces=mapping["namespaces"])
+        if tags:
+            tags[0].attrib[mapping["atribute_key"]] = str(assignment_id)
+        else:
+            parent_xpath = mapping["xpath"][0 : mapping["xpath"].rfind("/")]
+            parent = parsed.xpath(parent_xpath, namespaces=mapping["namespaces"])
+            if not parent:
+                logger.error("Cannot find xmp_mapping path in XMP file for assignment: {}".format(assignment_id))
+                return
+            elem = etree.SubElement(
+                parent[0],
+                "{{{0}}}Description".format(mapping["namespaces"]["rdf"]),
+                nsmap=mapping["namespaces"],
+            )
+            elem.attrib[mapping["atribute_key"]] = str(assignment_id)
+
+        buf = BytesIO()
+        buf.write(etree.tostring(parsed.getroot(), pretty_print=True))
+        buf.seek(0)
+        media_id = app.media.put(
+            buf,
+            resource="planning_files",
+            filename=media_file.filename,
+            content_type="application/octet-stream",
+        )
+        await files_service.patch_async(xmp_file_id, {"filemeta": {"media_id": media_id}, "media": media_id})
+        push_notification("planning_files:updated", item=xmp_file_id)
+    except Exception:
+        logger.error(
+            "Error while injecting assignment ID to XMP File. Assignment: {0}, xmp_file: {1}".format(
+                assignment_id, xmp_file_id
+            )
+        )
 
 
 async def _remove_coverage_entity(req: ItemUpdateRequest, coverage: CoverageItem | CoverageScheduledUpdate) -> None:

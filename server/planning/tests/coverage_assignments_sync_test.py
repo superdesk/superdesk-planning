@@ -5,7 +5,6 @@ from superdesk import get_resource_service
 from superdesk.tests import utils as test_utils, fixtures
 from superdesk.tests import setup_db_user
 
-from planning.planning.planning import PlanningService
 from planning.coverage_assignments import get_metadata_updates_between_entities
 from planning.tests import TestCase
 
@@ -214,7 +213,9 @@ class SyncAssignmentCoverageTest(TestCase):
         assigned_to = dict(original["coverages"][0]["assigned_to"])
         self.app.data.remove("assignments", {"_id": ObjectId(assigned_to["assignment_id"])})
 
-        with mock.patch.object(PlanningService, "set_xmp_file_info", new_callable=mock.AsyncMock) as set_xmp_mock:
+        with mock.patch(
+            "planning.assignments.assignments.set_assignment_xmp_file_info", new_callable=mock.AsyncMock
+        ) as set_xmp_mock:
             updated = await get_resource_service("planning").patch_async(
                 "p5",
                 {
