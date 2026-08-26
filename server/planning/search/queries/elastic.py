@@ -189,6 +189,22 @@ def field_exists(field: str, query_context: bool = True) -> Dict[str, Any]:
     return query if not query_context else {"constant_score": {"filter": query}}
 
 
+def _local_today(time_zone: Optional[str]):
+    """Return the timezone object and today's date in that timezone, computed once
+
+    Computing "now" once and reusing it avoids the boundaries of a range being
+    based on different moments (e.g. if the calls straddle local midnight).
+    """
+
+    tz = pytz.timezone(time_zone) if time_zone else pytz.utc
+    return tz, datetime.now(tz).date()
+
+
+def _local_day_start(tz: Any, day, offset_days: int = 0) -> str:
+    day = day + timedelta(days=offset_days)
+    return tz.localize(datetime(day.year, day.month, day.day)).isoformat()
+
+
 def local_day_start(time_zone: Optional[str], offset_days: int = 0) -> str:
     """Return the ISO datetime for the start of "today + offset_days" in the given timezone
 
@@ -197,9 +213,8 @@ def local_day_start(time_zone: Optional[str], offset_days: int = 0) -> str:
     plain local date for all day items, the same way it does for other absolute datetimes.
     """
 
-    tz = pytz.timezone(time_zone) if time_zone else pytz.utc
-    day = datetime.now(tz).date() + timedelta(days=offset_days)
-    return tz.localize(datetime(day.year, day.month, day.day)).isoformat()
+    tz, day = _local_today(time_zone)
+    return _local_day_start(tz, day, offset_days)
 
 
 def field_range(query: ElasticRangeParams):
@@ -370,25 +385,29 @@ def field_range(query: ElasticRangeParams):
 
 
 def range_today(query: ElasticRangeParams):
+    tz, day = _local_today(query.time_zone)
+
     return field_range(
         ElasticRangeParams(
             field=query.field,
             time_zone=query.time_zone,
             value_format=query.value_format,
-            gte=local_day_start(query.time_zone),
-            lt=local_day_start(query.time_zone, offset_days=1),
+            gte=_local_day_start(tz, day),
+            lt=_local_day_start(tz, day, offset_days=1),
         )
     )
 
 
 def range_tomorrow(query: ElasticRangeParams):
+    tz, day = _local_today(query.time_zone)
+
     return field_range(
         ElasticRangeParams(
             field=query.field,
             time_zone=query.time_zone,
             value_format=query.value_format,
-            gte=local_day_start(query.time_zone, offset_days=1),
-            lt=local_day_start(query.time_zone, offset_days=2),
+            gte=_local_day_start(tz, day, offset_days=1),
+            lt=_local_day_start(tz, day, offset_days=2),
         )
     )
 

@@ -27,8 +27,9 @@ def test_field_range_resolves_today_to_local_date_for_all_day_items():
     """
 
     tz = pytz.timezone("America/Toronto")
-    today = datetime.now(tz).strftime("%Y-%m-%d")
-    tomorrow = (datetime.now(tz) + timedelta(hours=24)).strftime("%Y-%m-%d")
+    now = datetime.now(tz)
+    today = now.strftime("%Y-%m-%d")
+    tomorrow = (now + timedelta(days=1)).strftime("%Y-%m-%d")
 
     query = range_today(ElasticRangeParams(field="dates.start", time_zone="America/Toronto"))
 
