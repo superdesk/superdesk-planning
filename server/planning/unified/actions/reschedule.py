@@ -8,6 +8,14 @@
 # AUTHORS and LICENSE files distributed with this source code, or
 # at https://www.sourcefabric.org/superdesk/license
 
+"""Merged reschedule logic for Event & Planning items (SDBELGA-1120).
+
+The Planning side previously lived in the Eve ``PlanningRescheduleService``
+(``internal_resource``, backed by the legacy ``planning`` collection); it is
+folded in here as ``process_reschedule_planning_item`` and now reads/writes
+``unified_planning``. The event cascade queries the unified index.
+"""
+
 import pytz
 from copy import deepcopy
 from datetime import datetime
@@ -24,6 +32,7 @@ from planning.common import (
     set_original_creator,
     set_actioned_date_to_event,
     get_max_recurrent_events,
+    get_coverage_type_name,
     TO_BE_CONFIRMED_FIELD,
 )
 from planning.events.events_utils import (
@@ -36,14 +45,26 @@ from planning.events.events_utils import (
     generate_recurring_dates,
 )
 from planning.history.planning import UnifiedPlanningHistoryService
-from planning.types import UnifiedPlanningHistoryResource
-from planning.utils import get_related_planning_for_events_async, event_has_planning_items
+from planning.planning_notifications import PlanningNotifications
+from planning.types import UnifiedPlanningHistoryResource, UnifiedPlanningResource
+from planning.types.unified import RelatedEventLinkType
+from planning.unified.common import get_related_planning_for_events, event_has_planning_items
+from planning.unified.actions.cancel import process_cancel_planning_item
 
 from superdesk.core import get_current_app
 from superdesk.resource_fields import ID_FIELD
 from superdesk import get_resource_service
+from superdesk.notification import push_notification
 from superdesk.metadata.utils import generate_guid
 from superdesk.metadata.item import GUID_NEWSML
+from apps.archive.common import get_user, get_auth
+
+
+async def get_related_primary_plannings(event_id: str) -> list[dict[str, Any]]:
+    """Return the related *primary* Planning items for an Event from the unified index."""
+    return [
+        plan.to_dict() async for plan in await get_related_planning_for_events([event_id], RelatedEventLinkType.PRIMARY)
+    ]
 
 
 def set_next_occurrence(updates: dict[str, Any]):
@@ -77,24 +98,16 @@ def mark_event_rescheduled(updates: dict[str, Any], reason: str, keep_dates: boo
 
 
 async def reschedule_event_plannings(original: dict[str, Any], reason: str, plans=None, state=None):
-    planning_cancel_service = get_resource_service("planning_cancel")
-    planning_reschedule_service = get_resource_service("planning_reschedule")
-    planning_history_service = UnifiedPlanningHistoryService()
-
     plan_updates = {"reason": reason, "state": state}
-    for plan in plans or await get_related_planning_for_events_async([original[ID_FIELD]], "primary"):
+    for plan in plans if plans is not None else await get_related_primary_plannings(original[ID_FIELD]):
         if plan.get("state") != WORKFLOW_STATE.CANCELLED:
-            updated_plan = await planning_reschedule_service.patch_async(plan[ID_FIELD], plan_updates)
-            await planning_history_service.on_reschedule(updated_plan, plan)
+            await process_reschedule_planning_item(deepcopy(plan_updates), plan)
             if len(plan.get("coverages", [])) > 0:
-                await planning_cancel_service.update_async(
-                    plan[ID_FIELD],
-                    {
-                        "reason": reason,
-                        "cancel_all_coverage": True,
-                        "event_reschedule": True,
-                    },
+                await process_cancel_planning_item(
+                    {"reason": reason},
                     plan,
+                    cancel_all_coverage=True,
+                    event_reschedule=True,
                 )
 
 
@@ -124,7 +137,7 @@ async def duplicate_event(updates: dict[str, Any], original: dict[str, Any]):
 
 
 async def reschedule_single_event(updates: dict[str, Any], original: dict[str, Any]):
-    has_plannings = event_has_planning_items(original[ID_FIELD], "primary")
+    has_plannings = await event_has_planning_items(original[ID_FIELD])
 
     remove_lock_information(updates)
     reason = updates.pop("reason", None)
@@ -152,6 +165,7 @@ async def reschedule_single_event(updates: dict[str, Any], original: dict[str, A
 
 
 async def reschedule_recurring_event(updates: dict[str, Any], original: dict[str, Any], update_method: str):
+    service = UnifiedPlanningResource.get_service()
     events_service = get_resource_service("events")
     remove_lock_information(updates)
 
@@ -263,6 +277,7 @@ async def reschedule_recurring_event(updates: dict[str, Any], original: dict[str
                 await reschedule_event_plannings(event, reason, state=WORKFLOW_STATE.DRAFT)
 
             else:
+                # skip on_update: its recurring-date branch is an unimplemented TODO that raises
                 new_updates = {"reason": reason, "skip_on_update": True}
                 mark_event_rescheduled(new_updates, reason)
                 new_updates["state"] = new_state
@@ -277,7 +292,7 @@ async def reschedule_recurring_event(updates: dict[str, Any], original: dict[str
                     set_planning_schedule(new_updates)
 
                 # And finally update the Event, and Reschedule associated Planning items
-                await events_service.patch_async(event[ID_FIELD], new_updates)
+                await service.update(event[ID_FIELD], new_updates)
                 await reschedule_event_plannings(event, reason, state=WORKFLOW_STATE.DRAFT)
                 await signals.event_reschedule.send(new_updates, {"_id": event[ID_FIELD]})
 
@@ -319,7 +334,7 @@ async def reschedule_recurring_event(updates: dict[str, Any], original: dict[str
         await app.on_inserted_events.call_async(new_events)
 
     for event in deleted_events.values():
-        event_plans = await get_related_planning_for_events_async([event[ID_FIELD]], "primary")
+        event_plans = await get_related_primary_plannings(event[ID_FIELD])
         is_original = event[ID_FIELD] == original[ID_FIELD]
         if len(event_plans) > 0 or event.get("pubstatus", None) is not None:
             if is_original:
@@ -327,9 +342,9 @@ async def reschedule_recurring_event(updates: dict[str, Any], original: dict[str
             else:
                 # This event has Planning items, so spike this event and
                 # all Planning items
-                new_updates = {"skip_on_update": True, "reason": reason}
+                new_updates = {"reason": reason}
                 mark_event_rescheduled(new_updates, reason)
-                await events_service.update_async(event[ID_FIELD], new_updates, event, skip_signals=True)
+                await service.update(event[ID_FIELD], new_updates, skip_signals=True)
 
             if len(event_plans) > 0:
                 await reschedule_event_plannings(original, reason, event_plans)
@@ -354,7 +369,7 @@ async def process_reschedule_event(
     :param require_lock: Whether to enforce lock removal (default True).
     :return: The updated event document.
     """
-    events_service = get_resource_service("events")
+    service = UnifiedPlanningResource.get_service()
     ACTION = "reschedule"
 
     # Perform pre update event actions
@@ -370,16 +385,80 @@ async def process_reschedule_event(
 
     # Clean updates before persisting change
     updates.pop("update_method", None)
-    updates.pop("skip_on_update", None)
 
-    # Update the original event in the database
     event_id = original[ID_FIELD]
-    await events_service.update_async(event_id, updates, original, skip_signals=True)
+    rescheduled_event = (await service.update(event_id, updates, skip_signals=True)).to_dict()
     await signals.event_rescheduled.send(updates, original)
-    rescheduled_event = await events_service.find_one_async(req=None, _id=event_id)
-    assert rescheduled_event is not None, "Expected rescheduled_event to be a dict, got None"
 
     # Perform post update actions
     await post_update_event_actions(updates, original, ACTION)
 
     return rescheduled_event
+
+
+# ---------------------------------------------------------------------------
+# Planning reschedule (merged from the Eve PlanningRescheduleService)
+# ---------------------------------------------------------------------------
+
+
+def _reschedule_plan(updates: dict[str, Any], original: dict[str, Any], reason: str):
+    updates["state_reason"] = reason
+
+    if updates.get(ITEM_STATE) == WORKFLOW_STATE.DRAFT and original.get("pubstatus"):
+        updates[ITEM_STATE] = WORKFLOW_STATE.SCHEDULED
+    else:
+        updates[ITEM_STATE] = updates.get(ITEM_STATE) or WORKFLOW_STATE.RESCHEDULED
+
+
+async def _reschedule_coverage(coverage: dict[str, Any], reason: str):
+    if coverage.get("workflow_status") != WORKFLOW_STATE.CANCELLED:
+        coverage["planning"]["workflow_status_reason"] = reason
+        coverage["workflow_status"] = WORKFLOW_STATE.CANCELLED
+
+    assigned_to = coverage.get("assigned_to")
+    if assigned_to:
+        assignment_service = get_resource_service("assignments")
+        assignment = await assignment_service.find_one_async(req=None, _id=assigned_to.get("assignment_id"))
+        slugline = assignment.get("planning").get("slugline", "")
+        coverage_type = assignment.get("planning").get("g2_content_type", "")
+        await PlanningNotifications().notify_assignment(
+            coverage_status=coverage.get("workflow_status"),
+            target_user=assignment.get("assigned_to").get("user"),
+            target_desk=(
+                assignment.get("assigned_to").get("desk") if not assignment.get("assigned_to").get("user") else None
+            ),
+            message="assignment_rescheduled_msg",
+            slugline=slugline,
+            coverage_type=get_coverage_type_name(coverage_type),
+        )
+
+
+async def process_reschedule_planning_item(updates: dict[str, Any], original: dict[str, Any]) -> dict[str, Any]:
+    service = UnifiedPlanningResource.get_service()
+
+    reason = updates.pop("reason", None)
+    _reschedule_plan(updates, original, reason)
+
+    updates["coverages"] = deepcopy(original.get("coverages"))
+    coverages = updates.get("coverages") or []
+
+    for coverage in coverages:
+        await _reschedule_coverage(coverage, reason)
+
+    planning_item_id = original[ID_FIELD]
+    rescheduled_planning_item = (await service.update(planning_item_id, updates, skip_signals=True)).to_dict()
+
+    user = get_user(required=True).get(ID_FIELD, "")
+    session = get_auth().get(ID_FIELD, "")
+
+    push_notification(
+        "planning:rescheduled",
+        item=str(planning_item_id),
+        user=str(user),
+        session=str(session),
+    )
+
+    # Record the reschedule in history (was the app.on_updated_planning_reschedule signal)
+    await UnifiedPlanningHistoryService().on_reschedule(updates, original)
+
+    return rescheduled_planning_item

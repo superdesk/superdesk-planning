@@ -58,11 +58,8 @@ def validate_scheduled_updates(item: UnifiedPlanningResource) -> None:
         scheduled_updates = list(coverage.scheduled_updates)
         scheduled_updates.reverse()
 
-        print(f"coverage_schedule: {coverage_schedule}, tzinfo: {coverage_schedule.tzinfo}")
-
         for i, scheduled_update in enumerate(scheduled_updates):
             scheduled_update_schedule = scheduled_update.planning.scheduled
-            print(f"scheduled_update_schedule: {scheduled_update_schedule}, tzinfo: {scheduled_update_schedule.tzinfo}")
             if not scheduled_update_schedule:
                 continue
             elif coverage_schedule and scheduled_update_schedule < coverage_schedule:
@@ -605,6 +602,32 @@ async def _cancel_coverage(
         await assignment_service.cancel_assignment(
             assignment, updated_coverage.to_dict(), event_cancellation, event_reschedule
         )
+
+
+async def cancel_coverages(
+    item: UnifiedPlanningResource,
+    reason: str | None,
+    event_cancellation: bool = False,
+    event_reschedule: bool = False,
+) -> list[str]:
+    cancel_state = NewsCoverageStatus(**get_coverage_status_from_cv("ncostat:notint"))
+    cancelled_ids: list[str] = []
+
+    for coverage in item.coverages or []:
+        if coverage.workflow_status in (WorkflowState.CANCELLED, AssignmentWorkflowState.COMPLETED):
+            continue
+
+        cancelled_ids.append(coverage.coverage_id)
+        coverage.planning.workflow_status_reason = reason
+        await _cancel_coverage(coverage, coverage, cancel_state, None, event_cancellation, event_reschedule)
+
+        for scheduled_update in coverage.scheduled_updates or []:
+            scheduled_update.planning.workflow_status_reason = reason
+            await _cancel_coverage(
+                scheduled_update, scheduled_update, cancel_state, None, event_cancellation, event_reschedule
+            )
+
+    return cancelled_ids
 
 
 def _set_scheduled_update_active(

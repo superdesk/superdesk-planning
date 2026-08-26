@@ -19,9 +19,11 @@ from planning.common import format_address, POST_STATE, TO_BE_CONFIRMED_FIELD
 from planning.events.events_utils import generate_recurring_dates
 from planning.types import PlanningRelatedEventLink
 from planning.events.events_utils import get_recurring_timeline
-from planning.events.events_reschedule import process_reschedule_event
-from planning.events.events_update_time import process_update_time
-from planning.events.events_update_repetitions import process_update_repetitions
+from planning.unified.actions import (
+    process_reschedule_event,
+    process_update_time,
+    process_update_repetitions,
+)
 from planning.locks.lock import lock_item
 from planning.content_api.resources import ContentAPIPlanningService, ContentAPIEventService
 

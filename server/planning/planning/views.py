@@ -5,7 +5,14 @@ from superdesk.core.auth.privilege_rules import required_privilege_rule
 from superdesk.core.web import EndpointGroup
 from superdesk.core.types import Request, Response
 
-from planning.unified.actions import process_spike, process_unspike, process_duplicate, process_postpone
+from planning.types import UnifiedPlanningResource
+from planning.unified.actions import (
+    process_spike,
+    process_unspike,
+    process_duplicate,
+    process_postpone,
+    process_cancel,
+)
 from planning.utils import get_json_or_400_async
 
 
@@ -82,3 +89,21 @@ async def postpone_planning_item(args: PlanningArgs, params: None, request: Requ
     postponed_planning_item = await process_postpone(updates, original)
 
     return Response(postponed_planning_item)
+
+
+@planning_endpoint_group.endpoint(
+    "planning/cancel/<string:planning_id>",
+    name="planning_cancel",
+    methods=["PATCH"],
+    auth=[required_privilege_rule("planning_planning_management")],
+)
+async def cancel_planning_item(args: PlanningArgs, params: None, request: Request) -> Response:
+    original = await UnifiedPlanningResource.get_service().find_by_id(args.planning_id)
+    if not original:
+        await request.abort(404, "Planning Item not found")
+
+    updates = await get_json_or_400_async(request)
+    cancel_all_coverage = updates.pop("cancel_all_coverage", False)
+    cancelled_planning_item = await process_cancel(updates, original.to_dict(), cancel_all_coverage=cancel_all_coverage)
+
+    return Response(cancelled_planning_item)

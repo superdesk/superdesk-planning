@@ -34,6 +34,7 @@ from planning.publish.common import validate_item_for_publish
 
 from .common import set_planning_schedule, ItemUpdateRequest, get_related_event_ids, get_related_planning_for_events
 from .notifications import send_unlock_notification
+from .actions.cancel import process_cancel_planning_item
 
 
 FREQUENCIES: dict[RecurringFrequency, Literal[0, 1, 2, 3]] = {
@@ -443,13 +444,10 @@ async def _mark_event_complete(req: ItemUpdateRequest, mark_complete_validated: 
     cursor = await get_related_planning_for_events([req.original.id], RelatedEventLinkType.PRIMARY)
     async for plan in cursor:
         if plan.state != WorkflowState.CANCELLED and plan.coverages:
-            # TODO-UNIFIED: Use newer service to cancel the Planning item
-            await get_resource_service("planning_cancel").patch_async(
-                plan.id,
-                {
-                    "reason": "Event Completed",
-                    "cancel_all_coverage": True,
-                },
+            await process_cancel_planning_item(
+                {"reason": "Event Completed"},
+                plan.to_dict(),
+                cancel_all_coverage=True,
             )
 
 
