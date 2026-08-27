@@ -3,7 +3,14 @@ import {connect} from 'react-redux';
 import {get, isEqual} from 'lodash';
 
 import {IDesk, IUser} from 'superdesk-api';
-import {IContactItem, IG2ContentType, IPlanningCoverageItem, IPlanningItem} from '../../interfaces';
+import {appConfig} from 'appConfig';
+import {
+    IContactItem,
+    IG2ContentType,
+    IPlanningCoverageItem,
+    IPlanningItem,
+    IPlanningWorkflowStatus,
+} from '../../interfaces';
 
 import * as selectors from '../../selectors';
 import * as actions from '../../actions';
@@ -48,6 +55,16 @@ interface IState {
     coverageDateText?: string;
     internalNoteFieldPrefix?: string;
 }
+
+type ILabelType = React.ComponentProps<typeof Label>['type'];
+
+// Statuses without an entry fall back to 'warning'
+const WORKFLOW_STATUS_LABEL_TYPES: Partial<Record<IPlanningWorkflowStatus, ILabelType>> = {
+    draft: 'default',
+    assigned: 'primary',
+    active: 'success',
+    spiked: 'alert',
+};
 
 const mapStateToProps = (state) => ({
     users: selectors.general.users(state),
@@ -179,7 +196,10 @@ export class CoverageItemComponent extends React.Component<IProps, IState> {
     renderFirstRow() {
         return (
             <Row paddingBottom>
-                <span className="sd-overflow-ellipsis sd-list-item--element-grow">
+                <span
+                    className="sd-overflow-ellipsis sd-list-item--element-grow"
+                    title={gettext('Coverage type')}
+                >
                     {this.state.displayContentType}
                 </span>
                 <time>
@@ -199,7 +219,14 @@ export class CoverageItemComponent extends React.Component<IProps, IState> {
         const {
             coverage,
             item,
+            isPreview,
         } = this.props;
+
+        // Nobody chose to add this coverage to workflow: the server did it on creation, and the
+        // action that would have done it by hand is hidden in this state. The status label says
+        // "active" instead, which is all there is to say.
+        const addedToWorkflowAutomatically = appConfig.planning_auto_assign_to_workflow === true &&
+            item.flags?.overide_auto_assign_to_workflow !== true;
 
         return (
             <Row>
@@ -213,10 +240,15 @@ export class CoverageItemComponent extends React.Component<IProps, IState> {
                 )}
 
                 {this.state.deskAssigned && (
-                    <span className="sd-overflow-ellipsis sd-list-item--element-grow">
-                        <span className="sd-list-item__text-label sd-list-item__text-label--normal">
-                            {gettext('Desk: ')}
-                        </span>
+                    <span
+                        className="sd-overflow-ellipsis sd-list-item--element-grow"
+                        title={gettext('Desk')}
+                    >
+                        {isPreview ? null : (
+                            <span className="sd-list-item__text-label sd-list-item__text-label--normal">
+                                {gettext('Desk: ')}
+                            </span>
+                        )}
                         {get(this.state.deskAssigned, 'name')}
                     </span>
                 )}
@@ -231,31 +263,18 @@ export class CoverageItemComponent extends React.Component<IProps, IState> {
                             `${this.state.internalNoteFieldPrefix}.workflow_status` : 'state'}
                         showHeaderText={false}
                     />
-                    {this.state.addedToWorkflow && (
+                    {(this.state.addedToWorkflow && !addedToWorkflowAutomatically) ? (
                         <Label
                             text={gettext('Added to workflow')}
                             type="success"
                         />
+                    ) : (
+                        <Label
+                            text={coverage.workflow_status}
+                            style="hollow"
+                            type={WORKFLOW_STATUS_LABEL_TYPES[coverage.workflow_status] ?? 'warning'}
+                        />
                     )}
-                    <Label
-                        text={this.props.coverage.workflow_status}
-                        style="hollow"
-                        type={(() => {
-                            const {coverage} = this.props;
-
-                            if (coverage.workflow_status === 'draft') {
-                                return 'default';
-                            } else if (coverage.workflow_status === 'assigned') {
-                                return 'primary';
-                            } else if (coverage.workflow_status === 'spiked') {
-                                return 'alert';
-                            } else if (coverage.workflow_status === 'active') {
-                                return 'success';
-                            } else {
-                                return 'warning';
-                            }
-                        })()}
-                    />
                 </span>
             </Row>
         );
@@ -291,6 +310,7 @@ export class CoverageItemComponent extends React.Component<IProps, IState> {
 
         return (
             <Item
+                testId="coverage-item"
                 noBg={!showBackground && !active}
                 activated={active}
                 shadow={shadow}
