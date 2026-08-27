@@ -423,6 +423,11 @@ def then_set_auto_workflow(context):
     context.app.config["PLANNING_AUTO_ASSIGN_TO_WORKFLOW"] = True
 
 
+@when('we set config DEFAULT_TIMEZONE to "{timezone}"')
+def then_set_default_timezone(context, timezone):
+    context.app.config["DEFAULT_TIMEZONE"] = timezone
+
+
 @when("we set config assignment manual reassignment only to True")
 def then_set_assignment_manual_reassignment_only(context):
     context.app.config["ASSIGNMENT_MANUAL_REASSIGNMENT_ONLY"] = True

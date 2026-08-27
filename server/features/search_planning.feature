@@ -586,6 +586,48 @@ Feature: Planning Search
         Then we get list with 0 items
 
     @auth
+    Scenario: All day coverage without scheduled date defaults to local midnight
+        When we set config DEFAULT_TIMEZONE to "Europe/Prague"
+        Given empty "planning"
+        When we post to "/planning"
+        """
+        [{
+            "guid": "planning_all_day_no_coverage",
+            "slugline": "slug123",
+            "name": "name123",
+            "planning_date": "2025-11-06T00:00:00+0000",
+            "all_day": true
+        }]
+        """
+        Then we get OK response
+        When we patch "/planning/planning_all_day_no_coverage"
+        """
+        {
+            "coverages": [
+                {
+                    "planning": {"g2_content_type": "text"},
+                    "workflow_status": "draft",
+                    "news_coverage_status": {"qcode": "ncostat:int"}
+                }
+            ]
+        }
+        """
+        Then we get OK response
+        Then we get existing resource
+        """
+        {
+            "_id": "planning_all_day_no_coverage",
+            "coverages": [
+                {"planning": {"scheduled": "2025-11-05T23:00:00+0000"}}
+            ],
+            "_planning_schedule": [
+                {"coverage_id": null, "scheduled": "2025-11-06T00:00:00+0000"},
+                {"scheduled": "2025-11-05T23:00:00+0000"}
+            ]
+        }
+        """
+
+    @auth
     Scenario: Search planning by coverage dates
         Given empty "planning"
         When we post to "/planning"
