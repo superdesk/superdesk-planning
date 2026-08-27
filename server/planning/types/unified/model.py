@@ -63,7 +63,7 @@ class UnifiedPlanningResource(
 ):
     model_resource_name = "UnifiedPlanningResource"
 
-    id: str = Field(validation_alias="_id", serialization_alias="_id")
+    id: fields.Keyword = Field(validation_alias="_id", serialization_alias="_id")
     item_type: PlanningItemType = Field(
         alias="type",
         description="Type of planning item represented by this resource",
