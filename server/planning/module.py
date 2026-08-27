@@ -7,7 +7,7 @@ from superdesk.factory.app import SuperdeskApp
 from superdesk.publish_async.signals import on_get_available_filter_params
 
 from planning.types import AgendasResourceModel
-from planning.agendas_async import agendas_resource_config
+from planning.unified.agenda import agendas_resource_config
 from planning.content_api import (
     content_api_event_resource_config,
     content_api_planning_resource_config,

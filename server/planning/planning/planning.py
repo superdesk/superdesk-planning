@@ -20,7 +20,7 @@ from lxml import etree
 from eve.methods.common import resolve_document_etag
 from eve.utils import ParsedRequest
 
-from superdesk.core import json, get_app_config, get_current_app
+from superdesk.core import get_app_config, get_current_app
 from superdesk.eve_async.service import AsyncBaseService
 from superdesk.eve_async.cursors import AsyncEveCursor
 from superdesk.resource_fields import ID_FIELD
@@ -205,17 +205,6 @@ class PlanningService(AsyncBaseService):
         if not current_user_has_privilege("planning_planning_management"):
             return False, "User does not have sufficient permissions."
         return True, ""
-
-    async def get_planning_by_agenda_id(self, agenda_id):
-        """Get the planing item by Agenda
-
-        :param dict agenda_id: Agenda _id
-        :return list: list of planing items
-        """
-        query = {"query": {"bool": {"must": {"term": {"agendas": str(agenda_id)}}}}}
-        req = ParsedRequest()
-        req.args = {"source": json.dumps(query)}
-        return await super().get_async(req=req, lookup=None)
 
     async def get_async(self, req: ParsedRequest | None, lookup: dict | None) -> AsyncEveCursor:
         if req is None:

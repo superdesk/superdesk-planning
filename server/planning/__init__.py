@@ -6,7 +6,6 @@ import superdesk
 from quart_babel import lazy_gettext
 
 from . import settings
-from .agendas import AgendasResource, AgendasService
 from .common import (
     get_max_recurrent_events,
     get_street_map_url,
@@ -87,9 +86,6 @@ def init_app(app):
 
     :param app: superdesk app
     """
-    agendas_service = AgendasService("agenda", backend=superdesk.get_backend())
-    AgendasResource("agenda", app=app, service=agendas_service)
-
     export_template_service = PlanningExportTemplatesService(
         PlanningExportTemplatesResource.endpoint_name, backend=superdesk.get_backend()
     )

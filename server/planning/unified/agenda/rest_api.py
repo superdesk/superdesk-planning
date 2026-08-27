@@ -2,7 +2,7 @@ from superdesk.core.types import Request, RestGetResponse
 from superdesk.core.resources import ResourceRestEndpoints
 from superdesk.resource_fields import ITEMS
 
-from .agendas_async_service import generate_planning_info
+from .service import generate_planning_info
 
 
 class AgendasRestEndpoints(ResourceRestEndpoints):
