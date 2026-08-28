@@ -34,7 +34,7 @@ from planning.common import (
     ASSIGNMENT_WORKFLOW_STATE,
     get_first_paragraph_text,
 )
-from planning.agendas_async import AgendasAsyncService
+from planning.unified.agenda import AgendasAsyncService
 from planning.utils import get_related_planning_for_events_async, get_first_related_event_id_for_planning
 from planning.archive import create_item_from_template
 

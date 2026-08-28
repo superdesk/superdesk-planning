@@ -20,6 +20,8 @@ from superdesk.metadata.item import ITEM_TYPE, CONTENT_TYPE
 from apps.rules.rule_handlers import RoutingRuleHandler, register_routing_rule_handler
 
 from planning.common import POST_STATE, update_post_item, WORKFLOW_STATE
+from planning.unified.agenda import AgendasAsyncService
+from planning.types.unified import UnifiedPlanningResource
 
 logger = logging.getLogger(__name__)
 
@@ -70,7 +72,7 @@ class PlanningRoutingRuleHandler(RoutingRuleHandler):
         if ingest_item[ITEM_TYPE] == CONTENT_TYPE.EVENT:
             updates = await self.add_event_calendars(ingest_item, attributes)
         elif ingest_item[ITEM_TYPE] == CONTENT_TYPE.PLANNING:
-            updates = self.add_planning_agendas(ingest_item, attributes)
+            updates = await self.add_planning_agendas(ingest_item, attributes)
 
         if updates is not None:
             ingest_item.update(updates)
@@ -122,7 +124,9 @@ class PlanningRoutingRuleHandler(RoutingRuleHandler):
 
         return updates
 
-    def add_planning_agendas(self, ingest_item: Dict[str, Any], attributes: Dict[str, Any]) -> Optional[Dict[str, Any]]:
+    async def add_planning_agendas(
+        self, ingest_item: Dict[str, Any], attributes: Dict[str, Any]
+    ) -> Optional[Dict[str, Any]]:
         """Add Planning Agendas from Routing Rule Action onto the ingested item"""
 
         ingest_item.setdefault("agendas", [])
@@ -143,13 +147,11 @@ class PlanningRoutingRuleHandler(RoutingRuleHandler):
             return None
 
         # Get the active agendas from the DB
-        # TODO-ASYNC[AgendasAsyncService] - Convert to use new AgendasAsyncService when function is converted to async
-        agendas = get_resource_service("agenda").get(
-            req=None,
-            lookup={
+        agendas = await AgendasAsyncService().get_all_list_raw(
+            {
                 ID_FIELD: {"$in": requested_agenda_ids},
                 "is_enabled": True,
-            },
+            }
         )
 
         new_agenda_ids = [agenda[ID_FIELD] for agenda in agendas]
@@ -165,7 +167,9 @@ class PlanningRoutingRuleHandler(RoutingRuleHandler):
 
         # Append Agenda IDs found onto the item
         updates = {"agendas": ingest_item["agendas"] + new_agenda_ids}
-        updated_item = get_resource_service("planning").patch(ingest_item.get(ID_FIELD), updates)
+        updated_item = (
+            await UnifiedPlanningResource.get_service().update(ingest_item.get(ID_FIELD), updates)
+        ).to_dict()
         updates["_etag"] = updated_item["_etag"]
         return updates
 
