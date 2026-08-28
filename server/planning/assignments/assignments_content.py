@@ -33,6 +33,7 @@ from planning.common import (
     assignment_allows_multiple_content_linked,
     get_config_assignment_manual_reassignment_only,
 )
+from planning.types import UnifiedPlanningResource
 from planning.history.assignments import AssignmentsHistoryService
 from planning.planning_notifications import PlanningNotifications
 from planning.archive import create_item_from_template
@@ -89,7 +90,7 @@ async def get_item_from_assignment(assignment, template=None):
     planning = None
     # we now merge planning data if they are set
     if planning_item is not None:
-        planning = await get_resource_service("planning").find_one_async(req=None, _id=planning_item)
+        planning = await UnifiedPlanningResource.get_service().find_by_id_raw(planning_item)
         if planning is not None:
             for field in FIELDS_TO_COPY:
                 if planning.get(field):
