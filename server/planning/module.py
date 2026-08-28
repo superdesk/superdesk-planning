@@ -32,7 +32,7 @@ from planning.search import (
 )
 
 from .planning_download import planning_download_endpoint
-from .unified.module import unified_planning_resource_config
+from .unified.module import unified_planning_resource_config, template_endpoints, planning_templates_resource_config
 from .unified.signals import connect_signals
 from .unified.docs import unified_resource_docs_endpoints
 from .history.module import assignments_history_resource_config, planning_history_resource_config
@@ -77,6 +77,7 @@ module = Module(
         content_api_docs_endpoints,
         unified_resource_docs_endpoints,
         planning_lock_endpoints,
+        template_endpoints,
     ],
     resources=[
         events_resource_config,
@@ -98,6 +99,7 @@ module = Module(
         # unified resource
         unified_planning_resource_config,
         autosave_resource_config,
+        planning_templates_resource_config,
     ],
     privileges=events_planning_filters_privileges,
 )

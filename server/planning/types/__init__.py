@@ -57,6 +57,7 @@ from .locations import LocationResourceModel
 from .filters import EventPlanningFilter
 from . import ninjs3
 from .unified import UnifiedPlanningResource, PlanningItemType, LockFields
+from .template import PlanningTemplateResource
 
 
 __all__ = [
@@ -109,6 +110,7 @@ __all__ = [
     "PlanningItemType",
     "LockFields",
     "AssignmentEventOrPlanning",
+    "PlanningTemplateResource",
 ]
 
 

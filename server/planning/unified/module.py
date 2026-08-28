@@ -2,6 +2,13 @@ from superdesk.core.resources import ResourceConfig, MongoResourceConfig, MongoI
 
 from planning.types.unified import UnifiedPlanningResource
 from .service import UnifiedPlanningResourceService
+from .templates import template_endpoints, planning_templates_resource_config
+
+__all__ = [
+    "unified_planning_resource_config",
+    "template_endpoints",
+    "planning_templates_resource_config",
+]
 
 
 unified_planning_resource_config = ResourceConfig(

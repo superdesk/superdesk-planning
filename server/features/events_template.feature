@@ -23,7 +23,7 @@ Feature: Events Template
                 "code": 400, "message": "Insertion failure: 1 document(s) contain(s) error(s)"
             },
             "_issues": {
-                "based_on_event": {"required": 1}
+                "based_on_event": {"required": "Field is required"}
             },
             "_status": "ERR"
         }
@@ -43,9 +43,7 @@ Feature: Events Template
             "_error": {
                 "code": 400, "message": "Insertion failure: 1 document(s) contain(s) error(s)"
             },
-            "_issues": {
-                "based_on_event": "value 'urn:newsml:localhost:5000:2019-06-04T11:55:43.319428:4e1d8468-8330-463f-9d8a-20fc02869752' must exist in resource 'events', field '_id'."
-            },
+            "_message": "Original item for template not found",
             "_status": "ERR"
         }
         """
@@ -164,22 +162,7 @@ Feature: Events Template
                 "message": "Insertion failure: 1 document(s) contain(s) error(s)"
             },
             "_issues": {
-                "based_on_event": "value '5cefd99cfe985e0a311bb677' must exist in resource 'events', field '_id'.",
-                "data": {
-                    "calendars": "field is read-only",
-                    "definition_long": "field is read-only",
-                    "definition_short": "field is read-only",
-                    "ednote": "field is read-only",
-                    "event_contact_info": "field is read-only",
-                    "files": "field is read-only",
-                    "internal_note": "field is read-only",
-                    "links": "field is read-only",
-                    "location": "field is read-only",
-                    "name": "field is read-only",
-                    "occur_status": "field is read-only",
-                    "slugline": "field is read-only",
-                    "subject": "field is read-only"
-                }
+                "data": "Data field is read-only"
             },
             "_status": "ERR"
         }
@@ -733,15 +716,7 @@ Feature: Events Template
         """
         {
             "_issues": {
-                "data": {
-                    "name": "field is read-only",
-                    "slugline": "field is read-only",
-                    "definition_short": "field is read-only",
-                    "definition_long": "field is read-only",
-                    "internal_note": "field is read-only",
-                    "links": "field is read-only",
-                    "ednote": "field is read-only"
-                }
+                "data": "Data field is read-only"
             },
             "_status": "ERR"
         }
@@ -806,15 +781,7 @@ Feature: Events Template
         """
         {
             "_issues": {
-                "data": {
-                    "definition_long": "field is read-only",
-                    "definition_short": "field is read-only",
-                    "ednote": "field is read-only",
-                    "internal_note": "field is read-only",
-                    "links": "field is read-only",
-                    "name": "field is read-only",
-                    "slugline": "field is read-only"
-                }
+                "data": "Data field is read-only"
             },
             "_status": "ERR"
         }
@@ -1001,22 +968,11 @@ Feature: Events Template
         """
         Given "events_template"
         """
-        [
-            {
-                "_id": "5cefd99cfe985e0a311bb888",
-                "slugline": "Go kart",
-                "name": "Go kart",
-                "definition_short": "Go kart Prague",
-                "definition_long": "THIS IS LONG DESC",
-                "internal_note": "THIS IS INT NOTE",
-                "ednote": "THIS IS ED NOTE",
-                "links": [
-                    "http://example.com",
-                    "http://somedomain.cz"
-                ],
-                 "based_on_event": "5cefd99cfe985e0a311bb666"
-            }
-        ]
+        [{
+            "_id": "5cefd99cfe985e0a311bb888",
+            "based_on_event": "5cefd99cfe985e0a311bb666",
+            "template_name": "Test Template"
+        }]
         """
         When we post to "/events_template"
         """
