@@ -379,7 +379,8 @@ async def set_assignment_xmp_file_info(assignment: dict) -> None:
         return
 
     try:
-        parsed = etree.parse(media_file)
+        media_buffer = await media_file.to_buffer_sync()
+        parsed = etree.parse(media_buffer)
         mapping = get_planning_xmp_assignment_mapping()
         tags = parsed.xpath(mapping["xpath"], namespaces=mapping["namespaces"])
         if tags:
