@@ -1,14 +1,14 @@
 from typing import Any
 from planning.core.service import BasePlanningAsyncService
 from planning.types import AgendasResourceModel
-from planning.unified.common import get_planning_by_agenda_id, agenda_has_planning_items
+from planning.unified.common import get_items_by_agenda_id, agenda_has_items
 from superdesk.errors import SuperdeskApiError
 from superdesk.notification import push_notification
 
 
 async def generate_planning_info(docs: list[dict[str, Any]]):
     for doc in docs:
-        cursor = await get_planning_by_agenda_id(doc.get("_id"))
+        cursor = await get_items_by_agenda_id(doc.get("_id"))
         doc["plannings"] = await cursor.to_list_raw()
 
 
@@ -28,7 +28,7 @@ class AgendasAsyncService(BasePlanningAsyncService[AgendasResourceModel]):
         )
 
     async def on_delete(self, doc: AgendasResourceModel):
-        if await agenda_has_planning_items(doc.id):
+        if await agenda_has_items(doc.id):
             raise SuperdeskApiError.badRequestError(
                 message="Agenda is referenced by Planning items. Cannot delete Agenda"
             )

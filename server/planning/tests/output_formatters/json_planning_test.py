@@ -18,7 +18,7 @@ from superdesk.tests import utils as test_utils, fixtures
 
 from planning.tests import TestCase
 from planning.output_formatters.json_planning import JsonPlanningFormatter
-from planning.types import PlanningRelatedEventLink, AgendasResourceModel
+from planning.types import PlanningRelatedEventLink
 
 
 class JsonPlanningTestCase(TestCase):
@@ -171,7 +171,7 @@ class JsonPlanningTestCase(TestCase):
                 "_updated": "2017-09-06T06:22:53.000Z",
                 "_created": "2017-09-06T06:22:53.000Z",
             }
-            await AgendasResourceModel.get_service().mongo_async.insert_one(agenda)
+            await test_utils.post_items("agenda", [agenda])
             self.app.data.insert("assignments", self.assignment)
             self.app.data.insert("delivery", self.delivery)
             formatter = JsonPlanningFormatter()
@@ -249,7 +249,7 @@ class JsonPlanningTestCase(TestCase):
                 "_updated": "2017-09-06T06:22:53.000Z",
                 "_created": "2017-09-06T06:22:53.000Z",
             }
-            await AgendasResourceModel.get_service().mongo_async.insert_one(agenda)
+            await test_utils.post_items("agenda", [agenda])
             formatter = JsonPlanningFormatter()
             item = deepcopy(self.item)
             item["coverages"][0].pop("assigned_to", None)

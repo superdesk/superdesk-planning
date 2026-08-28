@@ -179,27 +179,26 @@ async def event_has_planning_items(
     return await UnifiedPlanningResource.get_service().count(query) > 0
 
 
-def _planning_by_agenda_query(agenda_id) -> dict:
+def _items_by_agenda_query(agenda_id) -> dict:
     return {
         "query": {
             "bool": {
                 "filter": [
                     {"term": {"agendas": str(agenda_id)}},
-                    {"term": {"type": PlanningItemType.PLANNING.value}},
                 ]
             }
         }
     }
 
 
-async def get_planning_by_agenda_id(agenda_id) -> ResourceCursorAsync[UnifiedPlanningResource]:
-    """Get the Planning items referencing the given Agenda, from the unified index."""
-    return await UnifiedPlanningResource.get_service().search(_planning_by_agenda_query(agenda_id))
+async def get_items_by_agenda_id(agenda_id) -> ResourceCursorAsync[UnifiedPlanningResource]:
+    """Get the items referencing the given Agenda, from the unified index."""
+    return await UnifiedPlanningResource.get_service().search(_items_by_agenda_query(agenda_id))
 
 
-async def agenda_has_planning_items(agenda_id) -> bool:
-    """Whether any Planning item references the given Agenda, using an ES count."""
-    return await UnifiedPlanningResource.get_service().count(_planning_by_agenda_query(agenda_id)) > 0
+async def agenda_has_items(agenda_id) -> bool:
+    """Whether any item references the given Agenda, using an ES count."""
+    return await UnifiedPlanningResource.get_service().count(_items_by_agenda_query(agenda_id)) > 0
 
 
 async def get_series(

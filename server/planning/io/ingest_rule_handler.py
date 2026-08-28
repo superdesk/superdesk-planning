@@ -21,6 +21,7 @@ from apps.rules.rule_handlers import RoutingRuleHandler, register_routing_rule_h
 
 from planning.common import POST_STATE, update_post_item, WORKFLOW_STATE
 from planning.unified.agenda import AgendasAsyncService
+from planning.types.unified import UnifiedPlanningResource
 
 logger = logging.getLogger(__name__)
 
@@ -166,7 +167,9 @@ class PlanningRoutingRuleHandler(RoutingRuleHandler):
 
         # Append Agenda IDs found onto the item
         updates = {"agendas": ingest_item["agendas"] + new_agenda_ids}
-        updated_item = await get_resource_service("planning").patch_async(ingest_item.get(ID_FIELD), updates)
+        updated_item = (
+            await UnifiedPlanningResource.get_service().update(ingest_item.get(ID_FIELD), updates)
+        ).to_dict()
         updates["_etag"] = updated_item["_etag"]
         return updates
 
