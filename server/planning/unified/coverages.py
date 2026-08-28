@@ -371,7 +371,7 @@ async def set_assignment_xmp_file_info(assignment: dict) -> None:
         return
 
     app = get_current_app()
-    media_file = app.media.get(xmp_file["media"], resource="planning_files")
+    media_file = await app.media.get_async(xmp_file["media"], resource="planning_files")
     if not media_file:
         logger.error(
             "xmp_file not found in media storage", extra=dict(assignment_id=assignment_id, xmp_file=xmp_file_id)
@@ -400,7 +400,7 @@ async def set_assignment_xmp_file_info(assignment: dict) -> None:
         buf = BytesIO()
         buf.write(etree.tostring(parsed.getroot(), pretty_print=True))
         buf.seek(0)
-        media_id = app.media.put(
+        media_id = await app.media.put_async(
             buf,
             resource="planning_files",
             filename=media_file.filename,
