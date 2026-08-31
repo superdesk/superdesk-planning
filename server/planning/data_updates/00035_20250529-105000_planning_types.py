@@ -5,15 +5,18 @@
 # at https://www.sourcefabric.org/superdesk/license
 #
 
+from motor.motor_asyncio import AsyncIOMotorCollection, AsyncIOMotorDatabase
+
 from superdesk.commands.data_updates import BaseDataUpdate
 
 
 class DataUpdate(BaseDataUpdate):
     resource = "planning_types"
+    use_async_resources: bool = True
 
-    def forwards(self, mongodb_collection, mongodb_database):
-        for resource_type in ["events", "planning"]:
-            profile = mongodb_collection.find_one({"name": resource_type})
+    async def forwards(self, collection: AsyncIOMotorCollection, database: AsyncIOMotorDatabase):
+        for resource_type in ["event", "planning"]:
+            profile = await collection.find_one({"type": resource_type})
             if not profile or not profile.get("schema") or not profile.get("editor"):
                 continue
 
@@ -54,7 +57,7 @@ class DataUpdate(BaseDataUpdate):
                     }
                     index += 1
 
-            mongodb_collection.update_many({"name": resource_type}, {"$set": {"schema": schema, "editor": editor}})
+            await collection.update_many({"type": resource_type}, {"$set": {"schema": schema, "editor": editor}})
 
-    def backwards(self, mongodb_collection, mongodb_database):
+    async def backwards(self, collection: AsyncIOMotorCollection, database: AsyncIOMotorDatabase):
         pass
