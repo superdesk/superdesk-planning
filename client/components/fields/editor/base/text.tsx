@@ -76,6 +76,14 @@ export class EditorFieldText extends React.Component<IEditorFieldTextProps, ISta
         if (prevProps?.item?._id !== this.props.item?._id) {
             this.setState({userHasModified: false});
         }
+
+        // Honor an external clear (e.g. the "Clear" button) when the prop transitions to empty
+        const prevValue = get(prevProps.item, prevProps.field, prevProps.defaultValue || '');
+        const nextValue = get(this.props.item, this.props.field, this.props.defaultValue || '');
+
+        if (prevValue !== nextValue && !nextValue && this.state.value !== '') {
+            this.setState({value: '', userHasModified: false});
+        }
     }
 
     onChange(value: string) {

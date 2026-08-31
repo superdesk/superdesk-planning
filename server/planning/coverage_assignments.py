@@ -330,6 +330,13 @@ def _set_assignment_state(updates: dict, coverage: dict, assignment: dict) -> bo
     assign_state = ASSIGNMENT_WORKFLOW_STATE.ASSIGNED
     coverage_assigned_to = coverage.get("assigned_to") or {}
     assignment_assigned_to = (assignment or {}).get("assigned_to") or {}
+    current_assignment_state = assignment_assigned_to.get("state")
+    coverage_assignment_state = coverage_assigned_to.get("state")
+
+    # For existing assignments, preserve current workflow state unless we have an
+    # explicit state transition to apply.
+    if current_assignment_state:
+        assign_state = current_assignment_state
 
     if coverage.get("workflow_status") == WORKFLOW_STATE.DRAFT:
         assign_state = ASSIGNMENT_WORKFLOW_STATE.DRAFT
@@ -342,8 +349,16 @@ def _set_assignment_state(updates: dict, coverage: dict, assignment: dict) -> bo
         if assignee_changed and get_config_assignment_manual_reassignment_only():
             # Reassignment should move the item back to To Do.
             assign_state = ASSIGNMENT_WORKFLOW_STATE.ASSIGNED
-        elif coverage_assigned_to.get("state") and coverage_assigned_to["state"] != ASSIGNMENT_WORKFLOW_STATE.DRAFT:
-            assign_state = coverage_assigned_to["state"]
+        elif (
+            not assignee_changed
+            and current_assignment_state == ASSIGNMENT_WORKFLOW_STATE.IN_PROGRESS
+            and coverage_assignment_state == ASSIGNMENT_WORKFLOW_STATE.ASSIGNED
+        ):
+            # Planning editors can hold stale assigned_to.state values. Do not
+            # downgrade an in-progress assignment to "to do" on planning save.
+            assign_state = ASSIGNMENT_WORKFLOW_STATE.IN_PROGRESS
+        elif coverage_assignment_state and coverage_assignment_state != ASSIGNMENT_WORKFLOW_STATE.DRAFT:
+            assign_state = coverage_assignment_state
 
     if updates["assigned_to"]["state"] != assign_state:
         updates["assigned_to"]["state"] = assign_state

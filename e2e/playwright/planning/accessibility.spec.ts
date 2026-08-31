@@ -70,7 +70,11 @@ test.describe('Planning.Planning: list view accessibility', () => {
         await expect(group).toHaveAttribute('aria-activedescendant', 'list-panel-0--0');
     });
 
-    test('can open an item for editing using a keyboard', async ({page}) => {
+    test('can open an item for editing using a keyboard', {
+        annotation: [
+            {type: 'confluence', description: '1311835157 complete'}, // Edit planning item in popup
+        ],
+    }, async ({page}) => {
         const group = page.locator('.sd-list-item-group').first();
 
         await group.focus();

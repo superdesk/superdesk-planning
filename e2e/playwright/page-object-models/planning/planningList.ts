@@ -65,6 +65,30 @@ export class PlanningList {
             .click();
     }
 
+    async toggleAssociatedEvents(index: number): Promise<void> {
+        await this.nestedItem(index)
+            .getByTestId('toggle-related-events')
+            .click();
+    }
+
+    /**
+     * The multi-select toolbar renders its actions as icon buttons carrying only an aria-label,
+     * so this is a role lookup rather than a test id.
+     */
+    async addSelectedToWorkflow(index: number): Promise<void> {
+        await this.item(index).hover();
+        await this.item(index).getByTestId('multi-select-checkbox').click();
+
+        // The action patches each selected item; without waiting for that response a reload
+        // straight afterwards races the in-flight request and sees the coverage still in draft
+        const patched = this.page.waitForResponse((response) => (
+            response.request().method() === 'PATCH' && response.url().includes('/planning/')
+        ));
+
+        await this.page.getByRole('button', {name: 'Add to workflow'}).click();
+        await patched;
+    }
+
     async setDateInterval(interval: 'Day' | 'Week' | 'Month') {
         await this.page.getByTestId('planning-list-panel')
             .getByTestId('interval-dropdown-toggle')

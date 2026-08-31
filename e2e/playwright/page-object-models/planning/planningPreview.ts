@@ -31,6 +31,14 @@ export class PlanningPreview {
         return this.entityCards.nth(index);
     }
 
+    get coverageCards(): Locator {
+        return this.element.getByTestId('coverage-item');
+    }
+
+    coverageCard(index: number): Locator {
+        return this.coverageCards.nth(index);
+    }
+
     // The column wrapping `ItemIcon` on a related event / planning item
     itemTypeIcons(scope?: Locator): Locator {
         return (scope ?? this.element).locator('[data-test-id="item-type-icon"]');

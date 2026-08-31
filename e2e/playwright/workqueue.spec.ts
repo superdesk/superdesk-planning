@@ -24,7 +24,11 @@ test.describe('Planning.Workqueue', () => {
         await waitForPageLoad.planning(page);
     });
 
-    test('Events', async({page}) => {
+    test('Events', {
+        annotation: [
+            {type: 'confluence', description: '1311835149 complete'}, // Minimise event
+        ],
+    }, async({page}) => {
         // Add the 3 Events we'll use for testing against
         await addItems(
             page.request,

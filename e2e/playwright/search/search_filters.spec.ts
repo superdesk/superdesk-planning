@@ -66,7 +66,12 @@ test.describe('Search.Filters: creating search filters', () => {
         await searchFilters.expectItemText(0, 'Test Empties');
     });
 
-    test('can create event filter', async ({page}) => {
+    test('can create event filter', {
+        annotation: [
+            // Planning filters and scheduled exports - basic cases (Mikayel) - PASS 02.11.22
+            {type: 'confluence', description: '1311835173 complete'},
+        ],
+    }, async ({page}) => {
         await addItems(page.request, 'locations', [LOCATIONS.sydney_opera_house]);
 
         await searchFilters.open();

@@ -13,6 +13,8 @@ test-server/__pycache__
 e2e-test-results
 templates-cache.generated.js
 .env
+# generated per-checkout by e2e/scripts/e2e-up.sh --slot
+e2e/.e2e-slot.env
 .python-version
 .idea
 npm-debug.log

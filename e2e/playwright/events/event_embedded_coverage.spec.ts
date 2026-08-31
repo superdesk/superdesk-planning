@@ -23,7 +23,11 @@ test.describe('Planning.Events: embedded coverage', () => {
         await waitForPageLoad.planning(page);
     });
 
-    test('can add a planning item to a new Event', async () => {
+    test('can add a planning item to a new Event', {
+        annotation: [
+            {type: 'confluence', description: '1311835165 complete'}, // Add planning item as event
+        ],
+    }, async () => {
         await subnav.createEvent();
         await editor.waitTillOpen();
 

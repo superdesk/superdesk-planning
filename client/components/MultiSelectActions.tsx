@@ -3,6 +3,7 @@ import {connect} from 'react-redux';
 import * as actions from '../actions';
 import * as selectors from '../selectors';
 import {every} from 'lodash';
+import {appConfig} from 'appConfig';
 import {eventUtils, planningUtils, gettext} from '../utils';
 import {MAIN} from '../constants';
 import {SlidingToolBar} from './UI/SubNav';
@@ -119,9 +120,17 @@ export class MultiSelectActionsComponent extends React.PureComponent<IProps> {
 
         const showExport = selectedPlannings.every((planning) => planning.flags.marked_for_not_publication !== true);
 
+        // Coverages on an item that auto assigns to workflow are already in it, so the action has
+        // nothing to do. An item that sets the override flag is left out of auto assign, so adding
+        // its coverages by hand stays the only way in.
+        const showAddToWorkflow = selectedPlannings.every((planning) => (
+            appConfig.planning_auto_assign_to_workflow !== true ||
+            planning.flags?.overide_auto_assign_to_workflow === true
+        ));
+
         let tools = [];
 
-        if (selectedPlannings.every((planning) => planning.lock_action == null)) {
+        if (showAddToWorkflow && selectedPlannings.every((planning) => planning.lock_action == null)) {
             tools.push(
                 <IconButton
                     key={0}
