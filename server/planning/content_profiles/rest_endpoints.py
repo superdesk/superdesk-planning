@@ -6,10 +6,10 @@ from planning.types import DEFAULT_PROFILE_ID
 
 class PlanningProfilesRestEndpoints(ResourceRestEndpoints):
     async def on_fetched_item(self, request: Request, doc: dict) -> None:
-        if doc["_id"] == DEFAULT_PROFILE_ID:
+        if str(doc["_id"]) == str(DEFAULT_PROFILE_ID):
             del doc["_id"]
 
     async def on_fetched(self, request: Request, doc: RestGetResponse) -> None:
         for item in doc["_items"]:
-            if item["_id"] == DEFAULT_PROFILE_ID:
+            if str(item["_id"]) == str(DEFAULT_PROFILE_ID):
                 del item["_id"]
