@@ -17,8 +17,6 @@ from superdesk.eve_async.eve_to_pydantic_datalayer import EveToPydanticDataLayer
 from planning.history.planning import UnifiedPlanningHistoryService
 from .planning import PlanningResource, PlanningService  # noqa
 from .planning_schema import coverage_schema  # noqa
-from .planning_cancel import PlanningCancelService, PlanningCancelResource
-from .planning_reschedule import PlanningRescheduleService, PlanningRescheduleResource
 from planning.files import PlanningFilesResource, FilesAsyncService
 
 from .module import (
@@ -51,20 +49,6 @@ def init_app(app):
     files_service = FilesAsyncService("planning_files", backend=superdesk.get_backend())
     PlanningFilesResource("planning_files", app=app, service=files_service)
 
-    planning_cancel_service = PlanningCancelService(
-        PlanningCancelResource.endpoint_name, backend=superdesk.get_backend()
-    )
-    PlanningCancelResource(PlanningCancelResource.endpoint_name, app=app, service=planning_cancel_service)
-
-    planning_reschedule_service = PlanningRescheduleService(
-        PlanningRescheduleResource.endpoint_name, backend=superdesk.get_backend()
-    )
-    PlanningRescheduleResource(
-        PlanningRescheduleResource.endpoint_name,
-        app=app,
-        service=planning_reschedule_service,
-    )
-
     planning_history_service = UnifiedPlanningHistoryService()
 
     # listen to async signals
@@ -72,10 +56,6 @@ def init_app(app):
     signals.planning_spiked.connect(planning_history_service.on_spike)
     signals.planning_unspiked.connect(planning_history_service.on_unspike)
     signals.planning_postponed.connect(planning_history_service.on_postpone)
-
-    # Still include the old signals
-    app.on_updated_planning_cancel += planning_history_service.on_cancel
-    app.on_updated_planning_reschedule += planning_history_service.on_reschedule
 
     superdesk.privilege(
         name="planning_planning_management",

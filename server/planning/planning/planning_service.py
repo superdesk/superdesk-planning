@@ -10,7 +10,6 @@ from typing import Any, cast
 
 from apps.auth import get_user, get_auth
 
-from superdesk.core.types import SearchRequest
 from superdesk.core import get_current_app
 from superdesk.utc import utcnow, utc_to_local
 from superdesk.errors import SuperdeskApiError
@@ -387,7 +386,7 @@ class PlanningAsyncService(BasePlanningAsyncService[PlanningResourceModel]):
             docs.extend(generated_planning_items)
 
     async def validate_planning(self, updated_planning: dict[str, Any], original=None):
-        from planning.agendas_async.agendas_async_service import AgendasAsyncService
+        from planning.unified.agenda.service import AgendasAsyncService
 
         if (not original and not updated_planning.get("planning_date")) or (
             "planning_date" in updated_planning and updated_planning["planning_date"] is None
@@ -1529,13 +1528,3 @@ class PlanningAsyncService(BasePlanningAsyncService[PlanningResourceModel]):
             await events_history_service.on_item_updated(
                 {"planning_id": doc[ID_FIELD]}, original_event, "planning_created"
             )
-
-    async def get_planning_by_agenda_id(self, agenda_id):
-        """Get the planing item by Agenda
-
-        :param dict agenda_id: Agenda _id
-        :return list: list of planing items
-        """
-        query = {"query": {"bool": {"must": {"term": {"agendas": str(agenda_id)}}}}}
-        search_request = SearchRequest(args={"source": query})
-        return await super().find(search_request)

@@ -14,6 +14,7 @@ from superdesk import get_resource_service
 from apps.archive.common import ARCHIVE
 
 from planning.common import ASSIGNMENT_WORKFLOW_STATE, WORKFLOW_STATE
+from planning.unified.agenda import AgendasAsyncService
 from planning.utils import get_first_related_event_id_for_planning, get_related_event_links_for_planning
 
 from .utils import expand_contact_info
@@ -125,8 +126,9 @@ class JsonPlanningFormatter(BaseJsonFormatter):
             "is_enabled",
         }
         expanded = []
+        agenda_service = AgendasAsyncService()
         for agenda in item.get("agendas", []):
-            agenda_details = await get_resource_service("agenda").find_one_async(req=None, _id=agenda)
+            agenda_details = await agenda_service.find_by_id_raw(agenda)
             if agenda_details and agenda_details.get("is_enabled"):
                 for f in remove_agenda_fields:
                     agenda_details.pop(f, None)

@@ -71,7 +71,7 @@ class JsonPlanningTestCase(TestCase):
         "guid": "urn:newsml:localhost:2018-04-10T11:06:53.632085:e372d553-9ee1-4e62-8706-fd2eb678ce06",
         "planning_date": "2018-04-09T14:00:53.000Z",
         "headline": "Name of the event",
-        "agendas": [1],
+        "agendas": [ObjectId("5a9c5f4d1d41c81b8f6a4c11")],
         "related_events": [
             PlanningRelatedEventLink(
                 _id="event_prim_1",
@@ -164,14 +164,14 @@ class JsonPlanningTestCase(TestCase):
     async def test_formatter_completed_coverage(self):
         async with self.app.app_context():
             agenda = {
-                "_id": 1,
+                "_id": ObjectId("5a9c5f4d1d41c81b8f6a4c11"),
                 "is_enabled": True,
                 "original_creator": "57bcfc5d1d41c82e8401dcc0",
                 "name": "Culture",
                 "_updated": "2017-09-06T06:22:53.000Z",
                 "_created": "2017-09-06T06:22:53.000Z",
             }
-            self.app.data.insert("agenda", [agenda])
+            await test_utils.post_items("agenda", [agenda])
             self.app.data.insert("assignments", self.assignment)
             self.app.data.insert("delivery", self.delivery)
             formatter = JsonPlanningFormatter()
@@ -242,14 +242,14 @@ class JsonPlanningTestCase(TestCase):
     async def test_formatter_draft_coverage(self):
         async with self.app.app_context():
             agenda = {
-                "_id": 1,
+                "_id": ObjectId("5a9c5f4d1d41c81b8f6a4c11"),
                 "is_enabled": True,
                 "original_creator": "57bcfc5d1d41c82e8401dcc0",
                 "name": "Culture",
                 "_updated": "2017-09-06T06:22:53.000Z",
                 "_created": "2017-09-06T06:22:53.000Z",
             }
-            self.app.data.insert("agenda", [agenda])
+            await test_utils.post_items("agenda", [agenda])
             formatter = JsonPlanningFormatter()
             item = deepcopy(self.item)
             item["coverages"][0].pop("assigned_to", None)

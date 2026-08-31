@@ -146,7 +146,7 @@ class IngestRuleHandlerTestCase(TestCase):
         self.assertEqual(calendars[0], "sports")
 
     async def test_adds_planning_agendas(self):
-        self.app.data.insert("agenda", self.agendas)
+        await test_utils.post_items("agenda", self.agendas)
         plan = self.planning_items[0]
         await self.app.data.insert_async("planning", [plan])
         original = self.app.data.find_one("planning", req=None, _id=plan["_id"])
@@ -160,7 +160,7 @@ class IngestRuleHandlerTestCase(TestCase):
         self.assertEqual(updated["agendas"][0], self.agendas[0]["_id"])
 
     async def test_skips_disabled_and_existing_agendas(self):
-        self.app.data.insert("agenda", self.agendas)
+        await test_utils.post_items("agenda", self.agendas)
         plan = self.planning_items[1]
         await self.app.data.insert_async("planning", [plan])
         original = self.app.data.find_one("planning", req=None, _id=plan["_id"])

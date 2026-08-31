@@ -67,7 +67,7 @@ Feature: Agenda
         """
         Then we get error 400
         """
-        {"_issues": {"name": {"unique": 1}}, "_status": "ERR"}
+        {"_issues": {"name": {"unique": "Value must be unique"}}, "_status": "ERR"}
         """
         When we post to "agenda"
         """
@@ -80,7 +80,7 @@ Feature: Agenda
         """
         Then we get error 400
         """
-        {"_issues": {"name": {"unique": 1}}, "_status": "ERR"}
+        {"_issues": {"name": {"unique": "Value must be unique"}}, "_status": "ERR"}
         """
 
     @auth

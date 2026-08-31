@@ -81,7 +81,7 @@ from planning.utils import (
     get_first_event_item_for_planning_id,
 )
 from planning.coverage_assignments import update_planning_from_assignment_changes
-from planning.unified.coverages import remove_assignment_from_coverage
+from planning.unified.coverages import remove_assignment_from_coverage, set_assignment_xmp_file_info
 from planning.locks.unlock import unlock_item
 
 logger = logging.getLogger(__name__)
@@ -222,7 +222,7 @@ class AssignmentsService(AsyncBaseService):
             self.notify("assignments:created", doc, {})
 
             if assignment_state != ASSIGNMENT_WORKFLOW_STATE.COMPLETED:
-                await get_resource_service("planning").set_xmp_file_info(doc)
+                await set_assignment_xmp_file_info(doc)
                 await self.send_assignment_notification(doc, {})
 
     async def on_update_async(self, updates, original):
@@ -265,7 +265,7 @@ class AssignmentsService(AsyncBaseService):
 
     async def validate_assignment_action(self, assignment: dict) -> None:
         if assignment.get("_to_delete"):
-            plan = await get_resource_service("planning").find_one_async(req=None, _id=assignment.get("planning_item"))
+            plan = await UnifiedPlanningResource.get_service().find_by_id_raw(assignment.get("planning_item"))
             state = "unposted" if (plan or {}).get("state") == WORKFLOW_STATE.KILLED else (plan or {}).get("state")
             raise SuperdeskApiError.forbiddenError(gettext("Action failed. Related planning item is {}").format(state))
 
@@ -1146,7 +1146,6 @@ class AssignmentsService(AsyncBaseService):
         """
         archive_service = get_resource_service("archive")
         delivery_service = get_resource_service("delivery")
-        planning_service = get_resource_service("planning")
         assignment_link_service = get_resource_service("assignments_link")
 
         for doc in items:
@@ -1161,7 +1160,7 @@ class AssignmentsService(AsyncBaseService):
             if not delivery:
                 raise SuperdeskApiError.badRequestError(gettext("Delivery record not found."))
 
-            planning = await planning_service.find_one_async(req=None, _id=delivery.get("planning_id"))
+            planning = await UnifiedPlanningResource.get_service().find_by_id_raw(delivery.get("planning_id"))
             if not planning:
                 raise SuperdeskApiError.badRequestError(gettext("Planning does not exist"))
 
@@ -1262,8 +1261,7 @@ class AssignmentsService(AsyncBaseService):
             return
 
         # Also make sure the Planning item is locked by this user and session
-        planning_service = get_resource_service("planning")
-        planning_item = await planning_service.find_one_async(req=None, _id=doc.get("planning_item"))
+        planning_item = await UnifiedPlanningResource.get_service().find_by_id_raw(doc.get("planning_item"))
 
         if not planning_item:
             raise SuperdeskApiError.badRequestError(message=gettext("Failed to find Planning item."))

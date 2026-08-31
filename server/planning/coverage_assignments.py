@@ -2,7 +2,6 @@ from typing import Literal
 from copy import deepcopy
 import logging
 
-from superdesk import get_resource_service
 from superdesk.resource_fields import ID_FIELD
 from superdesk.utc import utcnow
 
@@ -15,7 +14,7 @@ from planning.common import (
     TO_BE_CONFIRMED_FIELD,
     get_config_assignment_manual_reassignment_only,
 )
-from planning.types import AutosaveResourceModel
+from planning.types import AutosaveResourceModel, UnifiedPlanningResource
 
 __all__ = [
     "update_planning_from_assignment_changes",
@@ -53,7 +52,7 @@ async def update_planning_from_assignment_changes(
     if is_autosave:
         planning_item = await AutosaveResourceModel.get_service().find_by_id_raw(planning_id)
     else:
-        planning_item = await get_resource_service("planning").find_one_async(req=None, _id=planning_id)
+        planning_item = await UnifiedPlanningResource.get_service().find_by_id_raw(planning_id)
 
     if not planning_item:
         if not is_autosave:
@@ -118,12 +117,8 @@ async def update_planning_from_assignment_changes(
             planning_item[ID_FIELD], updates={"coverages": coverages}
         )
     else:
-        planning_service = get_resource_service("planning")
-        await planning_service.backend.system_update_async(
-            planning_service.datasource,
-            planning_item[ID_FIELD],
-            {"coverages": coverages},
-            planning_item,
+        await UnifiedPlanningResource.get_service().system_update(
+            planning_item[ID_FIELD], updates={"coverages": coverages}
         )
 
 
