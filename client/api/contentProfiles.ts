@@ -12,6 +12,7 @@ import {planningApi, superdeskApi} from '../superdeskApi';
 
 import {profiles} from '../selectors/forms';
 import {updateContentProfiles} from '../actions/forms';
+import {updateCoverageProfiles} from '../actions/coverages';
 
 import {sortProfileGroups} from '../utils/contentProfiles';
 
@@ -198,12 +199,17 @@ function updateProfilesInStore(): Promise<void> {
     return getAll().then((profileArray) => {
         dispatch(updateContentProfiles(profileArray.reduce(
             (profiles, profile) => {
-                profiles[profile.type] = profile;
+                if (profile.type !== 'coverage') {
+                    profiles[profile.type] = profile;
+                }
 
                 return profiles;
             },
             {}
         )));
+        dispatch(updateCoverageProfiles(
+            profileArray.filter((profile) => profile.type === 'coverage')
+        ));
     });
 }
 
