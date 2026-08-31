@@ -1570,8 +1570,8 @@ Feature: Events Reschedule
         """
         [
             {
-                "_id": "event_reschedule",
                 "name": "event_reschedule",
+                "type": "event_reschedule",
                 "schema": {
                     "reason": {
                         "required": true

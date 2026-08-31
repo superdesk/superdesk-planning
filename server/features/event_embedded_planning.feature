@@ -176,8 +176,8 @@ Feature: Event Embedded Planning
         Given "planning_types"
         """
         [{
-            "_id": "event",
             "name": "event",
+            "type": "event",
             "editor": {
                 "language": {"enabled": true},
                 "name": {"enabled": true},
@@ -204,8 +204,8 @@ Feature: Event Embedded Planning
                 "internal_note": {"multilingual": true}
             }
         }, {
-            "_id": "planing",
             "name": "planning",
+            "type": "planning",
             "editor": {
                 "language": {"enabled": true},
                 "name": {"enabled": true},
@@ -232,8 +232,9 @@ Feature: Event Embedded Planning
                 "internal_note": {"multilingual": true}
             }
         }, {
-            "_id": "coverage",
             "name": "coverage",
+            "type": "coverage",
+            "content_type": "text",
             "editor": {
                 "g2_content_type": {"enabled": true},
                 "slugline": {"enabled": true},
@@ -465,8 +466,8 @@ Feature: Event Embedded Planning
         Given "planning_types"
         """
         [{
-            "_id": "event",
             "name": "event",
+            "type": "event",
             "editor": {
                 "subject": {"enabled": true},
                 "custom_vocabularies": {"enabled": true}
@@ -479,8 +480,8 @@ Feature: Event Embedded Planning
                 }
             }
         }, {
-            "_id": "planing",
             "name": "planning",
+            "type": "planning",
             "editor": {
                 "subject": {"enabled": true},
                 "custom_vocabularies": {"enabled": true}

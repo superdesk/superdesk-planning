@@ -7,6 +7,7 @@ Feature: Coverage Content Profiles
     """
     {"_items": [{
         "name": "coverage",
+        "type": "coverage",
         "editor": {
             "g2_content_type": {
                 "enabled": true,
@@ -117,8 +118,9 @@ Feature: Coverage Content Profiles
     Given "planning_types"
     """
     [{
-        "_id": "coverage",
+        "type": "coverage",
         "name": "coverage",
+        "content_type": "text",
         "editor": {
             "language": {
                 "enabled": true,
@@ -141,11 +143,13 @@ Feature: Coverage Content Profiles
         }
     }]
     """
-    When we get "/planning_types/coverage"
+    When we get "/planning_types/#planning_types._id#"
     Then we get existing resource
     """
     {
         "name": "coverage",
+        "type": "coverage",
+        "content_type": "text",
         "editor": {
             "language": {
                 "enabled": true,
@@ -183,6 +187,7 @@ Feature: Coverage Content Profiles
         """
         {"_items": [{
             "name": "coverage",
+            "type": "coverage",
             "editor": {
                 "no_content_linking": "__no_value__"
             },
@@ -200,6 +205,7 @@ Feature: Coverage Content Profiles
         """
         {"_items": [{
             "name": "coverage",
+            "type": "coverage",
             "editor": {
                 "no_content_linking": {"enabled": false}
             },
@@ -216,7 +222,7 @@ Feature: Coverage Content Profiles
         Given "planning_types"
         """
         [{
-            "_id": "coverage",
+            "type": "coverage",
             "name": "coverage",
             "editor": {
                 "no_content_linking": {"enabled": true}
@@ -231,6 +237,7 @@ Feature: Coverage Content Profiles
         """
         {"_items": [{
             "name": "coverage",
+            "type": "coverage",
             "editor": {
                 "no_content_linking": "__no_value__"
             },
@@ -248,6 +255,7 @@ Feature: Coverage Content Profiles
         """
         {"_items": [{
             "name": "coverage",
+            "type": "coverage",
             "editor": {
                 "no_content_linking": {"enabled": true}
             },
@@ -259,10 +267,12 @@ Feature: Coverage Content Profiles
 
     @auth
     Scenario: Coverage profiles per type
-        Given empty "coverage_profiles"
-        When we post to "coverage_profiles"
+        Given empty "planning_types"
+        When we post to "planning_types"
         """
         {
+            "name": "Text Coverage",
+            "type": "coverage",
             "content_type": "text",
             "editor": {
                 "language": {
@@ -287,14 +297,12 @@ Feature: Coverage Content Profiles
         }
         """
         Then we get new resource
-        When we get "coverage_profiles"
-        Then we get list with 1 item
-
-        # SKIP (mongo indexes are not set)
-        #When we post to "coverage_profiles"
-        #"""
-        #{
-            #"content_type": "text"
-        #}
-        #"""
-        #Then we get error 409
+        When we get "planning_types"
+        Then we get list with 10 items
+        """
+        {"_items": [{
+            "type": "coverage",
+            "name": "Text Coverage",
+            "content_type": "text"
+        }]}
+        """

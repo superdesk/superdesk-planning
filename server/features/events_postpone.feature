@@ -634,8 +634,8 @@ Feature: Events Postpone
         """
         [
             {
-                "_id": "event_postpone",
                 "name": "event_postpone",
+                "type": "event_postpone",
                 "schema": {
                     "reason": {
                         "required": true
@@ -688,8 +688,8 @@ Feature: Events Postpone
         """
         [
             {
-                "_id": "event_postpone",
                 "name": "event_postpone",
+                "type": "event_postpone",
                 "schema": {
                     "reason": {
                         "required": true

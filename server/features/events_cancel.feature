@@ -762,8 +762,8 @@ Feature: Events Cancel
         """
         [
             {
-                "_id": "event_cancel",
                 "name": "event_cancel",
+                "type": "event_cancel",
                 "schema": {
                     "reason": {
                         "required": true
@@ -809,8 +809,8 @@ Feature: Events Cancel
         """
         [
             {
-                "_id": "event_cancel",
                 "name": "event_cancel",
+                "type": "event_cancel",
                 "schema": {
                     "reason": {
                         "required": true

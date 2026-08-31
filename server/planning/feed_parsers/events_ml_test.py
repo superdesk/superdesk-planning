@@ -225,11 +225,12 @@ class EventsMLFeedParserTestCase(TestCase):
         self.assertNotIn("registration_details", item)
 
         # Re-test the same fields configured with Editor3
-        self.app.data.insert(
+        await test_utils.post_items(
             "planning_types",
             [
                 {
                     "name": "event",
+                    "type": "event",
                     "editor": {
                         "registration_details": {
                             "enabled": True,

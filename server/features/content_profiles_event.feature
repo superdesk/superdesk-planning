@@ -7,6 +7,7 @@ Feature: Event Content Profiles
     """
     {"_items": [{
         "name": "event",
+        "type": "event",
         "editor": {
             "recurring_rules": {
                 "enabled": true,
@@ -115,6 +116,25 @@ Feature: Event Content Profiles
                 "enabled": true,
                 "group": "related_plannings",
                 "index": 1
+            },
+            "registration_details": {"enabled": false},
+            "invitation_details": {"enabled": false},
+            "accreditation_info": {"enabled": false},
+            "accreditation_deadline": {"enabled": false},
+            "marked_for_not_publication": {"enabled": false},
+            "overide_auto_assign_to_workflow": {"enabled": false},
+            "headline": {"enabled": false},
+            "coverages": {"enabled": false},
+            "agendas": {"enabled": false},
+            "priority": {
+                "enabled": false,
+                "group": "description",
+                "index": 9
+            },
+            "urgency": {
+                "enabled": false,
+                "group": "description",
+                "index": 10
             }
         },
         "schema": {
@@ -132,15 +152,18 @@ Feature: Event Content Profiles
             },
             "definition_long": {
                 "required": false,
-                "type": "string"
+                "type": "string",
+                "field_type": "multi_line"
             },
             "definition_short": {
                 "required": false,
-                "type": "string"
+                "type": "string",
+                "field_type": "multi_line"
             },
             "ednote": {
                 "required": false,
-                "type": "string"
+                "type": "string",
+                "field_type": "multi_line"
             },
             "event_contact_info": {
                 "required": false,
@@ -152,7 +175,8 @@ Feature: Event Content Profiles
             },
             "internal_note": {
                 "required": false,
-                "type": "string"
+                "type": "string",
+                "field_type": "multi_line"
             },
             "language": {
                 "required": false,
@@ -168,7 +192,8 @@ Feature: Event Content Profiles
             },
             "name": {
                 "required": true,
-                "type": "string"
+                "type": "string",
+                "field_type": "single_line"
             },
             "occur_status": {
                 "required": false,
@@ -196,7 +221,57 @@ Feature: Event Content Profiles
             },
             "related_plannings": {
                 "required": false,
-                "type": "list"
+                "type": "list",
+                "cancel_plan_with_event": true,
+                "planning_auto_publish": false,
+                "read_only": false
+            },
+            "registration_details": {
+              "field_type": "multi_line",
+              "required": false,
+              "type": "string"
+            },
+            "invitation_details": {
+              "field_type": "multi_line",
+              "required": false,
+              "type": "string"
+            },
+            "accreditation_info": {
+              "field_type": "single_line",
+              "required": false,
+              "type": "string"
+            },
+            "accreditation_deadline": {
+              "required": false,
+              "type": "string"
+            },
+            "marked_for_not_publication": {
+              "required": false,
+              "type": "boolean"
+            },
+            "overide_auto_assign_to_workflow": {
+              "required": false,
+              "type": "boolean"
+            },
+            "headline": {
+              "required": false,
+              "type": "string"
+            },
+            "coverages": {
+              "required": false,
+              "type": "list"
+            },
+            "agendas": {
+              "required": false,
+              "type": "list"
+            },
+            "priority": {
+                "type": "integer",
+                "required": false
+            },
+            "urgency": {
+                "type": "integer",
+                "required": false
             }
         },
         "groups": {
@@ -272,8 +347,8 @@ Feature: Event Content Profiles
     Given "planning_types"
     """
     [{
-        "_id": 1,
         "name": "event",
+        "type": "event",
         "editor": {
             "language": {"enabled": true},
             "slugline": {"enabled": false}
@@ -288,6 +363,7 @@ Feature: Event Content Profiles
     """
     {"_items": [{
         "name": "event",
+        "type": "event",
         "editor": {
             "language": {
                 "enabled": true,
@@ -321,8 +397,8 @@ Feature: Event Content Profiles
     When we post to "planning_types"
     """
     [{
-        "_id": "with_custom_field",
-        "name": "event",
+        "name": "Event with Custom Field",
+        "type": "event",
         "editor": {
             "custom": {"enabled": true}
         },
@@ -333,12 +409,12 @@ Feature: Event Content Profiles
     """
     Then we get OK response
 
-    When we get "/planning_types/with_custom_field"
+    When we get "/planning_types/#planning_types._id#"
     Then we get existing resource
     """
     {
-        "_id": "with_custom_field",
-        "name": "event",
+        "name": "Event with Custom Field",
+        "type": "event",
         "editor": {
             "custom": {"enabled": true}
         },
