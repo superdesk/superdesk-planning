@@ -24,7 +24,7 @@ import {
     IItemAction,
     ICoverageType,
     IAssignmentItem,
-    ICoverageContentProfile,
+    IPlanningContentProfile,
 } from '../interfaces';
 
 import {stripHtmlRaw} from 'superdesk-core/scripts/apps/authoring/authoring/helpers';
@@ -1012,7 +1012,7 @@ function createNewPlanningFromNewsItem(
     newsCoverageStatus: Array<IPlanningNewsCoverageStatus>,
     desk: IDesk['_id'],
     contentTypes: Array<IG2ContentType>,
-    coverageProfilesMap: Record<ICoverageType, ICoverageContentProfile>,
+    coverageProfilesMap: Record<ICoverageType, IPlanningContentProfile>,
 ) {
     const newCoverage = self.createCoverageFromNewsItem(
         addNewsItemToPlanning,
@@ -1058,7 +1058,7 @@ function createCoverageFromNewsItem(
     newsCoverageStatus: Array<IPlanningNewsCoverageStatus>,
     desk: IDesk['_id'],
     contentTypes: Array<IG2ContentType>,
-    coverageProfilesMap: Record<ICoverageType, ICoverageContentProfile>,
+    coverageProfilesMap: Record<ICoverageType, IPlanningContentProfile>,
 ): Partial<IPlanningCoverageItem> {
     const contentType = contentTypes.find(
         (ctype) => get(ctype, 'content item type') === addNewsItemToPlanning.type
@@ -1581,7 +1581,7 @@ function defaultCoverageValues(
     g2contentType?: ICoverageType,
     defaultDesk?: IDesk,
     preferredCoverageDesks?: {[key: string]: IDesk['_id']},
-    coverageProfile?: ICoverageContentProfile,
+    coverageProfile?: IPlanningContentProfile,
 ): DeepPartial<IPlanningCoverageItem> {
     const {contentProfiles} = planningApi;
     const profile = coverageProfile ?? contentProfiles.get('coverage');
@@ -1930,7 +1930,7 @@ function showXMPFileUIControl(item: IAssignmentItem | IPlanningCoverageItem): bo
 function duplicateCoverage(
     item: DeepPartial<IPlanningItem>,
     coverage: DeepPartial<IPlanningCoverageItem>,
-    coverageProfilesMap: Record<ICoverageType, ICoverageContentProfile>,
+    coverageProfilesMap: Record<ICoverageType, IPlanningContentProfile>,
     duplicateAs?: ICoverageType,
     event?: IEventItem, // TAG: MULTIPLE_PRIMARY_EVENTS
 ): DeepPartial<IPlanningItem['coverages']> {

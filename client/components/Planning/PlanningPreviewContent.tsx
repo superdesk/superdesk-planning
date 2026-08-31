@@ -5,7 +5,7 @@ import {get} from 'lodash';
 import {IDesk, IUser} from 'superdesk-api';
 import {superdeskApi} from '../../superdeskApi';
 import {
-    ICoverageContentProfile,
+    IPlanningContentProfile,
     ICoverageFormProfile,
     IEventItem,
     IFile,
@@ -57,7 +57,7 @@ interface IReduxProps {
     formProfile: IFormProfiles;
     newsCoverageStatus: Array<IPlanningNewsCoverageStatus>;
     files: {[key: string]: IFile};
-    coverageProfiles: Array<ICoverageContentProfile>;
+    coverageProfiles: Array<IPlanningContentProfile>;
 }
 
 interface IDispatchProps {
