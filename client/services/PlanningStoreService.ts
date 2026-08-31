@@ -262,7 +262,7 @@ export class PlanningStoreService {
                         urgency: this.metadata.values.urgency,
                         label: this.gettextCatalog.getString('Urgency'),
                     },
-                    coverageProfiles: {},
+                    coverageProfiles: {profiles: []},
                     forms: {profiles: {}},
                     customVocabularies: this.metadata.cvs.filter(isCustomVocabulary),
                     userDesks: userDesks,
@@ -276,7 +276,7 @@ export class PlanningStoreService {
 
                 formsProfile.forEach((profile: IEditorProfile) => {
                     if (profile.type === 'coverage') {
-                        initialState.coverageProfiles.profiles = profile;
+                        initialState.coverageProfiles.profiles.push(profile);
                     } else {
                         initialState.forms.profiles[profile.type] = profile;
                     }
