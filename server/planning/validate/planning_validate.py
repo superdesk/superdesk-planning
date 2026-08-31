@@ -2,12 +2,10 @@ import logging
 from copy import deepcopy
 from typing import Any
 
-from superdesk import get_resource_service
 from apps.validate.validate import SchemaValidator as Validator
 from superdesk.metadata.item import ITEM_TYPE
 from planning.content_profiles.utils import get_enabled_fields
-from planning.content_profiles import PlanningTypesAsyncService
-from planning.types import Event
+from planning.types import Event, PlanningProfileResource
 
 logger = logging.getLogger(__name__)
 REQUIRED_ERROR = "{} is a required field"
@@ -134,14 +132,14 @@ def get_filtered_validator_schema(validator, validate_on_post: bool) -> dict:
 
 async def get_validator(item: dict, item_type: str) -> Event | None:
     """Get validators from planning types service."""
+    service = PlanningProfileResource.get_service()
+
     if item_type == "coverage" and item.get("profile"):
-        profile = get_resource_service("coverage_profiles").find_one(req=None, _id=item["profile"])
-        if profile:
-            return profile
+        profile = await service.find_by_id(item["profile"])
+    else:
+        profile = await service.find_one(name=item_type)
 
-    validator = await PlanningTypesAsyncService().find_one(req=None, name=item_type)
-
-    return validator.to_dict() if validator else None
+    return profile.to_dict() if profile else None
 
 
 async def validate_doc(item: dict, item_type: str, validate_on_post: bool = False) -> list:

@@ -42,6 +42,7 @@ from planning.types import (
     AssignmentResourceModel,
     UnifiedPlanningResource,
     PlanningItemType,
+    PlanningProfileResource,
 )
 
 ITEM_STATE = "state"
@@ -664,13 +665,12 @@ async def is_valid_event_planning_reason(updates, original):
     item_type = original.get(ITEM_TYPE)
 
     # get the validator based on the item_type and lock_action
-    planning_types_service = get_resource_service("planning_types")
-    validator = await planning_types_service.find_one_async(req=None, name=f"{item_type}_{lock_action}")
+    validator = await PlanningProfileResource.get_service().find_one(type=f"{item_type}_{lock_action}")
 
-    if not validator or not validator.get("schema"):
+    if not validator or not validator.schema_config:
         return True
 
-    reason_mapping = validator.get("schema", {}).get("reason") or {}
+    reason_mapping = validator.schema_config.get("reason") or {}
     if reason_mapping.get("required") and not updates.get("reason"):
         return False
     return True

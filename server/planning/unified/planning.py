@@ -6,7 +6,7 @@ from quart_babel import gettext
 from superdesk.core.utils import generate_guid, GUID_NEWSML
 from superdesk.errors import SuperdeskApiError
 
-from planning.types import AgendasResourceModel, PlanningTypesResourceModel, UpdateMethods, PostStates
+from planning.types import AgendasResourceModel, PlanningProfileResource, UpdateMethods, PostStates
 from planning.types.unified import UnifiedPlanningResource, RelatedEventLink, RelatedEventLinkType
 from planning.utils import get_planning_event_link_method
 from planning.common import unique_items_in_order, update_post_item
@@ -61,7 +61,7 @@ async def _set_planning_event_info(planning: UnifiedPlanningResource) -> Unified
     if not event_id:
         return None
 
-    planning_type = await PlanningTypesResourceModel.get_service().find_one(name="planning")
+    planning_type = await PlanningProfileResource.get_service().find_one(type="planning")
     if planning_type is None:
         raise SuperdeskApiError.badRequestError(gettext("Planning type 'planning' not found"))
     planning_type_dict = planning_type.to_dict()
