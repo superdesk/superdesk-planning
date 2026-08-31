@@ -27,7 +27,6 @@ from .common import (
 )
 
 from .planning_notifications import PlanningNotifications
-from planning.content_profiles import init_app as init_content_profiles
 from planning.events import init_app as init_events_app
 from planning.planning import init_app as init_planning_app
 from planning.assignments import init_app as init_assignments_app
@@ -99,7 +98,6 @@ def init_app(app):
         service=export_template_service,
     )
 
-    init_content_profiles(app)
     init_locations_app(app)
     init_events_app(app)
     init_planning_app(app)

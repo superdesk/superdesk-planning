@@ -8,6 +8,7 @@
 # AUTHORS and LICENSE files distributed with this source code, or
 # at https://www.sourcefabric.org/superdesk/license
 
+from superdesk.tests import utils
 
 from planning.tests import TestCase
 
@@ -49,12 +50,13 @@ class ContentProfilesTestCase(TestCase):
                 "slugline": {"multilingual": True},
                 "definition_short": {"multilingual": True},
             }
-            self.app.data.insert(
+
+            profile_ids = await utils.post_items(
                 "planning_types",
                 [
                     {
-                        "_id": "event",
                         "name": "event",
+                        "type": "event",
                         "editor": {
                             "language": {"enabled": True},
                         },
@@ -70,12 +72,7 @@ class ContentProfilesTestCase(TestCase):
             self.assertNotIn("definition_long", fields)
 
             schema["language"]["multilingual"] = False
-            self.app.data.update(
-                "planning_types",
-                "event",
-                {"schema": schema},
-                self.app.data.find_one("planning_types", req=None, _id="event"),
-            )
+            await utils.patch_item("planning_types", profile_ids[0], {"schema": schema})
 
             fields = await get_multilingual_fields("event")
             self.assertNotIn("name", fields)
@@ -84,37 +81,36 @@ class ContentProfilesTestCase(TestCase):
             self.assertNotIn("definition_long", fields)
 
     async def test_content_profile_data(self):
-        async with self.app.app_context():
-            self.app.data.insert(
-                "planning_types",
-                [
-                    {
-                        "_id": "event",
-                        "name": "event",
-                        "editor": {
-                            "language": {"enabled": True},
+        await utils.post_items(
+            "planning_types",
+            [
+                {
+                    "name": "event",
+                    "type": "event",
+                    "editor": {
+                        "language": {"enabled": True},
+                    },
+                    "schema": {
+                        "language": {
+                            "languages": ["en", "de"],
+                            "default_language": "en",
+                            "multilingual": True,
+                            "required": True,
                         },
-                        "schema": {
-                            "language": {
-                                "languages": ["en", "de"],
-                                "default_language": "en",
-                                "multilingual": True,
-                                "required": True,
-                            },
-                            "name": {"multilingual": True},
-                            "slugline": {"multilingual": True},
-                            "definition_short": {"multilingual": True},
-                            "anpa_category": {"required": True},
-                        },
-                    }
-                ],
-            )
+                        "name": {"multilingual": True},
+                        "slugline": {"multilingual": True},
+                        "definition_short": {"multilingual": True},
+                        "anpa_category": {"required": True},
+                    },
+                }
+            ],
+        )
 
-            data = await ContentProfileData.get("event")
-            self.assertTrue(data.profile["_id"] == data.profile["name"] == "event")
-            self.assertTrue(data.is_multilingual)
-            self.assertEqual(data.multilingual_fields, {"name", "slugline", "definition_short"})
-            self.assertIn("name", data.enabled_fields)
-            self.assertIn("slugline", data.enabled_fields)
-            self.assertIn("definition_short", data.enabled_fields)
-            self.assertIn("anpa_category", data.enabled_fields)
+        data = await ContentProfileData.get("event")
+        self.assertTrue(data.profile["name"] == data.profile["type"] == "event")
+        self.assertTrue(data.is_multilingual)
+        self.assertEqual(data.multilingual_fields, {"name", "slugline", "definition_short"})
+        self.assertIn("name", data.enabled_fields)
+        self.assertIn("slugline", data.enabled_fields)
+        self.assertIn("definition_short", data.enabled_fields)
+        self.assertIn("anpa_category", data.enabled_fields)
