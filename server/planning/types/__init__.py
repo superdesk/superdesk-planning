@@ -49,7 +49,7 @@ from .enums import (
     AssignmentWorkflowState,
 )
 from .agendas import AgendasResourceModel, AgendaItem
-from .planning_types import PlanningTypesResourceModel
+from .planning_types import PlanningProfileResource, PlanningProfileType, DEFAULT_PROFILE_ID
 from .planning_featured import PlanningFeaturedResourceModel
 from .autosave import AutosaveResourceModel
 from .planning_featured_lock import PlanningFeaturedLockResource
@@ -69,7 +69,9 @@ __all__ = [
     "AssignmentResourceModel",
     "CoverageProvider",
     "PublishedPlanningModel",
-    "PlanningTypesResourceModel",
+    "PlanningProfileResource",
+    "PlanningProfileType",
+    "DEFAULT_PROFILE_ID",
     "PlanningSchedule",
     "PlanningCoverage",
     "CoverageAssignedTo",

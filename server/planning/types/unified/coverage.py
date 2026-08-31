@@ -168,7 +168,7 @@ class CoverageItem(AuditInformation, BaseModel):
     )
     original_coverage_id: fields.Keyword | None = Field(description="Original Coverage ID", default=None)
     guid: fields.Keyword | None = Field(description="Coverage GUID", default=None)  # is this used anywhere?
-    profile: Annotated[fields.Keyword | None, validate_data_relation_async("coverage_profiles")] = Field(
+    profile: Annotated[fields.ObjectId | None, validate_data_relation_async("planning_types")] = Field(
         description="ID of the Coverage profile", default=None
     )
     news_coverage_status: NewsCoverageStatus = Field(description="The news coverage status of the item")
