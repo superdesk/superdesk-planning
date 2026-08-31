@@ -7,7 +7,6 @@ import {
     IPlanningCoverageItem,
     IProfileMultilingualDetails,
     IProfileSchemaTypeString,
-    ICoverageContentProfile,
 } from '../interfaces';
 import {planningApi, superdeskApi} from '../superdeskApi';
 
@@ -22,7 +21,6 @@ import {getUsersDefaultLanguage} from '../utils/users';
 import {EVENT_ITEM_SYSTEM_REQUIRED_FIELDS, PLANNING_ITEM_SYSTEM_REQUIRED_FIELDS} from './utils/constants';
 
 const RESOURCE = 'planning_types';
-const COVERAGE_PROFILES_RESOURCE = 'coverage_profiles';
 
 function getAll(): Promise<Array<IPlanningContentProfile>> {
     return superdeskApi.dataApi.query<IPlanningContentProfile>(
@@ -44,7 +42,7 @@ function enablePriorityInSearchProfile(profiles: Array<IPlanningContentProfile>)
     // Hack to enable/disable priority field in search profiles based on the content profiles
     // TODO: Remove this hack when we implement a solution for all searchable fields
     const profilesById: {[id: string]: IPlanningContentProfile} = profiles.reduce((profileMap, profile) => {
-        profileMap[profile.name] = profile;
+        profileMap[profile.type] = profile;
 
         return profileMap;
     }, {});
@@ -133,45 +131,16 @@ function getMultilingualConfig(contentType: string): IProfileMultilingualDetails
 }
 
 function patch(original: IPlanningContentProfile, updates: IPlanningContentProfile): Promise<IPlanningContentProfile> {
-    if (original._id == null) {
-        delete updates._created;
-        delete updates._updated;
-        delete updates._etag;
-        updates._id = original.name;
-
-        return superdeskApi.dataApi.create<IPlanningContentProfile>(RESOURCE, updates);
-    } else {
-        return superdeskApi.dataApi.patch<IPlanningContentProfile>(RESOURCE, original, updates);
-    }
-}
-
-function patchCoverageProfile(
-    original: ICoverageContentProfile,
-    updates: ICoverageContentProfile,
-): Promise<ICoverageContentProfile> {
     delete updates._created;
     delete updates._updated;
     delete updates._etag;
     delete updates._links;
 
-    if (updates._id != null) {
-        return superdeskApi.dataApi.patch<ICoverageContentProfile>(COVERAGE_PROFILES_RESOURCE, original, updates);
+    if (original._id == null) {
+        return superdeskApi.dataApi.create<IPlanningContentProfile>(RESOURCE, updates);
+    } else {
+        return superdeskApi.dataApi.patch<IPlanningContentProfile>(RESOURCE, original, updates);
     }
-
-    return superdeskApi.dataApi.create<ICoverageContentProfile>(COVERAGE_PROFILES_RESOURCE, updates);
-}
-
-function getAllCoverageProfiles(): Promise<Array<ICoverageContentProfile>> {
-    return superdeskApi.dataApi.query<ICoverageContentProfile>(
-        COVERAGE_PROFILES_RESOURCE,
-        1,
-        {field: 'name', direction: 'ascending'},
-        {},
-        200
-    )
-        .then((response) => {
-            return response._items;
-        });
 }
 
 function showManagePlanningProfileModal(): Promise<void> {
@@ -229,7 +198,7 @@ function updateProfilesInStore(): Promise<void> {
     return getAll().then((profileArray) => {
         dispatch(updateContentProfiles(profileArray.reduce(
             (profiles, profile) => {
-                profiles[profile.name] = profile;
+                profiles[profile.type] = profile;
 
                 return profiles;
             },
@@ -239,7 +208,7 @@ function updateProfilesInStore(): Promise<void> {
 }
 
 function getDefaultValues(
-    profile: IPlanningContentProfile | ICoverageContentProfile,
+    profile: IPlanningContentProfile
 ): DeepPartial<IEventOrPlanningItem | IPlanningCoverageItem> {
     return Object.keys(profile?.schema ?? {}).reduce(
         (defaults, field) => {
@@ -258,10 +227,6 @@ export const contentProfiles: IPlanningAPI['contentProfiles'] = {
     get: getProfile,
     getDefaultValues: getDefaultValues,
     patch: patch,
-    coverages: {
-        patch: patchCoverageProfile,
-        getAll: getAllCoverageProfiles,
-    },
     showManagePlanningProfileModal: showManagePlanningProfileModal,
     showManageEventProfileModal: showManageEventProfileModal,
     updateProfilesInStore: updateProfilesInStore,

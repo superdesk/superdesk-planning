@@ -2,7 +2,7 @@ import * as React from 'react';
 import {cloneDeep, omit} from 'lodash';
 import {
     IProfileFieldEntry,
-    ICoverageContentProfile,
+    IPlanningContentProfile,
     ICoverageType,
     IEditorProfile,
 } from '../../interfaces';
@@ -21,10 +21,10 @@ import {coverageProfiles, oldProfile} from '../../selectors/coverageProfiles';
 interface IState {
     saving: boolean;
     dirty: boolean;
-    originalProfile: Partial<ICoverageContentProfile>;
-    profile: Partial<ICoverageContentProfile> & IEditorProfile;
+    originalProfile: Partial<IPlanningContentProfile>;
+    profile: Partial<IPlanningContentProfile> & IEditorProfile;
     selectedType: ICoverageType;
-    allProfiles: Array<ICoverageContentProfile>;
+    allProfiles: Array<IPlanningContentProfile>;
 }
 
 interface IProps {
@@ -106,7 +106,7 @@ export class CoverageProfilesModal extends React.Component<IProps, IState> {
             return;
         }
 
-        planningApi.contentProfiles.coverages.patch(
+        planningApi.contentProfiles.patch(
             this.state.originalProfile,
             {
                 ...this.state.profile,

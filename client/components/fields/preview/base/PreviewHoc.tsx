@@ -41,8 +41,8 @@ export function previewHoc<S = {}>(
             );
             let translations = {};
 
-            if (this.props.profile?.name != null) {
-                const multilingual = planningApi.contentProfiles.multilingual.getConfig(this.props.profile?.name);
+            if (this.props.profile?.type != null) {
+                const multilingual = planningApi.contentProfiles.multilingual.getConfig(this.props.profile?.type);
 
                 translations = (!multilingual.isEnabled || !multilingual.fields.includes(field)) ?
                     {} :

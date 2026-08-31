@@ -1156,10 +1156,22 @@ export interface IProfileFieldEntry {
     schema?: IProfileSchemaType;
 }
 
+export type IProfileType = 'event'
+    | 'planning'
+    | 'coverage'
+    | 'advanced_search'
+    | 'event_postpone'
+    | 'event_reschedule'
+    | 'event_cancel'
+    | 'planning_planning_cancel'
+    | 'planning_cancel_all_coverage'
+    | 'coverage_cancel_coverage';
+
 export interface IEditorProfile {
     // The name identifies the form in the UI to which the type relates
     _id?: Readonly<string>;
     name: Readonly<string>;
+    type: IProfileType;
 
     // editor controls which fields are visible in the UI
     editor: {[key: string]: IProfileEditorField};
@@ -1180,15 +1192,12 @@ export interface IEditorProfile {
     firstcreated: Readonly<Date>;
     versioncreated: Readonly<Date>;
     init_version: Readonly<number>;
+    content_type?: string;
 }
 
 export type IPlanningContentProfile = IBaseRestApiResponse & IEditorProfile;
 
 export type ICoverageType = 'text' | 'picture' | 'video' | 'infographics' | 'audio' | 'liveVideo' | 'liveBlog';
-export type ICoverageContentProfile = IBaseRestApiResponse & Exclude<
-    IEditorProfile,
-    ['created_by', 'updated_by', 'firstcreated', 'versioncreated', 'init_version']
-> & {content_type: ICoverageType};
 
 export interface IEventFormProfile {
     editor: {
@@ -1882,7 +1891,7 @@ export interface IEditorFormState {
 }
 
 export interface ICoverageProfilesState {
-    profiles: Array<ICoverageContentProfile>;
+    profiles: Array<IPlanningContentProfile>;
 }
 
 export interface IFormState {
@@ -2406,7 +2415,7 @@ export interface IEditorAPI {
             getRelatedEventsDomRef(eventId: IEventItem['_id']): React.RefObject<any>;
             getCoverageFields(
                 type: ICoverageType,
-            ): {searchProfile: ISearchProfile; profile: ICoverageContentProfile};
+            ): {searchProfile: ISearchProfile; profile: IPlanningContentProfile};
             getCoverageFieldDomRef(coverageId: IPlanningCoverageItem['coverage_id']): React.RefObject<any>;
             addCoverages(coverages: Array<DeepPartial<IPlanningCoverageItem>>): void;
         };
@@ -2557,20 +2566,13 @@ export interface IPlanningAPI {
             getConfig(contentType: string): IProfileMultilingualDetails;
         };
         getDefaultLanguage(
-            profile: IPlanningContentProfile | Partial<ICoverageContentProfile>,
+            profile: IPlanningContentProfile | Partial<IPlanningContentProfile>,
         ): IVocabularyItem['qcode'];
         getDefaultValues(profile: IPlanningContentProfile): DeepPartial<IEventOrPlanningItem | IPlanningCoverageItem>;
         patch(
             original: IPlanningContentProfile,
             updates: IPlanningContentProfile,
         ): Promise<IPlanningContentProfile>;
-        coverages: {
-            patch(
-                original: Partial<ICoverageContentProfile>,
-                updates: Partial<ICoverageContentProfile>,
-            ): Promise<ICoverageContentProfile>;
-            getAll(): Promise<Array<ICoverageContentProfile>>;
-        }
         showManagePlanningProfileModal(): Promise<void>;
         showManageEventProfileModal(): Promise<void>;
         updateProfilesInStore(): Promise<void>;
