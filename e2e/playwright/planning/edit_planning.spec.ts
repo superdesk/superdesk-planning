@@ -4,8 +4,13 @@ import moment from 'moment/moment';
 import {setup, login, waitForPageLoad, SubNavBar, Workqueue, CLIENT_FORMAT} from '../utils/common';
 import {PlanningList, PlanningEditor, AssignmentEditor} from '../page-object-models/planning';
 import {setupPlanningPublishing} from '../utils/fixtures/publish_config';
+import {enableCoverageExtraFields} from '../utils/fixtures/coverage_profile';
 
-test.describe('Planning.Planning: edit metadata', () => {
+test.describe('Planning.Planning: edit metadata', {
+    annotation: [
+        {type: 'confluence', description: '1311835155 complete'}, // Edit planning item
+    ],
+}, () => {
     let editor: PlanningEditor;
     let list: PlanningList;
     let subnav: SubNavBar;
@@ -25,7 +30,11 @@ test.describe('Planning.Planning: edit metadata', () => {
         await editor.waitTillOpen();
     });
 
-    test('can create a Planning item', async () => {
+    test('can create a Planning item', {
+        annotation: [
+            {type: 'confluence', description: '1311835114 complete'}, // Create new planning item
+        ],
+    }, async () => {
         const plan = {
             slugline: 'slugline of the planning',
             'planning_date.date': moment().format(CLIENT_FORMAT),
@@ -69,7 +78,11 @@ test.describe('Planning.Planning: edit metadata', () => {
         await workqueue.expectTitle(0, 'slugline of the planning');
     });
 
-    test('can add coverage to workflow', async ({page}) => {
+    test('can add coverage to workflow', {
+        annotation: [
+            {type: 'confluence', description: '1311835171 complete'}, // Add coverage
+        ],
+    }, async ({page}) => {
         await editor.type({
             slugline: 'Plan',
             'planning_date.date': moment().format(CLIENT_FORMAT),
@@ -142,7 +155,11 @@ test.describe('Planning.Planning: edit metadata', () => {
         await expect(editor.postButton).toBeVisible();
     });
 
-    test('Post updates the initial values', async () => {
+    test('Post updates the initial values', {
+        annotation: [
+            {type: 'confluence', description: '1311835143 complete'}, // Post planning item
+        ],
+    }, async () => {
         // Enter minimum Planning metadata
         await editor.expectItemType();
         await editor.type({
@@ -173,5 +190,61 @@ test.describe('Planning.Planning: edit metadata', () => {
         await editor.waitForAutosave();
         await expect(editor.postButton).not.toBeVisible();
         await expect(editor.unpostButton).toBeVisible();
+    });
+});
+
+test.describe('Planning.Coverage: field persistence on collapse/expand', () => {
+    let editor: PlanningEditor;
+    let subnav: SubNavBar;
+
+    test.beforeEach(async ({page}) => {
+        editor = new PlanningEditor(page);
+        subnav = new SubNavBar(page);
+
+        await setup(page, 'planning_prepopulate_data', '/#/planning');
+        await enableCoverageExtraFields(page.request);
+        await login(page);
+        await waitForPageLoad.planning(page);
+        await subnav.createPlanning();
+        await editor.waitTillOpen();
+    });
+
+    test('coverage field values persist after collapsing and expanding', async () => {
+        const coverage = {
+            content_type: 'Text',
+            genre: 'Factbox',
+            slugline: 'coverage slugline',
+            headline: 'coverage headline',
+            ednote: 'something to write about',
+            internal_note: 'internal to us',
+            news_coverage_status: 'On merit',
+            'scheduled.date': moment().format(CLIENT_FORMAT),
+            'scheduled.time': '13:15',
+            priority: '2',
+        };
+
+        await editor.type({
+            slugline: 'Plan with coverage',
+            'planning_date.date': moment().format(CLIENT_FORMAT),
+            'planning_date.time': '12:13',
+        });
+
+        await editor.addCoverage('Text');
+        const coverageEditor = editor.getCoverageEditor(0);
+
+        // content_type is already set by addCoverage; re-selecting it resets the coverage.
+        const {content_type, priority, ...textFields} = coverage;
+
+        await coverageEditor.type(textFields);
+        await editor.waitForAutosave();
+        await coverageEditor.setPriority(priority);
+
+        await coverageEditor.expect(coverage);
+
+        await coverageEditor.collapse();
+        await coverageEditor.expand();
+
+        // SDESK-7989: priority rendered empty here before the fix
+        await coverageEditor.expect(coverage);
     });
 });

@@ -56,6 +56,48 @@ describe('utils.locks', () => {
             expect(lockUtils.getLock(item, lockedItems)).toEqual(item);
         });
 
+        it('returns planning locks stored under the primary related event', () => {
+            // The `planning_locks` endpoint stores the lock of an event linked
+            // planning under the event bucket only, with `item_id` pointing
+            // back at the planning item
+            const item = cloneDeep(testData.plannings[1]);
+            const lock = {
+                item_id: item._id,
+                item_type: 'planning',
+                action: 'edit',
+                user: 'ident1',
+                session: 'session1',
+            };
+
+            lockedItems.event[testData.events[0]._id] = lock;
+            expect(lockUtils.getLock(item, lockedItems)).toEqual(lock);
+
+            // A lock on the event itself does not count as this planning's lock
+            lockedItems.event[testData.events[0]._id] = {...lock, item_id: testData.events[0]._id};
+            expect(lockUtils.getLock(item, lockedItems)).toBe(null);
+        });
+
+        it('detects chain locks held by an associated item', () => {
+            const planning = cloneDeep(testData.plannings[1]);
+            const event = cloneDeep(testData.events[0]);
+            const lockByEvent = {item_id: event._id, item_type: 'event', action: 'edit'};
+            const lockByPlanning = {item_id: planning._id, item_type: 'planning', action: 'edit'};
+
+            // Nothing locked
+            expect(lockUtils.isItemLockedByAssociatedItem(planning, lockedItems)).toBe(false);
+            expect(lockUtils.isItemLockedByAssociatedItem(event, lockedItems)).toBe(false);
+
+            // The event holds the chain lock: the planning is blocked, the event is not
+            lockedItems.event[event._id] = lockByEvent;
+            expect(lockUtils.isItemLockedByAssociatedItem(planning, lockedItems)).toBe(true);
+            expect(lockUtils.isItemLockedByAssociatedItem(event, lockedItems)).toBe(false);
+
+            // The planning holds the chain lock: the event is blocked, the planning is not
+            lockedItems.event[event._id] = lockByPlanning;
+            expect(lockUtils.isItemLockedByAssociatedItem(planning, lockedItems)).toBe(false);
+            expect(lockUtils.isItemLockedByAssociatedItem(event, lockedItems)).toBe(true);
+        });
+
         it('returns assignment locks', () => {
             let item = cloneDeep(testData.assignments[0]);
 

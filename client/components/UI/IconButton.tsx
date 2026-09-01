@@ -75,7 +75,8 @@ IconButton.propTypes = {
     tooltip: PropTypes.string,
     tooltipDirection: PropTypes.string,
     testId: PropTypes.string,
-    refNode: PropTypes.object,
+    // A React ref: either a callback ref (function) or a ref object
+    refNode: PropTypes.oneOfType([PropTypes.func, PropTypes.object]),
 };
 
 IconButton.defaultProps = {

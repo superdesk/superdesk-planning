@@ -1,7 +1,9 @@
 from collections.abc import Iterator
 from contextlib import contextmanager
+import logging
 
 from quart_babel import gettext
+from quart import request
 
 from superdesk import get_resource_service
 from superdesk.core import get_current_app
@@ -10,16 +12,16 @@ from superdesk.lock import lock, unlock
 from superdesk.notification import push_notification
 from superdesk.utc import utcnow
 
-from apps.archive.common import get_user, get_auth
-
 from planning.types import AssignmentResourceModel, AssignmentEventOrPlanning, AssignmentWorkflowState, WorkflowState
 from planning.types.unified import UnifiedPlanningResource, LockFields, RelatedEventLinkType, PlanningItemType
 from planning.unified.common import get_first_related_event_id, get_all_items_in_relationship
 from planning import signals
 from planning.common import get_item_type_name
 
-from .common import validate_lock_permission, get_service_and_ids_for_locks
+from .common import validate_lock_permission, get_service_and_ids_for_locks, get_current_user_id, get_current_session_id
 
+
+logger = logging.getLogger(__name__)
 __all__ = ["lock_item"]
 
 
@@ -27,26 +29,44 @@ async def lock_item[T: AssignmentEventOrPlanning](item: T, lock_data: LockFields
     lock_data.lock_time = lock_data.lock_time or utcnow()
 
     if not lock_data.lock_user:
-        try:
-            lock_data.lock_user = get_user()["_id"]
-        except KeyError:
-            # This must not be from a web request
-            lock_data.lock_user = None
+        lock_data.lock_user = get_current_user_id()
 
     if not lock_data.lock_session:
-        try:
-            lock_data.lock_session = get_auth()["_id"]
-        except KeyError:
-            # This must not be from a web request
-            lock_data.lock_session = None
+        lock_data.lock_session = get_current_session_id()
 
     if _existing_lock_is_unchanged(item, lock_data):
         # No need to lock the item for this user, session and action
         # as it is already locked for such a purpose
         return item
 
+    request_id = request.headers.get("X-Request-Id") if request and getattr(request, "headers", None) else None
+    client_id = request.args.get("clientId") if request else None
+    logger.info(
+        "planning:item_lock: lock_requested resource=%s item=%s user=%s session=%s action=%s request_id=%s client_id=%s",
+        item.item_type,
+        item.id,
+        lock_data.lock_user,
+        lock_data.lock_session,
+        lock_data.lock_action,
+        request_id,
+        client_id,
+    )
+
     await _validate_lock_request(item, lock_data)
-    return await _update_item_lock(item, lock_data)
+    updated = await _update_item_lock(item, lock_data)
+
+    logger.info(
+        "planning:item_lock: lock_applied resource=%s item=%s user=%s session=%s action=%s etag=%s request_id=%s",
+        item.item_type,
+        item.id,
+        updated.lock_user,
+        updated.lock_session,
+        updated.lock_action,
+        updated.etag,
+        request_id,
+    )
+
+    return updated
 
 
 def _existing_lock_is_unchanged(item: AssignmentEventOrPlanning, lock_data: LockFields) -> bool:
@@ -68,8 +88,8 @@ async def _validate_lock_request(item: AssignmentEventOrPlanning, lock_data: Loc
 
 
 def _validate_can_lock(item: AssignmentEventOrPlanning) -> None:
-    user_id = get_user(required=True)["_id"]
-    session_id = get_auth()["_id"]
+    user_id = get_current_user_id(required=True)
+    session_id = get_current_session_id()
 
     if item.lock_user:
         if str(user_id) == str(item.lock_user):
@@ -129,7 +149,7 @@ async def _validate_assignment_lock(item: AssignmentResourceModel) -> None:
         raise SuperdeskApiError.badRequestError(gettext("Assignment workflow state error."))
     elif item.assigned_to.state == AssignmentWorkflowState.IN_PROGRESS:
         archive_item = await get_resource_service("archive").find_one_async(req=None, assignment_id=item.id)
-        user_id = get_user(required=True)["_id"]
+        user_id = get_current_user_id(required=True)
         if archive_item and archive_item.get("lock_user") and archive_item["lock_user"] != user_id:
             # Archive item is locked by another user
             raise SuperdeskApiError.badRequestError(gettext("Archive item is locked by another user."))

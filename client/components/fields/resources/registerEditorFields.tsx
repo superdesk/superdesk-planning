@@ -2,7 +2,13 @@ import * as React from 'react';
 import {connect} from 'react-redux';
 
 import {IEditorFieldProps, IPlanningAppState} from '../../../interfaces';
-import {FIELD_TO_EDITOR_COMPONENT} from '../editor';
+
+/**
+ * Owned here rather than in ../editor so registration does not depend on module
+ * evaluation order in the circular import between the two files; ../editor adds
+ * its initial entries and re-exports it.
+ */
+export const FIELD_TO_EDITOR_COMPONENT: {[field: string]: React.ComponentType<any>} = {};
 
 interface IEditorHocOptions<S extends IEditorFieldProps> {
     Component: React.ComponentType<S>;

@@ -361,3 +361,37 @@ def test_reassignment_does_not_reset_state_when_manual_reassignment_disabled():
 
     assert updates["assigned_to"]["user"] is None
     assert updates["assigned_to"]["state"] == "in_progress"
+
+
+def test_stale_planning_assignment_state_does_not_reset_in_progress_assignment():
+    assignment = {
+        "_id": "as1",
+        "assigned_to": {
+            "desk": "desk-1",
+            "user": "user-1",
+            "state": "in_progress",
+        },
+        "planning": {},
+    }
+    planning = {
+        "_id": "plan-1",
+        # Trigger assignment metadata update path without changing assignee fields.
+        "description_text": "Updated from planning editor",
+    }
+    coverage = {
+        "coverage_id": "cov-1",
+        "workflow_status": "active",
+        "assigned_to": {
+            "assignment_id": "as1",
+            "desk": "desk-1",
+            "user": "user-1",
+            # Stale state in planning editor (before "start work" websocket update).
+            "state": "assigned",
+        },
+        "planning": {},
+    }
+
+    with mock.patch("planning.coverage_assignments.get_user", return_value=None):
+        updates = get_metadata_updates_between_entities(assignment, planning, coverage, destination="assignment")
+
+    assert updates["assigned_to"]["state"] == "in_progress"

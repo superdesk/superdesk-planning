@@ -1,5 +1,6 @@
 /* eslint-disable react/no-multi-comp */
 import React from 'react';
+import {get} from 'lodash';
 
 import {IVocabularyItem} from 'superdesk-api';
 
@@ -86,7 +87,7 @@ registerEditorField(
         getOptions: () => [],
         valueAdapter: {
             getValue: (item: any, field: string) => {
-                const value = item[field];
+                const value = get(item, field);
 
                 return (value !== null && value !== undefined && value !== '') ? [value] : [];
             },
@@ -130,7 +131,7 @@ registerEditorField(
         getOptions: () => [],
         valueAdapter: {
             getValue: (item, field) => {
-                const value = item[field];
+                const value = get(item, field);
 
                 return (value !== null && value !== undefined && value !== '') ? [value] : [];
             },

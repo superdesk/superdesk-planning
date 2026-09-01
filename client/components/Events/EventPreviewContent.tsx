@@ -80,6 +80,7 @@ export class EventPreviewContentComponent extends React.PureComponent<IProps> {
                         users={users}
                         desks={desks}
                         allowEditPlanning={true}
+                        cardView={true}
                     />
                 ) :
                     <span className="sd-text__info">{gettext('No related planning items.')}</span>

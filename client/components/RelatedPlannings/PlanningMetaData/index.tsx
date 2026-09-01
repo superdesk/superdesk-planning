@@ -19,6 +19,7 @@ interface IProps {
     active?: boolean;
     showIcon?: boolean; // defaults to true
     showBorder?: boolean; // defaults to true
+    cardView?: boolean;
     noBg?: boolean;
     navigation?: any;
     onEditPlanning?(): void;
@@ -65,6 +66,7 @@ export class PlanningMetaData extends React.PureComponent<IProps> {
                 noBg={this.props.noBg}
                 showBorder={this.props.showBorder ?? true}
                 showIcon={this.props.showIcon ?? true}
+                cardView={this.props.cardView}
                 editPlanningComponent={editPlanningComponent}
             />
         );

@@ -25,6 +25,10 @@ export class SelectMetaTerms extends Input {
         }
     }
 
+    async expectEmpty(): Promise<void> {
+        await expect(this.parent.locator(`${this.selector} .sd-line-input__input li`)).toHaveCount(0);
+    }
+
     async clear(): Promise<void> {
         await clickAll(this.parent, `${this.selector} .sd-line-input__input li`);
     }

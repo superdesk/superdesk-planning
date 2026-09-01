@@ -23,7 +23,11 @@ test.describe('Planning.Assignment: edit assignment priority', () => {
         await editor.waitTillOpen();
     });
 
-    test('can edit Assignment priority', async ({page}) => {
+    test('can edit Assignment priority', {
+        annotation: [
+            {type: 'confluence', description: '1344443378 partial'}, // Assignments - regression observed STT-1378
+        ],
+    }, async ({page}) => {
         await editor.type({slugline: 'Slugline'});
         await editor.addCoverage('Text');
 

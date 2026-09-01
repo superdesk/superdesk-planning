@@ -8,13 +8,12 @@ from superdesk.resource_fields import STATUS, STATUS_OK
 from superdesk.errors import SuperdeskApiError
 from superdesk.utc import utcnow
 
-from apps.archive.common import get_user, get_auth
-
 from planning.types import PlanningFeaturedLockResource, AssignmentEventOrPlanning, AssignmentResourceModel
 from planning.types.unified import UnifiedPlanningResource, LockFields, PlanningItemType
 from planning.unified.common import get_related_planning_for_events, format_item_addresses
 from planning.common import get_hateoas_links
 
+from .common import get_current_session_id, get_current_user_id
 from .lock import lock_item
 from .unlock import unlock_item
 from .get_locks import PlanningLocksParams, get_planning_module_locks
@@ -133,8 +132,8 @@ async def _get_item_from_request[T: AssignmentEventOrPlanning](request: Request,
 async def _get_lock_data_from_request[T: AssignmentEventOrPlanning](
     request: Request, resource_model: type[T]
 ) -> tuple[T, LockFields]:
-    user_id = get_user(required=True)["_id"]
-    session_id = get_auth()["_id"]
+    user_id = get_current_user_id(required=True)
+    session_id = get_current_session_id()
 
     request_body = await request.get_json()
     if not isinstance(request_body, dict):

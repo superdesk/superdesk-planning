@@ -59,6 +59,22 @@ function getPlanningLock(item: IPlanningItem | null, lockedItems: ILockedItems):
         return lockedItems.recurring[item.recurrence_id];
     }
 
+    // The server stores the lock of a planning with a primary related event under
+    // the event bucket only (see `planning_locks.py`), keyed by the event id with
+    // `item_id` pointing back at the planning item.
+    // Not using `getRelatedEventIdsForPlanning` here to avoid a circular import.
+    const primaryEventIds = (item.related_events ?? [])
+        .filter((link) => link.link_type === 'primary')
+        .map((link) => link._id);
+
+    for (const eventId of primaryEventIds) {
+        const eventLock = lockedItems.event[eventId];
+
+        if (eventLock != null && eventLock.item_id === item._id) {
+            return eventLock;
+        }
+    }
+
     return null;
 }
 
@@ -102,6 +118,36 @@ function isItemLocked(item: IEventOrPlanningItem | IAssignmentItem, lockedItems:
     return self.getLock(item, lockedItems) != null;
 }
 
+/**
+ * An event and its primary linked plannings share a single lock slot, so an item
+ * cannot be locked while an associated item in the chain holds the lock, not even
+ * by the same session. The chain lock lives in the event bucket, keyed by the
+ * event id, with `item_id` telling which item actually holds it.
+ */
+function isItemLockedByAssociatedItem(item: IEventOrPlanningItem, lockedItems: ILockedItems): boolean {
+    if (item?._id == null) {
+        return false;
+    }
+
+    if (item.type === 'event') {
+        const lock = lockedItems.event[item._id];
+
+        return lock != null && lock.item_id !== item._id;
+    }
+
+    if (item.type === 'planning') {
+        return (item.related_events ?? [])
+            .filter((link) => link.link_type === 'primary')
+            .some((link) => {
+                const lock = lockedItems.event[link._id];
+
+                return lock != null && lock.item_id !== item._id;
+            });
+    }
+
+    return false;
+}
+
 function isLockedForAddToPlanning(item: IEventOrPlanningItem, lockedItems: ILockedItems): boolean {
     return self.getLockAction(item, lockedItems) === PLANNING.ITEM_ACTIONS.ADD_TO_PLANNING.lock_action;
 }
@@ -135,6 +181,7 @@ const self = {
     isLockRestricted,
     isItemLockedInThisSession,
     isItemLocked,
+    isItemLockedByAssociatedItem,
     isLockedForAddToPlanning,
     getLockedItemIds,
     getLockFromItem,

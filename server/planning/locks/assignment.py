@@ -3,13 +3,12 @@ from quart_babel import gettext
 
 from superdesk import get_resource_service
 from superdesk.errors import SuperdeskApiError
-from apps.archive.common import get_auth
 from superdesk.utc import utcnow
 
-from planning.types import AssignmentResourceModel
 from planning.types.unified import LockFields
 from planning.assignments.utils import get_assignment_from_content_dict
 
+from .common import get_current_session_id
 from .lock import lock_item
 from .unlock import unlock_item
 
@@ -26,9 +25,8 @@ async def validate_assignment_lock(item: dict, user_id: ObjectId) -> None:
     if not assignment:
         return
 
-    try:
-        current_session_id = get_auth()["_id"]
-    except KeyError:
+    current_session_id = get_current_session_id()
+    if not current_session_id:
         # This must not be from a web request
         return
 

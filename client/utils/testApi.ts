@@ -5,6 +5,7 @@ import {querySelectorParent} from 'superdesk-core/scripts/core/helpers/dom/query
 import {superdeskApi, planningApi} from '../superdeskApi';
 
 
+import * as testData from './testData';
 import {initialState, privileges} from './testData';
 Object.assign(superdeskApi, {
     localization: {
@@ -43,8 +44,25 @@ Object.assign(superdeskApi, {
             error: sinon.stub().returns(undefined),
         }
     },
+    helpers: {
+        assertNever: (value: never) => {
+            throw new Error(`assertNever: unexpected value ${JSON.stringify(value)}`);
+        },
+    },
     components: {
         SelectUser: sinon.stub().returns('<div>Stubbed SelectUser Component</div>'),
+
+        // Synchronous stand-in for the live-resources component: resolves the requested ids
+        // from test data (events only) instead of querying the server. Items are cloned
+        // because consumers may modify them in place (e.g. `eventUtils.modifyForClient`)
+        WithLiveResources: ({resources, children}) => children(
+            resources.map(({resource, ids}) => ({
+                _items: resource !== 'events' ? [] : ids
+                    .map((id) => testData.events.find((event) => event._id === id))
+                    .filter((event) => event != null)
+                    .map(cloneDeep),
+            }))
+        ),
     },
     entities: {
         contentProfile: {
