@@ -130,7 +130,11 @@ test.describe('Planning.Events: create planning action', () => {
             .click();
     }
 
-    test('can create from the list', async () => {
+    test('can create from the list', {
+        annotation: [
+            {type: 'confluence', description: '1311835139 complete'}, // Create planning item from event
+        ],
+    }, async () => {
         await list.clickAction(0, 'Create Planning Item');
         await expectListItemText();
         await doubleClickPlanningItem();
@@ -138,7 +142,11 @@ test.describe('Planning.Events: create planning action', () => {
         await canEditPlanningAfterwards();
     });
 
-    test('can create and open from the list', async () => {
+    test('can create and open from the list', {
+        annotation: [
+            {type: 'confluence', description: '1311835141 complete'}, // Create and open planning item from event
+        ],
+    }, async () => {
         await list.clickAction(0, 'Create and Open Planning Item');
         await expectEditorValues();
         await expectListItemText();

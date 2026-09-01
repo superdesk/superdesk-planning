@@ -66,16 +66,18 @@ export class PlanningController {
     }
 
     renderLoader() {
+        const container = document.getElementById(PLANNING_CONTAINER_ID);
+
         ReactDOM.render(
             <div id="planning-loader">
                 <Loader overlay />
             </div>,
-            document.getElementById(PLANNING_CONTAINER_ID)
+            container
         );
 
-        const loaderElement = document.getElementById('planning-loader');
-
-        return () => ReactDOM.unmountComponentAtNode(loaderElement);
+        // Unmounting must target the container React rendered into, not the
+        // rendered `#planning-loader` node itself
+        return () => ReactDOM.unmountComponentAtNode(container);
     }
 
     render() {

@@ -48,6 +48,7 @@ interface IProps {
     showIcon?: boolean; // defaults to true
     showBorder?: boolean; // defaults to true
     hideEditIcon?: boolean;
+    cardView?: boolean;
 }
 
 const mapStateToProps = (state) => ({
@@ -145,6 +146,7 @@ class EventMetadataComponent extends React.PureComponent<IProps> {
                 noBg={!active}
                 showBorder={showBorder}
                 showIcon={showIcon}
+                cardView={this.props.cardView}
                 dateOnly={dateOnly}
                 eventActions={eventActions}
             />

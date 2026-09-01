@@ -247,6 +247,13 @@ declare module 'superdesk-api' {
                     firstLine: Array<ILineConfig>;
                     secondLine?: Array<ILineConfig>;
                 };
+
+                // Cards for linked items shown inside item previews. A configured
+                // card_view fully describes the card: an omitted line renders nothing
+                card_view?: {
+                    firstLine?: Array<ILineConfig>;
+                    secondLine?: Array<ILineConfig>;
+                };
             };
 
             event_list_item?: {
@@ -255,6 +262,13 @@ declare module 'superdesk-api' {
 
                 compact_view?: {
                     firstLine: Array<ILineConfig>;
+                    secondLine?: Array<ILineConfig>;
+                };
+
+                // Cards for linked items shown inside item previews. A configured
+                // card_view fully describes the card: an omitted line renders nothing
+                card_view?: {
+                    firstLine?: Array<ILineConfig>;
                     secondLine?: Array<ILineConfig>;
                 };
             };

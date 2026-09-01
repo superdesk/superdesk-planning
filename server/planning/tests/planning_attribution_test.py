@@ -6,11 +6,9 @@ from bson import ObjectId
 
 from planning.planning import planning as planning_module
 
-# from planning.planning import planning_history as history_module
 from planning.planning.planning import PlanningService
 from planning.history.planning import UnifiedPlanningHistoryService
-
-# from planning.planning.planning_history import PlanningHistoryService
+from planning import common as common_module
 
 
 class DummyPlanningService(PlanningService):
@@ -266,3 +264,35 @@ async def test_ingest_patch_does_not_modify_version_creator(monkeypatch):
     assert "version_creator" not in captured_document, "Ingest should not modify version_creator"
     assert "versioncreated" not in captured_document, "Ingest should not modify versioncreated"
     assert "ingest_versioncreated" in captured_document, "Ingest should set ingest_versioncreated"
+
+
+@pytest.mark.asyncio
+async def test_async_service_lock_only_update_skips_repost(monkeypatch):
+    original = {
+        "_id": "planning-id",
+        "type": "planning",
+        "pubstatus": "usable",
+        "lock_user": "user-1",
+        "lock_session": "session-1",
+        "lock_time": "2026-07-23T09:44:47+0000",
+        "lock_action": "edit",
+        "coverages": [{"coverage_id": "cov-1", "planning": {"slugline": "Coverage"}}],
+    }
+
+    updates = {
+        "lock_user": None,
+        "lock_session": None,
+        "lock_time": None,
+        "lock_action": None,
+        "_etag": "etag-2",
+        "coverages": original["coverages"],
+    }
+
+    def should_not_repost(_resource_name):
+        raise AssertionError("Lock-only updates must not invoke repost resource lookup")
+
+    monkeypatch.setattr(common_module, "get_resource_service", should_not_repost)
+
+    result = await common_module.update_post_item(updates, original)
+
+    assert result is None, "Lock-only/system-only updates should not repost"

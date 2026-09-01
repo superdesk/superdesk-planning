@@ -17,6 +17,7 @@ interface IProps {
     checked?: boolean;
     className?: string;
     style?: React.CSSProperties;
+    testId?: string;
 }
 
 export const Column = ({
@@ -28,8 +29,10 @@ export const Column = ({
     checked,
     className,
     style,
+    testId,
 }: IProps) => (
     <div
+        data-test-id={testId}
         className={classNames(
             'sd-list-item__column',
             {

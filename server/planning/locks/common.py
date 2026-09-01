@@ -1,8 +1,11 @@
 from quart_babel import gettext
+from bson import ObjectId
 
 from superdesk.core.resources import AsyncResourceService
 from superdesk.errors import SuperdeskApiError
 from superdesk.users.services import current_user_has_privilege
+
+from apps.auth import get_user, get_auth
 
 from planning.types import AssignmentEventOrPlanning, AssignmentResourceModel, UnifiedPlanningResource
 from planning.types.unified import LockFields
@@ -30,3 +33,17 @@ def get_service_and_ids_for_locks(
         return UnifiedPlanningResource.get_service(), item.recurrence_id, get_related_event_ids(item)
     else:
         return AssignmentResourceModel.get_service(), None, []
+
+
+def get_current_user_id(required: bool = False) -> ObjectId | None:
+    try:
+        return get_user(required)["_id"]
+    except KeyError:
+        return None
+
+
+def get_current_session_id() -> ObjectId | None:
+    try:
+        return get_auth()["_id"]
+    except KeyError:
+        return None

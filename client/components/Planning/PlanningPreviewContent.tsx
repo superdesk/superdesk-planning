@@ -33,7 +33,8 @@ import {EventMetadata} from '../Events';
 import {FeatureLabel} from './FeaturedPlanning';
 import {renderProfileGroupedFields} from '../fields';
 import {PreviewFieldFiles} from '../fields/preview/Files';
-import {getRelatedEventIdsForPlanning} from '../../utils/planning';
+import {getRelatedEventIdsForPlanning, pickRelatedEventIdsForPlanning} from '../../utils/planning';
+import {RelatedEventsFilesFetcher} from './RelatedEventsFilesFetcher';
 import {coverageProfiles} from '../../selectors/coverageProfiles';
 import {getCoverageFields} from '../../api/editor/item_planning';
 import {appConfig} from 'appConfig';
@@ -48,7 +49,6 @@ interface IOwnProps {
 
 interface IReduxProps {
     item: IPlanningItem;
-    relatedEvents: Array<IEventItem> | null;
     session: ISession;
     privileges: any;
     users: Array<IUser>;
@@ -72,7 +72,6 @@ type IProps = IOwnProps & IReduxProps & IDispatchProps;
 
 const mapStateToProps = (state, ownProps): IReduxProps => ({
     item: selectors.planning.currentPlanning(state) || ownProps.item,
-    relatedEvents: selectors.events.getRelatedEventsForPlanning(state),
     session: selectors.general.session(state),
     privileges: selectors.general.privileges(state),
     users: selectors.general.users(state),
@@ -91,27 +90,77 @@ const mapDispatchToProps = (dispatch): IDispatchProps => ({
 });
 
 export class PlanningPreviewContentComponent extends React.PureComponent<IProps> {
-    componentWillMount() {
-        // If the planning item is associated with an event, get its files
-        if ((this.props.relatedEvents?.length ?? 0) > 0) {
-            this.props.relatedEvents.forEach((relatedEvent) => (
-                this.props.fetchEventFiles(relatedEvent)
-            ));
-        }
+    // Do not turn this into a component defined inside render(): such a component gets a new type identity on
+    // every render, making React remount the coverage subtree and lose the CollapseBox open state
+    renderCoveragePreview(coverage: IPlanningCoverageItem, index: number) {
+        const {item, users, desks, newsCoverageStatus, inner, files} = this.props;
+        const {profile} = getCoverageFields(coverage.planning.g2_content_type);
 
+        return (
+            <CoveragePreview
+                item={item}
+                key={coverage.coverage_id}
+                index={index}
+                coverage={coverage}
+                users={users}
+                desks={desks}
+                newsCoverageStatus={newsCoverageStatus}
+                formProfile={profile}
+                inner={inner}
+                files={files}
+                createLink={getFileDownloadURL}
+                canScheduleUpdates={
+                    profile.editor.flags && appConfig.planning_allow_scheduled_updates
+                }
+                scrollInView={true}
+            />
+        );
+    }
+
+    componentWillMount() {
+        // Related event files are fetched by RelatedEventsFilesFetcher from the live
+        // event data, so only the planning item's own files are needed here
         this.props.fetchPlanningFiles(this.props.item);
     }
 
     render() {
+        const eventIds = pickRelatedEventIdsForPlanning(this.props.item, 'display');
+
+        if (eventIds.length < 1) {
+            return this.renderContent(null);
+        }
+
+        const {WithLiveResources} = superdeskApi.components;
+
+        // Related events are rendered from live resources rather than the redux store: the store
+        // copy is not refreshed on `events:updated` notifications outside the Events view, so it
+        // goes stale when an event changes while the preview is open
+        return (
+            <WithLiveResources resources={[{resource: 'events', ids: eventIds}]}>
+                {([res]) => {
+                    const relatedEvents = (res._items as Array<IEventItem>)
+                        .filter((event) => event != null)
+                        .map((event) => eventUtils.modifyForClient(event));
+
+                    return (
+                        <RelatedEventsFilesFetcher
+                            events={relatedEvents}
+                            fetchEventFiles={this.props.fetchEventFiles}
+                        >
+                            {this.renderContent(relatedEvents)}
+                        </RelatedEventsFilesFetcher>
+                    );
+                }}
+            </WithLiveResources>
+        );
+    }
+
+    renderContent(relatedEvents: Array<IEventItem> | null) {
         const {gettext} = superdeskApi.localization;
         const {item,
             users,
             formProfile,
-            relatedEvents,
-            desks,
-            newsCoverageStatus,
             onEditEvent,
-            inner,
             noPadding,
             hideRelatedItems,
             hideEditIcon,
@@ -131,30 +180,6 @@ export class PlanningPreviewContentComponent extends React.PureComponent<IProps>
         const otherCoverages: Array<IPlanningCoverageItem> = this.props.currentCoverageId == null ?
             item.coverages ?? [] :
             (item.coverages ?? []).filter((coverage) => coverage.coverage_id !== this.props.currentCoverageId);
-
-        const CoveragesPreview = ({coverage, index}) => {
-            const {profile} = getCoverageFields(coverage.planning.g2_content_type);
-
-            return (
-                <CoveragePreview
-                    item={item}
-                    key={coverage.coverage_id}
-                    index={index}
-                    coverage={coverage}
-                    users= {users}
-                    desks= {desks}
-                    newsCoverageStatus={newsCoverageStatus}
-                    formProfile={profile}
-                    inner={inner}
-                    files={files}
-                    createLink={getFileDownloadURL}
-                    canScheduleUpdates={
-                        profile.editor.flags && appConfig.planning_allow_scheduled_updates
-                    }
-                    scrollInView={true}
-                />
-            );
-        };
 
         const primaryEventId = getRelatedEventIdsForPlanning(this.props.item, 'primary')[0];
         const primaryRelatedEvent = (relatedEvents ?? []).find((relatedEvent) => relatedEvent._id === primaryEventId);
@@ -183,21 +208,17 @@ export class PlanningPreviewContentComponent extends React.PureComponent<IProps>
                         {currentCoverage == null ? (
                             <>
                                 <h3 className="side-panel__heading--big">{gettext('Coverages')}</h3>
-                                {otherCoverages.map((coverage, i) => (
-                                    <CoveragesPreview key={i} coverage={coverage} index={i} />
-                                ))}
+                                {otherCoverages.map((coverage, i) => this.renderCoveragePreview(coverage, i))}
                             </>
                         ) : (
                             <>
                                 <h3 className="side-panel__heading--big">{gettext('This Coverage')}</h3>
-                                <CoveragesPreview coverage={currentCoverage} index={0} />
+                                {this.renderCoveragePreview(currentCoverage, 0)}
 
                                 {(otherCoverages ?? []).length > 0 && (
                                     <>
                                         <h3 className="side-panel__heading--big">{gettext('Other Coverages')}</h3>
-                                        {otherCoverages.map((coverage, i) => (
-                                            <CoveragesPreview key={i} coverage={coverage} index={i} />
-                                        ))}
+                                        {otherCoverages.map((coverage, i) => this.renderCoveragePreview(coverage, i))}
                                     </>
                                 )}
                             </>
@@ -221,6 +242,7 @@ export class PlanningPreviewContentComponent extends React.PureComponent<IProps>
                                 createUploadLink={getFileDownloadURL}
                                 files={files}
                                 hideEditIcon={hideEditIcon}
+                                cardView={true}
                             />
                         ))}
                     </>

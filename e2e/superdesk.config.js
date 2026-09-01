@@ -76,6 +76,60 @@ module.exports = function() {
             keywords: true
         },
 
+        planning: {
+            // `firstLine`/`secondLine` mirror the product defaults so the rest of the suite sees an
+            // unchanged list. Only `card_view` differs; preview_card_view.spec.ts asserts on that.
+            event_list_item: {
+                firstLine: [
+                    {fieldId: 'slugline'},
+                    {fieldId: 'internalnote'},
+                    {fieldId: 'name'},
+                    {fieldId: 'calendars'},
+                    {fieldId: 'location'},
+                    {fieldId: 'event_datetime', position: 'end'},
+                ],
+                secondLine: [
+                    {fieldId: 'state'},
+                    {fieldId: 'related_plannings'},
+                    {fieldId: 'location'},
+                ],
+                card_view: {
+                    firstLine: [
+                        {fieldId: 'name'},
+                        {fieldId: 'reference'},
+                    ],
+                    secondLine: [
+                        {fieldId: 'state'},
+                    ],
+                },
+            },
+
+            planning_list_item: {
+                firstLine: [
+                    {fieldId: 'slugline'},
+                    {fieldId: 'internalnote'},
+                    {fieldId: 'description'},
+                ],
+                secondLine: [
+                    {fieldId: 'state'},
+                    {fieldId: 'featured'},
+                    {fieldId: 'agendas'},
+                    {fieldId: 'related_events'},
+                    {fieldId: 'coverages', position: 'end'},
+                ],
+                card_view: {
+                    firstLine: [
+                        {fieldId: 'slugline'},
+                        {fieldId: 'headline'},
+                    ],
+                    secondLine: [
+                        {fieldId: 'state'},
+                        {fieldId: 'urgency'},
+                    ],
+                },
+            },
+        },
+
         default_timezone: 'Australia/Sydney',
         shortDateFormat: 'DD/MM',
         ArchivedDateFormat: 'D/MM/YYYY',

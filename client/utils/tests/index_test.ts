@@ -29,6 +29,10 @@ describe('Utils', () => {
         error = utils.getErrorMessage(response, 'Nothing here');
         expect(error).toBe('Something else happened');
 
+        // Rejections carrying the parsed response body directly
+        error = utils.getErrorMessage({_message: 'An associated event is already locked.'}, 'Nothing');
+        expect(error).toBe('An associated event is already locked.');
+
         response = {data: {}};
         error = utils.getErrorMessage(response, 'Something unexpected');
         expect(error).toBe('Something unexpected');

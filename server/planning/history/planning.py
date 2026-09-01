@@ -96,6 +96,16 @@ class UnifiedPlanningHistoryService(HistoryAsyncService[UnifiedPlanningHistoryRe
                 history["operation"] = "unpost"
         elif operation == "create" and update.get("state", "") == "ingested":
             history["operation"] = "ingested"
+
+        logger.debug(
+            "planning:history_save operation=%s item_id=%s item_type=%s user_id=%s update_keys=%s",
+            history.get("operation"),
+            history.get("item_id"),
+            history.get("item_type"),
+            history.get("user_id"),
+            sorted(list((history.get("update") or {}).keys())),
+        )
+
         await self.create([history])
 
     async def on_item_updated(self, updates: dict[str, Any], original: dict[str, Any], operation: str | None = None):
@@ -187,6 +197,13 @@ class UnifiedPlanningHistoryService(HistoryAsyncService[UnifiedPlanningHistoryRe
             original_coverage = original_coverages.get(cov.get("coverage_id"), {})
             diff = await self._get_coverage_diff(cov, original_coverage)
             if len(diff.keys()) > 1:
+                logger.info(
+                    "planning:coverage_history_edited item_id=%s item_type=%s coverage_id=%s diff_keys=%s",
+                    item.get(ID_FIELD),
+                    item.get("item_type"),
+                    cov.get("coverage_id"),
+                    sorted(list(diff.keys())),
+                )
                 await self._save_history(item, diff, "coverage_edited")
 
             if original_coverage is not None:

@@ -133,6 +133,34 @@ export const eventFirstLineConfig: Array<ILineConfig> =
 export const eventSecondLineConfig: Array<ILineConfig> =
     appConfig.planning?.event_list_item?.secondLine ?? eventSecondLineConfigDefaults;
 
+type ICardViewConfig = {firstLine?: Array<ILineConfig>; secondLine?: Array<ILineConfig>};
+
+// A configured `card_view` fully describes the card: an omitted line renders nothing
+const getCardLine = (
+    cardView: ICardViewConfig | undefined,
+    line: keyof ICardViewConfig,
+    listLine: Array<ILineConfig> | undefined,
+    defaults: Array<ILineConfig>,
+): Array<ILineConfig> => cardView != null ?
+    cardView[line] ?? [] :
+    listLine ?? defaults;
+
+export const getEventCardFirstLineConfig = (): Array<ILineConfig> =>
+    getCardLine(
+        appConfig.planning?.event_list_item?.card_view,
+        'firstLine',
+        appConfig.planning?.event_list_item?.firstLine,
+        eventFirstLineConfigDefaults,
+    );
+
+export const getEventCardSecondLineConfig = (): Array<ILineConfig> =>
+    getCardLine(
+        appConfig.planning?.event_list_item?.card_view,
+        'secondLine',
+        appConfig.planning?.event_list_item?.secondLine,
+        eventSecondLineConfigDefaults,
+    );
+
 const planningFirstLineDefaults: Array<ILineConfig> = [
     {fieldId: 'slugline'},
     {fieldId: 'internalnote'},
@@ -150,6 +178,30 @@ const planningSecondLineDefaults: Array<ILineConfig> = [
 export const planningFirstLineConfig: Array<ILineConfig> =
     appConfig.planning?.planning_list_item?.firstLine ?? planningFirstLineDefaults;
 
+const filterAgendas = (config: Array<ILineConfig>, isAgendaEnabled: boolean): Array<ILineConfig> =>
+    config.filter(({fieldId}: ILineConfig) => isAgendaEnabled ? true : fieldId !== 'agendas');
+
 export const getPlanningSecondLineConfig = ({isAgendaEnabled}: {isAgendaEnabled: boolean}): Array<ILineConfig> =>
-    (appConfig.planning?.planning_list_item?.secondLine ?? planningSecondLineDefaults)
-        .filter(({fieldId}: ILineConfig) => isAgendaEnabled ? true : fieldId !== 'agendas');
+    filterAgendas(
+        appConfig.planning?.planning_list_item?.secondLine ?? planningSecondLineDefaults,
+        isAgendaEnabled,
+    );
+
+export const getPlanningCardFirstLineConfig = (): Array<ILineConfig> =>
+    getCardLine(
+        appConfig.planning?.planning_list_item?.card_view,
+        'firstLine',
+        appConfig.planning?.planning_list_item?.firstLine,
+        planningFirstLineDefaults,
+    );
+
+export const getPlanningCardSecondLineConfig = ({isAgendaEnabled}: {isAgendaEnabled: boolean}): Array<ILineConfig> =>
+    filterAgendas(
+        getCardLine(
+            appConfig.planning?.planning_list_item?.card_view,
+            'secondLine',
+            appConfig.planning?.planning_list_item?.secondLine,
+            planningSecondLineDefaults,
+        ),
+        isAgendaEnabled,
+    );

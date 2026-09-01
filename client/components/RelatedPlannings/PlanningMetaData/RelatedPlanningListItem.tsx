@@ -12,7 +12,12 @@ import * as List from '../../UI/List';
 import {ICON_COLORS} from '../../../constants';
 import {ItemIcon} from '../../../components/ItemIcon';
 import {LineItems} from '../../../components/UI/List/LineItems';
-import {getPlanningSecondLineConfig, planningFirstLineConfig} from '../../../config';
+import {
+    getPlanningCardFirstLineConfig,
+    getPlanningCardSecondLineConfig,
+    getPlanningSecondLineConfig,
+    planningFirstLineConfig,
+} from '../../../config';
 import {getUserInterfaceLanguageFromCV} from '../../../utils/users';
 import {renderFields} from '../../../components/fields';
 import {ILineConfig} from 'globals';
@@ -24,6 +29,9 @@ interface IBaseProps {
     noBg?: boolean;
     showBorder?: boolean;
     showIcon?: boolean;
+
+    // Preview card variant: card_view config, no item type icon
+    cardView?: boolean;
     shadow?: number;
     editPlanningComponent?: React.ReactNode;
     isAgendaEnabled: boolean;
@@ -83,8 +91,15 @@ class RelatedPlanningListItemComponent extends React.PureComponent<IProps> {
             language,
         );
 
+        const {isAgendaEnabled} = this.props;
+        const firstLineConfig = this.props.cardView ? getPlanningCardFirstLineConfig() : planningFirstLineConfig;
+        const secondLineConfig = this.props.cardView ?
+            getPlanningCardSecondLineConfig({isAgendaEnabled}) :
+            getPlanningSecondLineConfig({isAgendaEnabled});
+
         return (
             <List.Item
+                testId="related-planning-item"
                 noBg={this.props.noBg}
                 activated={this.props.active}
                 shadow={this.props.shadow}
@@ -107,8 +122,8 @@ class RelatedPlanningListItemComponent extends React.PureComponent<IProps> {
                     </List.Column>
                 )}
 
-                {!this.props.showIcon ? null : (
-                    <List.Column>
+                {(this.props.cardView || !this.props.showIcon) ? null : (
+                    <List.Column testId="item-type-icon">
                         <ItemIcon
                             item={this.props.item}
                             color={ICON_COLORS.DARK_BLUE_GREY}
@@ -122,11 +137,8 @@ class RelatedPlanningListItemComponent extends React.PureComponent<IProps> {
                     style={this.props.noColumnPadding ? undefined : {paddingBlock: 'var(--space--1)'}}
                 >
                     <LineItems
-                        firstLine={planningFirstLineConfig.filter(({fieldId}) => fieldId !== 'related_events')}
-                        secondLine={
-                            getPlanningSecondLineConfig({isAgendaEnabled: this.props.isAgendaEnabled})
-                                .filter(({fieldId}) => fieldId !== 'related_events')
-                        }
+                        firstLine={firstLineConfig.filter(({fieldId}) => fieldId !== 'related_events')}
+                        secondLine={secondLineConfig.filter(({fieldId}) => fieldId !== 'related_events')}
                         renderFieldsWithProps={renderFieldsWithProps}
                     />
                 </List.Column>

@@ -8,9 +8,9 @@ from superdesk.utc import utcnow
 from superdesk.notification import push_notification
 from superdesk.lock import lock, unlock
 
-from apps.archive.common import get_user, get_auth
-
 from planning.types import PlanningFeaturedLockResource
+
+from .common import get_current_session_id, get_current_user_id
 from .views import planning_lock_endpoints
 
 __all__ = ["planning_lock_endpoints", "planning_featured_lock_resource"]
@@ -32,8 +32,8 @@ class PlanningFeaturedLockResourceService(AsyncResourceService[PlanningFeaturedL
             return [doc]
 
         # Given the current user and session, create the new lock details here
-        user_id = get_user(required=True)["_id"]
-        session_id = get_auth()["_id"]
+        user_id = get_current_user_id(required=True)
+        session_id = get_current_session_id()
         return [
             PlanningFeaturedLockResource(
                 id=generate_guid(type=GUID_NEWSML),
@@ -45,8 +45,8 @@ class PlanningFeaturedLockResourceService(AsyncResourceService[PlanningFeaturedL
         ]
 
     async def validate_create(self, doc: PlanningFeaturedLockResource):
-        user_id = get_user(required=True)["_id"]
-        session_id = get_auth()["_id"]
+        user_id = get_current_user_id(required=True)
+        session_id = get_current_session_id()
 
         async for existing_lock in await self.find({}):
             if existing_lock.lock_user != user_id:
@@ -65,8 +65,8 @@ class PlanningFeaturedLockResourceService(AsyncResourceService[PlanningFeaturedL
         await super().validate_create(doc)
 
     async def on_created(self, docs: list[PlanningFeaturedLockResource]) -> None:
-        user_id = get_user(required=True)["_id"]
-        session_id = get_auth()["_id"]
+        user_id = get_current_user_id(required=True)
+        session_id = get_current_session_id()
         unlock(LOCK_ID, remove=True)
         push_notification(
             "planning_featured_lock:lock",
@@ -75,8 +75,8 @@ class PlanningFeaturedLockResourceService(AsyncResourceService[PlanningFeaturedL
         )
 
     async def on_deleted(self, doc: PlanningFeaturedLockResource):
-        user_id = get_user(required=True)["_id"]
-        session_id = get_auth()["_id"]
+        user_id = get_current_user_id(required=True)
+        session_id = get_current_session_id()
         push_notification(
             "planning_featured_lock:unlock",
             user=str(user_id),
