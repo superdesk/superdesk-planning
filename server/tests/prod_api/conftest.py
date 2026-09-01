@@ -17,10 +17,28 @@ from planning.assignments.assignments import assignments_schema
 from planning.prod_api.assignments.resource import AssignmentsResource
 
 
+# DOMAIN entries for the repointed sources so fixture writes' notification lookup resolves
+# (ProdAPI is read-only in production, so this write path never runs there).
+UNIFIED_SOURCES = ("unified_planning", "planning_history")
+
+
+def _init_unified_planning_index(app):
+    # eve_elastic's init_index skips resources whose source != endpoint, so the repointed
+    # Events/Planning resources never get their unified_planning index. In production the
+    # main app creates it; here we build it from the Events + Planning schemas.
+    elastic = app.data.elastic
+    alias = elastic._resource_index("events")
+    mapping = elastic._resource_mapping("events")
+    mapping.setdefault("properties", {}).update(elastic._resource_mapping("planning").get("properties", {}))
+    settings = elastic._resource_config("events", "SETTINGS")
+    elastic._init_index(elastic.elastic("events"), alias, settings, mapping)
+
+
 @pytest.fixture(scope="function")
 async def prodapi_app(request):
     extra_config = getattr(request, "param", {})
     extra_config["PRODAPI_AUTH_ENABLED"] = False
+    extra_config["ELASTICSEARCH_FORCE_REFRESH"] = True
 
     # Copy schemas onto ProdAPI resources so elastic mapping is correct, otherwise certain queries will fail
     # This will not happen in a production environment, as the index/types should already be created
@@ -29,6 +47,12 @@ async def prodapi_app(request):
     PlanningResource.schema = deepcopy(planning_schema)
 
     app = await get_test_prodapi_app(extra_config)
+
+    for source in UNIFIED_SOURCES:
+        app.config["DOMAIN"].setdefault(source, {"notifications": False})
+
+    async with app.app_context():
+        _init_unified_planning_index(app)
 
     def test_app_teardown():
         teardown_app(app)

@@ -21,8 +21,10 @@ class PlanningResource(Resource):
     resource_methods = ["GET"]
     allow_unknown = True
     datasource = {
-        "source": "planning",
+        "source": "unified_planning",
         "search_backend": "elastic",
         "default_sort": [("_updated", -1)],
+        "filter": {"type": "planning"},
+        "elastic_filter": {"term": {"type": "planning"}},
     }
     privileges = {"GET": Scope.PLANNING_READ.name}

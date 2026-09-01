@@ -2,7 +2,6 @@
     {
         "_id": "urn:newsml:localhost:5000:2019-09-10T15:47:04.367097:714ceeb4-c366-48af-b360-e7aefdf9941a",
         "type": "planning",
-        "event_item": "urn:newsml:localhost:5000:2019-09-10T15:43:13.722490:5dcea683-fb9b-42ca-a77f-ce1216aef8b1",
         "planning_date": "2019-09-10T13:46:38.000Z",
         "agendas": [],
         "state": "draft",
@@ -124,7 +123,12 @@
     {
         "_id": "urn:newsml:localhost:5000:2019-09-10T16:22:02.020996:dd01be40-e401-407f-a2f4-f6532c3f907c",
         "type": "planning",
-        "event_item": "urn:newsml:localhost:5000:2019-09-10T16:22:34.066960:6b2d9c79-08b9-456f-b890-9b2154ee997a",
+        "related_events": [
+            {
+                "_id": "urn:newsml:localhost:5000:2019-09-10T16:22:34.066960:6b2d9c79-08b9-456f-b890-9b2154ee997a",
+                "link_type": "primary"
+            }
+        ],
         "planning_date": "2019-09-10T14:21:45.000Z",
         "agendas": [],
         "state": "draft",
@@ -191,7 +195,12 @@
     {
         "_id": "urn:newsml:localhost:5000:2019-10-21T11:48:10.807263:c61d74ec-fb22-4665-98e1-f773f618826d",
         "type": "planning",
-        "event_item": "urn:newsml:localhost:5000:2019-08-22T15:50:04.270524:86da81f0-c3fa-4b93-9e28-ed21ad2f1ed9",
+        "related_events": [
+            {
+                "_id": "urn:newsml:localhost:5000:2019-08-22T15:50:04.270524:86da81f0-c3fa-4b93-9e28-ed21ad2f1ed9",
+                "link_type": "primary"
+            }
+        ],
         "planning_date": "2019-10-21T09:47:59.000Z",
         "agendas": [],
         "state": "draft",
