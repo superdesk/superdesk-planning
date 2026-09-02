@@ -20,10 +20,7 @@ COVERAGE_STATUS = {"qcode": "ncostat:int", "name": "coverage intended", "label":
 
 
 class ArticleExportTestCase(TestCase):
-    """Export as Article reads Event & Planning items from the single ``unified_planning``
-    resource (SDBELGA-1130): related items are resolved through the unified helpers, and
-    the export is served by a native async endpoint instead of the Eve resource.
-    """
+    """Exporting Event & Planning items as an Article from the unified resource"""
 
     app_config = {
         **TestCase.app_config.copy(),
@@ -96,7 +93,6 @@ class ArticleExportTestCase(TestCase):
         data.update(overrides)
         return (await self.service.create([UnifiedPlanningResource.from_dict(data)]))[0].id
 
-    # ------------------------------------------------------------- get_items
     async def test_get_items_preserves_supplied_order(self):
         plan_ids = [await self._create_planning(headline=f"Planning {i}") for i in range(3)]
         event_ids = [await self._create_event(name=f"Event {i}") for i in range(3)]
@@ -142,7 +138,6 @@ class ArticleExportTestCase(TestCase):
             [coverage["planning"]["g2_content_type"] for coverage in event["coverages"]],
         )
 
-    # ------------------------------------------------- export_items_to_article
     async def test_export_creates_archive_item_on_desk(self):
         event_id = await self._create_event(name="Big Match")
         plan_id = await self._create_planning(
@@ -242,7 +237,6 @@ class ArticleExportTestCase(TestCase):
 
         self.assertIsNone(await get_resource_service("archive").find_one_async(req=None, type="text"))
 
-    # ------------------------------------------------- export_events_to_text
     async def test_export_events_to_text(self):
         event_id = await self._create_event(name="Downloaded Event")
         items = await get_items([event_id], "events")
