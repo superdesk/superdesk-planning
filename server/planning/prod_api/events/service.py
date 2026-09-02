@@ -32,7 +32,7 @@ from planning.prod_api.planning.utils import (
     extract_coverage_summaries,
     str_to_bool,
 )
-from planning.utils import get_related_planning_for_events_async
+from planning.utils import get_related_planning_for_events_async, get_related_event_ids_for_planning
 
 
 class EventsService(ProdApiService):
@@ -98,7 +98,7 @@ class EventsService(ProdApiService):
             raise SuperdeskApiError.badRequestError("planning_source must be an object")
 
         query.setdefault("sort", [{"_created": "asc"}, {"_updated": "asc"}, {"guid": "asc"}])
-        query.setdefault("_source", ["_id", "_resource", "event_item"])
+        query.setdefault("_source", ["_id", "_resource", "related_events"])
 
         return query
 
@@ -125,8 +125,7 @@ class EventsService(ProdApiService):
 
     def _extract_event_items(self, results: Iterable[dict]) -> Iterable[str]:
         for item in results:
-            if item.get("event_item"):
-                yield item["event_item"]
+            yield from get_related_event_ids_for_planning(item, "primary")
 
     async def _process_fetched_object(self, doc):
         super()._process_fetched_object(doc)

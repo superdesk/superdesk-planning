@@ -21,9 +21,11 @@ class EventsResource(Resource):
     resource_methods = ["GET"]
     allow_unknown = True
     datasource = {
-        "source": "events",
+        "source": "unified_planning",
         "search_backend": "elastic",
         "default_sort": [("dates.start", 1)],
+        "filter": {"type": "event"},
+        "elastic_filter": {"term": {"type": "event"}},
     }
     privileges = {"GET": Scope.EVENTS_READ.name}
 
@@ -34,7 +36,11 @@ class EventsHistoryResource(Resource):
     item_methods = ["GET"]
     resource_methods = ["GET"]
     allow_unknown = True
-    datasource = {"source": "events_history", "default_sort": [("_updated", -1)]}
+    datasource = {
+        "source": "planning_history",
+        "default_sort": [("_updated", -1)],
+        "filter": {"item_type": "event"},
+    }
     privileges = {"GET": Scope.EVENTS_READ.name}
 
 

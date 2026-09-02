@@ -310,7 +310,7 @@ async def test_planning_source_pagination(prodapi_app, prodapi_app_with_data_cli
                     "_id": f"planning--{i}",
                     "guid": f"planning--{i}",
                     "name": f"Test Planning {i}",
-                    "event_item": event_id,
+                    "related_events": [{"_id": event_id, "link_type": "primary"}],
                 }
                 if i % 4 == 0:
                     # Planning item's will alternate between text and picture coverages

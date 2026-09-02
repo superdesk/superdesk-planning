@@ -1,7 +1,8 @@
 [
     {
         "_id": "5d77a8724c3b49675964b095",
-        "event_id": "urn:newsml:localhost:5000:2019-09-10T15:43:13.722490:5dcea683-fb9b-42ca-a77f-ce1216aef8b1",
+        "item_id": "urn:newsml:localhost:5000:2019-09-10T15:43:13.722490:5dcea683-fb9b-42ca-a77f-ce1216aef8b1",
+        "item_type": "event",
         "user_id": "5d385f31fe985ec67a0ca583",
         "operation": "create",
         "update": {
@@ -67,7 +68,8 @@
     },
     {
         "_id": "5d77b1aa4c3b49675964b0f9",
-        "event_id": "urn:newsml:localhost:5000:2019-09-10T16:22:34.066960:6b2d9c79-08b9-456f-b890-9b2154ee997a",
+        "item_id": "urn:newsml:localhost:5000:2019-09-10T16:22:34.066960:6b2d9c79-08b9-456f-b890-9b2154ee997a",
+        "item_type": "event",
         "user_id": "5d385f31fe985ec67a0ca583",
         "operation": "create",
         "update": {
