@@ -17,7 +17,7 @@ from superdesk.core.web import EndpointGroup
 from werkzeug.utils import secure_filename
 from superdesk.flask import send_file, request, make_response
 from superdesk.utc import utcnow
-from .planning_article_export import get_items
+from .planning_article_export import get_items, export_events_to_text
 import json
 
 
@@ -39,7 +39,6 @@ async def planning_download_file() -> Response:
         response.headers.add("Access-Control-Allow-Methods", "POST")
         return response
 
-    export_service = superdesk.get_resource_service("planning_article_export")
     raw_data = await request.get_data()
     decoded_data = raw_data.decode("utf-8")
     items = await get_items(json.loads(decoded_data), "events")
@@ -49,9 +48,7 @@ async def planning_download_file() -> Response:
     if not template:
         await request.abort(400, "Template not available")
 
-    exported_text = await export_service.export_events_to_text(
-        items, template=template, tz_offset=request.args.get("tz")
-    )
+    exported_text = await export_events_to_text(items, template=template, tz_offset=request.args.get("tz"))
     if exported_text:
         try:
             temp_file = io.BytesIO()

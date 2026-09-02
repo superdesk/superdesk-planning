@@ -18,6 +18,7 @@ from superdesk.lock import lock, unlock
 from superdesk.celery_task_utils import get_lock_id
 
 from planning.search import EventsPlanningFiltersAsyncService
+from planning.planning_article_export import export_items_to_article, ArticleExportRequest
 
 logger = logging.getLogger(__name__)
 
@@ -197,14 +198,12 @@ class ExportScheduledFilters:
             logger.info(f"No items found for filter {search_filter_id}")
             return
 
-        await get_resource_service("planning_article_export").post_async(
-            [
-                {
-                    "items": [item["_id"] async for item in items],
-                    "desk": schedule.get("desk"),
-                    "template": schedule.get("template"),
-                    "article_template": schedule.get("article_template"),
-                    "type": "event" if search_filter["item_type"] == "events" else search_filter["item_type"],
-                }
-            ]
+        await export_items_to_article(
+            ArticleExportRequest(
+                items=[str(item["_id"]) async for item in items],
+                desk=schedule.get("desk"),
+                template=schedule.get("template"),
+                article_template=schedule.get("article_template"),
+                type="event" if search_filter["item_type"] == "events" else search_filter["item_type"],
+            )
         )

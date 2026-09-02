@@ -70,7 +70,7 @@ async def get_item_from_assignment(assignment, template=None):
     if template is not None:
         template = get_resource_service("content_templates").find_one(req=None, template_name=template)
     else:
-        template = get_desk_template(desk)
+        template = await get_desk_template(desk or {})
     item = get_item_from_template(template)
 
     planning_data = assignment.get("planning") or {}
