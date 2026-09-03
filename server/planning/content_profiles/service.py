@@ -168,6 +168,8 @@ def _merge_planning_type(profile: dict, default_profile: dict):
 
     # Update schema fields with database schema fields
     updated_profile = deepcopy(default_profile)
+    updated_profile.setdefault("schema", {})
+    updated_profile.setdefault("editor", {})
     updated_profile.setdefault("groups", {})
     updated_profile["groups"].update(profile.get("groups", {}))
 
