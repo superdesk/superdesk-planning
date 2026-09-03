@@ -137,7 +137,7 @@ async def get_validator(item: dict, item_type: str) -> Event | None:
     if item_type == "coverage" and item.get("profile"):
         profile = await service.find_by_id(item["profile"])
     else:
-        profile = await service.find_one(name=item_type)
+        profile = await service.find_one(type=item_type)
 
     return profile.to_dict() if profile else None
 
