@@ -114,7 +114,7 @@ class UpgradeUnifiedPlanningProfilesTestCase(TestCase):
             [
                 {
                     "_id": coverage_profile_ids[0],
-                    "name": "Text Coverage",
+                    "name": "coverage",
                     "content_type": "text",
                     "created_by": user_ids[0],
                     "updated_by": user_ids[1],
@@ -129,7 +129,7 @@ class UpgradeUnifiedPlanningProfilesTestCase(TestCase):
                 },
                 {
                     "_id": str(coverage_profile_ids[1]),
-                    "name": "Photo Coverage",
+                    "name": "coverage",
                     "content_type": "photo",
                     "created_by": user_ids[0],
                     "updated_by": user_ids[1],
@@ -169,3 +169,9 @@ class UpgradeUnifiedPlanningProfilesTestCase(TestCase):
                     "editor": original_profile["editor"],
                 },
             )
+
+            self.assertIn(original_profile["content_type"], ("text", "photo"))
+            if original_profile["content_type"] == "text":
+                self.assertEqual(migrated_profile["name"], "Text Coverage")
+            elif original_profile["content_type"] == "photo":
+                self.assertEqual(migrated_profile["name"], "Photo Coverage")

@@ -101,10 +101,17 @@ class DataUpdate(BaseDataUpdate):
         original_id = profile["_id"]
         profile["_id"] = self._get_profile_id(original_id)
 
-        # Migrate the audit information to a common format
+        # Make sure to set a unique name (previously `coverage_profiles` had a name of `coverage`)
+        profile_name: str = profile.get("name") or "coverage"
+        if profile_name == "coverage":
+            content_type: str = profile.get("content_type") or "text"
+            profile_name = f"{content_type.capitalize()} Coverage"
+
         profile.update(
             {
                 "type": PlanningProfileType.COVERAGE,
+                "name": profile_name,
+                # Migrate the audit information to a common format
                 "original_creator": profile.pop("created_by", None),
                 "version_creator": profile.pop("updated_by", None),
             }
