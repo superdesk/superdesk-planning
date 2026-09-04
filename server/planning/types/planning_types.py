@@ -8,6 +8,7 @@ from pydantic_core import PydanticCustomError
 
 from superdesk.core.resources import ResourceModelWithObjectId, fields
 from superdesk.core.resources.fields import ObjectId
+from superdesk.core.resources.validators import AsyncValidator
 
 from .unified import AuditInformation
 
@@ -30,7 +31,7 @@ class PlanningProfileType(str, Enum):
 DEFAULT_PROFILE_ID = ObjectId("67be81e46f53273f423a2901")
 
 
-async def validate_unique_profile_name(item: "PlanningProfileResource", name: str) -> None:
+async def _validate_unique_profile_name(item: "PlanningProfileResource", name: str) -> None:
     if item.item_type not in (PlanningProfileType.EVENT, PlanningProfileType.PLANNING, PlanningProfileType.COVERAGE):
         # Name validation is only required for Events, Planning & Coverages
         return
@@ -42,21 +43,47 @@ async def validate_unique_profile_name(item: "PlanningProfileResource", name: st
         "type": item.item_type,
     }
 
+    content_type = item.content_type.strip()
+    if item.item_type == PlanningProfileType.COVERAGE and content_type:
+        query["content_type"] = content_type
+
     if await service.count(query, use_mongo=True):
         error_msg: str
         if item.item_type == PlanningProfileType.PLANNING:
             error_msg = gettext("Planning profile already exists with that name")
         elif item.item_type == PlanningProfileType.COVERAGE:
-            error_msg = gettext("Coverage profile already exists with that name")
+            error_msg = gettext(f"{content_type.capitalize()} Coverage profile already exists with that name")
         else:
             error_msg = gettext("Event profile already exists with that name")
 
         raise PydanticCustomError("unique", error_msg)
 
 
-async def validate_coverage_content_type(item: "PlanningProfileResource", content_type: str) -> None:
-    if item.item_type == PlanningProfileType.COVERAGE and not content_type.strip():
-        raise PydanticCustomError("empty", gettext("Coverage content_type is empty"))
+async def _validate_coverage_content_type(item: "PlanningProfileResource", content_type: str) -> None:
+    content_type = content_type.strip()
+    if item.item_type != PlanningProfileType.COVERAGE or content_type:
+        # This is either not a Coverage profile or is a content-specific Coverage profile
+        # No validation on `content_type` required
+        return
+
+    service = PlanningProfileResource.get_service()
+    query: dict = {
+        "_id": {"$ne": item.id},
+        "type": PlanningProfileType.COVERAGE.value,
+        "$or": [
+            {"content_type": {"$exists": False}},
+            {"content_type": None},
+            {"content_type": ""},
+        ],
+    }
+    if await service.count(query, use_mongo=True):
+        # We only support 1 Coverage profile without a `content_type`
+        # it exists as a default Coverage profile where a content-specific one doesn't exist
+        raise PydanticCustomError("unique", gettext("Only 1 default Coverage profile supported"))
+
+
+validate_unique_profile_name = AsyncValidator(_validate_unique_profile_name, "planning_types")
+validate_coverage_content_type = AsyncValidator(_validate_coverage_content_type, "planning_types")
 
 
 class PlanningProfileResource(AuditInformation, ResourceModelWithObjectId):
