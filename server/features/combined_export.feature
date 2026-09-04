@@ -64,12 +64,14 @@ Feature: Export combined Planning and Event items with default template
             "ednote": "Ed. note 1",
             "coverages": [{
                 "coverage_id": "123",
+                "news_coverage_status": {"qcode": "ncostat:int", "name": "coverage intended", "label": "Planned"},
                 "planning": {
                     "g2_content_type": "text"
                 }
             },
             {
                 "coverage_id": "456",
+                "news_coverage_status": {"qcode": "ncostat:int", "name": "coverage intended", "label": "Planned"},
                 "planning": {
                     "g2_content_type": "photo"
                 }
@@ -84,12 +86,14 @@ Feature: Export combined Planning and Event items with default template
             "ednote": "Ed. note 2",
             "coverages": [{
                 "coverage_id": "789",
+                "news_coverage_status": {"qcode": "ncostat:int", "name": "coverage intended", "label": "Planned"},
                 "planning": {
                     "g2_content_type": "text"
                 }
             },
             {
                 "coverage_id": "012",
+                "news_coverage_status": {"qcode": "ncostat:int", "name": "coverage intended", "label": "Planned"},
                 "planning": {
                     "g2_content_type": "photo"
                 }

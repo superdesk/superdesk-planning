@@ -130,6 +130,7 @@ async def get_related_planning_for_events(
     link_type: RelatedEventLinkType | None = None,
     exclude_planning_ids: list[str] | None = None,
     projection: ProjectedFieldArg | None = None,
+    max_results: int | None = None,
 ) -> ResourceCursorAsync[UnifiedPlanningResource]:
     related_events_filters: list[dict] = [{"terms": {"related_events._id": event_ids}}]
     if link_type is not None:
@@ -147,8 +148,12 @@ async def get_related_planning_for_events(
     if len(exclude_planning_ids or []) > 0:
         bool_query["must_not"] = {"terms": {"_id": exclude_planning_ids}}
 
+    query: dict = {"query": {"bool": bool_query}}
+    if max_results is not None:
+        query["size"] = max_results
+
     service = UnifiedPlanningResource.get_service()
-    return await service.search({"query": {"bool": bool_query}}, projection=projection)
+    return await service.search(query, projection=projection)
 
 
 async def event_has_planning_items(

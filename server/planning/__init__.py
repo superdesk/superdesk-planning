@@ -63,10 +63,6 @@ from .planning_export_templates import (
     PlanningExportTemplatesResource,
     PlanningExportTemplatesService,
 )
-from .planning_article_export import (
-    PlanningArticleExportResource,
-    PlanningArticleExportService,
-)
 from .locks.unlock import unlock_session
 from .publish.module import init_publish_module
 
@@ -103,14 +99,6 @@ def init_app(app):
     init_search_app(app)
     init_planning_autocomplete_app(app)
     init_publish_module(app)
-
-    superdesk.register_resource(
-        "planning_article_export",
-        PlanningArticleExportResource,
-        PlanningArticleExportService,
-        privilege="planning",
-        _app=app,
-    )
 
     superdesk.privilege(
         name="planning",

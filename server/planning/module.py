@@ -32,6 +32,7 @@ from planning.search import (
 )
 
 from .planning_download import planning_download_endpoint
+from .planning_article_export import planning_article_export_endpoints
 from .unified.module import unified_planning_resource_config, template_endpoints, planning_templates_resource_config
 from .unified.signals import connect_signals
 from .unified.docs import unified_resource_docs_endpoints
@@ -74,6 +75,7 @@ module = Module(
         planning_endpoint_group,
         events_endpoints_group,
         planning_download_endpoint,
+        planning_article_export_endpoints,
         content_api_docs_endpoints,
         unified_resource_docs_endpoints,
         planning_lock_endpoints,

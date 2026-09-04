@@ -7,26 +7,32 @@
 # at https://www.sourcefabric.org/superdesk/license
 
 import logging
+from typing import Literal
 from dateutil import tz, parser
 from bson import ObjectId
+from bson.errors import InvalidId
+from pydantic import BaseModel, ValidationError
 
 from superdesk.core import get_app_config
-from superdesk.core.types import ItemId
-from superdesk.eve_async.service import AsyncBaseService
+from superdesk.core.auth.privilege_rules import required_privilege_rule
+from superdesk.core.resources import fields
+from superdesk.core.resources.validators import convert_pydantic_validation_error_for_response
+from superdesk.core.types import Request, Response
+from superdesk.core.web import EndpointGroup
 from superdesk.resource_fields import VERSION
 from superdesk.flask import render_template_string, render_template
 
 from quart_babel import gettext as _
 
 from superdesk.utc import utc_to_local, get_timezone_offset, utcnow
-from superdesk import get_resource_service, Resource
+from superdesk import get_resource_service
 from superdesk.errors import SuperdeskApiError
-from superdesk.metadata.item import get_schema
 
 from apps.auth import get_user_id
 from apps.templates.content_templates import get_item_from_template
 
-from planning.types import UnifiedPlanningResource, SearchItemType
+from planning.types import UnifiedPlanningResource, SearchItemType, PlanningItemType
+from planning.types.unified import RelatedEventLinkType
 from planning.common import (
     WORKFLOW_STATE,
     format_address,
@@ -35,8 +41,9 @@ from planning.common import (
     get_first_paragraph_text,
 )
 from planning.unified.agenda import AgendasAsyncService
-from planning.utils import get_related_planning_for_events_async, get_first_related_event_id_for_planning
+from planning.unified.common import get_related_planning_for_events, get_first_related_event_id
 from planning.archive import create_item_from_template
+from planning.utils import get_json_or_400_async
 
 
 logger = logging.getLogger(__name__)
@@ -45,27 +52,17 @@ PLACEHOLDER_HTML = "<p>%s</p>" % PLACEHOLDER_TEXT
 EXPORT_FETCH_PAGE_SIZE = 1000
 
 
-class PlanningArticleExportResource(Resource):
-    schema = get_schema(versioning=True)
-    schema.update(
-        {
-            "items": {
-                "type": "list",
-                "required": True,
-            },
-            "desk": Resource.rel("desks", nullable=True),
-            "template": {"type": "string"},
-            "type": {
-                "type": "string",
-                "default": "planning",
-            },
-            "article_template": Resource.rel("content_templates", nullable=True),
-        }
-    )
+planning_article_export_endpoints = EndpointGroup("planning_article_export", __name__)
 
-    item_methods = []
-    resource_methods = ["POST"]
-    privileges = {"POST": "planning"}
+
+class ArticleExportRequest(BaseModel):
+    """Request body for exporting Event and/or Planning items as an Article"""
+
+    items: list[str]
+    desk: fields.ObjectId | None = None
+    template: str | None = None
+    type: Literal["planning", "event", "combined"] = "planning"
+    article_template: fields.ObjectId | None = None
 
 
 async def get_items(ids, resource_type):
@@ -77,30 +74,34 @@ async def get_items(ids, resource_type):
         query["type"] = "event" if resource_type == SearchItemType.EVENT.value else resource_type
 
     cursor = await service.find(query, use_mongo=True, max_results=EXPORT_FETCH_PAGE_SIZE)
-    items = sorted([item.to_dict() async for item in cursor], key=lambda item: ids_string.index(str(item["_id"])))
+    models = sorted([item async for item in cursor], key=lambda item: ids_string.index(str(item.id)))
 
-    for item in items:
-        item_type = item.get("type")
+    items = []
+    for model in models:
+        item = model.to_dict()
 
-        if item_type == "planning":
-            event_id = get_first_related_event_id_for_planning(item, "primary")
+        if model.item_type == PlanningItemType.PLANNING:
+            event_id = get_first_related_event_id(model, RelatedEventLinkType.PRIMARY)
             if event_id:
                 event = await service.find_by_id(event_id)
                 if not event:
                     logger.error(
                         "Failed to find Event linked to the Planning item",
                         extra=dict(
-                            planning_id=item["_id"],
+                            planning_id=model.id,
                             event_id=event_id,
                         ),
                     )
                 else:
                     item["event"] = event.to_dict()
-        elif item_type == "event":
-            item["plannings"] = await get_related_planning_for_events_async([item["_id"]], "primary")
-            item["coverages"] = []
-            for plan in item["plannings"]:
-                item["coverages"].extend(plan.get("coverages") or [])
+        elif model.item_type == PlanningItemType.EVENT:
+            plannings = await get_related_planning_for_events(
+                [model.id], RelatedEventLinkType.PRIMARY, max_results=EXPORT_FETCH_PAGE_SIZE
+            )
+            item["plannings"] = [plan.to_dict() async for plan in plannings]
+            item["coverages"] = [coverage for plan in item["plannings"] for coverage in plan.get("coverages") or []]
+
+        items.append(item)
 
     return items
 
@@ -178,13 +179,15 @@ async def inject_internal_coverages(items):
                     item["internal_coverages"].append({"type": label})
 
 
-def _enhance_assigned_provider(coverage, item, assigned_to):
+async def _enhance_assigned_provider(coverage, item, assigned_to):
     """
     Enhances the text_assignees with the contact details if it's assigned to an external provider
     """
 
     if assigned_to.get("contact"):
-        provider_contact = get_resource_service("contacts").find_one(req=None, _id=assigned_to.get("contact"))
+        provider_contact = await get_resource_service("contacts").find_one_async(
+            req=None, _id=assigned_to.get("contact")
+        )
 
         if (coverage.get("planning", {})).get("slugline", ""):
             slug_str = "({0}) - ".format((coverage.get("planning", {})).get("slugline", ""))
@@ -225,7 +228,7 @@ async def enhance_coverage(planning, item, users, desks, text_users, text_desks)
         if assigned_to.get("coverage_provider"):
             item["assignees"].append(assigned_to["coverage_provider"]["name"])
             if is_text and not completed:
-                _enhance_assigned_provider(c, item, assigned_to)
+                await _enhance_assigned_provider(c, item, assigned_to)
         elif assigned_to.get("user"):
             user = assigned_to["user"]
             users.append(user)
@@ -320,13 +323,16 @@ async def generate_text_item(items, template_name, resource_type):
 
         set_item_place(item)
 
-        item["description_text"] = item.get("description_text") or (item.get("event") or {}).get("definition_short")
-        item["slugline"] = item.get("slugline") or (item.get("event") or {}).get("name")
+        event = item.get("event") or {}
+        item["description_text"] = (
+            item.get("description_text") or item.get("definition_long") or event.get("definition_short")
+        )
+        item["slugline"] = item.get("slugline") or event.get("name")
 
-        # Handle dates and remote time-zones
-        if item.get("dates") or (item.get("event") or {}).get("dates"):
+        # Handle dates and remote time-zones (Planning items linked to an Event use the Event's dates)
+        dates = event.get("dates") or item.get("dates")
+        if dates:
             default_timezone = get_app_config("DEFAULT_TIMEZONE")
-            dates = item.get("dates") or item.get("event").get("dates")
             start = dates.get("start")
             utc_dt = parser.parse(start) if isinstance(start, str) else start
             item["schedule"] = utc_to_local(default_timezone, utc_dt)
@@ -365,10 +371,10 @@ async def generate_text_item(items, template_name, resource_type):
     return article
 
 
-def get_desk_template(desk):
+async def get_desk_template(desk):
     default_content_template = desk.get("default_content_template")
     if default_content_template:
-        return get_resource_service("content_templates").find_one(req=None, _id=default_content_template)
+        return await get_resource_service("content_templates").find_one_async(req=None, _id=default_content_template)
 
     return {}
 
@@ -378,118 +384,144 @@ def set_item_place(item):
     item["place"] = [p.get("name") for p in item["place"]] if item.get("place") else None
 
 
-class PlanningArticleExportService(AsyncBaseService):
-    async def create_async(self, docs: list[dict], **kwargs) -> list[ItemId]:
-        ids = []
-        for doc in docs:
-            item_type = doc.pop("type")
-            item_list = await get_items(doc.pop("items", []), item_type)
-            desk = await get_resource_service("desks").find_one_async(req=None, _id=doc.pop("desk")) or {}
-            article_template = doc.pop("article_template", None)
-            if article_template:
-                content_template = (
-                    get_resource_service("content_templates").find_one(req=None, _id=article_template) or {}
-                )
+async def export_items_to_article(export_request: ArticleExportRequest) -> dict:
+    """Creates a text Archive item on the given desk, rendering the requested items through an export template"""
+
+    item_type = export_request.type
+    item_list = await get_items(export_request.items, item_type)
+
+    desk = {}
+    if export_request.desk:
+        desk = await get_resource_service("desks").find_one_async(req=None, _id=export_request.desk)
+        if not desk:
+            raise SuperdeskApiError.badRequestError(_("Desk not found"))
+
+    if export_request.article_template:
+        content_template = await get_resource_service("content_templates").find_one_async(
+            req=None, _id=export_request.article_template
+        )
+        if not content_template:
+            raise SuperdeskApiError.badRequestError(_("Article template not found"))
+    else:
+        content_template = await get_desk_template(desk)
+
+    item = get_item_from_template(content_template)
+    item[VERSION] = 1
+    item.setdefault("type", "text")
+
+    if item_type == "planning":
+        item.setdefault("slugline", "Planning")
+    elif item_type == "event":
+        item.setdefault("slugline", "Event")
+    else:
+        item.setdefault("slugline", "Events and Planning")
+
+    item["task"] = {
+        "desk": desk.get("_id"),
+        "user": get_user_id(),
+        "stage": desk.get("working_stage"),
+    }
+    item_from_template = await generate_text_item(item_list, export_request.template, item_type)
+    fields_to_override = []
+    for key, val in item_from_template.items():
+        if item.get(key):
+            fields_to_override.append(key)
+
+            placeholder = PLACEHOLDER_HTML if "_html" in key else PLACEHOLDER_TEXT
+            if placeholder in item[key]:
+                # The placeholder is found in the current field
+                # So replace {{content}} with the generated text
+                item[key] = item[key].replace(placeholder, val)
             else:
-                content_template = get_desk_template(desk)
+                # Otherwise append the generated text to the field
+                item[key] += val
+        else:
+            item[key] = val
 
-            item = get_item_from_template(content_template)
-            item[VERSION] = 1
-            item.setdefault("type", "text")
+    return await create_item_from_template(item, fields_to_override)
 
-            if item_type == "planning":
-                item.setdefault("slugline", "Planning")
-            elif item_type == "event":
-                item.setdefault("slugline", "Event")
-            else:
-                item.setdefault("slugline", "Events and Planning")
 
-            item["task"] = {
-                "desk": desk.get("_id"),
-                "user": get_user_id(),
-                "stage": desk.get("working_stage"),
-            }
-            item_from_template = await generate_text_item(item_list, doc.pop("template", None), item_type)
-            fields_to_override = []
-            for key, val in item_from_template.items():
-                if item.get(key):
-                    fields_to_override.append(key)
+@planning_article_export_endpoints.endpoint(
+    "planning_article_export",
+    name="planning_article_export",
+    methods=["POST"],
+    auth=[required_privilege_rule("planning")],
+)
+async def export_as_article_endpoint(request: Request) -> Response:
+    data = await get_json_or_400_async(request)
+    try:
+        export_request = ArticleExportRequest.model_validate(data)
+    except ValidationError as error:
+        return Response(convert_pydantic_validation_error_for_response(error), 400)
+    except InvalidId as error:
+        # ``fields.ObjectId`` raises bson's InvalidId for malformed ids instead of a pydantic error
+        raise SuperdeskApiError.badRequestError(str(error))
 
-                    placeholder = PLACEHOLDER_HTML if "_html" in key else PLACEHOLDER_TEXT
-                    if placeholder in item[key]:
-                        # The placeholder is found in the current field
-                        # So replace {{content}} with the generated text
-                        item[key] = item[key].replace(placeholder, val)
-                    else:
-                        # Otherwise append the generated text to the field
-                        item[key] += val
-                else:
-                    item[key] = val
+    item = await export_items_to_article(export_request)
+    item["_status"] = "OK"
+    item["_links"] = {"self": {"title": "Archive", "href": f"archive/{item['_id']}"}}
+    return Response(item, 201)
 
-            item = await create_item_from_template(item, fields_to_override)
-            doc.update(item)
-            ids.append(doc["_id"])
-        return ids
 
-    async def export_events_to_text(self, items, format="utf-8", template="", tz_offset=None):
-        for item in items:
-            item["formatted_state"] = (
-                item["state"]
-                if item.get("state")
-                in [
-                    WORKFLOW_STATE.CANCELLED,
-                    WORKFLOW_STATE.RESCHEDULED,
-                    WORKFLOW_STATE.POSTPONED,
-                ]
-                else None
+async def export_events_to_text(items, template, tz_offset=None):
+    for item in items:
+        item["formatted_state"] = (
+            item["state"]
+            if item.get("state")
+            in [
+                WORKFLOW_STATE.CANCELLED,
+                WORKFLOW_STATE.RESCHEDULED,
+                WORKFLOW_STATE.POSTPONED,
+            ]
+            else None
+        )
+        location = item["location"][0] if len(item.get("location") or []) > 0 else None
+        if location:
+            format_address(location)
+            item["formatted_location"] = (
+                location.get("name")
+                if not location.get("formatted_address")
+                else "{0}, {1}".format(location.get("name"), location["formatted_address"])
             )
-            location = item["location"][0] if len(item.get("location") or []) > 0 else None
-            if location:
-                format_address(location)
-                item["formatted_location"] = (
-                    location.get("name")
-                    if not location.get("formatted_address")
-                    else "{0}, {1}".format(location.get("name"), location["formatted_address"])
-                )
 
-            item["contacts"] = []
-            async for contact in await get_contacts_from_item(item):
-                contact_info = ["{0} {1}".format(contact.get("first_name"), contact.get("last_name"))]
-                phone = None
-                if contact.get("job_title"):
-                    contact_info[0] = contact_info[0] + " ({})".format(contact["job_title"])
-                if (len(contact.get("contact_email") or [])) > 0:
-                    contact_info.append(contact["contact_email"][0])
+        item["contacts"] = []
+        async for contact in await get_contacts_from_item(item):
+            contact_info = ["{0} {1}".format(contact.get("first_name"), contact.get("last_name"))]
+            phone = None
+            if contact.get("job_title"):
+                contact_info[0] = contact_info[0] + " ({})".format(contact["job_title"])
+            if (len(contact.get("contact_email") or [])) > 0:
+                contact_info.append(contact["contact_email"][0])
 
-                if (len(contact.get("contact_phone") or [])) > 0:
-                    phone = next((p for p in contact["contact_phone"] if p.get("public")), None)
-                elif len(contact.get("mobile") or []) > 0:
-                    phone = next((m for m in contact["mobile"] if m.get("public")), None)
+            if (len(contact.get("contact_phone") or [])) > 0:
+                phone = next((p for p in contact["contact_phone"] if p.get("public")), None)
+            elif len(contact.get("mobile") or []) > 0:
+                phone = next((m for m in contact["mobile"] if m.get("public")), None)
 
-                if phone:
-                    contact_info.append(phone.get("number"))
+            if phone:
+                contact_info.append(phone.get("number"))
 
-                item["contacts"].append(", ".join(contact_info))
+            item["contacts"].append(", ".join(contact_info))
 
-            date_time_format = "%a %d %b %Y, %H:%M"
-            default_timezone = get_app_config("DEFAULT_TIMEZONE")
-            item["dates"]["start"] = utc_to_local(default_timezone, item["dates"]["start"])
-            item["dates"]["end"] = utc_to_local(default_timezone, item["dates"]["end"])
-            item["schedule"] = "{0}-{1}".format(
+        date_time_format = "%a %d %b %Y, %H:%M"
+        default_timezone = get_app_config("DEFAULT_TIMEZONE")
+        item["dates"]["start"] = utc_to_local(default_timezone, item["dates"]["start"])
+        item["dates"]["end"] = utc_to_local(default_timezone, item["dates"]["end"])
+        item["schedule"] = "{0}-{1}".format(
+            item["dates"]["start"].strftime(date_time_format),
+            item["dates"]["end"].strftime("%H:%M"),
+        )
+        if ((item["dates"]["end"] - item["dates"]["start"]).total_seconds() / 60) >= (24 * 60):
+            item["schedule"] = "{0} to {1}".format(
                 item["dates"]["start"].strftime(date_time_format),
-                item["dates"]["end"].strftime("%H:%M"),
+                item["dates"]["end"].strftime(date_time_format),
             )
-            if ((item["dates"]["end"] - item["dates"]["start"]).total_seconds() / 60) >= (24 * 60):
-                item["schedule"] = "{0} to {1}".format(
-                    item["dates"]["start"].strftime(date_time_format),
-                    item["dates"]["end"].strftime(date_time_format),
-                )
 
-            if tz_offset:
-                tz_browser = tz.tzoffset("", int(tz_offset))
-                item["browser_start"] = (item["dates"]["start"]).astimezone(tz_browser)
-                item["browser_end"] = (item["dates"]["end"]).astimezone(tz_browser)
+        if tz_offset:
+            tz_browser = tz.tzoffset("", int(tz_offset))
+            item["browser_start"] = (item["dates"]["start"]).astimezone(tz_browser)
+            item["browser_end"] = (item["dates"]["end"]).astimezone(tz_browser)
 
-            set_item_place(item)
+        set_item_place(item)
 
-        return str.encode(await render_template(template, items=items), format)
+    return (await render_template(template, items=items)).encode()
