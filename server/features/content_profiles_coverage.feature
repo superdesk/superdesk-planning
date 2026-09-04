@@ -6,7 +6,10 @@ Feature: Coverage Content Profiles
     Then we get existing resource
     """
     {"_items": [{
+        "_id": "__no_value__",
         "name": "coverage",
+        "type": "coverage",
+        "content_type": "__no_value__",
         "editor": {
             "g2_content_type": {
                 "enabled": true,
@@ -117,8 +120,9 @@ Feature: Coverage Content Profiles
     Given "planning_types"
     """
     [{
-        "_id": "coverage",
+        "type": "coverage",
         "name": "coverage",
+        "content_type": "text",
         "editor": {
             "language": {
                 "enabled": true,
@@ -141,11 +145,13 @@ Feature: Coverage Content Profiles
         }
     }]
     """
-    When we get "/planning_types/coverage"
+    When we get "/planning_types/#planning_types._id#"
     Then we get existing resource
     """
     {
         "name": "coverage",
+        "type": "coverage",
+        "content_type": "text",
         "editor": {
             "language": {
                 "enabled": true,
@@ -183,6 +189,7 @@ Feature: Coverage Content Profiles
         """
         {"_items": [{
             "name": "coverage",
+            "type": "coverage",
             "editor": {
                 "no_content_linking": "__no_value__"
             },
@@ -200,6 +207,7 @@ Feature: Coverage Content Profiles
         """
         {"_items": [{
             "name": "coverage",
+            "type": "coverage",
             "editor": {
                 "no_content_linking": {"enabled": false}
             },
@@ -216,7 +224,7 @@ Feature: Coverage Content Profiles
         Given "planning_types"
         """
         [{
-            "_id": "coverage",
+            "type": "coverage",
             "name": "coverage",
             "editor": {
                 "no_content_linking": {"enabled": true}
@@ -231,6 +239,7 @@ Feature: Coverage Content Profiles
         """
         {"_items": [{
             "name": "coverage",
+            "type": "coverage",
             "editor": {
                 "no_content_linking": "__no_value__"
             },
@@ -248,6 +257,7 @@ Feature: Coverage Content Profiles
         """
         {"_items": [{
             "name": "coverage",
+            "type": "coverage",
             "editor": {
                 "no_content_linking": {"enabled": true}
             },
@@ -259,10 +269,12 @@ Feature: Coverage Content Profiles
 
     @auth
     Scenario: Coverage profiles per type
-        Given empty "coverage_profiles"
-        When we post to "coverage_profiles"
+        Given empty "planning_types"
+        When we post to "planning_types"
         """
         {
+            "name": "Text Coverage",
+            "type": "coverage",
             "content_type": "text",
             "editor": {
                 "language": {
@@ -287,14 +299,94 @@ Feature: Coverage Content Profiles
         }
         """
         Then we get new resource
-        When we get "coverage_profiles"
-        Then we get list with 1 item
+        When we get "planning_types"
+        Then we get list with 11 items
+        """
+        {"_items": [{
+            "type": "coverage",
+            "name": "Text Coverage",
+            "content_type": "text"
+        }]}
+        """
 
-        # SKIP (mongo indexes are not set)
-        #When we post to "coverage_profiles"
-        #"""
-        #{
-            #"content_type": "text"
-        #}
-        #"""
-        #Then we get error 409
+    @auth
+    Scenario: Validate no 2 content specific coverage profiles can have the same name
+        When we post to "planning_types"
+        """
+        {
+            "name": "Text Coverage",
+            "type": "coverage",
+            "content_type": "text",
+            "editor": {"slugline": {"enabled": true, "index": 3}},
+            "schema": {"slugline": {"required": true}}
+        }
+        """
+        Then we get OK response
+        When we post to "planning_types"
+        """
+        {
+            "name": "Text Coverage",
+            "type": "coverage",
+            "content_type": "text",
+            "editor": {"headline": {"enabled": true, "index": 3}},
+            "schema": {"headline": {"required": true}}
+        }
+        """
+        Then we get error 400
+        """
+        {
+            "_status": "ERR",
+            "_issues": {"name": {"unique": "Text Coverage profile already exists with that name"}}
+        }
+        """
+
+    @auth
+    Scenario: Can only have 1 default coverage profile in the DB
+        # Creating 2 Coverage profiles without a `content_type` should fail
+        When we post to "planning_types"
+        """
+        {
+            "name": "Default Coverage",
+            "type": "coverage",
+            "editor": {"slugline": {"enabled": true, "index": 3}},
+            "schema": {"slugline": {"required": true}}
+        }
+        """
+        Then we get OK response
+        When we post to "planning_types"
+        """
+        {
+            "name": "Default Coverage 2",
+            "type": "coverage",
+            "editor": {"headline": {"enabled": true, "index": 3}},
+            "schema": {"headline": {"required": true}}
+        }
+        """
+        Then we get error 400
+        """
+        {
+            "_status": "ERR",
+            "_issues": {"content_type": {"unique": "Only 1 default Coverage profile supported"}}
+        }
+        """
+        # But creating 2 Event profiles without `content_type` should pass
+        When we post to "planning_types"
+        """
+        {
+            "name": "Generic Event",
+            "type": "event",
+            "editor": {"slugline": {"enabled": true, "index": 3}},
+            "schema": {"slugline": {"required": true}}
+        }
+        """
+        Then we get OK response
+        When we post to "planning_types"
+        """
+        {
+            "name": "Sporting Event",
+            "type": "event",
+            "editor": {"headline": {"enabled": true, "index": 3}},
+            "schema": {"headline": {"required": true}}
+        }
+        """
+        Then we get OK response

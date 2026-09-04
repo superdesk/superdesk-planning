@@ -19,8 +19,8 @@ Feature: Search multilingual metadata
         And "planning_types"
         """
         [{
-            "_id": "event",
             "name": "event",
+            "type": "event",
             "editor": {
                 "language": {"enabled": true}
             },
@@ -61,11 +61,12 @@ Feature: Search multilingual metadata
             ]
         }]
         """
-        When we get "/planning_types/event"
+        When we get "/planning_types/#planning_types._id#"
         Then we get existing resource
         """
         {
             "name": "event",
+            "type": "event",
             "editor": {
                 "language": {"enabled": true}
             },

@@ -4,7 +4,7 @@ import {cloneDeep, omit} from 'lodash';
 import {
     BOOKMARK_TYPE,
     EDITOR_TYPE,
-    ICoverageContentProfile,
+    IPlanningContentProfile,
     ICoverageType,
     IEditorAPI,
     IEditorBookmark,
@@ -25,17 +25,19 @@ import {
 
 import {CoveragesBookmark, AddCoverageBookmark} from '../../components/Editor/bookmarks';
 import {AssociatedEventItem} from '../../components/fields/editor/AssociatedEventItem';
-import {coverageProfiles, oldProfile} from '../../selectors/coverageProfiles';
+import {coverageProfiles, defaultCoverageProfile} from '../../selectors/coverageProfiles';
 import {isTemporaryId} from '../../utils';
 import {appConfig} from 'superdesk-core/scripts/appConfig';
 
 export function getCoverageFields(
     type: ICoverageType,
-): {searchProfile: ISearchProfile; profile: ICoverageContentProfile} {
+): {searchProfile: ISearchProfile; profile: IPlanningContentProfile} {
     const storeState = planningApi.redux.store.getState();
     const allProfiles = coverageProfiles(storeState);
     const newProfile = allProfiles.find((x) => x.content_type === type);
-    const profile = newProfile ? newProfile : omit(oldProfile(storeState), '_id') as ICoverageContentProfile;
+    const profile = newProfile ?
+        newProfile :
+        omit(defaultCoverageProfile(storeState), '_id') as IPlanningContentProfile;
     const autoAddToWorkflow = appConfig.planning_auto_assign_to_workflow;
 
     const fields = getGroupFieldsSorted(profile).filter((item) =>

@@ -1,4 +1,4 @@
-import {ICoverageContentProfile, ICoverageProfilesState} from '../interfaces';
+import {IPlanningContentProfile, ICoverageProfilesState} from '../interfaces';
 import {COVERAGES} from '../constants';
 import {createReducer} from './createReducer';
 
@@ -7,7 +7,7 @@ const initialState: ICoverageProfilesState = {
 };
 
 const coveragesReducer = createReducer(initialState, {
-    [COVERAGES.UPDATE_PROFILES]: (state, payload: Array<ICoverageContentProfile>) => ({
+    [COVERAGES.UPDATE_PROFILES]: (state, payload: Array<IPlanningContentProfile>) => ({
         ...state,
         profiles: payload,
     })

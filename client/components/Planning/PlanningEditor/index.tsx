@@ -6,7 +6,7 @@ import {appConfig} from 'appConfig';
 import {
     EDITOR_TYPE,
     IAgenda,
-    ICoverageContentProfile,
+    IPlanningContentProfile,
     IEventItem,
     IFile,
     IFormItemManager,
@@ -50,7 +50,7 @@ interface IProps {
     showAllLanguages: boolean;
     language: IVocabularyItem['qcode'];
 
-    coverageProfilesMap: Record<ICoverageType, ICoverageContentProfile>;
+    coverageProfilesMap: Record<ICoverageType, IPlanningContentProfile>;
 
     // State
     newsCoverageStatus: Array<IPlanningNewsCoverageStatus>;

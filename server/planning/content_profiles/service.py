@@ -1,195 +1,257 @@
-# -*- coding: utf-8; -*-
-#
-# This file is part of Superdesk.
-#
-# Copyright 2021 Sourcefabric z.u. and contributors.
-#
-# For the full copyright and license information, please see the
-# AUTHORS and LICENSE files distributed with this source code, or
-# at https://www.sourcefabric.org/superdesk/license
-
-from typing import Dict, Any
 from copy import deepcopy
-from eve.utils import ParsedRequest
+import logging
 
-from superdesk.eve_async import AsyncBaseService, AsyncListCursor
+from bson import ObjectId
+
+from superdesk.core.resources import AsyncResourceService
+from superdesk.core.resources.cursor import InMemoryCursorAsync, MongoResourceCursorAsync
+from superdesk.core.types import SearchRequest, ProjectedFieldArg, SortParam
 
 from planning.common import planning_link_updates_to_coverage, get_config_event_related_item_search_provider_name
-from .profiles import DEFAULT_PROFILES, DEFAULT_COVERAGE_PROFILE
+from planning.types import PlanningProfileResource, PlanningProfileType, DEFAULT_PROFILE_ID
+from .profiles import DEFAULT_PROFILES
 
 
-class PlanningTypesService(AsyncBaseService):
-    """Planning types service
+logger = logging.getLogger(__name__)
+
+
+class PlanningTypesAsyncService(AsyncResourceService[PlanningProfileResource]):
+    """Planning types async service
 
     Provide a service that returns what fields should be shown in the edit forms in planning, in the edit dictionary.
     Also provide a schema to allow the client to validate the values entered in the forms.
     Entries can be overridden by providing alternates in the planning_types mongo collection.
     """
 
-    async def find_one_async(self, req, **lookup):
+    async def on_create(self, docs: list[PlanningProfileResource]) -> None:
+        # Make sure that if a Profile is attempted to be created that uses the ``DEFAULT_PROFILE_ID``
+        # that we generate a new unique one (no profile should be stored in DB with ``_id=DEFAULT_PROFILE_ID``
+        for profile in docs:
+            if profile.id == DEFAULT_PROFILE_ID:
+                profile.id = ObjectId()
+
+    async def find_by_id_raw(
+        self,
+        item_id: str | ObjectId,
+        version: int | None = None,
+        projection: ProjectedFieldArg | None = None,
+        use_elastic: bool = False,
+    ) -> dict | None:
+
+        profile = await super().find_by_id_raw(item_id, version, projection, use_elastic)
+        item_type = profile.get("type") if profile else None
+
+        merged_profile, _ = _get_merged_profile(profile, item_type)
+        return merged_profile
+
+    async def find_one_raw(
+        self,
+        req: SearchRequest | None = None,
+        *,
+        projection: ProjectedFieldArg | None = None,
+        use_mongo: bool = False,
+        version: int | None = None,
+        **lookup,
+    ) -> dict | None:
+        """
+        Overrides the `find_one` method to merge default planning type configurations
+        with database entries. If no entry exists in the database, it returns a default
+        planning type configuration.
+        """
+
+        search_request = (
+            req
+            if req is not None
+            else SearchRequest(
+                where=lookup,
+                page=1,
+                max_results=1,
+                projection=projection,
+                use_mongo=use_mongo,
+                version=version,
+            )
+        )
+
+        profile = await super().find_one_raw(search_request)
+
+        # lookup type from either **lookup of planning_item(if lookup has only 'name')
+        item_type: str | None = lookup.get("type")
+        if not item_type and profile:
+            item_type = profile.get("type")
+
+        merged_profile, _ = _get_merged_profile(profile, item_type)
+        return merged_profile
+
+    async def find(
+        self,
+        req: SearchRequest | dict,
+        page: int = 1,
+        max_results: int = 25,
+        sort: SortParam | None = None,
+        projection: ProjectedFieldArg | None = None,
+        use_mongo: bool = False,
+    ) -> InMemoryCursorAsync[PlanningProfileResource]:
+        """
+        Overrides the base `find` to return a cursor containing planning types
+        with default configurations merged into the results from the database. If a planning
+        type is not present in the database, a default configuration is added.
+        """
+
+        search_request = (
+            req
+            if isinstance(req, SearchRequest)
+            else SearchRequest(
+                where=req,
+                page=page,
+                max_results=max_results,
+                sort=sort,
+                projection=projection,
+            )
+        )
+
+        cursor: MongoResourceCursorAsync = await super().find(search_request, use_mongo=True)
+
+        # Attempt to get the `type` filter from the MongoDB query
+        filtered_types: list[str] | None = None
+        if cursor.lookup and cursor.lookup.get("type"):
+            # The request is to be filtered by type
+            if isinstance(cursor.lookup["type"], list):
+                filtered_types = cursor.lookup["type"]
+            elif isinstance(cursor.lookup["type"], dict) and list(cursor.lookup["type"].keys()) == ["$in"]:
+                filtered_types = cursor.lookup["type"]["$in"]
+            elif isinstance(cursor.lookup["type"], str):
+                filtered_types = [cursor.lookup["type"]]
+
+        populated_types: set[PlanningProfileType] = set()
+        merged_profiles: list[dict] = []
+
+        async for profile in cursor:
+            merged_profile, profile_type = _get_merged_profile(profile.to_dict(), profile.item_type)
+            if merged_profile and profile_type:
+                merged_profiles.append(merged_profile)
+                if profile_type != PlanningProfileType.COVERAGE or not (profile.content_type or "").strip():
+                    # If this is not a Coverage profile or is the default Coverage profile,
+                    # Then mark this Profile type as already populated
+                    # (so we don't add the system-defined default profile for it)
+                    populated_types.add(profile_type)
+
+        for item_type, default_profile in deepcopy(DEFAULT_PROFILES).items():
+            if item_type in populated_types:
+                # We already have a profile for this item type
+                # no need to add it here
+                continue
+            elif filtered_types is not None and item_type not in filtered_types:
+                # This default profile type does not match the requested filter
+                # no need to add it here
+                continue
+
+            default_profile_dict = default_profile.to_dict()
+            _remove_unsupported_fields(default_profile_dict)
+            merged_profiles.append(default_profile_dict)
+
+        return InMemoryCursorAsync(PlanningProfileResource, merged_profiles)
+
+
+def _get_merged_profile(
+    profile: dict | None, item_type: PlanningProfileType | str | None
+) -> tuple[dict, PlanningProfileType] | tuple[None, None]:
+    default_profile: dict | None = None
+
+    profile_type: PlanningProfileType | None = None
+
+    if isinstance(item_type, PlanningProfileType):
+        profile_type = item_type
+    else:
         try:
-            planning_type = await super().find_one_async(req, **lookup)
+            profile_type = PlanningProfileType(item_type)
+        except ValueError:
+            pass
 
-            # lookup name from either **lookup of planning_item(if lookup has only '_id')
-            lookup_name = lookup.get("name")
-            if not lookup_name and planning_type:
-                lookup_name = planning_type.get("name")
+    if profile_type and DEFAULT_PROFILES.get(profile_type):
+        default_profile = DEFAULT_PROFILES[profile_type].to_dict()
 
-            default_planning_type = deepcopy(
-                next(
-                    (ptype for ptype in DEFAULT_PROFILES if ptype.get("name") == lookup_name),
-                    {},
-                )
-            )
-            if not planning_type:
-                self._remove_unsupported_fields(default_planning_type)
-                return default_planning_type
+    if not profile and profile_type and default_profile:
+        _remove_unsupported_fields(default_profile)
+        return default_profile, profile_type
+    elif profile and profile_type:
+        if default_profile:
+            _merge_planning_type(profile, default_profile)
+        return profile, profile_type
+    else:
+        logger.error(
+            "Failed to merge PlanningProfile with system defaults",
+            extra={
+                "profile": profile,
+                "item_type": item_type,
+            },
+        )
+        return None, None
 
-            self.merge_planning_type(planning_type, default_planning_type)
-            return planning_type
-        except IndexError:
-            return None
 
-    async def get_async(self, req, lookup):
-        planning_types = await (await super().get_async(req, lookup)).to_list()
-        merged_planning_types = []
+def _merge_planning_type(profile: dict, default_profile: dict):
+    """Merge database content profile with default coverage profile to add any new fields.
 
-        for default_planning_type in deepcopy(DEFAULT_PROFILES):
-            planning_type = next(
-                (p for p in planning_types if p.get("name") == default_planning_type.get("name")),
-                None,
-            )
+    This method ensures that database content profiles get any new fields from the default
+    coverage profile while preserving existing customizations. For each field in the default
+    profile's editor and schema sections:
+    - If the field doesn't exist in the database profile, it's added from the default
+    - If the field exists in both, they're merged with database values taking precedence
 
-            # If nothing is defined in database for this planning_type, use default
-            if planning_type is None:
-                self._remove_unsupported_fields(default_planning_type)
-                merged_planning_types.append(default_planning_type)
-            else:
-                self.merge_planning_type(planning_type, default_planning_type)
-                merged_planning_types.append(planning_type)
+    Args:
+        content_profile (dict): The content profile from the database to be updated
+        default_coverage_profile (dict): The default coverage profile to merge from
+    """
 
-        return AsyncListCursor(merged_planning_types)
+    # Update schema fields with database schema fields
+    updated_profile = deepcopy(default_profile)
+    updated_profile.setdefault("schema", {})
+    updated_profile.setdefault("editor", {})
+    updated_profile.setdefault("groups", {})
+    updated_profile["groups"].update(profile.get("groups", {}))
 
-    def merge_planning_type(self, planning_type, default_planning_type):
-        # Update schema fields with database schema fields
-        default_type = {"schema": {}, "editor": {}}
-        updated_planning_type = deepcopy(default_planning_type or default_type)
+    if profile["type"] == "advanced_search":
+        updated_profile["schema"].update(profile.get("schema", {}))
+        updated_profile["editor"]["event"].update((profile.get("editor") or {}).get("event"))
+        updated_profile["editor"]["planning"].update((profile.get("editor") or {}).get("planning"))
+        updated_profile["editor"]["combined"].update((profile.get("editor") or {}).get("combined"))
+        updated_profile["editor"]["assignments"].update((profile.get("editor") or {}).get("assignments", {}))
+    elif profile["type"] in ["event", "planning", "coverage"]:
+        for config_type in ["editor", "schema"]:
+            profile.setdefault(config_type, {})
 
-        updated_planning_type.setdefault("groups", {})
-        updated_planning_type["groups"].update(planning_type.get("groups", {}))
-
-        if planning_type["name"] == "advanced_search":
-            updated_planning_type["schema"].update(planning_type.get("schema", {}))
-            updated_planning_type["editor"]["event"].update((planning_type.get("editor") or {}).get("event"))
-            updated_planning_type["editor"]["planning"].update((planning_type.get("editor") or {}).get("planning"))
-            updated_planning_type["editor"]["combined"].update((planning_type.get("editor") or {}).get("combined"))
-            updated_planning_type["editor"]["assignments"].update(
-                (planning_type.get("editor") or {}).get("assignments", {})
-            )
-        elif planning_type["name"] in ["event", "planning", "coverage"]:
-            for config_type in ["editor", "schema"]:
-                planning_type.setdefault(config_type, {})
-                for field, options in updated_planning_type[config_type].items():
+            # Merge fields from default profile
+            for field, options in updated_profile[config_type].items():
+                if not updated_profile[config_type][field]:
                     # If this field is none, then it is of type `schema.NoneField()`
                     # no need to copy any schema
-                    if updated_planning_type[config_type][field]:
-                        updated_planning_type[config_type][field].update(planning_type[config_type].get(field) or {})
-                for field, options in planning_type[config_type].items():
-                    if field not in updated_planning_type[config_type]:
-                        updated_planning_type[config_type][field] = options
+                    continue
+                elif field in profile[config_type]:
+                    options.update(profile[config_type][field])
 
-        else:
-            updated_planning_type["editor"].update(planning_type.get("editor", {}))
-            updated_planning_type["schema"].update(planning_type.get("schema", {}))
+            # Copy fields from provided profile that aren't in the default profile
+            for field, options in profile[config_type].items():
+                if field not in updated_profile[config_type]:
+                    updated_profile[config_type][field] = options
 
-        planning_type["schema"] = updated_planning_type["schema"]
-        planning_type["editor"] = updated_planning_type["editor"]
-        planning_type["groups"] = updated_planning_type["groups"]
-        self._remove_unsupported_fields(planning_type)
+    else:
+        updated_profile["editor"].update(profile.get("editor", {}))
+        updated_profile["schema"].update(profile.get("schema", {}))
 
-    def _remove_unsupported_fields(self, planning_type: Dict[str, Any]):
-        # Disable Event ``related_items`` field
-        # if ``EVENT_RELATED_ITEM_SEARCH_PROVIDER_NAME`` config is not set
-        if planning_type.get("name") == "event" and not get_config_event_related_item_search_provider_name():
-            planning_type["editor"].pop("related_items", None)
-            planning_type["schema"].pop("related_items", None)
-
-        # Disable Coverage ``no_content_linking`` field
-        # if ``PLANNING_LINK_UPDATES_TO_COVERAGES`` config is not ``True``
-        if planning_type.get("name") == "coverage" and not planning_link_updates_to_coverage():
-            planning_type["editor"].pop("no_content_linking", None)
-            planning_type["schema"].pop("no_content_linking", None)
+    profile["schema"] = updated_profile["schema"]
+    profile["editor"] = updated_profile["editor"]
+    profile["groups"] = updated_profile["groups"]
+    _remove_unsupported_fields(profile)
 
 
-class ContentProfilesService(AsyncBaseService):
-    async def find_one_async(self, req, **lookup):
-        try:
-            coverage_profile = await super().find_one_async(req, **lookup)
+def _remove_unsupported_fields(planning_type: dict):
+    # Disable Event ``related_items`` field
+    # if ``EVENT_RELATED_ITEM_SEARCH_PROVIDER_NAME`` config is not set
+    if planning_type.get("type") == "event" and not get_config_event_related_item_search_provider_name():
+        planning_type["editor"].pop("related_items", None)
+        planning_type["schema"].pop("related_items", None)
 
-            default_coverage_profile = deepcopy(DEFAULT_COVERAGE_PROFILE)
-            if not coverage_profile:
-                return default_coverage_profile
-
-            self.merge_content_profile(coverage_profile, default_coverage_profile)
-            return coverage_profile
-
-        except IndexError:
-            return None
-
-    async def get_async(self, req: ParsedRequest, lookup: dict[str, Any] | None) -> AsyncListCursor:
-        """Get all content profiles with default fields merged in.
-
-        Retrieves content profiles from the database and merges each one with DEFAULT_COVERAGE_PROFILE
-        to ensure that any new fields added to the default profile become available in existing
-        database entries while preserving customizations.
-
-        Args:
-            req: The request object
-            lookup: Database lookup parameters
-
-        Returns:
-            AsyncListCursor: Cursor containing merged content profiles
-        """
-        cursor = await super().get_async(req, lookup)
-        content_profiles = await cursor.to_list()
-        merged_content_profiles = []
-
-        for content_profile in content_profiles:
-            self.merge_content_profile(content_profile, DEFAULT_COVERAGE_PROFILE)
-            merged_content_profiles.append(content_profile)
-
-        return AsyncListCursor(merged_content_profiles)
-
-    def merge_content_profile(self, db_content_profile: dict[str, Any], default_coverage_profile: dict[str, Any]):
-        """Merge database content profile with default coverage profile to add any new fields.
-
-        This method ensures that database content profiles get any new fields from the default
-        coverage profile while preserving existing customizations. For each field in the default
-        profile's editor and schema sections:
-        - If the field doesn't exist in the database profile, it's added from the default
-        - If the field exists in both, they're merged with database values taking precedence
-
-        Args:
-            content_profile (dict): The content profile from the database to be updated
-            default_coverage_profile (dict): The default coverage profile to merge from
-        """
-        updated_content_profile = deepcopy(default_coverage_profile)
-
-        for config_type in ["editor", "schema"]:
-            db_content_profile.setdefault(config_type, {})
-            for field, options in updated_content_profile[config_type].items():
-                # if this field exists in default but not in database, add it
-                if field not in db_content_profile[config_type]:
-                    if config_type == "editor" and isinstance(options, dict):
-                        # make sure new fields are disabled by default
-                        new_field_options = deepcopy(options)
-                        new_field_options["enabled"] = False
-                        db_content_profile[config_type][field] = new_field_options
-                    else:
-                        db_content_profile[config_type][field] = options
-
-                # if field exists in both, merge the options (database take precedence)
-                elif updated_content_profile[config_type][field]:
-                    merged_options = deepcopy(updated_content_profile[config_type][field])
-                    merged_options.update(db_content_profile[config_type][field])
-                    db_content_profile[config_type][field] = merged_options
+    # Disable Coverage ``no_content_linking`` field
+    # if ``PLANNING_LINK_UPDATES_TO_COVERAGES`` config is not ``True``
+    if planning_type.get("type") == "coverage" and not planning_link_updates_to_coverage():
+        planning_type["editor"].pop("no_content_linking", None)
+        planning_type["schema"].pop("no_content_linking", None)

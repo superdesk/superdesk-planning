@@ -632,12 +632,13 @@ class EventsRelatedPlanningAutoPublish(EventsBaseTestCase):
             "definition_short": {"multilingual": True},
             "related_plannings": {"planning_auto_publish": True},
         }
-        self.app.data.insert(
+        await test_utils.post_items(
             "planning_types",
             [
                 {
                     "_id": "event",
                     "name": "event",
+                    "type": "event",
                     "editor": {
                         "language": {"enabled": True},
                         "related_plannings": {"enabled": True},
@@ -663,12 +664,12 @@ class EventsRelatedPlanningAutoPublish(EventsBaseTestCase):
     async def test_new_planning_is_published_when_adding_to_published_event(self):
         planning_service = get_resource_service("planning")
 
-        self.app.data.insert(
+        await test_utils.post_items(
             "planning_types",
             [
                 {
-                    "_id": "event",
                     "name": "event",
+                    "type": "event",
                     "editor": {"related_plannings": {"enabled": True}},
                     "schema": {"related_plannings": {"planning_auto_publish": True}},
                 }
@@ -785,6 +786,7 @@ class EventsRelatedPlanningAutoPublish(EventsBaseTestCase):
                 {
                     "_id": "event",
                     "name": "event",
+                    "type": "event",
                     "editor": {
                         "related_plannings": {"enabled": True},
                     },

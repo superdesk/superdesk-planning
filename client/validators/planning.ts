@@ -6,7 +6,7 @@ import * as selectors from '../selectors';
 import {gettext, getItemInArrayById} from '../utils';
 
 import {getVocabularyItemsForScheme, validateField, validators} from './index';
-import type {ICoverageContentProfile, IPlanningCoverageItem, IPlanningItem} from 'interfaces';
+import type {IPlanningContentProfile, IPlanningCoverageItem, IPlanningItem} from 'interfaces';
 import {planningApi, superdeskApi} from '../superdeskApi';
 import {getCoverageFields} from '../api/editor/item_planning';
 import {vocabularies} from '../api/vocabularies';
@@ -147,7 +147,7 @@ export const validateCoverages = ({
 };
 
 export const validateCoverageVocabularyFields = (
-    coverageProfile: ICoverageContentProfile,
+    coverageProfile: IPlanningContentProfile,
     errors: Dictionary<string, string>,
     messages: Array<string>,
     diff: IPlanningCoverageItem,
@@ -181,7 +181,7 @@ export const validateCoverageVocabularyFields = (
  * later used for generating UI alerts.
  */
 export const validateCoverageCustomTextFields = (
-    coverageProfile: ICoverageContentProfile,
+    coverageProfile: IPlanningContentProfile,
     errors: Dictionary<string, string>,
     messages: Array<string>,
     diff: IPlanningCoverageItem,

@@ -10,6 +10,7 @@
 
 import superdesk.schema as schema
 
+from planning.types import PlanningProfileResource, PlanningProfileType, DEFAULT_PROFILE_ID
 from .fields import subjectField, BaseSchema, DateTimeField, BooleanField, TextField, MultipleContentField
 
 
@@ -37,9 +38,12 @@ class CoverageSchema(BaseSchema):
     location = schema.ListField()
 
 
-DEFAULT_COVERAGE_PROFILE = {
-    "name": "coverage",
-    "editor": {
+DEFAULT_COVERAGE_PROFILE = PlanningProfileResource(
+    id=DEFAULT_PROFILE_ID,
+    name=PlanningProfileType.COVERAGE.value,
+    item_type=PlanningProfileType.COVERAGE,
+    content_type="",  # empty indicates this is the default coverage profile for all content types
+    editor={
         "g2_content_type": {
             "enabled": True,
             "index": 1,
@@ -90,5 +94,5 @@ DEFAULT_COVERAGE_PROFILE = {
         # Requires `PLANNING_LINK_UPDATES_TO_COVERAGES` enabled in config
         "no_content_linking": {"enabled": False},
     },
-    "schema": dict(CoverageSchema),  # type: ignore
-}
+    schema=dict(CoverageSchema),  # type: ignore
+)

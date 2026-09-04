@@ -46,12 +46,12 @@ from planning.common import (
 from planning.core.service import BasePlanningAsyncService
 from planning.history.assignments import AssignmentsHistoryService
 from planning.history.planning import UnifiedPlanningHistoryService
-from planning.content_profiles.planning_types_async_service import PlanningTypesAsyncService
 from planning.types import (
     PlanningResourceModel,
     ContentProfile,
     UpdateMethods,
     EventResourceModel,
+    PlanningProfileResource,
 )
 from planning.utils import (
     get_related_event_links_for_planning,
@@ -344,7 +344,7 @@ class PlanningAsyncService(BasePlanningAsyncService[PlanningResourceModel]):
         """
         Set default metadata.
         """
-        planning_type = await PlanningTypesAsyncService().find_one(name="planning")
+        planning_type = await PlanningProfileResource.get_service().find_one(type="planning")
         assert planning_type is not None, "Expexted planning_type to not be None"
 
         history_service = UnifiedPlanningHistoryService()

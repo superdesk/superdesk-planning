@@ -14,10 +14,10 @@ import re
 import logging
 
 from xml.etree.ElementTree import Element
+from eve_elastic.elastic import parse_date
 
 from superdesk import get_resource_service
 from superdesk.core import get_app_config
-from eve_elastic.elastic import parse_date
 from superdesk.io.feed_parsers import NewsMLTwoFeedParser
 from superdesk.metadata.item import (
     ITEM_TYPE,
@@ -27,6 +27,8 @@ from superdesk.metadata.item import (
 )
 from superdesk.errors import ParserError
 from superdesk.utc import local_to_utc, utc_to_local
+
+from planning.types import PlanningProfileResource
 from planning.content_profiles.utils import get_planning_schema, is_field_enabled
 from planning.common import POST_STATE
 
@@ -145,8 +147,8 @@ class EventsMLParser(NewsMLTwoFeedParser):
             pass
 
     async def get_default_event_duration(self):
-        profile = (await get_resource_service("planning_types").find_one_async(req=None, name="event")) or {}
-        return ((profile.get("editor") or {}).get("dates") or {}).get("default_duration_on_change", 1)
+        profile = await PlanningProfileResource.get_service().find_one(type="event")
+        return (profile.editor.get("dates") or {}).get("default_duration_on_change", 1) if profile else 1
 
     def parse_concept(self, tree, item):
         """Parse concept tag"""

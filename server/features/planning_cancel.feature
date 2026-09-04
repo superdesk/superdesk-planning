@@ -704,8 +704,8 @@ Feature: Cancel all coverage
         """
         [
             {
-                "_id": "planning_planning_cancel",
                 "name": "planning_planning_cancel",
+                "type": "planning_planning_cancel",
                 "schema": {
                     "reason": {
                         "required": true
@@ -769,8 +769,8 @@ Feature: Cancel all coverage
         """
         [
             {
-                "_id": "planning_cancel_all_coverage",
                 "name": "planning_cancel_all_coverage",
+                "type": "planning_cancel_all_coverage",
                 "schema": {
                     "reason": {
                         "required": true

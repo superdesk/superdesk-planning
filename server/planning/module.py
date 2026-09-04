@@ -22,7 +22,7 @@ from planning.events.views import events_endpoints_group
 from planning.planning.views import planning_endpoint_group
 from planning.locations import locations_resource_config
 from planning.published import published_resource_config
-from planning.content_profiles import planning_types_resource_config
+from planning.content_profiles.module import planning_types_resource_config, init_app
 from planning.content_api.content_api_docs import content_api_docs_endpoints
 from planning.assignments import assignments_resource_config, delivery_resource_config
 from planning.search import (
@@ -64,7 +64,9 @@ def init_planning(app: SuperdeskAsyncApp):
     init_autosave_module(app)
 
     # register listeners for lock functionality
-    connect_signals_to_locks(cast(SuperdeskApp, app.wsgi))
+    wsgi_app = cast(SuperdeskApp, app.wsgi)
+    connect_signals_to_locks(wsgi_app)
+    init_app(wsgi_app)
 
 
 module = Module(
