@@ -6,8 +6,10 @@ Feature: Coverage Content Profiles
     Then we get existing resource
     """
     {"_items": [{
+        "_id": "__no_value__",
         "name": "coverage",
         "type": "coverage",
+        "content_type": "__no_value__",
         "editor": {
             "g2_content_type": {
                 "enabled": true,
@@ -298,7 +300,7 @@ Feature: Coverage Content Profiles
         """
         Then we get new resource
         When we get "planning_types"
-        Then we get list with 10 items
+        Then we get list with 11 items
         """
         {"_items": [{
             "type": "coverage",
@@ -306,3 +308,85 @@ Feature: Coverage Content Profiles
             "content_type": "text"
         }]}
         """
+
+    @auth
+    Scenario: Validate no 2 content specific coverage profiles can have the same name
+        When we post to "planning_types"
+        """
+        {
+            "name": "Text Coverage",
+            "type": "coverage",
+            "content_type": "text",
+            "editor": {"slugline": {"enabled": true, "index": 3}},
+            "schema": {"slugline": {"required": true}}
+        }
+        """
+        Then we get OK response
+        When we post to "planning_types"
+        """
+        {
+            "name": "Text Coverage",
+            "type": "coverage",
+            "content_type": "text",
+            "editor": {"headline": {"enabled": true, "index": 3}},
+            "schema": {"headline": {"required": true}}
+        }
+        """
+        Then we get error 400
+        """
+        {
+            "_status": "ERR",
+            "_issues": {"name": {"unique": "Text Coverage profile already exists with that name"}}
+        }
+        """
+
+    @auth
+    Scenario: Can only have 1 default coverage profile in the DB
+        # Creating 2 Coverage profiles without a `content_type` should fail
+        When we post to "planning_types"
+        """
+        {
+            "name": "Default Coverage",
+            "type": "coverage",
+            "editor": {"slugline": {"enabled": true, "index": 3}},
+            "schema": {"slugline": {"required": true}}
+        }
+        """
+        Then we get OK response
+        When we post to "planning_types"
+        """
+        {
+            "name": "Default Coverage 2",
+            "type": "coverage",
+            "editor": {"headline": {"enabled": true, "index": 3}},
+            "schema": {"headline": {"required": true}}
+        }
+        """
+        Then we get error 400
+        """
+        {
+            "_status": "ERR",
+            "_issues": {"content_type": {"unique": "Only 1 default Coverage profile supported"}}
+        }
+        """
+        # But creating 2 Event profiles without `content_type` should pass
+        When we post to "planning_types"
+        """
+        {
+            "name": "Generic Event",
+            "type": "event",
+            "editor": {"slugline": {"enabled": true, "index": 3}},
+            "schema": {"slugline": {"required": true}}
+        }
+        """
+        Then we get OK response
+        When we post to "planning_types"
+        """
+        {
+            "name": "Sporting Event",
+            "type": "event",
+            "editor": {"headline": {"enabled": true, "index": 3}},
+            "schema": {"headline": {"required": true}}
+        }
+        """
+        Then we get OK response

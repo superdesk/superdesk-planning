@@ -5,7 +5,7 @@ import {createSelector} from 'reselect';
 export const coverageProfiles: (state: any) => Array<IPlanningContentProfile>
     = (state) => (state?.coverageProfiles?.profiles ?? []);
 
-export const oldProfile: (state: any) => IPlanningContentProfile
+export const defaultCoverageProfile: (state: any) => IPlanningContentProfile
     = (state) => get(state, 'forms.profiles.coverage', {});
 
 export const getCoverageProfileByContentType = createSelector(

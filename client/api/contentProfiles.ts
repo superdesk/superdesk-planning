@@ -199,7 +199,7 @@ function updateProfilesInStore(): Promise<void> {
     return getAll().then((profileArray) => {
         dispatch(updateContentProfiles(profileArray.reduce(
             (profiles, profile) => {
-                if (profile.type !== 'coverage') {
+                if (profile.type !== 'coverage' || profile.content_type == null) {
                     profiles[profile.type] = profile;
                 }
 
@@ -208,7 +208,7 @@ function updateProfilesInStore(): Promise<void> {
             {}
         )));
         dispatch(updateCoverageProfiles(
-            profileArray.filter((profile) => profile.type === 'coverage')
+            profileArray.filter((profile) => profile.type === 'coverage' && profile.content_type != null)
         ));
     });
 }

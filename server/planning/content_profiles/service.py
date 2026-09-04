@@ -1,14 +1,18 @@
 from copy import deepcopy
+import logging
 
 from bson import ObjectId
 
 from superdesk.core.resources import AsyncResourceService
-from superdesk.core.resources.cursor import InMemoryCursorAsync
+from superdesk.core.resources.cursor import InMemoryCursorAsync, MongoResourceCursorAsync
 from superdesk.core.types import SearchRequest, ProjectedFieldArg, SortParam
 
 from planning.common import planning_link_updates_to_coverage, get_config_event_related_item_search_provider_name
 from planning.types import PlanningProfileResource, PlanningProfileType, DEFAULT_PROFILE_ID
 from .profiles import DEFAULT_PROFILES
+
+
+logger = logging.getLogger(__name__)
 
 
 class PlanningTypesAsyncService(AsyncResourceService[PlanningProfileResource]):
@@ -105,20 +109,39 @@ class PlanningTypesAsyncService(AsyncResourceService[PlanningProfileResource]):
             )
         )
 
-        cursor = await super().find(search_request, use_mongo=True)
-        profiles = await cursor.to_list_raw()
+        cursor: MongoResourceCursorAsync = await super().find(search_request, use_mongo=True)
+
+        # Attempt to get the `type` filter from the MongoDB query
+        filtered_types: list[str] | None = None
+        if cursor.lookup and cursor.lookup.get("type"):
+            # The request is to be filtered by type
+            if isinstance(cursor.lookup["type"], list):
+                filtered_types = cursor.lookup["type"]
+            elif isinstance(cursor.lookup["type"], dict) and list(cursor.lookup["type"].keys()) == ["$in"]:
+                filtered_types = cursor.lookup["type"]["$in"]
+            elif isinstance(cursor.lookup["type"], str):
+                filtered_types = [cursor.lookup["type"]]
+
         populated_types: set[PlanningProfileType] = set()
         merged_profiles: list[dict] = []
 
-        for profile in profiles:
-            merged_profile, profile_type = _get_merged_profile(profile, profile.get("type"))
+        async for profile in cursor:
+            merged_profile, profile_type = _get_merged_profile(profile.to_dict(), profile.item_type)
             if merged_profile and profile_type:
                 merged_profiles.append(merged_profile)
-                populated_types.add(profile_type)
+                if profile_type != PlanningProfileType.COVERAGE or not (profile.content_type or "").strip():
+                    # If this is not a Coverage profile or is the default Coverage profile,
+                    # Then mark this Profile type as already populated
+                    # (so we don't add the system-defined default profile for it)
+                    populated_types.add(profile_type)
 
         for item_type, default_profile in deepcopy(DEFAULT_PROFILES).items():
             if item_type in populated_types:
                 # We already have a profile for this item type
+                # no need to add it here
+                continue
+            elif filtered_types is not None and item_type not in filtered_types:
+                # This default profile type does not match the requested filter
                 # no need to add it here
                 continue
 
@@ -130,16 +153,22 @@ class PlanningTypesAsyncService(AsyncResourceService[PlanningProfileResource]):
 
 
 def _get_merged_profile(
-    profile: dict | None, item_type: str | None
+    profile: dict | None, item_type: PlanningProfileType | str | None
 ) -> tuple[dict, PlanningProfileType] | tuple[None, None]:
     default_profile: dict | None = None
+
     profile_type: PlanningProfileType | None = None
-    try:
-        profile_type = PlanningProfileType(item_type)
-        if profile_type and DEFAULT_PROFILES.get(profile_type):
-            default_profile = DEFAULT_PROFILES[profile_type].to_dict()
-    except ValueError:
-        pass
+
+    if isinstance(item_type, PlanningProfileType):
+        profile_type = item_type
+    else:
+        try:
+            profile_type = PlanningProfileType(item_type)
+        except ValueError:
+            pass
+
+    if profile_type and DEFAULT_PROFILES.get(profile_type):
+        default_profile = DEFAULT_PROFILES[profile_type].to_dict()
 
     if not profile and profile_type and default_profile:
         _remove_unsupported_fields(default_profile)
@@ -149,6 +178,13 @@ def _get_merged_profile(
             _merge_planning_type(profile, default_profile)
         return profile, profile_type
     else:
+        logger.error(
+            "Failed to merge PlanningProfile with system defaults",
+            extra={
+                "profile": profile,
+                "item_type": item_type,
+            },
+        )
         return None, None
 
 

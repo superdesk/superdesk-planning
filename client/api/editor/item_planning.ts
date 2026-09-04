@@ -25,7 +25,7 @@ import {
 
 import {CoveragesBookmark, AddCoverageBookmark} from '../../components/Editor/bookmarks';
 import {AssociatedEventItem} from '../../components/fields/editor/AssociatedEventItem';
-import {coverageProfiles, oldProfile} from '../../selectors/coverageProfiles';
+import {coverageProfiles, defaultCoverageProfile} from '../../selectors/coverageProfiles';
 import {isTemporaryId} from '../../utils';
 import {appConfig} from 'superdesk-core/scripts/appConfig';
 
@@ -35,7 +35,9 @@ export function getCoverageFields(
     const storeState = planningApi.redux.store.getState();
     const allProfiles = coverageProfiles(storeState);
     const newProfile = allProfiles.find((x) => x.content_type === type);
-    const profile = newProfile ? newProfile : omit(oldProfile(storeState), '_id') as IPlanningContentProfile;
+    const profile = newProfile ?
+        newProfile :
+        omit(defaultCoverageProfile(storeState), '_id') as IPlanningContentProfile;
     const autoAddToWorkflow = appConfig.planning_auto_assign_to_workflow;
 
     const fields = getGroupFieldsSorted(profile).filter((item) =>

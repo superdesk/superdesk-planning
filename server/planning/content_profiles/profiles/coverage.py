@@ -42,7 +42,7 @@ DEFAULT_COVERAGE_PROFILE = PlanningProfileResource(
     id=DEFAULT_PROFILE_ID,
     name=PlanningProfileType.COVERAGE.value,
     item_type=PlanningProfileType.COVERAGE,
-    content_type="text",
+    content_type="",  # empty indicates this is the default coverage profile for all content types
     editor={
         "g2_content_type": {
             "enabled": True,

@@ -16,7 +16,7 @@ import './style.scss';
 import {COVERAGE_SYSTEM_REQUIRED_FIELDS} from '../../api/utils/constants';
 import {validateAndNotifyForRequiredFields} from './utils';
 import {updateCoverageProfiles} from '../../actions/coverages';
-import {coverageProfiles, oldProfile} from '../../selectors/coverageProfiles';
+import {coverageProfiles, defaultCoverageProfile} from '../../selectors/coverageProfiles';
 
 interface IState {
     saving: boolean;
@@ -57,7 +57,7 @@ export class CoverageProfilesModal extends React.Component<IProps, IState> {
 
         const selectedType = this.availableCoverageTypes?.[0]?.value ?? 'text';
         const newlyCreatedProfile = allProfiles.find((x) => x.content_type === selectedType);
-        const defaultProfile = newlyCreatedProfile ? newlyCreatedProfile : omit(oldProfile(state), '_id');
+        const defaultProfile = newlyCreatedProfile ? newlyCreatedProfile : omit(defaultCoverageProfile(state), '_id');
 
         this.state = {
             saving: false,
@@ -185,7 +185,7 @@ export class CoverageProfilesModal extends React.Component<IProps, IState> {
             const state = planningApi.redux.store.getState();
 
             // fallback to old profile if there's not a match, remove _id so logic for patch/create follows through
-            return omit(oldProfile(state), '_id');
+            return omit(defaultCoverageProfile(state), '_id');
         };
 
         const newProfile = getByType(type);

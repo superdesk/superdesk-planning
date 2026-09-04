@@ -10,6 +10,7 @@
 
 from superdesk.tests import utils
 
+from planning.types import PlanningProfileResource, PlanningProfileType, DEFAULT_PROFILE_ID
 from planning.tests import TestCase
 
 from .utils import get_multilingual_fields, ContentProfileData
@@ -114,3 +115,85 @@ class ContentProfilesTestCase(TestCase):
         self.assertIn("slugline", data.enabled_fields)
         self.assertIn("definition_short", data.enabled_fields)
         self.assertIn("anpa_category", data.enabled_fields)
+
+    async def test_always_include_default_coverage_profile(self):
+        service = PlanningProfileResource.get_service()
+        cursor = await service.find({"type": "coverage"})
+        profiles = {profile.id: profile async for profile in cursor}
+
+        self.assertEqual(len(profiles), 1)
+        profile = profiles.get(DEFAULT_PROFILE_ID)
+        self.assertIsNotNone(profile)
+        self.assertEqual(profile.item_type, PlanningProfileType.COVERAGE)
+        self.assertEqual(profile.content_type, "")
+        self.assertFalse(profile.editor["anpa_category"]["enabled"])
+        self.assertFalse(profile.editor["headline"]["enabled"])
+
+        text_profile = (
+            await service.create(
+                [
+                    PlanningProfileResource(
+                        name="Text Coverage",
+                        item_type=PlanningProfileType.COVERAGE,
+                        content_type="text",
+                        editor={"anpa_category": {"enabled": True, "index": 3}},
+                        schema={"anpa_category": {"required": True}},
+                    )
+                ]
+            )
+        )[0]
+
+        cursor = await service.find({"type": "coverage"})
+
+        profiles = {profile.id: profile async for profile in cursor}
+        self.assertEqual(len(profiles), 2)
+
+        profile = profiles.get(DEFAULT_PROFILE_ID)
+        self.assertIsNotNone(profile)
+        self.assertEqual(profile.item_type, PlanningProfileType.COVERAGE)
+        self.assertEqual(profile.content_type, "")
+        self.assertFalse(profile.editor["anpa_category"]["enabled"])
+        self.assertFalse(profile.editor["headline"]["enabled"])
+
+        profile = profiles.get(text_profile.id)
+        self.assertIsNotNone(profile)
+        self.assertEqual(profile.item_type, PlanningProfileType.COVERAGE)
+        self.assertEqual(profile.content_type, "text")
+        self.assertTrue(profile.editor["anpa_category"]["enabled"])
+        self.assertFalse(profile.editor["headline"]["enabled"])
+
+        default_profile = (
+            await service.create(
+                [
+                    PlanningProfileResource(
+                        name="Default Coverage",
+                        item_type=PlanningProfileType.COVERAGE,
+                        editor={"headline": {"enabled": True, "index": 3}},
+                        schema={"headline": {"required": True}},
+                    )
+                ]
+            )
+        )[0]
+
+        cursor = await service.find({"type": "coverage"})
+        profiles = {profile.id: profile async for profile in cursor}
+        self.assertEqual(len(profiles), 2)
+
+        # The system-defined default is no longer returned from the datalayer
+        self.assertIsNone(profiles.get(DEFAULT_PROFILE_ID))
+
+        # Instead, the item in the DB is returned from the datalayer
+        profile = profiles.get(default_profile.id)
+        self.assertIsNotNone(profile)
+        self.assertEqual(profile.item_type, PlanningProfileType.COVERAGE)
+        self.assertEqual(profile.content_type, "")
+        self.assertFalse(profile.editor["anpa_category"]["enabled"])
+        self.assertTrue(profile.editor["headline"]["enabled"])
+
+        # And our content-specific text profile is returned from the datalayer
+        profile = profiles.get(text_profile.id)
+        self.assertIsNotNone(profile)
+        self.assertEqual(profile.item_type, PlanningProfileType.COVERAGE)
+        self.assertEqual(profile.content_type, "text")
+        self.assertTrue(profile.editor["anpa_category"]["enabled"])
+        self.assertFalse(profile.editor["headline"]["enabled"])
