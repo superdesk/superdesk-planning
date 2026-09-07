@@ -31,7 +31,7 @@ from superdesk.flask import request
 from superdesk.resource_fields import ID_FIELD, ITEMS
 from superdesk import get_resource_service, Resource
 from superdesk.errors import SuperdeskApiError
-from superdesk.utc import utcnow, utc_to_local
+from superdesk.utc import utcnow, utc_to_local, local_to_utc
 from superdesk.metadata.utils import generate_guid, item_url
 from superdesk.metadata.item import GUID_NEWSML
 from superdesk.users.services import current_user_has_privilege
@@ -704,6 +704,7 @@ class PlanningService(AsyncBaseService):
             return
 
         planning_date = original.get("planning_date") or updates.get("planning_date")
+        all_day = updates.get("all_day", original.get("all_day"))
         original_coverage_ids = [
             coverage["coverage_id"] for coverage in original.get("coverages") or [] if coverage.get("coverage_id")
         ]
@@ -720,9 +721,14 @@ class PlanningService(AsyncBaseService):
                 coverage["firstcreated"] = utcnow()
 
                 # Make sure the coverage has a ``scheduled`` date
-                # If none was supplied, fallback to to ``planning.planning_date``
+                # If none was supplied, fallback to ``planning.planning_date``
+                # A coverage's ``scheduled`` is always a real datetime with a timezone (stored in UTC),
+                # unlike ``planning_date`` which may be a "floating" date for all day Planning items
                 coverage.setdefault("planning", {})
-                coverage["planning"].setdefault("scheduled", planning_date)
+                if not coverage["planning"].get("scheduled"):
+                    coverage["planning"]["scheduled"] = (
+                        self.get_all_day_scheduled_date(planning_date) if all_day else planning_date
+                    )
 
                 await self.inherit_planning_metadata(coverage, updates, original)
 
@@ -909,6 +915,18 @@ class PlanningService(AsyncBaseService):
 
         return False
 
+    @staticmethod
+    def get_all_day_scheduled_date(value: datetime) -> datetime:
+        """Resolve ``value`` to the real UTC instant of local midnight on its calendar date
+
+        A coverage's ``scheduled`` date is always a real datetime with a timezone, stored in
+        UTC (see ``field_range``), so a value inherited from a "floating" all day ``planning_date``
+        must be converted to the actual UTC instant of local midnight rather than copied as-is.
+        """
+
+        tz_name = get_app_config("DEFAULT_TIMEZONE")
+        return local_to_utc(tz_name, datetime(value.year, value.month, value.day))
+
     def set_planning_schedule(self, updates, original=None):
         """This set the list of schedule based on the coverage and planning.
 
@@ -926,14 +944,12 @@ class PlanningService(AsyncBaseService):
         coverages = updates.get("coverages", [])
         planning_date = updates.get("planning_date") or (original or {}).get("planning_date") or utcnow()
 
-        add_default_schedule = True
         add_default_updates_schedule = True
-        schedule = []
+        # The planning item's own `planning_date` must always be searchable/sortable via
+        # `_planning_schedule`, even when coverages have their own distinct `scheduled` dates
+        schedule = [{"coverage_id": None, "scheduled": planning_date or utcnow()}]
         updates_schedule = []
         for coverage in coverages:
-            if coverage.get("planning", {}).get("scheduled"):
-                add_default_schedule = False
-
             schedule.append(
                 {
                     "coverage_id": coverage.get("coverage_id"),
@@ -951,9 +967,6 @@ class PlanningService(AsyncBaseService):
                         "scheduled": s.get("planning", {}).get("scheduled"),
                     }
                 )
-
-        if add_default_schedule:
-            schedule.append({"coverage_id": None, "scheduled": planning_date or utcnow()})
 
         if add_default_updates_schedule:
             updates_schedule.append({"scheduled_update_id": None, "scheduled": planning_date or utcnow()})

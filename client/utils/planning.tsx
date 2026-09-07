@@ -1114,9 +1114,13 @@ function createCoverageFromNewsItem(
     }
 
     // Add assignment to coverage
+    // Prefer the original journalist/assignee from the assignment if available
+    // Otherwise fall back to the version_creator (last editor/publisher)
+    const assignedUser = addNewsItemToPlanning?.assignment?.user ?? addNewsItemToPlanning?.version_creator;
+
     newCoverage.assigned_to = {
         desk: get(addNewsItemToPlanning, 'task.desk', desk),
-        user: get(addNewsItemToPlanning, 'version_creator'),
+        user: assignedUser,
     };
 
     self.modifyCoverageForClient(newCoverage);

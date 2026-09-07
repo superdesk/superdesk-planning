@@ -12,7 +12,7 @@ from apps.auth import get_user, get_auth
 
 from superdesk.core.types import SearchRequest
 from superdesk.core import get_current_app
-from superdesk.utc import utcnow, utc_to_local
+from superdesk.utc import utcnow, utc_to_local, local_to_utc
 from superdesk.errors import SuperdeskApiError
 from superdesk.resource_fields import ID_FIELD
 from superdesk.metadata.item import GUID_NEWSML
@@ -448,6 +448,18 @@ class PlanningAsyncService(BasePlanningAsyncService[PlanningResourceModel]):
         await self.add_coverages(updated_planning, original)
         await self.update_coverages(updated_planning, original)
 
+    @staticmethod
+    def _get_all_day_date(value: datetime) -> datetime:
+        """Resolve ``value`` to the real UTC instant of local midnight on its calendar date
+
+        A coverage's ``scheduled`` date is always a real datetime with a timezone, stored in
+        UTC (see ``field_range``), so a value inherited from a "floating" all day ``planning_date``
+        must be converted to the actual UTC instant of local midnight rather than copied as-is.
+        """
+
+        tz_name = get_app_config("DEFAULT_TIMEZONE")
+        return local_to_utc(tz_name, datetime(value.year, value.month, value.day))
+
     def set_planning_schedule(
         self, updated_planning: PlanningResourceModel, original_planning: PlanningResourceModel | None = None
     ):
@@ -467,15 +479,13 @@ class PlanningAsyncService(BasePlanningAsyncService[PlanningResourceModel]):
         planning_date = (
             updated_planning.planning_date or (original_planning and original_planning.planning_date) or utcnow()
         )
-        add_default_schedule = True
         add_default_updates_schedule = True
 
-        schedule = []
+        # The planning item's own `planning_date` must always be searchable/sortable via
+        # `_planning_schedule`, even when coverages have their own distinct `scheduled` dates
+        schedule = [{"coverage_id": None, "scheduled": planning_date or utcnow()}]
         updates_schedule = []
         for coverage in updated_planning.coverages:
-            if coverage.planning.scheduled:
-                add_default_schedule = False
-
             schedule.append(
                 {
                     "coverage_id": coverage.coverage_id,
@@ -493,9 +503,6 @@ class PlanningAsyncService(BasePlanningAsyncService[PlanningResourceModel]):
                         "scheduled": s.planning.scheduled,
                     }
                 )
-
-        if add_default_schedule:
-            schedule.append({"coverage_id": None, "scheduled": planning_date or utcnow()})
 
         if add_default_updates_schedule:
             updates_schedule.append({"scheduled_update_id": None, "scheduled": planning_date or utcnow()})
@@ -566,6 +573,10 @@ class PlanningAsyncService(BasePlanningAsyncService[PlanningResourceModel]):
             return
 
         planning_date = original.planning_date or updated_planning.planning_date
+        # `all_day` isn't a declared model field, so it may be entirely absent from either instance
+        all_day = getattr(updated_planning, "all_day", None)
+        if all_day is None:
+            all_day = getattr(original, "all_day", None)
         original_coverage_ids = [coverage.coverage_id for coverage in original.coverages if coverage.coverage_id]
 
         for coverage in updated_planning.coverages:
@@ -587,8 +598,10 @@ class PlanningAsyncService(BasePlanningAsyncService[PlanningResourceModel]):
 
                 # Make sure the coverage has a ``scheduled`` date
                 # If none was supplied, fallback to ``planning.planning_date``
+                # A coverage's ``scheduled`` is always a real datetime with a timezone (stored in UTC),
+                # unlike ``planning_date`` which may be a "floating" date for all day Planning items
                 if not coverage.planning.scheduled:
-                    coverage.planning.scheduled = planning_date
+                    coverage.planning.scheduled = self._get_all_day_date(planning_date) if all_day else planning_date
 
                 coverage.original_creator = get_user().get(ID_FIELD)
 

@@ -7,125 +7,149 @@
 #, fuzzy
 msgid ""
 msgstr ""
-"Project-Id-Version: superdesk-planning 3.2.0.dev0\n"
+"Project-Id-Version: superdesk-planning 3.5.0.dev0\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2026-01-13 11:32+0100\n"
+"POT-Creation-Date: 2026-09-04 13:10+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Generated-By: Babel 2.17.0\n"
+"Generated-By: Babel 2.18.0\n"
 
-#: server/planning/__init__.py:122 server/planning/__init__.py:185
-#: server/planning/__init__.py:192 server/planning/__init__.py:199
-#: server/planning/__init__.py:206 server/planning/__init__.py:217
+#: server/planning/__init__.py:125 server/planning/__init__.py:188
+#: server/planning/__init__.py:195 server/planning/__init__.py:202
+#: server/planning/__init__.py:209 server/planning/__init__.py:220
 msgid "Planning"
 msgstr ""
 
-#: server/planning/__init__.py:123
+#: server/planning/__init__.py:126
 msgid "Create, update, and delete  events, planning items, and coverages"
 msgstr ""
 
-#: server/planning/__init__.py:128
+#: server/planning/__init__.py:131
 msgid "Planning - Agenda Management"
 msgstr ""
 
-#: server/planning/__init__.py:129
+#: server/planning/__init__.py:132
 msgid "Ability to create and modify Agendas"
 msgstr ""
 
-#: server/planning/__init__.py:134
+#: server/planning/__init__.py:137
 msgid "Planning - Delete Agendas"
 msgstr ""
 
-#: server/planning/__init__.py:135
+#: server/planning/__init__.py:138
 msgid "Ability to delete an Agenda"
 msgstr ""
 
-#: server/planning/__init__.py:140
+#: server/planning/__init__.py:143
 msgid "Planning - Edit Expired Items"
 msgstr ""
 
-#: server/planning/__init__.py:141
+#: server/planning/__init__.py:144
 msgid "Ability to edit expired Event and Planning items"
 msgstr ""
 
-#: server/planning/__init__.py:146
+#: server/planning/__init__.py:149
 msgid "Planning - Manage Export Templates"
 msgstr ""
 
-#: server/planning/__init__.py:147
+#: server/planning/__init__.py:150
 msgid "Ability to manage export templates"
 msgstr ""
 
-#: server/planning/__init__.py:152
+#: server/planning/__init__.py:155
 msgid "Planning - Create Event/Planning in the past"
 msgstr ""
 
-#: server/planning/__init__.py:153
+#: server/planning/__init__.py:156
 msgid "Ability to create an Event or Planning item in the past"
 msgstr ""
 
-#: server/planning/__init__.py:158
+#: server/planning/__init__.py:161
 msgid "Planning - Assignments"
 msgstr ""
 
-#: server/planning/__init__.py:159
+#: server/planning/__init__.py:162
 msgid "User can access assignments view and see their own assignments"
 msgstr ""
 
-#: server/planning/__init__.py:164
+#: server/planning/__init__.py:167
 msgid "Planning - Assignments desk"
 msgstr ""
 
-#: server/planning/__init__.py:165
+#: server/planning/__init__.py:168
 msgid "User can see desk assignments"
 msgstr ""
 
-#: server/planning/__init__.py:177
+#: server/planning/__init__.py:180
 msgid "Allow Notifications To Slack"
 msgstr ""
 
-#: server/planning/__init__.py:178
+#: server/planning/__init__.py:181
 msgid "Notifications"
 msgstr ""
 
-#: server/planning/__init__.py:184
+#: server/planning/__init__.py:187
 msgid "Default Calendar"
 msgstr ""
 
-#: server/planning/__init__.py:191
+#: server/planning/__init__.py:194
 msgid "Default Agenda"
 msgstr ""
 
-#: server/planning/__init__.py:198
+#: server/planning/__init__.py:201
 msgid "Default Events Planning Filter"
 msgstr ""
 
-#: server/planning/__init__.py:205
+#: server/planning/__init__.py:208
 msgid "Default desk for coverage types"
 msgstr ""
 
-#: server/planning/__init__.py:216
+#: server/planning/__init__.py:219
 msgid "Open advanced mode when adding coverages"
 msgstr ""
 
-#: server/planning/common.py:452
+#: server/planning/autosave_service.py:43
+msgid "Autosave failed, User not supplied"
+msgstr ""
+
+#: server/planning/autosave_service.py:46
+msgid "Autosave failed, User Session not supplied"
+msgstr ""
+
+#: server/planning/common.py:300
+msgid "newscoveragestatus CV not found in DB or has no items"
+msgstr ""
+
+#: server/planning/common.py:538
 msgid "Item didn't match any Products"
 msgstr ""
 
-#: server/planning/common.py:454
+#: server/planning/common.py:540
 msgid "Item not published to any Subscribers"
 msgstr ""
 
-#: server/planning/common.py:456
+#: server/planning/common.py:542
 msgid "Failed to route item"
 msgstr ""
 
-#: server/planning/module.py:66
+#: server/planning/item_lock.py:73
+msgid "Item is locked by another user."
+msgstr ""
+
+#: server/planning/module.py:68
 msgid "Agendas"
+msgstr ""
+
+#: server/planning/planning_article_export.py:266
+msgid "Invalid template selected"
+msgstr ""
+
+#: server/planning/planning_notifications.py:188
+msgid "Unable to find matching Slack user"
 msgstr ""
 
 #: server/planning/utils.py:136
@@ -140,20 +164,121 @@ msgstr ""
 msgid "Assignments"
 msgstr ""
 
-#: server/planning/assignments/assignments.py:683
+#: server/planning/assignments/assignments.py:251
+msgid "Assignment should have a desk."
+msgstr ""
+
+#: server/planning/assignments/assignments.py:261
+msgid "Assignment linked to content. Desk reassignment not allowed."
+msgstr ""
+
+#: server/planning/assignments/assignments.py:268
+#, python-brace-format
+msgid "Action failed. Related planning item is {}"
+msgstr ""
+
+#: server/planning/assignments/assignments.py:707
 msgid "by "
 msgstr ""
 
-#: server/planning/assignments/assignments.py:685
+#: server/planning/assignments/assignments.py:709
 msgid "to yourself"
 msgstr ""
 
-#: server/planning/assignments/assignments.py:811
+#: server/planning/assignments/assignments.py:835
 msgid "Unknown"
 msgstr ""
 
-#: server/planning/assignments/assignments.py:813
+#: server/planning/assignments/assignments.py:837
 msgid "You"
+msgstr ""
+
+#: server/planning/assignments/assignments.py:1161
+msgid "Delivery record not found."
+msgstr ""
+
+#: server/planning/assignments/assignments.py:1165
+#: server/planning/planning/planning.py:1194
+msgid "Planning does not exist"
+msgstr ""
+
+#: server/planning/assignments/assignments.py:1172
+#: server/planning/planning/planning.py:1200
+#: server/planning/planning/planning.py:1240
+msgid "Coverage does not exist"
+msgstr ""
+
+#: server/planning/assignments/assignments.py:1189
+#: server/planning/assignments/assignments_content.py:284
+#: server/planning/assignments/assignments_link.py:161
+#: server/planning/assignments/assignments_unlink.py:151
+msgid "Assignment not found."
+msgstr ""
+
+#: server/planning/assignments/assignments.py:1247
+msgid "Lock Failed: Related assignment is locked."
+msgstr ""
+
+#: server/planning/assignments/assignments.py:1283
+#: server/planning/assignments/assignments.py:1289
+msgid "User does not have sufficient permissions."
+msgstr ""
+
+#: server/planning/assignments/assignments.py:1324
+msgid "Failed to find Planning item."
+msgstr ""
+
+#: server/planning/assignments/assignments.py:1333
+msgid "Lock is not obtained on the Assignment item"
+msgstr ""
+
+#: server/planning/assignments/assignments.py:1340
+msgid "Associated archive item is locked"
+msgstr ""
+
+#: server/planning/assignments/assignments_complete.py:84
+msgid "Update Assignment not in correct state."
+msgstr ""
+
+#: server/planning/assignments/assignments_complete.py:86
+msgid "Assignment not in progress."
+msgstr ""
+
+#: server/planning/assignments/assignments_complete.py:100
+msgid "Assignment is locked"
+msgstr ""
+
+#: server/planning/assignments/assignments_content.py:179
+msgid "Archive item not found to create a rewrite."
+msgstr ""
+
+#: server/planning/assignments/assignments_content.py:294
+msgid "Cannot create content from a draft Assignment."
+msgstr ""
+
+#: server/planning/assignments/assignments_content.py:297
+msgid "Assignment workflow started. Cannot create content."
+msgstr ""
+
+#: server/planning/assignments/assignments_content.py:302
+msgid "Content already exists for the assignment. Cannot create content."
+msgstr ""
+
+#: server/planning/assignments/assignments_content.py:309
+msgid "Assignment workflow completed. Cannot create content."
+msgstr ""
+
+#: server/planning/assignments/assignments_content.py:321
+msgid "Coverage not linked to news item yet."
+msgstr ""
+
+#: server/planning/assignments/assignments_content.py:329
+msgid "Previous scheduled update not linked to news item yet."
+msgstr ""
+
+#: server/planning/assignments/assignments_link.py:166
+#: server/planning/assignments/assignments_unlink.py:170
+msgid "Content item not found."
 msgstr ""
 
 #: server/planning/assignments/assignments_link.py:171
@@ -161,6 +286,46 @@ msgstr ""
 msgid ""
 "Content type \"%(content_type)s\" is not allowed to be linked to a "
 "coverage"
+msgstr ""
+
+#: server/planning/assignments/assignments_link.py:178
+msgid ""
+"Content is already linked to an assignment. Cannot link assignment and "
+"content."
+msgstr ""
+
+#: server/planning/assignments/assignments_link.py:182
+msgid "Content not in workflow. Cannot link assignment and content."
+msgstr ""
+
+#: server/planning/assignments/assignments_link.py:187
+msgid ""
+"Content already exists for the assignment. Cannot link assignment and "
+"content."
+msgstr ""
+
+#: server/planning/assignments/assignments_link.py:193
+msgid "Only updates can be linked to a scheduled update assignment"
+msgstr ""
+
+#: server/planning/assignments/assignments_lock.py:81
+msgid "Assignment workflow state error."
+msgstr ""
+
+#: server/planning/assignments/assignments_lock.py:89
+msgid "Archive item is locked by another user."
+msgstr ""
+
+#: server/planning/assignments/assignments_revert.py:57
+msgid "Cannot revert text assignments."
+msgstr ""
+
+#: server/planning/assignments/assignments_revert.py:60
+msgid "Cannot revert an assignment which is not yet confirmed."
+msgstr ""
+
+#: server/planning/assignments/assignments_unlink.py:191
+msgid "Assignment and Content are not linked."
 msgstr ""
 
 #: server/planning/content_profiles/__init__.py:33
@@ -219,6 +384,89 @@ msgstr ""
 msgid "Ability to create and manage Event templates"
 msgstr ""
 
+#: server/planning/events/events.py:572
+#: server/planning/events/events_service.py:233
+#: server/planning/planning/planning.py:315
+#: server/planning/planning/planning_service.py:187
+msgid "The item was locked by another user"
+msgstr ""
+
+#: server/planning/events/events.py:770
+#: server/planning/events/events_service.py:563
+msgid "Recurring series has not started."
+msgstr ""
+
+#: server/planning/events/events.py:841
+#: server/planning/events/events_service.py:757
+msgid "Planning item not found"
+msgstr ""
+
+#: server/planning/events/events_cancel.py:92
+msgid "Event not in valid state for cancellation"
+msgstr ""
+
+#: server/planning/events/events_files.py:77
+msgid "Delete failed. File still used by other events."
+msgstr ""
+
+#: server/planning/events/events_service.py:185
+msgid "Parent event not found"
+msgstr ""
+
+#: server/planning/events/events_service.py:262
+msgid "Event not found"
+msgstr ""
+
+#: server/planning/events/events_spike.py:93
+msgid "Spike failed. Posted Events cannot be spiked."
+msgstr ""
+
+#: server/planning/events/events_spike.py:97
+msgid "Spike failed. Event has an associated Planning item."
+msgstr ""
+
+#: server/planning/events/events_spike.py:101
+msgid "Spike failed. Rescheduled Events cannot be spiked."
+msgstr ""
+
+#: server/planning/events/events_spike.py:105
+msgid "Spike failed. Event is already spiked."
+msgstr ""
+
+#: server/planning/events/events_spike.py:129
+msgid "Spike failed. An event in the series is locked."
+msgstr ""
+
+#: server/planning/events/events_spike.py:133
+msgid "Spike failed. A related planning item is locked."
+msgstr ""
+
+#: server/planning/events/events_utils.py:326
+#: server/planning/planning/planning_cancel.py:59
+msgid "Reason is required field."
+msgstr ""
+
+#: server/planning/events/events_utils.py:329
+msgid "Aborted. Event is already cancelled"
+msgstr ""
+
+#: server/planning/events/events_utils.py:340
+msgid "The event must be locked"
+msgstr ""
+
+#: server/planning/events/events_utils.py:342
+msgid "The event is locked by another user"
+msgstr ""
+
+#: server/planning/events/events_utils.py:344
+msgid "The event is locked by you in another session"
+msgstr ""
+
+#: server/planning/events/events_utils.py:347
+#, python-brace-format
+msgid "The lock must be for the `{}` action"
+msgstr ""
+
 #: server/planning/events/views.py:169
 msgid "New recurring rules not provided"
 msgstr ""
@@ -262,52 +510,115 @@ msgstr ""
 msgid "Ability to create, edit and delete locations"
 msgstr ""
 
-#: server/planning/planning/__init__.py:135
+#: server/planning/planning/__init__.py:134
 msgid "Planning - Planning Item Management"
 msgstr ""
 
-#: server/planning/planning/__init__.py:136
+#: server/planning/planning/__init__.py:135
 msgid "Ability to create and modify Planning items"
 msgstr ""
 
-#: server/planning/planning/__init__.py:141
+#: server/planning/planning/__init__.py:140
 msgid "Planning - Spike Planning Items"
 msgstr ""
 
-#: server/planning/planning/__init__.py:142
+#: server/planning/planning/__init__.py:141
 msgid "Ability to spike a Planning Item"
 msgstr ""
 
-#: server/planning/planning/__init__.py:147
+#: server/planning/planning/__init__.py:146
 msgid "Planning - Unspike Planning Items"
 msgstr ""
 
-#: server/planning/planning/__init__.py:148
+#: server/planning/planning/__init__.py:147
 msgid "Ability to unspike a Planning Item"
 msgstr ""
 
-#: server/planning/planning/__init__.py:153
+#: server/planning/planning/__init__.py:152
 msgid "Planning - Post Planning Items"
 msgstr ""
 
-#: server/planning/planning/__init__.py:154
+#: server/planning/planning/__init__.py:153
 msgid "Ability to post a Planning Item"
 msgstr ""
 
-#: server/planning/planning/__init__.py:159
+#: server/planning/planning/__init__.py:158
 msgid "Planning - Unpost Planning Items"
 msgstr ""
 
-#: server/planning/planning/__init__.py:160
+#: server/planning/planning/__init__.py:159
 msgid "Ability to unpost a Planning Item"
 msgstr ""
 
-#: server/planning/planning/__init__.py:165
+#: server/planning/planning/__init__.py:164
 msgid "Planning - Featured Stories"
 msgstr ""
 
-#: server/planning/planning/__init__.py:166
+#: server/planning/planning/__init__.py:165
 msgid "Ability to create and modify a featured stories list from planning items"
+msgstr ""
+
+#: server/planning/planning/planning.py:325
+msgid "Planning item should have a date"
+msgstr ""
+
+#: server/planning/planning/planning.py:336
+#: server/planning/planning/planning_service.py:407
+#, python-brace-format
+msgid "Agenda '{}' does not exist"
+msgstr ""
+
+#: server/planning/planning/planning.py:339
+#: server/planning/planning/planning_service.py:412
+#, python-brace-format
+msgid "Agenda '{}' is not enabled"
+msgstr ""
+
+#: server/planning/planning/planning.py:685
+#, python-brace-format
+msgid "Cannot remove {} of a cancelled planning item"
+msgstr ""
+
+#: server/planning/planning/planning.py:998
+#: server/planning/planning/planning_service.py:881
+msgid "Planning item is required to create assignments."
+msgstr ""
+
+#: server/planning/planning/planning.py:1031
+#: server/planning/planning/planning_service.py:911
+msgid "Coverage not in correct state to remove assignment."
+msgstr ""
+
+#: server/planning/planning/planning.py:1224
+msgid "New coverage was not found!"
+msgstr ""
+
+#: server/planning/planning/planning_featured_async_service.py:29
+msgid "Featured story already exists for this date."
+msgstr ""
+
+#: server/planning/planning/planning_featured_async_service.py:90
+msgid "A planning item in the list is not featured."
+msgstr ""
+
+#: server/planning/planning/planning_featured_lock.py:61
+msgid "Unable to obtain lock on Featured stories."
+msgstr ""
+
+#: server/planning/planning/planning_files.py:70
+msgid "Delete failed. File still used by other planning items."
+msgstr ""
+
+#: server/planning/planning/planning_service.py:918
+msgid "Assignment related to the coverage does not exist."
+msgstr ""
+
+#: server/planning/planning/planning_spike.py:107
+msgid "Spike failed. Planning item in invalid state for spiking."
+msgstr ""
+
+#: server/planning/planning/planning_spike.py:169
+msgid "Unspike failed. Associated event is spiked."
 msgstr ""
 
 #: server/planning/search/__init__.py:31 server/planning/search/__init__.py:73
@@ -326,7 +637,25 @@ msgstr ""
 msgid "Ability to view global Events/Planning items"
 msgstr ""
 
+#: server/planning/search/eventsplanning_search.py:99
+#, python-brace-format
+msgid "Unexpected parameter ({})"
+msgstr ""
+
+#: server/planning/search/eventsplanning_search.py:325
+#, python-brace-format
+msgid "EventPlanning Filter {} not found"
+msgstr ""
+
 #: server/planning/search/queries/assignments.py:195
 msgid "Invalid custom text param"
+msgstr ""
+
+#: server/planning/search/queries/common.py:80
+msgid "Invalid value for start date"
+msgstr ""
+
+#: server/planning/search/queries/common.py:97
+msgid "Invalid value for end date"
 msgstr ""
 

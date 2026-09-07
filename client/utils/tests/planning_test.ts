@@ -437,6 +437,36 @@ describe('PlanningUtils', () => {
             });
         });
 
+        it('prefers the assignment assignee over version_creator when building coverage', () => {
+            const newsItem = {
+                slugline: 'slug',
+                ednote: 'edit my note',
+                type: 'text',
+                state: 'published',
+                versioncreated: '2017-10-15T14:01:11',
+                version_creator: 'editor-user',
+                assignment: {
+                    user: 'journalist-user',
+                },
+                task: {
+                    desk: 'desk2',
+                    user: 'editor-user',
+                },
+                firstpublished: '2017-10-15T16:00:00',
+            };
+
+            const coverage = planningUtils.createCoverageFromNewsItem(
+                newsItem,
+                newsCoverageStatus,
+                desk,
+                contentTypes,
+                {},
+            );
+
+            expect(coverage.assigned_to.user).toBe('journalist-user');
+            expect(coverage.assigned_to.desk).toBe('desk2');
+        });
+
         it('coverage time is derived from news item\'s published time', () => {
             const newsItem = {
                 slugline: 'slug',

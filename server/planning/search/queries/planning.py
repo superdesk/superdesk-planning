@@ -211,7 +211,7 @@ def search_date_default(params: Dict[str, Any], query: elastic.ElasticQuery):
         query_range = elastic.date_range(
             elastic.ElasticRangeParams(
                 field=field_name,
-                gte="now/d",
+                gte=elastic.local_day_start(time_zone),
                 time_zone=time_zone,
             )
         )
