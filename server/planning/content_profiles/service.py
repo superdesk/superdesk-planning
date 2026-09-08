@@ -1,5 +1,4 @@
 from copy import deepcopy
-import logging
 
 from bson import ObjectId
 
@@ -10,9 +9,6 @@ from superdesk.core.types import SearchRequest, ProjectedFieldArg, SortParam
 from planning.common import planning_link_updates_to_coverage, get_config_event_related_item_search_provider_name
 from planning.types import PlanningProfileResource, PlanningProfileType, DEFAULT_PROFILE_ID
 from .profiles import DEFAULT_PROFILES
-
-
-logger = logging.getLogger(__name__)
 
 
 class PlanningTypesAsyncService(AsyncResourceService[PlanningProfileResource]):
@@ -178,13 +174,6 @@ def _get_merged_profile(
             _merge_planning_type(profile, default_profile)
         return profile, profile_type
     else:
-        logger.error(
-            "Failed to merge PlanningProfile with system defaults",
-            extra={
-                "profile": profile,
-                "item_type": item_type,
-            },
-        )
         return None, None
 
 
