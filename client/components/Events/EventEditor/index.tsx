@@ -5,6 +5,7 @@ import {
     IEventItem,
     IEventFormProfile,
     IFile,
+    IPlanningCoverageItem,
     IPlanningItem,
     IFormItemManager,
     EDITOR_TYPE,
@@ -37,8 +38,16 @@ interface IProps {
     editorType: EDITOR_TYPE;
     showAllLanguages: boolean;
     language: IVocabularyItem['qcode'];
+    files: Array<IFile>;
+    message?: string | {[key: string]: any};
+    navigation?: any;
 
-    onChangeHandler(field: string | {[key: string]: any}, value?: any): void;
+    onChangeHandler(
+        field: string | {[key: string]: any},
+        value?: any,
+        updateDirtyFlag?: boolean,
+        saveAutosave?: boolean,
+    ): void;
     onPopupOpen(): void;
     onPopupClose(): void;
     fetchEventFiles(event: IEventItem): void;
@@ -49,6 +58,7 @@ interface IProps {
 
 const mapStateToProps = (state) => ({
     formProfile: selectors.forms.eventProfile(state),
+    files: selectors.general.files(state),
 });
 
 const mapDispatchToProps = (dispatch) => ({
@@ -64,6 +74,15 @@ class EventEditorComponent extends React.PureComponent<IProps> {
         super(props);
 
         this.onDatesChanged = this.onDatesChanged.bind(this);
+        this.onCoverageChange = this.onCoverageChange.bind(this);
+    }
+
+    onCoverageChange(field: string, value: any, updateDirtyFlag: boolean = true, saveAutosave: boolean = true) {
+        this.props.onChangeHandler(field, value, updateDirtyFlag, saveAutosave);
+
+        if (field === 'coverages') {
+            planningApi.editor(this.props.editorType).autosave.flushAutosave();
+        }
     }
 
     componentDidMount() {
@@ -211,6 +230,27 @@ class EventEditorComponent extends React.PureComponent<IProps> {
                         addPlanningItem: editor.item.events.addPlanningItem,
                         unlinkPlanning: editor.item.events.unlinkPlanning,
                         updatePlanningItem: editor.item.events.updatePlanningItem,
+                    },
+                    coverages: {
+                        onChange: this.onCoverageChange,
+                        useLocalNavigation: !this.props.inModalView,
+                        navigation: this.props.navigation,
+                        disabled: this.props.readOnly,
+                        originalCount: this.props.item?.coverages?.length ?? 0,
+                        message: this.props.message,
+                        event: this.props.item,
+                        defaultValue: [],
+                        files: this.props.files,
+                        uploadFiles: this.props.uploadFiles,
+                        removeFile: this.props.removeFile,
+                        notifyValidationErrors: this.props.notifyValidationErrors,
+                        onPopupOpen: this.props.onPopupOpen,
+                        onPopupClose: this.props.onPopupClose,
+                        getRef: (field, value: IPlanningCoverageItem) => (
+                            editor.item.planning.getCoverageFieldDomRef(value.coverage_id)
+                        ),
+                        includeScheduledUpdates: true,
+                        language: this.props.language,
                     },
                 }}
             />

@@ -1,7 +1,6 @@
 import React from 'react';
 import {connect} from 'react-redux';
 import {get, isEqual} from 'lodash';
-import moment from 'moment';
 import {Menu, Tooltip} from 'superdesk-ui-framework/react';
 
 import {superdeskApi, planningApi} from '../../superdeskApi';
@@ -35,7 +34,6 @@ import planningApis from '../../actions/planning/api';
 import {getUserInterfaceLanguageFromCV} from '../../utils/users';
 import {LineItems} from '../../components/UI/List/LineItems';
 import {getPlanningSecondLineConfig, planningFirstLineConfig} from '../../config';
-import {getRelatedEventIdsForPlanning} from '../../utils/planning';
 import {ILineConfig} from 'globals';
 
 interface IState {
@@ -334,41 +332,11 @@ class PlanningItemComponent extends React.Component<IProps, IState> {
                         relatedEventsUI: this.props.relatedEventsUI,
                     },
                     coverages: {
-                        prepare: (coverages) => { // removing coverages that do not match page filters
-                            const coveragesMapped = planningUtils.mapCoverageByDate(coverages);
-                            const hasAssociatedEvent = getRelatedEventIdsForPlanning(item).length > 0;
-
-                            const isSameDay = (scheduled) =>
-                                scheduled && (date == null || moment(scheduled).format('YYYY-MM-DD') === date);
-
-                            const coverageToDisplay = coveragesMapped.filter((coverage) => {
-                                const scheduled = get(coverage, 'planning.scheduled');
-
-                                // Display only the coverages that match the active filter language
-                                if (
-                                    filterLanguage !== ''
-                                    && filterLanguage != null
-                                    && coverage.planning.language != filterLanguage
-                                ) {
-                                    return false;
-                                }
-
-                                if (activeFilter === MAIN.FILTERS.COMBINED) {
-                                    // Display if it has an associated event
-                                    // or if adhoc planning has coverage on that date
-                                    if (hasAssociatedEvent || isSameDay(scheduled)) {
-                                        return true;
-                                    }
-                                } else if (scheduled && isSameDay(scheduled)) {
-                                    // Planning-only view - display only coverage of the particular date
-                                    return true;
-                                }
-
-                                return false;
-                            });
-
-                            return coverageToDisplay;
-                        },
+                        prepare: (coverages) => planningUtils.filterCoveragesForList(
+                            item,
+                            coverages,
+                            {date, activeFilter, filterLanguage},
+                        ),
                     },
                 },
             },

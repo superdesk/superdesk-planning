@@ -5,6 +5,7 @@ import {gettext, historyUtils} from '../../utils';
 import {get} from 'lodash';
 import {AbsoluteDate} from '../index';
 import {ContentBlock} from '../UI/SidePanel';
+import {CoverageHistory} from '../Coverages';
 
 export class EventHistory extends React.Component {
     closeAndOpenDuplicate(duplicateId) {
@@ -109,10 +110,13 @@ export class EventHistory extends React.Component {
     }
 
     render() {
+        const itemHistory = historyUtils.getPlanningItemHistory(this.props.historyItems);
+        const groupedCoverageHistory = historyUtils.getGroupedCoverageHistory(this.props.historyItems);
+
         return (
             <ContentBlock>
                 <ul className="history-list history-list--no-padding">
-                    {get(this.props, 'historyItems', []).map((historyItem, index) => {
+                    {itemHistory.map((historyItem, index) => {
                         const postElement = historyUtils.getPostedHistoryElement(
                             index, this.props.historyItems, this.props.users);
                         const historyElement = this.getHistoryActionElement(historyItem);
@@ -215,6 +219,15 @@ export class EventHistory extends React.Component {
                         return null;
                     })}
                 </ul>
+                {Object.keys(groupedCoverageHistory).map((historyKey) => (
+                    <CoverageHistory
+                        key={historyKey}
+                        historyData={groupedCoverageHistory[historyKey]}
+                        users={this.props.users}
+                        desks={this.props.desks}
+                        contentTypes={this.props.contentTypes}
+                    />
+                ))}
             </ContentBlock>
         );
     }
@@ -223,5 +236,7 @@ export class EventHistory extends React.Component {
 EventHistory.propTypes = {
     historyItems: PropTypes.array,
     users: PropTypes.array,
+    desks: PropTypes.array,
+    contentTypes: PropTypes.array,
     openItemPreview: PropTypes.func,
 };

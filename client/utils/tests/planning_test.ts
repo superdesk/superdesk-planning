@@ -6,7 +6,7 @@ import {ILockedItems} from '../../interfaces';
 
 import {lockUtils, planningUtils} from '../index';
 import lockReducer from '../../reducers/locks';
-import {EVENTS, PLANNING, ASSIGNMENTS, PRIVILEGES} from '../../constants';
+import {EVENTS, PLANNING, ASSIGNMENTS, PRIVILEGES, MAIN} from '../../constants';
 import {expectActions} from '../testUtils';
 import {sessions} from '../testData';
 
@@ -1093,7 +1093,67 @@ describe('PlanningUtils', () => {
         });
     });
 
+    describe('filterCoveragesForList', () => {
+        const coverages = [
+            {coverage_id: 'c1', planning: {scheduled: '2026-09-07T12:00:00+0000', language: 'fi'}},
+            {coverage_id: 'c2', planning: {scheduled: '2026-09-08T12:00:00+0000', language: 'en'}},
+            {coverage_id: 'c3', planning: {language: 'fi'}},
+        ];
+        const adHocPlanning = {type: 'planning', _id: 'p1'};
+        const linkedPlanning = {type: 'planning', _id: 'p2', related_events: [{_id: 'e1', link_type: 'primary'}]};
+        const event = {type: 'event', _id: 'e1'};
+        const ids = (result) => result.map((coverage) => coverage.coverage_id);
+        const filter = (item, options) => ids(planningUtils.filterCoveragesForList(item, coverages, options));
+
+        it('ad-hoc planning items only show coverages scheduled on the day group', () => {
+            expect(filter(adHocPlanning, {date: '2026-09-07', activeFilter: MAIN.FILTERS.PLANNING})).toEqual(['c1']);
+            expect(filter(adHocPlanning, {date: '2026-09-07', activeFilter: MAIN.FILTERS.COMBINED})).toEqual(['c1']);
+        });
+
+        it('planning items linked to an event show all coverages in the combined view only', () => {
+            expect(filter(linkedPlanning, {date: '2026-09-07', activeFilter: MAIN.FILTERS.PLANNING}))
+                .toEqual(['c1']);
+            expect(filter(linkedPlanning, {date: '2026-09-07', activeFilter: MAIN.FILTERS.COMBINED}))
+                .toEqual(['c1', 'c2', 'c3']);
+        });
+
+        it('events show all coverages on every day group', () => {
+            expect(filter(event, {date: '2026-09-07', activeFilter: MAIN.FILTERS.EVENTS}))
+                .toEqual(['c1', 'c2', 'c3']);
+            expect(filter(event, {date: '2026-09-09', activeFilter: MAIN.FILTERS.COMBINED}))
+                .toEqual(['c1', 'c2', 'c3']);
+        });
+
+        it('filters by the list language filter', () => {
+            expect(filter(event, {date: '2026-09-07', activeFilter: MAIN.FILTERS.EVENTS, filterLanguage: 'en'}))
+                .toEqual(['c2']);
+            expect(filter(adHocPlanning, {
+                date: '2026-09-07',
+                activeFilter: MAIN.FILTERS.PLANNING,
+                filterLanguage: 'en',
+            })).toEqual([]);
+        });
+    });
+
     describe('defaultCoverageValues', () => {
+        it('set coverage time from the event itself', () => {
+            const newsCoverageStatus = [{qcode: 'ncostat:int'}];
+            const eventEnd = moment('2119-03-17T09:00:00+11:00');
+            const event = {
+                type: 'event',
+                name: 'Event',
+                language: 'fi',
+                dates: {start: moment('2119-03-17T08:00:00+11:00'), end: eventEnd},
+            };
+
+            const coverage = planningUtils.defaultCoverageValues(newsCoverageStatus, event);
+
+            const expected = eventEnd.clone().add(1, 'hour');
+
+            expect(coverage.planning.scheduled.toISOString()).toBe(expected.toISOString());
+            expect(coverage.planning.language).toBe('fi');
+        });
+
         it('set coverage time for adhock planning', () => {
             const newsCoverageStatus = [{qcode: 'ncostat:int'}];
             let planned = moment('2119-03-15T09:00:00+11:00');

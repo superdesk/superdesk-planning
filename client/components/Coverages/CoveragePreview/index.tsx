@@ -5,9 +5,9 @@ import {IDesk, IUser} from 'superdesk-api';
 import {superdeskApi} from '../../../superdeskApi';
 import {
     IEditorProfile,
+    IEventOrPlanningItem,
     IFile,
     IPlanningCoverageItem,
-    IPlanningItem,
     IPlanningNewsCoverageStatus,
 } from '../../../interfaces';
 
@@ -38,7 +38,7 @@ interface IProps {
     onClick?(): void;
     inner: boolean;
     index: number;
-    item: IPlanningItem;
+    item: IEventOrPlanningItem;
     canScheduleUpdates: boolean;
     createLink(file: IFile): string;
     files: {[key: string]: IFile};

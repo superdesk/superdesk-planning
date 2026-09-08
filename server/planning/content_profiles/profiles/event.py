@@ -158,6 +158,12 @@ DEFAULT_EVENT_PROFILE = PlanningProfileResource(
             "group": "related_plannings",
             "index": 1,
         },
+        # Coverages group
+        "coverages": {
+            "enabled": True,
+            "group": "coverages",
+            "index": 1,
+        },
         "registration_details": {"enabled": False},
         "invitation_details": {"enabled": False},
         "accreditation_info": {"enabled": False},
@@ -166,7 +172,6 @@ DEFAULT_EVENT_PROFILE = PlanningProfileResource(
         "marked_for_not_publication": {"enabled": False},
         "overide_auto_assign_to_workflow": {"enabled": False},
         "headline": {"enabled": False},
-        "coverages": {"enabled": False},
         "agendas": {"enabled": False},
     },
     schema=dict(EventSchema),  # type: ignore
@@ -241,6 +246,17 @@ DEFAULT_EVENT_PROFILE = PlanningProfileResource(
             "_id": "related_plannings",
             "name": "Related Plannings",
             "index": 7,
+            "showBookmark": True,
+            "icon": "calendar-list",
+            "useToggleBox": False,
+            "translations": {
+                "name": {},
+            },
+        },
+        "coverages": {
+            "_id": "coverages",
+            "name": "Coverages",
+            "index": 8,
             "showBookmark": True,
             "icon": "calendar-list",
             "useToggleBox": False,

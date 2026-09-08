@@ -56,7 +56,12 @@ import {
     sortBasedOnTBC,
     sanitizeItemFields,
 } from './index';
-import {toUIFrameworkInterface, getRelatedEventIdsForPlanning} from './planning';
+import {
+    toUIFrameworkInterface,
+    getRelatedEventIdsForPlanning,
+    modifyCoverageForClient,
+    modifyCoverageForServer,
+} from './planning';
 import {confirmAddingRelatedItems} from './confirmAddingRelatedItems';
 import {isSameDay} from './../helpers';
 import {getOpenEditorType} from './editor';
@@ -1223,6 +1228,8 @@ function modifyForClient(event: Partial<IEventItem>): Partial<IEventItem> {
         event.actioned_date = moment(event.actioned_date);
     }
 
+    (event.coverages ?? []).forEach((coverage) => modifyCoverageForClient(coverage));
+
     return event;
 }
 
@@ -1290,6 +1297,8 @@ function modifyForServer(event: IEventItem, removeNullLinks: boolean = false) {
     if (until) {
         event.dates.recurring_rule.until = until.endOf('day').toISOString();
     }
+
+    (event.coverages ?? []).forEach((coverage) => modifyCoverageForServer(coverage));
 
     return event;
 }

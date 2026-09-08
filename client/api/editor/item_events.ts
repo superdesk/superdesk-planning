@@ -19,7 +19,12 @@ import {planningApi, superdeskApi} from '../../superdeskApi';
 import {generateTempId, isTemporaryId} from '../../utils';
 import {getBookmarksFromFormGroups, getEditorFormGroupsFromProfile} from '../../utils/contentProfiles';
 
-import {AddPlanningBookmark, AssociatedPlanningsBookmark} from '../../components/Editor/bookmarks';
+import {
+    AddCoverageBookmark,
+    AddPlanningBookmark,
+    AssociatedPlanningsBookmark,
+    CoveragesBookmark,
+} from '../../components/Editor/bookmarks';
 import {RelatedPlanningItem} from '../../components/fields/editor/EventRelatedPlannings/RelatedPlanningItem';
 import {convertEventToPlanningItem} from '../../actions';
 import {addRelatedPlannings} from '../../utils/planning';
@@ -44,6 +49,18 @@ export function getEventsInstance(type: EDITOR_TYPE): IEditorAPI['item']['events
         const bookmarks = getBookmarksFromFormGroups(groups);
         let index = bookmarks.length;
 
+        const coverageBookmarks: Array<IEditorBookmark> = profile.editor.coverages?.enabled !== true ? [] : [{
+            id: 'add_coverage',
+            type: BOOKMARK_TYPE.custom,
+            index: index++,
+            component: AddCoverageBookmark,
+        }, {
+            id: 'coverage_links',
+            type: BOOKMARK_TYPE.custom,
+            index: index++,
+            component: CoveragesBookmark,
+        }];
+
         return {
             bookmarks: bookmarks.concat([{
                 id: 'divider-1',
@@ -61,7 +78,7 @@ export function getEventsInstance(type: EDITOR_TYPE): IEditorAPI['item']['events
                 index: index++,
                 disabled: !canCreatePlanningItems,
                 component: AssociatedPlanningsBookmark,
-            }]),
+            }], coverageBookmarks),
             groups: Object.values(groups),
         };
     }

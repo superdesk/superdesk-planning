@@ -8,8 +8,8 @@ import {Dictionary, IArticle, IDesk, IVocabularyItem} from 'superdesk-api';
 import {
     EDITOR_TYPE,
     ICoverageScheduledUpdate,
+    IEventOrPlanningItem,
     IPlanningCoverageItem,
-    IPlanningItem,
     IPlanningNewsCoverageStatus,
     IG2ContentType,
     IGenre,
@@ -37,8 +37,8 @@ interface IOwnProps {
     value: IPlanningCoverageItem;
     disabled: boolean;
     message: string | {[key: string]: any};
-    item: IPlanningItem;
-    diff: Partial<IPlanningItem>;
+    item: IEventOrPlanningItem;
+    diff: Partial<IEventOrPlanningItem>;
     errors: {[key: string]: any}
     showErrors: boolean;
     hasAssignment: boolean;

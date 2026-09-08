@@ -678,5 +678,52 @@ describe('EventUtils', () => {
                 unique_id: 12345,
             });
         });
+
+        it('normalises coverages the same way as planning items', () => {
+            const event = {
+                coverages: [{
+                    coverage_id: 'c1',
+                    planning: {
+                        scheduled: '2014-08-15T04:00:00+0000',
+                        genre: [{name: 'foo', qcode: 'bar'}],
+                    },
+                }],
+            };
+
+            eventUtils.modifyForClient(event);
+
+            const planning = event.coverages[0].planning;
+
+            expect(moment.isMoment(planning.scheduled)).toBe(true);
+            expect(moment.isMoment(planning._scheduledTime)).toBe(true);
+            expect(planning.genre).toEqual({name: 'foo', qcode: 'bar'});
+        });
+    });
+
+    describe('modifyForServer', () => {
+        it('normalises coverages the same way as planning items', () => {
+            const event = {
+                dates: {
+                    start: moment('2014-08-15T04:00:00+0000'),
+                    end: moment('2014-08-15T07:00:00+0000'),
+                    tz: 'Australia/Sydney',
+                },
+                coverages: [{
+                    coverage_id: 'c1',
+                    planning: {
+                        scheduled: moment('2014-08-15T04:00:00+0000'),
+                        _scheduledTime: moment('2014-08-15T04:00:00+0000'),
+                        genre: {name: 'foo', qcode: 'bar'},
+                    },
+                }],
+            };
+
+            eventUtils.modifyForServer(event);
+
+            const planning = event.coverages[0].planning;
+
+            expect(planning.genre).toEqual([{name: 'foo', qcode: 'bar'}]);
+            expect(planning._scheduledTime).toBeUndefined();
+        });
     });
 });
