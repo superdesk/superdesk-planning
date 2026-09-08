@@ -10,16 +10,25 @@
 
 from bson import ObjectId
 
-from superdesk import get_resource_service
-from planning.types import BaseProfile, ContentProfile, CoverageProfile
+from superdesk.errors import SuperdeskApiError
+
+from planning.types import BaseProfile, ContentProfile, CoverageProfile, PlanningProfileResource
 
 
 async def get_planning_schema(resource: str) -> ContentProfile:
-    return await get_resource_service("planning_types").find_one_async(req=None, name=resource)
+    profile = await PlanningProfileResource.get_service().find_one(type=resource)
+    if profile:
+        return profile.to_dict()
+
+    raise SuperdeskApiError.notFoundError()
 
 
 async def get_coverage_schema(schema_id: ObjectId | str) -> CoverageProfile | None:
-    return await get_resource_service("coverage_profiles").find_one_async(req=None, _id=ObjectId(schema_id))
+    profile = await PlanningProfileResource.get_service().find_one(_id=ObjectId(schema_id))
+    if profile:
+        return profile.to_dict()
+
+    raise SuperdeskApiError.notFoundError()
 
 
 def is_field_enabled(field: str, profile: BaseProfile) -> bool:

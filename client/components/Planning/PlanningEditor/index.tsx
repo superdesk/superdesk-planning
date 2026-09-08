@@ -6,7 +6,7 @@ import {appConfig} from 'appConfig';
 import {
     EDITOR_TYPE,
     IAgenda,
-    ICoverageContentProfile,
+    IPlanningContentProfile,
     IEventItem,
     IFile,
     IFormItemManager,
@@ -50,7 +50,7 @@ interface IProps {
     showAllLanguages: boolean;
     language: IVocabularyItem['qcode'];
 
-    coverageProfilesMap: Record<ICoverageType, ICoverageContentProfile>;
+    coverageProfilesMap: Record<ICoverageType, IPlanningContentProfile>;
 
     // State
     newsCoverageStatus: Array<IPlanningNewsCoverageStatus>;
@@ -84,7 +84,7 @@ interface IState {
 }
 
 const mapStateToProps = (state) => ({
-    coverageProfilesMap: selectors.coverageProfiles.getCoverageProfilesMap(state),
+    coverageProfilesMap: selectors.forms.getCoverageProfilesMap(state),
     events: selectors.events.storedEvents(state),
     newsCoverageStatus: selectors.general.newsCoverageStatus(state),
     currentAgenda: selectors.planning.currentAgenda(state),

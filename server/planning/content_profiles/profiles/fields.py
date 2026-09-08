@@ -112,11 +112,11 @@ class LanguageField(StringField):
         minlength: Optional[int] = None,
         multilingual: Optional[bool] = False,
         languages: Optional[List[str]] = None,
-        default_langauge: Optional[str] = None,
+        default_language: Optional[str] = None,
     ):
         super().__init__(required=required, maxlength=maxlength, minlength=minlength, multilingual=multilingual)
         self.schema["languages"] = languages
-        self.schema["default_langauge"] = default_langauge
+        self.schema["default_language"] = default_language
 
 
 subjectField = schema.ListField(

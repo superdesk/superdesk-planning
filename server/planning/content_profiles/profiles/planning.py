@@ -10,40 +10,26 @@
 
 import superdesk.schema as schema
 
-from .fields import BaseSchema, DateTimeField, subjectField, BooleanField, TextField, StringField, LanguageField
+from planning.types import PlanningProfileResource, PlanningProfileType, DEFAULT_PROFILE_ID
+from .unified import UnifiedPlanningSchema
+from .fields import DateTimeField
 
 
-class PlanningSchema(BaseSchema):
+class PlanningSchema(UnifiedPlanningSchema):
     """
     The planning schema used to validate the planning form
     """
 
-    agendas = schema.ListField()
-    anpa_category = schema.ListField()
-    description_text = TextField(field_type="multi_line")
-    ednote = TextField(field_type="multi_line")
-    files = schema.ListField()
-    marked_for_not_publication = BooleanField()
-    overide_auto_assign_to_workflow = BooleanField()
-    headline = StringField()
-    internal_note = TextField(field_type="multi_line", expandable=True)
-    language = LanguageField()
-    name = TextField(field_type="single_line")
-    place = schema.ListField()
+    # Planning specific fields
     planning_date = DateTimeField(required=True)
-    slugline = StringField(required=True)
-    subject = subjectField
-    urgency = schema.IntegerField()
-    priority = schema.IntegerField()
-    custom_vocabularies = schema.ListField()
     associated_event = schema.NoneField()
-    coverages = schema.ListField()
-    location = schema.ListField()
 
 
-DEFAULT_PLANNING_PROFILE = {
-    "name": "planning",
-    "editor": {
+DEFAULT_PLANNING_PROFILE = PlanningProfileResource(
+    id=DEFAULT_PROFILE_ID,
+    name=PlanningProfileType.PLANNING.value,
+    item_type=PlanningProfileType.PLANNING,
+    editor={
         # Title group
         "language": {"enabled": False, "group": "title", "index": 1},
         "slugline": {
@@ -68,7 +54,7 @@ DEFAULT_PLANNING_PROFILE = {
             "index": 1,
         },
         # Description group
-        "description_text": {
+        "definition_long": {
             "enabled": True,
             "group": "description",
             "index": 1,
@@ -142,9 +128,19 @@ DEFAULT_PLANNING_PROFILE = {
             "enabled": False,
             "group": "details",
         },
+        "definition_short": {"enabled": False},
+        "event_contact_info": {"enabled": False},
+        "links": {"enabled": False},
+        "reference": {"enabled": False},
+        "related_items": {"enabled": False},
+        "calendars": {"enabled": False},
+        "registration_details": {"enabled": False},
+        "invitation_details": {"enabled": False},
+        "accreditation_info": {"enabled": False},
+        "accreditation_deadline": {"enabled": False},
     },
-    "schema": dict(PlanningSchema),  # type: ignore
-    "groups": {
+    schema=dict(PlanningSchema),  # type: ignore
+    groups={
         "title": {
             "_id": "title",
             "name": "Title",
@@ -223,4 +219,4 @@ DEFAULT_PLANNING_PROFILE = {
             },
         },
     },
-}
+)

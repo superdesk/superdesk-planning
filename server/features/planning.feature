@@ -256,11 +256,13 @@ Feature: Planning
     @notification
     Scenario: Create and update coverages for planning with assignments.
         Given empty "planning"
-        When we post to "coverage_profiles"
+        When we post to "planning_types"
         """
-        [
-            {"content_type": "text"}
-        ]
+        [{
+            "name": "Text Coverage",
+            "type": "coverage",
+            "content_type": "text"
+        }]
         """
         Then we get OK response
         When we post to "planning"
@@ -278,7 +280,7 @@ Feature: Planning
         {
             "coverages": [
                 {
-                    "profile": "#coverage_profiles._id#",
+                    "profile": "#planning_types._id#",
                     "workflow_status": "draft",
                     "news_coverage_status": {"qcode": "ncostat:int", "name": "coverage intended", "label": "Planned"},
                     "planning": {
@@ -1658,11 +1660,11 @@ Feature: Planning
     Scenario: Headline is populated when enabled in planning_type
         Given "planning_types"
         """
-        [
-            {"name": "planning", "editor": {
-                "headline": {"enabled": true}
-            }}
-        ]
+        [{
+            "name": "planning",
+            "type": "planning",
+            "editor": {"headline": {"enabled": true}}
+        }]
         """
         Given "events"
         """
@@ -1700,11 +1702,11 @@ Feature: Planning
     Scenario: Don't populate headline using name when creating item manually
         Given "planning_types"
         """
-        [
-            {"name": "planning", "editor": {
-                "headline": {"enabled": true}
-            }}
-        ]
+        [{
+            "name": "planning",
+            "type": "planning",
+            "editor": {"headline": {"enabled": true}}
+        }]
         """
         When we post to "/planning"
         """
@@ -4196,8 +4198,8 @@ Feature: Planning
         Given "planning_types"
         """
         [{
-            "_id": "planning",
             "name": "planning",
+            "type": "planning",
             "editor": {
                 "slugline": {"enabled": true, "index": 1},
                 "anpa_category": {"enabled": true, "index": 3},
@@ -4210,12 +4212,9 @@ Feature: Planning
                 "subject": {"required": true},
                 "my_options": {"type": "custom_vocabulary", "required": false}
             }
-        }]
-        """
-        Given "coverage_profiles"
-        """
-        [{
+        }, {
             "name": "Custom Text Coverage",
+            "type": "coverage",
             "content_type": "text",
             "editor": {
                 "g2_content_type": {"enabled": true, "index": 1},
@@ -4247,7 +4246,7 @@ Feature: Planning
         When we patch "/planning/#planning._id#"
         """
         {"coverages": [{
-            "profile": "#coverage_profiles._id#",
+            "profile": "#planning_types_1._id#",
             "workflow_status": "draft",
             "news_coverage_status": {"qcode": "ncostat:int", "name": "coverage intended", "label": "Planned"},
             "planning": {

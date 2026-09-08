@@ -8,6 +8,8 @@
 # AUTHORS and LICENSE files distributed with this source code, or
 # at https://www.sourcefabric.org/superdesk/license
 
+from superdesk.tests import utils
+
 from planning.tests import TestCase
 from .planning_validate import validate_docs
 
@@ -15,12 +17,12 @@ from .planning_validate import validate_docs
 class PlanningValidateServiceTest(TestCase):
     async def test_validate_on_post(self):
         async with self.app.app_context():
-            self.app.data.insert(
+            await utils.post_items(
                 "planning_types",
                 [
                     {
-                        "_id": "event",
                         "name": "event",
+                        "type": "event",
                         "schema": {
                             "name": {"type": "string", "required": True},
                             "slugline": {

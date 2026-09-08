@@ -1,10 +1,12 @@
 import {isNil, zipObject, get} from 'lodash';
 
 import {ITemplate} from 'superdesk-api';
+import {IEditorProfile} from '../interfaces';
 import {createStore} from '../utils';
 import {COVERAGES, ITEM_TYPE, ASSIGNMENTS} from '../constants';
 import * as selectors from '../selectors';
 import * as actions from '../actions';
+import {getProfileStateFromPayload} from '../reducers/forms';
 import {planningApi, superdeskApi} from '../superdeskApi';
 import {isCustomVocabulary} from '../helpers';
 import {PLANNING_EXPORT_TEMPLATES_RESOURCE} from '../constants/exportTemplates';
@@ -187,7 +189,6 @@ export class PlanningStoreService {
             this.desks.initialize(),
             this.getAllCreateTemplates(),
             planningApi.contentProfiles.getAll(),
-            planningApi.contentProfiles.coverages.getAll(),
             this.desks.fetchCurrentUserDesks(),
             this.api(PLANNING_EXPORT_TEMPLATES_RESOURCE).query({
                 max_results: 200,
@@ -218,7 +219,6 @@ export class PlanningStoreService {
                 _desks,
                 all_templates = [],
                 formsProfile = [],
-                coverageProfiles = [],
                 userDesks = [],
                 exportTemplates = [],
             ]) => {
@@ -263,10 +263,7 @@ export class PlanningStoreService {
                         urgency: this.metadata.values.urgency,
                         label: this.gettextCatalog.getString('Urgency'),
                     },
-                    coverageProfiles: {
-                        profiles: coverageProfiles,
-                    },
-                    forms: {profiles: {}},
+                    forms: {...getProfileStateFromPayload(formsProfile)},
                     customVocabularies: this.metadata.cvs.filter(isCustomVocabulary),
                     userDesks: userDesks,
                     exportTemplates: get(exportTemplates, '_items', []),
@@ -275,10 +272,6 @@ export class PlanningStoreService {
                 // use custom cvs if any
                 angular.extend(initialState.vocabularies, {
                     genre: genres,
-                });
-
-                formsProfile.forEach((p) => {
-                    initialState.forms.profiles[p.name] = p;
                 });
 
                 return Promise.resolve(initialState);

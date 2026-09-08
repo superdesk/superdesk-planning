@@ -1224,8 +1224,8 @@ Feature: Events Post
     Given "planning_types"
     """
     [{
-        "_id": "event",
         "name": "event",
+        "type": "event",
         "editor": {"related_plannings": {"enabled": true}, "language": {"enabled": true}},
         "schema": {
             "related_plannings": {"planning_auto_publish": true},
@@ -1237,8 +1237,8 @@ Feature: Events Post
         }
     },
     {
-        "_id": "planning",
         "name": "planning",
+        "type": "planning",
         "editor": {"slugline": {"enabled": true}, "language": {"enabled": true}},
         "schema": {
             "slugline": {"required": true},
@@ -1297,8 +1297,8 @@ Feature: Events Post
         Given "planning_types"
         """
         [{
-            "_id": "event",
             "name": "event",
+            "type": "event",
             "schema": {
                 "related_plannings": {
                     "planning_auto_publish": false,
@@ -1407,8 +1407,8 @@ Feature: Events Post
         Given "planning_types"
         """
         [{
-            "_id": "event",
             "name": "event",
+            "type": "event",
             "editor": {"related_plannings": {"enabled": true}},
             "schema": {"related_plannings": {"planning_auto_publish": true}}
         }]

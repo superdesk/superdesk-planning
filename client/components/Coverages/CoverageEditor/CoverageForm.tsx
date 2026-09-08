@@ -25,7 +25,7 @@ import {WORKFLOW_STATE} from '../../../constants';
 import {EditorFieldSelect} from '../../fields/editor/base/select';
 import {renderFieldsForPanel} from '../../fields';
 import {getCoverageFields} from '../../../api/editor/item_planning';
-import {coverageProfiles} from '../../../selectors/coverageProfiles';
+import {coverageProfiles} from '../../../selectors/forms';
 
 import '../style.scss';
 import {VOCABULARIES_TO_BE_EXCLUDED} from '../../../utils/contentProfiles';

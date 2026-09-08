@@ -4,7 +4,7 @@ import {get} from 'lodash';
 import {superdeskApi} from '../../../superdeskApi';
 import {
     IAssignmentItem,
-    ICoverageContentProfile,
+    IPlanningContentProfile,
     ICoverageFormProfile,
     ICoveragePlanningDetails,
     IFile,
@@ -30,7 +30,7 @@ interface IProps {
     /**
      * The coverage profile used when creating the assignment
      */
-    assignmentCoverageProfile: ICoverageContentProfile;
+    assignmentCoverageProfile: IPlanningContentProfile;
 }
 
 export class AssignmentPreview extends React.PureComponent<IProps> {
@@ -38,7 +38,7 @@ export class AssignmentPreview extends React.PureComponent<IProps> {
      * Coverage profile fields read from the coverage (`assignment.planning`),
      * except a few sourced from the planning item.
      */
-    getFieldProps(profile: ICoverageContentProfile | ICoverageFormProfile): {[key: string]: {[key: string]: any}} {
+    getFieldProps(profile: IPlanningContentProfile | ICoverageFormProfile): {[key: string]: {[key: string]: any}} {
         const planningItemFields = ['anpa_category', 'subject', 'location'];
         const fieldProps: {[key: string]: {[key: string]: any}} = {
             ...getCustomFieldSourcePaths(profile, 'coverage'),

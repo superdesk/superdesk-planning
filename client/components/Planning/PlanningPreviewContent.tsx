@@ -5,7 +5,7 @@ import {get} from 'lodash';
 import {IDesk, IUser} from 'superdesk-api';
 import {superdeskApi} from '../../superdeskApi';
 import {
-    ICoverageContentProfile,
+    IPlanningContentProfile,
     ICoverageFormProfile,
     IEventItem,
     IFile,
@@ -35,7 +35,7 @@ import {renderProfileGroupedFields} from '../fields';
 import {PreviewFieldFiles} from '../fields/preview/Files';
 import {getRelatedEventIdsForPlanning, pickRelatedEventIdsForPlanning} from '../../utils/planning';
 import {RelatedEventsFilesFetcher} from './RelatedEventsFilesFetcher';
-import {coverageProfiles} from '../../selectors/coverageProfiles';
+import {coverageProfiles} from '../../selectors/forms';
 import {getCoverageFields} from '../../api/editor/item_planning';
 import {appConfig} from 'appConfig';
 
@@ -57,7 +57,7 @@ interface IReduxProps {
     formProfile: IFormProfiles;
     newsCoverageStatus: Array<IPlanningNewsCoverageStatus>;
     files: {[key: string]: IFile};
-    coverageProfiles: Array<ICoverageContentProfile>;
+    coverageProfiles: Array<IPlanningContentProfile>;
 }
 
 interface IDispatchProps {

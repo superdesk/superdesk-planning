@@ -40,7 +40,7 @@ export class EditorFieldMultilingualText extends React.Component<IMultilingualTe
     }
 
     getFieldStates(isInitialMount: boolean = false): IState['fields'] {
-        const multilingualConfig = planningApi.contentProfiles.multilingual.getConfig(this.props.profile?.name);
+        const multilingualConfig = planningApi.contentProfiles.multilingual.getConfig(this.props.profile?.type);
 
         if (multilingualConfig.isEnabled === false) {
             return {};
@@ -98,7 +98,7 @@ export class EditorFieldMultilingualText extends React.Component<IMultilingualTe
 
     render() {
         const {gettext} = superdeskApi.localization;
-        const multilingualConfig = planningApi.contentProfiles.multilingual.getConfig(this.props.profile?.name);
+        const multilingualConfig = planningApi.contentProfiles.multilingual.getConfig(this.props.profile?.type);
         const multilingualEnabled = (
             multilingualConfig.isEnabled === true &&
             multilingualConfig.fields.includes(this.props.field)

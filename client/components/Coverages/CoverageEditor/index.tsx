@@ -94,7 +94,7 @@ function duplicateCoverage({
         ? undefined
         : state.events.events[relatedEventId];
 
-    const coverageProfilesMap = selectors.coverageProfiles.getCoverageProfilesMap(state);
+    const coverageProfilesMap = selectors.forms.getCoverageProfilesMap(state);
 
     const coverages = planningUtils.duplicateCoverage(
         planning,

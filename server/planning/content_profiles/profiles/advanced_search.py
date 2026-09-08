@@ -8,9 +8,14 @@
 # AUTHORS and LICENSE files distributed with this source code, or
 # at https://www.sourcefabric.org/superdesk/license
 
-DEFAULT_ADVANCED_SEARCH_PROFILE = {
-    "name": "advanced_search",
-    "editor": {
+from planning.types import PlanningProfileResource, PlanningProfileType, DEFAULT_PROFILE_ID
+
+
+DEFAULT_ADVANCED_SEARCH_PROFILE = PlanningProfileResource(
+    id=DEFAULT_PROFILE_ID,
+    name=PlanningProfileType.ADVANCED_SEARCH.value,
+    item_type=PlanningProfileType.ADVANCED_SEARCH,
+    editor={
         "event": {
             # Common Fields
             "full_text": {
@@ -526,5 +531,4 @@ DEFAULT_ADVANCED_SEARCH_PROFILE = {
             "subject": {"enabled": False},
         },
     },
-    "schema": {},
-}
+)

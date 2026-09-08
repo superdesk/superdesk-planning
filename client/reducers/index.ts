@@ -18,7 +18,6 @@ import featuredPlanning from './featuredPlanning';
 import files from './files';
 import contacts from './contacts';
 import locations from './locations';
-import coveragesReducer from './coverageProfiles';
 import exportTemplates from './exportTemplates';
 
 const returnState = (state) => state || {};
@@ -32,7 +31,6 @@ const planningApp = combineReducers({
     agenda: agenda,
     assignment: assignment,
     forms: forms,
-    coverageProfiles: coveragesReducer,
     locks: locks,
     session: session,
     workspace: workspace,

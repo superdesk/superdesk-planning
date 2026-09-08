@@ -8,7 +8,9 @@
 # AUTHORS and LICENSE files distributed with this source code, or
 # at https://www.sourcefabric.org/superdesk/license
 
+from superdesk.tests import utils
 
+from planning.types import PlanningProfileResource, PlanningProfileType, DEFAULT_PROFILE_ID
 from planning.tests import TestCase
 
 from .utils import get_multilingual_fields, ContentProfileData
@@ -49,12 +51,13 @@ class ContentProfilesTestCase(TestCase):
                 "slugline": {"multilingual": True},
                 "definition_short": {"multilingual": True},
             }
-            self.app.data.insert(
+
+            profile_ids = await utils.post_items(
                 "planning_types",
                 [
                     {
-                        "_id": "event",
                         "name": "event",
+                        "type": "event",
                         "editor": {
                             "language": {"enabled": True},
                         },
@@ -70,12 +73,7 @@ class ContentProfilesTestCase(TestCase):
             self.assertNotIn("definition_long", fields)
 
             schema["language"]["multilingual"] = False
-            self.app.data.update(
-                "planning_types",
-                "event",
-                {"schema": schema},
-                self.app.data.find_one("planning_types", req=None, _id="event"),
-            )
+            await utils.patch_item("planning_types", profile_ids[0], {"schema": schema})
 
             fields = await get_multilingual_fields("event")
             self.assertNotIn("name", fields)
@@ -84,37 +82,118 @@ class ContentProfilesTestCase(TestCase):
             self.assertNotIn("definition_long", fields)
 
     async def test_content_profile_data(self):
-        async with self.app.app_context():
-            self.app.data.insert(
-                "planning_types",
-                [
-                    {
-                        "_id": "event",
-                        "name": "event",
-                        "editor": {
-                            "language": {"enabled": True},
+        await utils.post_items(
+            "planning_types",
+            [
+                {
+                    "name": "event",
+                    "type": "event",
+                    "editor": {
+                        "language": {"enabled": True},
+                    },
+                    "schema": {
+                        "language": {
+                            "languages": ["en", "de"],
+                            "default_language": "en",
+                            "multilingual": True,
+                            "required": True,
                         },
-                        "schema": {
-                            "language": {
-                                "languages": ["en", "de"],
-                                "default_language": "en",
-                                "multilingual": True,
-                                "required": True,
-                            },
-                            "name": {"multilingual": True},
-                            "slugline": {"multilingual": True},
-                            "definition_short": {"multilingual": True},
-                            "anpa_category": {"required": True},
-                        },
-                    }
-                ],
-            )
+                        "name": {"multilingual": True},
+                        "slugline": {"multilingual": True},
+                        "definition_short": {"multilingual": True},
+                        "anpa_category": {"required": True},
+                    },
+                }
+            ],
+        )
 
-            data = await ContentProfileData.get("event")
-            self.assertTrue(data.profile["_id"] == data.profile["name"] == "event")
-            self.assertTrue(data.is_multilingual)
-            self.assertEqual(data.multilingual_fields, {"name", "slugline", "definition_short"})
-            self.assertIn("name", data.enabled_fields)
-            self.assertIn("slugline", data.enabled_fields)
-            self.assertIn("definition_short", data.enabled_fields)
-            self.assertIn("anpa_category", data.enabled_fields)
+        data = await ContentProfileData.get("event")
+        self.assertTrue(data.profile["name"] == data.profile["type"] == "event")
+        self.assertTrue(data.is_multilingual)
+        self.assertEqual(data.multilingual_fields, {"name", "slugline", "definition_short"})
+        self.assertIn("name", data.enabled_fields)
+        self.assertIn("slugline", data.enabled_fields)
+        self.assertIn("definition_short", data.enabled_fields)
+        self.assertIn("anpa_category", data.enabled_fields)
+
+    async def test_always_include_default_coverage_profile(self):
+        service = PlanningProfileResource.get_service()
+        cursor = await service.find({"type": "coverage"})
+        profiles = {profile.id: profile async for profile in cursor}
+
+        self.assertEqual(len(profiles), 1)
+        profile = profiles.get(DEFAULT_PROFILE_ID)
+        self.assertIsNotNone(profile)
+        self.assertEqual(profile.item_type, PlanningProfileType.COVERAGE)
+        self.assertEqual(profile.content_type, "")
+        self.assertFalse(profile.editor["anpa_category"]["enabled"])
+        self.assertFalse(profile.editor["headline"]["enabled"])
+
+        text_profile = (
+            await service.create(
+                [
+                    PlanningProfileResource(
+                        name="Text Coverage",
+                        item_type=PlanningProfileType.COVERAGE,
+                        content_type="text",
+                        editor={"anpa_category": {"enabled": True, "index": 3}},
+                        schema={"anpa_category": {"required": True}},
+                    )
+                ]
+            )
+        )[0]
+
+        cursor = await service.find({"type": "coverage"})
+
+        profiles = {profile.id: profile async for profile in cursor}
+        self.assertEqual(len(profiles), 2)
+
+        profile = profiles.get(DEFAULT_PROFILE_ID)
+        self.assertIsNotNone(profile)
+        self.assertEqual(profile.item_type, PlanningProfileType.COVERAGE)
+        self.assertEqual(profile.content_type, "")
+        self.assertFalse(profile.editor["anpa_category"]["enabled"])
+        self.assertFalse(profile.editor["headline"]["enabled"])
+
+        profile = profiles.get(text_profile.id)
+        self.assertIsNotNone(profile)
+        self.assertEqual(profile.item_type, PlanningProfileType.COVERAGE)
+        self.assertEqual(profile.content_type, "text")
+        self.assertTrue(profile.editor["anpa_category"]["enabled"])
+        self.assertFalse(profile.editor["headline"]["enabled"])
+
+        default_profile = (
+            await service.create(
+                [
+                    PlanningProfileResource(
+                        name="Default Coverage",
+                        item_type=PlanningProfileType.COVERAGE,
+                        editor={"headline": {"enabled": True, "index": 3}},
+                        schema={"headline": {"required": True}},
+                    )
+                ]
+            )
+        )[0]
+
+        cursor = await service.find({"type": "coverage"})
+        profiles = {profile.id: profile async for profile in cursor}
+        self.assertEqual(len(profiles), 2)
+
+        # The system-defined default is no longer returned from the datalayer
+        self.assertIsNone(profiles.get(DEFAULT_PROFILE_ID))
+
+        # Instead, the item in the DB is returned from the datalayer
+        profile = profiles.get(default_profile.id)
+        self.assertIsNotNone(profile)
+        self.assertEqual(profile.item_type, PlanningProfileType.COVERAGE)
+        self.assertEqual(profile.content_type, "")
+        self.assertFalse(profile.editor["anpa_category"]["enabled"])
+        self.assertTrue(profile.editor["headline"]["enabled"])
+
+        # And our content-specific text profile is returned from the datalayer
+        profile = profiles.get(text_profile.id)
+        self.assertIsNotNone(profile)
+        self.assertEqual(profile.item_type, PlanningProfileType.COVERAGE)
+        self.assertEqual(profile.content_type, "text")
+        self.assertTrue(profile.editor["anpa_category"]["enabled"])
+        self.assertFalse(profile.editor["headline"]["enabled"])

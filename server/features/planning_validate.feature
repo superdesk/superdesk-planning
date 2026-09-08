@@ -3,7 +3,8 @@ Feature: Planning Validate
         Given the "planning_types"
         """
         [{
-            "_id": "event", "name": "event",
+            "name": "event",
+            "type": "event",
             "schema": {
                 "slugline": {
                     "type": "string",
@@ -29,7 +30,8 @@ Feature: Planning Validate
                 }
             }
         }, {
-            "_id": "planning", "name": "planning",
+            "name": "planning",
+            "type": "planning",
             "editor":{
                 "place": {
                     "enabled":true
@@ -275,10 +277,12 @@ Feature: Planning Validate
 
     @auth
     Scenario: Validate coverages
-        Given "coverage_profiles"
+        Given "planning_types"
         """
         [
             {
+                "name": "Text Coverage",
+                "type": "coverage",
                 "content_type": "text",
                 "editor": {
                     "headline": {
@@ -296,9 +300,16 @@ Feature: Planning Validate
         """
         When we post to "planning"
         """
-        {"planning_date": "2016-01-02", "coverages": [
-            {"profile": "#coverage_profiles._id#"}
-        ], "place": [{"qcode": "NSW"}]}
+        {
+            "planning_date": "2016-01-02",
+            "coverages": [{
+                "profile": "#planning_types._id#",
+                "workflow_status": "draft",
+                "news_coverage_status": {"qcode": "ncostat:int", "name": "coverage intended", "label": "Planned"},
+                "planning": {"g2_content_type": "text"}
+            }],
+            "place": [{"qcode": "NSW"}]
+        }
         """
         Then we get OK response
         When we post to "/planning/post"
@@ -321,7 +332,8 @@ Feature: Planning Validate
         Given the "planning_types"
         """
         [{
-            "_id": "event", "name": "event",
+            "name": "event",
+            "type": "event",
             "editor": {"related_plannings": {"enabled": true}},
             "schema": {
                 "slugline": {
@@ -334,7 +346,8 @@ Feature: Planning Validate
                 }
             }
         }, {
-            "_id": "planning", "name": "planning",
+            "name": "planning",
+            "type": "planning",
             "editor": {
                 "place": {"enabled": true},
                 "description_text": {"enabled": true}

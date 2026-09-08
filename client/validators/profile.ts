@@ -17,7 +17,7 @@ export const formProfile = ({field, value, profile, errors, messages, diff}) => 
 
     let fieldLabel = field;
 
-    if (profile.name === 'event') {
+    if (profile.type === 'event') {
         if (field === 'name') {
             fieldLabel = 'Event name';
         } else if (field === 'calendars') {

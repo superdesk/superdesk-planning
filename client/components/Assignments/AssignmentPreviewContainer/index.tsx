@@ -6,7 +6,7 @@ import {IDesk, IUser, IArticle} from 'superdesk-api';
 import {
     IAssignmentItem,
     IAssignmentPriority,
-    ICoverageContentProfile,
+    IPlanningContentProfile,
     IEventItem, IFile,
     IFormProfiles,
     IG2ContentType,
@@ -56,7 +56,7 @@ interface IStateProps {
     files: {[key: string]: IFile};
     archiveItems: {[itemId: string]: IArticle};
 
-    assignmentCoverageProfile: ICoverageContentProfile;
+    assignmentCoverageProfile: IPlanningContentProfile;
 }
 
 interface IDispatchProps {

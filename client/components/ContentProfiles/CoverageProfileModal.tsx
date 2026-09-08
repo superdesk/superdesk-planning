@@ -2,7 +2,7 @@ import * as React from 'react';
 import {cloneDeep, omit} from 'lodash';
 import {
     IProfileFieldEntry,
-    ICoverageContentProfile,
+    IPlanningContentProfile,
     ICoverageType,
     IEditorProfile,
 } from '../../interfaces';
@@ -15,16 +15,15 @@ import {FieldTab} from './FieldTab';
 import './style.scss';
 import {COVERAGE_SYSTEM_REQUIRED_FIELDS} from '../../api/utils/constants';
 import {validateAndNotifyForRequiredFields} from './utils';
-import {updateCoverageProfiles} from '../../actions/coverages';
-import {coverageProfiles, oldProfile} from '../../selectors/coverageProfiles';
+import {coverageProfiles, defaultCoverageProfile} from '../../selectors/forms';
 
 interface IState {
     saving: boolean;
     dirty: boolean;
-    originalProfile: Partial<ICoverageContentProfile>;
-    profile: Partial<ICoverageContentProfile> & IEditorProfile;
+    originalProfile: Partial<IPlanningContentProfile>;
+    profile: Partial<IPlanningContentProfile> & IEditorProfile;
     selectedType: ICoverageType;
-    allProfiles: Array<ICoverageContentProfile>;
+    allProfiles: Array<IPlanningContentProfile>;
 }
 
 interface IProps {
@@ -57,7 +56,7 @@ export class CoverageProfilesModal extends React.Component<IProps, IState> {
 
         const selectedType = this.availableCoverageTypes?.[0]?.value ?? 'text';
         const newlyCreatedProfile = allProfiles.find((x) => x.content_type === selectedType);
-        const defaultProfile = newlyCreatedProfile ? newlyCreatedProfile : omit(oldProfile(state), '_id');
+        const defaultProfile = newlyCreatedProfile ? newlyCreatedProfile : omit(defaultCoverageProfile(state), '_id');
 
         this.state = {
             saving: false,
@@ -106,22 +105,15 @@ export class CoverageProfilesModal extends React.Component<IProps, IState> {
             return;
         }
 
-        planningApi.contentProfiles.coverages.patch(
+        planningApi.contentProfiles.patch(
             this.state.originalProfile,
             {
                 ...this.state.profile,
                 content_type: this.state.selectedType,
             },
         )
-            .then((updatedProfile) => {
-                const profilesWithoutUpdated = cloneDeep(this.state.allProfiles)
-                    .filter((x) => x._id !== updatedProfile._id);
-
-                planningApi.redux.store.dispatch(updateCoverageProfiles([
-                    ...profilesWithoutUpdated,
-                    updatedProfile,
-                ]));
-
+            .then(() => planningApi.contentProfiles.reloadProfiles())
+            .then(() => {
                 this.setState({saving: false});
                 this.props.closeModal();
             })
@@ -185,7 +177,7 @@ export class CoverageProfilesModal extends React.Component<IProps, IState> {
             const state = planningApi.redux.store.getState();
 
             // fallback to old profile if there's not a match, remove _id so logic for patch/create follows through
-            return omit(oldProfile(state), '_id');
+            return omit(defaultCoverageProfile(state), '_id');
         };
 
         const newProfile = getByType(type);

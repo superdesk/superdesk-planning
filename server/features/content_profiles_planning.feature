@@ -7,6 +7,7 @@ Feature: Planning Content Profiles
     """
     {"_items": [{
         "name": "planning",
+        "type": "planning",
         "editor": {
             "language": {
                 "enabled": false,
@@ -35,7 +36,7 @@ Feature: Planning Content Profiles
                 "index": 1
             },
 
-            "description_text": {
+            "definition_long": {
                 "enabled": true,
                 "group": "description",
                 "index": 1
@@ -103,7 +104,19 @@ Feature: Planning Content Profiles
                 "enabled": true,
                 "group": "coverages",
                 "index": 1
-            }
+            },
+            "accreditation_deadline": {"enabled": false},
+            "accreditation_info": {"enabled": false},
+            "calendars": {"enabled": false},
+            "definition_short": {"enabled": false},
+            "event_contact_info": {"enabled": false},
+            "invitation_details": {"enabled": false},
+            "links": {"enabled": false},
+            "location": {"enabled": false, "group": "details"},
+            "priority": {"enabled": false, "group": "details", "index": 8},
+            "reference": {"enabled": false},
+            "registration_details": {"enabled": false},
+            "related_items": {"enabled": false}
         },
         "schema": {
             "agendas": {
@@ -114,13 +127,15 @@ Feature: Planning Content Profiles
                 "required": false,
                 "type": "list"
             },
-            "description_text": {
+            "definition_long": {
                 "required": false,
-                "type": "string"
+                "type": "string",
+                "field_type": "multi_line"
             },
             "ednote": {
                 "required": false,
-                "type": "string"
+                "type": "string",
+                "field_type": "multi_line"
             },
             "files": {
                 "required": false,
@@ -140,15 +155,18 @@ Feature: Planning Content Profiles
             },
             "internal_note": {
                 "required": false,
-                "type": "string"
+                "type": "string",
+                "field_type": "multi_line",
+                "expandable": true
             },
             "language": {
                 "required": false,
                 "type": "string"
             },
             "name": {
-                "required": false,
-                "type": "string"
+                "required": true,
+                "type": "string",
+                "field_type": "single_line"
             },
             "place": {
                 "required": false,
@@ -159,7 +177,7 @@ Feature: Planning Content Profiles
                 "type": "datetime"
             },
             "slugline": {
-                "required": true,
+                "required": false,
                 "type": "string"
             },
             "subject": {
@@ -174,6 +192,58 @@ Feature: Planning Content Profiles
             "coverages": {
                 "required": false,
                 "type": "list"
+            },
+            "accreditation_deadline": {
+                "required": false,
+                "type": "string"
+            },
+            "accreditation_info": {
+                "type": "string",
+                "required": false,
+                "field_type": "single_line"
+            },
+            "calendars": {
+                "type": "list",
+                "required": false
+            },
+            "definition_short": {
+                "type": "string",
+                "field_type": "multi_line",
+                "required": false
+            },
+            "event_contact_info": {
+                "type": "list",
+                "required": false
+            },
+            "invitation_details": {
+                "type": "string",
+                "field_type": "multi_line",
+                "required": false
+            },
+            "links": {
+                "type": "list",
+                "required": false
+            },
+            "location": {
+                "type": "list",
+                "required": false
+            },
+            "priority": {
+                "type": "integer",
+                "required": false
+            },
+            "reference": {
+                "type": "string",
+                "required": false
+            },
+            "registration_details": {
+                "type": "string",
+                "field_type": "multi_line",
+                "required": false
+            },
+            "related_items": {
+                "type": "list",
+                "required": false
             }
         },
         "groups": {
@@ -249,8 +319,8 @@ Feature: Planning Content Profiles
     Given "planning_types"
     """
     [{
-        "_id": 1,
         "name": "planning",
+        "type": "planning",
         "editor": {
             "language": {"enabled": true},
             "slugline": {"enabled": false},
@@ -267,6 +337,7 @@ Feature: Planning Content Profiles
     """
     {"_items": [{
         "name": "planning",
+        "type": "planning",
         "editor": {
             "language": {
                 "enabled": true,

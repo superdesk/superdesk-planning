@@ -10,56 +10,35 @@
 
 import superdesk.schema as schema
 
-from .fields import BaseSchema, subjectField, TextField, StringField, LanguageField, DateOptionalTimeField
+from planning.types import PlanningProfileResource, PlanningProfileType, DEFAULT_PROFILE_ID
+from .unified import UnifiedPlanningSchema
 
 
-class EventSchema(BaseSchema):
+class EventSchema(UnifiedPlanningSchema):
     """
     The event schema is used for validation of the event edit form
     """
 
-    anpa_category = schema.ListField()
-    calendars = schema.ListField()
+    # Event specific fields
     dates = schema.DictField(required=True)
-
-    definition_long = TextField(field_type="multi_line")
-    definition_short = TextField(field_type="multi_line")
-    ednote = TextField(field_type="multi_line")
-    event_contact_info = schema.ListField()
-    files = schema.ListField()
-    internal_note = TextField(field_type="multi_line", expandable=True)
-    language = LanguageField()
-    links = schema.ListField()
-    location = schema.ListField()
-    name = TextField(required=True, field_type="single_line")
     occur_status = schema.DictField()
     occur_status.schema["schema"] = {
         "qcode": {"type": "string", "required": True},
         "name": {"type": "string", "required": False},
         "label": {"type": "string", "required": False},
     }
-    place = schema.ListField()
     recurring_rules = schema.DictField()
-    reference = StringField()
-    slugline = StringField()
-    subject = subjectField
-    custom_vocabularies = schema.ListField()
     related_plannings = schema.ListField()
     related_plannings.schema["read_only"] = False
     related_plannings.schema["planning_auto_publish"] = False
     related_plannings.schema["cancel_plan_with_event"] = True
-    registration_details = TextField(field_type="multi_line")
-    invitation_details = TextField(field_type="multi_line")
-    accreditation_info = TextField(field_type="single_line")
-    accreditation_deadline = DateOptionalTimeField()
-    priority = schema.IntegerField()
-    urgency = schema.IntegerField()
-    related_items = schema.ListField()
 
 
-DEFAULT_EVENT_PROFILE = {
-    "name": "event",
-    "editor": {
+DEFAULT_EVENT_PROFILE = PlanningProfileResource(
+    id=DEFAULT_PROFILE_ID,
+    name=PlanningProfileType.EVENT.value,
+    item_type=PlanningProfileType.EVENT,
+    editor={
         # Schedule Group
         "recurring_rules": {
             "enabled": True,
@@ -184,9 +163,14 @@ DEFAULT_EVENT_PROFILE = {
         "accreditation_info": {"enabled": False},
         "accreditation_deadline": {"enabled": False},
         "related_items": {"enabled": False},
+        "marked_for_not_publication": {"enabled": False},
+        "overide_auto_assign_to_workflow": {"enabled": False},
+        "headline": {"enabled": False},
+        "coverages": {"enabled": False},
+        "agendas": {"enabled": False},
     },
-    "schema": dict(EventSchema),  # type: ignore
-    "groups": {
+    schema=dict(EventSchema),  # type: ignore
+    groups={
         "schedule": {
             "_id": "schedule",
             "name": "Schedule",
@@ -265,4 +249,4 @@ DEFAULT_EVENT_PROFILE = {
             },
         },
     },
-}
+)

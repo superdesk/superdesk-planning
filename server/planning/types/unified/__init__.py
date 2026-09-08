@@ -10,7 +10,7 @@ from .coverage import (
     CoverageAssignedTo,
 )
 from .common import Subject, CVItem
-from .system import LockFields
+from .system import LockFields, AuditInformation
 
 
 __all__ = [
@@ -32,4 +32,5 @@ __all__ = [
     "Subject",
     "CVItem",
     "LockFields",
+    "AuditInformation",
 ]

@@ -11,10 +11,10 @@
 import os
 import json
 
-from superdesk import get_resource_service
-from planning.content_profiles.planning_types_async_service import PlanningTypesAsyncService
-from planning.tests import TestCase
 from apps.prepopulate.app_populate import AppPopulateCommand
+
+from planning.types import PlanningProfileResource
+from planning.tests import TestCase
 
 
 class AppPopulatePlanningTypesTest(TestCase):
@@ -24,8 +24,8 @@ class AppPopulatePlanningTypesTest(TestCase):
 
         self.json_data = [
             {
-                "_id": "event",
                 "name": "event",
+                "type": "event",
                 "editor": {
                     "definition_long": {
                         "enabled": False,
@@ -55,12 +55,13 @@ class AppPopulatePlanningTypesTest(TestCase):
     async def test_populate_types(self):
         cmd = AppPopulateCommand()
         async with self.app.app_context():
-            service = get_resource_service("planning_types")
+            service = PlanningProfileResource.get_service()
             await cmd.run(self.filename)
 
             for item in self.json_data:
-                data = await service.find_one_async(req=None, _id=item["_id"])
+                data = await service.find_one(type="event")
                 self.assertIsNotNone(data)
-                self.assertEqual(data["_id"], item["_id"])
-                self.assertEqual(data["editor"]["definition_long"], item["editor"]["definition_long"])
-                self.assertDictEqual(data["schema"]["definition_long"], item["schema"]["definition_long"])
+                self.assertEqual(data.name, item["name"])
+                self.assertEqual(data.item_type, item["type"])
+                self.assertEqual(data.editor["definition_long"], item["editor"]["definition_long"])
+                self.assertDictEqual(data.schema_config["definition_long"], item["schema"]["definition_long"])

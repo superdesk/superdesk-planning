@@ -3,8 +3,8 @@ Feature: Sync Event metadata To Planning
         Given "planning_types"
         """
         [{
-            "_id": "event",
             "name": "event",
+            "type": "event",
             "editor": {
                 "language": {"enabled": true},
                 "name": {"enabled": true},
@@ -25,8 +25,8 @@ Feature: Sync Event metadata To Planning
                 "definition_short": {"multilingual": true}
             }
         }, {
-            "_id": "planing",
             "name": "planning",
+            "type": "planning",
             "editor": {
                 "language": {"enabled": true},
                 "name": {"enabled": true},
@@ -47,8 +47,9 @@ Feature: Sync Event metadata To Planning
                 "description_text": {"multilingual": true}
             }
         }, {
-            "_id": "coverage",
             "name": "coverage",
+            "type": "coverage",
+            "content_type": "text",
             "editor": {
                 "g2_content_type": {"enabled": true},
                 "slugline": {"enabled": true},

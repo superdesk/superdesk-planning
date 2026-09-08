@@ -8,7 +8,6 @@ import {
     IPlanningContentProfile,
     IProfileFieldEntry,
     IEditorFormGroup,
-    ICoverageContentProfile,
 } from '../interfaces';
 import {planningApi, superdeskApi} from '../superdeskApi';
 
@@ -199,7 +198,7 @@ export function getUnusedProfileFields(
 }
 
 export function isProfileFieldEnabled(
-    profile: IPlanningContentProfile | Partial<ICoverageContentProfile>,
+    profile: IPlanningContentProfile | Partial<IPlanningContentProfile>,
     field: string,
     includeGroupCheck: boolean
 ): boolean {
