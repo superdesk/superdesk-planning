@@ -196,7 +196,7 @@ function showManageEventProfileModal(): Promise<void> {
 function reloadProfiles(): Promise<void> {
     const {dispatch} = planningApi.redux.store;
 
-    getAll().then((profiles) => {
+    return getAll().then((profiles) => {
         dispatch(updateContentProfiles(profiles));
     });
 }

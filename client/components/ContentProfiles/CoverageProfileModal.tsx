@@ -15,7 +15,6 @@ import {FieldTab} from './FieldTab';
 import './style.scss';
 import {COVERAGE_SYSTEM_REQUIRED_FIELDS} from '../../api/utils/constants';
 import {validateAndNotifyForRequiredFields} from './utils';
-import {updateCoverageProfiles} from '../../actions/forms';
 import {coverageProfiles, defaultCoverageProfile} from '../../selectors/forms';
 
 interface IState {
@@ -113,15 +112,8 @@ export class CoverageProfilesModal extends React.Component<IProps, IState> {
                 content_type: this.state.selectedType,
             },
         )
-            .then((updatedProfile) => {
-                const profilesWithoutUpdated = cloneDeep(this.state.allProfiles)
-                    .filter((x) => x._id !== updatedProfile._id);
-
-                planningApi.redux.store.dispatch(updateCoverageProfiles([
-                    ...profilesWithoutUpdated,
-                    updatedProfile,
-                ]));
-
+            .then(() => planningApi.contentProfiles.reloadProfiles())
+            .then(() => {
                 this.setState({saving: false});
                 this.props.closeModal();
             })
