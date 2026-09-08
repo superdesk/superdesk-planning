@@ -15,8 +15,8 @@ import {FieldTab} from './FieldTab';
 import './style.scss';
 import {COVERAGE_SYSTEM_REQUIRED_FIELDS} from '../../api/utils/constants';
 import {validateAndNotifyForRequiredFields} from './utils';
-import {updateCoverageProfiles} from '../../actions/coverages';
-import {coverageProfiles, defaultCoverageProfile} from '../../selectors/coverageProfiles';
+import {updateCoverageProfiles} from '../../actions/forms';
+import {coverageProfiles, defaultCoverageProfile} from '../../selectors/forms';
 
 interface IState {
     saving: boolean;

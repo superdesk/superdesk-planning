@@ -14,7 +14,7 @@ import {
 import {storedEvents} from './events';
 import {storedPlannings} from './planning';
 import {currentUserId} from './general';
-import {coverageProfiles} from './coverageProfiles';
+import {coverageProfiles} from './forms';
 import {getItemsById} from '../utils';
 import {ASSIGNMENTS, SORT_DIRECTION, ALL_DESKS} from '../constants';
 

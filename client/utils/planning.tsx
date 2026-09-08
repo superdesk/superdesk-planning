@@ -69,7 +69,7 @@ import {IMenuItem} from 'superdesk-ui-framework/react/components/Menu';
 import {isItemAction, isMenuDivider} from '../helpers';
 import {confirmAddingRelatedItems} from './confirmAddingRelatedItems';
 import {getOpenEditorType} from './editor';
-import {coverageProfiles} from '../selectors/coverageProfiles';
+import {coverageProfiles} from '../selectors/forms';
 import {getEndDate} from './events';
 
 export const isCoverageAssigned = (coverage: IPlanningCoverageItem) => coverage.assigned_to?.desk != null;

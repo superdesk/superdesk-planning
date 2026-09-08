@@ -41,7 +41,7 @@ const onContactsUpdated = (_e, data) => (
 function onResourceCreatedOrUpdated(_e, data) {
     return (dispatch, getState) => {
         if (data.resource === 'planning_types') {
-            planningApi.contentProfiles.updateProfilesInStore();
+            planningApi.contentProfiles.reloadProfiles();
         } else if (['archive', 'archived', 'published'].includes(data.resource)) {
             const loadedArticles = getStoredArchiveItems(getState());
 

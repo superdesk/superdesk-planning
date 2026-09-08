@@ -7,12 +7,12 @@ import {
     IPlanningCoverageItem,
     IProfileMultilingualDetails,
     IProfileSchemaTypeString,
+    IFormState,
 } from '../interfaces';
 import {planningApi, superdeskApi} from '../superdeskApi';
 
 import {profiles} from '../selectors/forms';
 import {updateContentProfiles} from '../actions/forms';
-import {updateCoverageProfiles} from '../actions/coverages';
 
 import {sortProfileGroups} from '../utils/contentProfiles';
 
@@ -193,23 +193,11 @@ function showManageEventProfileModal(): Promise<void> {
     );
 }
 
-function updateProfilesInStore(): Promise<void> {
+function reloadProfiles(): Promise<void> {
     const {dispatch} = planningApi.redux.store;
 
-    return getAll().then((profileArray) => {
-        dispatch(updateContentProfiles(profileArray.reduce(
-            (profiles, profile) => {
-                if (profile.type !== 'coverage' || profile.content_type == null) {
-                    profiles[profile.type] = profile;
-                }
-
-                return profiles;
-            },
-            {}
-        )));
-        dispatch(updateCoverageProfiles(
-            profileArray.filter((profile) => profile.type === 'coverage' && profile.content_type != null)
-        ));
+    getAll().then((profiles) => {
+        dispatch(updateContentProfiles(profiles));
     });
 }
 
@@ -235,7 +223,8 @@ export const contentProfiles: IPlanningAPI['contentProfiles'] = {
     patch: patch,
     showManagePlanningProfileModal: showManagePlanningProfileModal,
     showManageEventProfileModal: showManageEventProfileModal,
-    updateProfilesInStore: updateProfilesInStore,
+    reloadProfiles: reloadProfiles,
+    getFormStatesFromProfiles: getFormStatesFromProfiles,
     multilingual: {
         getLanguageSchema: getLanguageSchema,
         isEnabled: isMultilingualEnabled,

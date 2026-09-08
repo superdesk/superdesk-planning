@@ -972,6 +972,7 @@ export const initialState = {
     desks: desks,
     forms: {
         profiles: formsProfile,
+        coverageProfiles: [],
         autosaves: {
             event: {},
             planning: {},

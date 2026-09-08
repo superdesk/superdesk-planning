@@ -13,6 +13,7 @@ setAutoFreeze(false);
 
 const initialState: IFormState = {
     profiles: {},
+    coverageProfiles: [],
     autosaves: {
         event: {},
         planning: {},
@@ -132,6 +133,36 @@ function setPopupForm(state: IFormState, payload: {
     });
 
     return newState;
+}
+
+export function getProfileStateFromPayload(
+    payload: Array<IPlanningContentProfile>
+): Pick<IFormState, 'profiles' | 'coverageProfiles'> {
+    const [profiles, coverageProfiles] = payload.reduce<[IFormState['profiles'], IFormState['coverageProfiles']]>(
+        (profiles, profile) => {
+            if (profile.type !== 'coverage' || profile.content_type == null) {
+                // Event, Planning & Default Coverage
+                profiles[0][profile.type] = profile;
+            } else {
+                // Content-specific Coverage profiles
+                profiles[1].push(profile);
+            }
+
+            return profiles;
+        },
+        [{}, []]
+    );
+
+    return {profiles, coverageProfiles};
+}
+
+function initProfiles(state: IFormState, payload: Array<IPlanningContentProfile>): IFormState {
+    return produce(state, (draft) => {
+        const newState = getProfileStateFromPayload(payload);
+
+        draft.profiles = newState.profiles;
+        draft.coverageProfiles = newState.coverageProfiles;
+    });
 }
 
 const formsReducer = createReducer(initialState, {
@@ -255,10 +286,7 @@ const formsReducer = createReducer(initialState, {
 
     [MAIN.ACTIONS.FORMS_SET_POPUP_FORM]: setPopupForm,
 
-    [FORMS.ACTIONS.UPDATE_CONTENT_PROFILE]: (state, payload: {[key: string]: IPlanningContentProfile}) => ({
-        ...state,
-        profiles: payload,
-    })
+    [FORMS.ACTIONS.UPDATE_CONTENT_PROFILE]: initProfiles,
 });
 
 export default formsReducer;

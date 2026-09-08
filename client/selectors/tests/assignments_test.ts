@@ -125,24 +125,28 @@ describe('selectors', () => {
             }],
             currentAgendaId: '1',
         },
-        coverageProfiles: {
-            profiles: [
+        forms: {
+            profiles: {},
+            coverageProfiles: [
                 {
                     _id: 'profile1',
+                    type: 'coverage',
                     name: 'Text Profile',
                     content_type: 'text',
                 },
                 {
                     _id: 'profile2',
+                    type: 'coverage',
                     name: 'Photo Profile',
                     content_type: 'picture',
                 },
                 {
                     _id: 'profile3',
+                    type: 'coverage',
                     name: 'Video Profile',
                     content_type: 'video',
                 },
-            ],
+            ]
         },
         session: {identity: {_id: 'user1'}},
     };
@@ -338,8 +342,9 @@ describe('selectors', () => {
         it('returns null when coverage profiles array is empty', () => {
             const stateWithoutProfiles = {
                 ...state,
-                coverageProfiles: {
-                    profiles: [],
+                forms: {
+                    ...state.forms,
+                    coverageProfiles: [],
                 },
             };
 

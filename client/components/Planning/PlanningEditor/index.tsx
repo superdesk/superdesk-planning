@@ -84,7 +84,7 @@ interface IState {
 }
 
 const mapStateToProps = (state) => ({
-    coverageProfilesMap: selectors.coverageProfiles.getCoverageProfilesMap(state),
+    coverageProfilesMap: selectors.forms.getCoverageProfilesMap(state),
     events: selectors.events.storedEvents(state),
     newsCoverageStatus: selectors.general.newsCoverageStatus(state),
     currentAgenda: selectors.planning.currentAgenda(state),

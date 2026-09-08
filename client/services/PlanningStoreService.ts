@@ -6,6 +6,7 @@ import {createStore} from '../utils';
 import {COVERAGES, ITEM_TYPE, ASSIGNMENTS} from '../constants';
 import * as selectors from '../selectors';
 import * as actions from '../actions';
+import {getProfileStateFromPayload} from '../reducers/forms';
 import {planningApi, superdeskApi} from '../superdeskApi';
 import {isCustomVocabulary} from '../helpers';
 import {PLANNING_EXPORT_TEMPLATES_RESOURCE} from '../constants/exportTemplates';
@@ -262,8 +263,7 @@ export class PlanningStoreService {
                         urgency: this.metadata.values.urgency,
                         label: this.gettextCatalog.getString('Urgency'),
                     },
-                    coverageProfiles: {profiles: []},
-                    forms: {profiles: {}},
+                    forms: {...getProfileStateFromPayload(formsProfile)},
                     customVocabularies: this.metadata.cvs.filter(isCustomVocabulary),
                     userDesks: userDesks,
                     exportTemplates: get(exportTemplates, '_items', []),
@@ -272,14 +272,6 @@ export class PlanningStoreService {
                 // use custom cvs if any
                 angular.extend(initialState.vocabularies, {
                     genre: genres,
-                });
-
-                formsProfile.forEach((profile: IEditorProfile) => {
-                    if (profile.type === 'coverage') {
-                        initialState.coverageProfiles.profiles.push(profile);
-                    } else {
-                        initialState.forms.profiles[profile.type] = profile;
-                    }
                 });
 
                 return Promise.resolve(initialState);

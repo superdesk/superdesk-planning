@@ -12,7 +12,7 @@ import {superdeskApi, planningApi} from '../../../superdeskApi';
 
 import {Button, ButtonGroup, Checkbox, Alert} from 'superdesk-ui-framework/react';
 import {renderFieldsForPanel} from '../../fields';
-import {coverageProfiles} from '../../../selectors/coverageProfiles';
+import {coverageProfiles} from '../../../selectors/forms';
 
 interface IProps {
     item: IProfileFieldEntry;

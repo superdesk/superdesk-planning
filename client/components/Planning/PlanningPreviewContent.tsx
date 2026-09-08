@@ -35,7 +35,7 @@ import {renderProfileGroupedFields} from '../fields';
 import {PreviewFieldFiles} from '../fields/preview/Files';
 import {getRelatedEventIdsForPlanning, pickRelatedEventIdsForPlanning} from '../../utils/planning';
 import {RelatedEventsFilesFetcher} from './RelatedEventsFilesFetcher';
-import {coverageProfiles} from '../../selectors/coverageProfiles';
+import {coverageProfiles} from '../../selectors/forms';
 import {getCoverageFields} from '../../api/editor/item_planning';
 import {appConfig} from 'appConfig';
 

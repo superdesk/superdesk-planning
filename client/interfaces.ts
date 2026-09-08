@@ -1896,6 +1896,7 @@ export interface ICoverageProfilesState {
 
 export interface IFormState {
     profiles: {[key: string]: IPlanningContentProfile};
+    coverageProfiles: Array<IPlanningContentProfile>;
     autosaves: {
         event?: DeepPartial<IEventOrPlanningItem>;
         planning?: DeepPartial<IEventOrPlanningItem>;
@@ -2575,7 +2576,8 @@ export interface IPlanningAPI {
         ): Promise<IPlanningContentProfile>;
         showManagePlanningProfileModal(): Promise<void>;
         showManageEventProfileModal(): Promise<void>;
-        updateProfilesInStore(): Promise<void>;
+        reloadProfiles(): Promise<void>;
+        getFormStatesFromProfiles(profiles: Array<IPlanningContentProfile>): Pick<IFormState, 'profiles' | 'coverageProfiles'>;
     };
     locks: {
         unlockEmbeddedItem<T extends IEventOrPlanningItem>(item: T, softOnly?: boolean): Promise<T>;

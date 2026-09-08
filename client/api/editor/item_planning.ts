@@ -25,7 +25,7 @@ import {
 
 import {CoveragesBookmark, AddCoverageBookmark} from '../../components/Editor/bookmarks';
 import {AssociatedEventItem} from '../../components/fields/editor/AssociatedEventItem';
-import {coverageProfiles, defaultCoverageProfile} from '../../selectors/coverageProfiles';
+import {coverageProfiles, defaultCoverageProfile} from '../../selectors/forms';
 import {isTemporaryId} from '../../utils';
 import {appConfig} from 'superdesk-core/scripts/appConfig';
 

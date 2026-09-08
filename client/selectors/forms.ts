@@ -4,7 +4,7 @@ import {get, filter} from 'lodash';
 import {ITEM_TYPE, MAIN} from '../constants';
 import {sessionId as getSessionId} from './general';
 import {isExistingItem} from '../utils';
-import {EDITOR_TYPE} from '../interfaces';
+import {EDITOR_TYPE, IPlanningAppState, IPlanningContentProfile, ICoverageType} from '../interfaces';
 
 // Helper function
 const getcurrentItem = (itemId, itemType, events, plannings, values, modal = false) => {
@@ -34,6 +34,28 @@ export const planningCancelAllCoveragesProfile = createSelector(
     [profiles], (p) => get(p, 'planning_cancel_all_coverage', {})
 );
 export const coverageCancelProfile = createSelector([profiles], (p) => get(p, 'coverage_cancel_coverage', {}));
+
+// Coverage Profiles
+export const coverageProfiles = (state: IPlanningAppState) => state.forms?.coverageProfiles || [];
+export const defaultCoverageProfile = (state: IPlanningAppState) => state.forms?.profiles?.coverage || {};
+export const getCoverageProfilesMap = createSelector<
+    IPlanningAppState,
+    Array<IPlanningContentProfile>,
+    Record<ICoverageType, IPlanningContentProfile>
+>(
+    [coverageProfiles],
+    (profiles: Record<ICoverageType, IPlanningContentProfile>) => {
+        return profiles.reduce((acc, p) => {
+            if (p?.content_type) {
+                acc[p.content_type] = p;
+            }
+
+            return acc;
+        }, {} as Record<ICoverageType, IPlanningContentProfile>);
+    }
+);
+
+
 export const searchProfile = createSelector(
     [profiles, activeFilter],
     (p, filter) => {
