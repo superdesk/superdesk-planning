@@ -224,7 +224,6 @@ export const contentProfiles: IPlanningAPI['contentProfiles'] = {
     showManagePlanningProfileModal: showManagePlanningProfileModal,
     showManageEventProfileModal: showManageEventProfileModal,
     reloadProfiles: reloadProfiles,
-    getFormStatesFromProfiles: getFormStatesFromProfiles,
     multilingual: {
         getLanguageSchema: getLanguageSchema,
         isEnabled: isMultilingualEnabled,

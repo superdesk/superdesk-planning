@@ -2577,7 +2577,6 @@ export interface IPlanningAPI {
         showManagePlanningProfileModal(): Promise<void>;
         showManageEventProfileModal(): Promise<void>;
         reloadProfiles(): Promise<void>;
-        getFormStatesFromProfiles(profiles: Array<IPlanningContentProfile>): Pick<IFormState, 'profiles' | 'coverageProfiles'>;
     };
     locks: {
         unlockEmbeddedItem<T extends IEventOrPlanningItem>(item: T, softOnly?: boolean): Promise<T>;
