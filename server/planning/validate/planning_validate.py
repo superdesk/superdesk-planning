@@ -134,9 +134,11 @@ async def get_validator(item: dict, item_type: str) -> Event | None:
     """Get validators from planning types service."""
     service = PlanningProfileResource.get_service()
 
+    profile: PlanningProfileResource | None = None
     if item_type == "coverage" and item.get("profile"):
         profile = await service.find_by_id(item["profile"])
-    else:
+
+    if not profile:
         profile = await service.find_one(type=item_type)
 
     return profile.to_dict() if profile else None
