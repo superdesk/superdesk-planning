@@ -190,11 +190,7 @@ def init_app(app):
 
     superdesk.register_default_user_preference(
         "planning:add_coverage_advanced_mode",
-        {
-            "type": "bool",
-            "enabled": False,
-            "default": False,
-        },
+        {"type": "bool", "enabled": False, "default": False},
         label=lazy_gettext("Open advanced mode when adding coverages"),
         category=lazy_gettext("Planning"),
     )
@@ -211,6 +207,10 @@ def init_app(app):
     app.client_config["planning_use_xmp_for_pic_assignments"] = get_planning_use_xmp_for_pic_assignments()
     app.client_config["planning_use_xmp_for_pic_slugline"] = get_planning_use_xmp_for_pic_slugline()
     app.client_config["planning_auto_close_popup_editor"] = get_planning_auto_close_popup_editor()
+    if "PLANNING_ADVANCED_COVERAGE_MODE" in app.config:
+        app.client_config["planning_advanced_coverage_mode"] = app.config[
+            "PLANNING_ADVANCED_COVERAGE_MODE"
+        ]
     app.client_config["start_of_week"] = get_start_of_week()
 
     app.client_config.setdefault("planning", {})

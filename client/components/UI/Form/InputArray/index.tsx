@@ -33,6 +33,7 @@ interface IProps {
     message: any;
     invalid: boolean;
     buttonWithLabel: boolean;
+    hideAddButton?: boolean;
     label: string;
     labelClassName: string;
     hint: string;
@@ -142,7 +143,8 @@ export class InputArray extends React.PureComponent<IProps> {
         } = this.props;
 
         const Component = element;
-        const showAddButton = (maxCount ? value.length < maxCount : true) && !disabled;
+        const showAddButton = !this.props.hideAddButton &&
+            (maxCount ? value.length < maxCount : true) && !disabled;
         const isIndexReadOnly = (index) => (addOnly && index === originalCount) ? false : disabled;
         const addButton = this.renderButton();
 

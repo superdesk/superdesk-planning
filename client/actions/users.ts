@@ -145,10 +145,10 @@ const self = {
     fetchAndRegisterUserPreferences,
     receiveUserPreferences,
     setCoverageDefaultDesk,
+    setCoverageAddAdvancedMode,
     updatePreferences,
     setAssignmentSortField,
     setAssignmentSortOrder,
-    setCoverageAddAdvancedMode,
 };
 
 export default self;
