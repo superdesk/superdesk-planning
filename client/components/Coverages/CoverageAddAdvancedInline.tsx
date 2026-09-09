@@ -25,6 +25,9 @@ interface IOwnProps {
     contentTypes: Array<IG2ContentType>;
     newsCoverageStatus: Array<IPlanningNewsCoverageStatus>;
 
+    // Remaining number of coverages that may be enabled and saved (0 or undefined means unlimited)
+    maxCoverageCount?: number;
+
     onSave(field: string, value: Array<DeepPartial<ICoverageLineItem>>): void;
     createCoverage(qcode: IG2ContentType['qcode']): DeepPartial<ICoverageLineItem>;
 }
@@ -95,6 +98,7 @@ class CoverageAddAdvancedInlineComponent extends React.Component<IProps, IState>
     }
 
     onDeskChange = (selected: Partial<ICoverageLineItem>, desk: IDesk | null) => {
+        const deskLanguage = desk?.desk_language;
         let user = selected.user;
         const deskUsers = getUsersForDesk(desk, this.props.users);
 
@@ -102,15 +106,27 @@ class CoverageAddAdvancedInlineComponent extends React.Component<IProps, IState>
             user = null;
         }
 
-        this.updateCoverage(selected, {
+        const updates: Partial<ICoverageLineItem> = {
             desk: desk,
             user: user,
             filteredUsers: deskUsers,
-            planning: desk?.desk_language == null ? selected.planning : {
-                ...(selected.planning ?? {}),
-                language: desk.desk_language,
-            },
-        });
+        };
+
+        // Only apply the desk language if it's available in the (possibly filtered) planning profile
+        if (deskLanguage != null) {
+            const deskLanguageAvailable = this.getFilteredLanguages().some(
+                (lang) => lang.value.qcode === deskLanguage
+            );
+
+            if (deskLanguageAvailable) {
+                updates.planning = {
+                    ...(selected.planning ?? {}),
+                    language: deskLanguage,
+                };
+            }
+        }
+
+        this.updateCoverage(selected, updates);
     }
 
     onUserChange = (selected, user) => {
@@ -139,8 +155,10 @@ class CoverageAddAdvancedInlineComponent extends React.Component<IProps, IState>
     }
 
     save = () => {
+        const {maxCoverageCount} = this.props;
         const coverages = this.state.coverages
             .filter((coverage) => coverage.enabled)
+            .slice(0, maxCoverageCount ? maxCoverageCount : undefined)
             .map((coverage) => {
                 const newCoverage = this.props.createCoverage(coverage.qcode);
 
@@ -164,9 +182,13 @@ class CoverageAddAdvancedInlineComponent extends React.Component<IProps, IState>
     }
 
     render() {
-        const canSave = this.state.coverages.every((coverage) => (
-            !coverage.enabled || !coverage.user || coverage.desk != null
-        ));
+        const {maxCoverageCount} = this.props;
+        const enabledCount = this.state.coverages.filter((coverage) => coverage.enabled).length;
+        const limitReached = maxCoverageCount ? enabledCount >= maxCoverageCount : false;
+        const canSave = (maxCoverageCount ? enabledCount <= maxCoverageCount : true) &&
+            this.state.coverages.every((coverage) => (
+                !coverage.enabled || !coverage.user || coverage.desk != null
+            ));
 
         return (
             <div className="coverage-form sd-shadow--z2" data-test-id="advanced-coverages-inline">
@@ -184,7 +206,8 @@ class CoverageAddAdvancedInlineComponent extends React.Component<IProps, IState>
                                     <div className="sd-list-item__column">
                                         <Tooltip flow="top" text={gettext('Enable coverage')}>
                                             <Checkbox
-                                                disabled={coverage.workflow_status === 'active'}
+                                                disabled={coverage.workflow_status === 'active' ||
+                                                    (!coverage.enabled && limitReached)}
                                                 label={{text: gettext('Coverage enabled'), hidden: true}}
                                                 checked={coverage.enabled}
                                                 onChange={() => this.updateCoverage(
@@ -247,7 +270,7 @@ class CoverageAddAdvancedInlineComponent extends React.Component<IProps, IState>
                             type="primary"
                             text={gettext('Add Coverage(s)')}
                             disabled={!this.state.isDirty || !canSave}
-                            onClick={this.save}
+                            onClick={() => this.save()}
                         />
                     </ButtonGroup>
                 </div>

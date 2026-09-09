@@ -213,6 +213,7 @@ class CoverageArrayInputComponent extends React.Component<IProps, IState> {
                         createCoverage={createCoverage}
                         users={users}
                         desks={desks}
+                        maxCoverageCount={maxCoverageCount ? maxCoverageCount - (value?.length ?? 0) : maxCoverageCount}
                     />
                     {(value?.length ?? 0) > 0 && (
                         <div className="coverage-array-input--advanced__editors">
