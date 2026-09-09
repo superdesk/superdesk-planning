@@ -25,10 +25,6 @@ type IReduxStateProps = {
     allLanguages: Array<{value: IVocabularyItem}>;
 };
 
-interface IReduxDispatchProps {
-    setCoverageAddAdvancedMode: (value: boolean) => void;
-}
-
 export interface ICoverageLineItem extends IPlanningCoverageItem {
     enabled: boolean;
     qcode: string;
@@ -56,16 +52,22 @@ interface IOwnProps {
     createCoverage(qcode: IG2ContentType['qcode']): DeepPartial<ICoverageLineItem>;
 }
 
-type IProps = IOwnProps & IReduxStateProps & IReduxDispatchProps;
+type IProps = IOwnProps & IReduxStateProps;
 
-interface IState {
-    advancedMode: boolean;
-    coverages: Array<Partial<ICoverageLineItem>>;
-    isDirty: boolean;
+interface IReduxDispatchProps {
+    setCoverageAddAdvancedMode: (value: boolean) => void;
 }
 
-class CoverageAddAdvancedModalComponent extends React.Component<IProps, IState> {
-    contentTypes: Map<string, IProps['contentTypes'][0]>;
+type IPropsWithDispatch = IProps & IReduxDispatchProps;
+
+interface IState {
+    coverages: Array<Partial<ICoverageLineItem>>;
+    isDirty: boolean;
+    advancedMode: boolean;
+}
+
+class CoverageAddAdvancedModalComponent extends React.Component<IPropsWithDispatch, IState> {
+    contentTypes: Map<string, IPropsWithDispatch['contentTypes'][0]>;
     private pendingFocusId: string | null = null;
     private pendingFocusFieldId: string | null = null;
     private rowRefs = new Map<string, HTMLElement | null>();
@@ -81,9 +83,9 @@ class CoverageAddAdvancedModalComponent extends React.Component<IProps, IState> 
         );
 
         this.state = {
-            advancedMode: !!props.coverageAddAdvancedMode,
             coverages: [],
             isDirty: false,
+            advancedMode: !!props.coverageAddAdvancedMode,
         };
     }
 
@@ -112,7 +114,7 @@ class CoverageAddAdvancedModalComponent extends React.Component<IProps, IState> 
     componentDidMount() {
         const {value, users, desks, newsCoverageStatus} = this.props;
         const coverages = [];
-        const savedCoverages = value
+        const savedCoverages = (value ?? [])
 
             // if there was a savedCoverage but later the coverage type got removed/disabled from
             // g2_content_type vocabulary do not try to render it
@@ -287,8 +289,16 @@ class CoverageAddAdvancedModalComponent extends React.Component<IProps, IState> 
         this.updateCoverage(selected, updates);
     }
 
-    save = () => {
-        const coverages = this.state.coverages
+    canSave = (coverages = this.state.coverages) => coverages.every((coverage) => {
+        if (coverage.enabled && coverage.user) {
+            return coverage.desk != null;
+        }
+
+        return true;
+    })
+
+    save = (coverageRows = this.state.coverages) => {
+        const coverages = coverageRows
             .filter((coverage) => coverage.enabled || coverage.coverage_id != null)
             .map((coverage) => {
                 const newCoverage: DeepPartial<ICoverageLineItem> = coverage.coverage_id == null ?
@@ -324,20 +334,108 @@ class CoverageAddAdvancedModalComponent extends React.Component<IProps, IState> 
         // TODO-PR: Do we still need to exclude spiked?
         this.props.onSave(this.props.field, coverages.filter((x) => x.workflow_status !== 'spiked'));
 
-        // Save advanced mode preference
         if (this.state.advancedMode !== this.props.coverageAddAdvancedMode) {
             this.props.setCoverageAddAdvancedMode(this.state.advancedMode);
         }
     }
 
     render() {
-        const canSave = this.state.coverages.every((coverage) => {
-            if (coverage.enabled && coverage.user) {
-                return coverage.desk != null;
-            }
+        const canSave = this.canSave();
 
-            return true;
-        });
+        const content = (
+            <div
+                className="sd-list-item-group sd-list-item-group--space-between-items"
+                onKeyDown={this.handleListKeyDown}
+            >
+                {this.state.coverages.map((coverage) => {
+                    const isActive = coverage.workflow_status === 'active';
+
+                    return (
+                        <div
+                            key={coverage.rowId}
+                            ref={(el) => {
+                                if (coverage.rowId != null) {
+                                    this.rowRefs.set(coverage.rowId, el);
+                                }
+                            }}
+                            className="sd-list-item sd-list-item--no-hover sd-list-item--focusable sd-shadow--z1"
+                        >
+                            <div className="sd-list-item__column">
+                                <Tooltip
+                                    flow="top"
+                                    text={isActive
+                                        ? gettext('Coverage has been added to workflow')
+                                        : gettext('Enable coverage')
+                                    }
+                                >
+                                    <Checkbox
+                                        disabled={isActive}
+                                        label={{
+                                            text: gettext('Coverage enabled'),
+                                            hidden: true,
+                                        }}
+                                        checked={coverage.enabled}
+                                        onChange={() => {
+                                            if (!coverage.enabled) {
+                                                this.pendingFocusFieldId = coverage.rowId ?? null;
+                                            }
+                                            this.updateCoverage(coverage, {enabled: !coverage.enabled});
+                                        }}
+                                    />
+                                </Tooltip>
+                            </div>
+                            <div className="sd-list-item__column">
+                                <i className={planningUtils.getCoverageIcon(coverage.qcode)} />
+                            </div>
+                            <div className="sd-list-item__column sd-overflow-ellipsis" style={{width: '15%'}}>
+                                {this.getContentTypeName(this.contentTypes.get(coverage.qcode))}
+                            </div>
+                            {coverage.enabled && (
+                                <CoverageEditableFields
+                                    coverage={coverage}
+                                    languages={this.getFilteredLanguages(this.props.allLanguages)}
+                                    handleDeskChange={this.onDeskChange}
+                                    handleUserChange={this.onUserChange}
+                                    updateCoverage={this.updateCoverage}
+                                    duplicateCoverage={this.duplicate}
+                                    newsCoverageStatus={this.props.newsCoverageStatus}
+                                />
+                            )}
+                        </div>
+                    );
+                })}
+            </div>
+        );
+        const footer = (
+            <React.Fragment>
+                <Checkbox
+                    checked={this.state.advancedMode}
+                    label={{
+                        text: gettext('make this mode the default'),
+                        side: 'end',
+                    }}
+                    onChange={() => this.setState({
+                        advancedMode: !this.state.advancedMode,
+                        isDirty: true,
+                    })}
+                />
+                <ButtonGroup align="end">
+                    <Button
+                        text={gettext('Cancel')}
+                        type="secondary"
+                        onClick={this.props.onCancel}
+                    />
+                    <Button
+                        text={gettext('Save')}
+                        type="primary"
+                        disabled={!this.state.isDirty || !canSave}
+                        onClick={() => {
+                            this.save();
+                        }}
+                    />
+                </ButtonGroup>
+            </React.Fragment>
+        );
 
         return (
             <Modal
@@ -347,115 +445,23 @@ class CoverageAddAdvancedModalComponent extends React.Component<IProps, IState> 
                 contentBg="medium"
                 onHide={this.props.onCancel}
                 headerTemplate={gettext('Add Coverages (advanced mode)')}
-                footerTemplate={(
-                    <React.Fragment>
-                        <Checkbox
-                            checked={this.state.advancedMode}
-                            label={{
-                                text: gettext('make this mode the default'),
-                                side: 'end',
-                            }}
-                            onChange={() => {
-                                this.setState({
-                                    advancedMode: !this.state.advancedMode,
-                                    isDirty: true,
-                                });
-                            }}
-                        />
-                        <ButtonGroup align="end">
-                            <Button
-                                text={gettext('Cancel')}
-                                type="secondary"
-                                onClick={this.props.onCancel}
-                            />
-                            <Button
-                                text={gettext('Save')}
-                                type="primary"
-                                disabled={!this.state.isDirty || !canSave}
-                                onClick={() => {
-                                    this.save();
-                                }}
-                            />
-                        </ButtonGroup>
-                    </React.Fragment>
-                )}
+                footerTemplate={footer}
             >
-                <div
-                    className="sd-list-item-group sd-list-item-group--space-between-items"
-                    onKeyDown={this.handleListKeyDown}
-                >
-                    {this.state.coverages.map((coverage) => {
-                        const isActive = coverage.workflow_status === 'active';
-
-                        return (
-                            <div
-                                key={coverage.rowId}
-                                ref={(el) => {
-                                    if (coverage.rowId != null) {
-                                        this.rowRefs.set(coverage.rowId, el);
-                                    }
-                                }}
-                                className="sd-list-item sd-list-item--no-hover sd-list-item--focusable sd-shadow--z1"
-                            >
-                                <div className="sd-list-item__column">
-                                    <Tooltip
-                                        flow="top"
-                                        text={isActive
-                                            ? gettext('Coverage has been added to workflow')
-                                            : gettext('Enable coverage')
-                                        }
-                                    >
-                                        <Checkbox
-                                            disabled={isActive}
-                                            label={{
-                                                text: gettext('Coverage enabled'),
-                                                hidden: true,
-                                            }}
-                                            checked={coverage.enabled}
-                                            onChange={() => {
-                                                if (!coverage.enabled) {
-                                                    this.pendingFocusFieldId = coverage.rowId ?? null;
-                                                }
-                                                this.updateCoverage(coverage, {enabled: !coverage.enabled});
-                                            }}
-                                        />
-                                    </Tooltip>
-                                </div>
-                                <div className="sd-list-item__column">
-                                    <i className={planningUtils.getCoverageIcon(coverage.qcode)} />
-                                </div>
-                                <div className="sd-list-item__column sd-overflow-ellipsis" style={{width: '15%'}}>
-                                    {this.getContentTypeName(this.contentTypes.get(coverage.qcode))}
-                                </div>
-                                {coverage.enabled && (
-                                    <CoverageEditableFields
-                                        coverage={coverage}
-                                        languages={this.getFilteredLanguages(this.props.allLanguages)}
-                                        handleDeskChange={this.onDeskChange}
-                                        handleUserChange={this.onUserChange}
-                                        updateCoverage={this.updateCoverage}
-                                        duplicateCoverage={this.duplicate}
-                                        newsCoverageStatus={this.props.newsCoverageStatus}
-                                    />
-                                )}
-                            </div>
-                        );
-                    })}
-                </div>
+                {content}
             </Modal>
         );
     }
 }
 
-const mapDispatchToProps = (dispatch): IReduxDispatchProps => ({
-    setCoverageAddAdvancedMode: (value) => dispatch(actions.users.setCoverageAddAdvancedMode(value)),
-});
-
 const mapStateToProps = (state) => ({
     allLanguages: selectors.vocabs.getLanguagesForTreeSelectInput(state),
 });
 
+const mapDispatchToProps = (dispatch): IReduxDispatchProps => ({
+    setCoverageAddAdvancedMode: (value) => dispatch(actions.users.setCoverageAddAdvancedMode(value)),
+});
+
 export const CoverageAddAdvancedModal = connect<IReduxStateProps, IReduxDispatchProps, IOwnProps>(
     mapStateToProps,
-    mapDispatchToProps
+    mapDispatchToProps,
 )(CoverageAddAdvancedModalComponent);
