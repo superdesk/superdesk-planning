@@ -25,17 +25,24 @@ describe('forms', () => {
         });
 
         it('Loads profile data in their appropriate state', () => {
-            const store = createTestStore()
-
-            store.dispatch(updateContentProfiles([]));
+            const store = createTestStore({initialState: {forms: {profiles: {}, coverageProfiles: []}}});
             let state = store.getState();
-            expect(state.forms.profiles).toEqual({})
-            expect(state.forms.coverageProfiles).toEqual([]);
 
+            // Expect an empty state to begin with
+            expect(profiles(state)).toEqual({});
+            expect(coverageProfiles(state)).toEqual([]);
+
+            // Set the new profiles as loaded from the API
             store.dispatch(updateContentProfiles(profileItems));
             state = store.getState();
-            expect(state.forms.profiles).toEqual({event: profileItems[3], coverage: profileItems[2]})
-            expect(state.forms.coverageProfiles).toEqual([profileItems[0], profileItems[1]]);
+            expect(profiles(state)).toEqual({event: profileItems[3], coverage: profileItems[2]});
+            expect(coverageProfiles(state)).toEqual([profileItems[0], profileItems[1]]);
+
+            // Clear the profiles stored
+            store.dispatch(updateContentProfiles([]));
+            state = store.getState();
+            expect(profiles(state)).toEqual({});
+            expect(coverageProfiles(state)).toEqual([]);
         });
     });
 });
