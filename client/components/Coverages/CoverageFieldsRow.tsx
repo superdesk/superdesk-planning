@@ -16,6 +16,8 @@ interface IProps {
     handleUserChange: (coverage: Partial<ICoverageLineItem>, user: IUser) => void;
     updateCoverage: (coverage: Partial<ICoverageLineItem>, updates: Partial<ICoverageLineItem>) => void;
     duplicateCoverage: (coverage: Partial<ICoverageLineItem>) => void;
+    stacked?: boolean;
+    showDuplicate?: boolean;
 }
 
 export const CoverageEditableFields = ({
@@ -26,12 +28,14 @@ export const CoverageEditableFields = ({
     handleUserChange,
     updateCoverage,
     duplicateCoverage,
+    stacked,
+    showDuplicate = true,
 }: IProps) => {
     const language = getUserInterfaceLanguageFromCV();
     const {SelectUser} = superdeskApi.components;
 
     return (
-        <div className="d-flex gap-1 flex-grow items-end py-1 px-1-5">
+        <div className={stacked ? 'coverage-editable-fields--stacked' : 'd-flex gap-1 flex-grow items-end py-1 px-1-5'}>
             <Select
                 fullWidth
                 label={gettext('Desk')}
@@ -102,13 +106,15 @@ export const CoverageEditableFields = ({
                     </Option>
                 ))}
             </Select>
-            <IconButton
-                ariaValue={gettext('Duplicate')}
-                icon="plus-sign"
-                onClick={() => {
-                    duplicateCoverage(coverage);
-                }}
-            />
+            {showDuplicate && (
+                <IconButton
+                    ariaValue={gettext('Duplicate')}
+                    icon="plus-sign"
+                    onClick={() => {
+                        duplicateCoverage(coverage);
+                    }}
+                />
+            )}
         </div>
     );
 };

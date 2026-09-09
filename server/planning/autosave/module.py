@@ -138,6 +138,7 @@ autosave_resource_config = ResourceConfig(
                 name="item_type_1",
                 keys=[("type", 1)],
                 background=True,
+                unique=False,
             ),
             MongoIndexOptions(
                 name="planning_autosave_user",

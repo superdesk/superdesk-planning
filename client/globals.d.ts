@@ -190,6 +190,7 @@ declare module 'superdesk-api' {
         long_event_duration_threshold?: number;
         max_multi_day_event_duration?: number;
         max_recurrent_events?: number;
+        planning_advanced_coverage_mode?: boolean;
         planning_allow_freetext_location: boolean;
         planning_allow_scheduled_updates?: boolean;
         planning_auto_assign_to_workflow?: boolean;
