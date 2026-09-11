@@ -58,12 +58,14 @@ describe('<EventItem />', () => {
         .prop('coverages')
         .map((coverage) => coverage.coverage_id);
 
-    it('shows every coverage regardless of the day group', () => {
-        expect(renderedCoverageIds(getWrapper())).toEqual(['c1', 'c2']);
-        expect(renderedCoverageIds(getWrapper({planningProps: {date: '2016-10-16'}}))).toEqual(['c1', 'c2']);
+    it('shows the coverages scheduled on the day group', () => {
+        expect(renderedCoverageIds(getWrapper())).toEqual(['c1']);
+        expect(renderedCoverageIds(getWrapper({planningProps: {date: '2016-10-16'}}))).toEqual(['c2']);
     });
 
     it('filters coverages by the list language filter', () => {
-        expect(renderedCoverageIds(getWrapper({filterLanguage: 'en'}))).toEqual(['c2']);
+        expect(renderedCoverageIds(getWrapper({filterLanguage: 'en'}))).toEqual([]);
+        expect(renderedCoverageIds(getWrapper({filterLanguage: 'en', planningProps: {date: '2016-10-16'}})))
+            .toEqual(['c2']);
     });
 });

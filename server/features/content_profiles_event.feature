@@ -336,7 +336,7 @@ Feature: Event Content Profiles
             "related_plannings": {
                 "_id": "related_plannings",
                 "name": "Related Plannings",
-                "index": 7,
+                "index": 8,
                 "showBookmark": true,
                 "icon": "calendar-list",
                 "useToggleBox": false,
@@ -345,7 +345,7 @@ Feature: Event Content Profiles
             "coverages": {
                 "_id": "coverages",
                 "name": "Coverages",
-                "index": 8,
+                "index": 7,
                 "showBookmark": true,
                 "icon": "calendar-list",
                 "useToggleBox": false,

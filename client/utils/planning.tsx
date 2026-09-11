@@ -45,7 +45,6 @@ import {
 import {
     getItemWorkflowState,
     lockUtils,
-    isEvent,
     isItemPublic,
     isItemKilled,
     isItemSpiked,
@@ -460,8 +459,9 @@ export function mapCoverageByDate(coverages: Array<IPlanningCoverageItem> = []):
 }
 
 /**
- * Coverages to show on a list row: filtered by the list language filter, and for
- * ad-hoc planning items by the day group the row is rendered under
+ * Coverages to show on a list row: filtered by the list language filter and by the
+ * day group the row is rendered under (planning items linked to an event show all
+ * their coverages in the combined view)
  */
 export function filterCoveragesForList(
     item: IEventOrPlanningItem,
@@ -469,9 +469,9 @@ export function filterCoveragesForList(
     options: {date?: string; activeFilter: PLANNING_VIEW; filterLanguage?: string},
 ): Array<IPlanningCoverageItem> {
     const {date, activeFilter, filterLanguage} = options;
-    const showAllDates = isEvent(item) || (
-        activeFilter === MAIN.FILTERS.COMBINED && getRelatedEventIdsForPlanning(item).length > 0
-    );
+    const showAllDates = item.type === 'planning'
+        && activeFilter === MAIN.FILTERS.COMBINED
+        && getRelatedEventIdsForPlanning(item).length > 0;
     const isSameDay = (scheduled) => scheduled && (date == null || moment(scheduled).format('YYYY-MM-DD') === date);
 
     return mapCoverageByDate(coverages).filter((coverage) => {
@@ -1615,7 +1615,7 @@ function defaultCoverageValues(
 ): DeepPartial<IPlanningCoverageItem> {
     const {contentProfiles} = planningApi;
     const profile = coverageProfile ?? contentProfiles.get('coverage');
-    const eventItem = relatedEvent ?? (isEvent(planningItem) ? planningItem as IEventItem : undefined);
+    const eventItem = relatedEvent ?? (planningItem?.type === 'event' ? planningItem as IEventItem : undefined);
     const defaultValues = contentProfiles.getDefaultValues(profile) as DeepPartial<IPlanningCoverageItem>;
 
     // if new profile hasn't been created for the type don't set to anything, backend also accepts objectid only
@@ -1719,7 +1719,7 @@ function getDefaultCoverageDueDate(
 ): moment.Moment | null {
     let coverageTime: moment.Moment;
 
-    if (isEvent(planningItem)) {
+    if (planningItem.type === 'event') {
         coverageTime = getCoverageTimeFromEvent(planningItem);
     } else if (getRelatedEventIdsForPlanning(planningItem, 'primary').length === 0) {
         if (planningItem.all_day && appConfig.planning?.all_day) {

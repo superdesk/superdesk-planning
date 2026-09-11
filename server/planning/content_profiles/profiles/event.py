@@ -245,7 +245,7 @@ DEFAULT_EVENT_PROFILE = PlanningProfileResource(
         "related_plannings": {
             "_id": "related_plannings",
             "name": "Related Plannings",
-            "index": 7,
+            "index": 8,
             "showBookmark": True,
             "icon": "calendar-list",
             "useToggleBox": False,
@@ -256,7 +256,7 @@ DEFAULT_EVENT_PROFILE = PlanningProfileResource(
         "coverages": {
             "_id": "coverages",
             "name": "Coverages",
-            "index": 8,
+            "index": 7,
             "showBookmark": True,
             "icon": "calendar-list",
             "useToggleBox": False,

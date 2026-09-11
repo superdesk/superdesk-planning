@@ -556,6 +556,37 @@ describe('EventUtils', () => {
             });
         });
 
+        it('also shows the event under the day of a coverage scheduled outside its dates', () => {
+            const event = {
+                _id: 'e1',
+                dates: {
+                    start: moment('2014-10-15T14:01:11+0000'),
+                    end: moment('2014-10-15T15:01:11+0000'),
+                    tz: 'Australia/Sydney',
+                },
+                coverages: [
+                    {coverage_id: 'c1', planning: {scheduled: '2014-10-15T14:01:11+0000'}},
+                    {coverage_id: 'c2', planning: {scheduled: '2014-10-18T10:00:00+0000'}},
+                    {coverage_id: 'c3', planning: {scheduled: '2014-10-18T12:00:00+0000'}},
+                    {coverage_id: 'c4', planning: {scheduled: '2014-10-30T12:00:00+0000'}},
+                    {coverage_id: 'c5', planning: {}},
+                ],
+            };
+
+            const eventsDateGroup = eventUtils.getEventsByDate([event],
+                moment('2014-10-10T14:01:11+0000'), moment('2014-10-25T14:01:11+0000'));
+            const groups = Object.values(eventsDateGroup);
+            const expectedDays = [
+                moment('2014-10-15T14:01:11+0000').format('YYYY-MM-DD'),
+                moment('2014-10-18T10:00:00+0000').format('YYYY-MM-DD'),
+            ];
+
+            expect(groups.map((group) => group.date).sort()).toEqual(expectedDays);
+            groups.forEach((group) => {
+                expect(group.events.length).toBe(1);
+            });
+        });
+
         it('shows a no_end_time event when raw end date is before local start day after conversion', () => {
             const event = eventUtils.modifyForClient({
                 _id: 'e1',

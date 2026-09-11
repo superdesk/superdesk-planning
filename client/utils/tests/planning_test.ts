@@ -1117,15 +1117,14 @@ describe('PlanningUtils', () => {
                 .toEqual(['c1', 'c2', 'c3']);
         });
 
-        it('events show all coverages on every day group', () => {
-            expect(filter(event, {date: '2026-09-07', activeFilter: MAIN.FILTERS.EVENTS}))
-                .toEqual(['c1', 'c2', 'c3']);
-            expect(filter(event, {date: '2026-09-09', activeFilter: MAIN.FILTERS.COMBINED}))
-                .toEqual(['c1', 'c2', 'c3']);
+        it('events only show coverages scheduled on the day group', () => {
+            expect(filter(event, {date: '2026-09-07', activeFilter: MAIN.FILTERS.EVENTS})).toEqual(['c1']);
+            expect(filter(event, {date: '2026-09-08', activeFilter: MAIN.FILTERS.COMBINED})).toEqual(['c2']);
+            expect(filter(event, {date: '2026-09-09', activeFilter: MAIN.FILTERS.EVENTS})).toEqual([]);
         });
 
         it('filters by the list language filter', () => {
-            expect(filter(event, {date: '2026-09-07', activeFilter: MAIN.FILTERS.EVENTS, filterLanguage: 'en'}))
+            expect(filter(event, {date: '2026-09-08', activeFilter: MAIN.FILTERS.EVENTS, filterLanguage: 'en'}))
                 .toEqual(['c2']);
             expect(filter(adHocPlanning, {
                 date: '2026-09-07',

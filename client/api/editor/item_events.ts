@@ -49,7 +49,12 @@ export function getEventsInstance(type: EDITOR_TYPE): IEditorAPI['item']['events
         const bookmarks = getBookmarksFromFormGroups(groups);
         let index = bookmarks.length;
 
+        // Coverages belong to the Event itself, so their bookmarks come before the related Planning ones
         const coverageBookmarks: Array<IEditorBookmark> = profile.editor.coverages?.enabled !== true ? [] : [{
+            id: 'divider-coverages',
+            type: BOOKMARK_TYPE.divider,
+            index: index++,
+        }, {
             id: 'add_coverage',
             type: BOOKMARK_TYPE.custom,
             index: index++,
@@ -62,7 +67,7 @@ export function getEventsInstance(type: EDITOR_TYPE): IEditorAPI['item']['events
         }];
 
         return {
-            bookmarks: bookmarks.concat([{
+            bookmarks: bookmarks.concat(coverageBookmarks, [{
                 id: 'divider-1',
                 type: BOOKMARK_TYPE.divider,
                 index: index++,
@@ -78,7 +83,7 @@ export function getEventsInstance(type: EDITOR_TYPE): IEditorAPI['item']['events
                 index: index++,
                 disabled: !canCreatePlanningItems,
                 component: AssociatedPlanningsBookmark,
-            }], coverageBookmarks),
+            }]),
             groups: Object.values(groups),
         };
     }

@@ -22,7 +22,7 @@ import {CoverageItem} from '../CoverageItem';
 import {CoverageForm} from './CoverageForm';
 import {CoverageFormHeader} from './CoverageFormHeader';
 
-import {planningUtils, gettext, editorMenuUtils, isEvent} from '../../../utils';
+import {planningUtils, gettext, editorMenuUtils} from '../../../utils';
 import {getVocabularyItemFieldTranslated} from '../../../utils/vocabularies';
 import {getUserInterfaceLanguageFromCV} from '../../../utils/users';
 import {getRelatedEventIdsForPlanning} from '../../../utils/planning';
@@ -89,7 +89,7 @@ function duplicateCoverage({
 
     let relatedEvent: IEventItem | undefined;
 
-    if (isEvent(planning)) {
+    if (planning.type === 'event') {
         relatedEvent = planning;
     } else {
         // TAG: MULTIPLE_PRIMARY_EVENTS
