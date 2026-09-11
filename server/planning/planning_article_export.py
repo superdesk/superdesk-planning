@@ -99,7 +99,14 @@ async def get_items(ids, resource_type):
                 [model.id], RelatedEventLinkType.PRIMARY, max_results=EXPORT_FETCH_PAGE_SIZE
             )
             item["plannings"] = [plan.to_dict() async for plan in plannings]
-            item["coverages"] = [coverage for plan in item["plannings"] for coverage in plan.get("coverages") or []]
+            coverages = list(item.get("coverages") or [])
+            coverage_ids = {coverage.get("coverage_id") for coverage in coverages}
+            for plan in item["plannings"]:
+                for coverage in plan.get("coverages") or []:
+                    if coverage.get("coverage_id") not in coverage_ids:
+                        coverages.append(coverage)
+                        coverage_ids.add(coverage.get("coverage_id"))
+            item["coverages"] = coverages
 
         items.append(item)
 
@@ -292,9 +299,8 @@ async def generate_text_item(items, template_name, resource_type):
         users = []
         desks = []
 
-        if item["type"] == "planning":
-            await enhance_coverage(item, item, users, desks, text_users, text_desks)
-        else:
+        await enhance_coverage(item, item, users, desks, text_users, text_desks)
+        if item["type"] == "event":
             for p in item.get("plannings") or []:
                 await enhance_coverage(p, item, users, desks, text_users, text_desks)
 

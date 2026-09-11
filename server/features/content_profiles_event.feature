@@ -117,6 +117,11 @@ Feature: Event Content Profiles
                 "group": "related_plannings",
                 "index": 1
             },
+            "coverages": {
+                "enabled": true,
+                "group": "coverages",
+                "index": 1
+            },
             "registration_details": {"enabled": false},
             "invitation_details": {"enabled": false},
             "accreditation_info": {"enabled": false},
@@ -124,7 +129,6 @@ Feature: Event Content Profiles
             "marked_for_not_publication": {"enabled": false},
             "overide_auto_assign_to_workflow": {"enabled": false},
             "headline": {"enabled": false},
-            "coverages": {"enabled": false},
             "agendas": {"enabled": false},
             "priority": {
                 "enabled": false,
@@ -332,6 +336,15 @@ Feature: Event Content Profiles
             "related_plannings": {
                 "_id": "related_plannings",
                 "name": "Related Plannings",
+                "index": 8,
+                "showBookmark": true,
+                "icon": "calendar-list",
+                "useToggleBox": false,
+                "translations": {"name": {}}
+            },
+            "coverages": {
+                "_id": "coverages",
+                "name": "Coverages",
                 "index": 7,
                 "showBookmark": true,
                 "icon": "calendar-list",

@@ -6,9 +6,9 @@ import {IDesk, IUser} from 'superdesk-api';
 import {appConfig} from 'appConfig';
 import {
     IContactItem,
+    IEventOrPlanningItem,
     IG2ContentType,
     IPlanningCoverageItem,
-    IPlanningItem,
     IPlanningWorkflowStatus,
 } from '../../interfaces';
 
@@ -37,7 +37,7 @@ interface IProps {
     contentTypes: Array<IG2ContentType>;
     isPreview?: boolean;
     active?: boolean;
-    item: DeepPartial<IPlanningItem>;
+    item: DeepPartial<IEventOrPlanningItem>;
     index: number;
     workflowStateReasonPrefix?: string;
     showBackground?: boolean;

@@ -125,6 +125,7 @@ const eventSecondLineConfigDefaults: Array<ILineConfig> = [
     {fieldId: 'state'},
     {fieldId: 'related_plannings'},
     {fieldId: 'location'},
+    {fieldId: 'coverages', position: 'end'},
 ];
 
 export const eventFirstLineConfig: Array<ILineConfig> =

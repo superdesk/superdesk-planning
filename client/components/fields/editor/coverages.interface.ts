@@ -1,9 +1,9 @@
 import {
     IEditorFieldProps,
     IEventItem,
+    IEventOrPlanningItem,
     IInputArrayHocModeOptions,
     IPlanningCoverageItem,
-    IPlanningItem
 } from '../../../interfaces';
 import {IArticle} from 'superdesk-api';
 
@@ -12,7 +12,7 @@ import {IArticle} from 'superdesk-api';
 type CoverageEditor = any;
 
 export interface IPropsEditorFieldCoverages extends IEditorFieldProps {
-    item: IPlanningItem;
+    item: IEventOrPlanningItem;
     addButtonText?: string; // defaults to 'Add a coverage'
     addNewsItemToPlanning?: IArticle;
     useLocalNavigation?: boolean;

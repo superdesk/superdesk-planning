@@ -470,6 +470,7 @@ export interface IEventItem extends IBaseRestApiResponse {
     invitation_details?: string;
     anpa_category?: Array<IANPACategory>;
     files?: Array<string>;
+    coverages?: Array<IPlanningCoverageItem>;
     relationships?: {
         broader?: string;
         narrower?: string;
@@ -1222,8 +1223,10 @@ export interface IEventFormProfile {
         slugline: IProfileEditorField;
         subject: IProfileEditorField;
         related_plannings: IProfileEditorField;
+        coverages: IProfileEditorField;
     };
     name: 'event';
+    groups?: {[key: string]: IEditorProfileGroup};
     schema: {
         anpa_category: IProfileSchemaTypeList;
         calendars: IProfileSchemaTypeList;
@@ -1246,6 +1249,7 @@ export interface IEventFormProfile {
         slugline: IProfileSchemaTypeString;
         subject: IProfileSchemaTypeList;
         related_plannings: IProfileSchemaTypeList;
+        coverages: IProfileSchemaTypeList;
     };
 }
 

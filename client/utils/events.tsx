@@ -1,6 +1,6 @@
 import moment from 'moment-timezone';
 import RRule from 'rrule';
-import {get, isNil, sortBy, cloneDeep, omitBy, find, isEqual, pickBy, flatten} from 'lodash';
+import {get, isNil, sortBy, cloneDeep, omitBy, find, isEqual, pickBy, flatten, uniqBy} from 'lodash';
 import {IMenuItem} from 'superdesk-ui-framework/react/components/Menu';
 
 import {IVocabularyItem} from 'superdesk-api';
@@ -56,7 +56,12 @@ import {
     sortBasedOnTBC,
     sanitizeItemFields,
 } from './index';
-import {toUIFrameworkInterface, getRelatedEventIdsForPlanning} from './planning';
+import {
+    toUIFrameworkInterface,
+    getRelatedEventIdsForPlanning,
+    modifyCoverageForClient,
+    modifyCoverageForServer,
+} from './planning';
 import {confirmAddingRelatedItems} from './confirmAddingRelatedItems';
 import {isSameDay} from './../helpers';
 import {getOpenEditorType} from './editor';
@@ -1123,6 +1128,21 @@ function getEventsByDate(
         for (const day = displayStartDate.clone(); day.isSameOrBefore(displayEndDate, 'day'); day.add(1, 'days')) {
             addEventToDate(event, day, eventStartDate);
         }
+
+        // Also show the event under the day of each coverage scheduled outside its own dates
+        const coverageDays = uniqBy(
+            (event.coverages ?? [])
+                .filter((coverage) => coverage.planning?.scheduled != null)
+                .map((coverage) => moment(coverage.planning.scheduled))
+                .filter((coverageDate) => (
+                    !coverageDate.isBetween(eventStartDate, eventEndDate, 'day', '[]')
+                    && (startDate == null || !coverageDate.isBefore(startDate, 'day'))
+                    && (endDate == null || !coverageDate.isAfter(endDate, 'day'))
+                )),
+            (coverageDate) => coverageDate.format('YYYY-MM-DD'),
+        );
+
+        coverageDays.forEach((coverageDate) => addEventToDate(event, coverageDate, coverageDate));
     });
 
     return sortBasedOnTBC(days);
@@ -1223,6 +1243,8 @@ function modifyForClient(event: Partial<IEventItem>): Partial<IEventItem> {
         event.actioned_date = moment(event.actioned_date);
     }
 
+    (event.coverages ?? []).forEach((coverage) => modifyCoverageForClient(coverage));
+
     return event;
 }
 
@@ -1290,6 +1312,8 @@ function modifyForServer(event: IEventItem, removeNullLinks: boolean = false) {
     if (until) {
         event.dates.recurring_rule.until = until.endOf('day').toISOString();
     }
+
+    (event.coverages ?? []).forEach((coverage) => modifyCoverageForServer(coverage));
 
     return event;
 }

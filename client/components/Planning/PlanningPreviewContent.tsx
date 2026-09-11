@@ -27,7 +27,7 @@ import {
     StateLabel,
     Label,
 } from '../index';
-import {CoveragePreview} from '../Coverages';
+import {CoveragesPreview} from '../Coverages';
 import {ContentBlock} from '../UI/SidePanel';
 import {EventMetadata} from '../Events';
 import {FeatureLabel} from './FeaturedPlanning';
@@ -36,8 +36,6 @@ import {PreviewFieldFiles} from '../fields/preview/Files';
 import {getRelatedEventIdsForPlanning, pickRelatedEventIdsForPlanning} from '../../utils/planning';
 import {RelatedEventsFilesFetcher} from './RelatedEventsFilesFetcher';
 import {coverageProfiles} from '../../selectors/forms';
-import {getCoverageFields} from '../../api/editor/item_planning';
-import {appConfig} from 'appConfig';
 
 interface IOwnProps {
     inner?: boolean;
@@ -90,33 +88,6 @@ const mapDispatchToProps = (dispatch): IDispatchProps => ({
 });
 
 export class PlanningPreviewContentComponent extends React.PureComponent<IProps> {
-    // Do not turn this into a component defined inside render(): such a component gets a new type identity on
-    // every render, making React remount the coverage subtree and lose the CollapseBox open state
-    renderCoveragePreview(coverage: IPlanningCoverageItem, index: number) {
-        const {item, users, desks, newsCoverageStatus, inner, files} = this.props;
-        const {profile} = getCoverageFields(coverage.planning.g2_content_type);
-
-        return (
-            <CoveragePreview
-                item={item}
-                key={coverage.coverage_id}
-                index={index}
-                coverage={coverage}
-                users={users}
-                desks={desks}
-                newsCoverageStatus={newsCoverageStatus}
-                formProfile={profile}
-                inner={inner}
-                files={files}
-                createLink={getFileDownloadURL}
-                canScheduleUpdates={
-                    profile.editor.flags && appConfig.planning_allow_scheduled_updates
-                }
-                scrollInView={true}
-            />
-        );
-    }
-
     componentWillMount() {
         // Related event files are fetched by RelatedEventsFilesFetcher from the live
         // event data, so only the planning item's own files are needed here
@@ -159,12 +130,15 @@ export class PlanningPreviewContentComponent extends React.PureComponent<IProps>
         const {gettext} = superdeskApi.localization;
         const {item,
             users,
+            desks,
             formProfile,
             onEditEvent,
             noPadding,
             hideRelatedItems,
             hideEditIcon,
             files,
+            newsCoverageStatus,
+            inner,
         } = this.props;
 
         const createdBy = getCreator(item, 'original_creator', users);
@@ -173,13 +147,6 @@ export class PlanningPreviewContentComponent extends React.PureComponent<IProps>
         const updatedDate = get(item, '_updated');
         const versionCreator = get(updatedBy, 'display_name') ? updatedBy :
             users.find((user) => user._id === updatedBy);
-        const hasCoverage = get(item, 'coverages.length', 0) > 0;
-        const currentCoverage: IPlanningCoverageItem | null = this.props.currentCoverageId == null ?
-            null :
-            (item.coverages ?? []).find((coverage) => coverage.coverage_id === this.props.currentCoverageId);
-        const otherCoverages: Array<IPlanningCoverageItem> = this.props.currentCoverageId == null ?
-            item.coverages ?? [] :
-            (item.coverages ?? []).filter((coverage) => coverage.coverage_id !== this.props.currentCoverageId);
 
         const primaryEventId = getRelatedEventIdsForPlanning(this.props.item, 'primary')[0];
         const primaryRelatedEvent = (relatedEvents ?? []).find((relatedEvent) => relatedEvent._id === primaryEventId);
@@ -203,27 +170,16 @@ export class PlanningPreviewContentComponent extends React.PureComponent<IProps>
             },
             {
                 id: 'coverages' as const,
-                node: !hasCoverage ? null : (
-                    <>
-                        {currentCoverage == null ? (
-                            <>
-                                <h3 className="side-panel__heading--big">{gettext('Coverages')}</h3>
-                                {otherCoverages.map((coverage, i) => this.renderCoveragePreview(coverage, i))}
-                            </>
-                        ) : (
-                            <>
-                                <h3 className="side-panel__heading--big">{gettext('This Coverage')}</h3>
-                                {this.renderCoveragePreview(currentCoverage, 0)}
-
-                                {(otherCoverages ?? []).length > 0 && (
-                                    <>
-                                        <h3 className="side-panel__heading--big">{gettext('Other Coverages')}</h3>
-                                        {otherCoverages.map((coverage, i) => this.renderCoveragePreview(coverage, i))}
-                                    </>
-                                )}
-                            </>
-                        )}
-                    </>
+                node: (
+                    <CoveragesPreview
+                        item={item}
+                        users={users}
+                        desks={desks}
+                        newsCoverageStatus={newsCoverageStatus}
+                        files={files}
+                        inner={inner}
+                        currentCoverageId={this.props.currentCoverageId}
+                    />
                 ),
             },
             {
