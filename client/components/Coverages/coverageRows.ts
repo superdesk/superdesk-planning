@@ -124,7 +124,7 @@ export function applyDeskChange(
         } as ICoveragePlanningDetails;
     }
 
-    if (desk != null && appConfig.planning.manual_news_coverage_status !== true) {
+    if (desk != null && row.coverage_id == null && appConfig.planning.manual_news_coverage_status !== true) {
         const planned = getNewsCoverageStatusPlanned();
 
         if (row.status?.qcode !== planned.qcode) {

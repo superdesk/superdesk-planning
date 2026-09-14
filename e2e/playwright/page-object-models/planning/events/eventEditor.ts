@@ -105,7 +105,7 @@ export class EventEditor extends Editor {
     }
 
     get closeButton(): Locator {
-        return this.header.getByRole('button', {name: /Cancel|Close/, exact: true});
+        return this.header.getByRole('button', {name: /^(Cancel|Close)$/});
     }
 
     get header(): Locator {

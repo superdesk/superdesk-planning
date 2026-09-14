@@ -251,7 +251,8 @@ class CoverageAddAdvancedModalComponent extends React.Component<IProps, IState> 
     }
 
     render() {
-        const canSave = Object.keys(validateRows(this.state.coverages)).length === 0;
+        const errors = validateRows(this.state.coverages);
+        const canSave = Object.keys(errors).length === 0;
 
         return (
             <Modal
@@ -350,6 +351,7 @@ class CoverageAddAdvancedModalComponent extends React.Component<IProps, IState> 
                                         updateCoverage={this.updateCoverage}
                                         duplicateCoverage={this.duplicate}
                                         newsCoverageStatus={this.props.newsCoverageStatus}
+                                        error={errors[coverage.rowId]}
                                     />
                                 )}
                             </div>

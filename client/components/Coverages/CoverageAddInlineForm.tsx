@@ -76,12 +76,16 @@ class CoverageAddInlineFormComponent extends React.Component<IProps, IState> {
     }
 
     update = (row: ICoverageRow, updates: ICoverageRow) => {
-        this.setState({rows: updateRow(this.state.rows, row, updates)});
+        this.setState({
+            rows: updateRow(this.state.rows, row, updates),
+            submitted: false,
+        });
     }
 
     duplicate = (row: ICoverageRow) => {
         this.setState({
             rows: duplicateRow(this.state.rows, row, this.props.newsCoverageStatus, this.props.desks, this.props.users),
+            submitted: false,
         });
     }
 

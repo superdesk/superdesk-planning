@@ -1,15 +1,22 @@
 import {appConfig} from 'appConfig';
 import {IDesk, IUser} from 'superdesk-api';
 
-import {IEventItem, IG2ContentType, IPlanningNewsCoverageStatus} from '../../../interfaces';
-import {superdeskApi} from '../../../superdeskApi';
+import {
+    IEventItem,
+    IG2ContentType,
+    IPlanningContentProfile,
+    IPlanningNewsCoverageStatus,
+} from '../../../interfaces';
+import {planningApi, superdeskApi} from '../../../superdeskApi';
 import {
     applyDeskChange,
     applyUserChange,
     buildNewCoverages,
     createRowsFromContentTypes,
     duplicateRow,
+    getFilteredLanguages,
     ICoverageLineItem,
+    updateRow,
     validateRows,
 } from '../coverageRows';
 
@@ -31,7 +38,10 @@ const contentTypes = [
 ] as unknown as Array<IG2ContentType>;
 
 const statusOnMerit = {qcode: 'ncostat:notdec', name: 'coverage not decided yet', label: 'On merit'};
-const statusPlanned = {qcode: 'ncostat:int', name: 'coverage intended', label: 'Planned'};
+
+// The label differs from the hardcoded fallback in `getNewsCoverageStatusPlanned` so that
+// assertions on it fail if the vocabulary lookup stops working
+const statusPlanned = {qcode: 'ncostat:int', name: 'coverage intended', label: 'Planned (cv)'};
 
 // `getDefaultCoverageStatus` takes the first entry, so new rows start on 'On merit'
 const newsCoverageStatus = [statusOnMerit, statusPlanned] as Array<IPlanningNewsCoverageStatus>;
@@ -66,6 +76,7 @@ describe('coverageRows', () => {
     const autoAssignToWorkflowDefault = appConfig.planning_auto_assign_to_workflow;
     const manualStatusDefault = appConfig.planning.manual_news_coverage_status;
     const entitiesDefault = superdeskApi.entities;
+    const contentProfilesDefault = planningApi.contentProfiles;
 
     beforeEach(() => {
         appConfig.planning_auto_assign_to_workflow = false;
@@ -80,7 +91,20 @@ describe('coverageRows', () => {
         appConfig.planning_auto_assign_to_workflow = autoAssignToWorkflowDefault;
         appConfig.planning.manual_news_coverage_status = manualStatusDefault;
         superdeskApi.entities = entitiesDefault;
+        planningApi.contentProfiles = contentProfilesDefault;
     });
+
+    const mockMultilingual = (enabled: boolean, profileLanguages: Array<string> = []) => {
+        planningApi.contentProfiles = {
+            ...planningApi.contentProfiles,
+            get: () => ({} as IPlanningContentProfile),
+            multilingual: {
+                ...planningApi.contentProfiles.multilingual,
+                isEnabled: () => enabled,
+                getLanguages: () => profileLanguages,
+            },
+        } as typeof planningApi.contentProfiles;
+    };
 
     const getRows = () => createRowsFromContentTypes(contentTypes, desks, users, newsCoverageStatus);
 
@@ -97,6 +121,13 @@ describe('coverageRows', () => {
             const [row] = getRows();
 
             expect(applyDeskChange(row, desks[0], users, languages).status).toBeUndefined();
+        });
+
+        it('leaves the status alone on a coverage that already exists', () => {
+            const [row] = getRows();
+            const saved = {...row, coverage_id: 'cov1', status: statusOnMerit};
+
+            expect(applyDeskChange(saved, desks[0], users, languages).status).toBeUndefined();
         });
 
         it('leaves the status alone when the desk is cleared', () => {
@@ -146,6 +177,37 @@ describe('coverageRows', () => {
             expect(updates.status).toBeUndefined();
             expect(updates.user).toBe(users[0]);
             expect(updates.filteredDesks).toEqual([desks[0]]);
+        });
+    });
+
+    describe('updateRow', () => {
+        it('returns a new array without mutating the updated row', () => {
+            const rows = getRows();
+            const [text, picture] = rows;
+            const updated = updateRow(rows, text, {enabled: true, desk: desks[0]});
+
+            expect(updated).not.toBe(rows);
+            expect(rows[0]).toBe(text);
+            expect(text.enabled).toBe(false);
+            expect(text.desk).toBe(null);
+
+            expect(updated[0].enabled).toBe(true);
+            expect(updated[0].desk).toBe(desks[0]);
+            expect(updated[1]).toBe(picture);
+        });
+    });
+
+    describe('getFilteredLanguages', () => {
+        it('returns every language when the planning profile is not multilingual', () => {
+            mockMultilingual(false);
+
+            expect(getFilteredLanguages(languages)).toEqual(languages);
+        });
+
+        it('keeps only the languages of the planning profile when it is multilingual', () => {
+            mockMultilingual(true, ['fr-CA']);
+
+            expect(getFilteredLanguages(languages)).toEqual([languages[1]]);
         });
     });
 
