@@ -1,15 +1,14 @@
 import sinon from 'sinon';
 
-import {getTestActionStore} from '../../utils/testUtils';
 import {contentProfiles} from '../../api';
 import {updateContentProfiles} from '../../actions/forms';
 import {profiles, coverageProfiles} from '../../selectors/forms';
 import {getProfileStateFromPayload} from '../../reducers/forms';
 import {superdeskApi, planningApi} from '../../superdeskApi';
+import {createTestStore} from '../../utils';
 
-fdescribe('forms', () => {
+describe('forms', () => {
     describe('reducers', () => {
-        let store;
         const profileItems = [
             {_id: 'text', name: 'Text Coverage', type: 'coverage', content_type: 'text'},
             {_id: 'photo', name: 'Photo Coverage', type: 'coverage', content_type: 'photo'},
@@ -17,56 +16,33 @@ fdescribe('forms', () => {
             {_id: 'event', name: 'Events', type: 'event'}
         ];
 
-        const expectEmptyProfilesInStore = () => {
-            const state = store.getState();
-
-            expect(state.forms.profiles).toEqual({})
-            expect(state.forms.coverageProfiles).toEqual([]);
-        }
-
-        const expectCorrectProfilesInStore = () => {
-            const state = store.getState();
-
-            expect(state.forms.profiles).toEqual({event: profileItems[3], coverage: profileItems[2]})
-            expect(state.forms.coverageProfiles).toEqual([profileItems[0], profileItems[1]]);
-        };
-
-        beforeEach(() => {
-            store = getTestActionStore();
-            store.init();
-        });
-
-        it('generates initialState from profiles data', () => {
-            store.initialState.forms = {
-                ...store.initialState.forms,
-                ...getProfileStateFromPayload([]),
-            };
-
-            // Test the store with empty profiles
-            let state = store.getState()
-
-            expect(state.forms.profiles).toEqual({})
-            expect(state.forms.coverageProfiles).toEqual([]);
-
-            // Simulate constructing the state manually
-            store.initialState.forms = {
-                ...store.initialState.forms,
-                ...getProfileStateFromPayload(profileItems),
-            };
-
-            // Test the store for profiles and coverageProfiles data
-            expectCorrectProfilesInStore()
+        it('getProfileStateFromPayload generates profile state from list of profiles', () => {
+            expect(getProfileStateFromPayload([])).toEqual({profiles: {}, coverageProfiles: []});
+            expect(getProfileStateFromPayload(profileItems)).toEqual({
+                profiles: {event: profileItems[3], coverage: profileItems[2]},
+                coverageProfiles: [profileItems[0], profileItems[1]],
+            });
         });
 
         it('Loads profile data in their appropriate state', () => {
-            store.dispatch(updateContentProfiles([]));
+            const store = createTestStore({initialState: {forms: {profiles: {}, coverageProfiles: []}}});
             let state = store.getState();
 
-            expect(state.forms.profiles).toEqual({});
-            expect(state.forms.coverageProfiles).toEqual([]);
+            // Expect an empty state to begin with
+            expect(profiles(state)).toEqual({});
+            expect(coverageProfiles(state)).toEqual([]);
 
+            // Set the new profiles as loaded from the API
             store.dispatch(updateContentProfiles(profileItems));
-            expectCorrectProfilesInStore();
+            state = store.getState();
+            expect(profiles(state)).toEqual({event: profileItems[3], coverage: profileItems[2]});
+            expect(coverageProfiles(state)).toEqual([profileItems[0], profileItems[1]]);
+
+            // Clear the profiles stored
+            store.dispatch(updateContentProfiles([]));
+            state = store.getState();
+            expect(profiles(state)).toEqual({});
+            expect(coverageProfiles(state)).toEqual([]);
         });
     });
 });

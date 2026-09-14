@@ -159,7 +159,7 @@ class UnifiedPlanningResource(
 
         return self
 
-    def clone_with(self, updates: dict[str, Any]) -> "UnifiedPlanningResource":
+    def clone_with(self, updates: dict[str, Any], **kwargs) -> "UnifiedPlanningResource":
         """
         Deeply clones the instance and applies updates with proper validation.
 
@@ -173,7 +173,7 @@ class UnifiedPlanningResource(
         for coverage in updates.get("coverages") or []:
             if not coverage.get("assigned_to"):
                 coverage["assigned_to"] = None
-        return super().clone_with(updates)
+        return super().clone_with(updates, **kwargs)
 
 
 def _get_local_date(date: datetime, tz: str | None) -> datetime:
