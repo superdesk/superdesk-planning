@@ -3,7 +3,7 @@ import {connect} from 'react-redux';
 import {memoize} from 'lodash';
 
 import {IDesk, IUser} from 'superdesk-api';
-import {IEventItem, IG2ContentType, IPlanningCoverageItem, IPlanningNewsCoverageStatus} from '../../../interfaces';
+import {IG2ContentType, IPlanningCoverageItem, IPlanningNewsCoverageStatus} from '../../../interfaces';
 
 import {planningUtils, onEventCapture} from '../../../utils';
 import {getVocabularyItemFieldTranslated} from '../../../utils/vocabularies';
@@ -20,7 +20,6 @@ interface IOwnProps {
     button: React.ComponentType<{toggleMenu: (event: React.MouseEvent<HTMLButtonElement>) => void}>;
     language?: string;
     eventLanguages?: Array<string>;
-    event?: IEventItem;
 
     onChange(field: string, value: Array<DeepPartial<IPlanningCoverageItem>>): void;
     createCoverage(qcode: IG2ContentType['qcode']): DeepPartial<IPlanningCoverageItem>;
@@ -191,7 +190,6 @@ class AddCoveragesWrapperComponent extends React.Component<IProps, IState> {
                         users={this.props.users}
                         desks={this.props.desks}
                         coverageAddAdvancedMode={this.props.coverageAddAdvancedMode}
-                        event={this.props.event}
                     />
                 )}
             </React.Fragment>

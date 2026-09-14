@@ -3,7 +3,6 @@ import {connect} from 'react-redux';
 import {uniqueId} from 'lodash';
 
 import {
-    IEventItem,
     IG2ContentType,
     IPlanningNewsCoverageStatus,
 } from '../../interfaces';
@@ -46,7 +45,6 @@ interface IOwnProps {
     users: Array<IUser>;
     contentTypes: Array<IG2ContentType>;
     newsCoverageStatus: Array<IPlanningNewsCoverageStatus>;
-    event?: IEventItem;
 
     onSave(field: string, value: Array<DeepPartial<ICoverageLineItem>>): void;
     onCancel(): void;
@@ -214,7 +212,7 @@ class CoverageAddAdvancedModalComponent extends React.Component<IProps, IState> 
             .filter((coverage) => coverage.enabled || coverage.coverage_id != null)
             .map((coverage) => {
                 if (coverage.coverage_id == null) {
-                    return buildNewCoverage(coverage, this.props.createCoverage, this.props.event);
+                    return buildNewCoverage(coverage, this.props.createCoverage);
                 }
 
                 const savedCoverage = this.props.value.find((val) => val.coverage_id === coverage.coverage_id);

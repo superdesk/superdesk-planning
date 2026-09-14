@@ -22,6 +22,8 @@ import {superdeskApi, planningApi} from '../../superdeskApi';
 
 import * as selectors from '../../selectors';
 
+import {getRelatedEventIdsForPlanning} from '../../utils/planning';
+
 import {InputArray} from '../UI/Form';
 import {CoverageEditor, CoverageEditorComponent} from './CoverageEditor';
 import {CoverageAddButton} from './CoverageAddButton';
@@ -68,6 +70,7 @@ interface IReduxStateProps {
     newsCoverageStatus: Array<IPlanningNewsCoverageStatus>;
     coverageAddAdvancedMode: boolean;
     defaultDesk: IDesk;
+    events: Dictionary<IEventItem['_id'], IEventItem>;
 }
 
 interface IReduxDispatchProps {
@@ -90,6 +93,7 @@ const mapStateToProps = (state): IReduxStateProps => ({
     newsCoverageStatus: selectors.general.newsCoverageStatus(state),
     coverageAddAdvancedMode: selectors.general.coverageAddAdvancedMode(state),
     defaultDesk: selectors.general.defaultDesk(state),
+    events: selectors.events.storedEvents(state),
 });
 
 const mapDispatchToProps = (dispatch): IReduxDispatchProps => ({
@@ -180,6 +184,7 @@ class CoverageArrayInputComponent extends React.Component<IProps, IState> {
             navigation,
             useLocalNavigation,
             event,
+            events,
             testId,
             editorType,
             children,
@@ -200,13 +205,17 @@ class CoverageArrayInputComponent extends React.Component<IProps, IState> {
         const showInlineForm = appConfig.planning_inline_coverage_form === true &&
             !disabled &&
             typeof children === 'function';
+
+        // The embedded planning editor is given no `event` prop, so the primary related event
+        // has to be looked up in the store for the translated coverage fields
+        const inlineFormEvent = event ?? events[getRelatedEventIdsForPlanning(item, 'primary')[0]];
         const inlineFormElement = !showInlineForm ? null : (
             <CoverageAddInlineForm
                 contentTypes={contentTypes}
                 newsCoverageStatus={newsCoverageStatus}
                 desks={desks}
                 users={users}
-                event={event}
+                event={inlineFormEvent}
                 createCoverage={createCoverage}
                 remaining={maxCoverageCount ? Math.max(maxCoverageCount - (value?.length ?? 0), 0) : undefined}
                 onAdd={(newCoverages) => onChange(field, [...(value ?? []), ...newCoverages])}
@@ -239,7 +248,6 @@ class CoverageArrayInputComponent extends React.Component<IProps, IState> {
                     coverageAddAdvancedMode: coverageAddAdvancedMode,
                     language: language,
                     editorType: editorType,
-                    event: event,
                     eventLanguages: event?.languages ?? [],
                     disabled: disabled,
                 }}
