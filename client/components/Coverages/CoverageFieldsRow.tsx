@@ -6,7 +6,7 @@ import {gettext} from '../../utils';
 import {superdeskApi} from '../../superdeskApi';
 import {IPlanningNewsCoverageStatus} from '../../interfaces';
 import {IDesk, IUser, IVocabularyItem} from 'superdesk-api';
-import {ICoverageLineItem} from './CoverageAddAdvancedModal';
+import {ICoverageLineItem} from './coverageRows';
 
 interface IProps {
     coverage: Partial<ICoverageLineItem>;

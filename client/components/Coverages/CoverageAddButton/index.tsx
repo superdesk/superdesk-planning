@@ -1,5 +1,5 @@
 import React from 'react';
-import {IG2ContentType, IPlanningCoverageItem} from '../../../interfaces';
+import {IEventItem, IG2ContentType, IPlanningCoverageItem} from '../../../interfaces';
 import {IDesk} from 'superdesk-api';
 import {AddCoveragesWrapper} from './AddCoveragesWrapper';
 import {Button} from 'superdesk-ui-framework/react';
@@ -11,6 +11,7 @@ interface IProps {
     buttonClass?: string;
     language?: string;
     disabled?: boolean;
+    event?: IEventItem;
 
     onChange(field: string, value: Array<DeepPartial<IPlanningCoverageItem>>): void;
     createCoverage(qcode: IG2ContentType['qcode']): DeepPartial<IPlanningCoverageItem>;

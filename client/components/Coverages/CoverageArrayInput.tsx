@@ -280,6 +280,7 @@ class CoverageArrayInputComponent extends React.Component<IProps, IState> {
                     coverageAddAdvancedMode: coverageAddAdvancedMode,
                     language: language,
                     editorType: editorType,
+                    event: event,
                     eventLanguages: event?.languages ?? [],
                     disabled: disabled,
                 }}
