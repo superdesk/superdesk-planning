@@ -11,7 +11,7 @@
   }
 }
 
-.coverage-array-input--advanced .coverage-form {
+.coverage-form {
   border: 1px solid var(--sd-colour-line--light);
   border-radius: 2px;
   background-color: var(--sd-colour-panel-bg--200);
@@ -53,10 +53,6 @@
     display: flex;
     margin-left: auto;
   }
-}
-
-.coverage-array-input--advanced__editors {
-  margin-top: 1.6rem;
 }
 
 .coverage-editable-fields--stacked {

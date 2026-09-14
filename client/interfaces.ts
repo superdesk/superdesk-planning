@@ -2240,6 +2240,7 @@ export interface IInputArrayHocModeOptions {
     errorMessageElement: React.ReactNode;
     labelElement: React.ReactNode;
     emptyValueElement: React.ReactNode;
+    inlineFormElement: React.ReactNode;
 }
 
 export type ISoftLockItemData = {

@@ -33,7 +33,6 @@ interface IProps {
     message: any;
     invalid: boolean;
     buttonWithLabel: boolean;
-    hideAddButton?: boolean;
     label: string;
     labelClassName: string;
     hint: string;
@@ -59,6 +58,9 @@ interface IProps {
 
     // HOC mode - optional; added to support "add button" as mini toolbar in authoring-react
     children?: (options: IInputArrayHocModeOptions) => React.ReactNode;
+
+    // Handed to the HOC render function instead of the add button; the plain render path ignores it
+    inlineFormElement?: React.ReactNode;
 }
 
 export class InputArray extends React.PureComponent<IProps> {
@@ -139,11 +141,12 @@ export class InputArray extends React.PureComponent<IProps> {
             label,
             labelClassName,
             testId,
+            inlineFormElement = null,
             ...props
         } = this.props;
 
         const Component = element;
-        const showAddButton = !this.props.hideAddButton &&
+        const showAddButton = inlineFormElement == null &&
             (maxCount ? value.length < maxCount : true) && !disabled;
         const isIndexReadOnly = (index) => (addOnly && index === originalCount) ? false : disabled;
         const addButton = this.renderButton();
@@ -200,6 +203,7 @@ export class InputArray extends React.PureComponent<IProps> {
                 errorMessageElement,
                 labelElement,
                 emptyValueElement,
+                inlineFormElement,
             });
         } else {
             return (

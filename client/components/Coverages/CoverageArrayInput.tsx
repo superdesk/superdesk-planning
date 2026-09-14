@@ -17,6 +17,7 @@ import {
     IPlanningNewsCoverageStatus,
 } from '../../interfaces';
 import {IArticle, IDesk, IUser} from 'superdesk-api';
+import {appConfig} from 'appConfig';
 import {superdeskApi, planningApi} from '../../superdeskApi';
 
 import * as selectors from '../../selectors';
@@ -66,7 +67,6 @@ interface IReduxStateProps {
     contentTypes: Array<IG2ContentType>;
     newsCoverageStatus: Array<IPlanningNewsCoverageStatus>;
     coverageAddAdvancedMode: boolean;
-    coverageAddAdvancedInlineMode: boolean;
     defaultDesk: IDesk;
 }
 
@@ -89,7 +89,6 @@ const mapStateToProps = (state): IReduxStateProps => ({
     contentTypes: selectors.general.contentTypes(state),
     newsCoverageStatus: selectors.general.newsCoverageStatus(state),
     coverageAddAdvancedMode: selectors.general.coverageAddAdvancedMode(state),
-    coverageAddAdvancedInlineMode: selectors.general.coverageAddAdvancedInlineMode(state),
     defaultDesk: selectors.general.defaultDesk(state),
 });
 
@@ -192,67 +191,27 @@ class CoverageArrayInputComponent extends React.Component<IProps, IState> {
             onItemClose: this.onCoverageClose,
         };
 
-        const {desks, users, coverageAddAdvancedInlineMode, coverageAddAdvancedMode} = this.props;
+        const {desks, users, coverageAddAdvancedMode} = this.props;
         const language = this.props.item.language;
         const createCoverage = this.createCoverage;
 
-        if (coverageAddAdvancedInlineMode && !disabled) {
-            return (
-                <div className="coverage-array-input--advanced">
-                    <div className="InputArray__label side-panel__heading side-panel__heading--big">
-                        {gettext('Coverages')}
-                    </div>
-                    <CoverageAddInlineForm
-                        contentTypes={contentTypes}
-                        newsCoverageStatus={newsCoverageStatus}
-                        onAdd={(newCoverages) => onChange(field, [...(value ?? []), ...newCoverages])}
-                        createCoverage={createCoverage}
-                        users={users}
-                        desks={desks}
-                        event={event}
-                        remaining={maxCoverageCount ?
-                            Math.max(maxCoverageCount - (value?.length ?? 0), 0) :
-                            undefined
-                        }
-                    />
-                    {(value?.length ?? 0) > 0 && (
-                        <div className="coverage-array-input--advanced__editors">
-                            <InputArray
-                                testId={testId}
-                                label=""
-                                field={field}
-                                value={value}
-                                coverages={value}
-                                onChange={onChange}
-                                addButtonText={addButtonText}
-                                addButtonComponent={CoverageAddButton}
-                                addButtonProps={{}}
-                                element={CoverageEditor}
-                                createCoverage={createCoverage}
-                                disabled={disabled}
-                                maxCount={maxCoverageCount}
-                                addOnly={addOnly}
-                                originalCount={originalCount}
-                                message={message}
-                                hideAddButton
-                                popupContainer={popupContainer}
-                                onPopupOpen={onPopupOpen}
-                                onPopupClose={onPopupClose}
-                                contentTypes={contentTypes}
-                                defaultDesk={defaultDesk}
-                                newsCoverageStatus={newsCoverageStatus}
-                                diff={item}
-                                navigation={coverageNavigation}
-                                openCoverageIds={this.state.openCoverageIds}
-                                getRef={this.props.getRef}
-                                editorType={editorType}
-                                {...props}
-                            />
-                        </div>
-                    )}
-                </div>
-            );
-        }
+        // HOC mode (children as a function) is only used by the planning editor embedded in the event form,
+        // which is the only place the inline form may replace the add button
+        const showInlineForm = appConfig.planning_inline_coverage_form === true &&
+            !disabled &&
+            typeof children === 'function';
+        const inlineFormElement = !showInlineForm ? null : (
+            <CoverageAddInlineForm
+                contentTypes={contentTypes}
+                newsCoverageStatus={newsCoverageStatus}
+                desks={desks}
+                users={users}
+                event={event}
+                createCoverage={createCoverage}
+                remaining={maxCoverageCount ? Math.max(maxCoverageCount - (value?.length ?? 0), 0) : undefined}
+                onAdd={(newCoverages) => onChange(field, [...(value ?? []), ...newCoverages])}
+            />
+        );
 
         return (
             <InputArray
@@ -303,6 +262,7 @@ class CoverageArrayInputComponent extends React.Component<IProps, IState> {
                 openCoverageIds={this.state.openCoverageIds}
                 getRef={this.props.getRef}
                 editorType={editorType}
+                inlineFormElement={inlineFormElement}
                 {...props}
             >
                 {children}
