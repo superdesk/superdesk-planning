@@ -112,7 +112,10 @@ class CoverageAddInlineFormComponent extends React.Component<IProps, IState> {
 
     renderTypeLine(row: ICoverageRow, checkboxDisabled: boolean) {
         return (
-            <div className="sd-list-item sd-list-item--no-hover sd-shadow--z1">
+            <div
+                className="sd-list-item sd-list-item--no-hover sd-shadow--z1"
+                data-test-id={`coverage-inline-form__row--${row.qcode}`}
+            >
                 <div className="sd-list-item__column">
                     <Tooltip flow="top" text={gettext('Enable coverage')}>
                         <Checkbox
@@ -166,6 +169,7 @@ class CoverageAddInlineFormComponent extends React.Component<IProps, IState> {
                                     <div
                                         className={'coverage-inline-form__fields sd-list-item ' +
                                             'sd-list-item--no-hover sd-shadow--z1'}
+                                        data-test-id={`coverage-inline-form__fields--${row.qcode}`}
                                     >
                                         <CoverageEditableFields
                                             coverage={row}

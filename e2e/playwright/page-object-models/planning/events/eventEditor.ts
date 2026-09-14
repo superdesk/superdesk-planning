@@ -97,6 +97,21 @@ export class EventEditor extends Editor {
         }
     }
 
+    // An embedded planning card carries its own Save button, and the inline coverage form
+    // its own Cancel, so the panel-wide lookups in Editor are ambiguous for an event.
+    // The event's own controls always live in the editor header.
+    get saveButton(): Locator {
+        return this.header.getByRole('button', {name: 'Save', exact: true});
+    }
+
+    get closeButton(): Locator {
+        return this.header.getByRole('button', {name: /Cancel|Close/, exact: true});
+    }
+
+    get header(): Locator {
+        return this.element.getByTestId('editor-header');
+    }
+
     async toggleShowAllLanguages(): Promise<void> {
         await this.element.locator('#editor--language-controls')
             .getByRole('checkbox')
