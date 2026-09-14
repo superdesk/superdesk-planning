@@ -112,11 +112,15 @@ async def _remove_item_lock[T: AssignmentEventOrPlanning](original: T) -> T:
     await signals.on_item_unlock.send(original)
 
     updated = await service.update(original.id, updates, original=original, skip_signals=True)
+
+    # Session expiry runs outside a request, then the unlocker is the lock owner
+    unlocked_by_user = get_current_user_id() or original.lock_user
+    unlocked_by_session = get_current_session_id() or original.lock_session
     push_notification(
         f"{item_type_name}:unlock",
         item=original.id,
-        user=str(original.lock_user),
-        lock_session=(original.lock_session),
+        user=str(unlocked_by_user),
+        lock_session=str(unlocked_by_session),
         etag=updated.etag,
         event_ids=related_event_ids,
         recurrence_id=recurrence_id,

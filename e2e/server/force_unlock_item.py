@@ -8,11 +8,12 @@
 # AUTHORS and LICENSE files distributed with this source code, or
 # at https://www.sourcefabric.org/superdesk/license
 
+from bson import ObjectId
 from quart_babel import gettext
 
 from superdesk import blueprint
 from superdesk.errors import SuperdeskApiError
-from superdesk.flask import Blueprint
+from superdesk.flask import Blueprint, g
 from superdesk.resource_fields import STATUS, STATUS_OK
 
 from planning.types import AssignmentResourceModel, UnifiedPlanningResource
@@ -38,6 +39,10 @@ async def force_unlock_item(item_type, item_id):
     if item is None:
         raise SuperdeskApiError.notFoundError(gettext("Item not found"))
 
+    # Mocked administrator and session: never checked against real users, they only end up in the unlock
+    # notification, which is how the client tells a foreign unlock from its own
+    g.user = {"_id": ObjectId(), "user_type": "administrator"}
+    g.auth = {"_id": ObjectId()}
     await unlock_item(item)
 
     return {STATUS: STATUS_OK}
