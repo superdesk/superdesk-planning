@@ -1,4 +1,10 @@
-from superdesk.core.resources import ResourceConfig, MongoResourceConfig, MongoIndexOptions, ElasticResourceConfig
+from superdesk.core.resources import (
+    ResourceConfig,
+    MongoResourceConfig,
+    MongoIndexOptions,
+    ElasticResourceConfig,
+    UpdateStrategy,
+)
 
 from planning.types.unified import UnifiedPlanningResource
 from .service import UnifiedPlanningResourceService
@@ -16,6 +22,7 @@ unified_planning_resource_config = ResourceConfig(
     data_class=UnifiedPlanningResource,
     service=UnifiedPlanningResourceService,
     default_sort=[("dates.start", 1)],
+    update_strategy=UpdateStrategy.DEEP_MERGE,
     etag_ignore_fields=["_planning_schedule", "_updates_schedule"],
     mongo=MongoResourceConfig(
         indexes=[
