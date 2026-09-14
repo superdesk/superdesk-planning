@@ -22,6 +22,8 @@ import {
     validateRows,
 } from './coverageRows';
 
+import './CoverageAddInlineForm.scss';
+
 interface IOwnProps {
     contentTypes: Array<IG2ContentType>;
     newsCoverageStatus: Array<IPlanningNewsCoverageStatus>;
@@ -124,14 +126,14 @@ class CoverageAddInlineFormComponent extends React.Component<IProps, IState> {
                 <div className="sd-list-item__column">
                     <i className={planningUtils.getCoverageIcon(row.qcode)} />
                 </div>
-                <div className="coverage-form__type sd-list-item__column sd-overflow-ellipsis">
+                <div className="coverage-inline-form__type sd-list-item__column sd-overflow-ellipsis">
                     {getVocabularyItemFieldTranslated(
                         this.contentTypes.get(row.qcode),
                         'name',
                         getUserInterfaceLanguageFromCV()
                     )}
                 </div>
-                <div className="coverage-form__duplicate">
+                <div className="d-flex items-center ml-auto">
                     <IconButton
                         ariaValue={gettext('Duplicate')}
                         icon="plus-sign"
@@ -151,18 +153,18 @@ class CoverageAddInlineFormComponent extends React.Component<IProps, IState> {
         const languages = getFilteredLanguages(allLanguages);
 
         return (
-            <div className="coverage-form sd-shadow--z2" data-test-id="coverage-inline-form">
-                <div className="coverage-form__header">
+            <div className="coverage-inline-form sd-shadow--z2" data-test-id="coverage-inline-form">
+                <div className="coverage-inline-form__header py-1 px-2">
                     <span className="form-label">{gettext('Coverage Types')}</span>
                 </div>
-                <div className="coverage-form__body">
+                <div className="coverage-inline-form__body p-2">
                     <div className="sd-list-item-group sd-list-item-group--space-between-items">
                         {rows.map((row) => (
                             <React.Fragment key={row.rowId}>
                                 {this.renderTypeLine(row, row.enabled !== true && limitReached)}
                                 {row.enabled === true && (
                                     <div
-                                        className={'coverage-form__fields sd-list-item ' +
+                                        className={'coverage-inline-form__fields sd-list-item ' +
                                             'sd-list-item--no-hover sd-shadow--z1'}
                                     >
                                         <CoverageEditableFields
@@ -183,7 +185,7 @@ class CoverageAddInlineFormComponent extends React.Component<IProps, IState> {
                         ))}
                     </div>
                 </div>
-                <div className="coverage-form__footer">
+                <div className="coverage-inline-form__footer d-flex py-1 px-2">
                     <ButtonGroup align="end">
                         <Button
                             type="secondary"
