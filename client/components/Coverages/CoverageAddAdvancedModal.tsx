@@ -30,8 +30,6 @@ import {
     validateRows,
 } from './coverageRows';
 
-export type {ICoverageLineItem};
-
 type IReduxStateProps = {
     allLanguages: Array<{value: IVocabularyItem}>;
 };

@@ -24,7 +24,7 @@ import * as selectors from '../../selectors';
 import {InputArray} from '../UI/Form';
 import {CoverageEditor, CoverageEditorComponent} from './CoverageEditor';
 import {CoverageAddButton} from './CoverageAddButton';
-import {CoverageAddAdvancedInline} from './CoverageAddAdvancedInline';
+import {CoverageAddInlineForm} from './CoverageAddInlineForm';
 import planningActions from '../../actions/planning/api';
 
 
@@ -202,18 +202,18 @@ class CoverageArrayInputComponent extends React.Component<IProps, IState> {
                     <div className="InputArray__label side-panel__heading side-panel__heading--big">
                         {gettext('Coverages')}
                     </div>
-                    <CoverageAddAdvancedInline
+                    <CoverageAddInlineForm
                         contentTypes={contentTypes}
                         newsCoverageStatus={newsCoverageStatus}
-                        field={field}
-                        onSave={(coverageField, newCoverages) => onChange(
-                            coverageField,
-                            [...(value ?? []), ...newCoverages]
-                        )}
+                        onAdd={(newCoverages) => onChange(field, [...(value ?? []), ...newCoverages])}
                         createCoverage={createCoverage}
                         users={users}
                         desks={desks}
-                        maxCoverageCount={maxCoverageCount ? maxCoverageCount - (value?.length ?? 0) : maxCoverageCount}
+                        event={event}
+                        remaining={maxCoverageCount ?
+                            Math.max(maxCoverageCount - (value?.length ?? 0), 0) :
+                            undefined
+                        }
                     />
                     {(value?.length ?? 0) > 0 && (
                         <div className="coverage-array-input--advanced__editors">

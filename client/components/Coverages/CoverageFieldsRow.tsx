@@ -6,7 +6,7 @@ import {gettext} from '../../utils';
 import {superdeskApi} from '../../superdeskApi';
 import {IPlanningNewsCoverageStatus} from '../../interfaces';
 import {IDesk, IUser, IVocabularyItem} from 'superdesk-api';
-import {ICoverageLineItem} from './coverageRows';
+import {ICoverageLineItem, ICoverageRowErrors} from './coverageRows';
 
 interface IProps {
     coverage: Partial<ICoverageLineItem>;
@@ -16,6 +16,7 @@ interface IProps {
     handleUserChange: (coverage: Partial<ICoverageLineItem>, user: IUser) => void;
     updateCoverage: (coverage: Partial<ICoverageLineItem>, updates: Partial<ICoverageLineItem>) => void;
     duplicateCoverage: (coverage: Partial<ICoverageLineItem>) => void;
+    error?: ICoverageRowErrors;
     stacked?: boolean;
     showDuplicate?: boolean;
 }
@@ -28,6 +29,7 @@ export const CoverageEditableFields = ({
     handleUserChange,
     updateCoverage,
     duplicateCoverage,
+    error,
     stacked,
     showDuplicate = true,
 }: IProps) => {
@@ -40,6 +42,8 @@ export const CoverageEditableFields = ({
                 fullWidth
                 label={gettext('Desk')}
                 value={coverage.desk?._id}
+                invalid={error?.desk != null}
+                error={error?.desk}
                 onChange={(newDeskId) => {
                     handleDeskChange(
                         coverage,
