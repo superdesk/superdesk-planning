@@ -92,7 +92,7 @@ export const coverageAddAdvancedMode = (state) => (
     !!get(userPreferences(state), COVERAGES.ADD_ADVANCED_MODE_PREFERENCE + '.enabled')
 );
 export const coverageAddAdvancedInlineMode = () => (
-    appConfig.planning_advanced_coverage_mode === true
+    appConfig.planning_inline_coverage_form === true
 );
 
 export const currentUserId = createSelector(

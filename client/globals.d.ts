@@ -190,7 +190,6 @@ declare module 'superdesk-api' {
         long_event_duration_threshold?: number;
         max_multi_day_event_duration?: number;
         max_recurrent_events?: number;
-        planning_advanced_coverage_mode?: boolean;
         planning_allow_freetext_location: boolean;
         planning_allow_scheduled_updates?: boolean;
         planning_auto_assign_to_workflow?: boolean;
@@ -198,6 +197,7 @@ declare module 'superdesk-api' {
         planning_check_for_assignment_on_publish?: boolean;
         planning_check_for_assignment_on_send?: boolean;
         planning_fulfil_on_publish_for_desks: Array<string>;
+        planning_inline_coverage_form?: boolean;
         planning_link_updates_to_coverage?: boolean;
         planning_use_xmp_for_pic_assignments?: boolean;
         planning_use_xmp_for_pic_slugline?: boolean;
