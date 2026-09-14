@@ -8,28 +8,39 @@
 # AUTHORS and LICENSE files distributed with this source code, or
 # at https://www.sourcefabric.org/superdesk/license
 
-from bson import ObjectId
-from superdesk import blueprint, get_resource_service
+from quart_babel import gettext
+
+from superdesk import blueprint
+from superdesk.errors import SuperdeskApiError
 from superdesk.flask import Blueprint
-from planning.item_lock import LockService
-from apps.common.components.utils import get_component
+from superdesk.resource_fields import STATUS, STATUS_OK
+
+from planning.types import AssignmentResourceModel, UnifiedPlanningResource
+from planning.locks.unlock import unlock_item
 
 
-# TODO-ASYNC: migrate to async endpoint
 bp = Blueprint("e2e_force_unlock", __name__)
+
+RESOURCE_MODELS = {
+    "events": UnifiedPlanningResource,
+    "planning": UnifiedPlanningResource,
+    "assignments": AssignmentResourceModel,
+}
 
 
 @bp.route("/e2e/force_unlock/<item_type>/<item_id>", methods=["DELETE"])
-def force_unlock_item(item_type, item_id):
-    original = get_resource_service(item_type).find_one(req=None, _id=item_id)
-    lock_service = get_component(LockService)
+async def force_unlock_item(item_type, item_id):
+    resource_model = RESOURCE_MODELS.get(item_type)
+    if resource_model is None:
+        raise SuperdeskApiError.badRequestError(gettext("Unknown item type"))
 
-    # We can use mocked IDs here, as we aren't actually checking these against real users
-    # merely just sending them througn the websocket notifications
-    user_id = ObjectId()
-    session_id = ObjectId()
+    item = await resource_model.get_service().find_by_id(item_id)
+    if item is None:
+        raise SuperdeskApiError.notFoundError(gettext("Item not found"))
 
-    return lock_service.unlock(original, user_id, session_id, item_type)
+    await unlock_item(item)
+
+    return {STATUS: STATUS_OK}
 
 
 def init_app(app):
