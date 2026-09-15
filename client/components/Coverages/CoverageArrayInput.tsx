@@ -195,7 +195,6 @@ class CoverageArrayInputComponent extends React.Component<IProps, IState> {
         const language = this.props.item.language;
         const createCoverage = this.createCoverage;
 
-        // Only the event's own coverages get the inline form, planning editors keep the add button
         const showInlineForm = appConfig.planning_inline_coverage_form === true &&
             !disabled &&
             item.type === 'event';

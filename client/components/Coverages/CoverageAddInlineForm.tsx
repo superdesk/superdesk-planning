@@ -75,7 +75,6 @@ class CoverageAddInlineFormComponent extends React.Component<IProps, IState> {
         };
     }
 
-    // Cancel and a successful add both return to the collapsed state with clean rows
     reset = () => {
         this.setState(this.getInitialState());
     }

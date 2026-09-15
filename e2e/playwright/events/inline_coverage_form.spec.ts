@@ -60,7 +60,6 @@ test.describe('Planning.Events: inline coverage form', () => {
         await expect(inlineForm.coverage(1)).toBeVisible();
         await expect(inlineForm.coverage(2)).not.toBeAttached();
 
-        // Adding collapses the form; reopening shows clean rows, and Cancel collapses it again
         await expect(inlineForm.element).not.toBeAttached();
         await inlineForm.open();
         await inlineForm.expectNoTypesEnabled();
