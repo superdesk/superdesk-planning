@@ -9,6 +9,12 @@
 
     &__body {
         background-color: var(--sd-colour-panel-bg--100);
+
+        // The editor content block gives every list group a 2.4rem margin
+        .sd-list-item-group {
+            margin: 0;
+            padding: 0;
+        }
     }
 
     &__footer {
