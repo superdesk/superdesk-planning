@@ -47,9 +47,10 @@ test.describe('Planning.Events: inline coverage form', () => {
         await prepare(page, true);
         await openEvent(page);
 
-        await expect(inlineForm.element).toBeVisible();
+        await expect(inlineForm.openButton).toBeVisible();
         await expect(inlineForm.coveragesField.getByTestId('create-button')).not.toBeAttached();
 
+        await inlineForm.open();
         await inlineForm.enableType('text');
         await inlineForm.enableType('picture');
         await inlineForm.setDesk('text', DESK);
@@ -58,7 +59,14 @@ test.describe('Planning.Events: inline coverage form', () => {
         await expect(inlineForm.coverage(0)).toBeVisible();
         await expect(inlineForm.coverage(1)).toBeVisible();
         await expect(inlineForm.coverage(2)).not.toBeAttached();
+
+        // Adding collapses the form; reopening shows clean rows, and Cancel collapses it again
+        await expect(inlineForm.element).not.toBeAttached();
+        await inlineForm.open();
         await inlineForm.expectNoTypesEnabled();
+        await inlineForm.cancel();
+        await expect(inlineForm.element).not.toBeAttached();
+        await expect(inlineForm.openButton).toBeVisible();
 
         await editor.saveButton.click();
 
@@ -90,6 +98,6 @@ test.describe('Planning.Events: inline coverage form', () => {
         await openEvent(page);
 
         await expect(inlineForm.coveragesField.getByTestId('create-button')).toBeVisible();
-        await expect(inlineForm.element).not.toBeAttached();
+        await expect(inlineForm.openButton).not.toBeAttached();
     });
 });
