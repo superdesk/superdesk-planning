@@ -25,6 +25,8 @@ import {
     ICoverageType,
     IAssignmentItem,
     IPlanningContentProfile,
+    IEventOrPlanningItem,
+    PLANNING_VIEW,
 } from '../interfaces';
 
 import {stripHtmlRaw} from 'superdesk-core/scripts/apps/authoring/authoring/helpers';
@@ -38,6 +40,7 @@ import {
     POST_STATE,
     COVERAGES,
     TIME_COMPARISON_GRANULARITY,
+    MAIN,
 } from '../constants';
 import {
     getItemWorkflowState,
@@ -453,6 +456,31 @@ export function mapCoverageByDate(coverages: Array<IPlanningCoverageItem> = []):
         g2_content_type: c.planning.g2_content_type || '',
         assigned_to: get(c, 'assigned_to'),
     }));
+}
+
+/**
+ * Coverages to show on a list row: filtered by the list language filter and by the
+ * day group the row is rendered under (planning items linked to an event show all
+ * their coverages in the combined view)
+ */
+export function filterCoveragesForList(
+    item: IEventOrPlanningItem,
+    coverages: Array<IPlanningCoverageItem>,
+    options: {date?: string; activeFilter: PLANNING_VIEW; filterLanguage?: string},
+): Array<IPlanningCoverageItem> {
+    const {date, activeFilter, filterLanguage} = options;
+    const showAllDates = item.type === 'planning'
+        && activeFilter === MAIN.FILTERS.COMBINED
+        && getRelatedEventIdsForPlanning(item).length > 0;
+    const isSameDay = (scheduled) => scheduled && (date == null || moment(scheduled).format('YYYY-MM-DD') === date);
+
+    return mapCoverageByDate(coverages).filter((coverage) => {
+        if (filterLanguage && coverage.planning.language != filterLanguage) {
+            return false;
+        }
+
+        return showAllDates || isSameDay(coverage.planning?.scheduled);
+    });
 }
 
 // ad hoc plan created directly from planning list and not from an event
@@ -941,29 +969,29 @@ export function modifyForClient<T extends IPlanningItem | Partial<IPlanningItem>
     return plan;
 }
 
-function modifyForServer(plan: Partial<IPlanningItem>): Partial<IPlanningItem> {
-    delete plan?.event;
-
-    const modifyGenre = (coverage) => {
-        if (!get(coverage, 'planning.genre', null)) {
-            coverage.planning.genre = null;
-        } else if (!isArray(coverage.planning.genre)) {
-            coverage.planning.genre = [coverage.planning.genre];
+export function modifyCoverageForServer(coverage: DeepPartial<IPlanningCoverageItem>): void {
+    const modifyGenre = (item) => {
+        if (!get(item, 'planning.genre', null)) {
+            item.planning.genre = null;
+        } else if (!isArray(item.planning.genre)) {
+            item.planning.genre = [item.planning.genre];
         }
     };
 
+    modifyGenre(coverage);
+    delete coverage.planning._scheduledTime;
+
+    get(coverage, 'scheduled_updates', []).forEach((s) => {
+        delete s.planning._scheduledTime;
+        modifyGenre(s);
+    });
+}
+
+function modifyForServer(plan: Partial<IPlanningItem>): Partial<IPlanningItem> {
+    delete plan?.event;
     delete plan._agendas;
 
-    get(plan, 'coverages', []).forEach((coverage, i) => {
-        modifyGenre(coverage);
-
-        delete coverage.planning._scheduledTime;
-
-        get(coverage, 'scheduled_updates', []).forEach((s) => {
-            delete s.planning._scheduledTime;
-            modifyGenre(s);
-        });
-    });
+    get(plan, 'coverages', []).forEach((coverage) => modifyCoverageForServer(coverage));
 
     return plan;
 }
@@ -1578,8 +1606,8 @@ function getDefaultCoverageStatus(
 
 function defaultCoverageValues(
     newsCoverageStatus: Array<IPlanningNewsCoverageStatus>,
-    planningItem?: DeepPartial<IPlanningItem>,
-    eventItem?: IEventItem, // TAG: MULTIPLE_PRIMARY_EVENTS
+    planningItem?: DeepPartial<IEventOrPlanningItem>,
+    relatedEvent?: IEventItem, // TAG: MULTIPLE_PRIMARY_EVENTS
     g2contentType?: ICoverageType,
     defaultDesk?: IDesk,
     preferredCoverageDesks?: {[key: string]: IDesk['_id']},
@@ -1587,6 +1615,7 @@ function defaultCoverageValues(
 ): DeepPartial<IPlanningCoverageItem> {
     const {contentProfiles} = planningApi;
     const profile = coverageProfile ?? contentProfiles.get('coverage');
+    const eventItem = relatedEvent ?? (planningItem?.type === 'event' ? planningItem as IEventItem : undefined);
     const defaultValues = contentProfiles.getDefaultValues(profile) as DeepPartial<IPlanningCoverageItem>;
 
     // if new profile hasn't been created for the type don't set to anything, backend also accepts objectid only
@@ -1617,7 +1646,9 @@ function defaultCoverageValues(
                     'ednote',
                     planningItem?.ednote
                 ),
-                scheduled: planningItem?.planning_date || moment(),
+                scheduled: (planningItem as DeepPartial<IPlanningItem>)?.planning_date
+                    || eventItem?.dates?.start
+                    || moment(),
                 g2_content_type: g2contentType,
                 language: planningItem?.language ?? eventItem?.language,
             },
@@ -1642,7 +1673,7 @@ function defaultCoverageValues(
 
     if (planningItem) {
         const getCoverageDueDateStrategy = appConfig.coverage?.getDueDateStrategy || getDefaultCoverageDueDate;
-        const coverageTime = getCoverageDueDateStrategy(planningItem as IPlanningItem, eventItem);
+        const coverageTime = getCoverageDueDateStrategy(planningItem as IEventOrPlanningItem, eventItem);
 
         if (coverageTime) {
             newCoverage.planning.scheduled = coverageTime;
@@ -1683,13 +1714,14 @@ function getCoverageTimeFromEvent(eventItem: IEventItem): moment.Moment {
 }
 
 function getDefaultCoverageDueDate(
-    planningItem: IPlanningItem,
+    planningItem: IEventOrPlanningItem,
     eventItem?: IEventItem,
 ): moment.Moment | null {
     let coverageTime: moment.Moment;
-    const primaryEventIds = getRelatedEventIdsForPlanning(planningItem, 'primary');
 
-    if (primaryEventIds.length === 0) {
+    if (planningItem.type === 'event') {
+        coverageTime = getCoverageTimeFromEvent(planningItem);
+    } else if (getRelatedEventIdsForPlanning(planningItem, 'primary').length === 0) {
         if (planningItem.all_day && appConfig.planning?.all_day) {
             coverageTime = getCoverageTimeForAllDay(planningItem.planning_date);
         } else if (planningItem.planning_date) {
@@ -2031,6 +2063,7 @@ const self = {
     canEditPlanning,
     canUpdatePlanning,
     mapCoverageByDate,
+    filterCoveragesForList,
     isPlanAdHoc,
     modifyCoverageForClient,
     isCoverageCancelled,

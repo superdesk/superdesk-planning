@@ -65,14 +65,17 @@ class ArticleExportTestCase(TestCase):
         self.desk = await get_resource_service("desks").find_one_async(req=None, _id=self.desk_id)
 
     # helpers
-    def _coverage(self, content_type: str) -> dict:
-        return {
+    def _coverage(self, content_type: str, assigned_to: dict | None = None) -> dict:
+        coverage = {
             "coverage_id": str(ObjectId()),
             "original_creator": g.user["_id"],
             "workflow_status": "draft",
             "news_coverage_status": COVERAGE_STATUS,
             "planning": {"g2_content_type": content_type, "slugline": "story"},
         }
+        if assigned_to:
+            coverage["assigned_to"] = assigned_to
+        return coverage
 
     async def _create_event(self, **overrides) -> str:
         data = dict(
@@ -137,6 +140,53 @@ class ArticleExportTestCase(TestCase):
             ["text", "picture"],
             [coverage["planning"]["g2_content_type"] for coverage in event["coverages"]],
         )
+
+    async def test_get_items_merges_event_coverages_with_related_plannings(self):
+        shared = self._coverage("video")
+        event_id = await self._create_event(coverages=[self._coverage("text"), shared])
+        plan_id = await self._create_planning(
+            related_events=[{"_id": event_id, "link_type": "primary"}],
+            coverages=[shared, self._coverage("picture")],
+        )
+
+        (event,) = await get_items([event_id], "event")
+        self.assertEqual([plan_id], [plan["_id"] for plan in event["plannings"]])
+        # the Event's own coverages come first, related ones are appended and deduped by ``coverage_id``
+        self.assertEqual(
+            ["text", "video", "picture"],
+            [coverage["planning"]["g2_content_type"] for coverage in event["coverages"]],
+        )
+
+    async def test_export_renders_event_own_coverages(self):
+        reporter_id = ObjectId()
+        await test_utils.post_items(
+            "users",
+            [
+                {
+                    "_id": reporter_id,
+                    "username": "reporter",
+                    "email": "reporter@example.org",
+                    "display_name": "Coverage Reporter",
+                    "is_active": True,
+                }
+            ],
+        )
+        event_id = await self._create_event(
+            name="Solo Event",
+            coverages=[
+                self._coverage("text", assigned_to={"desk": self.desk_id, "user": reporter_id}),
+                self._coverage("picture"),
+            ],
+        )
+
+        item = await export_items_to_article(
+            ArticleExportRequest(items=[event_id], desk=str(self.desk_id), type="event")
+        )
+
+        self.assertIn("<b>Solo Event</b>", item["body_html"])
+        self.assertIn("<b>Planned coverage:</b> Text, Picture", item["body_html"])
+        # the assignee of the Event's own text coverage is listed on the Event line
+        self.assertIn(" - Coverage Reporter</p>", item["body_html"])
 
     async def test_export_creates_archive_item_on_desk(self):
         event_id = await self._create_event(name="Big Match")

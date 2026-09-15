@@ -171,6 +171,7 @@ export const validators = {
         place: [formProfile],
         reference: [formProfile],
         related_plannings: [formProfile],
+        coverages: [planningValidators.validateCoverages],
     },
     planning: {
         planning_date: [formProfile, planningValidators.validatePlanningScheduleDate],

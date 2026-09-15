@@ -1,7 +1,13 @@
 from quart_babel import lazy_gettext
 
 import superdesk
-from superdesk.core.resources import ResourceConfig, RestEndpointConfig, MongoResourceConfig, MongoIndexOptions
+from superdesk.core.resources import (
+    ResourceConfig,
+    UpdateStrategy,
+    RestEndpointConfig,
+    MongoResourceConfig,
+    MongoIndexOptions,
+)
 from superdesk.core.auth.privilege_rules import http_method_privilege_based_rules
 from superdesk.factory.app import SuperdeskApp
 
@@ -30,6 +36,7 @@ planning_types_resource_config = ResourceConfig(
     name="planning_types",
     data_class=PlanningProfileResource,
     service=PlanningTypesAsyncService,
+    update_strategy=UpdateStrategy.DEEP_MERGE,
     mongo=MongoResourceConfig(
         indexes=[
             MongoIndexOptions(

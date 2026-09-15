@@ -8,10 +8,10 @@ import {
     ICoverageProvider,
     ICoverageType,
     IEventItem,
+    IEventOrPlanningItem,
     IG2ContentType,
     IPlanningAppState,
     IPlanningCoverageItem,
-    IPlanningItem,
     IPlanningNewsCoverageStatus
 } from '../../../interfaces';
 import {IArticle, IDesk, IUser} from 'superdesk-api';
@@ -81,18 +81,22 @@ function duplicateCoverage({
     coverage,
     duplicateAs,
 }: {
-    planning: IPlanningItem;
+    planning: IEventOrPlanningItem;
     coverage: IPlanningCoverageItem;
     duplicateAs?: ICoverageType;
 }): Array<DeepPartial<IPlanningCoverageItem>> {
     const state: IPlanningAppState = planningApi.redux.store.getState();
 
-    // TAG: MULTIPLE_PRIMARY_EVENTS
-    const relatedEventId = getRelatedEventIdsForPlanning(planning, 'primary')[0];
+    let relatedEvent: IEventItem | undefined;
 
-    const relatedEvent: IEventItem | undefined = relatedEventId == null
-        ? undefined
-        : state.events.events[relatedEventId];
+    if (planning.type === 'event') {
+        relatedEvent = planning;
+    } else {
+        // TAG: MULTIPLE_PRIMARY_EVENTS
+        const relatedEventId = getRelatedEventIdsForPlanning(planning, 'primary')[0];
+
+        relatedEvent = relatedEventId == null ? undefined : state.events.events[relatedEventId];
+    }
 
     const coverageProfilesMap = selectors.forms.getCoverageProfilesMap(state);
 

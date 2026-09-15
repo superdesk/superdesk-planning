@@ -3,7 +3,6 @@ import React from 'react';
 import {connect} from 'react-redux';
 import {IDesk, IUser} from 'superdesk-api';
 import {IFieldsProps, IG2ContentType, IPlanningAppState, IPlanningCoverageItem} from 'interfaces';
-import {isPlanning} from '../../utils';
 import * as selectors from '../../selectors';
 import {CoverageIcons} from '../../components/Coverages/CoverageIcons';
 
@@ -34,10 +33,6 @@ const CoveragesComponent: React.FunctionComponent<IProps> = (props) => {
         item,
         fieldsProps,
     } = props;
-
-    if (!isPlanning(item)) {
-        return null;
-    }
 
     const coverages = item?.coverages ?? [];
     const prepare = fieldsProps?.coverages?.prepare ?? ((_items) => _items);
