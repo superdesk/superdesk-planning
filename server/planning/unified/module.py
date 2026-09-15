@@ -30,36 +30,43 @@ unified_planning_resource_config = ResourceConfig(
                 name="item_type_1",
                 keys=[("type", 1)],
                 background=True,
+                unique=False,
             ),
             MongoIndexOptions(
                 name="recurrence_id_1",
                 keys=[("recurrence_id", 1)],
                 background=True,
+                unique=False,
             ),
             MongoIndexOptions(
                 name="state",
                 keys=[("state", 1)],
                 background=True,
+                unique=False,
             ),
             MongoIndexOptions(
                 name="dates_start_1",
                 keys=[("dates.start", 1)],
                 background=True,
+                unique=False,
             ),
             MongoIndexOptions(
                 name="dates_end_1",
                 keys=[("dates.end", 1)],
                 background=True,
+                unique=False,
             ),
             MongoIndexOptions(
                 name="template",
                 keys=[("template", 1)],
                 background=True,
+                unique=False,
             ),
             MongoIndexOptions(
                 name="planning_recurrence_id",
                 keys=[("planning_recurrence_id", 1)],
                 background=True,
+                unique=False,
             ),
         ]
     ),
