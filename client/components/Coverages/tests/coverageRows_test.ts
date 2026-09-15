@@ -106,13 +106,20 @@ describe('coverageRows', () => {
         } as typeof planningApi.contentProfiles;
     };
 
-    const getRows = () => createRowsFromContentTypes(contentTypes, desks, users, newsCoverageStatus);
+    const getRows = () => createRowsFromContentTypes(contentTypes, desks, newsCoverageStatus);
+    const rules = {plannedOnDesk: true, deskRequiredForWorkflow: true};
 
     describe('applyDeskChange', () => {
         it('sets the status to Planned when the news coverage status is not manual', () => {
             const [row] = getRows();
 
-            expect(applyDeskChange(row, desks[0], users, languages).status).toEqual(statusPlanned);
+            expect(applyDeskChange(row, desks[0], users, languages, rules).status).toEqual(statusPlanned);
+        });
+
+        it('leaves the status alone without the planned on desk rule', () => {
+            const [row] = getRows();
+
+            expect(applyDeskChange(row, desks[0], users, languages).status).toBeUndefined();
         });
 
         it('leaves the status alone when the news coverage status is manual', () => {
@@ -120,20 +127,20 @@ describe('coverageRows', () => {
 
             const [row] = getRows();
 
-            expect(applyDeskChange(row, desks[0], users, languages).status).toBeUndefined();
+            expect(applyDeskChange(row, desks[0], users, languages, rules).status).toBeUndefined();
         });
 
         it('leaves the status alone on a coverage that already exists', () => {
             const [row] = getRows();
             const saved = {...row, coverage_id: 'cov1', status: statusOnMerit};
 
-            expect(applyDeskChange(saved, desks[0], users, languages).status).toBeUndefined();
+            expect(applyDeskChange(saved, desks[0], users, languages, rules).status).toBeUndefined();
         });
 
         it('leaves the status alone when the desk is cleared', () => {
             const [row] = getRows();
 
-            expect(applyDeskChange({...row, desk: desks[0]}, null, users, languages).status).toBeUndefined();
+            expect(applyDeskChange({...row, desk: desks[0]}, null, users, languages, rules).status).toBeUndefined();
         });
 
         it('keeps a user that is a member of the new desk', () => {
@@ -141,7 +148,6 @@ describe('coverageRows', () => {
             const updates = applyDeskChange({...row, user: users[0]}, desks[0], users, languages);
 
             expect(updates.user).toBe(users[0]);
-            expect(updates.filteredUsers).toEqual([users[0]]);
         });
 
         it('clears a user that is not a member of the new desk', () => {
@@ -149,7 +155,6 @@ describe('coverageRows', () => {
             const updates = applyDeskChange({...row, user: users[0]}, desks[1], users, languages);
 
             expect(updates.user).toBe(null);
-            expect(updates.filteredUsers).toEqual([users[1]]);
         });
 
         it('applies the desk language only when it is one of the filtered languages', () => {
@@ -162,7 +167,7 @@ describe('coverageRows', () => {
         it('does not mutate the row', () => {
             const [row] = getRows();
 
-            applyDeskChange(row, desks[1], users, languages);
+            applyDeskChange(row, desks[1], users, languages, rules);
 
             expect(row.desk).toBe(null);
             expect(row.status).toEqual(statusOnMerit);
@@ -215,7 +220,7 @@ describe('coverageRows', () => {
         it('inserts a disabled copy after the source row, keeping qcode and language', () => {
             const rows = getRows();
             const source = {...rows[0], enabled: true, desk: desks[1], planning: {language: 'fr-CA'} as any};
-            const updated = duplicateRow([source, rows[1]], source, newsCoverageStatus, desks, users);
+            const updated = duplicateRow([source, rows[1]], source, newsCoverageStatus, desks);
 
             expect(updated.length).toBe(3);
             expect(updated[0]).toBe(source);
@@ -234,10 +239,18 @@ describe('coverageRows', () => {
             appConfig.planning_auto_assign_to_workflow = true;
 
             const [text, picture] = getRows();
-            const errors = validateRows([{...text, enabled: true}, picture]);
+            const errors = validateRows([{...text, enabled: true}, picture], rules);
 
             expect(errors[text.rowId]).toEqual({desk: 'Desk is required'});
             expect(errors[picture.rowId]).toBeUndefined();
+        });
+
+        it('does not require a desk without the workflow rule when auto assign to workflow is on', () => {
+            appConfig.planning_auto_assign_to_workflow = true;
+
+            const [text, picture] = getRows();
+
+            expect(validateRows([{...text, enabled: true}, picture])).toEqual({});
         });
 
         it('does not require a desk on an existing coverage when auto assign to workflow is on', () => {
@@ -246,16 +259,16 @@ describe('coverageRows', () => {
             const [text] = getRows();
             const saved = {...text, enabled: true, coverage_id: 'cov1'};
 
-            expect(validateRows([saved])).toEqual({});
-            expect(validateRows([{...saved, user: users[0]}])[saved.rowId]).toEqual({desk: 'Desk is required'});
+            expect(validateRows([saved], rules)).toEqual({});
+            expect(validateRows([{...saved, user: users[0]}], rules)[saved.rowId]).toEqual({desk: 'Desk is required'});
         });
 
         it('requires a desk only when a user is set when auto assign to workflow is off', () => {
             const [text, picture] = getRows();
 
-            expect(validateRows([{...text, enabled: true}, picture])).toEqual({});
+            expect(validateRows([{...text, enabled: true}, picture], rules)).toEqual({});
 
-            const errors = validateRows([{...text, enabled: true, user: users[0]}, picture]);
+            const errors = validateRows([{...text, enabled: true, user: users[0]}, picture], rules);
 
             expect(errors[text.rowId]).toEqual({desk: 'Desk is required'});
         });
@@ -265,7 +278,7 @@ describe('coverageRows', () => {
 
             const [text] = getRows();
 
-            expect(validateRows([{...text, enabled: true, desk: desks[0], user: users[0]}])).toEqual({});
+            expect(validateRows([{...text, enabled: true, desk: desks[0], user: users[0]}], rules)).toEqual({});
         });
     });
 

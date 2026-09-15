@@ -107,7 +107,6 @@ class CoverageAddAdvancedModalComponent extends React.Component<IProps, IState> 
                 user: users.find((user) => user._id === coverage.assigned_to?.user),
                 status: coverage.news_coverage_status,
                 filteredDesks: desks,
-                filteredUsers: users,
                 coverage_id: coverage.coverage_id,
             }));
 
@@ -117,7 +116,7 @@ class CoverageAddAdvancedModalComponent extends React.Component<IProps, IState> 
 
         const combinedCoverages = [
             ...savedCoverages,
-            ...createRowsFromContentTypes(remainingContentTypes, desks, users, newsCoverageStatus),
+            ...createRowsFromContentTypes(remainingContentTypes, desks, newsCoverageStatus),
         ];
 
         // focus the first row with an enabled checkbox; active coverages are
@@ -178,8 +177,7 @@ class CoverageAddAdvancedModalComponent extends React.Component<IProps, IState> 
             this.state.coverages,
             coverage,
             this.props.newsCoverageStatus,
-            this.props.desks,
-            this.props.users
+            this.props.desks
         );
         const sourceIndex = coverages.findIndex((row) => row.rowId === coverage.rowId);
 

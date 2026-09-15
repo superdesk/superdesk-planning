@@ -8,6 +8,8 @@ import {IPlanningNewsCoverageStatus} from '../../interfaces';
 import {IDesk, IUser, IVocabularyItem} from 'superdesk-api';
 import {ICoverageLineItem, ICoverageRowErrors} from './coverageRows';
 
+import './style.scss';
+
 interface IProps {
     coverage: Partial<ICoverageLineItem>;
     newsCoverageStatus: Array<IPlanningNewsCoverageStatus>;

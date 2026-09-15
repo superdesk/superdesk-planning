@@ -206,7 +206,6 @@ class CoverageArrayInputComponent extends React.Component<IProps, IState> {
                 users={users}
                 event={item as IEventItem}
                 createCoverage={createCoverage}
-                remaining={maxCoverageCount ? Math.max(maxCoverageCount - (value?.length ?? 0), 0) : undefined}
                 onAdd={(newCoverages) => onChange(field, [...(value ?? []), ...newCoverages])}
             />
         );

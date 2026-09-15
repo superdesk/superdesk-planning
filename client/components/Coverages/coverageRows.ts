@@ -22,7 +22,6 @@ export interface ICoverageLineItem extends IPlanningCoverageItem {
     user: IUser;
     status: IPlanningNewsCoverageStatus;
     filteredDesks: Array<IDesk>;
-    filteredUsers: Array<IUser>;
 
     // frontend-only stable identity used for React keys and focus management
     rowId: string;
@@ -34,29 +33,45 @@ export interface ICoverageRowErrors {
 
 export type ICoverageRow = Partial<ICoverageLineItem>;
 
+// Rules of the inline form on the event editor; the advanced modal leaves them off
+export interface ICoverageRowRules {
+    // A new row goes to Planned once a desk is picked, unless PLANNING_MANUAL_NEWS_COVERAGE_STATUS is on
+    plannedOnDesk?: boolean;
+
+    // A new row needs a desk when PLANNING_AUTO_ASSIGN_TO_WORKFLOW is on
+    deskRequiredForWorkflow?: boolean;
+}
+
 type ILanguageOption = {value: IVocabularyItem};
 
 // Event fields copied into a coverage that has its own language
 const TRANSLATED_FIELDS = ['slugline', 'headline', 'internal_note', 'ednote'];
 
-export function createRowsFromContentTypes(
-    contentTypes: Array<IG2ContentType>,
+function createRow(
+    qcode: string,
+    language: string | null,
     desks: Array<IDesk>,
-    users: Array<IUser>,
     newsCoverageStatus: Array<IPlanningNewsCoverageStatus>
-): Array<ICoverageRow> {
-    return contentTypes.map((contentType) => ({
+): ICoverageRow {
+    return {
         rowId: uniqueId('coverage-row-'),
         enabled: false,
-        qcode: contentType.qcode,
+        qcode: qcode,
         workflow_status: 'draft',
-        planning: {language: null} as ICoveragePlanningDetails,
+        planning: {language: language} as ICoveragePlanningDetails,
         desk: null,
         filteredDesks: desks,
         user: null,
-        filteredUsers: users,
         status: planningUtils.getDefaultCoverageStatus(newsCoverageStatus),
-    }));
+    };
+}
+
+export function createRowsFromContentTypes(
+    contentTypes: Array<IG2ContentType>,
+    desks: Array<IDesk>,
+    newsCoverageStatus: Array<IPlanningNewsCoverageStatus>
+): Array<ICoverageRow> {
+    return contentTypes.map((contentType) => createRow(contentType.qcode, null, desks, newsCoverageStatus));
 }
 
 export function updateRow(
@@ -74,22 +89,10 @@ export function duplicateRow(
     rows: Array<ICoverageRow>,
     row: ICoverageRow,
     newsCoverageStatus: Array<IPlanningNewsCoverageStatus>,
-    desks: Array<IDesk>,
-    users: Array<IUser>
+    desks: Array<IDesk>
 ): Array<ICoverageRow> {
     const index = rows.findIndex((current) => current.rowId === row.rowId);
-    const duplicate: ICoverageRow = {
-        rowId: uniqueId('coverage-row-'),
-        enabled: false,
-        qcode: row.qcode,
-        workflow_status: 'draft',
-        planning: {language: row.planning?.language} as ICoveragePlanningDetails,
-        desk: null,
-        filteredDesks: desks,
-        user: null,
-        filteredUsers: users,
-        status: planningUtils.getDefaultCoverageStatus(newsCoverageStatus),
-    };
+    const duplicate = createRow(row.qcode, row.planning?.language ?? null, desks, newsCoverageStatus);
 
     return [
         ...rows.slice(0, index + 1),
@@ -102,7 +105,8 @@ export function applyDeskChange(
     row: ICoverageRow,
     desk: IDesk | null,
     users: Array<IUser>,
-    filteredLanguages: Array<ILanguageOption>
+    filteredLanguages: Array<ILanguageOption>,
+    rules: ICoverageRowRules = {}
 ): ICoverageRow {
     const deskUsers = getUsersForDesk(desk, users);
     const user = row.user != null && deskUsers.some(({_id}) => _id === row.user._id) ?
@@ -112,7 +116,6 @@ export function applyDeskChange(
     const updates: ICoverageRow = {
         desk: desk,
         user: user,
-        filteredUsers: deskUsers,
     };
 
     const deskLanguage = desk?.desk_language;
@@ -124,7 +127,12 @@ export function applyDeskChange(
         } as ICoveragePlanningDetails;
     }
 
-    if (desk != null && row.coverage_id == null && appConfig.planning.manual_news_coverage_status !== true) {
+    if (
+        rules.plannedOnDesk === true &&
+        desk != null &&
+        row.coverage_id == null &&
+        appConfig.planning.manual_news_coverage_status !== true
+    ) {
         const planned = getNewsCoverageStatusPlanned();
 
         if (row.status?.qcode !== planned.qcode) {
@@ -158,7 +166,10 @@ export function getFilteredLanguages(allLanguages: Array<ILanguageOption>): Arra
     return allLanguages.filter((language) => profileLanguages.includes(language.value.qcode));
 }
 
-export function validateRows(rows: Array<ICoverageRow>): Dictionary<string, ICoverageRowErrors> {
+export function validateRows(
+    rows: Array<ICoverageRow>,
+    rules: ICoverageRowRules = {}
+): Dictionary<string, ICoverageRowErrors> {
     const errors: Dictionary<string, ICoverageRowErrors> = {};
 
     rows.forEach((row) => {
@@ -166,8 +177,11 @@ export function validateRows(rows: Array<ICoverageRow>): Dictionary<string, ICov
             return;
         }
 
-        const deskRequired = row.user != null ||
-            (row.coverage_id == null && appConfig.planning_auto_assign_to_workflow === true);
+        const deskRequired = row.user != null || (
+            rules.deskRequiredForWorkflow === true &&
+            row.coverage_id == null &&
+            appConfig.planning_auto_assign_to_workflow === true
+        );
 
         if (deskRequired) {
             errors[row.rowId] = {desk: gettext('Desk is required')};

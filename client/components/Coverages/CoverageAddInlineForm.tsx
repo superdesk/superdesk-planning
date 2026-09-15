@@ -18,11 +18,14 @@ import {
     getFilteredLanguages,
     ICoverageLineItem,
     ICoverageRow,
+    ICoverageRowRules,
     updateRow,
     validateRows,
 } from './coverageRows';
 
 import './CoverageAddInlineForm.scss';
+
+const RULES: ICoverageRowRules = {plannedOnDesk: true, deskRequiredForWorkflow: true};
 
 interface IOwnProps {
     contentTypes: Array<IG2ContentType>;
@@ -30,9 +33,6 @@ interface IOwnProps {
     desks: Array<IDesk>;
     users: Array<IUser>;
     event?: IEventItem;
-
-    // Coverages that may still be added: undefined means unlimited, 0 disables the form
-    remaining?: number;
 
     createCoverage(qcode: IG2ContentType['qcode']): DeepPartial<ICoverageLineItem>;
     onAdd(newCoverages: Array<DeepPartial<ICoverageLineItem>>): void;
@@ -66,10 +66,10 @@ class CoverageAddInlineFormComponent extends React.Component<IProps, IState> {
     }
 
     getInitialState(): IState {
-        const {contentTypes, desks, users, newsCoverageStatus} = this.props;
+        const {contentTypes, desks, newsCoverageStatus} = this.props;
 
         return {
-            rows: createRowsFromContentTypes(contentTypes, desks, users, newsCoverageStatus),
+            rows: createRowsFromContentTypes(contentTypes, desks, newsCoverageStatus),
             submitted: false,
             open: false,
         };
@@ -86,16 +86,12 @@ class CoverageAddInlineFormComponent extends React.Component<IProps, IState> {
     }
 
     update = (row: ICoverageRow, updates: ICoverageRow) => {
-        this.setState({
-            rows: updateRow(this.state.rows, row, updates),
-            submitted: false,
-        });
+        this.setState({rows: updateRow(this.state.rows, row, updates)});
     }
 
     duplicate = (row: ICoverageRow) => {
         this.setState({
-            rows: duplicateRow(this.state.rows, row, this.props.newsCoverageStatus, this.props.desks, this.props.users),
-            submitted: false,
+            rows: duplicateRow(this.state.rows, row, this.props.newsCoverageStatus, this.props.desks),
         });
     }
 
@@ -104,7 +100,8 @@ class CoverageAddInlineFormComponent extends React.Component<IProps, IState> {
             row,
             desk,
             this.props.users,
-            getFilteredLanguages(this.props.allLanguages)
+            getFilteredLanguages(this.props.allLanguages),
+            RULES
         ));
     }
 
@@ -113,7 +110,7 @@ class CoverageAddInlineFormComponent extends React.Component<IProps, IState> {
     }
 
     add = () => {
-        const errors = validateRows(this.state.rows);
+        const errors = validateRows(this.state.rows, RULES);
 
         if (Object.keys(errors).length > 0) {
             this.setState({submitted: true});
@@ -124,7 +121,7 @@ class CoverageAddInlineFormComponent extends React.Component<IProps, IState> {
         this.reset();
     }
 
-    renderTypeLine(row: ICoverageRow, checkboxDisabled: boolean) {
+    renderTypeLine(row: ICoverageRow) {
         return (
             <div
                 className="sd-list-item sd-list-item--no-hover sd-shadow--z1"
@@ -133,7 +130,6 @@ class CoverageAddInlineFormComponent extends React.Component<IProps, IState> {
                 <div className="sd-list-item__column">
                     <Tooltip flow="top" text={gettext('Enable coverage')}>
                         <Checkbox
-                            disabled={checkboxDisabled}
                             label={{text: gettext('Coverage enabled'), hidden: true}}
                             checked={row.enabled === true}
                             onChange={() => this.update(row, {enabled: row.enabled !== true})}
@@ -162,11 +158,10 @@ class CoverageAddInlineFormComponent extends React.Component<IProps, IState> {
     }
 
     render() {
-        const {remaining, newsCoverageStatus, allLanguages} = this.props;
+        const {newsCoverageStatus, allLanguages} = this.props;
         const {rows, submitted} = this.state;
-        const errors = validateRows(rows);
+        const errors = validateRows(rows, RULES);
         const enabledCount = rows.filter((row) => row.enabled === true).length;
-        const limitReached = typeof remaining === 'number' && enabledCount >= remaining;
         const languages = getFilteredLanguages(allLanguages);
 
         if (!this.state.open) {
@@ -191,7 +186,7 @@ class CoverageAddInlineFormComponent extends React.Component<IProps, IState> {
                     <div className="sd-list-item-group sd-list-item-group--space-between-items">
                         {rows.map((row) => (
                             <React.Fragment key={row.rowId}>
-                                {this.renderTypeLine(row, row.enabled !== true && limitReached)}
+                                {this.renderTypeLine(row)}
                                 {row.enabled === true && (
                                     <div
                                         className={'coverage-inline-form__fields sd-list-item ' +
