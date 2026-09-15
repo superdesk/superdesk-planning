@@ -20,6 +20,7 @@ from .common import (
     get_planning_use_xmp_for_pic_slugline,
     get_planning_allowed_coverage_link_types,
     get_planning_auto_close_popup_editor,
+    get_planning_inline_coverage_form,
     get_config_default_create_planning_series_with_event_series,
     get_start_of_week,
     get_manual_news_coverage_status_config,
@@ -211,6 +212,7 @@ def init_app(app):
     app.client_config["planning_use_xmp_for_pic_assignments"] = get_planning_use_xmp_for_pic_assignments()
     app.client_config["planning_use_xmp_for_pic_slugline"] = get_planning_use_xmp_for_pic_slugline()
     app.client_config["planning_auto_close_popup_editor"] = get_planning_auto_close_popup_editor()
+    app.client_config["planning_inline_coverage_form"] = get_planning_inline_coverage_form()
     app.client_config["start_of_week"] = get_start_of_week()
 
     app.client_config.setdefault("planning", {})

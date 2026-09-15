@@ -1,5 +1,3 @@
-@import 'superdesk-ui-framework/app/styles/variables/_colors.scss';
-
 .related-plannings {
     .planning-item {
         border: 1px solid var(--sd-colour-line--x-light);
@@ -30,62 +28,5 @@
         display: flex;
         align-items: center;
         justify-content: center;
-    }
-
-    .coverage-form {
-        border: 1px solid var(--sd-colour-line--light);
-        border-radius: 2px;
-        display: flex;
-        flex-direction: column;
-        background-color: var(--sd-colour-panel-bg--200);
-
-        .sd-list-item-group {
-            margin: 0 !important;
-        }
-
-        &.coverage-form--initial {
-            border-style: dashed;
-            cursor: pointer;
-            background-color: unset;
-
-            .label-icon {
-                cursor: pointer;
-            }
-        }
-
-        &.coverage-form--initial:hover {
-            border-color: $sd-blue;
-        }
-
-        .coverage-form__header {
-            padding: 0.8rem 1.6rem;
-            border-bottom: 1px solid var(--sd-colour-line--light);
-        }
-
-        .coverage-form__body {
-            padding: 1.6rem;
-            background-color: var(--sd-colour-panel-bg--100);
-            display: flex;
-            flex-direction: column;
-        }
-
-        .coverage-form__footer {
-            padding: 0.8rem 1.6rem;
-            border-top: 1px solid var(--sd-colour-line--light);
-            display: flex;
-        }
-    }
-
-    .sd-list-item {
-        &.enabled {
-            [class^="icon-"] {
-                opacity: 1;
-                color: var(--color-text);
-            }
-
-            .label-icon {
-                color: var(--color-text);
-            }
-        }
     }
 }

@@ -10,3 +10,11 @@
     margin-top: -1.5rem;
   }
 }
+
+.coverage-editable-fields--stacked {
+    display: flex;
+    flex-direction: column;
+    gap: 0.8rem;
+    width: 100%;
+    padding: 0.8rem 1.6rem 1.2rem;
+}

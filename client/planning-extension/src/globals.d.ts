@@ -19,6 +19,7 @@ declare module 'superdesk-api' {
         planning_check_for_assignment_on_publish?: boolean;
         planning_check_for_assignment_on_send?: boolean;
         planning_fulfil_on_publish_for_desks: Array<string>;
+        planning_inline_coverage_form?: boolean;
         planning_link_updates_to_coverage?: boolean;
         planning_use_xmp_for_pic_assignments?: boolean;
         planning_use_xmp_for_pic_slugline?: boolean;

@@ -220,6 +220,10 @@ def get_planning_expand_related_plannings():
     return get_app_config("PLANNING_EXPAND_RELATED_PLANNINGS", False)
 
 
+def get_planning_inline_coverage_form():
+    return get_app_config("PLANNING_INLINE_COVERAGE_FORM", False)
+
+
 def get_planning_use_xmp_for_pic_assignments():
     return get_app_config("PLANNING_USE_XMP_FOR_PIC_ASSIGNMENTS", False)
 

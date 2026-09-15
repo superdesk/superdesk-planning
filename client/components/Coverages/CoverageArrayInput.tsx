@@ -17,6 +17,7 @@ import {
     IPlanningNewsCoverageStatus,
 } from '../../interfaces';
 import {IArticle, IDesk, IUser} from 'superdesk-api';
+import {appConfig} from 'appConfig';
 import {superdeskApi, planningApi} from '../../superdeskApi';
 
 import * as selectors from '../../selectors';
@@ -24,6 +25,7 @@ import * as selectors from '../../selectors';
 import {InputArray} from '../UI/Form';
 import {CoverageEditor, CoverageEditorComponent} from './CoverageEditor';
 import {CoverageAddButton} from './CoverageAddButton';
+import {CoverageAddInlineForm} from './CoverageAddInlineForm';
 import planningActions from '../../actions/planning/api';
 
 
@@ -193,6 +195,21 @@ class CoverageArrayInputComponent extends React.Component<IProps, IState> {
         const language = this.props.item.language;
         const createCoverage = this.createCoverage;
 
+        const showInlineForm = appConfig.planning_inline_coverage_form === true &&
+            !disabled &&
+            item.type === 'event';
+        const inlineFormElement = !showInlineForm ? null : (
+            <CoverageAddInlineForm
+                contentTypes={contentTypes}
+                newsCoverageStatus={newsCoverageStatus}
+                desks={desks}
+                users={users}
+                event={item as IEventItem}
+                createCoverage={createCoverage}
+                onAdd={(newCoverages) => onChange(field, [...(value ?? []), ...newCoverages])}
+            />
+        );
+
         return (
             <InputArray
                 testId={testId}
@@ -241,6 +258,7 @@ class CoverageArrayInputComponent extends React.Component<IProps, IState> {
                 openCoverageIds={this.state.openCoverageIds}
                 getRef={this.props.getRef}
                 editorType={editorType}
+                inlineFormElement={inlineFormElement}
                 {...props}
             >
                 {children}

@@ -58,6 +58,9 @@ interface IProps {
 
     // HOC mode - optional; added to support "add button" as mini toolbar in authoring-react
     children?: (options: IInputArrayHocModeOptions) => React.ReactNode;
+
+    // Rendered after the items in place of the add button and the empty state
+    inlineFormElement?: React.ReactNode;
 }
 
 export class InputArray extends React.PureComponent<IProps> {
@@ -138,11 +141,13 @@ export class InputArray extends React.PureComponent<IProps> {
             label,
             labelClassName,
             testId,
+            inlineFormElement = null,
             ...props
         } = this.props;
 
         const Component = element;
-        const showAddButton = (maxCount ? value.length < maxCount : true) && !disabled;
+        const showAddButton = inlineFormElement == null &&
+            (maxCount ? value.length < maxCount : true) && !disabled;
         const isIndexReadOnly = (index) => (addOnly && index === originalCount) ? false : disabled;
         const addButton = this.renderButton();
 
@@ -210,8 +215,9 @@ export class InputArray extends React.PureComponent<IProps> {
                         {errorMessageElement}
                         {itemsElement}
                         {!buttonWithLabel && addButtonElement}
+                        {inlineFormElement}
                     </Row>
-                    {(this.props.value?.length ?? 0) < 1 && emptyValueElement}
+                    {inlineFormElement == null && (this.props.value?.length ?? 0) < 1 && emptyValueElement}
                 </>
             );
         }
