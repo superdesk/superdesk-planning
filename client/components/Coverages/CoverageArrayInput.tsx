@@ -22,8 +22,6 @@ import {superdeskApi, planningApi} from '../../superdeskApi';
 
 import * as selectors from '../../selectors';
 
-import {getRelatedEventIdsForPlanning} from '../../utils/planning';
-
 import {InputArray} from '../UI/Form';
 import {CoverageEditor, CoverageEditorComponent} from './CoverageEditor';
 import {CoverageAddButton} from './CoverageAddButton';
@@ -70,7 +68,6 @@ interface IReduxStateProps {
     newsCoverageStatus: Array<IPlanningNewsCoverageStatus>;
     coverageAddAdvancedMode: boolean;
     defaultDesk: IDesk;
-    events: Dictionary<IEventItem['_id'], IEventItem>;
 }
 
 interface IReduxDispatchProps {
@@ -93,7 +90,6 @@ const mapStateToProps = (state): IReduxStateProps => ({
     newsCoverageStatus: selectors.general.newsCoverageStatus(state),
     coverageAddAdvancedMode: selectors.general.coverageAddAdvancedMode(state),
     defaultDesk: selectors.general.defaultDesk(state),
-    events: selectors.events.storedEvents(state),
 });
 
 const mapDispatchToProps = (dispatch): IReduxDispatchProps => ({
@@ -184,7 +180,6 @@ class CoverageArrayInputComponent extends React.Component<IProps, IState> {
             navigation,
             useLocalNavigation,
             event,
-            events,
             testId,
             editorType,
             children,
@@ -200,22 +195,17 @@ class CoverageArrayInputComponent extends React.Component<IProps, IState> {
         const language = this.props.item.language;
         const createCoverage = this.createCoverage;
 
-        // HOC mode (children as a function) is only used by the planning editor embedded in the event form,
-        // which is the only place the inline form may replace the add button
+        // Only the event's own coverages get the inline form, planning editors keep the add button
         const showInlineForm = appConfig.planning_inline_coverage_form === true &&
             !disabled &&
-            typeof children === 'function';
-
-        // The embedded planning editor is given no `event` prop, so the primary related event
-        // has to be looked up in the store for the translated coverage fields
-        const inlineFormEvent = event ?? events[getRelatedEventIdsForPlanning(item, 'primary')[0]];
+            item.type === 'event';
         const inlineFormElement = !showInlineForm ? null : (
             <CoverageAddInlineForm
                 contentTypes={contentTypes}
                 newsCoverageStatus={newsCoverageStatus}
                 desks={desks}
                 users={users}
-                event={inlineFormEvent}
+                event={item as IEventItem}
                 createCoverage={createCoverage}
                 remaining={maxCoverageCount ? Math.max(maxCoverageCount - (value?.length ?? 0), 0) : undefined}
                 onAdd={(newCoverages) => onChange(field, [...(value ?? []), ...newCoverages])}

@@ -31,12 +31,13 @@ export async function overrideClientConfig(page: Page, overrides: {[key: string]
 }
 
 /**
- * Turns on the inline coverage form (`PLANNING_INLINE_COVERAGE_FORM` on the server).
- * Must be called before the first navigation, see {@link overrideClientConfig}.
+ * Sets the inline coverage form flag (`PLANNING_INLINE_COVERAGE_FORM` on the server) regardless of the
+ * server's own setting. Must be called before the first navigation, see {@link overrideClientConfig}.
  *
  * @param {Page} page - The Playwright page to intercept requests on.
+ * @param {boolean} enabled - Whether the inline form is shown in the event editor.
  * @return {Promise<void>} A promise that resolves once the route is registered.
  */
-export async function enableInlineCoverageForm(page: Page): Promise<void> {
-    await overrideClientConfig(page, {planning_inline_coverage_form: true});
+export async function setInlineCoverageForm(page: Page, enabled: boolean): Promise<void> {
+    await overrideClientConfig(page, {planning_inline_coverage_form: enabled});
 }

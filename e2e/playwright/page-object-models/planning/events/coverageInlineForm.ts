@@ -1,28 +1,40 @@
 import {expect} from '@playwright/test';
 import type {Locator} from '@playwright/test';
 
-import {EmbeddedCoverageEditor} from './embeddedCoverageEditor';
-
 /**
- * Wrapper around the inline "Coverage Types" form, rendered above the coverages of an
- * embedded planning item when `planning_inline_coverage_form` is on.
+ * Wrapper around the inline "Coverage Types" form, rendered under the coverages of the
+ * event editor when `planning_inline_coverage_form` is on.
  */
 export class CoverageInlineForm {
-    editor: EmbeddedCoverageEditor;
-    planningIndex: number;
+    coveragesField: Locator;
 
     /**
-     * @param {EmbeddedCoverageEditor} editor - The embedded planning editor holding the form
-     * @param {number} planningIndex - The index of the planning item inside the event editor
+     * @param {Locator} coveragesField - The coverages field of the editor holding the form
      */
-    constructor(editor: EmbeddedCoverageEditor, planningIndex: number) {
-        this.editor = editor;
-        this.planningIndex = planningIndex;
+    constructor(coveragesField: Locator) {
+        this.coveragesField = coveragesField;
     }
 
     get element(): Locator {
-        return this.editor.getPlanningItem(this.planningIndex)
-            .getByTestId('coverage-inline-form');
+        return this.coveragesField.getByTestId('coverage-inline-form');
+    }
+
+    /**
+     * Returns the collapsible editor of an already added coverage.
+     *
+     * @param {number} index - The position of the coverage in the field
+     * @returns {Locator}
+     */
+    coverage(index: number): Locator {
+        return this.coveragesField.getByTestId(`field-coverages[${index}]`);
+    }
+
+    // A coverage renders as a collapsed box; its fields are only in the DOM once expanded.
+    async expandCoverage(index: number): Promise<void> {
+        const coverage = this.coverage(index);
+
+        await coverage.locator('.sd-collapse-box__header').click();
+        await expect(coverage.getByTestId('field-g2_content_type')).toBeVisible();
     }
 
     get addButton(): Locator {

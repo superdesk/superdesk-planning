@@ -59,7 +59,7 @@ interface IProps {
     // HOC mode - optional; added to support "add button" as mini toolbar in authoring-react
     children?: (options: IInputArrayHocModeOptions) => React.ReactNode;
 
-    // Handed to the HOC render function instead of the add button; the plain render path ignores it
+    // Rendered after the items in place of the add button and the empty state
     inlineFormElement?: React.ReactNode;
 }
 
@@ -203,7 +203,6 @@ export class InputArray extends React.PureComponent<IProps> {
                 errorMessageElement,
                 labelElement,
                 emptyValueElement,
-                inlineFormElement,
             });
         } else {
             return (
@@ -216,8 +215,9 @@ export class InputArray extends React.PureComponent<IProps> {
                         {errorMessageElement}
                         {itemsElement}
                         {!buttonWithLabel && addButtonElement}
+                        {inlineFormElement}
                     </Row>
-                    {(this.props.value?.length ?? 0) < 1 && emptyValueElement}
+                    {inlineFormElement == null && (this.props.value?.length ?? 0) < 1 && emptyValueElement}
                 </>
             );
         }

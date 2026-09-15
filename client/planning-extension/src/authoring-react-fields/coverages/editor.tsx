@@ -67,13 +67,7 @@ export class Editor extends React.PureComponent<IProps> {
                          */
                         onChange={onChange}
                     >
-                        {({
-                            addButtonElement,
-                            itemsElement,
-                            errorMessageElement,
-                            emptyValueElement,
-                            inlineFormElement,
-                        }) => {
+                        {({addButtonElement, itemsElement, errorMessageElement, emptyValueElement}) => {
                             const miniToolbar = (
                                 <div
                                     data-test-id="editor--planning-item__add-coverage"
@@ -85,7 +79,6 @@ export class Editor extends React.PureComponent<IProps> {
 
                             return (
                                 <Container miniToolbar={miniToolbar}>
-                                    {inlineFormElement}
                                     {(changedValue ?? []).length < 1 ? (
                                         emptyValueElement
                                     ) : (

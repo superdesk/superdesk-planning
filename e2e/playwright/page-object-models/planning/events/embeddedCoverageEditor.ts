@@ -76,14 +76,6 @@ export class EmbeddedCoverageEditor {
         return this.getPlanningItem(planningIndex)
             .getByTestId(`field-coverages[${coverageIndex}]`);
     }
-
-    // A coverage renders as a collapsed box; its fields are only in the DOM once expanded.
-    async expandRelatedCoverage(planningIndex: number, coverageIndex: number): Promise<void> {
-        const coverage = this.getRelatedCoverage(planningIndex, coverageIndex);
-
-        await coverage.locator('.sd-collapse-box__header').click();
-        await expect(coverage.getByTestId('field-g2_content_type')).toBeVisible();
-    }
 }
 
 export class EmbeddedCoverage {
