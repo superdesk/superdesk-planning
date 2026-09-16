@@ -12,6 +12,7 @@ interface IProps {
     isOpen?: boolean;
     alignRight?: boolean;
     dropUp?: boolean;
+    testId?: string;
 }
 
 export class Dropdown extends React.PureComponent<IProps> {
@@ -27,6 +28,7 @@ export class Dropdown extends React.PureComponent<IProps> {
                     {'dropdown--dropup': this.props.dropUp},
                     this.props.className
                 )}
+                data-test-id={this.props.testId}
             >
                 {this.props.children}
             </div>

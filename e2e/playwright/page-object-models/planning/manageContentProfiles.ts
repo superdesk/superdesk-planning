@@ -2,12 +2,21 @@ import {expect, Locator} from '@playwright/test';
 import {Modal, SubNavBar, ActionMenu, NewCheckboxInput, TreeSelect} from '../../utils/common';
 
 export class ManageContentProfiles extends Modal {
+    // The profile modal is a ui-framework 7 dialog, not the legacy `.modal__dialog` markup
+    get element(): Locator {
+        return this.page.getByRole('dialog', {name: /^Manage (Event|Planning) Profile$/});
+    }
+
+    get footer(): Locator {
+        return this.element.locator('.p-dialog-footer');
+    }
+
     async show(contentType: 'event' | 'planning'): Promise<void> {
         const subnav = new SubNavBar(this.page);
 
-        await subnav.menuBtn.click();
-        await subnav.menu
-            .getByText(`Manage ${contentType} profile`)
+        await subnav.actionsMenuBtn.click();
+        await subnav.actionsMenu
+            .getByRole('button', {name: `Manage ${contentType} profile`})
             .click();
 
         await this.waitTillOpen();
@@ -70,7 +79,7 @@ export class ManageContentProfiles extends Modal {
     }
 
     async saveField(): Promise<void> {
-        await this.getHeaderButton('Save').click();
+        await this.getHeaderButton('Apply').click();
     }
 
     getHeaderButton(label: string): Locator {

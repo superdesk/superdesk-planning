@@ -7,6 +7,7 @@ import {
     IAssignmentPriority,
     ICoverageProvider,
     ICoverageType,
+    IEventFormProfile,
     IEventItem,
     IEventOrPlanningItem,
     IFile,
@@ -17,7 +18,6 @@ import {
     IPlanningNewsCoverageStatus,
 } from '../../interfaces';
 import {IArticle, IDesk, IUser} from 'superdesk-api';
-import {appConfig} from 'appConfig';
 import {superdeskApi, planningApi} from '../../superdeskApi';
 
 import * as selectors from '../../selectors';
@@ -59,6 +59,7 @@ interface IOwnProps {
 }
 
 interface IReduxStateProps {
+    eventProfile: IEventFormProfile;
     users: Array<IUser>;
     desks: Array<IDesk>;
     genres: Array<IGenre>;
@@ -90,6 +91,7 @@ const mapStateToProps = (state): IReduxStateProps => ({
     newsCoverageStatus: selectors.general.newsCoverageStatus(state),
     coverageAddAdvancedMode: selectors.general.coverageAddAdvancedMode(state),
     defaultDesk: selectors.general.defaultDesk(state),
+    eventProfile: selectors.forms.eventProfile(state),
 });
 
 const mapDispatchToProps = (dispatch): IReduxDispatchProps => ({
@@ -180,6 +182,7 @@ class CoverageArrayInputComponent extends React.Component<IProps, IState> {
             navigation,
             useLocalNavigation,
             event,
+            eventProfile,
             testId,
             editorType,
             children,
@@ -195,9 +198,8 @@ class CoverageArrayInputComponent extends React.Component<IProps, IState> {
         const language = this.props.item.language;
         const createCoverage = this.createCoverage;
 
-        const showInlineForm = appConfig.planning_inline_coverage_form === true &&
-            !disabled &&
-            item.type === 'event';
+        const inlineFormEnabled = eventProfile.editor?.coverages?.inline_form === true;
+        const showInlineForm = inlineFormEnabled && !disabled && item.type === 'event';
         const inlineFormElement = !showInlineForm ? null : (
             <CoverageAddInlineForm
                 contentTypes={contentTypes}

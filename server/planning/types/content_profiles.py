@@ -8,7 +8,7 @@
 # AUTHORS and LICENSE files distributed with this source code, or
 # at https://www.sourcefabric.org/superdesk/license
 
-from typing import TypedDict, Dict, List
+from typing import TypedDict, Dict, List, NotRequired
 
 from bson import ObjectId
 
@@ -24,6 +24,9 @@ class ContentFieldSchema(TypedDict, total=False):
 
 class ContentFieldEditor(TypedDict):
     enabled: bool
+
+    # Event profile, coverages field: show the inline Add Coverages form instead of the add button
+    inline_form: NotRequired[bool]
 
 
 class BaseProfile(TypedDict):

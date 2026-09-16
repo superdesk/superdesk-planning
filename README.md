@@ -202,12 +202,6 @@ Below sections include the config options that can be defined in settings.py.
     * If False, a Coverage's `news_coverage_status` will be set to Planned (`ncostat:int`) when a `Desk` is assigned to it,
       or the Coverage is added to workflow.
     * If True, a Coverage's `news_coverage_status` will only be changed when a user changes the value.
-* PLANNING_INLINE_COVERAGE_FORM
-    * Default: False
-    * If True, the Event editor shows an inline "Add Coverages" form under the Event's coverages instead of the add
-      coverage button. Ticking a content type reveals its desk, user, language and status; picking a desk sets the
-      status to Planned unless `PLANNING_MANUAL_NEWS_COVERAGE_STATUS` is True, and a desk is required when
-      `PLANNING_AUTO_ASSIGN_TO_WORKFLOW` is True.
 
 ### Assignments Config
 * SLACK_BOT_TOKEN
@@ -250,6 +244,15 @@ Below sections include the config options that can be defined in settings.py.
     * When duplicating content that is linked to an Assignment with multiple content enabled,
     * this setting determines whether the newly created duplicate item retains the Assignment link (if true)
     * or removes the assignment_id from the duplicate item (if false).
+
+### Inline Coverages Form
+
+The Event editor can show an inline "Add Coverages" form under the Event's coverages instead of the add coverage
+button. It is off by default and turned on per instance in the Event content profile: Settings > Planning > Event
+profile > Coverages field > "Inline Add Coverages form" (`editor.coverages.inline_form` in the `planning_types`
+resource). Ticking a content type reveals its desk, user, language and status; picking a desk sets the status to
+Planned unless `PLANNING_MANUAL_NEWS_COVERAGE_STATUS` is True, and a desk is required when
+`PLANNING_AUTO_ASSIGN_TO_WORKFLOW` is True.
 
 ### Search Filters Config
 

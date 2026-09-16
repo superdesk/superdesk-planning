@@ -3,8 +3,8 @@ import type {Locator} from '@playwright/test';
 
 /**
  * Wrapper around the inline "Coverage Types" form, rendered under the coverages of the
- * event editor when `planning_inline_coverage_form` is on. It starts collapsed as an
- * "Add Coverages" box and opens on click.
+ * event editor when the event profile's coverages field has `inline_form` on. It starts
+ * collapsed as an "Add Coverages" box and opens on click.
  */
 export class CoverageInlineForm {
     coveragesField: Locator;

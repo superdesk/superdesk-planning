@@ -1,9 +1,10 @@
 import {test, expect} from '@playwright/test';
 import type {Locator, Page} from '@playwright/test';
 
-import {setup, login, waitForPageLoad, addItems, setInlineCoverageForm} from '../utils/common';
-import {CoverageInlineForm, EventEditor, PlanningList} from '../page-object-models/planning';
+import {setup, login, waitForPageLoad, addItems} from '../utils/common';
+import {CoverageInlineForm, EventEditor, ManageContentProfiles, PlanningList} from '../page-object-models/planning';
 import {createEventFor} from '../utils/fixtures/events';
+import {EVENT_PROFILE_INLINE_COVERAGES} from '../utils/fixtures/planning_types';
 
 const DESK = 'Sports Desk';
 
@@ -15,16 +16,20 @@ test.describe('Planning.Events: inline coverage form', () => {
     let editor: EventEditor;
     let inlineForm: CoverageInlineForm;
     let list: PlanningList;
+    let manageProfiles: ManageContentProfiles;
 
     test.beforeEach(async ({page}) => {
         editor = new EventEditor(page);
         inlineForm = new CoverageInlineForm(editor.element.getByTestId('field-coverages'));
         list = new PlanningList(page);
+        manageProfiles = new ManageContentProfiles(page);
     });
 
     async function prepare(page: Page, inlineFormEnabled: boolean): Promise<void> {
-        await setInlineCoverageForm(page, inlineFormEnabled);
         await setup(page, 'planning_prepopulate_data', '/#/planning');
+        if (inlineFormEnabled) {
+            await addItems(page.request, 'planning_types', [EVENT_PROFILE_INLINE_COVERAGES]);
+        }
         await addItems(page.request, 'events', [createEventFor.today({
             state: 'draft',
             name: 'Inline coverages',
@@ -92,11 +97,29 @@ test.describe('Planning.Events: inline coverage form', () => {
         await expect(selectedOption(textCoverage, 'field-news_coverage_status')).toHaveText('Planned');
     });
 
-    test('falls back to the add coverage button when the config is off', async ({page}) => {
+    test('falls back to the add coverage button when the profile option is off', async ({page}) => {
         await prepare(page, false);
         await openEvent(page);
 
         await expect(inlineForm.coveragesField.getByTestId('create-button')).toBeVisible();
         await expect(inlineForm.openButton).not.toBeAttached();
+    });
+
+    test('can be turned on from the event profile editor', async ({page}) => {
+        await prepare(page, false);
+        await waitForPageLoad.planning(page);
+
+        await manageProfiles.show('event');
+        await manageProfiles.selectTab(1);
+        await manageProfiles.getFieldListItem('coverages').click();
+        await manageProfiles.getEditorCheckbox('field.inline_form').type(true);
+        await manageProfiles.saveField();
+        await manageProfiles.getFooterButton('Save All').click();
+        await manageProfiles.waitTillClosed();
+
+        await openEvent(page);
+
+        await expect(inlineForm.openButton).toBeVisible();
+        await expect(inlineForm.coveragesField.getByTestId('create-button')).not.toBeAttached();
     });
 });

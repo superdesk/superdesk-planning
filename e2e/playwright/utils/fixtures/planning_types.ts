@@ -612,3 +612,16 @@ export const ADVANCED_SEARCH = {
     },
     "schema": {}
 }
+
+/**
+ * Event profile with the inline "Add Coverages" form turned on for the coverages field.
+ * The backend merges it into the default event profile, so only that field is listed.
+ * Profiles get an ObjectId, the name is what ties the record to the form.
+ */
+export const EVENT_PROFILE_INLINE_COVERAGES = {
+    name: 'event',
+    type: 'event',
+    editor: {
+        coverages: {enabled: true, group: 'coverages', index: 1, inline_form: true},
+    },
+};

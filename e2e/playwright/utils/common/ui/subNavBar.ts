@@ -30,6 +30,14 @@ export class SubNavBar {
         return this.page.locator('.subnav + .subnav').locator('ul.dropdown__menu');
     }
 
+    get actionsMenuBtn(): Locator {
+        return this.page.getByTestId('planning--actions-menu').getByRole('button', {name: 'Actions', exact: true});
+    }
+
+    get actionsMenu(): Locator {
+        return this.page.getByTestId('planning--actions-menu').locator('ul.dropdown__menu');
+    }
+
     async createEvent(): Promise<void> {
         await this.plusBtn.click();
         await this.createMenu

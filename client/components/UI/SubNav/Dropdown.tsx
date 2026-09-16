@@ -39,6 +39,7 @@ interface IProps {
     tooltip?: string;
     scrollable?: boolean;
     searchable?: boolean;
+    testId?: string;
 }
 
 interface IState {
@@ -196,6 +197,7 @@ export class Dropdown extends React.Component<IProps, IState> {
                 alignRight={this.props.alignRight}
                 dropUp={this.props.dropUp}
                 className={this.props.className}
+                testId={this.props.testId}
             >
                 {this.props.tooltip ? (
                     <Tooltip content={this.props.tooltip} placement="left">
