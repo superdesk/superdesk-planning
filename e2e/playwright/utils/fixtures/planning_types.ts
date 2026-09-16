@@ -1,4 +1,7 @@
 /**
+ * Profiles are posted without an `_id`: the resource assigns an ObjectId and the
+ * backend merges by `name`, so a string id is rejected.
+ *
  * Planning content profile used by the preview panel specs.
  *
  * The backend merges this record field-by-field into the default planning
@@ -14,8 +17,8 @@
  * - "name" is enabled but assigned to no group, so it must not render.
  */
 export const PLANNING_PROFILE_GROUPED_PREVIEW = {
-    _id: 'planning',
     name: 'planning',
+    type: 'planning',
     editor: {
         description_text: {enabled: true, group: 'main', index: 1},
         slugline: {enabled: true, group: 'main', index: 2},
@@ -65,8 +68,8 @@ export const PLANNING_PROFILE_GROUPED_PREVIEW = {
  *   default group, so attachments renders before the related plannings section.
  */
 export const EVENT_PROFILE_GROUPED_PREVIEW = {
-    _id: 'event',
     name: 'event',
+    type: 'event',
     editor: {
         slugline: {enabled: true, group: 'main', index: 1},
         dates: {enabled: true, group: 'main', index: 2},
@@ -109,8 +112,8 @@ export const EVENT_PROFILE_GROUPED_PREVIEW = {
 };
 
 export const ADVANCED_SEARCH = {
-    "_id": "advanced_search",
     "name": "advanced_search",
+    "type": "advanced_search",
     "init_version": 3,
     "editor": {
         "event": {
