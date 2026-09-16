@@ -23,20 +23,14 @@ test.describe('Planning.Events: inline coverage form', () => {
         inlineForm = new CoverageInlineForm(editor.element.getByTestId('field-coverages'));
         list = new PlanningList(page);
         manageProfiles = new ManageContentProfiles(page);
-    });
 
-    async function prepare(page: Page, inlineFormEnabled: boolean): Promise<void> {
         await setup(page, 'planning_prepopulate_data', '/#/planning');
-        if (inlineFormEnabled) {
-            await addItems(page.request, 'planning_types', [EVENT_PROFILE_INLINE_COVERAGES]);
-        }
         await addItems(page.request, 'events', [createEventFor.today({
             state: 'draft',
             name: 'Inline coverages',
             slugline: 'inline-coverages',
         })]);
-        await login(page);
-    }
+    });
 
     async function openEvent(page: Page): Promise<void> {
         await waitForPageLoad.planning(page);
@@ -47,9 +41,8 @@ test.describe('Planning.Events: inline coverage form', () => {
     }
 
     test('adds a coverage per ticked content type and keeps them after a save and reload', async ({page}) => {
-        test.setTimeout(120000);
-
-        await prepare(page, true);
+        await addItems(page.request, 'planning_types', [EVENT_PROFILE_INLINE_COVERAGES]);
+        await login(page);
         await openEvent(page);
 
         await expect(inlineForm.openButton).toBeVisible();
@@ -98,7 +91,7 @@ test.describe('Planning.Events: inline coverage form', () => {
     });
 
     test('falls back to the add coverage button when the profile option is off', async ({page}) => {
-        await prepare(page, false);
+        await login(page);
         await openEvent(page);
 
         await expect(inlineForm.coveragesField.getByTestId('create-button')).toBeVisible();
@@ -106,7 +99,7 @@ test.describe('Planning.Events: inline coverage form', () => {
     });
 
     test('can be turned on from the event profile editor', async ({page}) => {
-        await prepare(page, false);
+        await login(page);
         await waitForPageLoad.planning(page);
 
         await manageProfiles.show('event');
@@ -114,8 +107,7 @@ test.describe('Planning.Events: inline coverage form', () => {
         await manageProfiles.getFieldListItem('coverages').click();
         await manageProfiles.getEditorCheckbox('field.inline_form').type(true);
         await manageProfiles.saveField();
-        await manageProfiles.getFooterButton('Save All').click();
-        await manageProfiles.waitTillClosed();
+        await manageProfiles.saveAll();
 
         await openEvent(page);
 

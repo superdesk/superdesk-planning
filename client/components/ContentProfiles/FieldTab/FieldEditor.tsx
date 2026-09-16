@@ -162,6 +162,7 @@ export class FieldEditor extends React.Component<IProps, IState> {
                                     text={gettext('Apply')}
                                     onClick={this.saveField}
                                     type="primary"
+                                    data-test-id="content-field--editor-apply"
                                     disabled={!this.props.isDirty}
                                 />
                             )}

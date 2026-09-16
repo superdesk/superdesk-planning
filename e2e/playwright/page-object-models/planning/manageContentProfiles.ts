@@ -4,11 +4,7 @@ import {Modal, SubNavBar, ActionMenu, NewCheckboxInput, TreeSelect} from '../../
 export class ManageContentProfiles extends Modal {
     // The profile modal is a ui-framework 7 dialog, not the legacy `.modal__dialog` markup
     get element(): Locator {
-        return this.page.getByRole('dialog', {name: /^Manage (Event|Planning) Profile$/});
-    }
-
-    get footer(): Locator {
-        return this.element.locator('.p-dialog-footer');
+        return this.page.getByTestId('content-profile-modal');
     }
 
     async show(contentType: 'event' | 'planning'): Promise<void> {
@@ -79,7 +75,14 @@ export class ManageContentProfiles extends Modal {
     }
 
     async saveField(): Promise<void> {
-        await this.getHeaderButton('Apply').click();
+        await this.getEditor()
+            .getByTestId('content-field--editor-apply')
+            .click();
+    }
+
+    async saveAll(): Promise<void> {
+        await this.element.getByTestId('content-profile-modal--save').click();
+        await this.waitTillClosed();
     }
 
     getHeaderButton(label: string): Locator {

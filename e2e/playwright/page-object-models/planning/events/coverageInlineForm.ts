@@ -43,7 +43,7 @@ export class CoverageInlineForm {
     async expandCoverage(index: number): Promise<void> {
         const coverage = this.coverage(index);
 
-        await coverage.locator('.sd-collapse-box__header').click();
+        await coverage.getByTestId('collapse-box--header').click();
         await expect(coverage.getByTestId('field-g2_content_type')).toBeVisible();
     }
 
