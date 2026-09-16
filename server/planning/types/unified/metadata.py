@@ -1,12 +1,33 @@
-from typing import Annotated
+from typing import Annotated, Any
 from enum import Enum, unique
 
-from pydantic import Field, BaseModel
+from bson import ObjectId as BsonObjectId
+from pydantic import Field, BaseModel, BeforeValidator
 
 from superdesk.core.resources import Dataclass, fields
-from superdesk.core.resources.validators import validate_data_relation_async
+from superdesk.core.resources.validators import AsyncValidator, validate_data_relation_async
 
 from .common import CVItem, Subject, ItemLocation
+
+
+def _to_object_id_if_valid(value: Any) -> Any:
+    """Keep IDs of external resources as plain strings, they are not stored locally"""
+
+    return BsonObjectId(value) if BsonObjectId.is_valid(value) else value
+
+
+ContactId = Annotated[str | fields.ObjectId, BeforeValidator(_to_object_id_if_valid)]
+
+_contacts_data_relation = validate_data_relation_async("contacts")
+
+
+async def _validate_local_contacts(item, value: list[Any] | None) -> None:
+    await _contacts_data_relation.func(
+        item, [contact_id for contact_id in value or [] if isinstance(contact_id, BsonObjectId)]
+    )
+
+
+validate_local_contacts = AsyncValidator(_validate_local_contacts, "contacts")
 
 
 class Place(Dataclass):
@@ -139,8 +160,12 @@ class ItemExtraDetails(BaseModel):
 
 
 class ItemContactDetails(BaseModel):
-    event_contact_info: Annotated[list[fields.ObjectId] | None, validate_data_relation_async("contacts")] = Field(
-        description="List of contact IDs related to the item",
+    event_contact_info: Annotated[
+        list[ContactId] | None,
+        fields.keyword_mapping(),
+        validate_local_contacts,
+    ] = Field(
+        description="List of contact IDs related to the item, a string ID is used for external contacts",
         default=None,
     )
     participant: list[CVItem] | None = Field(

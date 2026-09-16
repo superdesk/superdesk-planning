@@ -11,6 +11,7 @@ from superdesk.types.base import CVItem, Place
 from .base import BasePlanningModel
 from .event_dates import EventDates, OccurStatus
 from .enums import PostStates, UpdateMethods, WorkflowState
+from .unified.metadata import ContactId, validate_local_contacts
 from .common import (
     CoverageStatus,
     KeywordQCodeName,
@@ -195,9 +196,7 @@ class EventResourceModel(BasePlanningModel, LockFields):
     participant: list[KeywordQCodeName | None] = Field(default_factory=list)
     participant_requirement: list[KeywordQCodeName | None] = Field(default_factory=list)
     organizer: list[KeywordQCodeName | None] = Field(default_factory=list)
-    event_contact_info: Annotated[list[fields.ObjectId], validate_data_relation_async("contacts")] = Field(
-        default_factory=list
-    )
+    event_contact_info: Annotated[list[ContactId], validate_local_contacts] = Field(default_factory=list)
     language: fields.Keyword | None = None
     languages: list[fields.Keyword] = Field(default_factory=list)
 

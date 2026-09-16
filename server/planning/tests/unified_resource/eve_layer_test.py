@@ -1,3 +1,5 @@
+from bson import ObjectId
+
 from superdesk import get_resource_service
 from superdesk.flask import g
 from superdesk.tests import utils as test_utils, fixtures
@@ -55,3 +57,39 @@ class UnifiedResourceEveLayerTestCase(TestCase):
         deleted_ids = await events_service.delete_docs_async([eve_event])
         self.assertEqual(deleted_ids, [eve_event["_id"]])
         self.assertIsNone(await events_service.find_one_async(req=None, _id=item_ids[0]))
+
+    async def test_create_event_with_local_and_external_contacts_through_eve(self) -> None:
+        contact_id = ObjectId()
+        await test_utils.post_items(
+            "contacts",
+            [
+                {
+                    "_id": contact_id,
+                    "first_name": "Local",
+                    "last_name": "Contact",
+                    "public": True,
+                    "is_active": True,
+                }
+            ],
+        )
+
+        events_service = get_resource_service("events")
+        item_ids = await events_service.post_async(
+            [
+                {
+                    "type": PlanningItemType.EVENT,
+                    "name": "Test Event",
+                    "dates": {
+                        "start": "2026-06-30T15:30:55+0000",
+                        "end": "2026-06-30T17:30:55+0000",
+                    },
+                    "event_contact_info": [contact_id, "external-contact-1"],
+                }
+            ]
+        )
+
+        item = await self.planning_service.find_by_id(item_ids[0])
+        self.assertEqual([str(contact_id) for contact_id in item.event_contact_info], [str(contact_id), "external-contact-1"])
+
+        eve_event = await events_service.find_one_async(req=None, _id=item_ids[0])
+        self.assertEqual([str(contact_id) for contact_id in eve_event["event_contact_info"]], [str(contact_id), "external-contact-1"])
