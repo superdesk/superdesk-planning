@@ -1,6 +1,6 @@
 .coverage-inline-form {
     border: 1px solid var(--sd-colour-line--light);
-    border-radius: 2px;
+    border-radius: var(--b-radius--x-small);
     background-color: var(--sd-colour-panel-bg--200);
 
     &__header {
@@ -22,7 +22,7 @@
     }
 
     &__fields {
-        width: calc(100% - 0.8rem);
+        width: calc(100% - var(--space--1));
     }
 
     &__type {

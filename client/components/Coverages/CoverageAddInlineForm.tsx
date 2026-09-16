@@ -1,5 +1,6 @@
 import React from 'react';
 import {connect} from 'react-redux';
+import {memoize} from 'lodash';
 import {Button, ButtonGroup, Checkbox, IconButton, IconLabel, Tooltip} from 'superdesk-ui-framework/react';
 import {IDesk, IUser, IVocabularyItem} from 'superdesk-api';
 
@@ -27,6 +28,13 @@ import './CoverageAddInlineForm.scss';
 
 const RULES: ICoverageRowRules = {plannedOnDesk: true, deskRequiredForWorkflow: true};
 
+function getContentTypesByQcode(contentTypes: Array<IG2ContentType>): Map<string, IG2ContentType> {
+    return new Map(contentTypes.map((contentType) => [
+        contentType.qcode ?? contentType['content item type'],
+        contentType,
+    ]));
+}
+
 interface IOwnProps {
     contentTypes: Array<IG2ContentType>;
     newsCoverageStatus: Array<IPlanningNewsCoverageStatus>;
@@ -51,16 +59,12 @@ interface IState {
 }
 
 class CoverageAddInlineFormComponent extends React.Component<IProps, IState> {
-    contentTypes: Map<string, IG2ContentType>;
     form: React.RefObject<HTMLDivElement>;
+    getContentTypesByQcode = memoize(getContentTypesByQcode);
 
     constructor(props: IProps) {
         super(props);
 
-        this.contentTypes = new Map(props.contentTypes.map((contentType) => [
-            contentType.qcode ?? contentType['content item type'],
-            contentType,
-        ]));
         this.form = React.createRef();
         this.state = this.getInitialState();
     }
@@ -121,7 +125,7 @@ class CoverageAddInlineFormComponent extends React.Component<IProps, IState> {
         this.reset();
     }
 
-    renderTypeLine(row: ICoverageRow) {
+    renderTypeLine(row: ICoverageRow, contentTypes: Map<string, IG2ContentType>) {
         return (
             <div
                 className="sd-list-item sd-list-item--no-hover sd-shadow--z1"
@@ -141,7 +145,7 @@ class CoverageAddInlineFormComponent extends React.Component<IProps, IState> {
                 </div>
                 <div className="coverage-inline-form__type sd-list-item__column sd-overflow-ellipsis">
                     {getVocabularyItemFieldTranslated(
-                        this.contentTypes.get(row.qcode),
+                        contentTypes.get(row.qcode),
                         'name',
                         getUserInterfaceLanguageFromCV()
                     )}
@@ -163,6 +167,7 @@ class CoverageAddInlineFormComponent extends React.Component<IProps, IState> {
         const errors = validateRows(rows, RULES);
         const enabledCount = rows.filter((row) => row.enabled === true).length;
         const languages = getFilteredLanguages(allLanguages);
+        const contentTypes = this.getContentTypesByQcode(this.props.contentTypes);
 
         if (!this.state.open) {
             return (
@@ -186,7 +191,7 @@ class CoverageAddInlineFormComponent extends React.Component<IProps, IState> {
                     <div className="sd-list-item-group sd-list-item-group--space-between-items">
                         {rows.map((row) => (
                             <React.Fragment key={row.rowId}>
-                                {this.renderTypeLine(row)}
+                                {this.renderTypeLine(row, contentTypes)}
                                 {row.enabled === true && (
                                     <div
                                         className={'coverage-inline-form__fields sd-list-item ' +
