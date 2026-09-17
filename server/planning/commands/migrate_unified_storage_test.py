@@ -127,10 +127,10 @@ class MigrateUnifiedStorageTest(TestCase):
             ]
         )
         await self.db["events_history"].insert_one(
-            {"_id": ObjectId(), "item_id": "event1", "operation": "create", "update": {"name": "Event 1"}}
+            {"_id": ObjectId(), "event_id": "event1", "operation": "create", "update": {"name": "Event 1"}}
         )
         await self.db["planning_history"].insert_one(
-            {"_id": ObjectId(), "item_id": "plan1", "operation": "create", "update": {"slugline": "plan-1"}}
+            {"_id": ObjectId(), "planning_id": "plan1", "operation": "create", "update": {"slugline": "plan-1"}}
         )
         await self.db["event_autosave"].insert_one({"_id": "event1", "type": "event", "lock_user": self.user_id})
         await self.db["planning_autosave"].insert_one({"_id": "plan1", "lock_user": self.user_id})
@@ -167,7 +167,9 @@ class MigrateUnifiedStorageTest(TestCase):
                 },
             ],
         )
-        self.assertEqual(items["event1"]["translations"], [{"field": "name", "language": "nl", "value": "Slot van de Week"}])
+        self.assertEqual(
+            items["event1"]["translations"], [{"field": "name", "language": "nl", "value": "Slot van de Week"}]
+        )
         self.assertEqual(items["event1"]["location"][0]["details"], "Use the north entrance\nCheck in at reception")
         self.assertEqual(
             items["event1"]["calendars"],
@@ -211,6 +213,8 @@ class MigrateUnifiedStorageTest(TestCase):
         self.assertEqual(
             {item["item_id"]: item["item_type"] for item in history}, {"event1": "event", "plan1": "planning"}
         )
+        self.assertNotIn("event_id", next(item for item in history if item["item_type"] == "event"))
+        self.assertNotIn("planning_id", next(item for item in history if item["item_type"] == "planning"))
 
         autosaves = {item["_id"]: item for item in await self._find("planning_autosave")}
         self.assertEqual(set(autosaves.keys()), {"event1", "plan1"})

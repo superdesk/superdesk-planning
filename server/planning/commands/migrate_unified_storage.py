@@ -211,12 +211,13 @@ class MigrateUnifiedStorageCommand:
         stats = self.stats.setdefault(PHASE_HISTORY, PhaseStats())
         target = self.db[HISTORY_COLLECTION]
 
+        stats.updated += await self.rename_field(target, "planning_id", "item_id")
         stats.updated += await self.set_missing_field(target, "item_type", PlanningItemType.PLANNING.value)
         await self.copy_documents(
             source=self.db["events_history"],
             target=target,
             stats=stats,
-            transform=lambda doc: {**doc, "item_type": PlanningItemType.EVENT.value},
+            transform=self.normalise_event_history,
         )
 
         print(f"  {stats}")
@@ -254,6 +255,12 @@ class MigrateUnifiedStorageCommand:
         return stats
 
     # ----------------------------------------------------------------- helpers
+
+    @staticmethod
+    def normalise_event_history(doc: dict[str, Any]) -> dict[str, Any]:
+        doc["item_id"] = doc.pop("event_id", doc.get("item_id"))
+        doc["item_type"] = PlanningItemType.EVENT.value
+        return doc
 
     def normalise_item(self, doc: dict[str, Any], item_type: PlanningItemType) -> dict[str, Any]:
         """Convert a legacy Event or Planning document to the unified schema"""
@@ -312,7 +319,9 @@ class MigrateUnifiedStorageCommand:
         if not doc.get("translations"):
             return
 
-        doc["translations"] = [translation for translation in doc["translations"] if translation.get("value") is not None]
+        doc["translations"] = [
+            translation for translation in doc["translations"] if translation.get("value") is not None
+        ]
 
     @staticmethod
     def normalise_accreditation_deadline(doc: dict[str, Any]) -> None:
@@ -412,6 +421,14 @@ class MigrateUnifiedStorageCommand:
             return await collection.count_documents(lookup)
 
         response = await collection.update_many(lookup, {"$set": {name: value}})
+        return response.modified_count
+
+    async def rename_field(self, collection: AsyncIOMotorCollection, old_name: str, new_name: str) -> int:
+        lookup = {old_name: {"$exists": True}, new_name: {"$exists": False}}
+        if self.dry_run:
+            return await collection.count_documents(lookup)
+
+        response = await collection.update_many(lookup, {"$rename": {old_name: new_name}})
         return response.modified_count
 
     async def iter_batches(self, collection: AsyncIOMotorCollection) -> AsyncGenerator[list[dict[str, Any]], None]:
