@@ -174,7 +174,10 @@ class EventsPlanningService(AsyncBaseService):
                     field: False for field in projection_fields if field not in ("type", "dates")
                 }
 
-        cursor = DictCursorAsync(await UnifiedPlanningResource.get_service().find(search_request))
+        cursor = DictCursorAsync(
+            await UnifiedPlanningResource.get_service().find(search_request),
+            exclude_defaults=False, exclude_none=True, exclude_unset=False
+        )
         return AsyncListCursor(await cursor.to_list())
 
     async def get_async(self, req: ParsedRequest | None, lookup: dict | None):
