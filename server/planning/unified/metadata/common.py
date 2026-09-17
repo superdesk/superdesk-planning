@@ -8,9 +8,13 @@
 # AUTHORS and LICENSE files distributed with this source code, or
 # at https://www.sourcefabric.org/superdesk/license
 
-from superdesk.core.resources import Dataclass
+from quart_babel import gettext
 
-from planning.types.unified import UnifiedPlanningResource, Subject, CoverageItem, CVItem, NewsCoverageStatus
+from superdesk.core.resources import Dataclass
+from superdesk import get_resource_service
+from superdesk.errors import SuperdeskApiError
+
+from planning.types.unified import UnifiedPlanningResource, Subject, CoverageItem, CVItem, NewsCoverageStatus, FieldTranslation
 from planning.content_profiles.utils import ContentProfileData
 
 
@@ -30,10 +34,25 @@ class SyncData(Dataclass):
     update_planning: bool
 
 
-# TODO-UNIFIED: Make sure these are loaded properly, as the correct type/dataclass instance
 class VocabsSyncData(Dataclass):
     coverage_states: dict[str, NewsCoverageStatus]
     genres: dict[str, CVItem]
+
+
+async def load_vocabs_data() -> VocabsSyncData:
+    vocabs_service = get_resource_service("vocabularies")
+    newscoveragestatus = await vocabs_service.find_one_async(req=None, _id="newscoveragestatus")
+    genre = await vocabs_service.find_one_async(req=None, _id="genre")
+
+    if not newscoveragestatus:
+        raise SuperdeskApiError.internalError(gettext("NewsCoverageStatus CV not found"))
+    if not genre:
+        raise SuperdeskApiError.internalError(gettext("Genre CV not found"))
+
+    return VocabsSyncData(
+        coverage_states={item["qcode"]: NewsCoverageStatus(**item) for item in newscoveragestatus.get("items") or []},
+        genres={item["qcode"]: CVItem(**item) for item in genre.get("items") or []}
+    )
 
 
 def get_enabled_subjects(item: UnifiedPlanningResource, profile: ContentProfileData) -> list[Subject]:

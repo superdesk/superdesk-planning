@@ -12,7 +12,6 @@ def get_normalised_field_value(
         return None
 
     value = getattr(item, field, None)
-    # value = item.get(field)
     if field in ["place", "anpa_category"]:
         # list of CV items, return their qcode
         return sorted([cv_item.qcode for cv_item in value or []])
@@ -29,24 +28,17 @@ def get_normalised_field_value(
         return value
 
 
-def _get_planning_field_from_event(field: str) -> str:
-    return "description_text" if field == "definition_short" else field
-
-
-def _sync_planning_field(sync_data: SyncData, field: str) -> None:
+def _sync_planning_field(sync_data: SyncData, field: str) -> bool:
     original_value_normalised = get_normalised_field_value(sync_data.event.original, field)
     updated_value_normalised = get_normalised_field_value(sync_data.event.updates, field)
 
     if original_value_normalised == updated_value_normalised:
         # no changes to the value of this field
-        return
+        return False
 
-    planning_value_normalised = get_normalised_field_value(
-        sync_data.planning.original, _get_planning_field_from_event(field)
-    )
-
+    planning_value_normalised = get_normalised_field_value(sync_data.planning.original, field)
     if planning_value_normalised != original_value_normalised:
-        return
+        return False
 
     # The Planning field has the same value as the Event field,
     # So we can copy the new value from the Event
@@ -55,21 +47,23 @@ def _sync_planning_field(sync_data: SyncData, field: str) -> None:
         if not sync_data.planning.updates.subject:
             sync_data.planning.updates.subject = []
         if new_value is not None:
-            sync_data.planning.updates.subject += new_value
+            sync_data.planning.updates.subject.append(new_value)
     else:
         setattr(sync_data.planning.updates, field, new_value)
+
     sync_data.update_planning = True
+    return True
 
 
-def _sync_planning_multilingual_field(sync_data: SyncData, field: str, profiles: AllContentProfileData) -> None:
-    planning_field = _get_planning_field_from_event(field)
+def _sync_planning_multilingual_field(sync_data: SyncData, field: str, profiles: AllContentProfileData) -> bool:
     if (
         field not in sync_data.event.updated_translations
         or field not in profiles.events.multilingual_fields
-        or planning_field not in profiles.planning.multilingual_fields
+        or field not in profiles.planning.multilingual_fields
     ):
-        return
+        return False
 
+    translations_updated = False
     for language, updated_value in sync_data.event.updated_translations[field].items():
         try:
             original_value = sync_data.event.original_translations[field][language]
@@ -77,15 +71,20 @@ def _sync_planning_multilingual_field(sync_data: SyncData, field: str, profiles:
             original_value = ""
 
         try:
-            planning_value = sync_data.planning.original_translations[planning_field][language]
+            planning_value = sync_data.planning.original_translations[field][language]
         except KeyError:
             planning_value = ""
 
         if original_value == updated_value or planning_value != original_value:
             continue
 
-        sync_data.planning.updated_translations.setdefault(planning_field, {})[language] = updated_value
-        sync_data.update_translations = True
+        sync_data.planning.updated_translations.setdefault(field, {})[language] = updated_value
+        translations_updated = True
+
+    if translations_updated:
+        sync_data.update_translations = translations_updated
+
+    return translations_updated
 
 
 def _sync_coverage_field(sync_data: SyncData, field: str, profiles: AllContentProfileData) -> None:
@@ -102,8 +101,6 @@ def _sync_coverage_field(sync_data: SyncData, field: str, profiles: AllContentPr
             continue
 
         # All supported fields are under the ``coverage.planning`` dictionary
-        # coverage.planning
-        # coverage.setdefault("planning", {})
         try:
             coverage_value = getattr(coverage.planning, field, None)
         except KeyError:
@@ -138,14 +135,22 @@ def sync_existing_planning_item(
     sync_fields: set[str],
     profiles: AllContentProfileData,
     coverage_sync_fields: set[str],
-) -> None:
+) -> dict:
+    updated_fields: set[str] = set()
     for field in sync_fields:
-        _sync_planning_field(sync_data, field)
-        _sync_planning_multilingual_field(sync_data, field, profiles)
+        field_updated = _sync_planning_field(sync_data, field)
+        if _sync_planning_multilingual_field(sync_data, field, profiles):
+            field_updated = True
+
+        if field_updated:
+            updated_fields.add("subject" if field == "custom_vocabularies" else field)
+            if field == "language":
+                updated_fields.add("languages")
+
         if field in coverage_sync_fields:
             _sync_coverage_field(sync_data, field, profiles)
 
-    if sync_data.planning.updates.subject:
+    if sync_data.planning.updates.subject and "subject" in updated_fields:
         sync_data.planning.updates.subject = get_enabled_subjects(sync_data.planning.updates, profiles.planning)
 
     if sync_data.update_translations:
@@ -159,7 +164,15 @@ def sync_existing_planning_item(
             )
         sync_data.planning.updates.translations = translations
         sync_data.update_planning = True
+        updated_fields.add("translations")
 
     if sync_data.update_coverages:
         sync_data.planning.updates.coverages = sync_data.coverage_updates
         sync_data.update_planning = True
+        updated_fields.add("coverages")
+
+    return {
+        field: value
+        for field, value in sync_data.planning.updates.to_dict().items()
+        if field in updated_fields
+    }

@@ -1,9 +1,14 @@
-from collections.abc import Iterator, AsyncGenerator
+from collections.abc import AsyncGenerator
 import logging
 from copy import deepcopy
 
-from superdesk.core import get_config
+from quart_babel import gettext
 
+from superdesk.core import get_config
+from superdesk.core.utils import generate_guid, GUID_NEWSML
+from superdesk.errors import SuperdeskApiError
+
+from planning.types import WorkflowState
 from planning.types.unified import (
     UnifiedPlanningResource,
     EmbeddedPlanningItem,
@@ -13,6 +18,9 @@ from planning.types.unified import (
     EmbeddedPlanningCoverage,
     CoverageItem,
     CoverageAssignedTo,
+    PlanningItemType,
+    ItemDates,
+    CoveragePlanning,
 )
 from planning.content_profiles.utils import AllContentProfileData
 from planning.utils import get_planning_event_link_method
@@ -20,6 +28,50 @@ from planning.utils import get_planning_event_link_method
 from .common import VocabsSyncData, get_enabled_subjects
 
 logger = logging.getLogger(__name__)
+
+PLANNING_FIELDS_TO_SYNC = {
+    "slugline",
+    "internal_note",
+    "name",
+    "place",
+    "anpa_category",
+    "ednote",
+    "language",
+    "definition_short",
+    "definition_long",
+    "agendas",
+    "headline",
+    "urgency",
+    "priority",
+    "location",
+    "event_contact_info",
+    "links",
+    "reference",
+    "calendars",
+    "registration_details",
+    "invitation_details",
+    "accreditation_info",
+    "accreditation_deadline",
+    "keywords",
+}
+
+COVERAGE_PLANNING_FIELDS_TO_SYNC = {
+    "ednote",
+    "slugline",
+    "headline",
+    "internal_note",
+    "priority",
+    "anpa_category",
+    "keyword",
+    "location",
+    "name",
+    "urgency",
+    "calendars",
+    "agendas",
+    "place",
+    "definition_long",
+    "definition_short",
+}
 
 
 async def create_new_plannings_from_embedded_planning(
@@ -34,18 +86,7 @@ async def create_new_plannings_from_embedded_planning(
 
     new_plannings: list[UnifiedPlanningResource] = []
     planning_fields = set(
-        field
-        for field in [
-            "slugline",
-            "internal_note",
-            "name",
-            "place",
-            "anpa_category",
-            "ednote",
-            "language",
-            "priority",
-        ]
-        if field in profiles.planning.enabled_fields
+        field for field in PLANNING_FIELDS_TO_SYNC if field in profiles.planning.enabled_fields
     )
 
     multilingual_enabled = profiles.events.is_multilingual and profiles.planning.is_multilingual
@@ -53,21 +94,10 @@ async def create_new_plannings_from_embedded_planning(
     if multilingual_enabled and "language" in planning_fields and len(event.translations or []):
         planning_fields.add("languages")
 
-        def map_event_to_planning_translation(translation: FieldTranslation):
-            if translation.field == "definition_short":
-                translation.field = "description_text"
-            return translation
-
         translations = [
-            map_event_to_planning_translation(translation)
+            translation
             for translation in event.translations or []
-            if (
-                translation.field is not None
-                and (
-                    (translation.field == "definition_short" and "description_text" in profiles.planning.enabled_fields)
-                    or translation.field in profiles.planning.enabled_fields
-                )
-            )
+            if translation.field is not None and translation.field in profiles.planning.enabled_fields
         ]
 
     event_link_method = get_planning_event_link_method()
@@ -84,17 +114,19 @@ async def create_new_plannings_from_embedded_planning(
             # Skip this item, as it's an existing Planning item
             continue
 
-        new_planning: UnifiedPlanningResource = UnifiedPlanningResource.from_dict(
-            {
-                "agendas": [],
-                "item_class": "plinat:newscoverage",
-                "state": "draft",
-                "type": "planning",
-                "dates": {"start": event.dates.start},
-                "all_day": get_config(bool, "PLANNING_PLANNING_ALL_DAY", False),
-                "related_events": [related_event],
-                # "coverages": [],
-            }
+        new_planning = UnifiedPlanningResource(
+            agendas=[],
+            item_class="plinat:newscoverage",
+            state=WorkflowState.DRAFT,
+            type=PlanningItemType.PLANNING,
+            language=event.language,
+            languages=event.languages,
+            dates=ItemDates(
+                start=event.dates.start,
+                all_day=get_config(bool, "PLANNING_PLANNING_ALL_DAY", False)
+            ),
+            related_events=[related_event],
+            coverages=[]
         )
 
         try:
@@ -113,18 +145,17 @@ async def create_new_plannings_from_embedded_planning(
 
         new_planning.subject = get_enabled_subjects(event, profiles.planning)
 
-        if "description_text" in profiles.planning.enabled_fields and event.definition_short:
-            new_planning.description_text = event.definition_short
-
         if translations:
             new_planning.translations = translations
 
         if plan.coverages:
             new_planning.coverages = []
-            for coverage_id, coverage in plan.coverages.items():
+            for embedded_coverage in plan.coverages:
+                # Make sure to create a new tempId here so the service knows this is a new Coverage
+                embedded_coverage.coverage_id = f"tempId-{generate_guid(type=GUID_NEWSML)}"
                 new_planning.coverages.append(
                     create_new_coverage_from_event_and_planning(
-                        event, event_translations, new_planning, coverage, profiles, vocabs
+                        event, event_translations, new_planning, embedded_coverage, profiles, vocabs
                     )
                 )
 
@@ -143,23 +174,27 @@ def create_new_coverage_from_event_and_planning(
     vocabs: VocabsSyncData,
 ) -> CoverageItem:
     try:
-        news_coverage_status = coverage.news_coverage_status
+        news_coverage_status_qcode = coverage.news_coverage_status
     except KeyError:
-        news_coverage_status = "ncostat:int"
+        news_coverage_status_qcode = "ncostat:int"
 
-    new_coverage: CoverageItem = CoverageItem.from_dict(
-        {
-            "original_creator": planning.original_creator or event.original_creator,
-            "version_creator": (
-                planning.version_creator or event.version_creator or planning.original_creator or event.original_creator
-            ),
-            "firstcreated": planning.firstcreated or event.firstcreated,
-            "versioncreated": planning.versioncreated or event.versioncreated,
-            "news_coverage_status": vocabs.coverage_states.get(news_coverage_status) or {"qcode": news_coverage_status},
-            "workflow_status": "draft",
-            "flags": {"no_content_linking": False},
-            "planning": {},
-        }
+    news_coverage_status = vocabs.coverage_states.get(news_coverage_status_qcode)
+    if not news_coverage_status:
+        raise SuperdeskApiError.badRequestError(gettext(f"Invalid news_coverage_status '{news_coverage_status_qcode}'"))
+
+    new_coverage = CoverageItem(
+        original_creator=planning.original_creator or event.original_creator,
+        version_creator=(
+            planning.version_creator or event.version_creator or planning.original_creator or event.original_creator
+        ),
+        firstcreated=planning.firstcreated or event.firstcreated,
+        versioncreated=planning.versioncreated or event.versioncreated,
+        news_coverage_status=news_coverage_status,
+        workflow_status=WorkflowState.DRAFT,
+        planning=CoveragePlanning(
+            scheduled=coverage.scheduled or planning.dates.start,
+            g2_content_type=coverage.g2_content_type,
+        ),
     )
 
     if coverage.desk or coverage.user or coverage.coverage_provider:
@@ -169,7 +204,8 @@ def create_new_coverage_from_event_and_planning(
             coverage_provider=coverage.coverage_provider,
         )
 
-    if "language" in profiles.coverages.enabled_fields:
+    coverage_profile = profiles.get_coverage_profile(coverage.g2_content_type)
+    if "language" in coverage_profile.enabled_fields:
         # If ``language`` is enabled for Coverages but not defined in ``embedded_planning``
         # then fallback to the language from the Planning item or Event
         if coverage.language:
@@ -189,19 +225,12 @@ def create_new_coverage_from_event_and_planning(
         coverage_language = None
 
     coverage_planning_fields = set(
-        field
-        for field in [
-            "ednote",
-            "g2_content_type",
-            "scheduled",
-            "slugline",
-            "headline",
-            "internal_note",
-            "priority",
-        ]
-        if field in profiles.coverages.enabled_fields
+        field for field in COVERAGE_PLANNING_FIELDS_TO_SYNC if field in coverage_profile.enabled_fields
     )
     for field in coverage_planning_fields:
+        if field == "keyword":
+            field = "keywords"
+
         coverage_value = getattr(coverage, field)
         if coverage_value:
             # If the value (excluding ``None``) is already provided in the Coverage, then use that
@@ -217,19 +246,15 @@ def create_new_coverage_from_event_and_planning(
             except (KeyError, TypeError):
                 pass
 
-        planning_value = getattr(planning, field)
-        event_value = getattr(event, field)
-        if planning_value:
-            # Planning item contains the value for this field (excluding ``None``), use that
-            setattr(new_coverage.planning, field, planning_value)
-        elif event_value:
-            # Event item contains the value for this field (excluding ``None``), use that
-            setattr(new_coverage.planning, field, event_value)
+        parent_item_value = getattr(planning, field) or getattr(event, field)
+        if parent_item_value:
+            # Planning or Event item contains the value for this field (excluding ``None``), use that
+            setattr(new_coverage.planning, field, parent_item_value)
 
         # Was unable to determine what value to give this field, leave it out of the new coverage
         # otherwise we would be setting the value to ``None``, which is not supported in all fields (like slugline)
 
-    if "genre" in profiles.coverages.enabled_fields and coverage.genre is not None:
+    if "genre" in coverage_profile.enabled_fields and coverage.genre is not None:
         genre = vocabs.genres.get(coverage.genre)
         if genre:
             new_coverage.planning.genre = [genre]
@@ -250,23 +275,9 @@ async def get_existing_plannings_from_embedded_planning(
         return
 
     existing_plannings: dict[str, UnifiedPlanningResource] = {
-        item["_id"]: item for item in await UnifiedPlanningResource.get_service().find_by_ids(existing_planning_ids)
+        item.id: item for item in await UnifiedPlanningResource.get_service().find_by_ids(existing_planning_ids)
     }
 
-    coverage_planning_fields = set(
-        field
-        for field in [
-            "g2_content_type",
-            "scheduled",
-            "language",
-            "slugline",
-            "headline",
-            "internal_note",
-            "priority",
-            "ednote",
-        ]
-        if field in profiles.coverages.enabled_fields
-    )
     for embedded_plan in embedded_planning:
         planning_id = embedded_plan.planning_id
         if not planning_id:
@@ -280,21 +291,21 @@ async def get_existing_plannings_from_embedded_planning(
             logger.warning(f"Failed to find planning item '{planning_id}' from embedded coverage")
             continue
 
-        updated_coverage_ids = [
-            coverage.coverage_id
-            for coverage in existing_planning.coverages or []
-            if coverage.coverage_id and embedded_plan.coverages.get(coverage.coverage_id)
-        ]
+        existing_embedded_coverages = {
+            coverage.coverage_id: coverage
+            for coverage in embedded_plan.coverages
+            if not coverage.coverage_id.startswith("tempId-")
+        }
         update_required = len(existing_planning.coverages or []) != len(embedded_plan.coverages)
         updated_coverages: list[CoverageItem] = [
             coverage
             for coverage in deepcopy(existing_planning.coverages or [])
-            if coverage.coverage_id in updated_coverage_ids
+            if coverage.coverage_id in existing_embedded_coverages
         ]
 
         for existing_coverage in updated_coverages:
             try:
-                embedded_coverage: EmbeddedPlanningCoverage = embedded_plan.coverages[existing_coverage.coverage_id]
+                embedded_coverage: EmbeddedPlanningCoverage = existing_embedded_coverages[existing_coverage.coverage_id]
             except KeyError:
                 # Coverage not found in Event's EmbeddedCoverages
                 # We can safely skip this one
@@ -306,12 +317,18 @@ async def get_existing_plannings_from_embedded_planning(
                 coverage_planning = None
 
             if coverage_planning is not None:
+                coverage_profile = profiles.get_coverage_profile(existing_coverage.planning.g2_content_type)
+                coverage_planning_fields = set(
+                    field for field in COVERAGE_PLANNING_FIELDS_TO_SYNC | {"g2_content_type", "scheduled"}
+                    if field in coverage_profile.enabled_fields
+                )
                 for field in coverage_planning_fields:
                     try:
-                        if field not in embedded_coverage:
+                        if field not in embedded_coverage.model_fields_set:
+                            # This field was not provided through the API, skip it
                             continue
-                        elif coverage_planning.get(field) != embedded_coverage[field]:  # type: ignore
-                            coverage_planning[field] = embedded_coverage[field]  # type: ignore
+                        elif getattr(coverage_planning, field) != getattr(embedded_coverage, field):  # type: ignore
+                            setattr(coverage_planning, field, getattr(embedded_coverage, field))  # type: ignore
                             update_required = True
 
                             if getattr(coverage_planning, field, None) is None and field in [
@@ -326,7 +343,7 @@ async def get_existing_plannings_from_embedded_planning(
 
                 try:
                     if (
-                        "genre" in profiles.coverages.enabled_fields
+                        "genre" in coverage_profile.enabled_fields
                         and coverage_planning.genre != embedded_coverage.genre
                         and embedded_coverage.genre
                         and vocabs.genres.get(embedded_coverage.genre)
@@ -382,8 +399,8 @@ async def get_existing_plannings_from_embedded_planning(
                 pass
 
         # Create new Coverages from the ``embedded_planning`` Event field
-        for coverage_id, embedded_coverage in embedded_plan.coverages.items():
-            if coverage_id in updated_coverage_ids:
+        for embedded_coverage in embedded_plan.coverages:
+            if embedded_coverage.coverage_id in existing_embedded_coverages:
                 # This coverage already exists in the Planning item
                 # No need to create a new one
                 continue
@@ -397,7 +414,7 @@ async def get_existing_plannings_from_embedded_planning(
 
         updates: dict = {}
         if update_required:
-            updates["coverages"] = updated_coverages
+            updates["coverages"] = [coverage.to_dict() for coverage in updated_coverages]
             if embedded_plan.update_method is not None:
                 updates["update_method"] = embedded_plan.update_method
 
