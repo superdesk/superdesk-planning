@@ -12,7 +12,7 @@ from bson import ObjectId
 
 from superdesk.errors import SuperdeskApiError
 
-from planning.types import BaseProfile, ContentProfile, CoverageProfile, PlanningProfileResource
+from planning.types import BaseProfile, ContentProfile, CoverageProfile, PlanningProfileResource, PlanningProfileType
 
 
 async def get_planning_schema(resource: str) -> ContentProfile:
@@ -39,7 +39,10 @@ def is_field_enabled(field: str, profile: BaseProfile) -> bool:
 
 
 def get_enabled_fields(profile: BaseProfile) -> set[str]:
-    return set(field for field in profile["editor"].keys() if is_field_enabled(field, profile))
+    try:
+        return set(field for field in profile["editor"].keys() if is_field_enabled(field, profile))
+    except (KeyError, TypeError):
+        return set()
 
 
 def is_field_editor_3(field: str, profile: BaseProfile) -> bool:
@@ -98,28 +101,47 @@ class ContentProfileData:
     multilingual_fields: set[str]
     enabled_fields: set[str]
 
-    @classmethod
-    async def get(cls, resource: str):
-        self = cls()
-        self.profile = await get_planning_schema(resource)
+    def __init__(self, profile: BaseProfile):
+        self.profile = profile
         self.enabled_fields = get_enabled_fields(self.profile)
         self.is_multilingual = is_multilingual_enabled("language", self.profile)
         self.multilingual_fields = get_multilingual_fields_from_profile(self.profile)
-        return self
+
+    @classmethod
+    async def get(cls, resource: str):
+        return cls(await get_planning_schema(resource))
 
 
 class AllContentProfileData:
     events: ContentProfileData
     planning: ContentProfileData
     coverages: ContentProfileData
+    coverage_profiles: dict[str, ContentProfileData]
 
     @classmethod
-    async def get(cls):
+    async def load_all(cls):
         self = cls()
-        self.events = await ContentProfileData.get("event")
-        self.planning = await ContentProfileData.get("planning")
-        self.coverages = await ContentProfileData.get("coverage")
+        self.coverage_profiles = {}
+
+        async for profile in await PlanningProfileResource.get_service().find({}):
+            if profile.item_type not in (PlanningProfileType.EVENT, PlanningProfileType.PLANNING, PlanningProfileType.COVERAGE):
+                continue
+
+            profile_data = ContentProfileData(profile.to_dict())
+            if profile.item_type == PlanningProfileType.EVENT:
+                self.events = profile_data
+            elif profile.item_type == PlanningProfileType.PLANNING:
+                self.planning = profile_data
+            elif profile.item_type == PlanningProfileType.COVERAGE:
+                if not profile.content_type:
+                    self.coverages = profile_data
+                else:
+                    self.coverage_profiles[profile.content_type] = profile_data
+
         return self
+
+    def get_coverage_profile(self, content_type: str) -> ContentProfileData:
+        return self.coverage_profiles.get(content_type) or self.coverages
 
 
 async def is_post_planning_with_event_enabled() -> bool:
