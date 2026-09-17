@@ -11,6 +11,7 @@ import {getTestActionStore, restoreSinonStub} from '../../../utils/testUtils';
 import {createTestStore, eventUtils, timeUtils} from '../../../utils';
 
 import {FileInput, LinkInput} from '../../UI/Form';
+import {CoveragePreview, CoveragesPreview} from '../../Coverages';
 
 describe('<EventPreviewContent />', () => {
     let astore = getTestActionStore();
@@ -202,5 +203,100 @@ describe('<EventPreviewContent />', () => {
         const relPlan = relatedPlannings.find('span.sd-list-item__slugline').first();
 
         expect(relPlan.text()).toBe('Planning2'); // expect to display slugline (i.e. Planning2)
+    });
+});
+
+describe('<EventPreviewContent /> coverages', () => {
+    const coverages = [{
+        coverage_id: 'ec1',
+        planning: {
+            g2_content_type: 'text',
+            slugline: 'Event text coverage',
+            scheduled: '2016-10-15T13:01:11+0000',
+        },
+        news_coverage_status: {qcode: 'ncostat:int'},
+        workflow_status: 'draft',
+    }];
+    const editor = {
+        name: {enabled: true, group: 'main', index: 0},
+        related_plannings: {enabled: true, group: 'related_plannings', index: 0},
+    };
+    const groups = {
+        main: {_id: 'main', name: 'Main', index: 0},
+        related_plannings: {_id: 'related_plannings', name: 'Related Plannings', index: 1},
+    };
+
+    const getWrapper = (eventCoverages, profile) => {
+        const astore = getTestActionStore();
+
+        astore.init();
+        astore.initialState.events.events.e1 = {
+            ...astore.initialState.events.events.e1,
+            coverages: eventCoverages,
+        };
+        astore.initialState.forms.profiles.event = {
+            ...astore.initialState.forms.profiles.event,
+            ...profile,
+        };
+        astore.initialState.main.previewId = 'e1';
+        astore.initialState.main.previewType = 'event';
+
+        const store = createTestStore({initialState: astore.initialState});
+
+        return mount(
+            <Provider store={store}>
+                <EventPreviewContent />
+            </Provider>
+        );
+    };
+
+    const getPositions = (wrapper) => {
+        const html = wrapper.html();
+
+        return {
+            coverages: html.indexOf('Coverages'),
+            relatedPlannings: html.indexOf('Related Plannings'),
+        };
+    };
+
+    beforeEach(() => {
+        sinon.stub(timeUtils, 'localTimeZone').returns(appConfig.default_timezone);
+    });
+
+    afterEach(() => {
+        restoreSinonStub(timeUtils.localTimeZone);
+    });
+
+    it('renders no coverages section for an event without coverages', () => {
+        const wrapper = getWrapper([], {editor, groups});
+
+        expect(wrapper.find(CoveragesPreview).length).toBe(1);
+        expect(wrapper.find(CoveragePreview).length).toBe(0);
+        expect(getPositions(wrapper).coverages).toBe(-1);
+    });
+
+    it('renders coverages after the other sections when the profile has no coverages group', () => {
+        const wrapper = getWrapper(coverages, {editor, groups});
+        const positions = getPositions(wrapper);
+
+        expect(wrapper.find(CoveragePreview).length).toBe(1);
+        expect(positions.relatedPlannings).toBeGreaterThan(-1);
+        expect(positions.coverages).toBeGreaterThan(positions.relatedPlannings);
+    });
+
+    it('renders coverages at the profile group position', () => {
+        const wrapper = getWrapper(coverages, {
+            editor: {...editor, coverages: {enabled: true, group: 'coverages', index: 0}},
+            groups: {
+                ...groups,
+                related_plannings: {...groups.related_plannings, index: 2},
+                coverages: {_id: 'coverages', name: 'Coverages', index: 1},
+            },
+        });
+        const positions = getPositions(wrapper);
+
+        expect(wrapper.find(CoveragePreview).length).toBe(1);
+        expect(positions.coverages).toBeGreaterThan(-1);
+        expect(positions.relatedPlannings).toBeGreaterThan(positions.coverages);
     });
 });

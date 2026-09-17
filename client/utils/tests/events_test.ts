@@ -556,6 +556,37 @@ describe('EventUtils', () => {
             });
         });
 
+        it('also shows the event under the day of a coverage scheduled outside its dates', () => {
+            const event = {
+                _id: 'e1',
+                dates: {
+                    start: moment('2014-10-15T14:01:11+0000'),
+                    end: moment('2014-10-15T15:01:11+0000'),
+                    tz: 'Australia/Sydney',
+                },
+                coverages: [
+                    {coverage_id: 'c1', planning: {scheduled: '2014-10-15T14:01:11+0000'}},
+                    {coverage_id: 'c2', planning: {scheduled: '2014-10-18T10:00:00+0000'}},
+                    {coverage_id: 'c3', planning: {scheduled: '2014-10-18T12:00:00+0000'}},
+                    {coverage_id: 'c4', planning: {scheduled: '2014-10-30T12:00:00+0000'}},
+                    {coverage_id: 'c5', planning: {}},
+                ],
+            };
+
+            const eventsDateGroup = eventUtils.getEventsByDate([event],
+                moment('2014-10-10T14:01:11+0000'), moment('2014-10-25T14:01:11+0000'));
+            const groups = Object.values(eventsDateGroup);
+            const expectedDays = [
+                moment('2014-10-15T14:01:11+0000').format('YYYY-MM-DD'),
+                moment('2014-10-18T10:00:00+0000').format('YYYY-MM-DD'),
+            ];
+
+            expect(groups.map((group) => group.date).sort()).toEqual(expectedDays);
+            groups.forEach((group) => {
+                expect(group.events.length).toBe(1);
+            });
+        });
+
         it('shows a no_end_time event when raw end date is before local start day after conversion', () => {
             const event = eventUtils.modifyForClient({
                 _id: 'e1',
@@ -677,6 +708,53 @@ describe('EventUtils', () => {
             expect(eventUtils.modifyForClient(cloneDeep(event))).toEqual({
                 unique_id: 12345,
             });
+        });
+
+        it('normalises coverages the same way as planning items', () => {
+            const event = {
+                coverages: [{
+                    coverage_id: 'c1',
+                    planning: {
+                        scheduled: '2014-08-15T04:00:00+0000',
+                        genre: [{name: 'foo', qcode: 'bar'}],
+                    },
+                }],
+            };
+
+            eventUtils.modifyForClient(event);
+
+            const planning = event.coverages[0].planning;
+
+            expect(moment.isMoment(planning.scheduled)).toBe(true);
+            expect(moment.isMoment(planning._scheduledTime)).toBe(true);
+            expect(planning.genre).toEqual({name: 'foo', qcode: 'bar'});
+        });
+    });
+
+    describe('modifyForServer', () => {
+        it('normalises coverages the same way as planning items', () => {
+            const event = {
+                dates: {
+                    start: moment('2014-08-15T04:00:00+0000'),
+                    end: moment('2014-08-15T07:00:00+0000'),
+                    tz: 'Australia/Sydney',
+                },
+                coverages: [{
+                    coverage_id: 'c1',
+                    planning: {
+                        scheduled: moment('2014-08-15T04:00:00+0000'),
+                        _scheduledTime: moment('2014-08-15T04:00:00+0000'),
+                        genre: {name: 'foo', qcode: 'bar'},
+                    },
+                }],
+            };
+
+            eventUtils.modifyForServer(event);
+
+            const planning = event.coverages[0].planning;
+
+            expect(planning.genre).toEqual([{name: 'foo', qcode: 'bar'}]);
+            expect(planning._scheduledTime).toBeUndefined();
         });
     });
 });

@@ -4,7 +4,7 @@ import {get} from 'lodash';
 
 import {IDesk, IUser} from 'superdesk-api';
 import {superdeskApi} from '../../superdeskApi';
-import {IEventFormProfile, IEventItem} from '../../interfaces';
+import {IEventFormProfile, IEventItem, IFile, IPlanningNewsCoverageStatus} from '../../interfaces';
 
 import {getCreator} from '../../utils';
 import {getUserInterfaceLanguageFromCV} from '../../utils/users';
@@ -15,8 +15,10 @@ import {
     RelatedPlannings,
     StateLabel,
 } from '../index';
+import {CoveragesPreview} from '../Coverages';
 import {ContentBlock} from '../UI/SidePanel';
 import * as actions from '../../actions';
+import planningActions from '../../actions/planning/api';
 
 import {renderProfileGroupedFields} from '../fields';
 
@@ -25,7 +27,10 @@ interface IProps {
     users: Array<IUser>;
     desks: Array<IDesk>;
     formProfile: IEventFormProfile;
+    newsCoverageStatus: Array<IPlanningNewsCoverageStatus>;
+    files: {[key: string]: IFile};
     fetchEventFiles(event: IEventItem): Promise<void>;
+    fetchPlanningFiles(item: IEventItem): Promise<void>;
     hideRelatedItems?: boolean;
 }
 
@@ -36,15 +41,19 @@ const mapStateToProps = (state, ownProps) => ({
     desks: selectors.general.desks(state),
     formProfile: selectors.forms.eventProfile(state),
     contacts: selectors.general.contacts(state),
+    newsCoverageStatus: selectors.general.newsCoverageStatus(state),
+    files: selectors.general.files(state),
 });
 
 const mapDispatchToProps = (dispatch) => ({
     fetchEventFiles: (event) => dispatch(actions.events.api.fetchEventFiles(event)),
+    fetchPlanningFiles: (item) => dispatch(planningActions.fetchPlanningFiles(item)),
 });
 
 export class EventPreviewContentComponent extends React.PureComponent<IProps> {
     componentWillMount() {
         this.props.fetchEventFiles(this.props.item);
+        this.props.fetchPlanningFiles(this.props.item);
     }
 
     render() {
@@ -55,6 +64,8 @@ export class EventPreviewContentComponent extends React.PureComponent<IProps> {
             desks,
             formProfile,
             hideRelatedItems,
+            newsCoverageStatus,
+            files,
         } = this.props;
         const createdBy = getCreator(item, 'original_creator', users);
         const updatedBy = getCreator(item, 'version_creator', users);
@@ -87,6 +98,18 @@ export class EventPreviewContentComponent extends React.PureComponent<IProps> {
                 }
             </>
         );
+
+        // Rendered at the profile position of the `coverages` group when the profile has one
+        const coveragesNode = (
+            <CoveragesPreview
+                item={item}
+                users={users}
+                desks={desks}
+                newsCoverageStatus={newsCoverageStatus}
+                files={files}
+            />
+        );
+        const hasCoveragesGroup = formProfile.groups?.coverages != null;
 
         return (
             <ContentBlock>
@@ -122,9 +145,10 @@ export class EventPreviewContentComponent extends React.PureComponent<IProps> {
                         profile: formProfile,
                     },
                     {},
-                    ['recurring_rules', 'related_plannings'],
-                    {related_plannings: relatedPlanningsNode},
+                    ['recurring_rules', 'related_plannings', 'coverages'],
+                    {related_plannings: relatedPlanningsNode, coverages: coveragesNode},
                 )}
+                {hasCoveragesGroup ? null : coveragesNode}
             </ContentBlock>
         );
     }

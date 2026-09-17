@@ -16,6 +16,7 @@ import {
     isItemExpired,
     isItemPosted,
     lockUtils,
+    planningUtils,
 } from '../../utils';
 import {renderFields} from '../fields';
 import {CreatedUpdatedColumn} from '../UI/List/CreatedUpdatedColumn';
@@ -189,6 +190,17 @@ class EventItemComponent extends React.Component<IProps, IState> {
                     event_datetime: {
                         hasStartDateContext: this.props.planningProps?.date != null
                             && isSameDay(eventStartDate, moment(this.props.planningProps.date)),
+                    },
+                    coverages: {
+                        prepare: (coverages) => planningUtils.filterCoveragesForList(
+                            item,
+                            coverages,
+                            {
+                                date: this.props.planningProps?.date,
+                                activeFilter: activeFilter,
+                                filterLanguage: filterLanguage,
+                            },
+                        ),
                     },
                 },
             },

@@ -8,12 +8,12 @@ import {
     ICoverageProvider,
     ICoverageType,
     IEventItem,
+    IEventOrPlanningItem,
     IFile,
     IG2ContentType,
     IGenre,
     IInputArrayHocModeOptions,
     IPlanningCoverageItem,
-    IPlanningItem,
     IPlanningNewsCoverageStatus,
 } from '../../interfaces';
 import {IArticle, IDesk, IUser} from 'superdesk-api';
@@ -30,7 +30,7 @@ import planningActions from '../../actions/planning/api';
 interface IOwnProps {
     field: string;
     addButtonText?: string; // defaults to 'Add a coverage'
-    item: IPlanningItem;
+    item: IEventOrPlanningItem;
     value: Array<IPlanningCoverageItem>;
     disabled: boolean;
     addNewsItemToPlanning?: IArticle;

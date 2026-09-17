@@ -1,4 +1,10 @@
-from superdesk.core.resources import ResourceConfig, MongoResourceConfig, MongoIndexOptions, ElasticResourceConfig, UpdateStrategy
+from superdesk.core.resources import (
+    ResourceConfig,
+    MongoResourceConfig,
+    MongoIndexOptions,
+    ElasticResourceConfig,
+    UpdateStrategy,
+)
 
 from planning.types.unified import UnifiedPlanningResource
 from .service import UnifiedPlanningResourceService
