@@ -1,4 +1,4 @@
-from typing import Annotated, TypedDict, Awaitable, Literal, TypeGuard
+from typing import Annotated, TypedDict, Literal, TypeGuard
 from enum import Enum, unique
 import logging
 import asyncio
@@ -76,32 +76,35 @@ class PlanningLocksParams(BaseModel):
 
 async def get_planning_module_locks(repos: list[PlanningLockRepos]) -> ItemLocks:
     locks: ItemLocks = {}
-    results: list[Awaitable[DictCursorAsync]] = []
+    resources: list[type[ResourceModel]] = []
 
     if PlanningLockRepos.EVENTS_AND_PLANNING in repos:
         locks.update({"event": {}, "planning": {}, "recurring": {}})
-        results.append(_get_locks_for_resource(UnifiedPlanningResource))
-        results.append(_get_locks_for_resource(PlanningFeaturedLockResource))
+        resources.append(UnifiedPlanningResource)
+        resources.append(PlanningFeaturedLockResource)
 
     if PlanningLockRepos.ASSIGNMENTS in repos:
         locks["assignment"] = {}
-        results.append(_get_locks_for_resource(AssignmentResourceModel))
+        resources.append(AssignmentResourceModel)
 
     if PlanningLockRepos.FEATURED_PLANNING in repos:
         locks["featured"] = None
 
-    if not results:
+    if not resources:
         return locks
 
     def _is_valid_key(key: str) -> TypeGuard[ItemLockKeys]:
         return key in {"featured", "event", "planning", "recurring", "assignment"}
 
-    for items in await asyncio.gather(*results):
-        async for item in items:
-            if item.get("_type") == "planning_featured_lock":
+    cursors = await asyncio.gather(*(_get_locks_for_resource(resource_model) for resource_model in resources))
+
+    for resource_model, items in zip(resources, cursors):
+        # The hits are projected to the lock fields, too little to build the resource model from
+        while (item := await items.next_raw()) is not None:
+            if resource_model is PlanningFeaturedLockResource:
                 locks["featured"] = ItemLock(
                     item_id=item.get("_id"),
-                    item_type=item.get("_type"),
+                    item_type="planning_featured_lock",
                     user=item.get("lock_user"),
                     session=item.get("lock_session"),
                     action="featured",
