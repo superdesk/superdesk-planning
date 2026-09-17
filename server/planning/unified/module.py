@@ -1,4 +1,4 @@
-from superdesk.core.resources import ResourceConfig, MongoResourceConfig, MongoIndexOptions, ElasticResourceConfig
+from superdesk.core.resources import ResourceConfig, MongoResourceConfig, MongoIndexOptions, ElasticResourceConfig, UpdateStrategy
 
 from planning.types.unified import UnifiedPlanningResource
 from .service import UnifiedPlanningResourceService
@@ -16,6 +16,7 @@ unified_planning_resource_config = ResourceConfig(
     data_class=UnifiedPlanningResource,
     service=UnifiedPlanningResourceService,
     default_sort=[("dates.start", 1)],
+    update_strategy=UpdateStrategy.DEEP_MERGE,
     etag_ignore_fields=["_planning_schedule", "_updates_schedule"],
     mongo=MongoResourceConfig(
         indexes=[
@@ -23,36 +24,43 @@ unified_planning_resource_config = ResourceConfig(
                 name="item_type_1",
                 keys=[("type", 1)],
                 background=True,
+                unique=False,
             ),
             MongoIndexOptions(
                 name="recurrence_id_1",
                 keys=[("recurrence_id", 1)],
                 background=True,
+                unique=False,
             ),
             MongoIndexOptions(
                 name="state",
                 keys=[("state", 1)],
                 background=True,
+                unique=False,
             ),
             MongoIndexOptions(
                 name="dates_start_1",
                 keys=[("dates.start", 1)],
                 background=True,
+                unique=False,
             ),
             MongoIndexOptions(
                 name="dates_end_1",
                 keys=[("dates.end", 1)],
                 background=True,
+                unique=False,
             ),
             MongoIndexOptions(
                 name="template",
                 keys=[("template", 1)],
                 background=True,
+                unique=False,
             ),
             MongoIndexOptions(
                 name="planning_recurrence_id",
                 keys=[("planning_recurrence_id", 1)],
                 background=True,
+                unique=False,
             ),
         ]
     ),
