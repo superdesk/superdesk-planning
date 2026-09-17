@@ -14,7 +14,6 @@ from planning.types.unified import (
     RelatedEventLinkType,
     EmbeddedPlanningItem,
 )
-from planning.events.events_sync import sync_event_metadata_with_planning_items
 from planning.history.planning import UnifiedPlanningHistoryService
 from planning.history.base_service import fields_to_remove as history_fields_to_remove
 from planning.signals import on_unified_planning_duplicated
@@ -32,6 +31,7 @@ from .planning import (
 from .coverages import validate_scheduled_updates, add_coverage, on_coverage_update, on_coverage_updated
 from .notifications import send_created_notifications, send_updated_notifications, send_deleted_notifications
 from .files import delete_item_files
+from .metadata.event_sync import sync_event_metadata_with_planning_items
 
 
 logger = logging.getLogger(__name__)
@@ -59,7 +59,7 @@ class UnifiedPlanningResourceService(AsyncResourceService[UnifiedPlanningResourc
             # Set `expired` to `False`, as no new item can be created as expired
             doc.expired = False
 
-            self._copy_translated_values_to_root_level_fields(doc)
+            self._copy_translated_values_to_root_level_fields(None, doc)
 
             if doc.item_type == PlanningItemType.EVENT:
                 await on_event_create(doc, docs)
@@ -73,13 +73,8 @@ class UnifiedPlanningResourceService(AsyncResourceService[UnifiedPlanningResourc
             set_planning_schedule(doc)
 
     async def insert_into_dbs(self, doc: UnifiedPlanningResource) -> tuple[str, str]:
-        embedded_planning_lists: list[tuple[UnifiedPlanningResource, list[EmbeddedPlanningItem]]] = []
-
-        if doc.embedded_planning:
-            embedded_planning = doc.embedded_planning
-            doc.embedded_planning = None
-            if len(embedded_planning):
-                embedded_planning_lists.append((doc, embedded_planning))
+        embedded_planning: list[EmbeddedPlanningItem] | None = doc.embedded_planning
+        doc.embedded_planning = None
 
         # Remove all fields we don't want in storage
         field_values_not_stored: dict = {}
@@ -94,16 +89,17 @@ class UnifiedPlanningResourceService(AsyncResourceService[UnifiedPlanningResourc
         for field, value in field_values_not_stored.items():
             setattr(doc, field, value)
 
-        for item, embedded_planning in embedded_planning_lists:
-            item_dict = item.to_dict()
-            embedded_planning = item_dict.get("embedded_planning", [])
-            await sync_event_metadata_with_planning_items(None, item_dict, embedded_planning)
+        if embedded_planning:
+            doc.embedded_planning = embedded_planning
+            await sync_event_metadata_with_planning_items(None, doc, embedded_planning)
 
         return db_response
 
     async def update_in_dbs(
         self, item_id: str, original: UnifiedPlanningResource, updates: dict, validated_updates: dict
     ) -> dict:
+        embedded_planning: list[dict] | None = updates.pop("embedded_planning", [])
+
         # Remove all fields we don't want in storage
         field_values_not_stored: dict = {}
         for field in FIELDS_NOT_STORED_IN_DB:
@@ -116,6 +112,10 @@ class UnifiedPlanningResourceService(AsyncResourceService[UnifiedPlanningResourc
         # And add those values back onto the updates dict
         for field, value in field_values_not_stored.items():
             updates[field] = value
+
+        updates["embedded_planning"] = embedded_planning
+        updated = original.clone_with(updates, deep=False)
+        await sync_event_metadata_with_planning_items(original, updated, updated.embedded_planning or [])
 
         return rtn
 
@@ -131,7 +131,7 @@ class UnifiedPlanningResourceService(AsyncResourceService[UnifiedPlanningResourc
         if original.item_type == PlanningItemType.PLANNING:
             await validate_update_planning(original, updates)
 
-        updated = original.clone_with(rtn)
+        updated = original.clone_with(rtn, deep=False)
         validate_scheduled_updates(updated)
         return rtn
 
@@ -217,9 +217,9 @@ class UnifiedPlanningResourceService(AsyncResourceService[UnifiedPlanningResourc
         if original.lock_user and str(original.lock_user) != str_user_id:
             raise SuperdeskApiError.forbiddenError(gettext("The item was locked by another user"))
 
-        updated = original.clone_with(updates)
+        updated = original.clone_with(updates, deep=False)
 
-        self._copy_translated_values_to_root_level_fields(updated)
+        self._copy_translated_values_to_root_level_fields(original, updated)
         item_update_request = ItemUpdateRequest(original=original, updates=updates, updated=updated)
 
         if original.item_type == PlanningItemType.EVENT:
@@ -228,6 +228,8 @@ class UnifiedPlanningResourceService(AsyncResourceService[UnifiedPlanningResourc
             await on_planning_update(item_update_request)
 
         if "coverages" in updates:
+            # Looks like even though deep merging is enabled, it's not doing it to Coverages
+            # because they're in a sequence/container
             await on_coverage_update(item_update_request)
 
         updates.update(updated.to_dict())
@@ -245,19 +247,31 @@ class UnifiedPlanningResourceService(AsyncResourceService[UnifiedPlanningResourc
 
         await delete_item_files(original.item_type, original.files, updates.get("files"))
         send_updated_notifications(
-            original, original.clone_with(updates), related_events_changed=updates.pop("related_events_changed", False)
+            original, original.clone_with(updates, deep=False), related_events_changed=updates.pop("related_events_changed", False)
         )
 
     async def on_deleted(self, doc: ResourceModelType) -> None:
         send_deleted_notifications(doc)
 
-    def _copy_translated_values_to_root_level_fields(self, item: UnifiedPlanningResource) -> None:
-        if not item.translations:
+    def _copy_translated_values_to_root_level_fields(self, original: UnifiedPlanningResource | None, updated: UnifiedPlanningResource) -> None:
+        if not updated.translations:
             return
 
-        for translation in item.translations:
-            if translation.language == item.language and not getattr(item, translation.field):
-                setattr(item, translation.field, translation.value)
+        original_translations_map = {
+            translation.field: {translation.language: translation.value}
+            for translation in original.translations
+        } if original and original.translations else {}
+
+        for translation in updated.translations:
+            if translation.language != updated.language:
+                # This field translation is in a different language to the item's default
+                continue
+            elif original and original_translations_map.get(translation.field, {}).get(translation.language) == translation.value:
+                # This field translation has not changed, don't sync anything
+                continue
+            else:
+            # if translation.language == updated.language and not getattr(updated, translation.field):
+                setattr(updated, translation.field, translation.value)
 
     @staticmethod
     def _should_update_version_creator(updates: dict, original: UnifiedPlanningResource):
