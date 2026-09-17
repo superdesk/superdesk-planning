@@ -62,11 +62,17 @@ expected_es_mapping = {
                                 "name": {"type": "keyword"},
                                 "qcode": {"type": "keyword"},
                                 "translations": {"enabled": False, "type": "object"},
+                                "contact_type": {"type": "keyword"},
                             }
                         },
                         "desk": {"type": "keyword"},
                         "state": {"type": "keyword"},
                         "user": {"type": "keyword"},
+                        "assigned_date_desk": {"type": "date"},
+                        "assigned_date_user": {"type": "date"},
+                        "assignor_desk": {"type": "keyword"},
+                        "assignor_user": {"type": "keyword"},
+                        "priority": {"type": "integer"},
                     }
                 },
                 "coverage_id": {"type": "keyword"},
@@ -84,6 +90,8 @@ expected_es_mapping = {
                 "original_creator": {"type": "keyword"},
                 "planning": {
                     "properties": {
+                        "abstract": {"type": "text", "analyzer": "html_field_analyzer"},
+                        "agendas": {"type": "keyword"},
                         "anpa_category": {
                             "properties": {
                                 "name": {"type": "keyword"},
@@ -92,17 +100,26 @@ expected_es_mapping = {
                             }
                         },
                         "by": {"type": "text"},
+                        "calendars": {
+                            "properties": {
+                                "name": {"type": "keyword"},
+                                "qcode": {"type": "keyword"},
+                                "translations": {"enabled": False, "type": "object"},
+                            },
+                        },
                         "contact_info": {"type": "keyword"},
                         "coverage_provider": {
                             "properties": {
                                 "name": {"type": "keyword"},
                                 "qcode": {"type": "keyword"},
                                 "translations": {"enabled": False, "type": "object"},
+                                "contact_type": {"type": "keyword"},
                             }
                         },
                         "credit_line": {"type": "text"},
                         "dateline": {"type": "text"},
-                        "description_text": {"analyzer": "html_field_analyzer", "type": "text"},
+                        "definition_short": {"analyzer": "html_field_analyzer", "type": "text"},
+                        "definition_long": {"analyzer": "html_field_analyzer", "type": "text"},
                         "ednote": {"type": "text"},
                         "fields": {
                             "properties": {
@@ -123,8 +140,9 @@ expected_es_mapping = {
                         "internal_note": {"type": "text"},
                         "item_class": {"type": "keyword"},
                         "item_count": {"type": "integer"},
-                        "keyword": {"type": "text"},
+                        "keywords": {"type": "text", "analyzer": "html_field_analyzer"},
                         "language": {"type": "keyword"},
+                        "languages": {"type": "keyword"},
                         "location": {
                             "properties": {
                                 "address": {
@@ -157,8 +175,30 @@ expected_es_mapping = {
                             }
                         },
                         "multiple_content": {"type": "boolean"},
+                        "name": {"type": "text"},
                         "news_content_characteristics": {
                             "properties": {"name": {"type": "keyword"}, "value": {"type": "keyword"}}
+                        },
+                        "place": {
+                            "dynamic": False,
+                            "properties": {
+                                "code": {"type": "keyword"},
+                                "country": {"type": "keyword"},
+                                "country_code": {"type": "keyword"},
+                                "feature_class": {"type": "keyword"},
+                                "locality": {"type": "keyword"},
+                                "locality_code": {"type": "keyword"},
+                                "location": {"type": "geo_point"},
+                                "group": {"type": "keyword"},
+                                "name": {"type": "keyword"},
+                                "qcode": {"type": "keyword"},
+                                "rel": {"type": "keyword"},
+                                "scheme": {"type": "keyword"},
+                                "state": {"type": "keyword"},
+                                "state_code": {"type": "keyword"},
+                                "world_region": {"type": "keyword"},
+                                "world_region_code": {"type": "keyword"},
+                            },
                         },
                         "planning_ext_property": {
                             "properties": {
@@ -202,6 +242,7 @@ expected_es_mapping = {
                             },
                             "type": "nested",
                         },
+                        "urgency": {"type": "integer"},
                         "workflow_status_reason": {"type": "text"},
                         "xmp_file": {"type": "keyword"},
                     }
@@ -219,11 +260,17 @@ expected_es_mapping = {
                                         "name": {"type": "keyword"},
                                         "qcode": {"type": "keyword"},
                                         "translations": {"enabled": False, "type": "object"},
+                                        "contact_type": {"type": "keyword"},
                                     }
                                 },
                                 "desk": {"type": "keyword"},
                                 "state": {"type": "keyword"},
                                 "user": {"type": "keyword"},
+                                "assigned_date_desk": {"type": "date"},
+                                "assigned_date_user": {"type": "date"},
+                                "assignor_desk": {"type": "keyword"},
+                                "assignor_user": {"type": "keyword"},
+                                "priority": {"type": "integer"},
                             }
                         },
                         "coverage_id": {"type": "keyword"},
@@ -281,18 +328,12 @@ expected_es_mapping = {
                 "tz": {"type": "keyword"},
             }
         },
-        "definition_long": {"type": "text"},
-        "definition_short": {"type": "text"},
+        "definition_long": {"type": "text", "analyzer": "html_field_analyzer"},
+        "definition_short": {"type": "text", "analyzer": "html_field_analyzer"},
         "duplicate_from": {"type": "keyword"},
         "duplicate_to": {"type": "keyword"},
         "ednote": {"type": "text"},
-        "embedded_planning": {
-            "properties": {
-                "coverages": {"type": "object", "enabled": False},
-                "planning_id": {"type": "keyword"},
-                "update_method": {"type": "keyword"},
-            }
-        },
+        "embedded_planning": {"type": "object", "enabled": False},
         "event_contact_info": {"type": "keyword"},
         "event_created": {"type": "date"},
         "event_lastmodified": {"type": "date"},
@@ -402,6 +443,7 @@ expected_es_mapping = {
                 "locality": {"type": "keyword"},
                 "locality_code": {"type": "keyword"},
                 "location": {"type": "geo_point"},
+                "group": {"type": "keyword"},
                 "name": {"type": "keyword"},
                 "qcode": {"type": "keyword"},
                 "rel": {"type": "keyword"},

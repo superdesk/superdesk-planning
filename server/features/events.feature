@@ -342,24 +342,6 @@ Feature: Events
 
     @auth
     Scenario: Duplicate an event
-        Given "vocabularies"
-        """
-        [{
-            "_id": "eventoccurstatus",
-                    "display_name": "Event Occurence Status",
-                    "type": "manageable",
-                    "unique_field": "qcode",
-                    "items": [
-                        {"is_active": true, "qcode": "eocstat:eos0", "name": "Unplanned event"},
-                        {"is_active": true, "qcode": "eocstat:eos1", "name": "Planned, occurence planned only"},
-                        {"is_active": true, "qcode": "eocstat:eos2", "name": "Planned, occurence highly uncertain"},
-                        {"is_active": true, "qcode": "eocstat:eos3", "name": "Planned, May occur"},
-                        {"is_active": true, "qcode": "eocstat:eos4", "name": "Planned, occurence highly likely"},
-                        {"is_active": true, "qcode": "eocstat:eos5", "name": "Planned, occurs certainly"},
-                        {"is_active": true, "qcode": "eocstat:eos6", "name": "Planned, then cancelled"}
-                    ]
-        }]
-        """
         Given "contacts"
         """
         [{"first_name": "Albert", "last_name": "Foo"}]
@@ -565,24 +547,6 @@ Feature: Events
 
     @auth
     Scenario: Duplicating posted event will not repost it
-        Given "vocabularies"
-        """
-        [{
-            "_id": "eventoccurstatus",
-                    "display_name": "Event Occurence Status",
-                    "type": "manageable",
-                    "unique_field": "qcode",
-                    "items": [
-                        {"is_active": true, "qcode": "eocstat:eos0", "name": "Unplanned event"},
-                        {"is_active": true, "qcode": "eocstat:eos1", "name": "Planned, occurence planned only"},
-                        {"is_active": true, "qcode": "eocstat:eos2", "name": "Planned, occurence highly uncertain"},
-                        {"is_active": true, "qcode": "eocstat:eos3", "name": "Planned, May occur"},
-                        {"is_active": true, "qcode": "eocstat:eos4", "name": "Planned, occurence highly likely"},
-                        {"is_active": true, "qcode": "eocstat:eos5", "name": "Planned, occurs certainly"},
-                        {"is_active": true, "qcode": "eocstat:eos6", "name": "Planned, then cancelled"}
-                    ]
-        }]
-        """
         Given "contacts"
         """
         [{"first_name": "Albert", "last_name": "Foo"}]

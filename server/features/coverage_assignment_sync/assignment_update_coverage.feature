@@ -29,7 +29,8 @@ Feature: Coverages are updated when an Assignment is updated
                     "desk": "#SPORTS_DESK._id#",
                     "priority": 3
                 },
-                "workflow_status": "active"
+                "workflow_status": "active",
+                "news_coverage_status": {"qcode": "ncostat:int", "name": "coverage intended", "label": "Planned"}
             }]
         }]
         """
@@ -102,7 +103,8 @@ Feature: Coverages are updated when an Assignment is updated
                     "desk": "#SPORTS_DESK._id#",
                     "priority": 3
                 },
-                "workflow_status": "active"
+                "workflow_status": "active",
+                "news_coverage_status": {"qcode": "ncostat:int", "name": "coverage intended", "label": "Planned"}
             }]
         }]
         """
@@ -172,7 +174,7 @@ Feature: Coverages are updated when an Assignment is updated
         }]}
         """
 
-    @auth
+    @auth @planning_cvs
     Scenario: Update Planning autosave when making changes to an Assignment
         Given we have sessions "/sessions"
         When we post to "/planning"
@@ -187,7 +189,8 @@ Feature: Coverages are updated when an Assignment is updated
                     "desk": "#SPORTS_DESK._id#",
                     "priority": 3
                 },
-                "workflow_status": "active"
+                "workflow_status": "active",
+                "news_coverage_status": {"qcode": "ncostat:int", "name": "coverage intended", "label": "Planned"}
             }]
         }]
         """
