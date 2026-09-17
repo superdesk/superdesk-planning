@@ -74,7 +74,6 @@ export class EmbeddedCoverageEditor {
 
     getRelatedCoverage(planningIndex: number, coverageIndex: number) {
         return this.getPlanningItem(planningIndex)
-            .getByTestId('editor--planning-item__coverages')
             .getByTestId(`field-coverages[${coverageIndex}]`);
     }
 }

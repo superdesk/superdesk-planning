@@ -7,6 +7,7 @@ import {
     IAssignmentPriority,
     ICoverageProvider,
     ICoverageType,
+    IEventFormProfile,
     IEventItem,
     IEventOrPlanningItem,
     IFile,
@@ -24,6 +25,7 @@ import * as selectors from '../../selectors';
 import {InputArray} from '../UI/Form';
 import {CoverageEditor, CoverageEditorComponent} from './CoverageEditor';
 import {CoverageAddButton} from './CoverageAddButton';
+import {CoverageAddInlineForm} from './CoverageAddInlineForm';
 import planningActions from '../../actions/planning/api';
 
 
@@ -57,6 +59,7 @@ interface IOwnProps {
 }
 
 interface IReduxStateProps {
+    eventProfile: IEventFormProfile;
     users: Array<IUser>;
     desks: Array<IDesk>;
     genres: Array<IGenre>;
@@ -88,6 +91,7 @@ const mapStateToProps = (state): IReduxStateProps => ({
     newsCoverageStatus: selectors.general.newsCoverageStatus(state),
     coverageAddAdvancedMode: selectors.general.coverageAddAdvancedMode(state),
     defaultDesk: selectors.general.defaultDesk(state),
+    eventProfile: selectors.forms.eventProfile(state),
 });
 
 const mapDispatchToProps = (dispatch): IReduxDispatchProps => ({
@@ -178,6 +182,7 @@ class CoverageArrayInputComponent extends React.Component<IProps, IState> {
             navigation,
             useLocalNavigation,
             event,
+            eventProfile,
             testId,
             editorType,
             children,
@@ -192,6 +197,20 @@ class CoverageArrayInputComponent extends React.Component<IProps, IState> {
         const {desks, users, coverageAddAdvancedMode} = this.props;
         const language = this.props.item.language;
         const createCoverage = this.createCoverage;
+
+        const inlineFormEnabled = eventProfile.editor?.coverages?.inline_form === true;
+        const showInlineForm = inlineFormEnabled && !disabled && item.type === 'event';
+        const inlineFormElement = !showInlineForm ? null : (
+            <CoverageAddInlineForm
+                contentTypes={contentTypes}
+                newsCoverageStatus={newsCoverageStatus}
+                desks={desks}
+                users={users}
+                event={item as IEventItem}
+                createCoverage={createCoverage}
+                onAdd={(newCoverages) => onChange(field, [...(value ?? []), ...newCoverages])}
+            />
+        );
 
         return (
             <InputArray
@@ -241,6 +260,7 @@ class CoverageArrayInputComponent extends React.Component<IProps, IState> {
                 openCoverageIds={this.state.openCoverageIds}
                 getRef={this.props.getRef}
                 editorType={editorType}
+                inlineFormElement={inlineFormElement}
                 {...props}
             >
                 {children}

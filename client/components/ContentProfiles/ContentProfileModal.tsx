@@ -369,6 +369,7 @@ class ContentProfileModalComponent extends React.Component<IProps, IState> {
                 visible
                 size="large"
                 position="top"
+                data-test-id="content-profile-modal"
                 onHide={this.state.saving ? undefined : this.closeModal}
                 headerTemplate={this.props.title}
                 contentPadding="none"
@@ -387,6 +388,7 @@ class ContentProfileModalComponent extends React.Component<IProps, IState> {
                             <Button
                                 text={gettext('Save All')}
                                 type="primary"
+                                data-test-id="content-profile-modal--save"
                                 onClick={this.save}
                                 disabled={this.state.saving}
                             />

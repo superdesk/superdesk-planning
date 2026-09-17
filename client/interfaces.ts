@@ -1089,6 +1089,10 @@ interface IProfileEditorDatesField extends IProfileEditorField {
     };
 }
 
+export interface IProfileEditorCoveragesField extends IProfileEditorField {
+    inline_form?: boolean;
+}
+
 interface IBaseProfileSchemaType<T> {
     type: T;
     required: boolean;
@@ -1223,7 +1227,7 @@ export interface IEventFormProfile {
         slugline: IProfileEditorField;
         subject: IProfileEditorField;
         related_plannings: IProfileEditorField;
-        coverages: IProfileEditorField;
+        coverages: IProfileEditorCoveragesField;
     };
     name: 'event';
     groups?: {[key: string]: IEditorProfileGroup};

@@ -151,6 +151,17 @@ registerEditorField(
     true
 );
 
+registerEditorField(
+    'field.inline_form',
+    EditorFieldToggle,
+    () => ({
+        label: superdeskApi.localization.gettext('Inline Add Coverages form'),
+        field: 'field.inline_form',
+    }),
+    null,
+    true,
+);
+
 registerEditorField<IEditorFieldTreeSelectProps, {options: Array<{value: IVocabularyItem}>}>(
     'schema.languages',
     EditorFieldTreeSelect,

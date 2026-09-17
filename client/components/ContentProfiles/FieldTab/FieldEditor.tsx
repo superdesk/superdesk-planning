@@ -127,6 +127,7 @@ export class FieldEditor extends React.Component<IProps, IState> {
             'schema.format_options': {enabled: fieldType === 'editor_3'},
             'field.all_day.enabled': {enabled: this.props.item.name === 'dates'},
             'field.default_duration_on_change': {enabled: this.props.item.name === 'dates'},
+            'field.inline_form': {enabled: this.props.item.name === 'coverages' && this.props.profile.type === 'event'},
             'schema.languages': {enabled: (this.props.item.name === 'language' && isMultilingual)},
             'schema.default_language': {enabled: (this.props.item.name === 'language' && isMultilingual)},
             'schema.multilingual': {enabled: this.props.isProfileCoverage ? false : (
@@ -161,6 +162,7 @@ export class FieldEditor extends React.Component<IProps, IState> {
                                     text={gettext('Apply')}
                                     onClick={this.saveField}
                                     type="primary"
+                                    data-test-id="content-field--editor-apply"
                                     disabled={!this.props.isDirty}
                                 />
                             )}
@@ -220,6 +222,7 @@ export class FieldEditor extends React.Component<IProps, IState> {
                                             'schema.planning_auto_publish': {enabled: true, index: 15},
                                             'schema.cancel_plan_with_event': {enabled: true, index: 16},
                                             'schema.default_value': {enabled: true, index: 17},
+                                            'field.inline_form': {enabled: true, index: 18},
                                         },
                                         {
                                             item: this.props.item,
