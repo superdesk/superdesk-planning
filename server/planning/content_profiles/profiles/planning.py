@@ -138,6 +138,7 @@ DEFAULT_PLANNING_PROFILE = PlanningProfileResource(
         "invitation_details": {"enabled": False},
         "accreditation_info": {"enabled": False},
         "accreditation_deadline": {"enabled": False},
+        "keywords": {"enabled": False},
     },
     schema=dict(PlanningSchema),  # type: ignore
     groups={

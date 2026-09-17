@@ -168,6 +168,7 @@ DEFAULT_EVENT_PROFILE = PlanningProfileResource(
         "headline": {"enabled": False},
         "coverages": {"enabled": False},
         "agendas": {"enabled": False},
+        "keywords": {"enabled": False},
     },
     schema=dict(EventSchema),  # type: ignore
     groups={
