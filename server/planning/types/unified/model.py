@@ -2,14 +2,12 @@ from typing import Annotated, Any
 from enum import Enum, unique
 from datetime import datetime
 
-from pydantic import Field, model_validator, BaseModel, model_serializer
-from pydantic_core import PydanticCustomError
+from pydantic import Field, model_validator, BaseModel
 from quart_babel import gettext
 from pytz.exceptions import UnknownTimeZoneError
 
 from superdesk.core import get_config
-from superdesk.core.resources import ResourceModel, fields, Dataclass
-from superdesk.core.resources.validators import validate_data_relation_async
+from superdesk.core.resources import ResourceModel, fields
 from superdesk.core.utils import generate_guid, GUID_NEWSML
 from superdesk.errors import SuperdeskApiError
 from superdesk.utc import utc_to_local
@@ -30,7 +28,7 @@ class FieldsNotStored(BaseModel):
         description="Used when an Event is created from a Planning item, so we can link on the backend",
         default=None,
     )
-    embedded_planning: list[EmbeddedPlanningItem] | None = Field(
+    embedded_planning: Annotated[list[EmbeddedPlanningItem] | None, fields.mapping_disabled("object")] = Field(
         description="Used from the EmbeddedCoverage form in the Event editor",
         default=None,
     )
@@ -159,7 +157,7 @@ class UnifiedPlanningResource(
 
         return self
 
-    def clone_with(self, updates: dict[str, Any]) -> "UnifiedPlanningResource":
+    def clone_with(self, updates: dict[str, Any], **kwargs) -> "UnifiedPlanningResource":
         """
         Deeply clones the instance and applies updates with proper validation.
 
@@ -173,7 +171,7 @@ class UnifiedPlanningResource(
         for coverage in updates.get("coverages") or []:
             if not coverage.get("assigned_to"):
                 coverage["assigned_to"] = None
-        return super().clone_with(updates)
+        return super().clone_with(updates, **kwargs)
 
 
 def _get_local_date(date: datetime, tz: str | None) -> datetime:

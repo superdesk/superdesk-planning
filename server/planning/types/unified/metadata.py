@@ -18,6 +18,7 @@ class Place(Dataclass):
     state: fields.Keyword | None = Field(description="The state of the place", default=None)
     country: fields.Keyword | None = Field(description="The country of the place", default=None)
     world_region: fields.Keyword | None = Field(description="The world region of the place", default=None)
+    group: fields.Keyword | None = Field(description="The group of the place", default=None)
     locality_code: fields.Keyword | None = Field(description="The locality code of the place", default=None)
     state_code: fields.Keyword | None = Field(description="The state code of the place", default=None)
     country_code: fields.Keyword | None = Field(description="The country code of the place", default=None)
@@ -32,8 +33,8 @@ class ItemDescription(BaseModel):
         description="Short editorial identifier or slugline for the item", default=None
     )
     name: str | None = Field(description="Display name or title of the item", default=None)
-    definition_short: str | None = Field(description="Brief definition or summary of the item", default=None)
-    definition_long: str | None = Field(description="Detailed definition or description of the item", default=None)
+    definition_short: fields.HTML | None = Field(description="Brief definition or summary of the item", default=None)
+    definition_long: fields.HTML | None = Field(description="Detailed definition or description of the item", default=None)
     abstract: fields.HTML | None = Field(description="HTML-formatted abstract or summary of the item", default=None)
     headline: fields.HTML | None = Field(description="HTML-formatted headline for the item", default=None)
     internal_note: str | None = Field(description="Internal note visible to editorial users", default=None)
@@ -42,9 +43,11 @@ class ItemDescription(BaseModel):
 
 class ItemMetadata(BaseModel):
     subject: Annotated[list[Subject] | None, fields.nested_list(include_in_parent=True, dynamic=False)] = Field(
-        description="Item subjects", default=None
+        description="Subject(s) associated with the item", default=None
     )
-    anpa_category: list[CVItem] | None = Field(description="Item ANPA categories", default=None)
+    anpa_category: list[CVItem] | None = Field(
+        description="List of ANPA categories associated with the item", default=None
+    )
     priority: int | None = Field(description="Priority of the item", default=None)
     urgency: int | None = Field(description="Urgency of the item", default=None)
     language: fields.Keyword = Field(description="Language of the item (defaults to the DEFAULT_LANGUAGE config)")
@@ -56,7 +59,7 @@ class ItemMetadata(BaseModel):
         description="IDs for the agendas of the item",
         default=None,
     )
-    genre: list[CVItem] | None = Field(description="List of genres of the item", default=None)
+    genre: list[CVItem] | None = Field(description="Genre(s) associated with the item", default=None)
     place: Annotated[list[Place] | None, fields.elastic_mapping({"type": "object", "dynamic": False})] = Field(
         description="List of places of the item", default=None
     )

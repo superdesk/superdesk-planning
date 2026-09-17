@@ -1,15 +1,17 @@
 from typing import Annotated
 from enum import Enum, unique
 
-from pydantic import Field
+from pydantic import Field, model_validator
 
-from superdesk.core.resources import BaseModel, Dataclass, fields
+from superdesk.core import get_config
+from superdesk.core.resources import BaseModel, Dataclass, fields, default_model_config
 from superdesk.core.resources.validators import validate_data_relation_async
 from superdesk.core.utils import generate_guid, GUID_NEWSML
 
 from ..enums import WorkflowState, AssignmentWorkflowState, UpdateMethods
-from .common import CVItem, Subject, ItemLocation
+from .common import CVItem, ItemLocation, CVItemTranslations
 from .system import AuditInformation
+from .metadata import ItemDescription, ItemMetadata
 
 
 @unique
@@ -33,6 +35,13 @@ class CoverageFlags(Dataclass):
     )
 
 
+class CoverageProviderItem(Dataclass):
+    qcode: fields.Keyword = Field(description="Qcode of the item")
+    name: fields.Keyword = Field(description="Name of the item")
+    translations: CVItemTranslations | None = Field(default=None)
+    contact_type: fields.Keyword | None = Field(description="qcode for the contact type, if any", default=None)
+
+
 class CoverageAssignedTo(Dataclass):
     assignment_id: Annotated[fields.ObjectId | None, validate_data_relation_async("assignments")] = Field(
         description="ID of the Assignment for this Coverage", default=None
@@ -49,7 +58,23 @@ class CoverageAssignedTo(Dataclass):
     desk: Annotated[fields.ObjectId | None, validate_data_relation_async("desks")] = Field(
         description="ID of the Desk for this Coverage", default=None
     )
-    coverage_provider: CVItem | None = Field(description="External provider of the coverage", default=None)
+    coverage_provider: CoverageProviderItem | None = Field(description="External provider of the coverage", default=None)
+
+    assignor_desk: fields.ObjectId | None = Field(
+        description="ID of the User who last assigned a Desk to this Coverage", default=None
+    )
+    assignor_user: fields.ObjectId | None = Field(
+        description="ID of the User who last assigned a User to this Coverage", default=None
+    )
+    assigned_date_desk: fields.UTCDatetime | None = Field(
+        description="UTC Date and time the Desk was last assigned", default=None
+    )
+    assigned_date_user: fields.UTCDatetime | None = Field(
+        description="UTC Date and time the User was last assigned", default=None
+    )
+    priority: int | None = Field(
+        description="Priority of this Assignment linked to this Coverage", default=None
+    )
 
 
 class NewsContentCharacteristics(Dataclass):
@@ -68,29 +93,16 @@ class CustomCoverageField(Dataclass):
     value: fields.HTML = Field(description="Value of the custom Coverage field")
 
 
-class CoveragePlanning(Dataclass):
+class CoveragePlanning(ItemDescription, ItemMetadata, BaseModel):
     scheduled: fields.UTCDatetime = Field(description="Due date and time for this Coverage")
     g2_content_type: fields.Keyword = Field(description="G2 Content Type of the Coverage", default="text")
-    genre: list[CVItem] | None = Field(description="Genre(s) associated with this Coverage", default=None)
-    slugline: fields.Slugline | None = Field(description="Slugline associated with this Coverage", default=None)
-    headline: fields.HTML | None = Field(description="Headline associated with this Coverage", default=None)
-    ednote: str | None = Field(description="Editorial note for this Coverage", default=None)
-    internal_note: str | None = Field(description="Internal note for this Coverage", default=None)
-    keyword: list[str] | None = Field(description="Keyword(s) associated with this Coverage", default=None)
-    language: fields.Keyword | None = Field(description="Language associated with this Coverage", default=None)
-    coverage_provider: CVItem | None = Field(description="The external provider for this Coverage", default=None)
+
+    coverage_provider: CoverageProviderItem | None = Field(description="The external provider for this Coverage", default=None)
     contact_info: Annotated[fields.ObjectId | None, validate_data_relation_async("contacts")] = Field(
         description="ID of the Contact for this Coverage", default=None
     )
-    subject: Annotated[list[Subject] | None, fields.nested_list(include_in_parent=True, dynamic=False)] = Field(
-        description="Subject(s) associated with this Coverage", default=None
-    )
     workflow_status_reason: str | None = Field(
         description="Reason for the current workflow status of this Coverage", default=None
-    )
-    priority: int | None = Field(description="Priority of this Coverage", default=None)
-    anpa_category: list[CVItem] | None = Field(
-        description="List of ANPA categories associated with this Coverage", default=None
     )
     multiple_content: bool = Field(
         description="Indicates if this Coverage contains multiple content items", default=False
@@ -110,7 +122,6 @@ class CoveragePlanning(Dataclass):
         description="ID of the XMP file associated with this Coverage", default=None
     )
 
-    # TODO: Are these next lot used anywhere?
     item_class: fields.Keyword | None = Field(description="Class for the Coverage", default=None)
     item_count: int | None = Field(description="Count of items in the Coverage", default=None)
     service: list[CVItem] | None = Field(description="Service(s) associated with this Coverage", default=None)
@@ -123,9 +134,19 @@ class CoveragePlanning(Dataclass):
     by: list[str] | None = Field(description="Byline(s) associated with this Coverage", default=None)
     credit_line: list[str] | None = Field(description="Credit line(s) associated with this Coverage", default=None)
     dateline: list[str] | None = Field(description="Dateline(s) associated with this Coverage", default=None)
-    description_text: fields.HTML | None = Field(
-        description="Description text associated with this Coverage", default=None
-    )
+
+    @model_validator(mode="before")
+    @classmethod
+    def populate_languages(cls, data: "CoveragePlanning | dict") -> "CoveragePlanning | dict":
+        if isinstance(data, CoveragePlanning):
+            return data
+
+        if not len(data.get("languages") or []):
+            data["languages"] = [data.get("language") or get_config(str, "DEFAULT_LANGUAGE")]
+        if not data.get("language"):
+            data["language"] = data["languages"][0]
+
+        return data
 
 
 class CoverageScheduledUpdatePlanning(Dataclass):
@@ -207,7 +228,9 @@ class ItemCoverage(BaseModel):
     )
 
 
-class EmbeddedPlanningCoverage(Dataclass):
+# Use ``BaseModel`` so we can track what the API client provides
+# as we don't have access to `model_fields_set` in our ``Dataclass`` model
+class EmbeddedPlanningCoverage(BaseModel):
     coverage_id: str = Field(
         description="The ID of the Coverage item that this EmbeddedPlanningCoverage is linked to",
         default_factory=lambda: f"tempId-{generate_guid(type=GUID_NEWSML)}",
@@ -252,7 +275,7 @@ class EmbeddedPlanningCoverage(Dataclass):
     priority: int | None = Field(
         description="The priority of the Coverage item that this EmbeddedPlanningCoverage is linked to", default=None
     )
-    coverage_provider: CVItem | None = Field(
+    coverage_provider: CoverageProviderItem | None = Field(
         description="The coverage provider of the Coverage item that this EmbeddedPlanningCoverage is linked to",
         default=None,
     )
@@ -266,7 +289,7 @@ class EmbeddedPlanningItem(BaseModel):
         description="Used to determine the update method",
         default=UpdateMethods.SINGLE,
     )
-    coverages: dict[str, EmbeddedPlanningCoverage] = Field(
+    coverages: list[EmbeddedPlanningCoverage] = Field(
         description="The coverages of the Planning item that this EmbeddedPlanningItem is linked to",
         default_factory=dict,
     )
