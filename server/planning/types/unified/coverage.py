@@ -307,5 +307,5 @@ class EmbeddedPlanningItem(BaseModel):
     )
     coverages: list[EmbeddedPlanningCoverage] = Field(
         description="The coverages of the Planning item that this EmbeddedPlanningItem is linked to",
-        default_factory=dict,
+        default_factory=list,
     )
