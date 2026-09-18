@@ -10,3 +10,11 @@
     margin-top: -1.5rem;
   }
 }
+
+.coverage-editable-fields--stacked {
+    display: flex;
+    flex-direction: column;
+    gap: var(--gap--small);
+    width: 100%;
+    padding: var(--space--1) var(--space--2) var(--space--1-5);
+}

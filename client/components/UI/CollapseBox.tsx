@@ -190,6 +190,7 @@ export class CollapseBox extends React.Component<IProps, IState> {
                 )}
                 {!this.state.isOpen && (
                     <div
+                        data-test-id="collapse-box--header"
                         className={classNames(
                             'sd-collapse-box__header',
                             {

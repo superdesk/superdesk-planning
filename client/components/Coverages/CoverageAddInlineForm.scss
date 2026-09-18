@@ -1,0 +1,44 @@
+.coverage-inline-form {
+    border: 1px solid var(--sd-colour-line--light);
+    border-radius: var(--b-radius--x-small);
+    background-color: var(--sd-colour-panel-bg--200);
+
+    &__header {
+        border-bottom: 1px solid var(--sd-colour-line--light);
+    }
+
+    &__body {
+        background-color: var(--sd-colour-panel-bg--100);
+
+        // The editor content block gives every list group a 2.4rem margin
+        .sd-list-item-group {
+            margin: 0;
+            padding: 0;
+        }
+    }
+
+    &__footer {
+        border-top: 1px solid var(--sd-colour-line--light);
+    }
+
+    &__fields {
+        width: calc(100% - var(--space--1));
+    }
+
+    &__type {
+        flex: 1;
+        min-width: 0;
+    }
+
+    // Same dashed box as the empty drop zones around it, `item-association` carries the look
+    &__open {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+
+        &,
+        .label-icon {
+            cursor: pointer;
+        }
+    }
+}

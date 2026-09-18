@@ -30,6 +30,15 @@ export class SubNavBar {
         return this.page.locator('.subnav + .subnav').locator('ul.dropdown__menu');
     }
 
+    // The container holds both the toggle and, once open, the menu items
+    get actionsMenu(): Locator {
+        return this.page.getByTestId('planning--actions-menu');
+    }
+
+    get actionsMenuBtn(): Locator {
+        return this.actionsMenu.getByRole('button', {name: 'Actions', exact: true});
+    }
+
     async createEvent(): Promise<void> {
         await this.plusBtn.click();
         await this.createMenu

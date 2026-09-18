@@ -163,6 +163,7 @@ DEFAULT_EVENT_PROFILE = PlanningProfileResource(
             "enabled": True,
             "group": "coverages",
             "index": 1,
+            "inline_form": False,
         },
         "registration_details": {"enabled": False},
         "invitation_details": {"enabled": False},

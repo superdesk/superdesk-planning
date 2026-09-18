@@ -6,7 +6,9 @@ import {gettext} from '../../utils';
 import {superdeskApi} from '../../superdeskApi';
 import {IPlanningNewsCoverageStatus} from '../../interfaces';
 import {IDesk, IUser, IVocabularyItem} from 'superdesk-api';
-import {ICoverageLineItem} from './CoverageAddAdvancedModal';
+import {ICoverageLineItem, ICoverageRowErrors} from './coverageRows';
+
+import './style.scss';
 
 interface IProps {
     coverage: Partial<ICoverageLineItem>;
@@ -16,6 +18,9 @@ interface IProps {
     handleUserChange: (coverage: Partial<ICoverageLineItem>, user: IUser) => void;
     updateCoverage: (coverage: Partial<ICoverageLineItem>, updates: Partial<ICoverageLineItem>) => void;
     duplicateCoverage: (coverage: Partial<ICoverageLineItem>) => void;
+    error?: ICoverageRowErrors;
+    stacked?: boolean;
+    showDuplicate?: boolean;
 }
 
 export const CoverageEditableFields = ({
@@ -26,16 +31,21 @@ export const CoverageEditableFields = ({
     handleUserChange,
     updateCoverage,
     duplicateCoverage,
+    error,
+    stacked,
+    showDuplicate = true,
 }: IProps) => {
     const language = getUserInterfaceLanguageFromCV();
     const {SelectUser} = superdeskApi.components;
 
     return (
-        <div className="d-flex gap-1 flex-grow items-end py-1 px-1-5">
+        <div className={stacked ? 'coverage-editable-fields--stacked' : 'd-flex gap-1 flex-grow items-end py-1 px-1-5'}>
             <Select
                 fullWidth
                 label={gettext('Desk')}
                 value={coverage.desk?._id}
+                invalid={error?.desk != null}
+                error={error?.desk}
                 onChange={(newDeskId) => {
                     handleDeskChange(
                         coverage,
@@ -102,13 +112,15 @@ export const CoverageEditableFields = ({
                     </Option>
                 ))}
             </Select>
-            <IconButton
-                ariaValue={gettext('Duplicate')}
-                icon="plus-sign"
-                onClick={() => {
-                    duplicateCoverage(coverage);
-                }}
-            />
+            {showDuplicate && (
+                <IconButton
+                    ariaValue={gettext('Duplicate')}
+                    icon="plus-sign"
+                    onClick={() => {
+                        duplicateCoverage(coverage);
+                    }}
+                />
+            )}
         </div>
     );
 };
