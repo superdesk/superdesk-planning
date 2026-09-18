@@ -98,7 +98,7 @@ class RelatedContentItem(Dataclass):
 
 
 class ItemSystemFields(BaseModel):
-    guid: fields.Keyword = Field(description="Global unique identifier of the item")
+    guid: fields.Keyword = Field(description="Global unique identifier of the item", default="")
     recurrence_id: fields.Keyword | None = Field(
         description="Global unique identifier of the recurrence of the item",
         default=None,

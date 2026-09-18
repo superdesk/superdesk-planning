@@ -36,6 +36,13 @@ class CoverageSchema(BaseSchema):
     priority = schema.IntegerField()
     multiple_content = MultipleContentField(read_only=False, default_value=False)
     location = schema.ListField()
+    name = TextField(required=True, field_type="single_line")
+    urgency = schema.IntegerField()
+    calendars = schema.ListField()
+    agendas = schema.ListField()
+    place = schema.ListField()
+    definition_long = TextField(field_type="multi_line")
+    definition_short = TextField(field_type="multi_line")
 
 
 DEFAULT_COVERAGE_PROFILE = PlanningProfileResource(
@@ -91,6 +98,13 @@ DEFAULT_COVERAGE_PROFILE = PlanningProfileResource(
         "keyword": {"enabled": False},
         "files": {"enabled": False},
         "priority": {"enabled": False},
+        "name": {"enabled": False},
+        "urgency": {"enabled": False},
+        "calendars": {"enabled": False},
+        "agendas": {"enabled": False},
+        "place": {"enabled": False},
+        "definition_short": {"enabled": False},
+        "definition_long": {"enabled": False},
         # Requires `PLANNING_LINK_UPDATES_TO_COVERAGES` enabled in config
         "no_content_linking": {"enabled": False},
     },

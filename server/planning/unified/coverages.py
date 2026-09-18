@@ -14,7 +14,7 @@ from superdesk.storage.superdesk_file import SuperdeskAsyncFile
 from superdesk.utc import utcnow
 from apps.auth import get_user_id
 
-from planning.types import WorkflowState, CoverageProfile, AssignmentWorkflowState
+from planning.types import WorkflowState, AssignmentWorkflowState
 from planning.types.unified import (
     UnifiedPlanningResource,
     CoverageItem,
@@ -33,17 +33,13 @@ from planning.common import (
     get_coverage_type_name,
     get_coverage_status_from_cv,
 )
-from planning.content_profiles.utils import (
-    get_coverage_schema,
-    get_enabled_fields,
-    get_custom_vocabulary_fields_from_profile,
-)
 from planning.coverage_assignments import get_metadata_updates_between_entities
 from planning.planning_notifications import PlanningNotifications
 from planning.history.assignments import AssignmentsHistoryService
 from planning import signals
 
 from .common import ItemUpdateRequest, get_related_event_links
+from .metadata.coverages import sync_item_to_coverage
 
 logger = logging.getLogger(__name__)
 
@@ -82,7 +78,7 @@ def validate_scheduled_updates(item: UnifiedPlanningResource) -> None:
 
 async def on_coverage_update(req: ItemUpdateRequest) -> None:
     if req.original is None:
-        # This is a branch new Planning item, so we just add all the new coverges into
+        # This is a brand new Planning item, so we just add all the new coverage into
         # the system
         if req.updated.coverages:
             for coverage in req.updated.coverages:
@@ -184,7 +180,7 @@ async def add_coverage(item: UnifiedPlanningResource, coverage: CoverageItem) ->
         coverage.original_creator = current_user_id
         coverage.version_creator = current_user_id
 
-    await _inherit_planning_metadata(item, coverage)
+    await sync_item_to_coverage(item, coverage)
     _set_coverage_active(item, coverage)
     await _set_slugline_from_xmp(coverage, coverage)
     await _create_assignment_from_coverage(item, coverage)
@@ -209,7 +205,7 @@ async def _update_coverage(
     if not updated_coverage.planning.scheduled:
         updated_coverage.planning.scheduled = original_coverage.planning.scheduled
 
-    await _inherit_planning_metadata(req.original, updated_coverage)
+    await sync_item_to_coverage(req.updated, updated_coverage)
     _set_coverage_active(req.original, updated_coverage)
     await _set_slugline_from_xmp(original_coverage, updated_coverage)
 
@@ -233,50 +229,6 @@ def _coverage_changed(original: CoverageItem, updated: CoverageItem) -> bool:
             return True
 
     return False
-
-
-async def _inherit_planning_metadata(item: UnifiedPlanningResource, coverage: CoverageItem) -> None:
-    """
-    Inherit planning metadata fields to coverage if not explicitly set in coverage profile.
-    The fields inherited are those overlapping metadata fields from the planning schema and coverage schema
-    """
-
-    schema: CoverageProfile | None = None if not coverage.profile else await get_coverage_schema(coverage.profile)
-    if coverage.profile and not schema:
-        logger.warning(
-            "Issue copying Planning metadata to Coverage, CoverageProfile not found",
-            extra=dict(
-                coverage_id=coverage.coverage_id,
-                profile=coverage.profile,
-            ),
-        )
-
-    supported_fields = {"anpa_category", "subject", "genre", "priority", "location", "headline", "slugline"}
-
-    if schema:
-        custom_vocabulary_fields = get_custom_vocabulary_fields_from_profile(schema)
-        enabled_fields = {
-            field
-            for field in get_enabled_fields(schema)
-            if field in supported_fields and field not in custom_vocabulary_fields
-        }
-    else:
-        enabled_fields = supported_fields
-        custom_vocabulary_fields = set()
-
-    for field in enabled_fields:
-        value = getattr(item, field, None)
-        if field != "subject" and value:
-            if not getattr(coverage.planning, field, None):
-                setattr(coverage.planning, field, value)
-
-    if item.subject and not coverage.planning.subject:
-        # Copy ``Subject`` and ``Custom Vocabulary`` fields that are enabled in both Planning and Coverage profiles
-        coverage.planning.subject = [
-            subject
-            for subject in item.subject
-            if ((not subject.scheme and "subject" in enabled_fields) or (subject.scheme in custom_vocabulary_fields))
-        ]
 
 
 async def _set_slugline_from_xmp(
@@ -464,7 +416,6 @@ async def _create_assignment_from_coverage(
     if not assignment_updates:
         return
 
-    coverage.update_from_dict(coverage.to_dict(by_alias=False), deep=True)
     assignment_ids = await assignment_service.post_from_planning([assignment_updates])
     new_assignment_id = assignment_ids[0] if len(assignment_ids) else None
     if not new_assignment_id:

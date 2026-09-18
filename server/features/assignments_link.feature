@@ -180,24 +180,6 @@ Feature: Assignment link
 
     @auth
     Scenario: Content item must not have an existing delivery record
-        Given "vocabularies"
-        """
-        [{
-            "_id": "newscoveragestatus",
-            "display_name": "News Coverage Status",
-            "type": "manageable",
-            "unique_field": "qcode",
-            "items": [
-                {"is_active": true, "qcode": "ncostat:int", "name": "coverage intended", "label": "Planned"},
-                {"is_active": true, "qcode": "ncostat:notdec", "name": "coverage not decided yet",
-                    "label": "On merit"},
-                {"is_active": true, "qcode": "ncostat:notint", "name": "coverage not intended",
-                    "label": "Not planned"},
-                {"is_active": true, "qcode": "ncostat:onreq", "name": "coverage upon request",
-                    "label": "On request"}
-            ]
-        }]
-        """
         When we post to "/archive"
         """
         [{
@@ -1046,33 +1028,6 @@ Feature: Assignment link
         And "desks"
         """
         [{"name": "Sports", "content_expiry": 60}]
-        """
-        And "vocabularies"
-        """
-        [{
-            "_id": "newscoveragestatus",
-            "display_name": "News Coverage Status",
-            "type": "manageable",
-            "unique_field": "qcode",
-            "items": [
-                {"is_active": true, "qcode": "ncostat:int", "name": "coverage intended", "label": "Planned"},
-                {"is_active": true, "qcode": "ncostat:notdec", "name": "coverage not decided yet",
-                    "label": "On merit"},
-                {"is_active": true, "qcode": "ncostat:notint", "name": "coverage not intended",
-                    "label": "Not planned"},
-                {"is_active": true, "qcode": "ncostat:onreq", "name": "coverage upon request",
-                    "label": "On request"}
-            ]
-        }, {
-              "_id": "g2_content_type",
-              "display_name": "Coverage content types",
-              "type": "manageable",
-              "unique_field": "qcode",
-              "selection_type": "do not show",
-              "items": [
-                  {"is_active": true, "name": "Text", "qcode": "text", "content item type": "text"}
-              ]
-        }]
         """
         When we post to "/archive" with success
         """

@@ -3,7 +3,7 @@ Feature: Event Embedded Planning
     @auth
     @vocabulary
     Scenario: Can create and update associated Planning with an Event
-        # Test creating and Event with a Planning item/Coveage
+        # Test creating and Event with a Planning item/Coverage
         When we post to "/events"
         """
         [{
@@ -210,7 +210,7 @@ Feature: Event Embedded Planning
                 "language": {"enabled": true},
                 "name": {"enabled": true},
                 "slugline": {"enabled": true},
-                "description_text": {"enabled": true},
+                "definition_short": {"enabled": true},
                 "internal_note": {"enabled": true},
                 "ednote": {"enabled": true},
                 "priority": {"enabled": true},
@@ -227,7 +227,7 @@ Feature: Event Embedded Planning
                 },
                 "name": {"multilingual": true},
                 "slugline": {"multilingual": true},
-                "description_text": {"multilingual": true},
+                "definition_short": {"multilingual": true},
                 "ednote": {"multilingual": true},
                 "internal_note": {"multilingual": true}
             }
@@ -308,10 +308,10 @@ Feature: Event Embedded Planning
         """
         {"_items": [{
             "_id": "__any_value__",
-            "slugline": "slugline1",
-            "internal_note": "event internal note",
-            "name": "name1",
-            "description_text": "The description",
+            "slugline": "slugline-en",
+            "internal_note": "internal note en",
+            "name": "name-en",
+            "definition_short": "description en",
             "place": [{
                 "name": "NSW",
                 "qcode": "NSW",
@@ -321,7 +321,7 @@ Feature: Event Embedded Planning
                 "group": "Australia"
             }],
             "subject":[{"qcode": "17004000", "name": "Statistics"}],
-            "ednote": "event editorial note",
+            "ednote": "ednote en",
             "language": "en",
             "languages": ["en", "nl"],
             "priority": 2,
@@ -330,8 +330,8 @@ Feature: Event Embedded Planning
                 {"field": "name", "language": "nl", "value": "name-nl"},
                 {"field": "slugline", "language": "en", "value": "slugline-en"},
                 {"field": "slugline", "language": "nl", "value": "slugline-nl"},
-                {"field": "description_text", "language": "en", "value": "description en"},
-                {"field": "description_text", "language": "nl", "value": "description nl"},
+                {"field": "definition_short", "language": "en", "value": "description en"},
+                {"field": "definition_short", "language": "nl", "value": "description nl"},
                 {"field": "ednote", "language": "en", "value": "ednote en"},
                 {"field": "ednote", "language": "nl", "value": "ednote nl"},
                 {"field": "internal_note", "language": "en", "value": "internal note en"},

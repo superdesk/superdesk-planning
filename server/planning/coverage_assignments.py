@@ -393,7 +393,7 @@ def _copy_metadata_to_new_assignment(updates: dict, planning: dict, coverage: di
         {
             "planning_item": planning[ID_FIELD],
             "coverage_item": coverage.get("coverage_id"),
-            "description_text": planning.get("description_text"),
+            "description_text": planning.get("definition_long") or planning.get("definition_short"),
             "planning": _get_coverage_planning_metadata(planning, coverage),
         }
     )
@@ -443,8 +443,9 @@ def _copy_metadata_to_existing_assignment(updates: dict, assignment: dict, plann
         assignment_updated = True
 
     # If the Planning description has been changed
-    if planning.get("description_text") != assignment.get("description_text"):
-        updates["description_text"] = planning.get("description_text")
+    description = planning.get("definition_long") or planning.get("definition_short")
+    if description != assignment.get("description_text"):
+        updates["description_text"] = description
         assignment_updated = True
 
     # If the Planning name has been changed
@@ -492,9 +493,15 @@ def _copy_translated_values_to_assignment(updates: dict, planning: dict) -> bool
     planning_updates = {
         key: val
         for key, val in translated_values.items()
-        if key in ("ednote", "description_text", "headline", "slugline", "authors", "internal_note")
+        if key in ("ednote", "headline", "slugline", "authors", "internal_note")
         and updates["planning"].get(key) is None
     }
+    if updates["planning"].get("description_text") is None:
+        description = translated_values.get("definition_long") or translated_values.get("definition_short")
+        if not description:
+            description = updates["planning"].get("definition_long") or updates["planning"].get("definition_short")
+        updates["planning"]["description_text"] = description
+
     if planning_updates:
         updates["planning"].update(planning_updates)
         assignment_updated = True

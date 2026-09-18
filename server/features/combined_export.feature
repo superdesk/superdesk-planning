@@ -15,16 +15,6 @@ Feature: Export combined Planning and Event items with default template
             "default_content_template": "#content_templates._id#"
         }]
         """
-        Given "vocabularies"
-        """
-        [{
-            "_id": "g2_content_type",
-            "items": [
-                {"is_active": true, "name": "Text", "qcode": "text"},
-                {"is_active": true, "name": "Photo", "qcode": "photo"}
-            ]
-        }]
-        """
         Given "planning_export_templates"
         """
         [{

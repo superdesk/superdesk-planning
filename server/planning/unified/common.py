@@ -348,12 +348,25 @@ def format_item_addresses(item: UnifiedPlanningResource, separator: str = " ") -
 
 
 def convert_unified_planning_to_legacy_format(item: dict) -> None:
+    def set_description_text(doc: dict):
+        description = doc.get("definition_long", None) or doc.get("definition_short", None)
+        if description:
+            doc["description_text"] = description
+
     if item.get("type") == PlanningItemType.PLANNING.value:
         dates = item.pop("dates", {})
         if not item.get("planning_date"):
             item["planning_date"] = dates.get("start")
-        if definition_long := item.pop("definition_long", None):
-            item["description_text"] = definition_long
+        item["all_day"] = dates.get("all_day") is True
+        set_description_text(item)
+
+    if item.get("coverages"):
+        for coverage in item["coverages"]:
+            set_description_text(coverage.get("planning") or {})
+
+            coverage_planning = coverage.get("planning") or {}
+            if keyword := coverage_planning.get("keywords", None):
+                coverage["planning"]["keyword"] = keyword
 
 
 def convert_legacy_planning_to_unified_format(item: dict) -> None:
@@ -361,5 +374,17 @@ def convert_legacy_planning_to_unified_format(item: dict) -> None:
         item.setdefault("dates", {})
         if not item["dates"].get("start"):
             item["dates"]["start"] = item.pop("planning_date", None)
-        if description_text := item.pop("description_text", None):
+        if "all_day" not in item["dates"]:
+            item["dates"]["all_day"] = item.get("all_day") is True
+        if description_text := item.get("description_text", None):
             item["definition_long"] = description_text
+
+    if item.get("coverages"):
+        for coverage in item["coverages"]:
+            coverage_planning = coverage.get("planning") or {}
+            if description_text := coverage_planning.get("description_text", None):
+                coverage_planning["definition_long"] = description_text
+
+            coverage_planning = coverage.get("planning") or {}
+            if keywords := coverage_planning.get("keyword"):
+                coverage["planning"]["keywords"] = keywords
