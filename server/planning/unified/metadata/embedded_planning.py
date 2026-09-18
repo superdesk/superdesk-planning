@@ -293,10 +293,12 @@ async def get_existing_plannings_from_embedded_planning(
             logger.warning(f"Failed to find planning item '{planning_id}' from embedded coverage")
             continue
 
+        existing_coverage_ids = {coverage.coverage_id for coverage in existing_planning.coverages or []}
         existing_embedded_coverages = {
             coverage.coverage_id: coverage
             for coverage in embedded_plan.coverages
             if not coverage.coverage_id.startswith("tempId-")
+            and coverage.coverage_id in existing_coverage_ids
         }
         update_required = len(existing_planning.coverages or []) != len(embedded_plan.coverages)
         updated_coverages: list[CoverageItem] = [
