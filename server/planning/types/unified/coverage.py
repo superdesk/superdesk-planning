@@ -4,14 +4,14 @@ from enum import Enum, unique
 from pydantic import Field, model_validator
 
 from superdesk.core import get_config
-from superdesk.core.resources import BaseModel, Dataclass, fields, default_model_config
+from superdesk.core.resources import BaseModel, Dataclass, fields
 from superdesk.core.resources.validators import validate_data_relation_async
 from superdesk.core.utils import generate_guid, GUID_NEWSML
 
 from ..enums import WorkflowState, AssignmentWorkflowState, UpdateMethods
 from .common import CVItem, ItemLocation, CVItemTranslations
 from .system import AuditInformation
-from .metadata import ItemDescription, ItemMetadata
+from .metadata import ItemDescription, ItemMetadata, Place
 
 
 @unique
@@ -278,6 +278,22 @@ class EmbeddedPlanningCoverage(BaseModel):
     coverage_provider: CoverageProviderItem | None = Field(
         description="The coverage provider of the Coverage item that this EmbeddedPlanningCoverage is linked to",
         default=None,
+    )
+    anpa_category: list[CVItem] | None = Field(
+        description="List of ANPA categories associated with the Coverage", default=None
+    )
+    keywords: list[fields.HTML] | None = Field(description="List of keywords of the Coverage", default=None)
+    location: list[ItemLocation] | None = Field(description="List of locations related to the Coverage", default=None)
+    name: str | None = Field(description="Display name or title of the Coverage", default=None)
+    urgency: int | None = Field(description="Urgency of the Coverage", default=None)
+    calendars: list[CVItem] | None = Field(description="Calendars of the Coverage", default=None)
+    agendas: list[fields.ObjectId] | None = Field(description="IDs for the agendas of the Coverage", default=None)
+    place: list[Place] | None = Field(description="List of places of the item", default=None)
+    definition_short: fields.HTML | None = Field(
+        description="Brief definition or summary of the Coverage", default=None
+    )
+    definition_long: fields.HTML | None = Field(
+        description="Detailed definition or description of the Coverage", default=None
     )
 
 

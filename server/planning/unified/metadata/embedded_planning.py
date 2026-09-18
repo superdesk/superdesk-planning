@@ -229,9 +229,11 @@ def create_new_coverage_from_event_and_planning(
     )
     for field in coverage_planning_fields:
         if field == "keyword":
+            # The CoverageProfile uses `keyword` for the config while the storage layer uses `keywords`
+            # This minimises the changes required on the front-end
             field = "keywords"
 
-        coverage_value = getattr(coverage, field)
+        coverage_value = getattr(coverage, field, None)
         if coverage_value:
             # If the value (excluding ``None``) is already provided in the Coverage, then use that
             setattr(new_coverage.planning, field, coverage_value)
