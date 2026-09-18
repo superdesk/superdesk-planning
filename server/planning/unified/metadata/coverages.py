@@ -14,7 +14,7 @@ from .multilingual import get_translated_fields
 logger = logging.getLogger(__name__)
 
 
-def _get_enabled_fields(schema: CoverageProfile | None) -> tuple[set[str], set[str]]:
+def _get_enabled_fields(schema: CoverageProfile) -> tuple[set[str], set[str]]:
     supported_fields = {
         "anpa_category",
         "subject",
@@ -33,16 +33,13 @@ def _get_enabled_fields(schema: CoverageProfile | None) -> tuple[set[str], set[s
         "urgency",
     }
 
-    if schema:
-        custom_vocabulary_fields = get_custom_vocabulary_fields_from_profile(schema)
-        enabled_fields = {
-            field
-            for field in get_enabled_fields(schema)
-            if field in supported_fields and field not in custom_vocabulary_fields
-        }
-        return enabled_fields, custom_vocabulary_fields
-    else:
-        return supported_fields, set()
+    custom_vocabulary_fields = get_custom_vocabulary_fields_from_profile(schema)
+    enabled_fields = {
+        field
+        for field in get_enabled_fields(schema)
+        if field in supported_fields and field not in custom_vocabulary_fields
+    }
+    return enabled_fields, custom_vocabulary_fields
 
 
 async def sync_item_to_coverage(item: UnifiedPlanningResource, coverage: CoverageItem) -> None:
@@ -51,8 +48,8 @@ async def sync_item_to_coverage(item: UnifiedPlanningResource, coverage: Coverag
     The fields inherited are those overlapping metadata fields from the planning schema and coverage schema
     """
 
-    schema: CoverageProfile | None = None if not coverage.profile else await get_coverage_schema(coverage.profile)
-    if coverage.profile and not schema:
+    schema = await get_coverage_schema(coverage.profile)
+    if coverage.profile and coverage.profile != schema.id:
         logger.warning(
             "Issue copying Planning metadata to Coverage, CoverageProfile not found",
             extra=dict(
@@ -61,7 +58,7 @@ async def sync_item_to_coverage(item: UnifiedPlanningResource, coverage: Coverag
             ),
         )
 
-    enabled_fields, custom_vocabulary_fields = _get_enabled_fields(schema)
+    enabled_fields, custom_vocabulary_fields = _get_enabled_fields(schema.to_dict())
     translations = get_translated_fields(item.translations)
     language = coverage.planning.language or get_config(str, "DEFAULT_LANGUAGE")
 

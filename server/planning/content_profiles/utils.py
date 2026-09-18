@@ -23,10 +23,18 @@ async def get_planning_schema(resource: str) -> ContentProfile:
     raise SuperdeskApiError.notFoundError()
 
 
-async def get_coverage_schema(schema_id: ObjectId | str) -> CoverageProfile | None:
-    profile = await PlanningProfileResource.get_service().find_one(_id=ObjectId(schema_id))
+async def get_coverage_schema(schema_id: ObjectId | None) -> PlanningProfileResource:
+    service = PlanningProfileResource.get_service()
+    profile: PlanningProfileResource | None = None
+
+    if schema_id:
+        profile = await service.find_one(_id=schema_id)
+
+    if profile is None:
+        profile = await service.find_one(type=PlanningProfileType.COVERAGE, content_type={"$in": [None, ""]})
+
     if profile:
-        return profile.to_dict()
+        return profile
 
     raise SuperdeskApiError.notFoundError()
 
