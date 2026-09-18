@@ -34,7 +34,9 @@ class ItemDescription(BaseModel):
     )
     name: str | None = Field(description="Display name or title of the item", default=None)
     definition_short: fields.HTML | None = Field(description="Brief definition or summary of the item", default=None)
-    definition_long: fields.HTML | None = Field(description="Detailed definition or description of the item", default=None)
+    definition_long: fields.HTML | None = Field(
+        description="Detailed definition or description of the item", default=None
+    )
     abstract: fields.HTML | None = Field(description="HTML-formatted abstract or summary of the item", default=None)
     headline: fields.HTML | None = Field(description="HTML-formatted headline for the item", default=None)
     internal_note: str | None = Field(description="Internal note visible to editorial users", default=None)

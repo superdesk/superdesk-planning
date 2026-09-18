@@ -170,8 +170,4 @@ def sync_existing_planning_item(
         sync_data.update_planning = True
         updated_fields.add("coverages")
 
-    return {
-        field: value
-        for field, value in sync_data.planning.updates.to_dict().items()
-        if field in updated_fields
-    }
+    return {field: value for field, value in sync_data.planning.updates.to_dict().items() if field in updated_fields}

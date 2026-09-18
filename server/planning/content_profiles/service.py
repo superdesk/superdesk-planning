@@ -148,7 +148,9 @@ class PlanningTypesAsyncService(AsyncResourceService[PlanningProfileResource]):
         return InMemoryCursorAsync(PlanningProfileResource, merged_profiles)
 
     async def _get_default_coverage_profile(self) -> dict:
-        db_profile = await self.mongo_async.find_one({"type": PlanningProfileType.COVERAGE, "content_type": {"$in": [None, ""]}})
+        db_profile = await self.mongo_async.find_one(
+            {"type": PlanningProfileType.COVERAGE, "content_type": {"$in": [None, ""]}}
+        )
         default_profile = DEFAULT_PROFILES[PlanningProfileType.COVERAGE].to_dict()
 
         if db_profile:
@@ -159,7 +161,9 @@ class PlanningTypesAsyncService(AsyncResourceService[PlanningProfileResource]):
             return default_profile
 
 
-async def _get_default_profile(profile: dict | None, item_type: PlanningProfileType | str | None) -> tuple[dict, PlanningProfileType] | tuple[None, None]:
+async def _get_default_profile(
+    profile: dict | None, item_type: PlanningProfileType | str | None
+) -> tuple[dict, PlanningProfileType] | tuple[None, None]:
     default_profile_dict: dict | None = None
     profile_type: PlanningProfileType | None = None
 

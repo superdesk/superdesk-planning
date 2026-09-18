@@ -85,9 +85,7 @@ async def create_new_plannings_from_embedded_planning(
         return
 
     new_plannings: list[UnifiedPlanningResource] = []
-    planning_fields = set(
-        field for field in PLANNING_FIELDS_TO_SYNC if field in profiles.planning.enabled_fields
-    )
+    planning_fields = set(field for field in PLANNING_FIELDS_TO_SYNC if field in profiles.planning.enabled_fields)
 
     multilingual_enabled = profiles.events.is_multilingual and profiles.planning.is_multilingual
     translations: list[FieldTranslation] = []
@@ -121,12 +119,9 @@ async def create_new_plannings_from_embedded_planning(
             type=PlanningItemType.PLANNING,
             language=event.language,
             languages=event.languages,
-            dates=ItemDates(
-                start=event.dates.start,
-                all_day=get_config(bool, "PLANNING_PLANNING_ALL_DAY", False)
-            ),
+            dates=ItemDates(start=event.dates.start, all_day=get_config(bool, "PLANNING_PLANNING_ALL_DAY", False)),
             related_events=[related_event],
-            coverages=[]
+            coverages=[],
         )
 
         try:
@@ -297,8 +292,7 @@ async def get_existing_plannings_from_embedded_planning(
         existing_embedded_coverages = {
             coverage.coverage_id: coverage
             for coverage in embedded_plan.coverages
-            if not coverage.coverage_id.startswith("tempId-")
-            and coverage.coverage_id in existing_coverage_ids
+            if not coverage.coverage_id.startswith("tempId-") and coverage.coverage_id in existing_coverage_ids
         }
         update_required = len(existing_planning.coverages or []) != len(embedded_plan.coverages)
         updated_coverages: list[CoverageItem] = [
@@ -323,7 +317,8 @@ async def get_existing_plannings_from_embedded_planning(
             if coverage_planning is not None:
                 coverage_profile = profiles.get_coverage_profile(existing_coverage.planning.g2_content_type)
                 coverage_planning_fields = set(
-                    field for field in COVERAGE_PLANNING_FIELDS_TO_SYNC | {"g2_content_type", "scheduled"}
+                    field
+                    for field in COVERAGE_PLANNING_FIELDS_TO_SYNC | {"g2_content_type", "scheduled"}
                     if field in coverage_profile.enabled_fields
                 )
                 for field in coverage_planning_fields:

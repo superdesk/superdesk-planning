@@ -25,18 +25,38 @@ def eventoccurstatus() -> dict:
         "unique_field": "qcode",
         "items": [
             {"is_active": True, "qcode": "eocstat:eos0", "name": "Unplanned event", "label": "Unplanned event"},
-            {"is_active": True, "qcode": "eocstat:eos1", "name": "Planned, occurence planned only",
-             "label": "Planned, occurence planned only"},
-            {"is_active": True, "qcode": "eocstat:eos2", "name": "Planned, occurence highly uncertain",
-             "label": "Planned, occurence highly uncertain"},
+            {
+                "is_active": True,
+                "qcode": "eocstat:eos1",
+                "name": "Planned, occurence planned only",
+                "label": "Planned, occurence planned only",
+            },
+            {
+                "is_active": True,
+                "qcode": "eocstat:eos2",
+                "name": "Planned, occurence highly uncertain",
+                "label": "Planned, occurence highly uncertain",
+            },
             {"is_active": True, "qcode": "eocstat:eos3", "name": "Planned, May occur", "label": "Planned, May occur"},
-            {"is_active": True, "qcode": "eocstat:eos4", "name": "Planned, occurence highly likely",
-             "label": "Planned, occurence highly likely"},
-            {"is_active": True, "qcode": "eocstat:eos5", "name": "Planned, occurs certainly",
-             "label": "Planned, occurs certainly"},
-            {"is_active": True, "qcode": "eocstat:eos6", "name": "Planned, then cancelled",
-             "label": "Planned, then cancelled"}
-        ]
+            {
+                "is_active": True,
+                "qcode": "eocstat:eos4",
+                "name": "Planned, occurence highly likely",
+                "label": "Planned, occurence highly likely",
+            },
+            {
+                "is_active": True,
+                "qcode": "eocstat:eos5",
+                "name": "Planned, occurs certainly",
+                "label": "Planned, occurs certainly",
+            },
+            {
+                "is_active": True,
+                "qcode": "eocstat:eos6",
+                "name": "Planned, then cancelled",
+                "label": "Planned, then cancelled",
+            },
+        ],
     }
 
 
@@ -84,21 +104,24 @@ def genre() -> dict:
             {"is_active": True, "name": "Market Close", "qcode": "Market Close"},
             {"is_active": True, "name": "Market Report", "qcode": "Market Report"},
             {"is_active": True, "name": "Review", "qcode": "Review"},
-            {"is_active": True, "name": "Preview", "qcode": "Preview"}
-        ]
+            {"is_active": True, "name": "Preview", "qcode": "Preview"},
+        ],
     }
 
 
 def languages() -> dict:
     return {
-        "_id": "languages", "display_name": "Languages", "type": "manageable",
-        "unique_field": "qcode", "service": {"all": 1},
+        "_id": "languages",
+        "display_name": "Languages",
+        "type": "manageable",
+        "unique_field": "qcode",
+        "service": {"all": 1},
         "items": [
             {"qcode": "en", "name": "English", "is_active": True},
             {"qcode": "nl", "name": "Dutch", "is_active": True},
             {"qcode": "fr", "name": "French", "is_active": True},
-            {"qcode": "de", "name": "German", "is_active": True}
-        ]
+            {"qcode": "de", "name": "German", "is_active": True},
+        ],
     }
 
 

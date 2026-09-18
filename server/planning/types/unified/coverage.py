@@ -58,7 +58,9 @@ class CoverageAssignedTo(Dataclass):
     desk: Annotated[fields.ObjectId | None, validate_data_relation_async("desks")] = Field(
         description="ID of the Desk for this Coverage", default=None
     )
-    coverage_provider: CoverageProviderItem | None = Field(description="External provider of the coverage", default=None)
+    coverage_provider: CoverageProviderItem | None = Field(
+        description="External provider of the coverage", default=None
+    )
 
     assignor_desk: fields.ObjectId | None = Field(
         description="ID of the User who last assigned a Desk to this Coverage", default=None
@@ -72,9 +74,7 @@ class CoverageAssignedTo(Dataclass):
     assigned_date_user: fields.UTCDatetime | None = Field(
         description="UTC Date and time the User was last assigned", default=None
     )
-    priority: int | None = Field(
-        description="Priority of this Assignment linked to this Coverage", default=None
-    )
+    priority: int | None = Field(description="Priority of this Assignment linked to this Coverage", default=None)
 
 
 class NewsContentCharacteristics(Dataclass):
@@ -97,7 +97,9 @@ class CoveragePlanning(ItemDescription, ItemMetadata, BaseModel):
     scheduled: fields.UTCDatetime = Field(description="Due date and time for this Coverage")
     g2_content_type: fields.Keyword = Field(description="G2 Content Type of the Coverage", default="text")
 
-    coverage_provider: CoverageProviderItem | None = Field(description="The external provider for this Coverage", default=None)
+    coverage_provider: CoverageProviderItem | None = Field(
+        description="The external provider for this Coverage", default=None
+    )
     contact_info: Annotated[fields.ObjectId | None, validate_data_relation_async("contacts")] = Field(
         description="ID of the Contact for this Coverage", default=None
     )

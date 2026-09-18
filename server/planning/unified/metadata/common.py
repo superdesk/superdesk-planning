@@ -14,7 +14,14 @@ from superdesk.core.resources import Dataclass
 from superdesk import get_resource_service
 from superdesk.errors import SuperdeskApiError
 
-from planning.types.unified import UnifiedPlanningResource, Subject, CoverageItem, CVItem, NewsCoverageStatus, FieldTranslation
+from planning.types.unified import (
+    UnifiedPlanningResource,
+    Subject,
+    CoverageItem,
+    CVItem,
+    NewsCoverageStatus,
+    FieldTranslation,
+)
 from planning.content_profiles.utils import ContentProfileData
 
 
@@ -51,7 +58,7 @@ async def load_vocabs_data() -> VocabsSyncData:
 
     return VocabsSyncData(
         coverage_states={item["qcode"]: NewsCoverageStatus(**item) for item in newscoveragestatus.get("items") or []},
-        genres={item["qcode"]: CVItem(**item) for item in genre.get("items") or []}
+        genres={item["qcode"]: CVItem(**item) for item in genre.get("items") or []},
     )
 
 

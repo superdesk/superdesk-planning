@@ -369,7 +369,6 @@ def convert_unified_planning_to_legacy_format(item: dict) -> None:
                 coverage["planning"]["keyword"] = keyword
 
 
-
 def convert_legacy_planning_to_unified_format(item: dict) -> None:
     if item.get("type") == PlanningItemType.PLANNING.value:
         item.setdefault("dates", {})

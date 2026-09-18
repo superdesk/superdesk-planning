@@ -132,7 +132,11 @@ class AllContentProfileData:
         self.coverage_profiles = {}
 
         async for profile in await PlanningProfileResource.get_service().find({}):
-            if profile.item_type not in (PlanningProfileType.EVENT, PlanningProfileType.PLANNING, PlanningProfileType.COVERAGE):
+            if profile.item_type not in (
+                PlanningProfileType.EVENT,
+                PlanningProfileType.PLANNING,
+                PlanningProfileType.COVERAGE,
+            ):
                 continue
 
             profile_data = ContentProfileData(profile.to_dict())

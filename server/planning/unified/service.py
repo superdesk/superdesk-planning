@@ -249,13 +249,17 @@ class UnifiedPlanningResourceService(AsyncResourceService[UnifiedPlanningResourc
 
         await delete_item_files(original.item_type, original.files, updates.get("files"))
         send_updated_notifications(
-            original, original.clone_with(updates, deep=False), related_events_changed=updates.pop("related_events_changed", False)
+            original,
+            original.clone_with(updates, deep=False),
+            related_events_changed=updates.pop("related_events_changed", False),
         )
 
     async def on_deleted(self, doc: ResourceModelType) -> None:
         send_deleted_notifications(doc)
 
-    def _copy_translated_values_to_root_level_fields(self, original: UnifiedPlanningResource | None, updated: UnifiedPlanningResource) -> None:
+    def _copy_translated_values_to_root_level_fields(
+        self, original: UnifiedPlanningResource | None, updated: UnifiedPlanningResource
+    ) -> None:
         if not updated.translations:
             return
 
@@ -265,7 +269,10 @@ class UnifiedPlanningResourceService(AsyncResourceService[UnifiedPlanningResourc
             if translation.language != updated.language:
                 # This field translation is in a different language to the item's default
                 continue
-            elif original and original_translations_map.get(translation.field, {}).get(translation.language) == translation.value:
+            elif (
+                original
+                and original_translations_map.get(translation.field, {}).get(translation.language) == translation.value
+            ):
                 # This field translation has not changed, don't sync anything
                 continue
             else:
