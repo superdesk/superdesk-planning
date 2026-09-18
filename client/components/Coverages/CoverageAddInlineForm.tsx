@@ -1,7 +1,7 @@
 import React from 'react';
 import {connect} from 'react-redux';
 import {memoize} from 'lodash';
-import {Button, ButtonGroup, Checkbox, IconButton, IconLabel, Tooltip} from 'superdesk-ui-framework/react';
+import {Button, ButtonGroup, Checkbox, IconButton, Tooltip} from 'superdesk-ui-framework/react';
 import {IDesk, IUser, IVocabularyItem} from 'superdesk-api';
 
 import {IEventItem, IG2ContentType, IPlanningNewsCoverageStatus} from '../../interfaces';
@@ -55,17 +55,14 @@ type IProps = IOwnProps & IReduxStateProps;
 interface IState {
     rows: Array<ICoverageRow>;
     submitted: boolean;
-    open: boolean;
 }
 
 class CoverageAddInlineFormComponent extends React.Component<IProps, IState> {
-    form: React.RefObject<HTMLDivElement>;
     getContentTypesByQcode = memoize(getContentTypesByQcode);
 
     constructor(props: IProps) {
         super(props);
 
-        this.form = React.createRef();
         this.state = this.getInitialState();
     }
 
@@ -75,18 +72,11 @@ class CoverageAddInlineFormComponent extends React.Component<IProps, IState> {
         return {
             rows: createRowsFromContentTypes(contentTypes, desks, newsCoverageStatus),
             submitted: false,
-            open: false,
         };
     }
 
     reset = () => {
         this.setState(this.getInitialState());
-    }
-
-    open = () => {
-        this.setState({open: true}, () => {
-            this.form.current?.scrollIntoView({behavior: 'smooth', block: 'nearest'});
-        });
     }
 
     update = (row: ICoverageRow, updates: ICoverageRow) => {
@@ -169,21 +159,8 @@ class CoverageAddInlineFormComponent extends React.Component<IProps, IState> {
         const languages = getFilteredLanguages(allLanguages);
         const contentTypes = this.getContentTypesByQcode(this.props.contentTypes);
 
-        if (!this.state.open) {
-            return (
-                <button
-                    type="button"
-                    className="item-association coverage-inline-form__open"
-                    data-test-id="coverage-inline-form__open"
-                    onClick={this.open}
-                >
-                    <IconLabel text={gettext('Add Coverages')} icon="plus-sign" type="primary" />
-                </button>
-            );
-        }
-
         return (
-            <div className="coverage-inline-form sd-shadow--z2" data-test-id="coverage-inline-form" ref={this.form}>
+            <div className="coverage-inline-form sd-shadow--z2" data-test-id="coverage-inline-form">
                 <div className="coverage-inline-form__header py-1 px-2">
                     <span className="form-label">{gettext('Coverage Types')}</span>
                 </div>
