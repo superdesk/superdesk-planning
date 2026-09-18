@@ -115,7 +115,8 @@ class UnifiedPlanningResourceService(AsyncResourceService[UnifiedPlanningResourc
 
         updates["embedded_planning"] = embedded_planning
         updated = original.clone_with(updates, deep=False)
-        await sync_event_metadata_with_planning_items(original, updated, updated.embedded_planning or [])
+        if original.item_type == PlanningItemType.EVENT:
+            await sync_event_metadata_with_planning_items(original, updated, updated.embedded_planning or [])
 
         return rtn
 
