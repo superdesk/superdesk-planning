@@ -58,10 +58,14 @@ test.describe('Planning.Events: inline coverage form', () => {
         await expect(inlineForm.coverage(2)).not.toBeAttached();
         await inlineForm.expectNoTypesEnabled();
 
+        // Cancel discards the ticked types and collapses the form, reopening starts clean
         await inlineForm.enableType('video');
         await inlineForm.cancel();
-        await inlineForm.expectNoTypesEnabled();
+        await expect(inlineForm.element).not.toBeAttached();
         await expect(inlineForm.coverage(2)).not.toBeAttached();
+
+        await inlineForm.open();
+        await inlineForm.expectNoTypesEnabled();
 
         await editor.saveButton.click();
 
@@ -93,7 +97,7 @@ test.describe('Planning.Events: inline coverage form', () => {
         await openEvent(page);
 
         await expect(inlineForm.coveragesField.getByTestId('create-button')).toBeVisible();
-        await expect(inlineForm.element).not.toBeAttached();
+        await expect(inlineForm.openButton).not.toBeAttached();
     });
 
     test('can be turned on from the event profile editor', async ({page}) => {

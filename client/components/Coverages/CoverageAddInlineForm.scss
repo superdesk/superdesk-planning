@@ -29,4 +29,16 @@
         flex: 1;
         min-width: 0;
     }
+
+    // Same dashed box as the empty drop zones around it, `item-association` carries the look
+    &__open {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+
+        &,
+        .label-icon {
+            cursor: pointer;
+        }
+    }
 }

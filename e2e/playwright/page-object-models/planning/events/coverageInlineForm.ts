@@ -3,7 +3,8 @@ import type {Locator} from '@playwright/test';
 
 /**
  * Wrapper around the inline "Coverage Types" form, rendered under the coverages of the
- * event editor when the event profile's coverages field has `inline_form` on.
+ * event editor when the event profile's coverages field has `inline_form` on. It starts
+ * collapsed as an "Add Coverages" box and opens on click.
  */
 export class CoverageInlineForm {
     coveragesField: Locator;
@@ -17,6 +18,15 @@ export class CoverageInlineForm {
 
     get element(): Locator {
         return this.coveragesField.getByTestId('coverage-inline-form');
+    }
+
+    get openButton(): Locator {
+        return this.coveragesField.getByTestId('coverage-inline-form__open');
+    }
+
+    async open(): Promise<void> {
+        await this.openButton.click();
+        await expect(this.element).toBeVisible();
     }
 
     /**
