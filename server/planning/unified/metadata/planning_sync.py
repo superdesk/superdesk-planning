@@ -1,3 +1,5 @@
+from typing import Any
+
 from planning.types.unified import UnifiedPlanningResource, FieldTranslation, Subject, CVItem
 from planning.content_profiles.utils import AllContentProfileData
 from planning.common import TEMP_ID_PREFIX
@@ -11,7 +13,7 @@ def get_normalised_field_value(
     if item is None:
         return None
 
-    value = getattr(item, field, None)
+    value: Any = item.subject if field == "custom_vocabularies" else getattr(item, field, None)
     if field in ["place", "anpa_category"]:
         # list of CV items, return their qcode
         return sorted([cv_item.qcode for cv_item in value or []])
@@ -42,13 +44,10 @@ def _sync_planning_field(sync_data: SyncData, field: str) -> bool:
 
     # The Planning field has the same value as the Event field,
     # So we can copy the new value from the Event
-    new_value = getattr(sync_data.event.updates, field, None)
     if field in ["subject", "custom_vocabularies"]:
-        if not sync_data.planning.updates.subject:
-            sync_data.planning.updates.subject = []
-        if new_value is not None:
-            sync_data.planning.updates.subject.append(new_value)
+        sync_data.planning.updates.subject = sync_data.event.updates.subject
     else:
+        new_value = getattr(sync_data.event.updates, field, None)
         setattr(sync_data.planning.updates, field, new_value)
 
     sync_data.update_planning = True
