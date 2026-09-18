@@ -1,3 +1,5 @@
+from typing import Any
+
 import logging
 
 from superdesk.core import get_config
@@ -63,6 +65,8 @@ async def sync_item_to_coverage(item: UnifiedPlanningResource, coverage: Coverag
     language = coverage.planning.language or get_config(str, "DEFAULT_LANGUAGE")
 
     for field in enabled_fields:
+        updated_value: Any
+
         if field == "subject":
             continue
         elif field == "keyword":

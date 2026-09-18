@@ -1,8 +1,9 @@
 from typing import Annotated
 from enum import Enum, unique
 
-from pydantic import Field, BaseModel
+from pydantic import Field, BaseModel, model_validator
 
+from superdesk.core import get_config
 from superdesk.core.resources import Dataclass, fields
 from superdesk.core.resources.validators import validate_data_relation_async
 
@@ -52,9 +53,11 @@ class ItemMetadata(BaseModel):
     )
     priority: int | None = Field(description="Priority of the item", default=None)
     urgency: int | None = Field(description="Urgency of the item", default=None)
-    language: fields.Keyword = Field(description="Language of the item (defaults to the DEFAULT_LANGUAGE config)")
+    language: fields.Keyword = Field(
+        description="Language of the item (defaults to the DEFAULT_LANGUAGE config)", default=""
+    )
     languages: list[fields.Keyword] = Field(
-        description="Languages of the item (defaults to the DEFAULT_LANGUAGE config)"
+        description="Languages of the item (defaults to the DEFAULT_LANGUAGE config)", default_factory=list
     )
     calendars: list[CVItem] | None = Field(description="Calendars of the item", default=None)
     agendas: Annotated[list[fields.ObjectId] | None, validate_data_relation_async("agenda")] = Field(
@@ -66,6 +69,15 @@ class ItemMetadata(BaseModel):
         description="List of places of the item", default=None
     )
     keywords: list[fields.HTML] | None = Field(description="List of keywords of the item", default=None)
+
+    @model_validator(mode="after")
+    def populate_languages(self) -> "ItemMetadata":
+        if not len(self.languages):
+            self.languages = [self.language or get_config(str, "DEFAULT_LANGUAGE")]
+        if not self.language:
+            self.language = self.languages[0]
+
+        return self
 
 
 class FieldTranslation(Dataclass):

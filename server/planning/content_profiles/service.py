@@ -163,7 +163,7 @@ class PlanningTypesAsyncService(AsyncResourceService[PlanningProfileResource]):
 
 async def _get_default_profile(
     profile: dict | None, item_type: PlanningProfileType | str | None
-) -> tuple[dict, PlanningProfileType] | tuple[None, None]:
+) -> tuple[PlanningProfileType, dict] | tuple[None, None]:
     default_profile_dict: dict | None = None
     profile_type: PlanningProfileType | None = None
 
@@ -187,10 +187,10 @@ async def _get_default_profile(
         else:
             default_profile_dict = default_coverage_profile
 
-    if not profile_type or not default_profile_dict:
-        return None, None
+    if profile_type is not None and default_profile_dict is not None:
+        return profile_type, default_profile_dict
 
-    return profile_type, default_profile_dict
+    return None, None
 
 
 async def _get_merged_profile(

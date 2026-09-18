@@ -1,17 +1,22 @@
 from typing import Annotated
 from enum import Enum, unique
+from datetime import datetime, timezone
 
 from pydantic import Field, model_validator
+from quart_babel import gettext
 
-from superdesk.core import get_config
 from superdesk.core.resources import BaseModel, Dataclass, fields
 from superdesk.core.resources.validators import validate_data_relation_async
 from superdesk.core.utils import generate_guid, GUID_NEWSML
+from superdesk.errors import SuperdeskApiError
 
 from ..enums import WorkflowState, AssignmentWorkflowState, UpdateMethods
 from .common import CVItem, ItemLocation, CVItemTranslations
 from .system import AuditInformation
 from .metadata import ItemDescription, ItemMetadata, Place
+
+
+UNSET_COVERAGE_SCHEDULED = datetime(1970, 1, 1, tzinfo=timezone.utc)
 
 
 @unique
@@ -94,7 +99,9 @@ class CustomCoverageField(Dataclass):
 
 
 class CoveragePlanning(ItemDescription, ItemMetadata, BaseModel):
-    scheduled: fields.UTCDatetime = Field(description="Due date and time for this Coverage")
+    scheduled: fields.UTCDatetime = Field(
+        description="Due date and time for this Coverage", default_factory=lambda: UNSET_COVERAGE_SCHEDULED
+    )
     g2_content_type: fields.Keyword = Field(description="G2 Content Type of the Coverage", default="text")
 
     coverage_provider: CoverageProviderItem | None = Field(
@@ -137,18 +144,12 @@ class CoveragePlanning(ItemDescription, ItemMetadata, BaseModel):
     credit_line: list[str] | None = Field(description="Credit line(s) associated with this Coverage", default=None)
     dateline: list[str] | None = Field(description="Dateline(s) associated with this Coverage", default=None)
 
-    @model_validator(mode="before")
-    @classmethod
-    def populate_languages(cls, data: "CoveragePlanning | dict") -> "CoveragePlanning | dict":
-        if isinstance(data, CoveragePlanning):
-            return data
-
-        if not len(data.get("languages") or []):
-            data["languages"] = [data.get("language") or get_config(str, "DEFAULT_LANGUAGE")]
-        if not data.get("language"):
-            data["language"] = data["languages"][0]
-
-        return data
+    @model_validator(mode="after")
+    def validate_scheduled_epoch(self) -> "CoveragePlanning":
+        # Add a guard against using `UNSET_COVERAGE_SCHEDULED` after model construction
+        if self.scheduled == UNSET_COVERAGE_SCHEDULED:
+            raise SuperdeskApiError(message=gettext("Coverage scheduled date is required"))
+        return self
 
 
 class CoverageScheduledUpdatePlanning(Dataclass):
