@@ -31,6 +31,7 @@ from .planning import (
 from .coverages import validate_scheduled_updates, add_coverage, on_coverage_update, on_coverage_updated
 from .notifications import send_created_notifications, send_updated_notifications, send_deleted_notifications
 from .files import delete_item_files
+from .metadata.multilingual import get_translated_fields
 from .metadata.event_sync import sync_event_metadata_with_planning_items
 
 
@@ -258,10 +259,7 @@ class UnifiedPlanningResourceService(AsyncResourceService[UnifiedPlanningResourc
         if not updated.translations:
             return
 
-        original_translations_map = {
-            translation.field: {translation.language: translation.value}
-            for translation in original.translations
-        } if original and original.translations else {}
+        original_translations_map = get_translated_fields(original.translations if original else None)
 
         for translation in updated.translations:
             if translation.language != updated.language:
@@ -271,7 +269,6 @@ class UnifiedPlanningResourceService(AsyncResourceService[UnifiedPlanningResourc
                 # This field translation has not changed, don't sync anything
                 continue
             else:
-            # if translation.language == updated.language and not getattr(updated, translation.field):
                 setattr(updated, translation.field, translation.value)
 
     @staticmethod
