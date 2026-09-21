@@ -37,7 +37,7 @@ class PlanningTypesAsyncService(AsyncResourceService[PlanningProfileResource]):
         profile = await super().find_by_id_raw(item_id, version, projection, use_elastic)
         item_type = profile.get("type") if profile else None
 
-        merged_profile, _ = _get_merged_profile(profile, item_type)
+        merged_profile, _ = await _get_merged_profile(profile, item_type)
         return merged_profile
 
     async def find_one_raw(
@@ -75,7 +75,7 @@ class PlanningTypesAsyncService(AsyncResourceService[PlanningProfileResource]):
         if not item_type and profile:
             item_type = profile.get("type")
 
-        merged_profile, _ = _get_merged_profile(profile, item_type)
+        merged_profile, _ = await _get_merged_profile(profile, item_type)
         return merged_profile
 
     async def find(
@@ -122,7 +122,7 @@ class PlanningTypesAsyncService(AsyncResourceService[PlanningProfileResource]):
         merged_profiles: list[dict] = []
 
         async for profile in cursor:
-            merged_profile, profile_type = _get_merged_profile(profile.to_dict(), profile.item_type)
+            merged_profile, profile_type = await _get_merged_profile(profile.to_dict(), profile.item_type)
             if merged_profile and profile_type:
                 merged_profiles.append(merged_profile)
                 if profile_type != PlanningProfileType.COVERAGE or not (profile.content_type or "").strip():
@@ -147,12 +147,24 @@ class PlanningTypesAsyncService(AsyncResourceService[PlanningProfileResource]):
 
         return InMemoryCursorAsync(PlanningProfileResource, merged_profiles)
 
+    async def _get_default_coverage_profile(self) -> dict:
+        db_profile = await self.mongo_async.find_one(
+            {"type": PlanningProfileType.COVERAGE, "content_type": {"$in": [None, ""]}}
+        )
+        default_profile = DEFAULT_PROFILES[PlanningProfileType.COVERAGE].to_dict()
 
-def _get_merged_profile(
+        if db_profile:
+            _merge_planning_type(db_profile, default_profile)
+            return db_profile
+        else:
+            _remove_unsupported_fields(default_profile)
+            return default_profile
+
+
+async def _get_default_profile(
     profile: dict | None, item_type: PlanningProfileType | str | None
-) -> tuple[dict, PlanningProfileType] | tuple[None, None]:
-    default_profile: dict | None = None
-
+) -> tuple[PlanningProfileType, dict] | tuple[None, None]:
+    default_profile_dict: dict | None = None
     profile_type: PlanningProfileType | None = None
 
     if isinstance(item_type, PlanningProfileType):
@@ -164,7 +176,27 @@ def _get_merged_profile(
             pass
 
     if profile_type and DEFAULT_PROFILES.get(profile_type):
-        default_profile = DEFAULT_PROFILES[profile_type].to_dict()
+        default_profile_dict = DEFAULT_PROFILES[profile_type].to_dict()
+
+    if profile_type == PlanningProfileType.COVERAGE and profile and profile.get("content_type"):
+        # Get the `coverage` profile directly from the DB, as a fallback here
+        default_coverage_profile = await PlanningTypesAsyncService()._get_default_coverage_profile()
+        # this is the default coverage profile
+        if default_profile_dict:
+            default_profile_dict = _merge_planning_type(default_coverage_profile, default_profile_dict)
+        else:
+            default_profile_dict = default_coverage_profile
+
+    if profile_type is not None and default_profile_dict is not None:
+        return profile_type, default_profile_dict
+
+    return None, None
+
+
+async def _get_merged_profile(
+    profile: dict | None, item_type: PlanningProfileType | str | None
+) -> tuple[dict, PlanningProfileType] | tuple[None, None]:
+    profile_type, default_profile = await _get_default_profile(profile, item_type)
 
     if not profile and profile_type and default_profile:
         _remove_unsupported_fields(default_profile)
@@ -177,7 +209,7 @@ def _get_merged_profile(
         return None, None
 
 
-def _merge_planning_type(profile: dict, default_profile: dict):
+def _merge_planning_type(profile: dict, default_profile: dict) -> dict:
     """Merge database content profile with default coverage profile to add any new fields.
 
     This method ensures that database content profiles get any new fields from the default
@@ -230,6 +262,8 @@ def _merge_planning_type(profile: dict, default_profile: dict):
     profile["editor"] = updated_profile["editor"]
     profile["groups"] = updated_profile["groups"]
     _remove_unsupported_fields(profile)
+
+    return profile
 
 
 def _remove_unsupported_fields(planning_type: dict):

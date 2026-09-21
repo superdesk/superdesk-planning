@@ -45,3 +45,4 @@ class UnifiedPlanningSchema(BaseSchema):
     invitation_details = TextField(field_type="multi_line")
     accreditation_info = TextField(field_type="single_line")
     accreditation_deadline = DateOptionalTimeField()
+    keywords = schema.ListField()

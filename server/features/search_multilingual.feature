@@ -1,22 +1,6 @@
 Feature: Search multilingual metadata
     Background: Init system metadata
-        Given "vocabularies"
-        """
-        [{
-            "_id": "languages",
-            "display_name": "Languages",
-            "type": "manageable",
-            "unique_field": "qcode",
-            "service": {"all": 1},
-            "items": [
-                {"qcode": "nl", "name": "Dutch", "is_active": true},
-                {"qcode": "fr", "name": "French", "is_active": true},
-                {"qcode": "en", "name": "English", "is_active": true},
-                {"qcode": "de", "name": "German", "is_active": true}
-            ]
-        }]
-        """
-        And "planning_types"
+        Given "planning_types"
         """
         [{
             "name": "event",

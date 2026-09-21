@@ -33,7 +33,7 @@ Feature: Sync Event metadata To Planning
                 "slugline": {"enabled": true},
                 "ednote": {"enabled": true},
                 "anpa_category": {"enabled": true},
-                "description_text": {"enabled": true}
+                "definition_short": {"enabled": true}
             },
             "schema": {
                 "language": {
@@ -44,7 +44,7 @@ Feature: Sync Event metadata To Planning
                 },
                 "name": {"multilingual": true},
                 "slugline": {"multilingual": true},
-                "description_text": {"multilingual": true}
+                "definition_short": {"multilingual": true}
             }
         }, {
             "name": "coverage",
@@ -340,7 +340,7 @@ Feature: Sync Event metadata To Planning
         {"_items": [{
             "slugline": "slugline-nl",
             "name": "name-nl",
-            "description_text": "desc-nl",
+            "definition_short": "desc-nl",
             "ednote": "event editorial note",
             "language": "nl",
             "languages": ["nl", "fr"],
@@ -349,8 +349,8 @@ Feature: Sync Event metadata To Planning
                 {"field": "name", "language": "fr", "value": "name-fr"},
                 {"field": "slugline", "language": "nl", "value": "slugline-nl"},
                 {"field": "slugline", "language": "fr", "value": "slugline-fr"},
-                {"field": "description_text", "language": "nl", "value": "desc-nl"},
-                {"field": "description_text", "language": "fr", "value": "desc-fr"}
+                {"field": "definition_short", "language": "nl", "value": "desc-nl"},
+                {"field": "definition_short", "language": "fr", "value": "desc-fr"}
             ],
             "coverages": [{
                 "news_coverage_status": {"qcode": "ncostat:int"},
@@ -394,15 +394,15 @@ Feature: Sync Event metadata To Planning
             "_id": "#PLAN1._id#",
             "slugline": "slugline-nl-2",
             "name": "name-nl-2",
-            "description_text": "desc-nl-2",
+            "definition_short": "desc-nl-2",
             "languages": ["nl", "fr"],
             "translations": [
                 {"field": "name", "language": "nl", "value": "name-nl-2"},
                 {"field": "name", "language": "fr", "value": "name-fr-2"},
                 {"field": "slugline", "language": "nl", "value": "slugline-nl-2"},
                 {"field": "slugline", "language": "fr", "value": "slugline-fr-2"},
-                {"field": "description_text", "language": "nl", "value": "desc-nl-2"},
-                {"field": "description_text", "language": "fr", "value": "desc-fr-2"}
+                {"field": "definition_short", "language": "nl", "value": "desc-nl-2"},
+                {"field": "definition_short", "language": "fr", "value": "desc-fr-2"}
             ],
             "coverages": [{
                 "coverage_id": "#COVERAGE1_ID#",

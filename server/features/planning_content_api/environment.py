@@ -1,17 +1,17 @@
 from superdesk.tests import update_config, TestClient
-from features.utils import run_async_task
 from superdesk.tests.environment import (
     setup_before_all,
-    before_scenario_async,
+    before_scenario_async as setup_before_scenario,
     before_all,
-    # before_feature,
     before_feature_async,
-    before_scenario,
     after_scenario,
     before_step,
 )
 from content_api.app import get_app
 from quart_babel import Babel
+
+from features.utils import run_async_task
+from features.environment import populate_cvs
 
 
 def before_feature(context, feature):
@@ -28,3 +28,12 @@ async def setup_apps(context, feature):
     context.capi.test_client_class = TestClient
     context.capi_client = context.capi.test_client()
     await before_feature_async(context, feature)
+
+
+def before_scenario(context, scenario):
+    run_async_task(before_scenario_async(context, scenario))
+
+
+async def before_scenario_async(context, scenario):
+    await setup_before_scenario(context, scenario)
+    await populate_cvs(context)

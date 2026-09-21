@@ -82,11 +82,14 @@ async def before_scenario_async(context, scenario):
     if "skipped" in scenario.tags:
         scenario.mark_skipped()
 
-    if "planning_cvs" in scenario.tags:
-        async with context.app.app_context():
-            cmd = AppPopulateCommand()
-            filename = path.join(path.dirname(__file__), "steps", "fixtures", "vocabularies.json")
-            await cmd.run(filename)
+    await populate_cvs(context)
+
+
+async def populate_cvs(context):
+    async with context.app.app_context():
+        cmd = AppPopulateCommand()
+        filename = path.join(path.dirname(__file__), "steps", "fixtures", "vocabularies.json")
+        await cmd.run(filename)
 
 
 def _update_signals_for_link_coverage_updates_setting(app):

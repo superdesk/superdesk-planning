@@ -15,7 +15,7 @@ Feature: Assignments updated when Coverages are updated
         And we store "SPORTS_DESK" with first item
         And we store "NEWS_DESK" with 2 item
 
-    @auth
+    @auth @planning_cvs
     Scenario: Update coverage updates Assignment without changes to state
         When we post to "/planning"
         """
@@ -26,7 +26,8 @@ Feature: Assignments updated when Coverages are updated
             "coverages": [{
                 "planning": {"g2_content_type": "text"},
                 "assigned_to": {"desk": "#SPORTS_DESK._id#"},
-                "workflow_status": "draft"
+                "workflow_status": "draft",
+                "news_coverage_status": {"qcode": "ncostat:int", "name": "coverage intended", "label": "Planned"}
             }]
         }]
         """
@@ -73,7 +74,8 @@ Feature: Assignments updated when Coverages are updated
                 "assignment_id": "#ASSIGNMENT_ID#",
                 "desk": "#SPORTS_DESK._id#"
             },
-            "workflow_status": "draft"
+            "workflow_status": "draft",
+            "news_coverage_status": {"qcode": "ncostat:int", "name": "coverage intended", "label": "Planned"}
         }]}
         """
         Then we get OK response
@@ -125,7 +127,8 @@ Feature: Assignments updated when Coverages are updated
             "coverages": [{
                 "planning": {"g2_content_type": "text"},
                 "assigned_to": {"desk": "#SPORTS_DESK._id#"},
-                "workflow_status": "active"
+                "workflow_status": "active",
+                "news_coverage_status": {"qcode": "ncostat:int", "name": "coverage intended", "label": "Planned"}
             }]
         }]
         """
@@ -156,7 +159,8 @@ Feature: Assignments updated when Coverages are updated
             "assigned_to": {
                 "assignment_id": "#ASSIGNMENT_ID#",
                 "desk": "#SPORTS_DESK._id#"
-            }
+            },
+            "news_coverage_status": {"qcode": "ncostat:int", "name": "coverage intended", "label": "Planned"}
         }]}
         """
         Then we get OK response
@@ -177,7 +181,7 @@ Feature: Assignments updated when Coverages are updated
         }
         """
 
-    @auth
+    @auth @planning_cvs
     Scenario: Updates Assignment planning metadata when updating a Coverage
         When we post to "/contacts"
         """
@@ -193,7 +197,8 @@ Feature: Assignments updated when Coverages are updated
             "coverages": [{
                 "planning": {"g2_content_type": "text"},
                 "assigned_to": {"desk": "#SPORTS_DESK._id#"},
-                "workflow_status": "active"
+                "workflow_status": "active",
+                "news_coverage_status": {"qcode": "ncostat:int", "name": "coverage intended", "label": "Planned"}
             }]
         }]
         """
@@ -244,7 +249,8 @@ Feature: Assignments updated when Coverages are updated
                 "coverage_provider": {"name": "Stringer", "qcode": "stringer"},
                 "priority": 1
             },
-            "workflow_status": "active"
+            "workflow_status": "active",
+            "news_coverage_status": {"qcode": "ncostat:int", "name": "coverage intended", "label": "Planned"}
         }]}
         """
         Then we get OK response
@@ -288,7 +294,7 @@ Feature: Assignments updated when Coverages are updated
         }
         """
 
-    @auth
+    @auth @planning_cvs
     Scenario: Updates Assignment assigned_to when updating a Coverage
         When we post to "/planning"
         """
@@ -299,7 +305,8 @@ Feature: Assignments updated when Coverages are updated
             "coverages": [{
                 "planning": {"g2_content_type": "text"},
                 "assigned_to": {"desk": "#SPORTS_DESK._id#"},
-                "workflow_status": "active"
+                "workflow_status": "active",
+                "news_coverage_status": {"qcode": "ncostat:int", "name": "coverage intended", "label": "Planned"}
             }]
         }]
         """
@@ -329,7 +336,8 @@ Feature: Assignments updated when Coverages are updated
                 "user": "507f191e810c19729de87034"
             },
             "planning": {"g2_content_type": "text"},
-            "workflow_status": "active"
+            "workflow_status": "active",
+            "news_coverage_status": {"qcode": "ncostat:int", "name": "coverage intended", "label": "Planned"}
         }]}
         """
         Then we get OK response
@@ -363,7 +371,8 @@ Feature: Assignments updated when Coverages are updated
             "coverages": [{
                 "planning": {"g2_content_type": "text"},
                 "assigned_to": {"desk": "#SPORTS_DESK._id#"},
-                "workflow_status": "active"
+                "workflow_status": "active",
+                "news_coverage_status": {"qcode": "ncostat:int", "name": "coverage intended", "label": "Planned"}
             }]
         }]
         """
@@ -396,7 +405,8 @@ Feature: Assignments updated when Coverages are updated
                 "g2_content_type": "text",
                 "workflow_status_reason": "Cancelling this one, because ..."
             },
-            "workflow_status": "cancelled"
+            "workflow_status": "cancelled",
+            "news_coverage_status": {"qcode": "ncostat:int", "name": "coverage intended", "label": "Planned"}
         }]}
         """
         Then we get OK response

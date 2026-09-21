@@ -5,19 +5,6 @@ Feature: Assignment Complete
   @vocabularies
   Scenario: Assignment State changes to completed
     Given empty "assignments"
-    Given "vocabularies"
-    """
-        [{
-          "_id": "g2_content_type",
-          "display_name": "Coverage content types",
-          "type": "manageable",
-          "unique_field": "qcode",
-          "selection_type": "do not show",
-          "items": [
-              {"is_active": true, "name": "Text", "qcode": "text", "content item type": "text"}
-          ]
-      }]
-    """
     Given "desks"
     """
         [
@@ -181,19 +168,6 @@ Feature: Assignment Complete
     @auth
     @vocabularies
     Scenario: Fail to complete when assignment not in progess state for text assignments
-    Given "vocabularies"
-    """
-        [{
-          "_id": "g2_content_type",
-          "display_name": "Coverage content types",
-          "type": "manageable",
-          "unique_field": "qcode",
-          "selection_type": "do not show",
-          "items": [
-              {"is_active": true, "name": "Text", "qcode": "text", "content item type": "text"}
-          ]
-      }]
-    """
     Given empty "assignments"
         When we post to "/planning"
         """

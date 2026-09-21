@@ -2,14 +2,12 @@ from typing import Annotated, Any
 from enum import Enum, unique
 from datetime import datetime
 
-from pydantic import Field, model_validator, BaseModel, model_serializer
-from pydantic_core import PydanticCustomError
+from pydantic import Field, model_validator, BaseModel
 from quart_babel import gettext
 from pytz.exceptions import UnknownTimeZoneError
 
 from superdesk.core import get_config
-from superdesk.core.resources import ResourceModel, fields, Dataclass
-from superdesk.core.resources.validators import validate_data_relation_async
+from superdesk.core.resources import ResourceModel, fields
 from superdesk.core.utils import generate_guid, GUID_NEWSML
 from superdesk.errors import SuperdeskApiError
 from superdesk.utc import utc_to_local
@@ -18,7 +16,7 @@ from ..enums import UpdateMethods
 from .system import AuditInformation, IngestDetails, LockFields, SourceDetails, ItemSystemFields
 from .schedule import ItemSchedule, ItemDates
 from .metadata import ItemDescription, ItemMetadata, ItemExtraDetails, ItemContactDetails, RelatedItems
-from .coverage import ItemCoverage, EmbeddedPlanningItem, CoverageItem
+from .coverage import ItemCoverage, EmbeddedPlanningItem, CoverageItem, UNSET_COVERAGE_SCHEDULED
 
 
 class FieldsNotStored(BaseModel):
@@ -30,7 +28,7 @@ class FieldsNotStored(BaseModel):
         description="Used when an Event is created from a Planning item, so we can link on the backend",
         default=None,
     )
-    embedded_planning: list[EmbeddedPlanningItem] | None = Field(
+    embedded_planning: Annotated[list[EmbeddedPlanningItem] | None, fields.mapping_disabled("object")] = Field(
         description="Used from the EmbeddedCoverage form in the Event editor",
         default=None,
     )
@@ -63,7 +61,7 @@ class UnifiedPlanningResource(
 ):
     model_resource_name = "UnifiedPlanningResource"
 
-    id: fields.Keyword = Field(validation_alias="_id", serialization_alias="_id")
+    id: fields.Keyword = Field(validation_alias="_id", serialization_alias="_id", default="")
     item_type: PlanningItemType = Field(
         alias="type",
         description="Type of planning item represented by this resource",
@@ -91,11 +89,6 @@ class UnifiedPlanningResource(
                 if data.get("type") == PlanningItemType.PLANNING.value:
                     raise SuperdeskApiError(message=gettext("Planning item should have a date"))
 
-        if not len(data.get("languages") or []):
-            data["languages"] = [data.get("language") or get_config(str, "DEFAULT_LANGUAGE")]
-        if not data.get("language"):
-            data["language"] = data["languages"][0]
-
         data.pop("family_id", None)
 
         if data.get("type") == PlanningItemType.EVENT.value:
@@ -107,7 +100,11 @@ class UnifiedPlanningResource(
                 if not coverage.coverage_id:
                     coverage.coverage_id = f"tempId-{generate_guid(type=GUID_NEWSML)}"
 
-                if not coverage.planning or not coverage.planning.scheduled:
+                if (
+                    not coverage.planning
+                    or not coverage.planning.scheduled
+                    or coverage.planning.scheduled == UNSET_COVERAGE_SCHEDULED
+                ):
                     coverage.planning.scheduled = data["dates"]["start"]
 
                 for scheduled_update in coverage.scheduled_updates or []:
@@ -118,7 +115,12 @@ class UnifiedPlanningResource(
             else:
                 if not coverage.get("coverage_id"):
                     coverage["coverage_id"] = f"tempId-{generate_guid(type=GUID_NEWSML)}"
-                if not coverage.get("planning") or not coverage["planning"].get("scheduled"):
+
+                if (
+                    not coverage.get("planning")
+                    or not coverage["planning"].get("scheduled")
+                    or coverage["planning"]["scheduled"] == UNSET_COVERAGE_SCHEDULED
+                ):
                     coverage.setdefault("planning", {})["scheduled"] = data["dates"]["start"]
 
                 for scheduled_update in coverage.get("scheduled_updates") or []:
