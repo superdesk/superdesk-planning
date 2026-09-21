@@ -260,10 +260,9 @@ class MigrateUnifiedStorageCommand:
             self.convert_deprecated_event_item(doc)
             convert_legacy_planning_to_unified_format(doc)
 
-        if not doc.get("languages"):
-            doc["languages"] = [doc.get("language") or get_config(str, "DEFAULT_LANGUAGE")]
-        if not doc.get("language"):
-            doc["language"] = doc["languages"][0]
+        self.normalise_languages(doc)
+        for coverage in doc.get("coverages") or []:
+            self.normalise_languages(coverage.get("planning") or {})
 
         # Raises if the document cannot be loaded into the unified schema
         item = UnifiedPlanningResource.from_dict(doc)
@@ -275,6 +274,15 @@ class MigrateUnifiedStorageCommand:
             doc["_updates_schedule"] = item_dict.get("_updates_schedule")
 
         return doc
+
+    @staticmethod
+    def normalise_languages(doc: dict[str, Any]) -> None:
+        languages = [lang for lang in doc.get("languages") or [] if lang]
+        if not languages:
+            languages = [doc.get("language") or get_config(str, "DEFAULT_LANGUAGE") or "en"]
+        doc["languages"] = languages
+        if not doc.get("language"):
+            doc["language"] = languages[0]
 
     @staticmethod
     def clean_calendar_translations(doc: dict[str, Any]) -> None:

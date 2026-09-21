@@ -89,7 +89,11 @@ class UnifiedResourceEveLayerTestCase(TestCase):
         )
 
         item = await self.planning_service.find_by_id(item_ids[0])
-        self.assertEqual([str(contact_id) for contact_id in item.event_contact_info], [str(contact_id), "external-contact-1"])
+        self.assertEqual(
+            [str(contact_id) for contact_id in item.event_contact_info], [str(contact_id), "external-contact-1"]
+        )
 
         eve_event = await events_service.find_one_async(req=None, _id=item_ids[0])
-        self.assertEqual([str(contact_id) for contact_id in eve_event["event_contact_info"]], [str(contact_id), "external-contact-1"])
+        self.assertEqual(
+            [str(contact_id) for contact_id in eve_event["event_contact_info"]], [str(contact_id), "external-contact-1"]
+        )

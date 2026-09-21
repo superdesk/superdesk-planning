@@ -93,10 +93,17 @@ class ItemMetadata(BaseModel):
 
     @model_validator(mode="after")
     def populate_languages(self) -> "ItemMetadata":
-        if not len(self.languages):
-            self.languages = [self.language or get_config(str, "DEFAULT_LANGUAGE")]
-        if not self.language:
-            self.language = self.languages[0]
+        # Only assign when the value actually changes - ``validate_assignment`` reruns this
+        # validator on every assignment, so re-assigning an unchanged falsy value recurses forever
+        languages = [lang for lang in self.languages if lang] or [
+            self.language or get_config(str, "DEFAULT_LANGUAGE") or "en"
+        ]
+        if languages != self.languages:
+            self.languages = languages
+
+        language = self.language or languages[0]
+        if language != self.language:
+            self.language = language
 
         return self
 
