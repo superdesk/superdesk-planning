@@ -176,7 +176,9 @@ class EventsPlanningService(AsyncBaseService):
 
         cursor = DictCursorAsync(
             await UnifiedPlanningResource.get_service().find(search_request),
-            exclude_defaults=False, exclude_none=True, exclude_unset=False
+            exclude_defaults=False,
+            exclude_none=True,
+            exclude_unset=False,
         )
         return AsyncListCursor(await cursor.to_list())
 

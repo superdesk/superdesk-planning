@@ -174,6 +174,7 @@ DEFAULT_EVENT_PROFILE = PlanningProfileResource(
         "overide_auto_assign_to_workflow": {"enabled": False},
         "headline": {"enabled": False},
         "agendas": {"enabled": False},
+        "keywords": {"enabled": False},
     },
     schema=dict(EventSchema),  # type: ignore
     groups={

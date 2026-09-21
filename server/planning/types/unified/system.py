@@ -10,10 +10,14 @@ from ..enums import WorkflowState, PostStates, LinkType
 
 
 class AuditInformation(BaseModel):
-    original_creator: Annotated[fields.ObjectId | None, validate_data_relation_async("users")] = Field(
+    original_creator: Annotated[
+        fields.ObjectId | None, validate_data_relation_async("users", convert_to_objectid=True)
+    ] = Field(
         description="ID of the user who originally created the item, `null` if was created by the system", default=None
     )
-    version_creator: Annotated[fields.ObjectId | None, validate_data_relation_async("users")] = Field(
+    version_creator: Annotated[
+        fields.ObjectId | None, validate_data_relation_async("users", convert_to_objectid=True)
+    ] = Field(
         description="ID of the user who last updated this item, `null` if it was updated by the system", default=None
     )
     firstcreated: fields.UTCDatetime = Field(
@@ -44,8 +48,8 @@ class IngestDetails(BaseModel):
 
 
 class LockFields(BaseModel):
-    lock_user: Annotated[fields.ObjectId, validate_data_relation_async("users")] | None = Field(
-        description="The internal ID of the user who has locked the item", default=None
+    lock_user: Annotated[fields.ObjectId, validate_data_relation_async("users", convert_to_objectid=True)] | None = (
+        Field(description="The internal ID of the user who has locked the item", default=None)
     )
     lock_time: fields.UTCDatetime | None = Field(description="Date and time when the item was locked", default=None)
     lock_session: Annotated[fields.ObjectId, validate_data_relation_async("auth")] | None = Field(
@@ -98,7 +102,7 @@ class RelatedContentItem(Dataclass):
 
 
 class ItemSystemFields(BaseModel):
-    guid: fields.Keyword = Field(description="Global unique identifier of the item")
+    guid: fields.Keyword = Field(description="Global unique identifier of the item", default="")
     recurrence_id: fields.Keyword | None = Field(
         description="Global unique identifier of the recurrence of the item",
         default=None,

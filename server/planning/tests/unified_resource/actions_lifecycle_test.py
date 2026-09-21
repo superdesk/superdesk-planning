@@ -47,24 +47,6 @@ class UnifiedResourceLifecycleActionsTestCase(TestCase):
         g.user = admin
         g.auth = {"_id": ObjectId(), "user": g.user["_id"]}
         await test_utils.post_items("vocabularies", planning_fixtures.cvs.all_cvs())
-        await test_utils.post_items(
-            "vocabularies",
-            [
-                {
-                    "_id": "eventoccurstatus",
-                    "display_name": "Event Occurence Status",
-                    "type": "manageable",
-                    "items": [
-                        {
-                            "qcode": "eocstat:eos6",
-                            "name": "Planned, occurs cancelled",
-                            "label": "Cancelled",
-                            "is_active": True,
-                        },
-                    ],
-                }
-            ],
-        )
         await test_utils.post_items("desks", fixtures.desks.all_desks())
         await test_utils.post_items("stages", fixtures.stages.all_stages())
 

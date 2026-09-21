@@ -26,19 +26,6 @@ Feature: Assignment Unlink
     @notification
     @vocabularies
     Scenario: Removes the assignment_id of the content item
-        Given "vocabularies"
-        """
-            [{
-              "_id": "g2_content_type",
-              "display_name": "Coverage content types",
-              "type": "manageable",
-              "unique_field": "qcode",
-              "selection_type": "do not show",
-              "items": [
-                  {"is_active": true, "name": "Text", "qcode": "text", "content item type": "text"}
-              ]
-            }]
-        """
         When we post to "/archive" with success
         """
         [{
@@ -288,19 +275,6 @@ Feature: Assignment Unlink
     @auth
     @vocabularies
     Scenario: Content item must exist
-        Given "vocabularies"
-        """
-            [{
-              "_id": "g2_content_type",
-              "display_name": "Coverage content types",
-              "type": "manageable",
-              "unique_field": "qcode",
-              "selection_type": "do not show",
-              "items": [
-                  {"is_active": true, "name": "Text", "qcode": "text", "content item type": "text"}
-              ]
-            }]
-        """
         When we post to "/planning"
         """
         [{
@@ -346,19 +320,6 @@ Feature: Assignment Unlink
     @auth
     @vocabularies
     Scenario: Content must be linked to an Assignment
-        Given "vocabularies"
-        """
-            [{
-              "_id": "g2_content_type",
-              "display_name": "Coverage content types",
-              "type": "manageable",
-              "unique_field": "qcode",
-              "selection_type": "do not show",
-              "items": [
-                  {"is_active": true, "name": "Text", "qcode": "text", "content item type": "text"}
-              ]
-            }]
-        """
         When we post to "/archive" with success
         """
         [{
@@ -416,19 +377,6 @@ Feature: Assignment Unlink
     @auth
     @vocabularies
     Scenario: Assignment and Content must be linked
-        Given "vocabularies"
-        """
-            [{
-              "_id": "g2_content_type",
-              "display_name": "Coverage content types",
-              "type": "manageable",
-              "unique_field": "qcode",
-              "selection_type": "do not show",
-              "items": [
-                  {"is_active": true, "name": "Text", "qcode": "text", "content item type": "text"}
-              ]
-            }]
-        """
         When we post to "/archive" with success
         """
         [{
@@ -487,19 +435,6 @@ Feature: Assignment Unlink
     @auth
     @vocabularies
     Scenario: Content delivery record must exist
-        Given "vocabularies"
-        """
-            [{
-              "_id": "g2_content_type",
-              "display_name": "Coverage content types",
-              "type": "manageable",
-              "unique_field": "qcode",
-              "selection_type": "do not show",
-              "items": [
-                  {"is_active": true, "name": "Text", "qcode": "text", "content item type": "text"}
-              ]
-            }]
-        """
         When we post to "/planning" with success
         """
         [{
@@ -554,19 +489,6 @@ Feature: Assignment Unlink
     @auth
     @vocabularies
     Scenario: Cannot unlink if the Assignment is locked by another user
-        Given "vocabularies"
-        """
-            [{
-              "_id": "g2_content_type",
-              "display_name": "Coverage content types",
-              "type": "manageable",
-              "unique_field": "qcode",
-              "selection_type": "do not show",
-              "items": [
-                  {"is_active": true, "name": "Text", "qcode": "text", "content item type": "text"}
-              ]
-            }]
-        """
         When we post to "/archive" with success
         """
         [{
@@ -633,19 +555,6 @@ Feature: Assignment Unlink
     @auth
     @vocabularies
     Scenario: Cannot unlink if the Content is locked by another user
-        Given "vocabularies"
-        """
-            [{
-              "_id": "g2_content_type",
-              "display_name": "Coverage content types",
-              "type": "manageable",
-              "unique_field": "qcode",
-              "selection_type": "do not show",
-              "items": [
-                  {"is_active": true, "name": "Text", "qcode": "text", "content item type": "text"}
-              ]
-            }]
-        """
         When we post to "/archive" with success
         """
         [{
@@ -716,19 +625,6 @@ Feature: Assignment Unlink
     @auth
     @vocabularies
     Scenario: Cannot unlink if the Content is locked by the same user in another session
-        Given "vocabularies"
-        """
-            [{
-              "_id": "g2_content_type",
-              "display_name": "Coverage content types",
-              "type": "manageable",
-              "unique_field": "qcode",
-              "selection_type": "do not show",
-              "items": [
-                  {"is_active": true, "name": "Text", "qcode": "text", "content item type": "text"}
-              ]
-            }]
-        """
         When we post to "/archive" with success
         """
         [{

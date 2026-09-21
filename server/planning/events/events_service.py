@@ -53,7 +53,6 @@ from planning.utils import (
     get_related_planning_for_events_async,
 )
 
-from .events_sync import sync_event_metadata_with_planning_items
 from .events_utils import (
     generate_recurring_dates,
     get_events_embedded_planning,
@@ -79,15 +78,6 @@ class EventsAsyncService(BasePlanningAsyncService[EventResourceModel]):
 
         return embedded_planning_lists
 
-    async def _synchronise_associated_plannings(
-        self, embedded_planning_list: list[tuple[EventResourceModel, list[EmbeddedPlanning]]]
-    ):
-        """
-        Synchronise/process the given associated Planning item(s)
-        """
-        for event, embedded_planning in embedded_planning_list:
-            await sync_event_metadata_with_planning_items(None, event.to_dict(), embedded_planning)
-
     async def create(self, docs: list[EventResourceModel]) -> list[EventResourceModel]:
         """
         Extracts out the ``embedded_planning`` before saving the Event(s)
@@ -96,11 +86,8 @@ class EventsAsyncService(BasePlanningAsyncService[EventResourceModel]):
 
         docs = await self._convert_dicts_to_model(docs)
 
-        embedded_planning_list = self._extract_embedded_planning(docs)
         await self.prepare_events_data(docs)
         new_events = await super().create(docs)
-
-        await self._synchronise_associated_plannings(embedded_planning_list)
 
         return new_events
 
@@ -264,13 +251,7 @@ class EventsAsyncService(BasePlanningAsyncService[EventResourceModel]):
         if original_event is None:
             raise SuperdeskApiError.badRequestError(_("Event not found"))
 
-        # Extract the ``embedded_planning`` from the updates
-        embedded_planning = get_events_embedded_planning(updates)
-
         await super().update(event_id, updates, etag)
-
-        # Process ``embedded_planning`` field, and sync Event metadata with associated Planning/Coverages
-        await sync_event_metadata_with_planning_items(original_event.to_dict(), updates, embedded_planning)
 
     async def on_updated(self, updates: dict[str, Any], original: EventResourceModel, from_ingest: bool = False):
         # if this Event was converted to a recurring series
@@ -623,9 +604,7 @@ class EventsAsyncService(BasePlanningAsyncService[EventResourceModel]):
             remove_lock_information(item=updates)
 
         # create the new events
-        embedded_planning_list = self._extract_embedded_planning(generated_events)
         await super().create(generated_events)
-        await self._synchronise_associated_plannings(embedded_planning_list)
 
         # signal's listener will generate these events' history
         await signals.events_created.send(generated_events)
