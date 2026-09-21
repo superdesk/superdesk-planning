@@ -136,7 +136,7 @@ const extension: IExtension = {
         const canAddToPlanning = (item: IArticle) => (
             superdesk.privileges.hasPrivilege('planning_planning_management') &&
             superdesk.privileges.hasPrivilege('archive') &&
-            !item.assignment_id != null &&
+            item.assignment_id == null &&
             !superdesk.entities.article.isPersonal(item) &&
             !superdesk.entities.article.isLockedInOtherSession(item) &&
             item.state !== 'correction' &&
