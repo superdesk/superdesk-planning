@@ -37,4 +37,11 @@ export class AddToPlanningModal {
         await this.editor.saveButton.click();
         await this.waitTillClosed();
     }
+
+    async addAsCoverageByDoubleClick(planningText: string): Promise<void> {
+        await this.planningItem(planningText).dblclick();
+        await this.editor.waitTillOpen();
+        await this.editor.saveButton.click();
+        await this.waitTillClosed();
+    }
 }

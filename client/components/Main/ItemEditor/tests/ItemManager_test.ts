@@ -88,6 +88,7 @@ describe('components.Main.ItemManager', () => {
                 newsCoverageStatus: null,
                 defaultDesk: null,
                 onCancel: null,
+                onSaveComplete: sinon.spy(),
                 editorType: EDITOR_TYPE.INLINE,
                 occurStatuses: testData.vocabularies.eventoccurstatus,
                 defaultCalendar: [],
@@ -122,6 +123,10 @@ describe('components.Main.ItemManager', () => {
                     editor.props.onCancel();
                 }
 
+                return manager.unlockAndCancel('DISCARD');
+            }),
+            onSaveComplete: sinon.spy(() => {
+                editor.props.onSaveComplete();
                 return manager.unlockAndCancel('DISCARD');
             }),
             onChangeHandler: sinon.spy((field, value) => {
@@ -940,6 +945,9 @@ describe('components.Main.ItemManager', () => {
                         false,
                     ]);
 
+                    expect(editor.onSaveComplete.callCount).toBe(1);
+                    expect(editor.onCancel.callCount).toBe(0);
+                    expect(editor.props.onSaveComplete.callCount).toBe(1);
                     expect(manager.unlockAndCancel.callCount).toBe(1);
 
                     done();

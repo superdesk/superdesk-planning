@@ -635,7 +635,7 @@ export class ItemManager {
         ))
             .then(() => {
                 this.dispatch<any>(actions.clearPrevious());
-                return this.editor.onCancel(false);
+                return this.editor.onSaveComplete();
             }, (error) => {
                 if (get(error, 'status') === 412) {
                     // If etag error, then notify user and change editor to read-only

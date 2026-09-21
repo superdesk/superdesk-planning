@@ -1,4 +1,4 @@
-import {Page, Locator} from '@playwright/test';
+import {Page, Locator, expect} from '@playwright/test';
 
 /**
  * Wrapper around superdesk-client-core's Monitoring list, used to reach the article actions
@@ -9,6 +9,23 @@ export class Monitoring {
 
     constructor(page: Page) {
         this.page = page;
+    }
+
+    async waitUntilReady(): Promise<void> {
+        await expect(this.page.getByTestId('monitoring--selected-desk')).toBeVisible({timeout: 90000});
+    }
+
+    async selectDesk(deskName: string): Promise<void> {
+        const deskSelectDropdown = this.page.getByTestId('monitoring--selected-desk');
+
+        await expect(deskSelectDropdown).toBeVisible();
+
+        if (!(await deskSelectDropdown.textContent())?.toLocaleLowerCase().includes(deskName.toLocaleLowerCase())) {
+            await deskSelectDropdown.click();
+            await this.page.getByTestId('monitoring--select-desk-options')
+                .getByRole('button', {name: deskName})
+                .click();
+        }
     }
 
     item(text: string): Locator {
