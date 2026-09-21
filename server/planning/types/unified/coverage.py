@@ -57,7 +57,7 @@ class CoverageAssignedTo(Dataclass):
     contact: Annotated[fields.ObjectId | None, validate_data_relation_async("contacts")] = Field(
         description="ID of the Contact this Coverage is assigned to", default=None
     )
-    user: Annotated[fields.ObjectId | None, validate_data_relation_async("users")] = Field(
+    user: Annotated[fields.ObjectId | None, validate_data_relation_async("users", convert_to_objectid=True)] = Field(
         description="ID of the User for this Coverage", default=None
     )
     desk: Annotated[fields.ObjectId | None, validate_data_relation_async("desks")] = Field(
@@ -253,7 +253,7 @@ class EmbeddedPlanningCoverage(BaseModel):
     desk: fields.ObjectId | None = Field(
         description="The desk of the Coverage item that this EmbeddedPlanningCoverage is linked to", default=None
     )
-    user: Annotated[fields.ObjectId | None, validate_data_relation_async("users")] = Field(
+    user: Annotated[fields.ObjectId | None, validate_data_relation_async("users", convert_to_objectid=True)] = Field(
         description="The user of the Coverage item that this EmbeddedPlanningCoverage is linked to", default=None
     )
     language: str | None = Field(
