@@ -132,7 +132,6 @@ class MigrateUnifiedStorageTest(TestCase):
         await self.db["planning_history"].insert_one(
             {"_id": ObjectId(), "planning_id": "plan1", "operation": "create", "update": {"slugline": "plan-1"}}
         )
-        await self.db["event_autosave"].insert_one({"_id": "event1", "type": "event", "lock_user": self.user_id})
         await self.db["planning_autosave"].insert_one({"_id": "plan1", "lock_user": self.user_id})
         await self.db["planning_files"].insert_one({"_id": ObjectId(), "media": "media1", "mimetype": "image/jpeg"})
         await self.db["events_files"].insert_one({"_id": ObjectId(), "media": "media2", "mimetype": "image/png"})
@@ -204,7 +203,7 @@ class MigrateUnifiedStorageTest(TestCase):
         self.assertEqual(len(await self._find("events")), 2)
         self.assertEqual(len(await self._find("planning")), 2)
 
-    async def test_migrates_history_autosave_and_files(self):
+    async def test_migrates_history_and_files(self):
         async with self.app.app_context():
             self.assertEqual(await self.command.run(), 0)
 
@@ -216,11 +215,6 @@ class MigrateUnifiedStorageTest(TestCase):
         self.assertNotIn("event_id", next(item for item in history if item["item_type"] == "event"))
         self.assertNotIn("planning_id", next(item for item in history if item["item_type"] == "planning"))
 
-        autosaves = {item["_id"]: item for item in await self._find("planning_autosave")}
-        self.assertEqual(set(autosaves.keys()), {"event1", "plan1"})
-        self.assertEqual(autosaves["event1"]["type"], "event")
-        self.assertEqual(autosaves["plan1"]["type"], "planning")
-
         files = await self._find("events_files")
         self.assertEqual({item["media"] for item in files}, {"media1", "media2"})
 
@@ -231,7 +225,7 @@ class MigrateUnifiedStorageTest(TestCase):
 
         self.assertEqual(len(await self._find("unified_planning")), 4)
         self.assertEqual(len(await self._find("planning_history")), 2)
-        self.assertEqual(len(await self._find("planning_autosave")), 2)
+        self.assertEqual(len(await self._find("planning_autosave")), 1)
         self.assertEqual(len(await self._find("events_files")), 2)
 
     async def test_dry_run_writes_nothing(self):

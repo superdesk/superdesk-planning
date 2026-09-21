@@ -30,13 +30,11 @@ logger = logging.getLogger(__name__)
 
 PHASE_ITEMS = "items"
 PHASE_HISTORY = "history"
-PHASE_AUTOSAVE = "autosave"
 PHASE_FILES = "files"
-PHASES = (PHASE_ITEMS, PHASE_HISTORY, PHASE_AUTOSAVE, PHASE_FILES)
+PHASES = (PHASE_ITEMS, PHASE_HISTORY, PHASE_FILES)
 
 UNIFIED_COLLECTION = "unified_planning"
 HISTORY_COLLECTION = "planning_history"
-AUTOSAVE_COLLECTION = "planning_autosave"
 # Event & Planning attachments share the one collection, named after the Events one
 FILES_COLLECTION = "events_files"
 
@@ -80,7 +78,6 @@ async def migrate_unified_storage_command(
     ``events``              ``unified_planning``
     ``planning``            ``unified_planning``
     ``events_history``      ``planning_history``
-    ``event_autosave``      ``planning_autosave``
     ``planning_files``      ``events_files``
     ======================  ======================
 
@@ -97,7 +94,7 @@ async def migrate_unified_storage_command(
 
     -d, --dry-run     Don't update, just print what would be migrated
     --batch-size      Number of documents to process per batch (default 500)
-    --only            Run only the given phase(s): items, history, autosave, files
+    --only            Run only the given phase(s): items, history, files
     --force           Overwrite documents that already exist in the target collection
     --debug           Stop on the first error, printing the traceback and the source document
     """
@@ -145,7 +142,6 @@ class MigrateUnifiedStorageCommand:
         runners: dict[str, Callable] = {
             PHASE_ITEMS: self.migrate_items,
             PHASE_HISTORY: self.migrate_history,
-            PHASE_AUTOSAVE: self.migrate_autosave,
             PHASE_FILES: self.migrate_files,
         }
 
@@ -218,23 +214,6 @@ class MigrateUnifiedStorageCommand:
             target=target,
             stats=stats,
             transform=self.normalise_event_history,
-        )
-
-        print(f"  {stats}")
-        return stats
-
-    async def migrate_autosave(self) -> PhaseStats:
-        print("")
-        print(f"Migrating 'event_autosave' into '{AUTOSAVE_COLLECTION}'")
-        stats = self.stats.setdefault(PHASE_AUTOSAVE, PhaseStats())
-        target = self.db[AUTOSAVE_COLLECTION]
-
-        stats.updated += await self.set_missing_field(target, "type", PlanningItemType.PLANNING.value)
-        await self.copy_documents(
-            source=self.db["event_autosave"],
-            target=target,
-            stats=stats,
-            transform=lambda doc: {**doc, "type": doc.get("type") or PlanningItemType.EVENT.value},
         )
 
         print(f"  {stats}")
