@@ -376,13 +376,13 @@ def convert_legacy_planning_to_unified_format(item: dict) -> None:
             item["dates"]["start"] = item.pop("planning_date", None)
         if "all_day" not in item["dates"]:
             item["dates"]["all_day"] = item.get("all_day") is True
-        if description_text := item.get("description_text", None):
+        if description_text := item.pop("description_text", None):
             item["definition_long"] = description_text
 
     if item.get("coverages"):
         for coverage in item["coverages"]:
             coverage_planning = coverage.get("planning") or {}
-            if description_text := coverage_planning.get("description_text", None):
+            if description_text := coverage_planning.pop("description_text", None):
                 coverage_planning["definition_long"] = description_text
 
             coverage_planning = coverage.get("planning") or {}
