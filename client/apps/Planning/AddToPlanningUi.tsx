@@ -15,7 +15,7 @@ interface IProps {
     editorOpen: boolean;
     previewOpen: boolean;
     popupContainer(): void;
-    onCancel(): void;
+    onSaveComplete(): void;
 }
 
 export class AddToPlanningUi extends React.PureComponent<IProps> {
@@ -26,6 +26,7 @@ export class AddToPlanningUi extends React.PureComponent<IProps> {
             editorOpen,
             previewOpen,
             popupContainer,
+            onSaveComplete,
         } = this.props;
 
         return (
@@ -64,8 +65,7 @@ export class AddToPlanningUi extends React.PureComponent<IProps> {
                 EditorPanel={Editor}
                 editorProps={{
                     addNewsItemToPlanning: addNewsItemToPlanning,
-                    // Cancelling the editor should only close it and return to the list,
-                    // not close the whole "Add to planning" modal
+                    onSaveComplete: onSaveComplete,
                     showUnlock: false,
                     createAndPost: true,
                     hideMinimize: true,

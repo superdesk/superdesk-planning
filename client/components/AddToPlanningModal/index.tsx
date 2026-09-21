@@ -84,7 +84,7 @@ export class AddToPlanningComponent extends React.Component<IProps> {
                     <AddToPlanningApp
                         addNewsItemToPlanning={newsItem}
                         popupContainer={() => this.dom.popupContainer}
-                        onCancel={handleCancel}
+                        onSaveComplete={handleCancel}
                     />
                 </div>
             </Modal>
