@@ -287,6 +287,7 @@ class MigrateUnifiedStorageCommand:
         for subject in doc.get("subject") or []:
             translations = subject.get("translations")
             if not isinstance(translations, dict):
+                subject.pop("translations", None)
                 continue
 
             for key in list(translations.keys()):
@@ -352,10 +353,9 @@ class MigrateUnifiedStorageCommand:
                     stats.skipped += 1
                     continue
 
-                original = doc
+                original = deepcopy(doc) if self.debug else doc
                 try:
                     # ``transform`` mutates the document, so keep the original around to print on failure
-                    original = deepcopy(doc) if self.debug else doc
                     migrated = transform(doc) if transform is not None else doc
                 except Exception as err:
                     stats.failed += 1

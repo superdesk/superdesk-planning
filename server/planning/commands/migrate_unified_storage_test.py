@@ -60,6 +60,12 @@ class MigrateUnifiedStorageTest(TestCase):
                                 "name": {"fr": "MANIFESTATION", "nl": "BETOGING"},
                             },
                         },
+                        {
+                            "name": "SPORT",
+                            "qcode": "SPORT",
+                            "scheme": "belga-keywords",
+                            "translations": "",
+                        },
                     ],
                     "translations": [
                         {"field": "name", "language": "nl", "value": "Slot van de Week"},
@@ -164,6 +170,7 @@ class MigrateUnifiedStorageTest(TestCase):
                     "scheme": "belga-keywords",
                     "translations": {"name": {"fr": "MANIFESTATION", "nl": "BETOGING"}},
                 },
+                {"name": "SPORT", "qcode": "SPORT", "scheme": "belga-keywords"},
             ],
         )
         self.assertEqual(
