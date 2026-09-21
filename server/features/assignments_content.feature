@@ -42,28 +42,7 @@ Feature: Assignment content
 
         Given "vocabularies"
         """
-        [
-            {"_id": "g2_content_type", "items": [
-                {"is_active": true, "name": "Text", "qcode": "text"},
-                {"is_active": true, "name": "Photo", "qcode": "photo"}
-            ]},
-            {
-                "_id": "newscoveragestatus",
-                "display_name": "News Coverage Status",
-                "type": "manageable",
-                "unique_field": "qcode",
-                "items": [
-                    {"is_active": true, "qcode": "ncostat:int", "name": "coverage intended", "label": "Planned"},
-                    {"is_active": true, "qcode": "ncostat:notdec", "name": "coverage not decided yet",
-                        "label": "On merit"},
-                    {"is_active": true, "qcode": "ncostat:notint", "name": "coverage not intended",
-                        "label": "Not planned"},
-                    {"is_active": true, "qcode": "ncostat:onreq", "name": "coverage upon request",
-                        "label": "On request"}
-                ]
-            },
-            {"_id": "single", "selection_type": "single selection"}
-        ]
+        [{"_id": "single", "selection_type": "single selection"}]
         """
         When we post to "/planning"
         """

@@ -21,7 +21,8 @@ Feature: Assignments created when Coverages are created
             "planning_date": "2035-06-30T14:00:00+0000",
             "coverages": [{
                 "planning": {"g2_content_type": "text"},
-                "workflow_status": "draft"
+                "workflow_status": "draft",
+                "news_coverage_status": {"qcode": "ncostat:int", "name": "coverage intended", "label": "Planned"}
             }]
         }]
         """
@@ -50,7 +51,8 @@ Feature: Assignments created when Coverages are created
             "coverages": [{
                 "planning": {"g2_content_type": "text"},
                 "assigned_to": {"desk": "#SPORTS_DESK_ID#"},
-                "workflow_status": "draft"
+                "workflow_status": "draft",
+                "news_coverage_status": {"qcode": "ncostat:int", "name": "coverage intended", "label": "Planned"}
             }]
         }]
         """
@@ -96,7 +98,8 @@ Feature: Assignments created when Coverages are created
             "coverages": [{
                 "planning": {"g2_content_type": "text"},
                 "assigned_to": {"desk": "#SPORTS_DESK_ID#"},
-                "workflow_status": "active"
+                "workflow_status": "active",
+                "news_coverage_status": {"qcode": "ncostat:int", "name": "coverage intended", "label": "Planned"}
             }]
         }]
         """
@@ -132,7 +135,7 @@ Feature: Assignments created when Coverages are created
         }
         """
 
-    @auth
+    @auth @planning_cvs
     Scenario: Update planning with new draft coverage and no assignee does not create an Assignment
         When we post to "/planning"
         """
@@ -147,7 +150,8 @@ Feature: Assignments created when Coverages are created
         """
         {"coverages": [{
             "planning": {"g2_content_type": "text"},
-            "workflow_status": "draft"
+            "workflow_status": "draft",
+            "news_coverage_status": {"qcode": "ncostat:int", "name": "coverage intended", "label": "Planned"}
         }]}
         """
         Then we get OK response
@@ -158,13 +162,13 @@ Feature: Assignments created when Coverages are created
         """
         {
             "state": "draft",
-            "coverages": [{"coverage_id": "#COVERAGE_ID#", "assigned_to": "__no_value__"}]
+            "coverages": [{"coverage_id": "#COVERAGE_ID#", "assigned_to": null}]
         }
         """
         When we get "/assignments"
         Then we get list with 0 items
 
-    @auth
+    @auth @planning_cvs
     Scenario: Update planning with new draft coverage with desk assignee creates a draft Assignment
         When we post to "/planning"
         """
@@ -180,7 +184,8 @@ Feature: Assignments created when Coverages are created
         {"coverages": [{
             "planning": {"g2_content_type": "text"},
             "assigned_to": {"desk": "#SPORTS_DESK_ID#"},
-            "workflow_status": "draft"
+            "workflow_status": "draft",
+            "news_coverage_status": {"qcode": "ncostat:int", "name": "coverage intended", "label": "Planned"}
         }]}
         """
         Then we get OK response
@@ -214,7 +219,7 @@ Feature: Assignments created when Coverages are created
         }
         """
 
-    @auth
+    @auth @planning_cvs
     Scenario: Update planning with active coverage and desk assignee creates an assigned Assignment
         When we post to "/planning"
         """
@@ -230,7 +235,8 @@ Feature: Assignments created when Coverages are created
         {"coverages": [{
             "planning": {"g2_content_type": "text"},
             "assigned_to": {"desk": "#SPORTS_DESK_ID#"},
-            "workflow_status": "active"
+            "workflow_status": "active",
+            "news_coverage_status": {"qcode": "ncostat:int", "name": "coverage intended", "label": "Planned"}
         }]}
         """
         Then we get OK response
@@ -265,7 +271,7 @@ Feature: Assignments created when Coverages are created
         }
         """
 
-    @auth
+    @auth @planning_cvs
     Scenario: Update coverage and set to active creates an assigned Assignment
         When we post to "/planning"
         """
@@ -276,7 +282,8 @@ Feature: Assignments created when Coverages are created
             "coverages": [{
                 "planning": {"g2_content_type": "text"},
                 "assigned_to": {"desk": "#SPORTS_DESK_ID#"},
-                "workflow_status": "draft"
+                "workflow_status": "draft",
+                "news_coverage_status": {"qcode": "ncostat:int", "name": "coverage intended", "label": "Planned"}
             }]
         }]
         """
@@ -320,7 +327,8 @@ Feature: Assignments created when Coverages are created
                 "assignment_id": "#ASSIGNMENT_ID#",
                 "desk": "#SPORTS_DESK_ID#"
             },
-            "workflow_status": "active"
+            "workflow_status": "active",
+            "news_coverage_status": {"qcode": "ncostat:int", "name": "coverage intended", "label": "Planned"}
         }]}
         """
         Then we get OK response
@@ -364,7 +372,7 @@ Feature: Assignments created when Coverages are created
         """
         [{
             "state": "draft",
-            "slugline": "test slugline",
+            "slugline": "Test slugline",
             "planning_date": "2035-06-30T14:00:00+0000",
             "coverages": [{
                 "planning": {
@@ -393,7 +401,8 @@ Feature: Assignments created when Coverages are created
                     "coverage_provider": {"name": "Stringer", "qcode": "stringer"},
                     "priority": 1
                 },
-                "workflow_status": "draft"
+                "workflow_status": "draft",
+                "news_coverage_status": {"qcode": "ncostat:int", "name": "coverage intended", "label": "Planned"}
             }]
         }]
         """

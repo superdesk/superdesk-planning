@@ -8,7 +8,7 @@
 # AUTHORS and LICENSE files distributed with this source code, or
 # at https://www.sourcefabric.org/superdesk/license
 
-from typing import NamedTuple, Dict, Any, Set, Optional, Union
+from typing import NamedTuple, Dict, Any, Optional, Union
 
 import re
 import time
@@ -21,7 +21,7 @@ from werkzeug.datastructures import MultiDict
 from quart_babel import gettext
 
 from superdesk.core import get_app_config, get_current_app, get_config
-from superdesk.resource_fields import ID_FIELD, VERSION, LINKS
+from superdesk.resource_fields import ID_FIELD, VERSION
 from superdesk.resource import not_analyzed, build_custom_hateoas
 from superdesk.publish_async.commands import publish_item
 from superdesk import get_resource_service, logger
@@ -260,9 +260,14 @@ def get_config_default_create_planning_series_with_event_series():
     return get_app_config("DEFAULT_CREATE_PLANNING_SERIES_WITH_EVENT_SERIES", False)
 
 
-def get_config_event_fields_to_sync_with_planning() -> Set[str]:
-    config_value = get_app_config("SYNC_EVENT_FIELDS_TO_PLANNING", "")
-    return set(config_value.split(",") if isinstance(config_value, str) else config_value)
+def get_config_event_fields_to_sync_with_planning() -> set[str]:
+    config_value = get_config(str, "SYNC_EVENT_FIELDS_TO_PLANNING", "")
+    fields = set(config_value.split(",") if isinstance(config_value, str) else config_value)
+
+    if "language" in fields:
+        fields.add("languages")
+
+    return fields
 
 
 def get_config_event_related_item_search_provider_name() -> Optional[str]:

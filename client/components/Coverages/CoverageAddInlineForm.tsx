@@ -75,12 +75,18 @@ class CoverageAddInlineFormComponent extends React.Component<IProps, IState> {
         return {
             rows: createRowsFromContentTypes(contentTypes, desks, newsCoverageStatus),
             submitted: false,
-            open: false,
+            open: true,
         };
     }
 
-    reset = () => {
-        this.setState(this.getInitialState());
+    clearRows = () => {
+        const {rows, submitted} = this.getInitialState();
+
+        this.setState({rows, submitted});
+    }
+
+    cancel = () => {
+        this.setState({...this.getInitialState(), open: false});
     }
 
     open = () => {
@@ -122,7 +128,7 @@ class CoverageAddInlineFormComponent extends React.Component<IProps, IState> {
         }
 
         this.props.onAdd(buildNewCoverages(this.state.rows, this.props.createCoverage, this.props.event));
-        this.reset();
+        this.clearRows();
     }
 
     renderTypeLine(row: ICoverageRow, contentTypes: Map<string, IG2ContentType>) {
@@ -221,7 +227,7 @@ class CoverageAddInlineFormComponent extends React.Component<IProps, IState> {
                         <Button
                             type="secondary"
                             text={gettext('Cancel')}
-                            onClick={this.reset}
+                            onClick={this.cancel}
                         />
                         <Button
                             type="primary"

@@ -1,5 +1,5 @@
 from .model import UnifiedPlanningResource, PlanningItemType
-from .schedule import RecurringEndMode, RecurringFrequency, ItemScheduleEntry, ItemUpdateScheduleEntry
+from .schedule import RecurringEndMode, RecurringFrequency, ItemScheduleEntry, ItemUpdateScheduleEntry, ItemDates
 from .metadata import RelatedEventLink, RelatedEventLinkType, FieldTranslation
 from .coverage import (
     CoverageItem,
@@ -8,6 +8,7 @@ from .coverage import (
     EmbeddedPlanningCoverage,
     NewsCoverageStatus,
     CoverageAssignedTo,
+    CoveragePlanning,
 )
 from .common import Subject, CVItem
 from .system import LockFields, AuditInformation
@@ -23,12 +24,14 @@ __all__ = [
     "FieldTranslation",
     "ItemScheduleEntry",
     "ItemUpdateScheduleEntry",
+    "ItemDates",
     "CoverageItem",
     "CoverageScheduledUpdate",
     "EmbeddedPlanningItem",
     "EmbeddedPlanningCoverage",
     "NewsCoverageStatus",
     "CoverageAssignedTo",
+    "CoveragePlanning",
     "Subject",
     "CVItem",
     "LockFields",
