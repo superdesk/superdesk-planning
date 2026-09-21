@@ -97,7 +97,7 @@ export function getEventsInstance(type: EDITOR_TYPE): IEditorAPI['events'] {
 
     function registerFormComponents(newState: Partial<IEditorState>) {
         const editor = planningApi.editor(type);
-        const parts = newState.diff.type === 'event' ?
+        const parts = newState.diff?.type === 'event' ?
             editor.item.events.getGroupsForItem(newState.diff as Partial<IEventItem>) :
             editor.item.planning.getGroupsForItem(newState.diff as Partial<IPlanningItem>);
 
@@ -108,18 +108,18 @@ export function getEventsInstance(type: EDITOR_TYPE): IEditorAPI['events'] {
     function setEventsPlanningsToAdd(newState: Partial<IEditorState>) {
         const associatedPlannings = planningApi.editor(type).item.getAssociatedPlannings();
 
-        if (newState.diff.type === 'event' && newState.diff.associated_plannings == null) {
+        if (newState.diff?.type === 'event' && newState.diff.associated_plannings == null) {
             newState.diff.associated_plannings = associatedPlannings;
         }
 
         // needs to be set on initial values as well for correct computation of state.dirty
-        if (newState.initialValues.type === 'event' && newState.initialValues.associated_plannings == null) {
+        if (newState.initialValues?.type === 'event' && newState.initialValues.associated_plannings == null) {
             newState.initialValues.associated_plannings = associatedPlannings;
         }
     }
 
     function setDatesAndTimesToItemTimezone(newState: Partial<IEditorState>) {
-        switch (newState.diff.type) {
+        switch (newState.diff?.type) {
         case 'event':
             // Make sure the Editor is using date/time fields in the timezone of the Event and not the browser
             convertEventDatesForTimezone(newState.diff, newState.diff.dates.tz);

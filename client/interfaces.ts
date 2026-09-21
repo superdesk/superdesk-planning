@@ -2146,6 +2146,7 @@ export interface IEditorProps {
     }): void;
     onChange?(diff: Partial<IEventOrPlanningItem>): void;
     onCancel?(): void;
+    onSaveComplete?(): void;
     notifyValidationErrors(errors: Array<string>): void;
     saveDiffToStore(diff: DeepPartial<IEventOrPlanningItem>): void;
     dispatch: Dispatch;

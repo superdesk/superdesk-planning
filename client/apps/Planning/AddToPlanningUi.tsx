@@ -15,7 +15,7 @@ interface IProps {
     editorOpen: boolean;
     previewOpen: boolean;
     popupContainer(): void;
-    onCancel(): void;
+    onSaveComplete(): void;
 }
 
 export class AddToPlanningUi extends React.PureComponent<IProps> {
@@ -26,7 +26,7 @@ export class AddToPlanningUi extends React.PureComponent<IProps> {
             editorOpen,
             previewOpen,
             popupContainer,
-            onCancel,
+            onSaveComplete,
         } = this.props;
 
         return (
@@ -50,6 +50,7 @@ export class AddToPlanningUi extends React.PureComponent<IProps> {
                     hideItemActions: true,
                     showAddCoverage: true,
                     showUnlock: false,
+                    useAddCoverageOnDoubleClick: true,
                 }}
 
                 previewOpen={previewOpen}
@@ -64,7 +65,7 @@ export class AddToPlanningUi extends React.PureComponent<IProps> {
                 EditorPanel={Editor}
                 editorProps={{
                     addNewsItemToPlanning: addNewsItemToPlanning,
-                    onCancel: onCancel,
+                    onSaveComplete: onSaveComplete,
                     showUnlock: false,
                     createAndPost: true,
                     hideMinimize: true,

@@ -49,6 +49,7 @@ export class EditorComponent extends React.Component<IEditorProps, IEditorState>
         this.onChangeHandler = this.onChangeHandler.bind(this);
         this.setActiveTab = this.setActiveTab.bind(this);
         this.onCancel = this.onCancel.bind(this);
+        this.onSaveComplete = this.onSaveComplete.bind(this);
         this.onMinimized = this.onMinimized.bind(this);
         this.cancelFromHeader = this.cancelFromHeader.bind(this);
         this.onPopupOpen = this.onPopupOpen.bind(this);
@@ -224,7 +225,9 @@ export class EditorComponent extends React.Component<IEditorProps, IEditorState>
 
             const isDirty = this.isDirty(initialValues, diff, false);
 
-            if (isDirty) {
+            // In the "Add to planning" flow, Cancel should simply discard and return to the
+            // list without prompting to save, rather than closing the whole modal
+            if (isDirty && !addNewsItemToPlanning) {
                 const hasErrors = !isEqual(errorMessages, []);
                 const isKilled = isItemKilled(initialValues);
                 const onSave = (isKilled || hasErrors) ? null : (withConfirmation, updateMethod) => (
@@ -266,7 +269,7 @@ export class EditorComponent extends React.Component<IEditorProps, IEditorState>
         });
     }
 
-    onCancel(updateStates = true) {
+    finishEditing(updateStates: boolean, callback?: () => void) {
         if (updateStates) {
             this.setState({submitting: false});
 
@@ -279,11 +282,19 @@ export class EditorComponent extends React.Component<IEditorProps, IEditorState>
             this.editorApi.dom.headerInstance.current.unregisterKeyBoardShortcuts();
         }
 
-        if (this.props.onCancel) {
-            this.props.onCancel();
+        if (callback) {
+            callback();
         }
 
         return this.itemManager.unlockAndCancel();
+    }
+
+    onCancel(updateStates = true) {
+        return this.finishEditing(updateStates, this.props.onCancel);
+    }
+
+    onSaveComplete() {
+        return this.finishEditing(false, this.props.onSaveComplete);
     }
 
     setActiveTab(tab) {
