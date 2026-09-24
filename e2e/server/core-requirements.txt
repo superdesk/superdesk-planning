@@ -152,7 +152,7 @@ honcho==2.0.0
     # via -r core-requirements.in
 hpack==4.1.0
     # via h2
-httplib2==0.31.2
+httplib2==0.32.0
     # via oauth2client
 hypercorn==0.18.0
     # via quart
