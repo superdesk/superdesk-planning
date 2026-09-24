@@ -142,7 +142,7 @@ h11==0.16.0
     # via
     #   hypercorn
     #   wsproto
-h2==4.3.0
+h2==4.4.1
     # via hypercorn
 hachoir==3.3.0
     # via superdesk-core
@@ -150,7 +150,7 @@ hermescache==1.2.0
     # via superdesk-core
 honcho==2.0.0
     # via -r core-requirements.in
-hpack==4.1.0
+hpack==4.2.0
     # via h2
 httplib2==0.31.2
     # via oauth2client
