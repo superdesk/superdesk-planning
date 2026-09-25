@@ -116,7 +116,7 @@ async def create_new_plannings_from_embedded_planning(
             agendas=[],
             item_class="plinat:newscoverage",
             state=WorkflowState.DRAFT,
-            type=PlanningItemType.PLANNING,
+            item_type=PlanningItemType.PLANNING,
             language=event.language,
             languages=event.languages,
             dates=ItemDates(start=event.dates.start, all_day=get_config(bool, "PLANNING_PLANNING_ALL_DAY", False)),
