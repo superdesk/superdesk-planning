@@ -33,7 +33,7 @@ from planning.common import (
     is_valid_event_planning_reason,
     update_post_item,
 )
-from planning.types import EventResourceModel, UpdateMethods
+from planning.types import EventResourceModel, UpdateMethods, UnifiedPlanningResource
 from planning.types.unified import PlanningItemType
 from planning.types.event import EmbeddedPlanning, EmbeddedPlanningCoverage
 from apps.item_lock.components.item_lock import LOCK_USER, LOCK_SESSION, LOCK_ACTION
@@ -57,115 +57,6 @@ DAYS = {
     "SA": SA,
     "SU": SU,
 }
-
-
-def generate_recurring_dates(
-    start: datetime,
-    frequency: FrequencyType,
-    interval: int = 1,
-    until: datetime | None = None,
-    byday: str | None = None,
-    count: int = 5,
-    tz: pytz.BaseTzInfo | None = None,
-    date_only: bool = False,
-    all_day: bool = False,
-    **_,
-) -> Generator[datetime | date, None, None]:
-    """
-
-    Returns list of dates related to recurring rules
-
-    :param start datetime: date when to start
-    :param frequency FrequencyType: DAILY, WEEKLY, MONTHLY, YEARLY
-    :param interval int: indicates how often the rule repeats as a positive integer
-    :param until datetime: date after which the recurrence rule expires
-    :param byday str or list: "MO TU"
-    :param count int: number of occurrences of the rule
-    :return Generator: list of datetime
-
-    """
-    # if tz is given, respect the timezone by starting from the local time
-    # NOTE: rrule uses only naive datetime
-    if tz:
-        if all_day:
-            # For all-day recurrences, keep recurrence anchored to UTC day boundaries.
-            # Interpret UNTIL using the event timezone's local day, then map that to
-            # the UTC end-of-day for stable cross-timezone behavior.
-            if start.tzinfo:
-                # start is expected to be UTC; just normalize for naive rrule usage
-                start = start.replace(tzinfo=None)
-            if until:
-                if isinstance(until, str):
-                    until = parser.isoparse(until)
-                if until.tzinfo is None:
-                    until = pytz.UTC.localize(until)
-                until_local_date = until.astimezone(tz).date()
-                until = datetime.combine(until_local_date, time(23, 59, 59, 999000))
-        else:
-            try:
-                # start can already be localized
-                start = pytz.UTC.localize(start)
-            except ValueError:
-                pass
-            start = start.astimezone(tz).replace(tzinfo=None)
-            if until:
-                if isinstance(until, str):
-                    until = parser.isoparse(until)
-                if until.tzinfo is None:
-                    until = pytz.UTC.localize(until)
-                until = until.astimezone(tz).replace(tzinfo=None, hour=23, minute=59, second=59, microsecond=999000)
-
-    if frequency == "DAILY":
-        byday = None
-
-    # check format of the recurring_rule byday value
-    if byday and re.match(r"^-?[1-5]+.*", byday):
-        # byday uses monthly or yearly frequency rule with day of week and
-        # preceding day of month integer by day value
-        # examples:
-        # 1FR - first friday of the month
-        # -2MON - second to last monday of the month
-        if byday[:1] == "-":
-            day_of_month = int(byday[:2])
-            day_of_week = byday[2:]
-        else:
-            day_of_month = int(byday[:1])
-            day_of_week = byday[1:]
-
-        byweekday = DAYS.get(day_of_week)(day_of_month)  # type: ignore[misc]
-    else:
-        # byday uses DAYS constants
-        byweekday = byday and [DAYS.get(d) for d in byday.split()] or None
-
-    # convert count of repeats to count of events
-    if count:
-        count = count * (len(byday.split()) if byday else 1)
-
-    # TODO: use dateutil.rrule.rruleset to incude ex_date and ex_rule
-    dates = rrule(
-        FREQUENCIES[frequency],
-        dtstart=start,
-        until=until,
-        byweekday=byweekday,
-        count=count,
-        interval=interval,
-    )
-    # if a timezone has been applied, returns UTC
-    if tz:
-        if all_day:
-            if date_only:
-                return (dt.date() for dt in dates)
-            else:
-                return (dt for dt in dates)
-        if date_only:
-            return (tz.localize(dt).astimezone(pytz.UTC).replace(tzinfo=None).date() for dt in dates)
-        else:
-            return (tz.localize(dt).astimezone(pytz.UTC).replace(tzinfo=None) for dt in dates)
-    else:
-        if date_only:
-            return (date.date() for date in dates)
-        else:
-            return (date for date in dates)
 
 
 def get_events_embedded_planning(event: dict[str, Any] | EventResourceModel) -> list[EmbeddedPlanning]:
