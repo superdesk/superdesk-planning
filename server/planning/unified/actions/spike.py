@@ -222,7 +222,7 @@ async def spike_recurring_events(updates: dict[str, Any], original: dict[str, An
         # skip on_update: its recurring-date branch is an unimplemented TODO that raises
         new_updates: dict[str, Any] = {"skip_on_update": True}
         set_item_spiked(new_updates, event)
-        item = (await service.update(event[ID_FIELD], new_updates)).to_dict()
+        item = (await service.update(event[ID_FIELD], new_updates, skip_signals=True)).to_dict()
         await signals.event_spiked.send(new_updates, event)
 
         if item:
@@ -262,7 +262,7 @@ async def unspike_recurring_events(updates: dict[str, Any], original: dict[str, 
         # skip on_update: its recurring-date branch is an unimplemented TODO that raises
         new_updates: dict[str, Any] = {"skip_on_update": True}
         set_item_unspiked(new_updates, event)
-        item = (await service.update(event[ID_FIELD], new_updates)).to_dict()
+        item = (await service.update(event[ID_FIELD], new_updates, skip_signals=True)).to_dict()
         await signals.event_unspiked.send(new_updates, event)
 
         if item:

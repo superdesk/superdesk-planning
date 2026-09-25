@@ -8,7 +8,7 @@ from superdesk.default_settings import strtobool
 
 from apps.item_lock.components.item_lock import LOCK_ACTION
 
-from planning.types import UnifiedPlanningHistoryResource
+from planning.types import UnifiedPlanningHistoryResource, PlanningItemType
 from planning.types.enums import AssignmentHistoryActions, AssignmentWorkflowState, ItemActions, WorkflowState
 from planning.utils import (
     get_related_event_links_for_planning,
@@ -118,10 +118,12 @@ class UnifiedPlanningHistoryService(HistoryAsyncService[UnifiedPlanningHistoryRe
             if updates:
                 item.update(updates)
 
-        if len(diff.keys()) > 0:
+        diff_keys = list(diff.keys())
+        if len(diff_keys) > 0:
             operation = operation or "edited"
             lock_action = original.get(LOCK_ACTION)
-            if lock_action in update_item_actions:
+
+            if operation not in {"planning_created", "reschedule"} and lock_action in update_item_actions:
                 operation = lock_action
                 if lock_action == "assign_agenda":
                     diff["agendas"] = [a for a in diff.get("agendas", []) if a not in original.get("agendas", [])]
@@ -129,7 +131,7 @@ class UnifiedPlanningHistoryService(HistoryAsyncService[UnifiedPlanningHistoryRe
             if len(get_related_event_links_for_planning(diff, "primary")):
                 operation = "create_event"
 
-            if operation == "edited" and list(diff.keys()) == ["duplicate_to"]:
+            if operation == "edited" and diff_keys == ["duplicate_to"]:
                 # No need to add an entry here, as we should already have a "duplicate" entry already
                 return
 
@@ -259,7 +261,9 @@ class UnifiedPlanningHistoryService(HistoryAsyncService[UnifiedPlanningHistoryRe
         await self._save_history({ID_FIELD: str(item[ID_FIELD]), "type": item.get("type")}, new_plan, "duplicate_from")
 
     async def on_update_repetitions(self, updates: dict[str, Any], event_id: str, operation: str | None = None):
-        await self.on_item_updated(updates, {"_id": event_id}, operation or "update_repetitions")
+        await self.on_item_updated(
+            updates, {"_id": event_id, "type": PlanningItemType.EVENT}, operation or "update_repetitions"
+        )
 
     async def on_update_time(self, updates: dict[str, Any], original: dict[str, Any]):
         await self.on_item_updated(updates, original, "update_time")

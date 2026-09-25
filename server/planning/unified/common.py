@@ -1,16 +1,22 @@
-from collections.abc import AsyncGenerator
+from typing import Literal, cast
+from collections.abc import AsyncGenerator, Generator
 import logging
 from dataclasses import dataclass
+from datetime import timedelta, datetime, time, date, timezone
+import re
 
 from quart_babel import gettext
+from dateutil.rrule import rrule, DAILY, WEEKLY, MONTHLY, YEARLY, MO, TU, WE, TH, FR, SA, SU
+import pytz
 
 from superdesk.core import get_config
-from superdesk.core.types import ProjectedFieldArg
+from superdesk.core.types import ProjectedFieldArg, SortParam
 from superdesk.core.resources.cursor import ResourceCursorAsync
+from superdesk.core.utils import str_to_date
 from superdesk.utc import utcnow
 from superdesk.errors import SuperdeskApiError
 
-from planning.types import WorkflowState
+from planning.types import WorkflowState, PostStates, CoverageItem
 from planning.types.unified import (
     UnifiedPlanningResource,
     PlanningItemType,
@@ -18,10 +24,29 @@ from planning.types.unified import (
     RelatedEventLinkType,
     ItemScheduleEntry,
     ItemUpdateScheduleEntry,
+    RecurringFrequency,
 )
+from planning.common import get_max_recurrent_events
 
 
 logger = logging.getLogger(__name__)
+
+FREQUENCIES: dict[RecurringFrequency, Literal[0, 1, 2, 3]] = {
+    RecurringFrequency.DAILY: DAILY,
+    RecurringFrequency.WEEKLY: WEEKLY,
+    RecurringFrequency.MONTHLY: MONTHLY,
+    RecurringFrequency.YEARLY: YEARLY,
+}
+
+DAYS = {
+    "MO": MO,
+    "TU": TU,
+    "WE": WE,
+    "TH": TH,
+    "FR": FR,
+    "SA": SA,
+    "SU": SU,
+}
 
 
 @dataclass
@@ -207,9 +232,37 @@ async def agenda_has_items(agenda_id) -> bool:
 
 
 async def get_series(
-    query: dict, sort: str | None = None, max_results: int = 25
+    recurrence_id: str,
+    item_type: PlanningItemType | None = PlanningItemType.EVENT,
+    sort: SortParam | None = None,
+    max_results: int | None = None,
+    exclude_ids: list[str] | str | None = None,
+    exclude_states: list[WorkflowState] | None = None,
 ) -> AsyncGenerator[UnifiedPlanningResource, None]:
     service = UnifiedPlanningResource.get_service()
+
+    query: dict = {"recurrence_id": recurrence_id}
+    if item_type is not None:
+        query["type"] = item_type.value
+
+    if exclude_ids:
+        if not isinstance(exclude_ids, list):
+            exclude_ids = [exclude_ids]
+
+        if len(exclude_ids) == 1:
+            query["_id"] = {"$ne": exclude_ids[0]}
+        else:
+            query["_id"] = {"$nin": exclude_ids}
+
+    if exclude_states:
+        query["state"] = {"$nin": exclude_states}
+
+    if sort is None:
+        sort = [("dates.start", 1)]
+
+    if max_results is None:
+        max_results = get_max_recurrent_events()
+
     page = 1
 
     while True:
@@ -221,7 +274,7 @@ async def get_series(
 
         page += 1
 
-        # Yield the reuslt for iteration by the callee
+        # Yield the results for iteration by the callee
         for doc in docs:
             yield doc
 
@@ -241,6 +294,9 @@ async def get_recurring_timeline(
     Future: event.dates.start > selected.dates.start
     """
 
+    if not selected.recurrence_id:
+        return [], [], []
+
     excluded_states: list[WorkflowState] = []
 
     if not spiked:
@@ -252,39 +308,12 @@ async def get_recurring_timeline(
     if not postponed:
         excluded_states.append(WorkflowState.POSTPONED)
 
-    query: dict = {
-        "$and": [
-            {"type": PlanningItemType.EVENT.value},
-            {"recurrence_id": selected.recurrence_id},
-            {"_id": {"$ne": selected.id}},
-        ]
-    }
-
-    if excluded_states:
-        query["$and"].append({"state": {"$nin": excluded_states}})
-
-    sort = '[("dates.start", 1)]'
-    max_results = get_config(int, "MAX_RECURRENT_EVENTS", 200)
-
-    # TODO-UNIFIED: Figure this next one out
-    # # Make sure we are working with a datetime instance
-    # if not isinstance(selected_start, datetime):
-    #     try:
-    #         selected_start = arrow.get(selected_start)
-    #     except arrow.parser.ParserError:
-    #         raise ValueError("Invalid date format for selected_start")
-    #     tz_str = selected.get("dates", {}).get("tz")
-    #     if tz_str:
-    #         selected_start = selected_start.to(tz_str).datetime
-    #     else:
-    #         selected_start = selected_start.to("UTC").datetime
-
     historic: list[UnifiedPlanningResource] = []
     past: list[UnifiedPlanningResource] = []
     future: list[UnifiedPlanningResource] = []
 
     now = utcnow()
-    async for event in get_series(query, sort, max_results):
+    async for event in get_series(selected.recurrence_id, exclude_ids=selected.id, exclude_states=excluded_states):
         if event.dates.end < now:
             historic.append(event)
         elif event.dates.start < selected.dates.start:
@@ -293,6 +322,130 @@ async def get_recurring_timeline(
             future.append(event)
 
     return historic, past, future
+
+
+def _get_until_datetime(until: datetime | str | None, tz: pytz.BaseTzInfo | None, all_day: bool) -> datetime | None:
+    if not until:
+        # No value provided, simply return here
+        return None
+    elif isinstance(until, str):
+        # A string value was provided, attempt to convert it to a `datetime` instance
+        until = cast(datetime | None, str_to_date(until))
+        if not until:
+            raise SuperdeskApiError.badRequestError(gettext("Failed to parse recurring_rule.until param"))
+
+    if until.tzinfo is None:
+
+        until = pytz.UTC.localize(until)
+    if tz:
+        until = until.astimezone(tz)
+    if all_day:
+        return datetime.combine(until.date(), time(23, 59, 59, 999000))
+    return until.replace(tzinfo=None, hour=23, minute=59, second=59, microsecond=999000)
+
+
+def _get_start_date(start: datetime, tz: pytz.BaseTzInfo | None, all_day: bool) -> datetime:
+    if not tz:
+        # If not timezone provided,
+        return start
+    elif all_day:
+        # For all-day recurrences, keep recurrence anchored to UTC day boundaries.
+        # Interpret UNTIL using the event timezone's local day, then map that to
+        # the UTC end-of-day for stable cross-timezone behavior.
+        if start.tzinfo:
+            # start is expected to be UTC; just normalize for naive rrule usage
+            start = start.replace(tzinfo=None)
+    else:
+        try:
+            # start can already be localized
+            start = pytz.UTC.localize(start)
+        except ValueError:
+            pass
+
+        start = start.astimezone(tz).replace(tzinfo=None)
+
+    return start
+
+
+def generate_recurring_dates(
+    start: datetime,
+    frequency: RecurringFrequency,
+    interval: int = 1,
+    until: datetime | str | None = None,
+    byday: str | None = None,
+    count: int | None = 5,
+    tz: pytz.BaseTzInfo | None = None,
+    date_only: bool = False,
+    all_day: bool = False,
+    **_,
+) -> Generator[datetime | date, None, None]:
+    """
+    Returns list of dates related to recurring rules
+
+    :param start datetime: date when to start
+    :param frequency FrequencyType: DAILY, WEEKLY, MONTHLY, YEARLY
+    :param interval int: indicates how often the rule repeats as a positive integer
+    :param until datetime: date after which the recurrence rule expires
+    :param byday str or list: "MO TU"
+    :param count int: number of occurrences of the rule
+    :return Generator: list of datetime
+    """
+
+    # if tz is given, respect the timezone by starting from the local time
+    # NOTE: rrule uses only naive datetime
+    until = _get_until_datetime(until, tz, all_day)
+    start = _get_start_date(start, tz, all_day)
+
+    if frequency == RecurringFrequency.DAILY:
+        byday = None
+
+    # check format of the recurring_rule byday value
+    if byday and re.match(r"^-?[1-5]+.*", byday):
+        # byday uses monthly or yearly frequency rule with day of week and
+        # preceding day of month integer by day value
+        # examples:
+        # 1FR - first friday of the month
+        # -2MON - second to last monday of the month
+        if byday[:1] == "-":
+            day_of_month = int(byday[:2])
+            day_of_week = byday[2:]
+        else:
+            day_of_month = int(byday[:1])
+            day_of_week = byday[1:]
+
+        byweekday = DAYS.get(day_of_week)(day_of_month)  # type: ignore[misc]
+    else:
+        # byday uses DAYS constants
+        byweekday = byday and [DAYS.get(d) for d in byday.split()] or None
+
+    # convert count of repeats to count of events
+    if count:
+        count = count * (len(byday.split()) if byday else 1)
+
+    dates = rrule(
+        FREQUENCIES[frequency],
+        dtstart=start,
+        until=until,
+        byweekday=byweekday,
+        count=count,
+        interval=interval,
+    )
+    # if a timezone has been applied, returns UTC
+    if tz:
+        if all_day:
+            if date_only:
+                return (dt.date() for dt in dates)
+            else:
+                return (dt for dt in dates)
+        if date_only:
+            return (tz.localize(dt).astimezone(pytz.UTC).date() for dt in dates)
+        else:
+            return (tz.localize(dt).astimezone(pytz.UTC) for dt in dates)
+    else:
+        if date_only:
+            return (occurrence_date.date() for occurrence_date in dates)
+        else:
+            return (occurrence_date.replace(tzinfo=timezone.utc) for occurrence_date in dates)
 
 
 async def get_all_items_in_relationship(
@@ -388,3 +541,36 @@ def convert_legacy_planning_to_unified_format(item: dict) -> None:
             coverage_planning = coverage.get("planning") or {}
             if keywords := coverage_planning.get("keyword"):
                 coverage["planning"]["keywords"] = keywords
+
+
+def overwrite_event_expiry_date(event: UnifiedPlanningResource) -> None:
+    # TODO-UNIFIED: Is this needed just for Events, or can this be used for Planning as well?
+    expiry_minutes = get_config(int, "PLANNING_EXPIRY_MINUTES", None)
+    if event.expiry is not None and expiry_minutes is not None:
+        if event.dates.end:
+            event.expiry = event.dates.end + timedelta(minutes=expiry_minutes)
+
+
+def post_on_update_required(req: ItemUpdateRequest) -> bool:
+    if req.updated.pubstatus is not None:
+        return True
+    elif req.original.pubstatus == PostStates.USABLE:
+        # From item actions
+        return True
+
+    return False
+
+
+def get_coverage_by_id(
+    item: UnifiedPlanningResource,
+    coverage_id: str,
+    field: str = "coverage_id",
+) -> CoverageItem | None:
+    if not item.coverages:
+        return None
+
+    for coverage in item.coverages:
+        if getattr(coverage, field, None) == coverage_id:
+            return coverage
+
+    return None

@@ -56,7 +56,15 @@ from .planning_featured_lock import PlanningFeaturedLockResource
 from .locations import LocationResourceModel
 from .filters import EventPlanningFilter
 from . import ninjs3
-from .unified import UnifiedPlanningResource, PlanningItemType, LockFields, CoverageItem
+from .unified import (
+    UnifiedPlanningResource,
+    PlanningItemType,
+    LockFields,
+    CoverageItem,
+    ItemDates,
+    RecurringFrequency,
+    ItemRecurringDates,
+)
 from .template import PlanningTemplateResource
 
 
@@ -112,6 +120,9 @@ __all__ = [
     "PlanningItemType",
     "LockFields",
     "CoverageItem",
+    "ItemDates",
+    "RecurringFrequency",
+    "ItemRecurringDates",
     "AssignmentEventOrPlanning",
     "PlanningTemplateResource",
 ]

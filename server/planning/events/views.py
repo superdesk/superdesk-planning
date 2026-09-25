@@ -2,6 +2,13 @@ from pydantic import BaseModel
 from quart_babel import gettext
 from eve_elastic.elastic import parse_date
 
+from superdesk.core.auth.privilege_rules import required_privilege_rule
+from superdesk.core.web import EndpointGroup
+from superdesk.core.types import Request, Response
+from superdesk import get_resource_service
+from superdesk.errors import SuperdeskApiError
+
+from planning.types import UnifiedPlanningResource
 from planning.unified.actions import (
     process_spike,
     process_unspike,
@@ -12,12 +19,6 @@ from planning.unified.actions import (
     process_update_time,
 )
 from planning.utils import get_json_or_400_async
-
-from superdesk.core.auth.privilege_rules import required_privilege_rule
-from superdesk.core.web import EndpointGroup
-from superdesk.core.types import Request, Response
-from superdesk import get_resource_service
-from superdesk.errors import SuperdeskApiError
 
 
 events_endpoints_group: EndpointGroup = EndpointGroup("events", __name__)
@@ -161,7 +162,7 @@ async def reschedule_event(args: EventsArgs, params: None, request: Request) -> 
     auth=[required_privilege_rule("planning_event_management")],
 )
 async def update_repetitions(args: EventsArgs, params: None, request: Request) -> Response:
-    original = await get_resource_service("events").find_one_async(req=None, _id=args.event_id)
+    original = await UnifiedPlanningResource.get_service().find_by_id(args.event_id)
     if not original:
         await request.abort(404, "Event not found")
 
@@ -170,7 +171,7 @@ async def update_repetitions(args: EventsArgs, params: None, request: Request) -
     # Validate the data from the request
     if not updates.get("dates", {}).get("recurring_rule"):
         raise SuperdeskApiError.badRequestError(gettext("New recurring rules not provided"))
-    elif not original.get("recurrence_id"):
+    elif not original.recurrence_id:
         raise SuperdeskApiError.badRequestError(gettext("Not a series of recurring events"))
 
     _set_item_datetimes(updates)

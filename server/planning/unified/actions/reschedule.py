@@ -42,13 +42,12 @@ from planning.events.events_utils import (
     pre_update_event_actions,
     set_planning_schedule,
     remove_fields,
-    generate_recurring_dates,
 )
 from planning.history.planning import UnifiedPlanningHistoryService
 from planning.planning_notifications import PlanningNotifications
-from planning.types import UnifiedPlanningHistoryResource, UnifiedPlanningResource
+from planning.types import UnifiedPlanningHistoryResource, UnifiedPlanningResource, PlanningItemType
 from planning.types.unified import RelatedEventLinkType
-from planning.unified.common import get_related_planning_for_events, event_has_planning_items
+from planning.unified.common import get_related_planning_for_events, event_has_planning_items, generate_recurring_dates
 from planning.unified.actions.cancel import process_cancel_planning_item
 
 from superdesk.core import get_current_app
@@ -136,13 +135,14 @@ async def duplicate_event(updates: dict[str, Any], original: dict[str, Any]):
     return new_event
 
 
-async def reschedule_single_event(updates: dict[str, Any], original: dict[str, Any]):
+async def reschedule_single_event(updates: dict[str, Any], original: dict[str, Any]) -> dict | None:
     has_plannings = await event_has_planning_items(original[ID_FIELD])
 
     remove_lock_information(updates)
     reason = updates.pop("reason", None)
 
     event_in_use = has_plannings or (original.get("pubstatus") or "") != ""
+    duplicated_event: dict | None = None
     if event_in_use or original.get("state") == WORKFLOW_STATE.POSTPONED:
         if event_in_use:
             # If the Event is in use, then we will duplicate the original
@@ -162,6 +162,7 @@ async def reschedule_single_event(updates: dict[str, Any], original: dict[str, A
             await reschedule_event_plannings(original, reason)
 
     set_planning_schedule(updates)
+    return duplicated_event
 
 
 async def reschedule_recurring_event(updates: dict[str, Any], original: dict[str, Any], update_method: str):
@@ -294,7 +295,9 @@ async def reschedule_recurring_event(updates: dict[str, Any], original: dict[str
                 # And finally update the Event, and Reschedule associated Planning items
                 await service.update(event[ID_FIELD], new_updates)
                 await reschedule_event_plannings(event, reason, state=WORKFLOW_STATE.DRAFT)
-                await signals.event_reschedule.send(new_updates, {"_id": event[ID_FIELD]})
+                await signals.event_reschedule.send(
+                    new_updates, {"_id": event[ID_FIELD], "type": PlanningItemType.EVENT}
+                )
 
             # Mark this date as being already processed
             dates_processed.append(event_date)

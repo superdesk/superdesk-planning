@@ -3,6 +3,7 @@ Feature: Events Update Repetitions
     @auth
     @notification
     Scenario: Increases series using count
+        When we configure planning for publishing
         Given we have sessions "/sessions"
         When we post to "events"
         """
@@ -35,23 +36,6 @@ Feature: Events Update Repetitions
             {"_id": "#EVENT3._id#", "recurrence_id": "#EVENT1.recurrence_id#"},
             {"_id": "#EVENT4._id#", "recurrence_id": "#EVENT1.recurrence_id#"}
         ]}
-        """
-        When we post to "/products" with success
-        """
-        { "name": "prod-rec", "codes": "abc", "product_type": "both" }
-        """
-        And we post to "/subscribers" with success
-        """
-        {
-        "name": "News1", "media_type": "media", "subscriber_type": "digital", "products": ["#products._id#"], "is_active": true, "email": "test@email.com",
-        "codes": "abc",
-        "destinations": [{
-            "name": "events",
-            "format": "json_event",
-            "delivery_type": "File",
-            "config": { "file_path": "/tmp" }
-        }]
-        }
         """
         When we post to "/events/post"
         """
@@ -190,7 +174,7 @@ Feature: Events Update Repetitions
         ]}
         """
         When we get "/planning_history"
-        Then we get list with 21 items
+        Then we get existing resource
         """
         {"_items": [
           {"operation": "create", "item_id": "#EVENT1._id#", "item_type": "event"},
@@ -308,7 +292,7 @@ Feature: Events Update Repetitions
         ]}
         """
         When we get "/published_planning"
-        Then we get list with 11 items
+        Then we get list with 10 items
 
     @auth
     Scenario: Reduces series using count
@@ -1226,7 +1210,7 @@ Feature: Events Update Repetitions
                 "tz": "Australia/Sydney"
             },
             "lock_user": "#CONTEXT_USER_ID#",
-            "lock_session": "session123",
+            "lock_session": "2822e25fc5be08b7cdb27490",
             "lock_action": "update_repetitions",
             "lock_time": "#DATE#"
         }, {
@@ -1238,8 +1222,8 @@ Feature: Events Update Repetitions
                 "end": "2029-11-21T14:00:00.000Z",
                 "tz": "Australia/Sydney"
             },
-            "lock_user": "user123",
-            "lock_session": "session456",
+            "lock_user": "2822e25fc5be08b7cdb27480",
+            "lock_session": "2822e25fc5be08b7cdb27491",
             "lock_action": "update_repetitions",
             "lock_time": "#DATE#"
         }, {

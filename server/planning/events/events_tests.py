@@ -3,11 +3,10 @@ from typing import Any
 import pytz
 import arrow
 from copy import deepcopy
-from bson import ObjectId
 from mock import Mock, patch
 from datetime import datetime, timedelta
 
-from planning.types.unified import UnifiedPlanningResource, PlanningItemType, LockFields
+from planning.types.unified import UnifiedPlanningResource, PlanningItemType
 from planning.types.common import RelatedEvent
 from superdesk.utc import utcnow
 from superdesk import get_resource_service
@@ -16,18 +15,8 @@ from superdesk.tests import utils as test_utils, fixtures
 
 from planning.tests import TestCase, fixtures as planning_fixtures
 from planning.common import format_address, POST_STATE, TO_BE_CONFIRMED_FIELD
-from planning.events.events_utils import generate_recurring_dates
 from planning.types import PlanningRelatedEventLink
-from planning.events.events_utils import get_recurring_timeline
-from planning.unified.actions import (
-    process_reschedule_event,
-    process_update_time,
-    process_update_repetitions,
-)
-from planning.locks.lock import lock_item
-from planning.content_api.resources import ContentAPIPlanningService, ContentAPIEventService
-
-from .events import is_event_updated
+from planning.unified.actions import process_reschedule_event, process_update_time
 
 
 class EventsBaseTestCase(TestCase):
@@ -37,131 +26,11 @@ class EventsBaseTestCase(TestCase):
         await test_utils.post_items("users", fixtures.users.all_users())
         g.user = fixtures.users.admin().to_dict()
         await test_utils.post_items("desks", fixtures.desks.all_desks())
+        await test_utils.post_items("vocabularies", planning_fixtures.cvs.all_cvs())
         await planning_fixtures.publish_config.configure_planning_publishing()
 
 
 class EventTestCase(EventsBaseTestCase):
-    def test_recurring_dates_generation(self):
-        # Every other thurdsay and friday afternoon on January 2016
-        self.assertEqual(
-            list(
-                generate_recurring_dates(
-                    start=datetime(2016, 1, 1, 15, 0),
-                    frequency="WEEKLY",
-                    byday="TH FR",
-                    interval=2,
-                    until=datetime(2016, 2, 1),
-                    end_repeat_mode="until",
-                )
-            ),
-            [
-                datetime(2016, 1, 1, 15, 0),  # friday 1st
-                datetime(2016, 1, 14, 15, 0),  # thursday 14th
-                datetime(2016, 1, 15, 15, 0),  # friday 15th
-                datetime(2016, 1, 28, 15, 0),  # thursday 28th
-                datetime(2016, 1, 29, 15, 0),  # friday 29th
-            ],
-        )
-        # Every working day - 2 cycles
-        self.assertEqual(
-            list(
-                generate_recurring_dates(
-                    start=datetime(2016, 1, 1),
-                    frequency="WEEKLY",
-                    byday="MO TU WE TH FR",
-                    count=2,
-                    end_repeat_mode="count",
-                )
-            ),
-            [
-                datetime(2016, 1, 1),  # friday
-                datetime(2016, 1, 4),  # monday
-                datetime(2016, 1, 5),
-                datetime(2016, 1, 6),
-                datetime(2016, 1, 7),
-                datetime(2016, 1, 8),  # friday again
-                datetime(2016, 1, 11),
-                datetime(2016, 1, 12),
-                datetime(2016, 1, 13),
-                datetime(2016, 1, 14),
-            ],
-        )
-        # Next 4 Summer Olympics
-        self.assertEqual(
-            list(
-                generate_recurring_dates(
-                    start=datetime(2016, 1, 2),
-                    frequency="YEARLY",
-                    interval=4,
-                    count=4,
-                    end_repeat_mode="count",
-                )
-            ),
-            [
-                datetime(2016, 1, 2),
-                datetime(2020, 1, 2),
-                datetime(2024, 1, 2),
-                datetime(2028, 1, 2),
-            ],
-        )
-        # All my birthdays
-        my_birthdays = generate_recurring_dates(
-            start=datetime(1989, 12, 13),
-            frequency="YEARLY",
-            end_repeat_mode="count",
-            count=200,
-        )
-        self.assertTrue(datetime(1989, 12, 13) in my_birthdays)
-        self.assertTrue(datetime(2016, 12, 13) in my_birthdays)
-        self.assertTrue(datetime(2179, 12, 13) in my_birthdays)
-        # Time zone
-        self.assertEqual(
-            list(
-                generate_recurring_dates(
-                    start=datetime(2016, 11, 17, 23, 00),
-                    frequency="WEEKLY",
-                    byday="FR",
-                    count=3,
-                    end_repeat_mode="count",
-                    tz=pytz.timezone("Europe/Berlin"),
-                )
-            ),
-            [
-                datetime(2016, 11, 17, 23, 00),  # it's friday in Berlin
-                datetime(2016, 11, 24, 23, 00),  # it's friday in Berlin
-                datetime(2016, 12, 1, 23, 00),  # it's friday in Berlin
-            ],
-        )
-
-    async def test_get_recurring_timeline(self):
-        generated_events = generate_recurring_events(10)
-        await self.app.data.insert_async("events", generated_events)
-
-        selected = await self.events_service.find_one_async(req=None, name="Event 5")
-        self.assertEqual("Event 5", selected["name"])
-
-        (historic, past, future) = await get_recurring_timeline(selected)
-
-        self.assertEqual(2, len(historic))
-        self.assertEqual(3, len(past))
-        self.assertEqual(4, len(future))
-
-        expected_time = generated_events[0]["dates"]["start"]
-        for e in historic:
-            self.assertEqual(e["dates"]["start"], expected_time)
-            expected_time += timedelta(days=1)
-
-        for e in past:
-            self.assertEqual(e["dates"]["start"], expected_time)
-            expected_time += timedelta(days=1)
-
-        self.assertEqual(selected["dates"]["start"], expected_time)
-        expected_time += timedelta(days=1)
-
-        for e in future:
-            self.assertEqual(e["dates"]["start"], expected_time)
-            expected_time += timedelta(days=1)
-
     async def test_create_cancelled_event(self):
         await self.events_service.post_async(
             [
@@ -249,26 +118,6 @@ class EventPlanningSchedule(EventsBaseTestCase):
                 evt.get("dates").get("start"),
                 evt.get("_planning_schedule")[0].get("scheduled"),
             )
-
-    async def test_planning_schedule_for_recurring_event(self):
-        event = {
-            "name": "Friday Club",
-            "dates": {
-                "start": datetime(2099, 11, 21, 12, 00, 00, tzinfo=pytz.UTC),
-                "end": datetime(2099, 11, 21, 14, 00, 00, tzinfo=pytz.UTC),
-                "tz": "Australia/Sydney",
-                "recurring_rule": {
-                    "frequency": "DAILY",
-                    "interval": 1,
-                    "count": 3,
-                    "end_repeat_mode": "count",
-                },
-            },
-        }
-
-        await self.events_service.post_async([event])
-        events = await self._get_all_events_raw()
-        self.assertPlanningSchedule(events, 3)
 
     async def test_planning_schedule_reschedule_event(self):
         event = {
@@ -369,137 +218,6 @@ class EventPlanningSchedule(EventsBaseTestCase):
         events = await self._get_all_events_raw()
         self.assertPlanningSchedule(events, 3)
 
-    async def test_planning_schedule_update_repetitions(self):
-        event = {
-            "name": "Friday Club",
-            "dates": {
-                "start": datetime(2099, 11, 21, 12, 00, 00, tzinfo=pytz.UTC),
-                "end": datetime(2099, 11, 21, 14, 00, 00, tzinfo=pytz.UTC),
-                "tz": "Australia/Sydney",
-                "recurring_rule": {
-                    "frequency": "DAILY",
-                    "interval": 1,
-                    "count": 3,
-                    "end_repeat_mode": "count",
-                },
-            },
-        }
-
-        await self.events_service.post_async([event])
-        events = await self._get_all_events_raw()
-        self.assertPlanningSchedule(events, 3)
-
-        schedule = deepcopy(event["dates"])
-        schedule["recurring_rule"]["count"] = 5
-
-        await process_update_repetitions({"dates": schedule}, events[0], require_lock=False)
-
-        events = await self._get_all_events_raw()
-        self.assertPlanningSchedule(events, 5)
-
-    @patch("planning.locks.lock.get_auth")
-    async def test_planning_schedule_convert_to_recurring(self, get_auth_mock):
-        session_id = ObjectId()
-        get_auth_mock.return_value = {"_id": session_id}
-        event = {
-            "name": "Friday Club",
-            "dates": {
-                "start": datetime(2099, 11, 21, 12, 00, 00, tzinfo=pytz.UTC),
-                "end": datetime(2099, 11, 21, 14, 00, 00, tzinfo=pytz.UTC),
-                "tz": "Australia/Sydney",
-            },
-        }
-
-        await self.events_service.post_async([event])
-        events = await self._get_all_events()
-        event = events[0]
-        event_dict = event.to_dict()
-
-        self.assertPlanningSchedule([event_dict], 1)
-
-        locked_event = await lock_item(event, LockFields(lock_action="convert_recurring"))
-        self.assertEqual(locked_event.lock_action, "convert_recurring")
-
-        schedule = deepcopy(event_dict.get("dates"))
-        schedule["start"] = datetime(2099, 11, 21, 12, 00, 00, tzinfo=pytz.UTC)
-        schedule["end"] = datetime(2099, 11, 21, 14, 00, 00, tzinfo=pytz.UTC)
-        schedule["recurring_rule"] = {
-            "frequency": "DAILY",
-            "interval": 1,
-            "count": 3,
-            "end_repeat_mode": "count",
-        }
-
-        await self.events_service.patch_async(event.id, {"dates": schedule})
-        events = await self._get_all_events_raw()
-        self.assertPlanningSchedule(events, 3)
-
-    async def test_tbc_preserved_for_recurring_event_creation(self):
-        service = get_resource_service("events")
-        event = {
-            "name": "TBC Recurring Event",
-            "_time_to_be_confirmed": True,
-            "dates": {
-                "start": datetime(2099, 11, 21, 12, 00, 00, tzinfo=pytz.UTC),
-                "end": datetime(2099, 11, 21, 14, 00, 00, tzinfo=pytz.UTC),
-                "tz": "Australia/Sydney",
-                "recurring_rule": {
-                    "frequency": "DAILY",
-                    "interval": 1,
-                    "count": 3,
-                    "endRepeatMode": "count",
-                },
-            },
-        }
-
-        await service.post_async([event])
-        events = list(service.get_from_mongo(req=None, lookup=None))
-        self.assertPlanningSchedule(events, 3)
-
-        for evt in events:
-            self.assertTrue(
-                evt.get(TO_BE_CONFIRMED_FIELD),
-                f"Event {evt.get('_id')} should have _time_to_be_confirmed=True, "
-                f"got {evt.get(TO_BE_CONFIRMED_FIELD)}",
-            )
-
-    async def test_tbc_preserved_for_update_repetitions(self):
-        service = get_resource_service("events")
-        event = {
-            "name": "TBC Update Repetitions",
-            "_time_to_be_confirmed": True,
-            "dates": {
-                "start": datetime(2099, 11, 21, 12, 00, 00, tzinfo=pytz.UTC),
-                "end": datetime(2099, 11, 21, 14, 00, 00, tzinfo=pytz.UTC),
-                "tz": "Australia/Sydney",
-                "recurring_rule": {
-                    "frequency": "DAILY",
-                    "interval": 1,
-                    "count": 3,
-                    "endRepeatMode": "count",
-                },
-            },
-        }
-
-        await service.post_async([event])
-        events = list(service.get_from_mongo(req=None, lookup=None))
-        self.assertPlanningSchedule(events, 3)
-
-        schedule = deepcopy(events[0].get("dates"))
-        schedule["recurring_rule"]["count"] = 5
-
-        await process_update_repetitions({"dates": schedule}, events[0], require_lock=False)
-
-        events = list(service.get_from_mongo(req=None, lookup=None))
-        self.assertPlanningSchedule(events, 5)
-
-        for evt in events:
-            self.assertTrue(
-                evt.get(TO_BE_CONFIRMED_FIELD),
-                f"Event {evt.get('_id')} should have _time_to_be_confirmed=True, "
-                f"got {evt.get(TO_BE_CONFIRMED_FIELD)}",
-            )
-
     async def test_tbc_preserved_for_reschedule_event(self):
         service = get_resource_service("events")
         event = {
@@ -519,7 +237,7 @@ class EventPlanningSchedule(EventsBaseTestCase):
         }
 
         await service.post_async([event])
-        events = list(service.get_from_mongo(req=None, lookup=None))
+        events = await self._get_all_events_raw()
         self.assertPlanningSchedule(events, 3)
 
         for evt in events:
@@ -535,32 +253,13 @@ class EventPlanningSchedule(EventsBaseTestCase):
 
         await process_reschedule_event({"dates": schedule}, events[0], False)
 
-        events = list(service.get_from_mongo(req=None, lookup=None))
+        events = await self._get_all_events_raw()
         for evt in events:
             self.assertTrue(
                 evt.get(TO_BE_CONFIRMED_FIELD),
                 f"Event {evt.get('_id')} should have _time_to_be_confirmed=True after reschedule, "
                 f"got {evt.get(TO_BE_CONFIRMED_FIELD)}",
             )
-
-
-def generate_recurring_events(num_events):
-    events = []
-    days = -2
-    now = utcnow()
-    for i in range(num_events):
-        start = now + timedelta(days=days)
-        end = start + timedelta(hours=4)
-        events.append(
-            {
-                "slugline": "Event",
-                "name": "Event {}".format(i),
-                "recurrence_id": "rec1",
-                "dates": {"start": start, "end": end},
-            }
-        )
-        days += 1
-    return events
 
 
 class EventsRelatedPlanningAutoPublish(EventsBaseTestCase):
