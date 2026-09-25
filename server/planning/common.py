@@ -724,6 +724,7 @@ async def is_valid_event_planning_reason(updates, original):
 
     lock_action = original.get(LOCK_ACTION)
     item_type = original.get(ITEM_TYPE)
+    item_type = item_type.value if isinstance(item_type, PlanningItemType) else item_type
 
     # get the validator based on the item_type and lock_action
     validator = await PlanningProfileResource.get_service().find_one(type=f"{item_type}_{lock_action}")
