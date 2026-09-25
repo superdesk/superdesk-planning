@@ -985,7 +985,7 @@ Feature: Events Reschedule
                         "workflow_status_reason": "Postponed this event!",
                         "headline": "test headline",
                         "slugline": "test slugline",
-                        "scheduled": "2035-11-23T14:00:00+00:00",
+                        "scheduled": "2035-11-23T14:00:00+0000",
                         "g2_content_type": "text"
                     },
                     "news_coverage_status": { "qcode": "ncostat:int" }
