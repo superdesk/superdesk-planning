@@ -195,7 +195,7 @@ class MigrateUnifiedStorageCommand:
                 source=self.db[source],
                 target=target,
                 stats=stats,
-                transform=lambda doc, item_type=item_type: self.normalise_item(doc, item_type),
+                transform=lambda doc: self.normalise_item(doc, item_type),
             )
 
         print(f"  {stats}")
@@ -421,7 +421,7 @@ class MigrateUnifiedStorageCommand:
     async def iter_batches(self, collection: AsyncIOMotorCollection) -> AsyncGenerator[list[dict[str, Any]], None]:
         last_id = None
         while True:
-            lookup = {} if last_id is None else {"_id": {"$gt": last_id}}
+            lookup: dict = {} if last_id is None else {"_id": {"$gt": last_id}}
             batch = await collection.find(lookup).sort("_id").limit(self.batch_size).to_list(length=self.batch_size)
             if not batch:
                 break
