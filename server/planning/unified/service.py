@@ -33,6 +33,7 @@ from .notifications import send_created_notifications, send_updated_notification
 from .files import delete_item_files
 from .metadata.multilingual import get_translated_fields
 from .metadata.event_sync import sync_event_metadata_with_planning_items
+from .recurring_items import on_create_recurring, on_update_recurring
 
 
 logger = logging.getLogger(__name__)
@@ -63,15 +64,20 @@ class UnifiedPlanningResourceService(AsyncResourceService[UnifiedPlanningResourc
             self._copy_translated_values_to_root_level_fields(None, doc)
 
             if doc.item_type == PlanningItemType.EVENT:
-                await on_event_create(doc, docs)
-            elif doc.item_type == PlanningItemType.PLANNING:
-                await on_create_planning(doc, docs)
+                await on_event_create(doc)
 
             if doc.coverages:
                 for coverage in doc.coverages:
                     await add_coverage(doc, coverage)
 
+            if doc.item_type == PlanningItemType.PLANNING:
+                # Process Planning after Coverages, in case we need to
+                # add the Planning item to a series (which duplicates the Coverages)
+                await on_create_planning(doc, docs)
+
             set_planning_schedule(doc)
+
+            docs.extend(await on_create_recurring(doc))
 
     async def insert_into_dbs(self, doc: UnifiedPlanningResource) -> tuple[str, str]:
         embedded_planning: list[EmbeddedPlanningItem] | None = doc.embedded_planning
@@ -178,7 +184,6 @@ class UnifiedPlanningResourceService(AsyncResourceService[UnifiedPlanningResourc
                             },
                         )
 
-                    # TODO-UNIFIED: Update history
                     await events_history_service.on_item_updated(
                         {"planning_id": doc.id}, parent_event.to_dict(), "planning_created"
                     )
@@ -234,7 +239,9 @@ class UnifiedPlanningResourceService(AsyncResourceService[UnifiedPlanningResourc
             # because they're in a sequence/container
             await on_coverage_update(item_update_request)
 
-        updates.update(updated.to_dict())
+        await on_update_recurring(item_update_request)
+
+        updates.update(item_update_request.updated.to_dict())
 
     async def on_updated(self, updates: dict[str, Any], original: UnifiedPlanningResource) -> None:
         await super().on_updated(updates, original)

@@ -63,7 +63,8 @@ class UnifiedPlanningResource(
 
     id: fields.Keyword = Field(validation_alias="_id", serialization_alias="_id", default="")
     item_type: PlanningItemType = Field(
-        alias="type",
+        validation_alias="type",
+        serialization_alias="type",
         description="Type of planning item represented by this resource",
     )
     extra: dict | None = Field(
