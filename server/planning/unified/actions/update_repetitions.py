@@ -164,7 +164,6 @@ async def update_event_repetitions(updates: dict[str, Any], original: UnifiedPla
         # Don't run the `on_create` methods as it will try and create a new series here
         # Which is the same code path used when creating a series to begin with
         created_events = await events_service.create(new_events, skip_signals=True)
-        await events_service.on_created(created_events)
         for event in created_events:
             await events_history_service.on_update_repetitions(event.to_dict(), event.id, "update_repetitions_create")
 
