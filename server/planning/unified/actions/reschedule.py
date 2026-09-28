@@ -206,12 +206,11 @@ async def reschedule_recurring_event(updates: dict[str, Any], original: dict[str
     # Generate the dates for the new event series
     max_events = get_max_recurrent_events()
     new_dates = [
-        date
+        date.date()
         for date in islice(
             generate_recurring_dates(
                 start=new_start_date,
                 tz=updates["dates"].get("tz") and pytz.timezone(updates["dates"]["tz"] or ""),
-                date_only=True,
                 all_day=bool(updates["dates"].get("all_day")),
                 **updated_rule,
             ),
@@ -222,12 +221,11 @@ async def reschedule_recurring_event(updates: dict[str, Any], original: dict[str
 
     # Generate the dates for the original events
     original_dates = [
-        date
+        date.date()
         for date in islice(
             generate_recurring_dates(
                 start=original_start_date,
                 tz=original["dates"].get("tz") and pytz.timezone(original["dates"]["tz"] or ""),
-                date_only=True,
                 all_day=bool(original["dates"].get("all_day")),
                 **original_rule,
             ),

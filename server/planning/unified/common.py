@@ -335,7 +335,6 @@ def _get_until_datetime(until: datetime | str | None, tz: pytz.BaseTzInfo | None
             raise SuperdeskApiError.badRequestError(gettext("Failed to parse recurring_rule.until param"))
 
     if until.tzinfo is None:
-
         until = pytz.UTC.localize(until)
     if tz:
         until = until.astimezone(tz)
@@ -375,10 +374,9 @@ def generate_recurring_dates(
     byday: str | None = None,
     count: int | None = 5,
     tz: pytz.BaseTzInfo | None = None,
-    date_only: bool = False,
     all_day: bool = False,
     **_,
-) -> Generator[datetime | date, None, None]:
+) -> Generator[datetime, None, None]:
     """
     Returns list of dates related to recurring rules
 
@@ -430,22 +428,13 @@ def generate_recurring_dates(
         count=count,
         interval=interval,
     )
-    # if a timezone has been applied, returns UTC
+
     if tz:
         if all_day:
-            if date_only:
-                return (dt.date() for dt in dates)
-            else:
-                return (dt for dt in dates)
-        if date_only:
-            return (tz.localize(dt).astimezone(pytz.UTC).date() for dt in dates)
-        else:
-            return (tz.localize(dt).astimezone(pytz.UTC) for dt in dates)
+            return (dt.replace(tzinfo=timezone.utc) for dt in dates)
+        return (tz.localize(dt).astimezone(timezone.utc) for dt in dates)
     else:
-        if date_only:
-            return (occurrence_date.date() for occurrence_date in dates)
-        else:
-            return (occurrence_date.replace(tzinfo=timezone.utc) for occurrence_date in dates)
+        return (occurrence_date.replace(tzinfo=timezone.utc) for occurrence_date in dates)
 
 
 async def get_all_items_in_relationship(

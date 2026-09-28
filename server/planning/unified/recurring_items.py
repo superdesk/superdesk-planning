@@ -328,7 +328,6 @@ def generate_recurring_events(
             start=event.dates.start,
             tz=pytz.timezone(event.dates.tz) if event.dates.tz else None,
             all_day=event.dates.all_day,
-            date_only=False,
             frequency=event.dates.recurring_rule.frequency,
             interval=event.dates.recurring_rule.interval,
             until=event.dates.recurring_rule.until,

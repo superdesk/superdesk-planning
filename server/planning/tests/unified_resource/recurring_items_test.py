@@ -288,3 +288,41 @@ class RecurringItemsTestCase(BaseRecurringTestCase):
                 evt.time_to_be_confirmed,
                 f"Event {evt.id} should have _time_to_be_confirmed=True, " f"got {evt.time_to_be_confirmed}",
             )
+
+    async def test_generate_dates_for_all_day(self):
+        self.assertEqual(
+            list(
+                generate_recurring_dates(
+                    start=datetime(2030, 1, 1, 1, 0),
+                    frequency=RecurringFrequency.DAILY,
+                    count=5,
+                    all_day=True,
+                )
+            ),
+            [
+                datetime(2030, 1, 1, 1, 0, tzinfo=timezone.utc),
+                datetime(2030, 1, 2, 1, 0, tzinfo=timezone.utc),
+                datetime(2030, 1, 3, 1, 0, tzinfo=timezone.utc),
+                datetime(2030, 1, 4, 1, 0, tzinfo=timezone.utc),
+                datetime(2030, 1, 5, 1, 0, tzinfo=timezone.utc),
+            ],
+        )
+
+        self.assertEqual(
+            list(
+                generate_recurring_dates(
+                    start=datetime(2030, 1, 1, 1, 0),
+                    frequency=RecurringFrequency.DAILY,
+                    count=5,
+                    tz=pytz.timezone("Australia/Sydney"),
+                    all_day=True,
+                )
+            ),
+            [
+                datetime(2030, 1, 1, 1, 0, tzinfo=timezone.utc),
+                datetime(2030, 1, 2, 1, 0, tzinfo=timezone.utc),
+                datetime(2030, 1, 3, 1, 0, tzinfo=timezone.utc),
+                datetime(2030, 1, 4, 1, 0, tzinfo=timezone.utc),
+                datetime(2030, 1, 5, 1, 0, tzinfo=timezone.utc),
+            ],
+        )
