@@ -520,7 +520,7 @@ async def _update_recurring_planning_items(req: ItemUpdateRequest) -> None:
         if planning_date_diff:
             plan_updates.setdefault("dates", {})["start"] = plan.dates.start + planning_date_diff
 
-        if len(req.updated.coverages or []) and len(plan.coverages or []):
+        if len(req.updates.get("coverages") or []) and len(plan.coverages or []):
             plan_updates["coverages"] = [coverage.to_dict() for coverage in plan.coverages]
 
             for coverage in plan_updates["coverages"]:
