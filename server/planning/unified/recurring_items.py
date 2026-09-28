@@ -85,7 +85,11 @@ async def on_update_recurring(req: ItemUpdateRequest) -> None:
 
 
 async def _update_single_item(req: ItemUpdateRequest) -> None:
-    if req.original.lock_action not in {"convert_recurring", "edit"} or "dates" not in req.updates:
+    if (
+        req.original.lock_action not in {"convert_recurring", "edit"}
+        or "dates" not in req.updates
+        or req.updated.dates.recurring_rule == req.original.dates.recurring_rule
+    ):
         return
 
     generated_items = await _convert_to_recurring_event(req)
@@ -106,7 +110,7 @@ async def _update_single_item(req: ItemUpdateRequest) -> None:
 
 def _validate_convert_to_recurring(req: ItemUpdateRequest) -> None:
     # Validate recurring rule
-    if req.original.lock_action != "convert_recurring":  # or "dates" not in req.updates:
+    if req.original.lock_action != "convert_recurring":
         return
 
     if (req.updates.get("dates") or {}).get("recurring_rule") is None:
