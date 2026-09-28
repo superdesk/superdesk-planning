@@ -424,7 +424,8 @@ async def _convert_to_recurring_event(req: ItemUpdateRequest) -> list[UnifiedPla
 
     # Create the new events and generate their history
     created_items = await events_service.create(generated_events, skip_signals=True)
-    await events_service.on_created(generated_events)
+    for event in generated_events:
+        await events_service.signals.data.on_created.send(event)
 
     app = get_current_app().as_any()
     await app.on_inserted_events.call_async([item.to_dict() for item in created_items])
