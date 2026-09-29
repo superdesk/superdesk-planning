@@ -8,9 +8,9 @@ from pytz.exceptions import UnknownTimeZoneError
 
 from superdesk.core import get_config
 from superdesk.core.resources import ResourceModel, fields
-from superdesk.core.utils import generate_guid, GUID_NEWSML
+from superdesk.core.utils import generate_guid, GUID_NEWSML, str_to_date
 from superdesk.errors import SuperdeskApiError
-from superdesk.utc import utc_to_local
+from superdesk.utc import utc_to_local, local_to_utc
 
 from ..enums import UpdateMethods
 from .system import AuditInformation, IngestDetails, LockFields, SourceDetails, ItemSystemFields
@@ -84,11 +84,7 @@ class UnifiedPlanningResource(
         elif not data.get("guid") and data.get("_id"):
             data["guid"] = data["_id"]
 
-        if not isinstance(data.get("dates"), ItemDates):
-            if not (data.get("dates") or {}).get("start"):
-                if data.get("type") == PlanningItemType.PLANNING.value:
-                    raise SuperdeskApiError(message=gettext("Planning item should have a date"))
-
+        default_coverage_schedule = _get_default_coverage_schedule(data)
         data.pop("family_id", None)
 
         if data.get("type") == PlanningItemType.EVENT.value:
@@ -96,38 +92,7 @@ class UnifiedPlanningResource(
             data.pop("related_events", None)
 
         for coverage in data.get("coverages") or []:
-            if isinstance(coverage, CoverageItem):
-                if not coverage.coverage_id:
-                    coverage.coverage_id = f"tempId-{generate_guid(type=GUID_NEWSML)}"
-
-                if (
-                    not coverage.planning
-                    or not coverage.planning.scheduled
-                    or coverage.planning.scheduled == UNSET_COVERAGE_SCHEDULED
-                ):
-                    coverage.planning.scheduled = data["dates"]["start"]
-
-                for scheduled_update in coverage.scheduled_updates or []:
-                    if not scheduled_update.coverage_id:
-                        scheduled_update.coverage_id = coverage.coverage_id
-                    if not scheduled_update.planning or not scheduled_update.planning.scheduled:
-                        scheduled_update.planning.scheduled = coverage.planning.scheduled
-            else:
-                if not coverage.get("coverage_id"):
-                    coverage["coverage_id"] = f"tempId-{generate_guid(type=GUID_NEWSML)}"
-
-                if (
-                    not coverage.get("planning")
-                    or not coverage["planning"].get("scheduled")
-                    or coverage["planning"]["scheduled"] == UNSET_COVERAGE_SCHEDULED
-                ):
-                    coverage.setdefault("planning", {})["scheduled"] = data["dates"]["start"]
-
-                for scheduled_update in coverage.get("scheduled_updates") or []:
-                    if not scheduled_update.get("coverage_id"):
-                        scheduled_update["coverage_id"] = coverage["coverage_id"]
-                    if not scheduled_update.get("planning") or not scheduled_update["planning"].get("scheduled"):
-                        scheduled_update.setdefault("planning", {})["scheduled"] = coverage["planning"]["scheduled"]
+            _set_coverage_default_values(coverage, default_coverage_schedule)
 
         return data
 
@@ -186,3 +151,77 @@ def _get_local_date(date: datetime, tz: str | None) -> datetime:
         return utc_to_local(tz, date)
     except UnknownTimeZoneError:
         return date
+
+
+def _get_default_coverage_schedule(data: dict) -> datetime:
+    dates = data.get("dates") or {}
+    tz_name = get_config(str, "DEFAULT_TIMEZONE")
+    if isinstance(dates, ItemDates):
+        if dates.all_day:
+            return local_to_utc(tz_name, datetime(dates.start.year, dates.start.month, dates.start.day))
+        return dates.start
+    else:
+        planning_date = str_to_date(dates.get("start"))
+        if not planning_date:
+            if data.get("type") == PlanningItemType.PLANNING.value:
+                raise SuperdeskApiError(message=gettext("Planning item should have a date"))
+            else:
+                raise SuperdeskApiError(message=gettext("Event should have a start date"))
+
+        if dates.get("all_day", False) is True:
+            return local_to_utc(tz_name, datetime(planning_date.year, planning_date.month, planning_date.day))
+        return planning_date
+
+
+def _set_coverage_default_values(coverage: CoverageItem | dict, coverage_default_date: datetime) -> None:
+    """Sets default values for the coverage object based on its type and the provided default date.
+
+    The function updates the `coverage` object, ensuring it has a valid coverage ID and a properly
+    set `scheduled` date. It also processes scheduled updates by assigning missing IDs and dates.
+    The behavior varies depending on whether the `coverage` object is of type `CoverageItem` or
+    a dictionary.
+
+    :param coverage: The coverage object to update. It must be either an instance of `CoverageItem` or a dictionary.
+    :param coverage_default_date: The default datetime that is assigned to `scheduled` if it is not already defined.
+    """
+
+    if isinstance(coverage, CoverageItem):
+        if not coverage.coverage_id:
+            coverage.coverage_id = f"tempId-{generate_guid(type=GUID_NEWSML)}"
+
+        # Make sure the coverage has a ``scheduled`` date
+        # If none was supplied (defaults to `UNSET_COVERAGE_SCHEDULED`), fallback to ``planning.dates.start``
+        # A coverage's ``scheduled`` is always a real datetime with a timezone (stored in UTC),
+        # unlike ``planning_date`` which may be a "floating" date for all day Planning items
+        if (
+            not coverage.planning
+            or not coverage.planning.scheduled
+            or coverage.planning.scheduled == UNSET_COVERAGE_SCHEDULED
+        ):
+            coverage.planning.scheduled = coverage_default_date
+
+        for scheduled_update in coverage.scheduled_updates or []:
+            if not scheduled_update.coverage_id:
+                scheduled_update.coverage_id = coverage.coverage_id
+            if not scheduled_update.planning or not scheduled_update.planning.scheduled:
+                scheduled_update.planning.scheduled = coverage.planning.scheduled
+    else:
+        if not coverage.get("coverage_id"):
+            coverage["coverage_id"] = f"tempId-{generate_guid(type=GUID_NEWSML)}"
+
+        # Make sure the coverage has a ``scheduled`` date
+        # If none was supplied (defaults to `UNSET_COVERAGE_SCHEDULED`), fallback to ``planning.dates.start``
+        # A coverage's ``scheduled`` is always a real datetime with a timezone (stored in UTC),
+        # unlike ``planning_date`` which may be a "floating" date for all day Planning items
+        if (
+            not coverage.get("planning")
+            or not coverage["planning"].get("scheduled")
+            or coverage["planning"]["scheduled"] == UNSET_COVERAGE_SCHEDULED
+        ):
+            coverage.setdefault("planning", {})["scheduled"] = coverage_default_date
+
+        for scheduled_update in coverage.get("scheduled_updates") or []:
+            if not scheduled_update.get("coverage_id"):
+                scheduled_update["coverage_id"] = coverage["coverage_id"]
+            if not scheduled_update.get("planning") or not scheduled_update["planning"].get("scheduled"):
+                scheduled_update.setdefault("planning", {})["scheduled"] = coverage["planning"]["scheduled"]

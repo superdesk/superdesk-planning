@@ -234,6 +234,7 @@ class UnifiedPlanningResourceService(AsyncResourceService[UnifiedPlanningResourc
             # because they're in a sequence/container
             await on_coverage_update(item_update_request)
 
+        set_planning_schedule(updated)
         updates.update(updated.to_dict())
 
     async def on_updated(self, updates: dict[str, Any], original: UnifiedPlanningResource) -> None:

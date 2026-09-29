@@ -170,11 +170,6 @@ async def add_coverage(item: UnifiedPlanningResource, coverage: CoverageItem) ->
     if coverage.original_coverage_id is None:
         coverage.original_coverage_id = coverage.coverage_id
 
-    # Make sure the coverage has a ``scheduled`` date
-    # If none was supplied, fallback to ``dates.start`` of the parent Planning item
-    if not coverage.planning.scheduled:
-        coverage.planning.scheduled = item.dates.start
-
     current_user_id = get_user_id()
     if current_user_id:
         coverage.original_creator = current_user_id

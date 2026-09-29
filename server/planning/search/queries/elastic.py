@@ -189,6 +189,34 @@ def field_exists(field: str, query_context: bool = True) -> Dict[str, Any]:
     return query if not query_context else {"constant_score": {"filter": query}}
 
 
+def _local_today(time_zone: Optional[str]):
+    """Return the timezone object and today's date in that timezone, computed once
+
+    Computing "now" once and reusing it avoids the boundaries of a range being
+    based on different moments (e.g. if the calls straddle local midnight).
+    """
+
+    tz = pytz.timezone(time_zone) if time_zone else pytz.utc
+    return tz, datetime.now(tz).date()
+
+
+def _local_day_start(tz: Any, day, offset_days: int = 0) -> str:
+    day = day + timedelta(days=offset_days)
+    return tz.localize(datetime(day.year, day.month, day.day)).isoformat()
+
+
+def local_day_start(time_zone: Optional[str], offset_days: int = 0) -> str:
+    """Return the ISO datetime for the start of "today + offset_days" in the given timezone
+
+    We compute this ourselves (instead of relying on elastic date-math such as "now/d")
+    so the resulting value is a concrete datetime that ``field_range`` can convert to a
+    plain local date for all day items, the same way it does for other absolute datetimes.
+    """
+
+    tz, day = _local_today(time_zone)
+    return _local_day_start(tz, day, offset_days)
+
+
 def field_range(query: ElasticRangeParams):
     params = {}
 
@@ -211,18 +239,19 @@ def field_range(query: ElasticRangeParams):
         params["time_zone"] = query.time_zone
 
     if query.field in ("dates.start", "dates.end", "_planning_schedule.scheduled", "_updates_schedule.scheduled"):
-        # handle also all day events
-        # there we get value which is in utc,
-        # so we first convert it to local timezone
-        # and then we take only date part of it
+        # All day items are stored as a plain local calendar date (no real time/zone info), so
+        # convert any absolute datetime bounds to that local date too, instead of comparing them
+        # as UTC instants against a timezone-aware boundary.
         local_params = params.copy()
+        tz = pytz.timezone(params["time_zone"]) if params.get("time_zone") else None
+        if tz is not None:
+            for key in ("gt", "gte", "lt", "lte"):
+                value = local_params.get(key)
+                if value and "T" in value:
+                    utc_value = datetime.fromisoformat(value.replace("+0000", "+00:00"))
+                    local_params[key] = utc_value.astimezone(tz).strftime("%Y-%m-%d")
+        # values are now plain dates, so the time_zone param is no longer needed
         local_params.pop("time_zone", None)
-        for key in ("gt", "gte", "lt", "lte"):
-            if local_params.get(key) and "T" in local_params[key] and params.get("time_zone"):
-                tz = pytz.timezone(params["time_zone"])
-                utc_value = datetime.fromisoformat(local_params[key].replace("+0000", "+00:00"))
-                local_value = utc_value.astimezone(tz)
-                local_params[key] = local_value.strftime("%Y-%m-%d")
         if query.field == "dates.start":
             return {
                 "bool": {
@@ -304,11 +333,11 @@ def field_range(query: ElasticRangeParams):
                                             "path": "_planning_schedule",
                                             "query": {
                                                 "bool": {
-                                                    # Currently, only Planning items can be date-only
-                                                    # So split the search query for Planning and Coverages separately
+                                                    # The default Planning date (no coverage) is stored as a
+                                                    # plain local date, but a coverage's `scheduled` date is
+                                                    # always a real datetime with a timezone, stored in UTC
                                                     "should": [
                                                         {
-                                                            # Match Planning date using UTC date params
                                                             "bool": {
                                                                 "must_not": {
                                                                     "exists": {
@@ -323,7 +352,6 @@ def field_range(query: ElasticRangeParams):
                                                             }
                                                         },
                                                         {
-                                                            # Match coverage dates using local date params
                                                             "bool": {
                                                                 "must": [
                                                                     {
@@ -357,37 +385,42 @@ def field_range(query: ElasticRangeParams):
 
 
 def range_today(query: ElasticRangeParams):
+    tz, day = _local_today(query.time_zone)
+
     return field_range(
         ElasticRangeParams(
             field=query.field,
             time_zone=query.time_zone,
             value_format=query.value_format,
-            gte="now/d",
-            lt="now+24h/d",
+            gte=_local_day_start(tz, day),
+            lt=_local_day_start(tz, day, offset_days=1),
         )
     )
 
 
 def range_tomorrow(query: ElasticRangeParams):
+    tz, day = _local_today(query.time_zone)
+
     return field_range(
         ElasticRangeParams(
             field=query.field,
             time_zone=query.time_zone,
             value_format=query.value_format,
-            gte="now+24h/d",
-            lt="now+48h/d",
+            gte=_local_day_start(tz, day, offset_days=1),
+            lt=_local_day_start(tz, day, offset_days=2),
         )
     )
 
 
 def range_last_24_hours(query: ElasticRangeParams):
+    now_utc = datetime.now(pytz.utc)
     return field_range(
         ElasticRangeParams(
             field=query.field,
             time_zone=query.time_zone,
             value_format=query.value_format,
-            gte="now-24h",
-            lt="now",
+            gte=(now_utc - timedelta(hours=24)).isoformat(),
+            lt=now_utc.isoformat(),
         )
     )
 
