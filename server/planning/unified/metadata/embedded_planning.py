@@ -343,6 +343,7 @@ async def get_existing_plannings_from_embedded_planning(
                 try:
                     if (
                         "genre" in coverage_profile.enabled_fields
+                        and "genre" in embedded_coverage.model_fields_set
                         and coverage_planning.genre != embedded_coverage.genre
                     ):
                         if not embedded_coverage.genre:
