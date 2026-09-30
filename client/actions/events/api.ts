@@ -808,6 +808,23 @@ const createEventTemplate = (item: IEventItem) => (dispatch, getState, {api, mod
                     api('events_template').save({
                         template_name: templateName,
                         based_on_event: item._id,
+                        data: {
+                            embedded_planning: item.associated_plannings.map((planning) => ({
+                                coverages: planning.coverages.map((coverage) => ({
+                                    coverage_id: coverage.coverage_id,
+                                    g2_content_type: coverage.planning.g2_content_type,
+                                    desk: coverage.assigned_to?.desk,
+                                    user: coverage.assigned_to?.user,
+                                    language: coverage.planning.language,
+                                    news_coverage_status: coverage.news_coverage_status.qcode,
+                                    scheduled: coverage.planning.scheduled,
+                                    genre: coverage.planning.genre?.qcode,
+                                    slugline: coverage.planning.slugline,
+                                    ednote: coverage.planning.ednote,
+                                    internal_note: coverage.planning.internal_note,
+                                })),
+                            })),
+                        },
                     })
                         .then(() => {
                             dispatch(fetchEventTemplates());
