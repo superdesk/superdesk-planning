@@ -1008,3 +1008,87 @@ Feature: Events Template
             "_status": "ERR"
         }
         """
+
+    @auth
+    Scenario: Can create template with embedded_planning
+        Given "desks"
+        """
+        [{"name": "Sports Desk", "members": [{"user": "#CONTEXT_USER_ID#"}]}]
+        """
+        And "events"
+        """
+        [{
+            "slugline": "Go kart",
+            "name": "Go kart",
+            "definition_short": "Go kart Prague",
+            "definition_long": "THIS IS LONG DESC",
+            "internal_note": "THIS IS INT NOTE",
+            "ednote": "THIS IS ED NOTE",
+            "dates": {
+                "start": "2019-06-11T09:00:00+0000",
+                "end": "2019-06-30T21:00:00+0000",
+                "tz": "Africa/Accra"
+            }
+        }]
+        """
+        When we post to "/events_template"
+        """
+        [{
+            "based_on_event": "#events._id#",
+            "template_name": "Event with Sidebar",
+            "data": {
+                "embedded_planning": [{
+                    "coverages": [{
+                        "coverage_id": "txt_coverage_1",
+                        "g2_content_type": "text",
+                        "desk": "#desks._id#",
+                        "user": "#CONTEXT_USER_ID#",
+                        "language": "en",
+                        "news_coverage_status": "ncostat:int",
+                        "scheduled": "2019-06-30T22:00:00+0000",
+                        "genre": "sidebar",
+                        "slugline": "text side piece",
+                        "ednote": "covers the left side only",
+                        "internal_note": "dont forget the upside down"
+                    }]
+                }]
+            }
+        }]
+        """
+        Then we get OK response
+        When we get "/events_template/#events_template._id#"
+        Then we get existing resource
+        """
+        {
+            "based_on_event": "#events._id#",
+            "template_name": "Event with Sidebar",
+            "data": {
+                "slugline": "Go kart",
+                "name": "Go kart",
+                "definition_short": "Go kart Prague",
+                "definition_long": "THIS IS LONG DESC",
+                "internal_note": "THIS IS INT NOTE",
+                "ednote": "THIS IS ED NOTE",
+                "dates": {
+                    "start": "2019-06-11T09:00:00+0000",
+                    "end": "2019-06-30T21:00:00+0000",
+                    "tz": "Africa/Accra"
+                },
+                "embedded_planning": [{
+                    "coverages": [{
+                        "coverage_id": "txt_coverage_1",
+                        "g2_content_type": "text",
+                        "desk": "#desks._id#",
+                        "user": "#CONTEXT_USER_ID#",
+                        "language": "en",
+                        "news_coverage_status": "ncostat:int",
+                        "scheduled": "2019-06-30T22:00:00+0000",
+                        "genre": "sidebar",
+                        "slugline": "text side piece",
+                        "ednote": "covers the left side only",
+                        "internal_note": "dont forget the upside down"
+                    }]
+                }]
+            }
+        }
+        """
