@@ -45,14 +45,12 @@ def get_planning_schedule(
     :param original: The planning document
     """
 
-    add_default_schedule = True
     add_default_updates_schedule = True
-    schedule: list[ItemScheduleEntry] = []
+    # The planning item's own `planning_date` must always be searchable/sortable via
+    # `_planning_schedule`, even when coverages have their own distinct `scheduled` dates
+    schedule: list[ItemScheduleEntry] = [ItemScheduleEntry(scheduled=doc.dates.start)]
     updates_schedule: list[ItemUpdateScheduleEntry] = []
     for coverage in doc.coverages or []:
-        if coverage.planning.scheduled:
-            add_default_schedule = False
-
         schedule.append(ItemScheduleEntry(coverage_id=coverage.coverage_id, scheduled=coverage.planning.scheduled))
 
         for scheduled_update in coverage.scheduled_updates or []:
@@ -65,9 +63,6 @@ def get_planning_schedule(
                     scheduled=scheduled_update.planning.scheduled,
                 )
             )
-
-    if add_default_schedule:
-        schedule.append(ItemScheduleEntry(coverage_id=None, scheduled=doc.dates.start))
 
     if add_default_updates_schedule:
         updates_schedule.append(ItemUpdateScheduleEntry(scheduled_update_id=None, scheduled=doc.dates.start))

@@ -15,7 +15,9 @@ class PlanningTemplatesResourceService(AsyncResourceService[PlanningTemplateReso
     async def on_create(self, docs: list[PlanningTemplateResource]) -> None:
         await super().on_create(docs)
         for doc in docs:
-            if doc.data:
+            if doc.data and list(doc.data.keys()) != ["embedded_planning"]:
+                # We only support the `embedded_planning` field being provided by the client
+                # all other fields are populated from the Event
                 raise SuperdeskApiError.badRequestError(
                     message=gettext("Request is not valid"), payload={"data": gettext("Data field is read-only")}
                 )
