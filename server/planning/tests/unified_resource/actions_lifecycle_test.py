@@ -14,7 +14,7 @@ from planning.unified.actions import (
     event_has_planning_items,
 )
 from planning.unified.actions.cancel import process_cancel_planning_item
-from planning.unified.actions.update_repetitions import get_internal_series
+from planning.unified.common import get_series
 from planning.tests import TestCase, fixtures as planning_fixtures
 
 
@@ -229,8 +229,7 @@ class UnifiedResourceLifecycleActionsTestCase(TestCase):
         planning_id = await self._create_planning(recurrence_id=recurrence_id)
 
         original = await self._event_dict(first_id)
-        series = await get_internal_series(original)
-        series_ids = {item["_id"] for item in series}
+        series_ids = {item.id async for item in get_series(original["recurrence_id"])}
 
         self.assertEqual({first_id, second_id}, series_ids)
         self.assertNotIn(planning_id, series_ids)

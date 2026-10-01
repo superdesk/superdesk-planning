@@ -43,7 +43,7 @@ from planning.common import (
 from planning.history.planning import UnifiedPlanningHistoryService
 from planning.unified.actions.reschedule import reschedule_single_event
 from planning.unified.actions.cancel import process_cancel_planning_item
-from planning.unified.common import get_related_planning_for_events
+from planning.unified.common import get_related_planning_for_events, generate_recurring_dates
 from planning.types.unified import RelatedEventLinkType
 from planning.planning import PlanningAsyncService
 from planning.core.service import BasePlanningAsyncService
@@ -54,7 +54,6 @@ from planning.utils import (
 )
 
 from .events_utils import (
-    generate_recurring_dates,
     get_events_embedded_planning,
     get_recurring_timeline,
 )

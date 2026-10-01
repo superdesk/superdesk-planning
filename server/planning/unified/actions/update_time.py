@@ -29,7 +29,7 @@ from planning.events.events_utils import (
     get_recurring_event_updates_iterator,
     set_planning_schedule,
 )
-from planning.types import PlanningSchedule, UnifiedPlanningResource
+from planning.types import PlanningSchedule, UnifiedPlanningResource, PlanningItemType
 
 
 async def update_single_event(updates: dict[str, Any]):
@@ -50,7 +50,7 @@ async def update_recurring_events(updates: dict[str, Any], original: dict[str, A
     # is an unimplemented TODO that raises
     async for event, new_updates in get_recurring_event_updates_iterator(original, updates, update_method):
         await service.update(event[ID_FIELD], new_updates)
-        await signals.event_time_updated.send(new_updates, {"_id": event[ID_FIELD]})
+        await signals.event_time_updated.send(new_updates, {"_id": event[ID_FIELD], "type": PlanningItemType.EVENT})
 
 
 async def process_update_time(
