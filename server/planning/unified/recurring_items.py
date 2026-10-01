@@ -50,7 +50,11 @@ logger = logging.getLogger(__name__)
 
 
 async def on_create_recurring(item: UnifiedPlanningResource) -> list[UnifiedPlanningResource]:
-    if not item.dates.recurring_rule or item.dates.recurring_rule.created_externally:
+    if (
+        item.item_type != PlanningItemType.EVENT
+        or not item.dates.recurring_rule
+        or item.dates.recurring_rule.created_externally
+    ):
         # If `created_externally` is true, generate_recurring_events is restricted.
         return []
 
