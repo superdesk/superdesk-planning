@@ -329,13 +329,14 @@ def _get_until_datetime(until: datetime | str | None, tz: pytz.BaseTzInfo | None
         if not until:
             raise SuperdeskApiError.badRequestError(gettext("Failed to parse recurring_rule.until param"))
 
-    if until.tzinfo is None:
-        until = pytz.UTC.localize(until)
     if tz:
+        if until.tzinfo is None:
+            until = pytz.UTC.localize(until)
         until = until.astimezone(tz)
-    if all_day:
-        return datetime.combine(until.date(), time(23, 59, 59, 999000))
-    return until.replace(tzinfo=None, hour=23, minute=59, second=59, microsecond=999000)
+        if all_day:
+            return datetime.combine(until.date(), time(23, 59, 59, 999000))
+        return until.replace(tzinfo=None, hour=23, minute=59, second=59, microsecond=999000)
+    return until.replace(hour=23, minute=59, second=59, microsecond=999000)
 
 
 def _get_start_date(start: datetime, tz: pytz.BaseTzInfo | None, all_day: bool) -> datetime:
