@@ -1,3 +1,5 @@
+from unittest import mock
+
 from superdesk import get_resource_service
 from superdesk.flask import g
 from superdesk.tests import utils as test_utils, fixtures
@@ -60,7 +62,14 @@ class UnifiedResourceEventsTestCase(TestCase):
         new_event = (await self.planning_service.create([event]))[0]
         self.assertIsNotNone(new_event.id)
 
-        await self.planning_service.update(new_event.id, {"name": "Updated Event"})
+        with mock.patch("planning.unified.notifications.push_notification") as push_notification:
+            await self.planning_service.update(new_event.id, {"name": "Updated Event"})
+
+        resource_update = next(call for call in push_notification.call_args_list if call.args == ("resource:updated",))
+        self.assertEqual(resource_update.kwargs["resource"], "events")
+        self.assertEqual(resource_update.kwargs["_id"], str(new_event.id))
+        self.assertIn("name", resource_update.kwargs["fields"])
+
         updated_event = await self.planning_service.find_by_id(new_event.id)
         self.assertEqual(updated_event.name, "Updated Event")
 

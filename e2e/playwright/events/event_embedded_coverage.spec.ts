@@ -52,6 +52,9 @@ test.describe('Planning.Events: embedded coverage', () => {
 
         await expect(embeddedCoverages.getAddCoverageForm(0)).toBeVisible();
 
+        // The embedded planning item is only local until its own Save button is clicked
+        await embeddedCoverages.save(0);
+
         await editor.saveButton.click();
 
         // Test the new Event appears in the list view
@@ -82,9 +85,12 @@ test.describe('Planning.Events: embedded coverage', () => {
         await editor.waitTillOpen();
         await editor.waitLoadingComplete();
 
-        await editor.clickBookmark('add_planning');
-
-        await editor.waitForAutosave();
+        // Attach the autosave listener before clicking, otherwise the PATCH can fire
+        // and resolve before waitForRequest starts listening.
+        await Promise.all([
+            editor.waitForAutosave(),
+            editor.clickBookmark('add_planning'),
+        ]);
         await editor.saveButton.click();
 
         // Wait for save to be completed
@@ -103,9 +109,10 @@ test.describe('Planning.Events: embedded coverage', () => {
         await editor.waitTillOpen();
         await editor.waitLoadingComplete();
 
-        await editor.clickBookmark('add_planning');
-
-        await editor.waitForAutosave();
+        await Promise.all([
+            editor.waitForAutosave(),
+            editor.clickBookmark('add_planning'),
+        ]);
         await editor.saveButton.click();
 
         // Wait for save to be completed
@@ -148,9 +155,12 @@ test.describe('Planning.Events: embedded coverage', () => {
         await editor.waitTillOpen();
         await editor.waitLoadingComplete();
 
-        await editor.clickBookmark('add_planning');
-
-        await editor.waitForAutosave();
+        // Attach the autosave listener before clicking, otherwise the PATCH can fire
+        // and resolve before waitForRequest starts listening.
+        await Promise.all([
+            editor.waitForAutosave(),
+            editor.clickBookmark('add_planning'),
+        ]);
 
         await expect(embeddedCoverages.getPlanningItem(0)).toBeVisible();
         await editor.saveButton.click();
@@ -200,8 +210,10 @@ test.describe('Planning.Events: embedded coverage', () => {
         // Adding a related planning item to the still-open, posted event
         // must keep the editor editable and render the new planning item
         // (previously the editor incorrectly flipped to read-only).
-        await editor.clickBookmark('add_planning');
-        await editor.waitForAutosave();
+        await Promise.all([
+            editor.waitForAutosave(),
+            editor.clickBookmark('add_planning'),
+        ]);
 
         await expect(embeddedCoverages.getPlanningItem(0)).toBeVisible();
         await expect(editor.updateButton).toBeVisible();

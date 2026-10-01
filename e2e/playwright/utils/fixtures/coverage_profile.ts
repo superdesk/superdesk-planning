@@ -6,6 +6,7 @@ import {addItems} from '../common';
 export async function enableCoverageExtraFields(request: APIRequestContext) {
     await addItems(request, 'planning_types', [{
         name: 'coverage',
+        type: 'coverage',
         editor: {
             priority: {enabled: true, index: 10},
             headline: {enabled: true, index: 11},

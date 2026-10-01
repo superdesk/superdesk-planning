@@ -141,6 +141,14 @@ RelatedEvents = Annotated[list[RelatedEvent] | None, fields.nested_list()]
 
 
 class CoverageInternalPlanning(BaseModel):
+    @model_validator(mode="before")
+    @classmethod
+    def normalize_genre(cls, values: dict[str, Any] | Self) -> dict[str, Any] | Self:
+        if isinstance(values, dict) and values.get("genre") is None:
+            values["genre"] = []
+
+        return values
+
     ednote: fields.HTML | None = None
     g2_content_type: fields.Keyword | None = None
     coverage_provider: fields.Keyword | None = None

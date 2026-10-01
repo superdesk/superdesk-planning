@@ -12,14 +12,13 @@ test.describe('Search.Filters: creating search filters', () => {
     test.beforeEach(async ({page}) => {
         searchFilters = new SearchFilters(page);
 
-        await addItems(page.request, 'agenda', [AGENDAS.sports, AGENDAS.politics]);
         await setup(page, 'planning_prepopulate_data', '/#/planning');
+        await addItems(page.request, 'agenda', [AGENDAS.sports, AGENDAS.politics]);
         await login(page);
         await waitForPageLoad.planning(page);
     });
 
     test('can create a combined filter', async ({page}) => {
-        await addItems(page.request, 'agenda', [AGENDAS.sports, AGENDAS.politics]);
         await searchFilters.open();
         await searchFilters.addNewFilterButton.click();
         await searchFilters.editor.openAllToggleBoxes();
@@ -126,8 +125,6 @@ test.describe('Search.Filters: creating search filters', () => {
     });
 
     test('can create planning filter', async ({page}) => {
-        await addItems(page.request, 'agenda', [AGENDAS.sports, AGENDAS.politics]);
-
         await searchFilters.open();
         await searchFilters.addNewFilterButton.click();
         await searchFilters.editor.openAllToggleBoxes();

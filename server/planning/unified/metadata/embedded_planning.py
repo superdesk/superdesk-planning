@@ -343,15 +343,15 @@ async def get_existing_plannings_from_embedded_planning(
                 try:
                     if (
                         "genre" in coverage_profile.enabled_fields
+                        and "genre" in embedded_coverage.model_fields_set
                         and coverage_planning.genre != embedded_coverage.genre
-                        and embedded_coverage.genre
-                        and vocabs.genres.get(embedded_coverage.genre)
                     ):
                         if not embedded_coverage.genre:
-                            coverage_planning.genre = None
+                            coverage_planning.genre = []
+                            update_required = True
                         elif vocabs.genres.get(embedded_coverage.genre):
                             coverage_planning.genre = [vocabs.genres[embedded_coverage.genre]]
-                        update_required = True
+                            update_required = True
                 except KeyError:
                     pass
 

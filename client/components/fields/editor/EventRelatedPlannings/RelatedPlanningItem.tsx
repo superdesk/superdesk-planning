@@ -136,7 +136,7 @@ export class RelatedPlanningItem extends React.PureComponent<IProps> {
                                          * ItemManager via handleEmbeddedItems in save-handling.ts
                                          */
                                         const fieldsToOmit = [
-                                            '_temporary', '_created', '_etag', '_links', '_updated',
+                                            '_id', '_temporary', '_created', '_etag', '_links', '_updated',
                                         ] satisfies Array<keyof IPlanningItem>;
                                         const itemClean = omit(
                                             modifyForServer(item, true),

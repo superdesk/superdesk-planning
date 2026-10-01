@@ -1,4 +1,5 @@
 from superdesk.notification import push_notification
+from superdesk.eve_backend import get_diff_keys
 from apps.auth import get_auth, get_user_id
 
 from planning.types.unified import (
@@ -85,6 +86,12 @@ def send_updated_notifications(
         event_name = f"{item_type}:updated"
 
     push_notification(event_name, **kwargs)
+    push_notification(
+        "resource:updated",
+        resource=item_type,
+        _id=str(original.id),
+        fields=get_diff_keys(updated.to_dict(), original.to_dict()),
+    )
 
     if original.lock_user and not updated.lock_user:
         # When the item is unlocked by a patch

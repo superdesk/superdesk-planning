@@ -11,6 +11,7 @@
 """Superdesk Planning"""
 
 import logging
+from copy import deepcopy
 from itertools import chain
 from io import BytesIO
 
@@ -176,13 +177,27 @@ class PlanningService(AsyncBaseService):
         item["ingest_provider_sequence"] = str(sequence_number)
 
     async def update_async(self, id, updates, original, skip_signals: bool = True):
-        if "planning_date" in updates:
+        if "planning_date" in updates or "all_day" in updates:
             updates["dates"] = (original.get("dates") or {}).copy()
+
+        if "planning_date" in updates:
             updates["dates"]["start"] = updates.pop("planning_date")
+        if "all_day" in updates:
+            updates["dates"]["all_day"] = updates.pop("all_day")
+        if TO_BE_CONFIRMED_FIELD in updates:
+            updates["time_to_be_confirmed"] = updates.pop(TO_BE_CONFIRMED_FIELD)
         if "description_text" in updates:
             updates["definition_long"] = updates.pop("description_text")
 
-        new_updates = await self.backend.update_async(self.datasource, id, updates, original, skip_signals=skip_signals)
+        unified_original = deepcopy(original)
+        convert_legacy_planning_to_unified_format(unified_original)
+        new_updates = await self.backend.update_async(
+            self.datasource,
+            id,
+            updates,
+            unified_original,
+            skip_signals=skip_signals,
+        )
 
         if (new_updates.get("dates") or {}).get("start"):
             new_updates["planning_date"] = new_updates["dates"]["start"]

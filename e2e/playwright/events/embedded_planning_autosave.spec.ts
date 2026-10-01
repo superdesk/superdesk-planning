@@ -15,6 +15,13 @@ test.describe('Planning.Events: embedded planning autosave', () => {
         list = new PlanningList(page);
 
         await setup(page, 'planning_prepopulate_data', '/#/planning');
+        await addItems(page.request, 'planning_types', [{
+            name: 'planning',
+            type: 'planning',
+            schema: {
+                slugline: {show_in_embedded_editor: true},
+            },
+        }]);
         await login(page);
         await waitForPageLoad.planning(page);
     });

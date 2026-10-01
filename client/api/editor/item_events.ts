@@ -185,7 +185,10 @@ export function getEventsInstance(type: EDITOR_TYPE): IEditorAPI['item']['events
         );
 
         if (index < 0) {
-            return;
+            // Item may no longer be present in the diff (e.g. it was refreshed while
+            // this update was in flight). Resolve instead of returning `undefined`,
+            // since callers chain `.then()` off this promise.
+            return Promise.resolve();
         }
 
         plans[index] = {

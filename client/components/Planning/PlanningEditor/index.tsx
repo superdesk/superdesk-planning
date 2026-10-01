@@ -293,6 +293,11 @@ class PlanningEditorComponent extends React.Component<IProps, IState> {
                     language: {
                         clearable: false,
                     },
+                    // The planning profile uses `definition_long` as the field id (to match
+                    // the Event profile), but the underlying attribute is still `description_text`.
+                    definition_long: {
+                        field: 'description_text',
+                    },
                     planning_date: {
                         onChange: this.onPlanningDateChange,
                         onToBeConfirmed: this.onTimeToBeConfirmed,

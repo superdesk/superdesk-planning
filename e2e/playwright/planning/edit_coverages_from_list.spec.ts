@@ -9,10 +9,10 @@ const PLANNING = {
     coverages: [{
         coverage_id: 'e2e-edit-coverages',
         workflow_status: 'draft',
-        news_coverage_status: {qcode: 'ncostat:int'},
+        news_coverage_status: {qcode: 'ncostat:int', name: 'coverage intended', label: 'Planned'},
         planning: {
             g2_content_type: 'text',
-            language: null,
+            language: 'en',
         },
     }],
 };

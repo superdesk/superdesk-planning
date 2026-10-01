@@ -11,6 +11,10 @@ export class Editor {
 
     page: Page;
 
+    get autosaveUrl(): string {
+        return '/api/planning_autosave';
+    }
+
     constructor(page: Page, itemIcon: string, autosavePrefix: string) {
         this.page = page;
         this.itemIcon = itemIcon;
@@ -114,7 +118,7 @@ export class Editor {
     async waitForAutosave() {
         await this.page.waitForRequest(
             (response) => (
-                response.url().includes(`/api/${this.autosavePrefix}_autosave/`) &&
+                response.url().includes(this.autosaveUrl) &&
                     response.method() === 'PATCH'
             ),
         );
@@ -123,7 +127,7 @@ export class Editor {
     async waitForAutosavePost() {
         await this.page.waitForRequest(
             (response) => (
-                response.url().includes(`/api/${this.autosavePrefix}_autosave/`) &&
+                response.url().includes(this.autosaveUrl) &&
                     response.method() === 'POST'
             ),
         );

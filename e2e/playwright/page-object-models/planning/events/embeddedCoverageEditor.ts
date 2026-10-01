@@ -45,6 +45,8 @@ export class EmbeddedCoverageEditor {
     }
 
     async save(index: number): Promise<void> {
+        await this.expand(index);
+
         const planning = this.getPlanningItem(index);
 
         await planning.getByRole('button', {name: 'Save', exact: true}).first().click();

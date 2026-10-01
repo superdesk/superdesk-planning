@@ -23,7 +23,7 @@ export class PlanningEditor extends Editor {
                 date: new Input(page, getParent, '[data-test-id=field-planning_date] input[name="planning_date.date"]'),
                 time: new Input(page, getParent, '[data-test-id=field-planning_date] input[name="planning_date.time"]'),
             },
-            description_text: new Input(page, getParent, '[data-test-id=field-description_text] textarea'),
+            description_text: new Input(page, getParent, '[data-test-id=field-definition_long] textarea'),
             internal_note: new Input(page, getParent, '[data-test-id=field-internal_note] textarea'),
             ednote: new Input(page, getParent, '[data-test-id=field-ednote] textarea'),
             anpa_category: new TreeSelect(page, getParent, '[data-test-id=field-anpa_category]'),

@@ -10,7 +10,11 @@ from superdesk.utc import utcnow
 
 from planning.types import PlanningFeaturedLockResource, AssignmentEventOrPlanning, AssignmentResourceModel
 from planning.types.unified import UnifiedPlanningResource, LockFields, PlanningItemType
-from planning.unified.common import get_related_planning_for_events, format_item_addresses
+from planning.unified.common import (
+    convert_unified_planning_to_legacy_format,
+    format_item_addresses,
+    get_related_planning_for_events,
+)
 from planning.common import get_hateoas_links
 
 from .common import get_current_session_id, get_current_user_id
@@ -28,6 +32,7 @@ async def lock_planning_endpoint(request: Request) -> Response:
     updated = await lock_item(item, lock_data)
     await _enhance_item_for_response(updated)
     response = updated.to_dict()
+    convert_unified_planning_to_legacy_format(response)
     response.update(
         {
             STATUS: STATUS_OK,
@@ -58,6 +63,7 @@ async def unlock_planning_endpoint(request: Request) -> Response:
     updated = await unlock_item(item)
     await _enhance_item_for_response(updated)
     response = updated.to_dict()
+    convert_unified_planning_to_legacy_format(response)
     response.update(
         {
             STATUS: STATUS_OK,

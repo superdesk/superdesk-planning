@@ -6,6 +6,7 @@ Feature: Planning Item Locking
         """
         [{
             "slugline": "TestPlan",
+            "description_text": "Planning description",
             "planning_date": "2016-01-02"
         }]
         """
@@ -16,7 +17,10 @@ Feature: Planning Item Locking
         Then we get new resource
         """
         {
-          "_id": "#planning._id#", "slugline": "TestPlan", "lock_user": "#CONTEXT_USER_ID#"
+                    "_id": "#planning._id#",
+                    "slugline": "TestPlan",
+                    "description_text": "Planning description",
+                    "lock_user": "#CONTEXT_USER_ID#"
         }
         """
         When we patch "/planning/#planning._id#/"
