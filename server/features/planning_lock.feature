@@ -331,13 +331,11 @@ Feature: Planning Item Locking
         """
         [
             {
-                "_id": "plan1",
                 "guid": "plan1",
                 "related_events": [{"_id": "#EVENT1._id#", "link_type": "primary"}],
                 "planning_date": "2016-01-02"
             },
             {
-                "_id": "plan2",
                 "guid": "plan2",
                 "related_events": [{"_id": "#EVENT1._id#", "link_type": "primary"}],
                 "planning_date": "2016-01-02"
@@ -350,13 +348,11 @@ Feature: Planning Item Locking
         """
             {"_items": [
             {
-                "_id": "plan1",
                 "guid": "plan1",
                 "related_events": [{"_id": "#EVENT1._id#", "link_type": "primary"}],
                 "recurrence_id": "#EVENT1.recurrence_id#"
             },
             {
-                "_id": "plan2",
                 "guid": "plan2",
                 "related_events": [{"_id": "#EVENT1._id#", "link_type": "primary"}],
                 "recurrence_id": "#EVENT1.recurrence_id#"
@@ -450,7 +446,6 @@ Feature: Planning Item Locking
       """
       [
           {
-              "_id": "plan1",
               "guid": "plan1",
               "related_events": [{"_id": "#EVENT1._id#", "link_type": "primary"}],
               "planning_date": "2016-01-02"

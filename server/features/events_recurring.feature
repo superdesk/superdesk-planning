@@ -228,38 +228,11 @@ Feature: Events Recurring
     @auth
     @notification
     Scenario: Recurring event cannot be convert to recurring event
+        Given we have sessions "/sessions"
         When we post to "events"
         """
         [{
             "name": "Friday Club",
-            "dates": {
-                "start": "2019-11-21T12:00:00.000Z",
-                "end": "2019-11-21T14:00:00.000Z"
-            }
-        }]
-        """
-        Then we get OK response
-        And we get notifications
-        """
-        [{
-            "event": "events:created",
-            "extra": {
-                "item": "#events._id#",
-                "user": "#CONTEXT_USER_ID#"
-            }
-        }]
-        """
-        And we store "EVENT_ID" with value "#events._id#" to context
-        When we reset notifications
-        When we post to "planning/#events._id#/lock" with success
-        """
-        {"lock_action": "convert_recurring"}
-        """
-        And we patch "/events/#EVENT_ID#"
-        """
-        {
-            "name": "Weekly Friday Club",
-            "lock_action": "convert_recurring",
             "dates": {
                 "start": "2019-11-21T12:00:00.000Z",
                 "end": "2019-11-21T14:00:00.000Z",
@@ -272,12 +245,19 @@ Feature: Events Recurring
                     "endRepeatMode": "count"
                 }
             }
-        }
+        }]
         """
         Then we get OK response
-        When we get "/events"
-        Then we get list with 3 items
+        And we store "EVENT1" with first item
         And we store "EVENT2" with 2 item
+        And we get notifications
+        """
+        [{
+            "event": "events:created:recurring",
+            "extra": {"item": "#EVENT1._id#"}
+        }]
+        """
+        When we reset notifications
         When we post to "planning/#EVENT2._id#/lock" with success
         """
         {"lock_action": "convert_recurring"}
@@ -295,7 +275,7 @@ Feature: Events Recurring
                     "frequency": "WEEKLY",
                     "interval": 1,
                     "byday": "FR",
-                    "count": 3,
+                    "count": 5,
                     "endRepeatMode": "count"
                 }
             }
@@ -430,6 +410,7 @@ Feature: Events Recurring
     @notification
     @planning_cvs
     Scenario: Converting a posted event to be a recurring event will reschedule and update it
+        When we configure planning for publishing
         Given we have sessions "/sessions"
         Given "events"
         """
@@ -472,22 +453,6 @@ Feature: Events Recurring
             ],
             "planning_date": "2016-01-02"
         }]
-        """
-        When we post to "/products" with success
-        """
-        {
-            "name":"prod-1","codes":"abc,xyz", "product_type": "both"
-        }
-        """
-        And we post to "/subscribers" with success
-        """
-        {
-            "name":"News1","media_type":"media", "subscriber_type": "digital", "sequence_num_settings":{"min" : 1, "max" : 10}, "email": "test@test.com",
-            "products": ["#products._id#"],
-            "is_active": true,
-            "codes": "xyz, abc",
-            "destinations": [{"name":"events", "format": "json_event", "delivery_type": "File", "config":{"file_path": "/tmp"}}]
-        }
         """
         When we patch "/events/event1"
         """
@@ -567,7 +532,7 @@ Feature: Events Recurring
         }
         """
         When we get "/planning_history"
-        Then we get list with 10 items
+        Then we get list with 15 items
         """
         {"_items": [
             {"operation": "post", "item_id": "#events._id#", "item_type": "event"},
@@ -580,7 +545,7 @@ Feature: Events Recurring
         ]}
         """
         When we get "publish_queue"
-        Then we get list with 4 items
+        Then we get list with 5 items
 
     @auth
     Scenario: Convert a single event to a recurring event with only recurring_rules in the patch
@@ -930,7 +895,7 @@ Feature: Events Recurring
         And we get notifications
         """
         [{
-            "event": "events:updated:recurring",
+            "event": "events:updated",
             "extra": {
                 "item": "#EVENT2._id#",
                 "recurrence_id": "#EVENT1.recurrence_id#",
@@ -1019,7 +984,7 @@ Feature: Events Recurring
         And we get notifications
         """
         [{
-            "event": "events:updated:recurring",
+            "event": "events:updated",
             "extra": {
                 "item": "#EVENT2._id#",
                 "recurrence_id": "#EVENT1.recurrence_id#",

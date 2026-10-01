@@ -1,5 +1,12 @@
 from .model import UnifiedPlanningResource, PlanningItemType
-from .schedule import RecurringEndMode, RecurringFrequency, ItemScheduleEntry, ItemUpdateScheduleEntry, ItemDates
+from .schedule import (
+    RecurringEndMode,
+    RecurringFrequency,
+    ItemScheduleEntry,
+    ItemUpdateScheduleEntry,
+    ItemDates,
+    ItemRecurringDates,
+)
 from .metadata import RelatedEventLink, RelatedEventLinkType, FieldTranslation
 from .coverage import (
     CoverageItem,
@@ -25,6 +32,7 @@ __all__ = [
     "ItemScheduleEntry",
     "ItemUpdateScheduleEntry",
     "ItemDates",
+    "ItemRecurringDates",
     "CoverageItem",
     "CoverageScheduledUpdate",
     "EmbeddedPlanningItem",

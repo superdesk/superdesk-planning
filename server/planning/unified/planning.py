@@ -12,8 +12,15 @@ from planning.utils import get_planning_event_link_method
 from planning.common import unique_items_in_order, update_post_item
 from planning.content_profiles.utils import is_field_enabled, is_post_planning_with_event_enabled
 
-from .common import get_related_event_links, get_first_related_event_id, get_recurring_timeline, ItemUpdateRequest
+from .common import (
+    get_related_event_links,
+    get_first_related_event_id,
+    ItemUpdateRequest,
+    set_planning_schedule,
+    get_recurring_timeline,
+)
 from .notifications import notify_related_events_changed
+from .coverages import add_coverage
 
 
 logger = logging.getLogger(__name__)
@@ -21,7 +28,6 @@ logger = logging.getLogger(__name__)
 
 async def on_create_planning(planning: UnifiedPlanningResource, items: list[UnifiedPlanningResource]) -> None:
     first_event = await _set_planning_event_info(planning)
-    # await self._set_coverage(doc)
 
     if first_event and planning.update_method is not None:
         new_plans = await _add_planning_to_event_series(planning, first_event)
@@ -165,32 +171,35 @@ async def _add_planning_to_event_series(
             # We assume a Planning item was already created for this Event
             continue
 
-        new_plan = planning.clone()
-
         # Set the Planning & Event IDs for the new item
-        new_plan.guid = new_plan.id = generate_guid(type=GUID_NEWSML)
+        new_id = generate_guid(type=GUID_NEWSML)
+        new_plan = planning.clone_with(
+            {
+                "_id": new_id,
+                "guid": new_id,
+                "recurrence_id": event.recurrence_id,
+            }
+        )
         new_plan.related_events = [
             RelatedEventLink(
                 _id=series_entry.id, recurrence_id=event.recurrence_id, link_type=RelatedEventLinkType.PRIMARY
             )
         ]
-        new_plan.recurrence_id = event.recurrence_id
 
         # Set the Planning date/time relative to the Event start date/time
         new_plan.dates.start = series_entry.dates.start + planning_date_relative
         for coverage in new_plan.coverages or []:
-            # TODO-UNIFIED: Original code removes the `coverage_id` here, maybe so it's seen as a new coverage
             coverage.original_coverage_id = coverage.coverage_id
+            coverage.coverage_id = generate_guid(type=GUID_NEWSML)
             if coverage.assigned_to:
                 coverage.assigned_to.assignment_id = None
 
             # Set the scheduled date/time relative to the Event start date/time
             coverage_date_relative = coverage.planning.scheduled - event.dates.start
             coverage.planning.scheduled = series_entry.dates.start + coverage_date_relative
+            await add_coverage(new_plan, coverage)
 
-        # TODO-UNIFIED:
-        # await self._set_coverage(new_plan)
-        # self.set_planning_schedule(new_plan)
+        set_planning_schedule(new_plan)
         items.append(new_plan)
 
     return items

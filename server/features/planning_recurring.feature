@@ -179,8 +179,7 @@ Feature: Recurring Events & Planning
                     "planning": {
                         "slugline": "test text slugline v2",
                         "g2_content_type": "text",
-                        "scheduled": "2024-11-22T15:00:00.000Z",
-                        "news_coverage_status": {"qcode": "ncostat:int"}
+                        "scheduled": "2024-11-22T15:00:00.000Z"
                     }
                 },
                 {
@@ -191,8 +190,7 @@ Feature: Recurring Events & Planning
                     "planning": {
                         "slugline": "test pic slugline v2",
                         "g2_content_type": "picture",
-                        "scheduled": "2024-11-22T16:00:00.000Z",
-                        "news_coverage_status": {"qcode": "ncostat:int", "name": "coverage intended", "label": "Planned"},
+                        "scheduled": "2024-11-22T16:00:00.000Z"
                     }
                 }
             ]

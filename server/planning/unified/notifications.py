@@ -18,7 +18,7 @@ def send_created_notifications(item: UnifiedPlanningResource, notifications_sent
     item_id: str
 
     if item.recurrence_id:
-        event_name = f"{item_type}:recurrence_created"
+        event_name = f"{item_type}:created:recurring"
         item_id = item.recurrence_id
     else:
         event_name = f"{item_type}:created"
@@ -74,7 +74,18 @@ def send_updated_notifications(
             )
         )
 
-    push_notification(f"{item_type}:updated", **kwargs)
+    event_name: str
+
+    if updated.recurrence_id:
+        if original.dates != updated.dates:
+            event_name = f"{item_type}:updated:recurring"
+        else:
+            event_name = f"{item_type}:updated"
+        kwargs["recurrence_id"] = updated.recurrence_id
+    else:
+        event_name = f"{item_type}:updated"
+
+    push_notification(event_name, **kwargs)
     push_notification(
         "resource:updated",
         resource=item_type,
@@ -86,7 +97,7 @@ def send_updated_notifications(
         # When the item is unlocked by a patch
         kwargs = dict(
             item=original.id,
-            recurrence_id=original.recurrence_id,
+            recurrence_id=updated.recurrence_id,
             user=user_id,
             lock_session=session_id,
             etag=updated.etag,
