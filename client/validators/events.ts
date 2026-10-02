@@ -41,7 +41,7 @@ const validateRequiredDates = ({value, errors, messages, diff}) => {
     }
 };
 
-const validateDateRange = ({value, errors, messages}) => {
+const validateDateRange = ({value, errors, messages, diff}) => {
     let startDate = moment(value.start);
     let endDate = moment(value.end);
 
@@ -49,7 +49,11 @@ const validateDateRange = ({value, errors, messages}) => {
         return;
     }
 
-    if (endDate.isSameOrBefore(startDate, 'minutes') && !value.all_day && !value.no_end_time) {
+    const invalidRange = get(diff, TO_BE_CONFIRMED_FIELD) ?
+        endDate.isBefore(startDate, 'day') :
+        endDate.isSameOrBefore(startDate, 'minutes') && !value.all_day && !value.no_end_time;
+
+    if (invalidRange) {
         if (isSameDay(value.start, value.end)) {
             set(errors, '_endTime', gettext('End time should be after start time'));
             messages.push(gettext('END TIME should be after START TIME'));
@@ -174,6 +178,7 @@ const validateDates = ({getState, value, errors, messages, diff}) => {
         value: value,
         errors: newErrors,
         messages: messages,
+        diff: diff,
     });
 
     // we don't have to validate all recurring form update time action

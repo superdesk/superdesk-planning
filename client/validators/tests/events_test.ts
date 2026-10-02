@@ -4,6 +4,7 @@ import eventValidators from '../events';
 import moment from 'moment';
 import {initialState} from '../../utils/testData';
 import {cloneDeep} from 'lodash';
+import {TO_BE_CONFIRMED_FIELD} from '../../constants';
 
 describe('eventValidators', () => {
     let event;
@@ -48,6 +49,7 @@ describe('eventValidators', () => {
             value: value,
             errors: errors,
             messages: errorMessages,
+            diff: event,
         });
         expect(errors).toEqual(response);
         expect(errorMessages).toEqual(messages);
@@ -124,6 +126,27 @@ describe('eventValidators', () => {
     });
 
     describe('validateDateRange', () => {
+        it('allows an earlier end time on the same date when time is TBC', () => {
+            event[TO_BE_CONFIRMED_FIELD] = true;
+            event.dates.end = moment('2094-10-15T11:01:11');
+            testValidate(eventValidators.validateDates, 'dates', {});
+        });
+
+        it('allows equal start and end times when time is TBC', () => {
+            event[TO_BE_CONFIRMED_FIELD] = true;
+            event.dates.end = event.dates.start.clone();
+            testValidate(eventValidators.validateDates, 'dates', {});
+        });
+
+        it('rejects an earlier end date when time is TBC', () => {
+            event[TO_BE_CONFIRMED_FIELD] = true;
+            event.dates.end = moment('2094-10-13T14:01:11');
+            testValidate(eventValidators.validateDates, 'dates',
+                {dates: {end: {date: 'End date should be after start date'}}},
+                ['END DATE should be after START DATE']
+            );
+        });
+
         it('fail if end time should is after start time', () => {
             event.dates.end = moment('2094-10-15T11:01:11');
             testValidate(eventValidators.validateDates, 'dates',
