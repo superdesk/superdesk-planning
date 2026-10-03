@@ -11,6 +11,7 @@ import {
     SCHEDULE_FREQUENCY,
     WEEK_DAY,
 } from '../../interfaces';
+import {Alert} from 'superdesk-ui-framework/react';
 import {SidePanel, ToggleBox} from '../UI';
 import {renderFieldsForPanel} from '../fields';
 import {desks as getDesks} from '../../selectors/general';
@@ -151,7 +152,11 @@ export class EditFilterScheduleComponent extends React.Component<IProps, IState>
                                 className="btn btn--primary"
                                 key="save"
                                 onClick={this.onSaveHandler}
-                                disabled={this.state.pristine || this.state.invalid}
+                                disabled={
+                                    this.state.pristine ||
+                                    this.state.invalid ||
+                                    this.state.schedule.desk == null
+                                }
                                 data-test-id="manage-filters--save-schedule"
                             >
                                 {this.props.filter?._id == null ?
@@ -198,6 +203,17 @@ export class EditFilterScheduleComponent extends React.Component<IProps, IState>
                                 style="toggle-box--circle"
                                 noMargin={true}
                             >
+                                {this.props.desks?.length ? null : (
+                                    <Alert
+                                        style="hollow"
+                                        size="normal"
+                                        margin="small"
+                                        icon="warning-sign"
+                                        type="warning"
+                                    >
+                                        {gettext('A desk is required to create a scheduled export.')}
+                                    </Alert>
+                                )}
                                 {renderFieldsForPanel(
                                     'editor',
                                     {
