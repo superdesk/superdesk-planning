@@ -7,7 +7,6 @@ import {gettext, eventUtils, timeUtils} from '../utils';
 import * as selectors from '../selectors';
 import {formProfile} from './profile';
 import {PRIVILEGES, EVENTS, TO_BE_CONFIRMED_FIELD} from '../constants';
-import {isSameDay} from './../helpers';
 
 const validateRequiredDates = ({value, errors, messages, diff}) => {
     if (!get(value, 'start')) {
@@ -49,12 +48,15 @@ const validateDateRange = ({value, errors, messages, diff}) => {
         return;
     }
 
+    startDate = timeUtils.getDateInRemoteTimeZone(startDate, value.tz);
+    endDate = timeUtils.getDateInRemoteTimeZone(endDate, value.tz);
+
     const invalidRange = get(diff, TO_BE_CONFIRMED_FIELD) ?
         endDate.isBefore(startDate, 'day') :
         endDate.isSameOrBefore(startDate, 'minutes') && !value.all_day && !value.no_end_time;
 
     if (invalidRange) {
-        if (isSameDay(value.start, value.end)) {
+        if (startDate.isSame(endDate, 'day')) {
             set(errors, '_endTime', gettext('End time should be after start time'));
             messages.push(gettext('END TIME should be after START TIME'));
         } else {

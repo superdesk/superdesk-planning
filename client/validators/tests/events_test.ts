@@ -1,7 +1,7 @@
 import {appConfig} from 'appConfig';
 
 import eventValidators from '../events';
-import moment from 'moment';
+import moment from 'moment-timezone';
 import {initialState} from '../../utils/testData';
 import {cloneDeep} from 'lodash';
 import {TO_BE_CONFIRMED_FIELD} from '../../constants';
@@ -142,6 +142,27 @@ describe('eventValidators', () => {
             event[TO_BE_CONFIRMED_FIELD] = true;
             event.dates.end = moment('2094-10-13T14:01:11');
             testValidate(eventValidators.validateDates, 'dates',
+                {dates: {end: {date: 'End date should be after start date'}}},
+                ['END DATE should be after START DATE']
+            );
+        });
+
+        it('compares dates in the event timezone when time is TBC', () => {
+            event[TO_BE_CONFIRMED_FIELD] = true;
+            event.dates.start = moment.utc('2094-10-15T12:00:00Z');
+            event.dates.end = moment.utc('2094-10-14T14:00:00Z');
+
+            testValidate(eventValidators.validateDates, 'dates', {});
+        });
+
+        it('rejects an earlier event date when browser dates are the same and time is TBC', () => {
+            event[TO_BE_CONFIRMED_FIELD] = true;
+            event.dates.start = moment.utc('2094-10-14T14:00:00Z');
+            event.dates.end = moment.utc('2094-10-14T12:00:00Z');
+
+            testValidate(
+                eventValidators.validateDates,
+                'dates',
                 {dates: {end: {date: 'End date should be after start date'}}},
                 ['END DATE should be after START DATE']
             );
