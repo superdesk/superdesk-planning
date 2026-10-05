@@ -277,7 +277,11 @@ class EventsService(AsyncBaseService):
 
         if to_be_confirmed:
             timezone = dates.get("tz")
-            if get_local_date(end_date, timezone).date() < get_local_date(start_date, timezone).date():
+            local_start = start_date if dates.get("all_day") else get_local_date(start_date, timezone)
+            local_end = (
+                end_date if dates.get("no_end_time") or dates.get("all_day") else get_local_date(end_date, timezone)
+            )
+            if local_end.date() < local_start.date():
                 raise SuperdeskApiError(message="END DATE should be after START DATE")
         elif (
             dates.get("no_end_time") is True

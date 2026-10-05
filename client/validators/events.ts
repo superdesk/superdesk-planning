@@ -51,7 +51,14 @@ const validateDateRange = ({value, errors, messages, diff}) => {
     startDate = timeUtils.getDateInRemoteTimeZone(startDate, value.tz);
     endDate = timeUtils.getDateInRemoteTimeZone(endDate, value.tz);
 
-    const invalidRange = get(diff, TO_BE_CONFIRMED_FIELD) ?
+    const toBeConfirmed = get(diff, TO_BE_CONFIRMED_FIELD);
+
+    if (toBeConfirmed) {
+        startDate = getDateOnly(value.all_day ? moment.utc(value.start) : startDate);
+        endDate = getDateOnly(value.no_end_time || value.all_day ? moment.utc(value.end) : endDate);
+    }
+
+    const invalidRange = toBeConfirmed ?
         endDate.isBefore(startDate, 'day') :
         endDate.isSameOrBefore(startDate, 'minutes') && !value.all_day && !value.no_end_time;
 

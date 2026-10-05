@@ -126,6 +126,40 @@ describe('eventValidators', () => {
     });
 
     describe('validateDateRange', () => {
+        ['America/Toronto', 'Australia/Sydney'].forEach((timezone) => {
+            ['no_end_time', 'all_day'].forEach((flag) => {
+                [14, 15, 16].forEach((endDay) => {
+                    it(`validates TBC ${flag} dates in ${timezone} with end day ${endDay}`, () => {
+                        event[TO_BE_CONFIRMED_FIELD] = true;
+                        event.dates.tz = timezone;
+                        event.dates[flag] = true;
+                        event.dates.start = flag === 'all_day' ?
+                            moment.utc('2094-10-15T00:00:00Z') :
+                            moment.tz('2094-10-15T10:00:00', timezone);
+                        event.dates.end = moment.utc(`2094-10-${endDay}T00:00:00Z`);
+
+                        if (endDay < 15) {
+                            testValidate(eventValidators.validateDates, 'dates',
+                                {dates: {end: {date: 'End date should be after start date'}}},
+                                ['END DATE should be after START DATE']
+                            );
+                        } else {
+                            testValidate(eventValidators.validateDates, 'dates', {});
+                        }
+                    });
+                });
+            });
+        });
+
+        it('compares timed TBC dates in Toronto even when their UTC dates differ', () => {
+            event[TO_BE_CONFIRMED_FIELD] = true;
+            event.dates.tz = 'America/Toronto';
+            event.dates.start = moment.utc('2094-10-16T01:00:00Z');
+            event.dates.end = moment.utc('2094-10-15T23:00:00Z');
+
+            testValidate(eventValidators.validateDates, 'dates', {});
+        });
+
         it('allows an earlier end time on the same date when time is TBC', () => {
             event[TO_BE_CONFIRMED_FIELD] = true;
             event.dates.end = moment('2094-10-15T11:01:11');

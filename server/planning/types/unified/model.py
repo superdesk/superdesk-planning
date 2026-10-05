@@ -103,10 +103,15 @@ class UnifiedPlanningResource(
             if not self.dates.start or not self.dates.end:
                 raise SuperdeskApiError(message=gettext("Event START DATE and END DATE are mandatory."))
             if self.time_to_be_confirmed:
-                if (
-                    _get_local_date(self.dates.end, self.dates.tz).date()
-                    < _get_local_date(self.dates.start, self.dates.tz).date()
-                ):
+                start_date = (
+                    self.dates.start if self.dates.all_day else _get_local_date(self.dates.start, self.dates.tz)
+                )
+                end_date = (
+                    self.dates.end
+                    if self.dates.no_end_time or self.dates.all_day
+                    else _get_local_date(self.dates.end, self.dates.tz)
+                )
+                if end_date.date() < start_date.date():
                     raise SuperdeskApiError(message=gettext("END DATE should be after START DATE"))
             elif (
                 self.dates.no_end_time
