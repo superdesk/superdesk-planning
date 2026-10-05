@@ -488,7 +488,8 @@ Feature: Events Post
                 "user": "#CONTEXT_USER_ID#",
                 "state": "assigned"
             },
-            "workflow_status": "active"
+            "workflow_status": "active",
+            "news_coverage_status": {"qcode": "ncostat:int", "name": "coverage intended", "label": "Planned"}
         }]}
         """
         Then we get OK response

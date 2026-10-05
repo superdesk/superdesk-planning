@@ -61,9 +61,14 @@ Feature: Events Cancel
         }]}
         """
         When we get "/planning_history?where=item_id==%22event1%22"
-        Then we get list with 1 items
+        Then we get list with 2 items
         """
         {"_items": [{
+            "item_id": "event1",
+            "item_type": "event",
+            "operation": "create",
+            "update": {"state": "draft"}
+        }, {
             "item_id": "event1",
             "item_type": "event",
             "operation": "events_cancel",
@@ -242,9 +247,27 @@ Feature: Events Cancel
         ]}
         """
         When we get "/planning_history"
-        Then we get list with 5 items
+        Then we get list with 8 items
         """
         {"_items": [
+            {
+                "item_id": "event1",
+                "item_type": "event",
+                "operation": "create",
+                "update": {"state": "draft"}
+            },
+            {
+                "item_id": "plan1",
+                "item_type": "planning",
+                "operation": "create",
+                "update": {"state": "draft"}
+            },
+            {
+                "item_id": "plan2",
+                "item_type": "planning",
+                "operation": "create",
+                "update": {"state": "draft"}
+            },
             {
                 "item_id": "event1",
                 "item_type": "event",
@@ -343,7 +366,7 @@ Feature: Events Cancel
         Given we have sessions "/sessions"
         Given "desks"
         """
-        [{"_id": "desk_123", "name": "Politic Desk"}]
+        [{"name": "Politic Desk"}]
         """
         Given "events"
         """
@@ -359,7 +382,8 @@ Feature: Events Cancel
             "ednote":  "An event with exciting things",
             "occur_status": {
                 "qcode": "eocstat:eos5",
-                "name": "Planned, occurs certainly"
+                "name": "Planned, occurs certainly",
+                "label": "Planned, occurs certainly"
             },
             "state": "draft",
             "lock_user": "#CONTEXT_USER_ID#",
