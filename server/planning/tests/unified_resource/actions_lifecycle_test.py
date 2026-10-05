@@ -1,3 +1,4 @@
+from datetime import datetime, timezone
 from bson import ObjectId
 from unittest.mock import patch, AsyncMock
 
@@ -201,6 +202,30 @@ class UnifiedResourceLifecycleActionsTestCase(TestCase):
         # The related Planning item is rescheduled in the same collection
         linked = await self._planning_dict(planning_id)
         self.assertEqual("rescheduled", linked["state"])
+
+    async def test_reschedule_event_in_use_only_updates_tbc_on_duplicate(self):
+        for original_tbc, requested_tbc in ((True, False), (False, True)):
+            with self.subTest(original_tbc=original_tbc, requested_tbc=requested_tbc):
+                event_id = await self._create_event(_time_to_be_confirmed=original_tbc)
+                await self._create_planning(
+                    related_events=[{"_id": event_id, "link_type": "primary"}],
+                )
+
+                original = await self._lock_event(event_id, "reschedule")
+                rescheduled = await process_reschedule_event(
+                    {
+                        "dates": {
+                            "start": datetime(2026, 7, 15, 15, 30, 55, tzinfo=timezone.utc),
+                            "end": datetime(2026, 7, 15, 17, 30, 55, tzinfo=timezone.utc),
+                        },
+                        "_time_to_be_confirmed": requested_tbc,
+                    },
+                    original,
+                )
+
+                duplicated = await self._event_dict(rescheduled["reschedule_to"])
+                self.assertEqual(original_tbc, rescheduled["_time_to_be_confirmed"])
+                self.assertEqual(requested_tbc, duplicated["_time_to_be_confirmed"])
 
     # ------------------------------------------------------------- update_time
     async def test_update_time_single_event(self):

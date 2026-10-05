@@ -48,8 +48,13 @@ class ItemDates(Dataclass):
         examples=["Europe/Prague", "Australia/Sydney"],
         default=None,
     )
-    all_day: bool = Field(description="Whether the item is an all-day event", default=False)
-    no_end_time: bool = Field(description="Whether the item has no end time", default=False)
+    all_day: bool = Field(
+        description="Whether the item is an all-day event with start and end stored as dates at UTC midnight",
+        default=False,
+    )
+    no_end_time: bool = Field(
+        description="Whether the item has no end time, with end stored as a date at UTC midnight", default=False
+    )
     recurring_rule: ItemRecurringDates | None = Field(description="The recurring rule of the item", default=None)
 
 
