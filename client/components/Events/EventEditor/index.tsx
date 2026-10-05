@@ -238,7 +238,7 @@ class EventEditorComponent extends React.PureComponent<IProps> {
                         disabled: this.props.readOnly,
                         originalCount: this.props.item?.coverages?.length ?? 0,
                         message: this.props.message,
-                        event: this.props.item,
+                        event: this.props.diff as IEventItem,
                         defaultValue: [],
                         files: this.props.files,
                         uploadFiles: this.props.uploadFiles,

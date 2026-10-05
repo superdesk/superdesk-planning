@@ -1242,6 +1242,52 @@ describe('PlanningUtils', () => {
 
             expect(coverage.planning.scheduled.toISOString()).toBe(eventEnd.add(1, 'hour').toISOString());
         });
+        it('ignores an invalid date from a custom due date strategy', () => {
+            const newsCoverageStatus = [{qcode: 'ncostat:int'}];
+            const event = {
+                type: 'event',
+                name: 'Event',
+                dates: {start: null, end: null},
+            };
+            const originalCoverageConfig = appConfig.coverage;
+
+            appConfig.coverage = {
+                ...originalCoverageConfig,
+                getDueDateStrategy: (_planningItem, eventItem) => moment(eventItem.dates?.end),
+            };
+
+            try {
+                const coverage = planningUtils.defaultCoverageValues(newsCoverageStatus, event, event);
+
+                expect(coverage.planning.scheduled.isValid()).toBe(true);
+                expect(coverage.planning._scheduledTime.isValid()).toBe(true);
+            } finally {
+                appConfig.coverage = originalCoverageConfig;
+            }
+        });
+        it('uses the date from a custom due date strategy', () => {
+            const newsCoverageStatus = [{qcode: 'ncostat:int'}];
+            const eventEnd = moment('2119-03-17T09:00:00+11:00');
+            const event = {
+                type: 'event',
+                name: 'Event',
+                dates: {start: moment('2119-03-17T08:00:00+11:00'), end: eventEnd},
+            };
+            const originalCoverageConfig = appConfig.coverage;
+
+            appConfig.coverage = {
+                ...originalCoverageConfig,
+                getDueDateStrategy: (_planningItem, eventItem) => moment(eventItem.dates?.end),
+            };
+
+            try {
+                const coverage = planningUtils.defaultCoverageValues(newsCoverageStatus, event, event);
+
+                expect(coverage.planning.scheduled.toISOString()).toBe(eventEnd.toISOString());
+            } finally {
+                appConfig.coverage = originalCoverageConfig;
+            }
+        });
         it('no coverage schedule date for long event', () => {
             const newsCoverageStatus = [{qcode: 'ncostat:int'}];
             const planned = moment('2119-03-15T09:00:00+11:00');

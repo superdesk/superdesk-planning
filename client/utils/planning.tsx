@@ -1679,7 +1679,7 @@ function defaultCoverageValues(
         const getCoverageDueDateStrategy = appConfig.coverage?.getDueDateStrategy || getDefaultCoverageDueDate;
         const coverageTime = getCoverageDueDateStrategy(planningItem as IEventOrPlanningItem, eventItem);
 
-        if (coverageTime) {
+        if (coverageTime?.isValid()) {
             newCoverage.planning.scheduled = coverageTime;
         }
 
