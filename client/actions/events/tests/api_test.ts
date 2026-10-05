@@ -408,20 +408,18 @@ describe('actions.events.api', () => {
     });
 
     describe('rescheduleEvent', () => {
-        it('sends the to be confirmed flag when set', (done) => {
-            store.test(done, eventsApi.rescheduleEvent(data.events[1], {
-                dates: {
-                    start: '2014-10-16T14:01:11+0000',
-                    end: '2014-10-16T15:01:11+0000',
-                    tz: 'Australia/Sydney',
-                },
-                _time_to_be_confirmed: true,
-            }))
-                .then(() => {
-                    expect(services.api.update.args[0][2]._time_to_be_confirmed).toBe(true);
-                    done();
-                })
-                .catch(done.fail);
+        [true, false].forEach((toBeConfirmed) => {
+            it(`sends the to be confirmed flag when set to ${toBeConfirmed}`, (done) => {
+                store.test(done, eventsApi.rescheduleEvent(data.events[1], {
+                    dates: data.events[1].dates,
+                    _time_to_be_confirmed: toBeConfirmed,
+                }))
+                    .then(() => {
+                        expect(services.api.update.args[0][2]._time_to_be_confirmed).toBe(toBeConfirmed);
+                        done();
+                    })
+                    .catch(done.fail);
+            });
         });
 
         it('can reschedule an event', (done) => {

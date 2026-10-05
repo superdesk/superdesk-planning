@@ -10,6 +10,7 @@ from datetime import datetime, timedelta
 from planning.types.common import RelatedEvent
 from superdesk.utc import utcnow
 from superdesk import get_resource_service
+from superdesk.errors import SuperdeskApiError
 from superdesk.flask import g
 from superdesk.tests import utils as test_utils, fixtures
 
@@ -158,6 +159,112 @@ class EventTestCase(EventsBaseTestCase):
         for e in future:
             self.assertEqual(e["dates"]["start"], expected_time)
             expected_time += timedelta(days=1)
+
+    def test_tbc_date_only_ranges(self):
+        for timezone, start_hour in (("America/Toronto", 15), ("Australia/Sydney", 1)):
+            for flag in ("no_end_time", "all_day"):
+                for end_day in (20, 21, 22):
+                    with self.subTest(timezone=timezone, flag=flag, end_day=end_day):
+                        event = {
+                            "type": "event",
+                            TO_BE_CONFIRMED_FIELD: True,
+                            "dates": {
+                                "start": datetime(
+                                    2099, 11, 21, 0 if flag == "all_day" else start_hour, tzinfo=pytz.UTC
+                                ),
+                                "end": datetime(2099, 11, end_day, tzinfo=pytz.UTC),
+                                "tz": timezone,
+                                flag: True,
+                            },
+                        }
+                        if end_day < 21:
+                            with self.assertRaisesRegex(SuperdeskApiError, "END DATE should be after START DATE"):
+                                self.events_service._validate_dates(event)
+                        else:
+                            self.events_service._validate_dates(event)
+
+    def test_tbc_compares_timed_dates_in_toronto(self):
+        event = {
+            "type": "event",
+            TO_BE_CONFIRMED_FIELD: True,
+            "dates": {
+                "start": datetime(2099, 11, 21, 1, tzinfo=pytz.UTC),
+                "end": datetime(2099, 11, 20, 23, tzinfo=pytz.UTC),
+                "tz": "America/Toronto",
+            },
+        }
+        self.events_service._validate_dates(event)
+
+    def test_tbc_allows_end_time_before_start_time_on_same_local_date(self):
+        event = {
+            "type": "event",
+            TO_BE_CONFIRMED_FIELD: True,
+            "dates": {
+                "start": datetime(2099, 11, 21, 1, tzinfo=pytz.UTC),
+                "end": datetime(2099, 11, 20, 23, tzinfo=pytz.UTC),
+                "tz": "Australia/Sydney",
+            },
+        }
+        self.events_service._validate_dates(event)
+
+    def test_tbc_rejects_end_date_before_start_date(self):
+        event = {
+            "type": "event",
+            TO_BE_CONFIRMED_FIELD: True,
+            "dates": {
+                "start": datetime(2099, 11, 21, 1, tzinfo=pytz.UTC),
+                "end": datetime(2099, 11, 19, 23, tzinfo=pytz.UTC),
+                "tz": "Australia/Sydney",
+            },
+        }
+        with self.assertRaisesRegex(SuperdeskApiError, "END DATE should be after START DATE"):
+            self.events_service._validate_dates(event)
+
+    async def test_reschedule_sets_tbc_on_draft_events_with_or_without_times(self):
+        for all_day in (False, True):
+            with self.subTest(all_day=all_day):
+                dates = {
+                    "start": datetime(2099, 11, 21, 0 if all_day else 12, tzinfo=pytz.UTC),
+                    "end": datetime(2099, 11, 21, 0 if all_day else 14, tzinfo=pytz.UTC),
+                    "tz": "Australia/Sydney",
+                    "all_day": all_day,
+                }
+                (event_id,) = await self.events_service.post_async([{"name": "Draft event", "dates": dates}])
+                original = await self.events_service.find_one_async(req=None, _id=event_id)
+                assert original is not None
+                rescheduled = await process_reschedule_event(
+                    {"dates": dates, TO_BE_CONFIRMED_FIELD: True}, original, require_lock=False
+                )
+                self.assertEqual(event_id, rescheduled["_id"])
+                self.assertIs(rescheduled[TO_BE_CONFIRMED_FIELD], True)
+
+    async def test_reschedule_event_in_use_only_updates_tbc_on_duplicate(self):
+        for original_tbc, requested_tbc in ((True, False), (False, True)):
+            with self.subTest(original_tbc=original_tbc, requested_tbc=requested_tbc):
+                dates = {
+                    "start": datetime(2099, 11, 21, 12, tzinfo=pytz.UTC),
+                    "end": datetime(2099, 11, 21, 14, tzinfo=pytz.UTC),
+                    "tz": "Australia/Sydney",
+                }
+                (event_id,) = await self.events_service.post_async(
+                    [
+                        {
+                            "name": "Published event",
+                            "dates": dates,
+                            "pubstatus": POST_STATE.USABLE,
+                            TO_BE_CONFIRMED_FIELD: original_tbc,
+                        }
+                    ]
+                )
+                original = await self.events_service.find_one_async(req=None, _id=event_id)
+                assert original is not None
+                rescheduled = await process_reschedule_event(
+                    {"dates": dates, TO_BE_CONFIRMED_FIELD: requested_tbc}, original, require_lock=False
+                )
+                duplicate = await self.events_service.find_one_async(req=None, _id=rescheduled["reschedule_to"])
+                assert duplicate is not None
+                self.assertIs(rescheduled[TO_BE_CONFIRMED_FIELD], original_tbc)
+                self.assertIs(duplicate[TO_BE_CONFIRMED_FIELD], requested_tbc)
 
     async def test_create_cancelled_event(self):
         await self.events_service.post_async(

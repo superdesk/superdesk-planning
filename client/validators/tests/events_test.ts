@@ -1,9 +1,10 @@
 import {appConfig} from 'appConfig';
 
 import eventValidators from '../events';
-import moment from 'moment';
+import moment from 'moment-timezone';
 import {initialState} from '../../utils/testData';
 import {cloneDeep} from 'lodash';
+import {TO_BE_CONFIRMED_FIELD} from '../../constants';
 
 describe('eventValidators', () => {
     let event;
@@ -48,6 +49,7 @@ describe('eventValidators', () => {
             value: value,
             errors: errors,
             messages: errorMessages,
+            diff: event,
         });
         expect(errors).toEqual(response);
         expect(errorMessages).toEqual(messages);
@@ -124,6 +126,82 @@ describe('eventValidators', () => {
     });
 
     describe('validateDateRange', () => {
+        ['America/Toronto', 'Australia/Sydney'].forEach((timezone) => {
+            ['no_end_time', 'all_day'].forEach((flag) => {
+                [14, 15, 16].forEach((endDay) => {
+                    it(`validates TBC ${flag} dates in ${timezone} with end day ${endDay}`, () => {
+                        event[TO_BE_CONFIRMED_FIELD] = true;
+                        event.dates.tz = timezone;
+                        event.dates[flag] = true;
+                        event.dates.start = flag === 'all_day' ?
+                            moment.utc('2094-10-15T00:00:00Z') :
+                            moment.tz('2094-10-15T10:00:00', timezone);
+                        event.dates.end = moment.utc(`2094-10-${endDay}T00:00:00Z`);
+
+                        if (endDay < 15) {
+                            testValidate(eventValidators.validateDates, 'dates',
+                                {dates: {end: {date: 'End date should be after start date'}}},
+                                ['END DATE should be after START DATE']
+                            );
+                        } else {
+                            testValidate(eventValidators.validateDates, 'dates', {});
+                        }
+                    });
+                });
+            });
+        });
+
+        it('compares timed TBC dates in Toronto even when their UTC dates differ', () => {
+            event[TO_BE_CONFIRMED_FIELD] = true;
+            event.dates.tz = 'America/Toronto';
+            event.dates.start = moment.utc('2094-10-16T01:00:00Z');
+            event.dates.end = moment.utc('2094-10-15T23:00:00Z');
+
+            testValidate(eventValidators.validateDates, 'dates', {});
+        });
+
+        it('allows an earlier end time on the same date when time is TBC', () => {
+            event[TO_BE_CONFIRMED_FIELD] = true;
+            event.dates.end = moment('2094-10-15T11:01:11');
+            testValidate(eventValidators.validateDates, 'dates', {});
+        });
+
+        it('allows equal start and end times when time is TBC', () => {
+            event[TO_BE_CONFIRMED_FIELD] = true;
+            event.dates.end = event.dates.start.clone();
+            testValidate(eventValidators.validateDates, 'dates', {});
+        });
+
+        it('rejects an earlier end date when time is TBC', () => {
+            event[TO_BE_CONFIRMED_FIELD] = true;
+            event.dates.end = moment('2094-10-13T14:01:11');
+            testValidate(eventValidators.validateDates, 'dates',
+                {dates: {end: {date: 'End date should be after start date'}}},
+                ['END DATE should be after START DATE']
+            );
+        });
+
+        it('compares dates in the event timezone when time is TBC', () => {
+            event[TO_BE_CONFIRMED_FIELD] = true;
+            event.dates.start = moment.utc('2094-10-15T12:00:00Z');
+            event.dates.end = moment.utc('2094-10-14T14:00:00Z');
+
+            testValidate(eventValidators.validateDates, 'dates', {});
+        });
+
+        it('rejects an earlier event date when browser dates are the same and time is TBC', () => {
+            event[TO_BE_CONFIRMED_FIELD] = true;
+            event.dates.start = moment.utc('2094-10-14T14:00:00Z');
+            event.dates.end = moment.utc('2094-10-14T12:00:00Z');
+
+            testValidate(
+                eventValidators.validateDates,
+                'dates',
+                {dates: {end: {date: 'End date should be after start date'}}},
+                ['END DATE should be after START DATE']
+            );
+        });
+
         it('fail if end time should is after start time', () => {
             event.dates.end = moment('2094-10-15T11:01:11');
             testValidate(eventValidators.validateDates, 'dates',
