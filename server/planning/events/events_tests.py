@@ -165,18 +165,25 @@ class EventPlanningSchedule(EventsBaseTestCase):
         )
 
         # reschedule posted recurring event
-        schedule = deepcopy(events[0].get("dates"))
+        # Reschedule decides whether the event is in use from the `original` it is given,
+        # so it has to be the posted version and not the one fetched before posting.
+        posted_event = await self.events_service.find_one_async(req=None, _id=events[0].get("_id"))
+        schedule = deepcopy(posted_event.get("dates"))
         schedule["start"] = datetime(2099, 11, 21, 12, 00, 00, tzinfo=pytz.UTC) + timedelta(days=3)
         schedule["end"] = datetime(2099, 11, 21, 12, 00, 00, tzinfo=pytz.UTC) + timedelta(days=3)
 
-        res = await process_reschedule_event({"dates": schedule}, events[0], False)
-        rescheduled_event = await self.events_service.find_one_async(req=None, _id=events[0].get("_id"))
-        self.assertNotEqual(rescheduled_event["dates"]["start"], schedule["start"])
+        await process_reschedule_event({"dates": schedule}, posted_event, False)
+        rescheduled_event = await self.events_service.find_one_async(req=None, _id=posted_event.get("_id"))
+        self.assertEqual(rescheduled_event["dates"]["start"], posted_event["dates"]["start"])
+        self.assertEqual(rescheduled_event["state"], "rescheduled")
 
+        new_event = await self.events_service.find_one_async(req=None, _id=rescheduled_event["reschedule_to"])
+        self.assertEqual(new_event["reschedule_from"], posted_event["_id"])
+        self.assertEqual(new_event["dates"]["start"], schedule["start"])
+
+        # the 3 events of the series plus the one created by the reschedule
         events = await self._get_all_events_raw()
-        # TODO-ASYNC: Not sure why this one is meant to be 4 instead of 3
-        # needs investigation for either correctness of the test or the code
-        self.assertPlanningSchedule(events, 3)
+        self.assertPlanningSchedule(events, 4)
 
     async def test_planning_schedule_update_time(self):
         event = {
