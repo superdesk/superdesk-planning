@@ -6,7 +6,7 @@ import planningApis from '../../planning/api';
 import main from '../../main';
 import sinon from 'sinon';
 import {registerNotifications} from '../../../utils';
-import eventsNotifications from '../notifications';
+import eventsNotifications, {planningEventTemplateEvents} from '../notifications';
 import {getTestActionStore, restoreSinonStub} from '../../../utils/testUtils';
 import moment from 'moment';
 import {EVENTS} from '../../../constants';
@@ -74,6 +74,32 @@ describe('actions.events.notifications', () => {
             restoreSinonStub(eventsNotifications.onRecurringEventCreated);
             restoreSinonStub(eventsNotifications.onEventUpdated);
             restoreSinonStub(eventsNotifications.onEventCreated);
+        });
+
+        describe('event templates', () => {
+            let fetchTemplates;
+            let fetchRecentTemplates;
+
+            beforeEach(() => {
+                fetchTemplates = sinon.spy();
+                fetchRecentTemplates = sinon.spy();
+                sinon.stub(eventsApi, 'fetchEventTemplates').returns(fetchTemplates);
+                sinon.stub(eventsApi, 'getEventsRecentTemplates').returns(fetchRecentTemplates);
+            });
+
+            afterEach(() => {
+                restoreSinonStub(eventsApi.fetchEventTemplates);
+                restoreSinonStub(eventsApi.getEventsRecentTemplates);
+            });
+
+            Object.keys(planningEventTemplateEvents).forEach((event) => {
+                it(`${event} dispatches both template refreshes`, () => {
+                    $rootScope.$broadcast(event, {item: 'template1'});
+
+                    expect(fetchTemplates.calledOnce).toBe(true);
+                    expect(fetchRecentTemplates.calledOnce).toBe(true);
+                });
+            });
         });
 
         it('`events:lock` calls onEventLocked', (done) => {
