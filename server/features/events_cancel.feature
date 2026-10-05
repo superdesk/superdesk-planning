@@ -492,7 +492,7 @@ Feature: Events Cancel
                 "tz": "Australia/Sydney"
             },
             "lock_user": "#CONTEXT_USER_ID#",
-            "lock_session": "session123",
+            "lock_session": "2822e25fc5be08b7cdb27490",
             "lock_action": "cancel",
             "lock_time": "#DATE#"
         }, {
@@ -503,8 +503,8 @@ Feature: Events Cancel
                 "end": "2029-11-21T14:00:00.000Z",
                 "tz": "Australia/Sydney"
             },
-            "lock_user": "user123",
-            "lock_session": "session456",
+            "lock_user": "3822e25fc5be08b7cdb27490",
+            "lock_session": "2822e25fc5be08b7cdb27491",
             "lock_action": "cancel",
             "lock_time": "#DATE#"
         }, {

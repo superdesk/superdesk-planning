@@ -64,9 +64,13 @@ Feature: Events Spike
         }
         """
         When we get "/planning_history?where=item_id==%22#events._id#%22"
-        Then we get list with 1 items
+        Then we get list with 2 items
         """
         {"_items": [{
+            "item_id": "#events._id#",
+            "item_type": "event",
+            "operation": "create"
+        }, {
             "item_id": "#events._id#",
             "item_type": "event",
             "operation": "spiked",
@@ -147,7 +151,7 @@ Feature: Events Spike
             "slugline": "TestPlan 1",
             "related_events": [{"_id": "#events._id#", "link_type": "primary"}],
             "lock_user": "#CONTEXT_USER_ID#",
-            "lock_session": "123",
+            "lock_session": "2822e25fc5be08b7cdb27490",
             "planning_date": "2016-01-02"
         }, {
             "slugline": "TestPlan 2",
@@ -163,7 +167,7 @@ Feature: Events Spike
                 "related_events": [{"_id": "#events._id#", "link_type": "primary"}],
                 "state": "draft",
                 "lock_user": "#CONTEXT_USER_ID#",
-                "lock_session": "123"
+                "lock_session": "2822e25fc5be08b7cdb27490"
             }, {
                 "slugline": "TestPlan 2",
                 "related_events": [{"_id": "#events._id#", "link_type": "primary"}],
@@ -188,7 +192,7 @@ Feature: Events Spike
                 "end": "2016-01-03"
             },
             "lock_user": "#CONTEXT_USER_ID#",
-            "lock_session": "session123"
+            "lock_session": "2822e25fc5be08b7cdb27490"
         }]
         """
         When we spike events "#events._id#"
@@ -215,9 +219,13 @@ Feature: Events Spike
         }
         """
         When we get "/planning_history?where=item_id==%22#events._id#%22"
-        Then we get list with 1 items
+        Then we get list with 2 items
         """
         {"_items": [{
+            "item_id": "#events._id#",
+            "item_type": "event",
+            "operation": "create"
+        }, {
             "item_id": "#events._id#",
             "item_type": "event",
             "operation": "spiked",
@@ -889,6 +897,7 @@ Feature: Events Spike
         When we patch "/planning/#planning._id#"
         """
         {"coverages": [{
+            "news_coverage_status": {"qcode": "ncostat:int", "name": "coverage intended", "label": "Planned"},
             "planning": {
                 "ednote": "test coverage, I want 250 words",
                 "headline": "test headline",
@@ -1001,6 +1010,7 @@ Feature: Events Spike
         When we patch "/planning/#planning._id#"
         """
         {"coverages": [{
+            "news_coverage_status": {"qcode": "ncostat:int", "name": "coverage intended", "label": "Planned"},
             "planning": {
                 "ednote": "test coverage, I want 250 words",
                 "headline": "test headline",

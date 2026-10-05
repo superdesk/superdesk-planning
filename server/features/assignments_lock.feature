@@ -222,6 +222,7 @@ Feature: Assignments Locking
         """
         {
             "coverages": [{
+                "news_coverage_status": {"qcode": "ncostat:int", "name": "coverage intended", "label": "Planned"},
                 "planning": {
                     "ednote": "test coverage, I want 250 words",
                     "slugline": "test slugline"
@@ -362,6 +363,7 @@ Feature: Assignments Locking
         """
         {
             "coverages": [{
+                "news_coverage_status": {"qcode": "ncostat:int", "name": "coverage intended", "label": "Planned"},
                 "planning": {
                     "ednote": "test coverage, I want 250 words",
                     "slugline": "test slugline"
@@ -441,6 +443,7 @@ Feature: Assignments Locking
         """
         {
             "coverages": [{
+                "news_coverage_status": {"qcode": "ncostat:int", "name": "coverage intended", "label": "Planned"},
                 "planning": {
                     "ednote": "test coverage, I want 250 words",
                     "slugline": "test slugline"
@@ -517,6 +520,7 @@ Feature: Assignments Locking
         """
         {
             "coverages": [{
+                "news_coverage_status": {"qcode": "ncostat:int", "name": "coverage intended", "label": "Planned"},
                 "planning": {
                     "ednote": "test coverage, I want 250 words",
                     "slugline": "test slugline"
@@ -604,6 +608,7 @@ Feature: Assignments Locking
         """
         {
             "coverages": [{
+                "news_coverage_status": {"qcode": "ncostat:int", "name": "coverage intended", "label": "Planned"},
                 "planning": {
                     "ednote": "test coverage, I want 250 words",
                     "slugline": "test slugline"
@@ -680,6 +685,7 @@ Feature: Assignments Locking
         """
         {
             "coverages": [{
+                "news_coverage_status": {"qcode": "ncostat:int", "name": "coverage intended", "label": "Planned"},
                 "planning": {
                     "ednote": "test coverage, I want 250 words",
                     "slugline": "test slugline"
@@ -798,6 +804,7 @@ Feature: Assignments Locking
         """
         {
             "coverages": [{
+                "news_coverage_status": {"qcode": "ncostat:int", "name": "coverage intended", "label": "Planned"},
                 "planning": {
                     "ednote": "test coverage, I want 250 words",
                     "headline": "test headline",

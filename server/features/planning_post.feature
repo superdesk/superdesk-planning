@@ -284,6 +284,7 @@ Feature: Post Planning
         """
         {
             "coverages": [{
+                "news_coverage_status": {"qcode": "ncostat:int", "name": "coverage intended", "label": "Planned"},
                 "planning": {
                     "ednote": "test coverage, I want 250 words",
                     "headline": "test headline",
@@ -469,7 +470,7 @@ Feature: Post Planning
             "coverages": [{
                 "coverage_id": "plan1cov1",
                 "workflow_status": "draft",
-                "news_coverage_status": {"qcode": "ncostat:int"},
+                "news_coverage_status": {"qcode": "ncostat:int", "name": "coverage intended", "label": "Planned"},
                 "planning": {
                     "headline": "Plan 1 Cov 1",
                     "slugline": "plan-1-cov-1",

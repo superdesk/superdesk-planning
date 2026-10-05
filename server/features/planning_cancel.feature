@@ -266,7 +266,8 @@ Feature: Cancel all coverage
               "event_contact_info": ["#contacts._id#"],
               "occur_status": {
                   "name": "Planned, occurs certainly",
-                  "qcode": "eocstat:eos5"
+                  "qcode": "eocstat:eos5",
+                  "label": "Planned, occurs certainly"
               },
               "state": "draft"
           }
@@ -682,6 +683,7 @@ Feature: Cancel all coverage
     @auth
     @planning_cvs
     Scenario: Reason field can configured as required field for planning item
+        Given we have sessions "/sessions"
         Given "planning_types"
         """
         [
@@ -747,6 +749,7 @@ Feature: Cancel all coverage
     @notification
     @vocabulary
     Scenario: Reason field is required field for cancel all coverage action
+      Given we have sessions "/sessions"
       Given "planning_types"
         """
         [

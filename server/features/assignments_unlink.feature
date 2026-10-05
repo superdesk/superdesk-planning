@@ -54,6 +54,7 @@ Feature: Assignment Unlink
         """
         {
             "coverages": [{
+                "news_coverage_status": {"qcode": "ncostat:int", "name": "coverage intended", "label": "Planned"},
                 "planning": {
                     "ednote": "test coverage, I want 250 words",
                     "slugline": "test slugline",
@@ -218,6 +219,7 @@ Feature: Assignment Unlink
         """
         {
             "coverages": [{
+                "news_coverage_status": {"qcode": "ncostat:int", "name": "coverage intended", "label": "Planned"},
                 "planning": {
                     "ednote": "photo coverage, I want 250 words",
                     "headline": "test headline",
@@ -225,7 +227,7 @@ Feature: Assignment Unlink
                     "g2_content_type": "photo"
                 },
                 "assigned_to": {
-                    "desk": "#desk._id#",
+                    "desk": "#desks._id#",
                     "user": "#CONTEXT_USER_ID#",
                     "state": "in_progress"
                 }
@@ -238,7 +240,7 @@ Feature: Assignment Unlink
         """
         {
             "assigned_to": {
-                "desk": "#desk._id#",
+                "desk": "#desks._id#",
                 "user": "#CONTEXT_USER_ID#",
                 "state": "completed"
             }
@@ -289,6 +291,7 @@ Feature: Assignment Unlink
         """
         {
             "coverages": [{
+                "news_coverage_status": {"qcode": "ncostat:int", "name": "coverage intended", "label": "Planned"},
                 "planning": {
                     "ednote": "test coverage, I want 250 words",
                     "headline": "test headline",
@@ -296,7 +299,7 @@ Feature: Assignment Unlink
                     "g2_content_type" : "text"
                 },
                 "assigned_to": {
-                    "desk": "#desk._id#",
+                    "desk": "#desks._id#",
                     "user": "#CONTEXT_USER_ID#",
                     "state": "in_progress"
                 }
@@ -346,6 +349,7 @@ Feature: Assignment Unlink
         """
         {
             "coverages": [{
+                "news_coverage_status": {"qcode": "ncostat:int", "name": "coverage intended", "label": "Planned"},
                 "planning": {
                     "ednote": "test coverage, I want 250 words",
                     "headline": "test headline",
@@ -353,7 +357,7 @@ Feature: Assignment Unlink
                     "g2_content_type" : "text"
                 },
                 "assigned_to": {
-                    "desk": "#desk._id#",
+                    "desk": "#desks._id#",
                     "user": "#CONTEXT_USER_ID#",
                     "state": "in_progress"
                 }
@@ -404,6 +408,7 @@ Feature: Assignment Unlink
         """
         {
             "coverages": [{
+                "news_coverage_status": {"qcode": "ncostat:int", "name": "coverage intended", "label": "Planned"},
                 "planning": {
                     "ednote": "test coverage, I want 250 words",
                     "headline": "test headline",
@@ -411,7 +416,7 @@ Feature: Assignment Unlink
                     "g2_content_type" : "text"
                 },
                 "assigned_to": {
-                    "desk": "#desk._id#",
+                    "desk": "#desks._id#",
                     "user": "#CONTEXT_USER_ID#",
                     "state": "in_progress"
                 }
@@ -447,6 +452,7 @@ Feature: Assignment Unlink
         """
         {
             "coverages": [{
+                "news_coverage_status": {"qcode": "ncostat:int", "name": "coverage intended", "label": "Planned"},
                 "planning": {
                     "ednote": "test coverage, I want 250 words",
                     "slugline": "test slugline",
@@ -513,6 +519,7 @@ Feature: Assignment Unlink
         """
         {
             "coverages": [{
+                "news_coverage_status": {"qcode": "ncostat:int", "name": "coverage intended", "label": "Planned"},
                 "planning": {
                     "ednote": "test coverage, I want 250 words",
                     "slugline": "test slugline",
@@ -579,6 +586,7 @@ Feature: Assignment Unlink
         """
         {
             "coverages": [{
+                "news_coverage_status": {"qcode": "ncostat:int", "name": "coverage intended", "label": "Planned"},
                 "planning": {
                     "ednote": "test coverage, I want 250 words",
                     "slugline": "test slugline",
@@ -649,6 +657,7 @@ Feature: Assignment Unlink
         """
         {
             "coverages": [{
+                "news_coverage_status": {"qcode": "ncostat:int", "name": "coverage intended", "label": "Planned"},
                 "planning": {
                     "ednote": "test coverage, I want 250 words",
                     "slugline": "test slugline",
