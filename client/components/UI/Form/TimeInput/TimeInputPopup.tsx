@@ -138,6 +138,7 @@ export class TimeInputPopup extends React.Component<IProps, IState> {
                                     this.props.close();
                                 }}
                                 text={this.props.toBeConfirmedText}
+                                testId="time-popup-tbc"
                             />
                         </div>
                     )}

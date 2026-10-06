@@ -373,6 +373,9 @@ const rescheduleEvent = (original, updates) => (
             'events_reschedule',
             original,
             {
+                ...(has(updates, TO_BE_CONFIRMED_FIELD) ? {
+                    [TO_BE_CONFIRMED_FIELD]: updates[TO_BE_CONFIRMED_FIELD],
+                } : {}),
                 update_method: get(updates, 'update_method.value', EVENTS.UPDATE_METHODS[0].value),
                 dates: updates.dates,
                 reason: get(updates, 'reason', null),
