@@ -10,6 +10,7 @@ from planning.types.unified import UnifiedPlanningResource, PlanningItemType
 from planning.types.common import RelatedEvent
 from superdesk.utc import utcnow
 from superdesk import get_resource_service
+from superdesk.errors import SuperdeskApiError
 from superdesk.flask import g
 from superdesk.tests import utils as test_utils, fixtures
 
@@ -31,6 +32,73 @@ class EventsBaseTestCase(TestCase):
 
 
 class EventTestCase(EventsBaseTestCase):
+    def test_tbc_date_only_ranges(self):
+        for timezone, start_hour in (("America/Toronto", 15), ("Australia/Sydney", 1)):
+            for flag in ("no_end_time", "all_day"):
+                for end_day in (20, 21, 22):
+                    with self.subTest(timezone=timezone, flag=flag, end_day=end_day):
+                        event = {
+                            "type": "event",
+                            TO_BE_CONFIRMED_FIELD: True,
+                            "dates": {
+                                "start": datetime(
+                                    2099, 11, 21, 0 if flag == "all_day" else start_hour, tzinfo=pytz.UTC
+                                ),
+                                "end": datetime(2099, 11, end_day, tzinfo=pytz.UTC),
+                                "tz": timezone,
+                                flag: True,
+                            },
+                        }
+                        if end_day < 21:
+                            with self.assertRaisesRegex(SuperdeskApiError, "END DATE should be after START DATE"):
+                                self.events_service._validate_dates(event)
+                            with self.assertRaisesRegex(SuperdeskApiError, "END DATE should be after START DATE"):
+                                UnifiedPlanningResource.from_dict(event)
+                        else:
+                            self.events_service._validate_dates(event)
+                            UnifiedPlanningResource.from_dict(event)
+
+    def test_tbc_compares_timed_dates_in_toronto(self):
+        event = {
+            "type": "event",
+            TO_BE_CONFIRMED_FIELD: True,
+            "dates": {
+                "start": datetime(2099, 11, 21, 1, tzinfo=pytz.UTC),
+                "end": datetime(2099, 11, 20, 23, tzinfo=pytz.UTC),
+                "tz": "America/Toronto",
+            },
+        }
+        self.events_service._validate_dates(event)
+        UnifiedPlanningResource.from_dict(event)
+
+    def test_tbc_allows_end_time_before_start_time_on_same_local_date(self):
+        event = {
+            "type": "event",
+            TO_BE_CONFIRMED_FIELD: True,
+            "dates": {
+                "start": datetime(2099, 11, 21, 1, tzinfo=pytz.UTC),
+                "end": datetime(2099, 11, 20, 23, tzinfo=pytz.UTC),
+                "tz": "Australia/Sydney",
+            },
+        }
+        self.events_service._validate_dates(event)
+        UnifiedPlanningResource.from_dict(event)
+
+    def test_tbc_rejects_end_date_before_start_date(self):
+        event = {
+            "type": "event",
+            TO_BE_CONFIRMED_FIELD: True,
+            "dates": {
+                "start": datetime(2099, 11, 21, 1, tzinfo=pytz.UTC),
+                "end": datetime(2099, 11, 19, 23, tzinfo=pytz.UTC),
+                "tz": "Australia/Sydney",
+            },
+        }
+        with self.assertRaises(SuperdeskApiError):
+            self.events_service._validate_dates(event)
+        with self.assertRaises(SuperdeskApiError):
+            UnifiedPlanningResource.from_dict(event)
+
     async def test_create_cancelled_event(self):
         await self.events_service.post_async(
             [
