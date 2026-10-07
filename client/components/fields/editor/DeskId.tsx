@@ -41,7 +41,7 @@ export class EditorFieldDeskIdComponent extends React.PureComponent<IProps> {
                 labelField={'name'}
                 keyField={'_id'}
                 valueAsString={true}
-                defaultValue={this.props.desks[0]._id}
+                defaultValue={desks[0]?._id}
             />
         );
     }

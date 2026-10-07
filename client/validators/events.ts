@@ -7,7 +7,6 @@ import {gettext, eventUtils, timeUtils} from '../utils';
 import * as selectors from '../selectors';
 import {formProfile} from './profile';
 import {PRIVILEGES, EVENTS, TO_BE_CONFIRMED_FIELD} from '../constants';
-import {isSameDay} from './../helpers';
 
 const validateRequiredDates = ({value, errors, messages, diff}) => {
     if (!get(value, 'start')) {
@@ -41,7 +40,7 @@ const validateRequiredDates = ({value, errors, messages, diff}) => {
     }
 };
 
-const validateDateRange = ({value, errors, messages}) => {
+const validateDateRange = ({value, errors, messages, diff}) => {
     let startDate = moment(value.start);
     let endDate = moment(value.end);
 
@@ -49,8 +48,22 @@ const validateDateRange = ({value, errors, messages}) => {
         return;
     }
 
-    if (endDate.isSameOrBefore(startDate, 'minutes') && !value.all_day && !value.no_end_time) {
-        if (isSameDay(value.start, value.end)) {
+    startDate = timeUtils.getDateInRemoteTimeZone(startDate, value.tz);
+    endDate = timeUtils.getDateInRemoteTimeZone(endDate, value.tz);
+
+    const toBeConfirmed = get(diff, TO_BE_CONFIRMED_FIELD);
+
+    if (toBeConfirmed) {
+        startDate = getDateOnly(value.all_day ? moment.utc(value.start) : startDate);
+        endDate = getDateOnly(value.no_end_time || value.all_day ? moment.utc(value.end) : endDate);
+    }
+
+    const invalidRange = toBeConfirmed ?
+        endDate.isBefore(startDate, 'day') :
+        endDate.isSameOrBefore(startDate, 'minutes') && !value.all_day && !value.no_end_time;
+
+    if (invalidRange) {
+        if (startDate.isSame(endDate, 'day')) {
             set(errors, '_endTime', gettext('End time should be after start time'));
             messages.push(gettext('END TIME should be after START TIME'));
         } else {
@@ -174,6 +187,7 @@ const validateDates = ({getState, value, errors, messages, diff}) => {
         value: value,
         errors: newErrors,
         messages: messages,
+        diff: diff,
     });
 
     // we don't have to validate all recurring form update time action

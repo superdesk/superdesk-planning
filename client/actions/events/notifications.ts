@@ -372,23 +372,16 @@ const self = {
     onEventLinkUpdated,
 };
 
+const onEventTemplatesChanged = (_e, data) => (dispatch) => {
+    dispatch(eventsApi.fetchEventTemplates());
+    dispatch(eventsApi.getEventsRecentTemplates());
+};
+
 export const planningEventTemplateEvents = {
-    'events-template:created': () => {
-        eventsApi.fetchEventTemplates();
-        eventsApi.getEventsRecentTemplates();
-    },
-    'events-template:updated': () => {
-        eventsApi.fetchEventTemplates();
-        eventsApi.getEventsRecentTemplates();
-    },
-    'events-template:replaced': () => {
-        eventsApi.fetchEventTemplates();
-        eventsApi.getEventsRecentTemplates();
-    },
-    'events-template:deleted': () => {
-        eventsApi.fetchEventTemplates();
-        eventsApi.getEventsRecentTemplates();
-    },
+    'events-template:created': () => onEventTemplatesChanged,
+    'events-template:updated': () => onEventTemplatesChanged,
+    'events-template:replaced': () => onEventTemplatesChanged,
+    'events-template:deleted': () => onEventTemplatesChanged,
 };
 
 // Map of notification name and Action Event to execute

@@ -41,6 +41,7 @@ from planning.common import (
     format_address,
     get_event_max_multi_day_duration,
     LOCK_ACTION,
+    TO_BE_CONFIRMED_FIELD,
     sanitize_input_data,
     set_ingest_version_datetime,
     is_new_version,
@@ -272,7 +273,17 @@ class EventsService(AsyncBaseService):
         if not start_date or not end_date:
             raise SuperdeskApiError(message="Event START DATE and END DATE are mandatory.")
 
-        if (
+        to_be_confirmed = updates.get(TO_BE_CONFIRMED_FIELD, (original or {}).get(TO_BE_CONFIRMED_FIELD))
+
+        if to_be_confirmed:
+            timezone = dates.get("tz")
+            local_start = start_date if dates.get("all_day") else get_local_date(start_date, timezone)
+            local_end = (
+                end_date if dates.get("no_end_time") or dates.get("all_day") else get_local_date(end_date, timezone)
+            )
+            if local_end.date() < local_start.date():
+                raise SuperdeskApiError(message="END DATE should be after START DATE")
+        elif (
             dates.get("no_end_time") is True
             and end_date.date() < get_local_date(dates.get("start"), dates.get("tz")).date()
         ):

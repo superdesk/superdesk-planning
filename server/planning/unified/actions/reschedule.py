@@ -94,6 +94,7 @@ def mark_event_rescheduled(updates: dict[str, Any], reason: str, keep_dates: boo
     # As the duplicated Event will have the new schedule
     if not keep_dates:
         updates.pop("dates", None)
+        updates.pop(TO_BE_CONFIRMED_FIELD, None)
 
 
 async def reschedule_event_plannings(original: dict[str, Any], reason: str, plans=None, state=None):
