@@ -33,6 +33,7 @@ Feature: Assignment Revert
         When we patch "/planning/#planning._id#"
         """
         {"coverages": [{
+            "news_coverage_status": {"qcode": "ncostat:int", "name": "coverage intended", "label": "Planned"},
             "planning": {
                 "ednote": "test coverage, I want 250 words",
                 "headline": "test headline",
@@ -81,6 +82,7 @@ Feature: Assignment Revert
         When we patch "/planning/#planning._id#"
         """
         {"coverages": [{
+            "news_coverage_status": {"qcode": "ncostat:int", "name": "coverage intended", "label": "Planned"},
             "planning": {
                 "ednote": "test coverage, I want 250 words",
                 "headline": "test headline",
@@ -118,6 +120,7 @@ Feature: Assignment Revert
         When we patch "/planning/#planning._id#"
         """
         {"coverages": [{
+            "news_coverage_status": {"qcode": "ncostat:int", "name": "coverage intended", "label": "Planned"},
             "planning": {
                 "ednote": "test coverage, I want 250 words",
                 "headline": "test headline",
@@ -164,6 +167,7 @@ Feature: Assignment Revert
         When we patch "/planning/#planning._id#"
         """
         {"coverages": [{
+            "news_coverage_status": {"qcode": "ncostat:int", "name": "coverage intended", "label": "Planned"},
             "planning": {
                 "ednote": "test coverage, I want 250 words",
                 "headline": "test headline",
@@ -200,6 +204,7 @@ Feature: Assignment Revert
         When we patch "/planning/#planning._id#"
         """
         {"coverages": [{
+            "news_coverage_status": {"qcode": "ncostat:int", "name": "coverage intended", "label": "Planned"},
             "planning": {
                 "ednote": "test coverage, I want 250 words",
                 "headline": "test headline",

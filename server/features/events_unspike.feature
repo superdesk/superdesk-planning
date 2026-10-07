@@ -42,9 +42,14 @@ Feature: Events Unspike
         }
         """
         When we get "/planning_history"
-        Then we get list with 1 items
+        Then we get list with 2 items
         """
         {"_items": [{
+            "item_id": "#events._id#",
+            "item_type": "event",
+            "operation": "create",
+            "update": {"state": "spiked"}
+        }, {
             "item_id": "#events._id#",
             "item_type": "event",
             "operation": "unspiked",

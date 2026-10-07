@@ -84,9 +84,10 @@ Feature: Events Reschedule
         }
         """
         When we get "/planning_history"
-        Then we get list with 3 items
+        Then we get list with 4 items
         """
         {"_items": [
+            {"operation": "create", "item_id": "event1", "item_type": "event", "update": {"state": "scheduled"}},
             {"operation": "reschedule", "item_id": "event1", "item_type": "event", "update": {
                 "reschedule_to": "#DUPLICATE.id#"
             }},
@@ -103,7 +104,7 @@ Feature: Events Reschedule
         Given we have sessions "/sessions"
         Given "desks"
         """
-        [{"_id": "desk_123", "name": "Politic Desk"}]
+        [{"name": "Politic Desk"}]
         """
         Given "events"
         """
@@ -214,7 +215,7 @@ Feature: Events Reschedule
             "assigned_to" : {
                 "state" : "cancelled",
                 "user" : "#CONTEXT_USER_ID#",
-                "desk" : "desk_123"
+                "desk" : "#desks._id#"
             },
             "planning" : {
                 "news_coverage_status" : {
@@ -1149,7 +1150,7 @@ Feature: Events Reschedule
                 "tz": "Australia/Sydney"
             },
             "lock_user": "#CONTEXT_USER_ID#",
-            "lock_session": "session123",
+            "lock_session": "#FAKE_SESSION_ID#",
             "lock_action": "reschedule",
             "lock_time": "#DATE#"
         }, {
@@ -1160,8 +1161,8 @@ Feature: Events Reschedule
                 "end": "2029-11-21T14:00:00.000Z",
                 "tz": "Australia/Sydney"
             },
-            "lock_user": "user123",
-            "lock_session": "session456",
+            "lock_user": "#FAKE_USER_ID#",
+            "lock_session": "#FAKE_SESSION_ID#",
             "lock_action": "reschedule",
             "lock_time": "#DATE#"
         }, {
@@ -1409,9 +1410,15 @@ Feature: Events Reschedule
         }
         """
         When we get "/planning_history"
-        Then we get list with 1 items
+        Then we get list with 2 items
         """
         {"_items": [
+            {
+                "item_id": "event1",
+                "item_type": "event",
+                "operation": "create",
+                "update": {"state": "postponed"}
+            },
             {
                 "item_id": "event1",
                 "item_type": "event",
@@ -1654,9 +1661,10 @@ Feature: Events Reschedule
         }
         """
         When we get "/planning_history"
-        Then we get list with 3 items
+        Then we get list with 4 items
         """
         {"_items": [
+            {"operation": "create", "item_id": "event1", "item_type": "event", "update": {"state": "scheduled"}},
             {"operation": "reschedule", "item_id": "event1", "item_type": "event", "update": {
                 "reschedule_to": "#DUPLICATE.id#"
             }},

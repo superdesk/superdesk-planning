@@ -22,12 +22,19 @@ from superdesk.tests.environment import (
     after_scenario,
 )
 from superdesk.default_settings import MODULES as CORE_MODULES
+from superdesk.tests import set_placeholder
 
 from app import get_app
 from settings import INSTALLED_APPS, env, MODULES
 
 from planning.tests import clear_planning_signal_listeners
 from features.utils import run_async_task
+
+# Valid ObjectIds that belong to no user and no session, exposed to features as `#FAKE_USER_ID#` and
+# `#FAKE_SESSION_ID#`. For fixtures that need an item locked by someone other than the scenario's
+# user, or in a session other than the scenario's (`#CONTEXT_USER_ID#` / `#SESSION_ID#` are the real ones).
+FAKE_USER_ID = "aaaaaaaaaaaaaaaaaaaaaaaa"
+FAKE_SESSION_ID = "bbbbbbbbbbbbbbbbbbbbbbbb"
 
 
 def before_all(context):
@@ -69,6 +76,8 @@ async def before_feature_async(context, feature):
 
 async def before_scenario_async(context, scenario):
     await setup_before_scenario(context, scenario)
+    set_placeholder(context, "FAKE_USER_ID", FAKE_USER_ID)
+    set_placeholder(context, "FAKE_SESSION_ID", FAKE_SESSION_ID)
 
     # Update app config based on scenario tags
     current_app = context.app
