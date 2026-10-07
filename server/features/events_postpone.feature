@@ -450,7 +450,7 @@ Feature: Events Postpone
                 "tz": "Australia/Sydney"
             },
             "lock_user": "#CONTEXT_USER_ID#",
-            "lock_session": "2822e25fc5be08b7cdb27490",
+            "lock_session": "#FAKE_SESSION_ID#",
             "lock_action": "postpone",
             "lock_time": "#DATE#"
         }, {
@@ -461,8 +461,8 @@ Feature: Events Postpone
                 "end": "2029-11-21T14:00:00.000Z",
                 "tz": "Australia/Sydney"
             },
-            "lock_user": "3822e25fc5be08b7cdb27490",
-            "lock_session": "2822e25fc5be08b7cdb27491",
+            "lock_user": "#FAKE_USER_ID#",
+            "lock_session": "#FAKE_SESSION_ID#",
             "lock_action": "postpone",
             "lock_time": "#DATE#"
         }, {

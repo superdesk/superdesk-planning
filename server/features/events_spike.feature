@@ -151,7 +151,7 @@ Feature: Events Spike
             "slugline": "TestPlan 1",
             "related_events": [{"_id": "#events._id#", "link_type": "primary"}],
             "lock_user": "#CONTEXT_USER_ID#",
-            "lock_session": "2822e25fc5be08b7cdb27490",
+            "lock_session": "#FAKE_SESSION_ID#",
             "planning_date": "2016-01-02"
         }, {
             "slugline": "TestPlan 2",
@@ -167,7 +167,7 @@ Feature: Events Spike
                 "related_events": [{"_id": "#events._id#", "link_type": "primary"}],
                 "state": "draft",
                 "lock_user": "#CONTEXT_USER_ID#",
-                "lock_session": "2822e25fc5be08b7cdb27490"
+                "lock_session": "#FAKE_SESSION_ID#"
             }, {
                 "slugline": "TestPlan 2",
                 "related_events": [{"_id": "#events._id#", "link_type": "primary"}],
@@ -192,7 +192,7 @@ Feature: Events Spike
                 "end": "2016-01-03"
             },
             "lock_user": "#CONTEXT_USER_ID#",
-            "lock_session": "2822e25fc5be08b7cdb27490"
+            "lock_session": "#FAKE_SESSION_ID#"
         }]
         """
         When we spike events "#events._id#"
