@@ -83,3 +83,30 @@ class UnifiedResourcePlanningTestCase(TestCase):
 
         updated = await self.planning_service.find_by_id(created.id)
         self.assertTrue(updated.featured)
+
+    async def test_lock_endpoints_respond_in_legacy_planning_format(self) -> None:
+        self.headers = []
+        await setup_db_user(self, fixtures.users.admin().to_dict())
+        planning = UnifiedPlanningResource.from_dict(
+            {
+                "type": PlanningItemType.PLANNING,
+                "slugline": "Locked",
+                "dates": {"start": "2026-09-25T01:00:00+0000"},
+            }
+        )
+        created = (await self.planning_service.create([planning]))[0]
+
+        # The client keeps these responses as the planning item and reads `planning_date` from them.
+        # Answering in the unified format (`dates.start`) crashes its action modals (SDBELGA-1158).
+        for endpoint, payload in (("lock", {"lock_action": "spike"}), ("unlock", {})):
+            with self.subTest(endpoint=endpoint):
+                response = await self.test_client.post(
+                    f"/api/planning/{created.id}/{endpoint}",
+                    json=payload,
+                    headers=self.headers,
+                )
+                item = await response.get_json()
+                self.assertEqual(response.status_code, 201, item)
+                self.assertEqual(item.get("planning_date"), "2026-09-25T01:00:00+0000")
+                self.assertIs(item.get("all_day"), False)
+                self.assertNotIn("dates", item)

@@ -1,6 +1,6 @@
 import {test, expect} from '@playwright/test';
 
-import {setup, login, addItems, waitForPageLoad, SubNavBar, UiFrameworkModal} from '../utils/common';
+import {setup, login, addItems, waitForPageLoad, getMenuItem, SubNavBar, UiFrameworkModal} from '../utils/common';
 import {PlanningList, PlanningEditor, PlanningPreview, FeaturedModal} from '../page-object-models/planning';
 import {createPlanningFor} from '../utils/fixtures/planning';
 import {setupPlanningPublishing} from '../utils/fixtures/publish_config';
@@ -220,5 +220,27 @@ test.describe('Planning.Featured', {
                 .getByTestId('notifications')
                 .getByTestId('notification--error')
         ).toContainText('Some selected items have not yet been posted');
+    });
+
+    test('can add an item from the list while it is open in the editor', async({page}) => {
+        const item = list.items().filter({hasText: 'Today_NOT_Featured'});
+
+        await item.dblclick();
+        await editor.waitLoadingComplete();
+
+        const saved = page.waitForResponse((response) => (
+            response.request().method() === 'PATCH' && response.url().includes('/api/planning/')
+        ));
+
+        await (await getMenuItem(page, item, 'Add to featured stories')).click();
+        expect((await saved).status()).toBe(200);
+        await expect(page.getByTestId('notification--error')).toHaveCount(0);
+
+        await expect(await getMenuItem(page, item, 'Remove from featured stories')).toBeVisible();
+        await page.keyboard.press('Escape');
+
+        await openFeaturedStoriesModal();
+        await expect(modal.getList('selected').locator('li')).toHaveCount(2);
+        await expect(modal.getList('selected')).toContainText('Today_NOT_Featured');
     });
 });
