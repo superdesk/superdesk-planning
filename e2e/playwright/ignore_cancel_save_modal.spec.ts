@@ -3,6 +3,43 @@ import {test, expect} from '@playwright/test';
 import {setup, login, waitForPageLoad, addItems, UiFrameworkModal, SubNavBar} from './utils/common';
 import {EventEditor, PlanningList, PlanningEditor} from './page-object-models/planning';
 import {createEventFor} from './utils/fixtures/events';
+import {createPlanningFor} from './utils/fixtures/planning';
+
+const POSTED = {state: 'scheduled', pubstatus: 'usable'};
+const COVERAGE = {
+    coverage_id: 'e2e-unchanged-item',
+    workflow_status: 'draft',
+    news_coverage_status: {qcode: 'ncostat:int', name: 'coverage intended', label: 'Planned'},
+    planning: {g2_content_type: 'text', language: 'en'},
+};
+
+const UNCHANGED_ITEMS: Array<{title: string; resource: 'events' | 'planning'; item: {[key: string]: any}}> = [
+    {
+        title: 'draft event',
+        resource: 'events',
+        item: createEventFor.today({slugline: 'Unchanged', name: 'Unchanged'}),
+    },
+    {
+        title: 'posted event',
+        resource: 'events',
+        item: createEventFor.today({slugline: 'Unchanged', name: 'Unchanged', ...POSTED}),
+    },
+    {
+        title: 'draft planning item',
+        resource: 'planning',
+        item: createPlanningFor.today({slugline: 'Unchanged'}),
+    },
+    {
+        title: 'planning item with a coverage',
+        resource: 'planning',
+        item: createPlanningFor.today({slugline: 'Unchanged', coverages: [COVERAGE]}),
+    },
+    {
+        title: 'posted planning item',
+        resource: 'planning',
+        item: createPlanningFor.today({slugline: 'Unchanged', ...POSTED}),
+    },
+];
 
 test.describe('Planning.IgnoreCancelSaveModal', () => {
     let editor: EventEditor | PlanningEditor;
@@ -227,4 +264,26 @@ test.describe('Planning.IgnoreCancelSaveModal', () => {
         await editor.waitTillOpen();
         await editor.expect({slugline: 'Modified Event'});
     });
+
+    for (const {title, resource, item} of UNCHANGED_ITEMS) {
+        test(`closes an unchanged ${title} without asking to save`, async({page}) => {
+            const itemEditor = resource === 'events' ? new EventEditor(page) : new PlanningEditor(page);
+
+            await addItems(page.request, resource, [item]);
+            await page.reload();
+            await waitForPageLoad.planning(page);
+
+            await list.item(0).dblclick();
+            await itemEditor.waitLoadingComplete();
+
+            // On open the editor compares the item with its autosave copy. "Cancel" in place of "Close",
+            // or an enabled save button, means it found changes that nobody made (SDBELGA-1153).
+            await expect(itemEditor.closeButton).toHaveText('Close');
+            await expect(itemEditor.saveButton.or(itemEditor.updateButton)).toBeDisabled();
+
+            await itemEditor.closeButton.click();
+            await itemEditor.waitTillClosed();
+            await expect(modal.element).toBeHidden();
+        });
+    }
 });
