@@ -10,6 +10,8 @@ import {
     ContactsInput,
     LocationInput,
 } from '../../../utils/common/inputs';
+import {Popup} from '../../../utils/common';
+import {CoverageEditor} from '../planning/coverageEditor';
 
 export class EventEditor extends Editor {
     constructor(page: Page, languages: Array<string> = [], multilingualFields: Array<string> = []) {
@@ -110,6 +112,29 @@ export class EventEditor extends Editor {
 
     get header(): Locator {
         return this.element.getByTestId('editor-header');
+    }
+
+    get coveragesContainer(): Locator {
+        return this.element.getByTestId('field-coverages');
+    }
+
+    /**
+     * Adds a new coverage to this event
+     * @param {string} coverageType - Name of the coverage type to add
+     */
+    async addCoverage(coverageType: string): Promise<void> {
+        const popup = new Popup(this.page);
+
+        await this.coveragesContainer.getByTestId('create-button').click();
+        await popup.waitTillOpen();
+        await popup.element
+            .getByText(coverageType)
+            .click();
+        await popup.waitTillClosed();
+    }
+
+    getCoverageEditor(index: number): CoverageEditor {
+        return new CoverageEditor(this, index);
     }
 
     async toggleShowAllLanguages(): Promise<void> {

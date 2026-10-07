@@ -2,7 +2,6 @@ import {expect, Locator} from '@playwright/test';
 
 import {Editor} from '../../../utils/common/editor';
 import {Input, SelectInput, ActionMenu, ToggleInput, UrgencyTreeSelectInput} from '../../../utils/common';
-import {PlanningEditor} from './planningEditor';
 
 /**
  * Wrapper class around Superdesk's Coverage editor component
@@ -10,15 +9,15 @@ import {PlanningEditor} from './planningEditor';
  */
 export class CoverageEditor extends Editor {
     fields: {[key: string]: any};
-    parentEditor: PlanningEditor;
+    parentEditor: Editor;
     index: number;
 
     /**
      * Creates an instance of the Editor instance.
-     * @param {PlanningEditor} parentEditor - The parent editor to this coverage
-     * @param {number} index - The index of this coverage inside the planning item
+     * @param {Editor} parentEditor - The parent editor (Planning or Event) to this coverage
+     * @param {number} index - The index of this coverage inside the parent item
      */
-    constructor(parentEditor: PlanningEditor, index: number) {
+    constructor(parentEditor: Editor, index: number) {
         super(parentEditor.page, '', '');
 
         this.parentEditor = parentEditor;
