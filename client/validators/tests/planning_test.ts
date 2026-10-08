@@ -9,6 +9,7 @@ import planningValidators, {
 } from '../planning';
 import {superdeskApi} from '../../superdeskApi';
 import {vocabularies} from '../../api/vocabularies';
+import {ICoverageContentProfile} from '../../interfaces';
 
 describe('planningValidators', () => {
     let planning;
@@ -190,7 +191,7 @@ describe('planningValidators', () => {
         const getProfile = (fieldId, type, enabled) => ({
             editor: {[fieldId]: {enabled: enabled}},
             schema: {[fieldId]: {type: type, required: true}},
-        });
+        } as unknown as ICoverageContentProfile);
 
         beforeEach(() => {
             originalVocabularyApi = superdeskApi.entities.vocabulary;
