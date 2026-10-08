@@ -59,10 +59,12 @@ export class PlanningList {
         await expect(this.item(index)).toContainText(text);
     }
 
+    associatedPlanningToggle(index: number): Locator {
+        return this.nestedItem(index).getByTestId('toggle-related-plannings');
+    }
+
     async toggleAssociatedPlanning(index: number): Promise<void> {
-        await this.nestedItem(index)
-            .getByTestId('toggle-related-plannings')
-            .click();
+        await this.associatedPlanningToggle(index).click();
     }
 
     async toggleAssociatedEvents(index: number): Promise<void> {

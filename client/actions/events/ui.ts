@@ -5,7 +5,7 @@ import {appConfig} from 'appConfig';
 import {planningApi} from '../../superdeskApi';
 import {IPlanningItem, IEventItem} from '../../interfaces';
 
-import {showModal, main, addEventToCurrentAgenda} from '../index';
+import {showModal, main, addEventToCurrentAgenda, eventsPlanning} from '../index';
 import {EVENTS, MODALS, SPIKED_STATE, MAIN, ITEM_TYPE, POST_STATE} from '../../constants';
 import eventsApi from './api';
 import * as selectors from '../../selectors';
@@ -45,6 +45,7 @@ const fetchEvents = (params = {
         return dispatch(eventsApi.query(filters, true))
             .then((items) => {
                 dispatch(eventsApi.receiveEvents(items));
+                dispatch(self.expandRelatedPlannings(items));
                 dispatch(self.setEventsList(items.map((e) => e._id)));
                 // update the url (deep linking)
                 $timeout(() => $location.search('searchParams', JSON.stringify(params)));
@@ -102,6 +103,7 @@ const refetch = (skipEvents = []) => (
 
         return dispatch(eventsApi.refetch(skipEvents))
             .then((events) => {
+                dispatch(self.expandRelatedPlannings(events));
                 dispatch(self.setEventsList(events.map((e) => (e._id))));
                 return Promise.resolve(events);
             }, (error) => {
@@ -684,9 +686,18 @@ const loadMore = () => (dispatch, getState) => {
                 dispatch(self.requestEvents(params));
             }
             dispatch(eventsApi.receiveEvents(items));
+            dispatch(self.expandRelatedPlannings(items));
             dispatch(self.addToList(items.map((e) => e._id)));
         });
 };
+
+// With `planning_expand_related_plannings` on, an event row is rendered already expanded,
+// so its planning items must be loaded with the list instead of on the first toggle (SDBELGA-1157)
+const expandRelatedPlannings = (events: Array<IEventItem>) => (dispatch) => (
+    appConfig.planning_expand_related_plannings ?
+        dispatch(eventsPlanning.ui.loadAllRelatedPlannings(events)) :
+        Promise.resolve()
+);
 
 const requestEvents = (params = {}) => ({
     type: MAIN.ACTIONS.REQUEST,
@@ -1064,6 +1075,7 @@ const self = {
     saveWithConfirmation,
     receiveEventHistory,
     loadMore,
+    expandRelatedPlannings,
     addToList,
     requestEvents,
     updateEventTime,
