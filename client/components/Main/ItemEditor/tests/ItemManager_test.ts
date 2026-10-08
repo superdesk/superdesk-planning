@@ -921,6 +921,7 @@ describe('components.Main.ItemManager', () => {
 
         afterEach(() => {
             restoreSinonStub(main.save);
+            restoreSinonStub(main.notifyPreconditionFailed);
             restoreSinonStub(manager.unlockAndCancel);
         });
 
@@ -977,6 +978,39 @@ describe('components.Main.ItemManager', () => {
 
                     expect(manager.unlockAndCancel.callCount).toBe(1);
 
+                    done();
+                })
+                .catch(done.fail);
+        });
+
+        it('restores editor controls when saving from authoring fails', (done) => {
+            const error = {status: 400};
+
+            main.save.returns(Promise.reject(error));
+            editor.setState({submitting: true, submitFailed: false});
+
+            manager._saveFromAuthoring()
+                .then(() => {
+                    expectState({submitting: false, submitFailed: true});
+                    expect(editor.onSaveComplete.callCount).toBe(0);
+                    expect(manager.unlockAndCancel.callCount).toBe(0);
+                    done();
+                })
+                .catch(done.fail);
+        });
+
+        it('restores editor controls and notifies on a precondition failure', (done) => {
+            const notify = sinon.stub(main, 'notifyPreconditionFailed');
+
+            main.save.returns(Promise.reject({status: 412}));
+            editor.setState({submitting: true});
+
+            manager._saveFromAuthoring()
+                .then(() => {
+                    expectState({submitting: false, submitFailed: true});
+                    expect(notify.calledOnce).toBe(true);
+                    expect(notify.args[0]).toEqual([false]);
+                    expect(editor.onSaveComplete.callCount).toBe(0);
                     done();
                 })
                 .catch(done.fail);

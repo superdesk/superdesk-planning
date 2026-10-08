@@ -54,6 +54,11 @@ export class Monitoring {
         await this.actionsMenu.waitFor({state: 'visible'});
     }
 
+    async openArticle(text: string): Promise<void> {
+        await this.item(text).dblclick();
+        await this.page.getByTestId('authoring').waitFor({state: 'visible'});
+    }
+
     /**
      * The list item re-renders (closing an open actions menu) once it receives `assignment_id`.
      * Its assignment icon has no test id in superdesk-client-core, hence the class selector.
