@@ -1,3 +1,4 @@
+import {IVocabulary} from 'superdesk-api';
 import moment from 'moment';
 import sinon from 'sinon';
 import {initialState} from '../../utils/testData';
@@ -195,19 +196,21 @@ describe('planningValidators', () => {
 
         beforeEach(() => {
             originalVocabularyApi = superdeskApi.entities.vocabulary;
-            superdeskApi.entities.vocabulary = {
-                getAll: () => ({
-                    toArray: () => [{_id: textField, display_name: 'Caption', field_type: 'text'}],
-                }),
-            };
+            Object.assign(superdeskApi.entities, {
+                vocabulary: {
+                    getAll: () => ({
+                        toArray: () => [{_id: textField, display_name: 'Caption', field_type: 'text'}],
+                    }),
+                },
+            });
             sinon.stub(vocabularies, 'getCustomVocabularies').returns([
                 {_id: vocabularyField, display_name: 'Image type'},
-            ]);
+            ] as Array<IVocabulary>);
             coverage = {planning: {}};
         });
 
         afterEach(() => {
-            superdeskApi.entities.vocabulary = originalVocabularyApi;
+            Object.assign(superdeskApi.entities, {vocabulary: originalVocabularyApi});
             restoreSinonStub(vocabularies.getCustomVocabularies);
         });
 
