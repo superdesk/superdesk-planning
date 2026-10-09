@@ -1,7 +1,16 @@
+import {IVocabulary} from 'superdesk-api';
 import moment from 'moment';
+import sinon from 'sinon';
 import {initialState} from '../../utils/testData';
+import {restoreSinonStub} from '../../utils/testUtils';
 import {cloneDeep} from 'lodash';
-import planningValidators from '../planning';
+import planningValidators, {
+    validateCoverageCustomTextFields,
+    validateCoverageVocabularyFields,
+} from '../planning';
+import {superdeskApi} from '../../superdeskApi';
+import {vocabularies} from '../../api/vocabularies';
+import {ICoverageContentProfile} from '../../interfaces';
 
 describe('planningValidators', () => {
     let planning;
@@ -171,6 +180,114 @@ describe('planningValidators', () => {
                     },
                 },
             },
+        });
+    });
+
+    describe('coverage custom fields', () => {
+        const textField = 'custom_text_field';
+        const vocabularyField = 'custom_vocabulary_field';
+        let originalVocabularyApi;
+        let coverage;
+
+        const getProfile = (fieldId, type, enabled) => ({
+            editor: {[fieldId]: {enabled: enabled}},
+            schema: {[fieldId]: {type: type, required: true}},
+        } as unknown as ICoverageContentProfile);
+
+        beforeEach(() => {
+            originalVocabularyApi = superdeskApi.entities.vocabulary;
+            Object.assign(superdeskApi.entities, {
+                vocabulary: {
+                    getAll: () => ({
+                        toArray: () => [{_id: textField, display_name: 'Caption', field_type: 'text'}],
+                    }),
+                },
+            });
+            sinon.stub(vocabularies, 'getCustomVocabularies').returns([
+                {_id: vocabularyField, display_name: 'Image type'},
+            ] as Array<IVocabulary>);
+            coverage = {planning: {}};
+        });
+
+        afterEach(() => {
+            Object.assign(superdeskApi.entities, {vocabulary: originalVocabularyApi});
+            restoreSinonStub(vocabularies.getCustomVocabularies);
+        });
+
+        it('fails if a required custom text field is empty', () => {
+            validateCoverageCustomTextFields(
+                getProfile(textField, 'custom_text', true),
+                errors,
+                errorMessages,
+                coverage,
+            );
+
+            expect(errorMessages).toEqual(['Caption is a required field']);
+            expect(errors).toEqual({[textField]: 'This field is required'});
+        });
+
+        it('passes if a required custom text field has a value', () => {
+            coverage.planning.fields = [{field: textField, value: 'some text'}];
+
+            validateCoverageCustomTextFields(
+                getProfile(textField, 'custom_text', true),
+                errors,
+                errorMessages,
+                coverage,
+            );
+
+            expect(errorMessages).toEqual([]);
+            expect(errors).toEqual({[textField]: null});
+        });
+
+        it('ignores a required custom text field removed from the profile', () => {
+            validateCoverageCustomTextFields(
+                getProfile(textField, 'custom_text', false),
+                errors,
+                errorMessages,
+                coverage,
+            );
+
+            expect(errorMessages).toEqual([]);
+            expect(errors).toEqual({});
+        });
+
+        it('fails if a required custom vocabulary field is empty', () => {
+            validateCoverageVocabularyFields(
+                getProfile(vocabularyField, 'custom_vocabulary', true),
+                errors,
+                errorMessages,
+                coverage,
+            );
+
+            expect(errorMessages).toEqual(['Image type is a required field']);
+            expect(errors).toEqual({[vocabularyField]: 'This field is required'});
+        });
+
+        it('passes if a required custom vocabulary field has a value in coverage planning', () => {
+            coverage.planning.subject = [{name: 'Archive', qcode: 'archive', scheme: vocabularyField}];
+
+            validateCoverageVocabularyFields(
+                getProfile(vocabularyField, 'custom_vocabulary', true),
+                errors,
+                errorMessages,
+                coverage,
+            );
+
+            expect(errorMessages).toEqual([]);
+            expect(errors).toEqual({[vocabularyField]: null});
+        });
+
+        it('ignores a required custom vocabulary field removed from the profile', () => {
+            validateCoverageVocabularyFields(
+                getProfile(vocabularyField, 'custom_vocabulary', false),
+                errors,
+                errorMessages,
+                coverage,
+            );
+
+            expect(errorMessages).toEqual([]);
+            expect(errors).toEqual({});
         });
     });
 });

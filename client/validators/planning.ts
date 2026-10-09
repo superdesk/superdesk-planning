@@ -146,6 +146,10 @@ export const validateCoverages = ({
     handleErrors();
 };
 
+// A field removed from the profile can keep its schema, it must not be validated
+const isCoverageFieldEnabled = (coverageProfile: ICoverageContentProfile, fieldId: string): boolean =>
+    coverageProfile.editor?.[fieldId]?.enabled === true;
+
 export const validateCoverageVocabularyFields = (
     coverageProfile: ICoverageContentProfile,
     errors: Dictionary<string, string>,
@@ -158,11 +162,11 @@ export const validateCoverageVocabularyFields = (
         const hasNoDefinedValidator = !validators['coverage'][fieldId];
         const isCustomVocabulary = coverageProfile.schema[fieldId].type === 'custom_vocabulary';
 
-        return hasNoDefinedValidator && isCustomVocabulary;
+        return hasNoDefinedValidator && isCustomVocabulary && isCoverageFieldEnabled(coverageProfile, fieldId);
     })
         .forEach((fieldId) => {
             const isInvalid = coverageProfile.schema[fieldId].required
-                ? isEmpty(getVocabularyItemsForScheme(diff, fieldId))
+                ? isEmpty(getVocabularyItemsForScheme(diff.planning, fieldId))
                 : false;
 
             if (isInvalid) {
@@ -196,7 +200,7 @@ export const validateCoverageCustomTextFields = (
         const hasNoDefinedValidator = !validators['coverage'][fieldId];
         const isCustomTextField = coverageProfile.schema[fieldId].type === 'custom_text';
 
-        return hasNoDefinedValidator && isCustomTextField;
+        return hasNoDefinedValidator && isCustomTextField && isCoverageFieldEnabled(coverageProfile, fieldId);
     })
         .forEach((fieldId) => {
             const isInvalid = coverageProfile.schema[fieldId].required
