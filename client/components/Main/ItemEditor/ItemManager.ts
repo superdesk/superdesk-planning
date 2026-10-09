@@ -643,6 +643,8 @@ export class ItemManager {
                         actions.main.notifyPreconditionFailed(this.props.inModalView)
                     );
                 }
+
+                return this.setState({submitting: false, submitFailed: true});
             });
     }
 

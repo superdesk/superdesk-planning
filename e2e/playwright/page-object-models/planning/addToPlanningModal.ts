@@ -28,14 +28,25 @@ export class AddToPlanningModal {
         await this.element.waitFor({state: 'hidden'});
     }
 
+    async cancel(): Promise<void> {
+        await this.editor.closeButton.click();
+        await this.editor.waitTillClosed();
+        await this.element.getByRole('button', {name: "Don't add", exact: true}).click();
+        await this.waitTillClosed();
+    }
+
     async addAsCoverage(planningText: string): Promise<void> {
+        await this.selectPlanningItem(planningText);
+        await this.editor.saveButton.click();
+        await this.waitTillClosed();
+    }
+
+    async selectPlanningItem(planningText: string): Promise<void> {
         const planning = this.planningItem(planningText);
 
         await planning.hover();
         await planning.getByRole('button', {name: 'Add as coverage'}).click();
         await this.editor.waitTillOpen();
-        await this.editor.saveButton.click();
-        await this.waitTillClosed();
     }
 
     async addAsCoverageByDoubleClick(planningText: string): Promise<void> {

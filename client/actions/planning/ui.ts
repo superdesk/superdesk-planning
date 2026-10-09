@@ -551,6 +551,8 @@ const saveFromAuthoring = (original, updates?: Partial<IPlanningItem>) => (
                 return Promise.reject(error);
             })
             .finally(() => {
+                dispatch(actions.actionInProgress(false));
+
                 // resolving scope here because if there is a confirmation modal
                 // while saving the planning item, scope won't be available
                 const $scope = get(selectors.general.modalProps(getState()), '$scope', null);

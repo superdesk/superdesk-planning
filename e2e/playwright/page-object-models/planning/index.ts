@@ -6,6 +6,7 @@ export {AdvancedSearch} from './advancedSearch';
 export {SearchFilters} from './searchFilters';
 export {Monitoring} from './monitoring';
 export {AddToPlanningModal} from './addToPlanningModal';
+export {ArticleAuthoring} from './articleAuthoring';
 
 export * from './assignments';
 export * from './events';

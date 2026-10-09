@@ -424,6 +424,7 @@ describe('actions.planning.ui', () => {
 
                     expect(modalProps.$scope.resolve.callCount).toBe(0);
                     expect(modalProps.$scope.reject.callCount).toBe(1);
+                    expect(store.dispatch.calledWith({type: 'ACTION_IN_PROGRESS', payload: false})).toBe(true);
 
                     done();
                 })
@@ -445,6 +446,7 @@ describe('actions.planning.ui', () => {
 
                     expect(modalProps.$scope.resolve.callCount).toBe(0);
                     expect(modalProps.$scope.reject.callCount).toBe(1);
+                    expect(store.dispatch.calledWith({type: 'ACTION_IN_PROGRESS', payload: false})).toBe(true);
 
                     done();
                 })
@@ -488,6 +490,7 @@ describe('actions.planning.ui', () => {
 
                     expect(modalProps.$scope.resolve.callCount).toBe(1);
                     expect(modalProps.$scope.reject.callCount).toBe(0);
+                    expect(store.dispatch.calledWith({type: 'ACTION_IN_PROGRESS', payload: false})).toBe(true);
 
                     done();
                 })

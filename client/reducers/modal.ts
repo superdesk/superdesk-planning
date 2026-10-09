@@ -7,6 +7,18 @@ const initialState = {
     actionInProgress: false,
 };
 
+function setActionInProgress(state, value) {
+    if (state == null) {
+        return state;
+    }
+
+    return {
+        ...state,
+        actionInProgress: value,
+        previousState: setActionInProgress(state.previousState, value),
+    };
+}
+
 const modal = (state = initialState, action) => {
     switch (action.type) {
     case 'SHOW_MODAL':
@@ -22,10 +34,7 @@ const modal = (state = initialState, action) => {
 
         return state.previousState || initialState;
     case 'ACTION_IN_PROGRESS':
-        return {
-            ...state,
-            actionInProgress: action.payload,
-        };
+        return setActionInProgress(state, action.payload);
     case 'MODAL_CLEAR_PREVIOUS':
         return {
             ...state,
