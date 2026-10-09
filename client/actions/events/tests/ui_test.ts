@@ -6,9 +6,11 @@ import {planningApi} from '../../../superdeskApi';
 import {GROUP_LIST_BY} from '../../../interfaces';
 import eventsApi from '../api';
 import eventsUi from '../ui';
+import eventsPlanningUi from '../../eventsPlanning/ui';
 import planningApis from '../../planning/api';
 import {main} from '../../';
 import {MAIN, EVENTS, ITEM_TYPE} from '../../../constants';
+import {appConfig} from 'appConfig';
 
 import {getTestActionStore, restoreSinonStub} from '../../../utils/testUtils';
 
@@ -416,7 +418,7 @@ describe('actions.events.ui', () => {
         it('ids', (done) => (
             store.test(done, eventsUi.fetchEvents({ids: ['e1', 'e2', 'e3']}))
                 .then((response) => {
-                    expect(store.dispatch.callCount).toBe(4);
+                    expect(store.dispatch.callCount).toBe(5);
                     expect(eventsApi.query.callCount).toBe(1);
                     expect(eventsApi.receiveEvents.callCount).toBe(1);
                     expect(eventsUi.setEventsList.callCount).toBe(1);
@@ -424,6 +426,74 @@ describe('actions.events.ui', () => {
                     done();
                 })
         ).catch(done.fail));
+    });
+
+    describe('related plannings expanded by default', () => {
+        let originalExpandSetting;
+
+        beforeEach(() => {
+            originalExpandSetting = appConfig.planning_expand_related_plannings;
+            appConfig.planning_expand_related_plannings = true;
+            store.initialState.main.filter = MAIN.FILTERS.EVENTS;
+
+            sinon.stub(eventsApi, 'query').returns(Promise.resolve(data.events));
+            sinon.stub(eventsApi, 'receiveEvents').returns({type: 'RECEIVE_EVENTS'});
+            sinon.stub(eventsPlanningUi, 'loadAllRelatedPlannings').returns(() => Promise.resolve([]));
+        });
+
+        afterEach(() => {
+            appConfig.planning_expand_related_plannings = originalExpandSetting;
+            restoreSinonStub(eventsApi.query);
+            restoreSinonStub(eventsApi.receiveEvents);
+            restoreSinonStub(eventsPlanningUi.loadAllRelatedPlannings);
+        });
+
+        it('fetchEvents loads the related plannings of the fetched events', (done) => (
+            store.test(done, eventsUi.fetchEvents())
+                .then(() => {
+                    expect(eventsPlanningUi.loadAllRelatedPlannings.callCount).toBe(1);
+                    expect(eventsPlanningUi.loadAllRelatedPlannings.args[0]).toEqual([data.events]);
+                    done();
+                })
+        ).catch(done.fail));
+
+        it('loadMore loads the related plannings of the next page', (done) => {
+            store.initialState.main.search.EVENTS.totalItems = 100;
+
+            return store.test(done, eventsUi.loadMore())
+                .then(() => {
+                    expect(eventsApi.query.args[0][0].page).toBe(2);
+                    expect(eventsPlanningUi.loadAllRelatedPlannings.callCount).toBe(1);
+                    expect(eventsPlanningUi.loadAllRelatedPlannings.args[0]).toEqual([data.events]);
+                    done();
+                })
+                .catch(done.fail);
+        });
+
+        it('refetch loads the related plannings of the refetched events', (done) => {
+            restoreSinonStub(eventsApi.refetch);
+            restoreSinonStub(eventsUi.refetch);
+            sinon.stub(eventsApi, 'refetch').callsFake(() => Promise.resolve(data.events));
+
+            return store.test(done, eventsUi.refetch())
+                .then(() => {
+                    expect(eventsPlanningUi.loadAllRelatedPlannings.callCount).toBe(1);
+                    expect(eventsPlanningUi.loadAllRelatedPlannings.args[0]).toEqual([data.events]);
+                    done();
+                })
+                .catch(done.fail);
+        });
+
+        it('does not load related plannings when they are collapsed by default', (done) => {
+            appConfig.planning_expand_related_plannings = false;
+
+            return store.test(done, eventsUi.fetchEvents())
+                .then(() => {
+                    expect(eventsPlanningUi.loadAllRelatedPlannings.callCount).toBe(0);
+                    done();
+                })
+                .catch(done.fail);
+        });
     });
 
     describe('duplicate', () => {

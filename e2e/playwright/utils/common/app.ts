@@ -80,6 +80,23 @@ export async function setup(page: Page, profile: string, url: string) {
 }
 
 /**
+ * Overrides values in the client config that the server sends to the app, for settings
+ * that the e2e server keeps at their default. Must be called before the app is loaded.
+ *
+ * @param {Page} page - The Playwright page object that will load the app.
+ * @param {object} config - The client config values to override.
+ * @return {Promise<void>} A promise that resolves once the override is in place.
+ */
+export async function overrideClientConfig(page: Page, config: {[key: string]: any}): Promise<void> {
+    await page.route('**/api/client_config*', async (route) => {
+        const response = await route.fetch();
+        const body = await response.json();
+
+        await route.fulfill({response, json: {...body, config: {...body.config, ...config}}});
+    });
+}
+
+/**
  * Changes the current workspace by interacting with the workspace navigation element on the given page.
  *
  * @param {Page} page - The Playwright Page object representing the active browser page.
