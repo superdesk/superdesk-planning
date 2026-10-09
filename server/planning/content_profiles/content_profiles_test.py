@@ -159,6 +159,7 @@ class ContentProfilesTestCase(TestCase):
         self.assertIsNotNone(profile)
         self.assertEqual(profile.item_type, PlanningProfileType.COVERAGE)
         self.assertEqual(profile.content_type, "text")
+
         self.assertTrue(profile.editor["anpa_category"]["enabled"])
         self.assertFalse(profile.editor["headline"]["enabled"])
 
@@ -197,3 +198,14 @@ class ContentProfilesTestCase(TestCase):
         self.assertEqual(profile.content_type, "text")
         self.assertTrue(profile.editor["anpa_category"]["enabled"])
         self.assertFalse(profile.editor["headline"]["enabled"])
+
+    async def test_coverage_profiles_can_share_name_across_content_types(self):
+        profile_ids = await utils.post_items(
+            "planning_types",
+            [
+                {"name": "coverage", "type": "coverage", "content_type": "text"},
+                {"name": "coverage", "type": "coverage", "content_type": "picture"},
+            ],
+        )
+
+        self.assertEqual(len(profile_ids), 2)
