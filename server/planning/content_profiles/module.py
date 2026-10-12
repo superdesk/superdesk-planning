@@ -11,7 +11,7 @@ from superdesk.core.resources import (
 from superdesk.core.auth.privilege_rules import http_method_privilege_based_rules
 from superdesk.factory.app import SuperdeskApp
 
-from planning.types import PlanningProfileResource
+from planning.types import PlanningProfileResource, PlanningProfileType
 from planning.common import get_config_event_related_item_search_provider_name
 
 from .service import PlanningTypesAsyncService
@@ -43,6 +43,21 @@ planning_types_resource_config = ResourceConfig(
                 name="item_type_1_name_1",  # keeping old name to override the previous index
                 keys=[("type", 1), ("name", 1), ("content_type", 1)],
                 unique=True,
+            ),
+            MongoIndexOptions(
+                name="non_coverage_type_1",
+                keys=[("type", 1)],
+                unique=True,
+                sparse=False,
+                partialFilterExpression={
+                    "type": {
+                        "$in": [
+                            profile_type.value
+                            for profile_type in PlanningProfileType
+                            if profile_type != PlanningProfileType.COVERAGE
+                        ]
+                    }
+                },
             ),
         ]
     ),
