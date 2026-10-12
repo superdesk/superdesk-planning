@@ -513,6 +513,7 @@ Feature: Planning
         {
             "coverages": [
                 {
+                    "news_coverage_status": {"qcode": "ncostat:int", "name": "coverage intended", "label": "Planned"},
                     "coverage_id": "#firstcoverage#",
                     "workflow_status": "active",
                     "planning": {
@@ -1250,14 +1251,14 @@ Feature: Planning
                       "g2_content_type": "text"
 
                   },
-                  "news_coverage_status": {"qcode": "ncostat:notint", "name": "coverage not intended", "label": "Not planned"},
+                  "news_coverage_status": {"qcode": "ncostat:notint", "name": "coverage not intended", "label": "Not planned"}
               },
               {
                   "planning": {
                       "ednote": "test coverage2, 250 words",
                       "g2_content_type": "text"
                   },
-                  "news_coverage_status": {"qcode": "ncostat:notint", "name": "coverage not intended", "label": "Not planned"},
+                  "news_coverage_status": {"qcode": "ncostat:notint", "name": "coverage not intended", "label": "Not planned"}
               }
           ]
       }
@@ -1365,6 +1366,7 @@ Feature: Planning
           "agendas": ["#agenda1#"],
           "coverages": [
               {
+                  "news_coverage_status": {"qcode": "ncostat:int", "name": "coverage intended", "label": "Planned"},
                   "coverage_id": "cov_123",
                   "planning": {
                       "internal_note" : "Mostly harmless",
@@ -1588,6 +1590,7 @@ Feature: Planning
           "internal_note": "Thanks for all the fish",
           "coverages": [
               {
+                  "news_coverage_status": {"qcode": "ncostat:int", "name": "coverage intended", "label": "Planned"},
                   "coverage_id": "#firstcoverage#",
                   "planning": {
                       "ednote": "test coverage, 250 words",
@@ -3550,6 +3553,7 @@ Feature: Planning
             "slugline": "test slugline",
             "coverages": [
                 {
+                    "news_coverage_status": {"qcode": "ncostat:int", "name": "coverage intended", "label": "Planned"},
                     "coverage_id": "#firstcoverage#",
                     "workflow_status": "cancelled",
                     "planning": {
@@ -3564,6 +3568,7 @@ Feature: Planning
                         "user": "#CONTEXT_USER_ID#"
                     },
                     "scheduled_updates": [{
+                        "news_coverage_status": {"qcode": "ncostat:int", "name": "coverage intended", "label": "Planned"},
                         "scheduled_update_id": "#firstscheduled#",
                         "assigned_to": {
                             "assignment_id": "#firstscheduledassignment#",
@@ -3579,6 +3584,7 @@ Feature: Planning
                         }
                     },
                     {
+                        "news_coverage_status": {"qcode": "ncostat:int", "name": "coverage intended", "label": "Planned"},
                         "scheduled_update_id": "#secondscheduled#",
                         "assigned_to": {
                             "assignment_id": "#secondscheduledassignment#",

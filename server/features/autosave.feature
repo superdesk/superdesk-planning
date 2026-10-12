@@ -47,15 +47,15 @@ Feature: Events Autosave
             "type": "event",
             "slugline": "Test Event 2",
             "lock_user": "#CONTEXT_USER_ID#",
-            "lock_session": "2822e25fc5be08b7cdb27490",
+            "lock_session": "#FAKE_SESSION_ID#",
             "lock_action": "edit",
             "lock_time": "2018-06-01T05:19:02+0000"
         }, {
             "_id": "event3",
             "type": "event",
             "slugline": "Test Event 3",
-            "lock_user": "3822e25fc5be08b7cdb27490",
-            "lock_session": "2822e25fc5be08b7cdb27491",
+            "lock_user": "#FAKE_USER_ID#",
+            "lock_session": "#FAKE_SESSION_ID#",
             "lock_action": "edit",
             "lock_time": "2018-06-01T05:19:02+0000"
         }]
@@ -135,15 +135,15 @@ Feature: Events Autosave
             "type": "planning",
             "slugline": "Test Plan 2",
             "lock_user": "#CONTEXT_USER_ID#",
-            "lock_session": "2822e25fc5be08b7cdb27490",
+            "lock_session": "#FAKE_SESSION_ID#",
             "lock_action": "edit",
             "lock_time": "2018-06-01T05:19:02+0000"
         }, {
             "_id": "plan3",
             "type": "planning",
             "slugline": "Test Plan 3",
-            "lock_user": "3822e25fc5be08b7cdb27490",
-            "lock_session": "2822e25fc5be08b7cdb27491",
+            "lock_user": "#FAKE_USER_ID#",
+            "lock_session": "#FAKE_SESSION_ID#",
             "lock_action": "edit",
             "lock_time": "2018-06-01T05:19:02+0000"
         }]

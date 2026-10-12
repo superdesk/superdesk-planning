@@ -55,6 +55,7 @@ Feature: Assignment link
         """
         {
             "coverages": [{
+                "news_coverage_status": {"qcode": "ncostat:int", "name": "coverage intended", "label": "Planned"},
                 "planning": {
                     "ednote": "test coverage, I want 250 words",
                     "slugline": "test slugline"
@@ -150,13 +151,14 @@ Feature: Assignment link
         """
         {
             "coverages": [{
+                "news_coverage_status": {"qcode": "ncostat:int", "name": "coverage intended", "label": "Planned"},
                 "planning": {
                     "ednote": "test coverage, I want 250 words",
                     "headline": "test headline",
                     "slugline": "test slugline"
                 },
                 "assigned_to": {
-                    "desk": "#desk._id#",
+                    "desk": "#desks._id#",
                     "user": "#CONTEXT_USER_ID#",
                     "state": "in_progress"
                 }
@@ -321,6 +323,7 @@ Feature: Assignment link
         """
         {
             "coverages": [{
+                "news_coverage_status": {"qcode": "ncostat:int", "name": "coverage intended", "label": "Planned"},
                 "planning": {
                     "ednote": "test coverage, I want 250 words",
                     "headline": "test headline",
@@ -446,6 +449,7 @@ Feature: Assignment link
         """
         {
             "coverages": [{
+                "news_coverage_status": {"qcode": "ncostat:int", "name": "coverage intended", "label": "Planned"},
                 "planning": {
                     "ednote": "test coverage, I want 250 words",
                     "headline": "test headline",
@@ -563,6 +567,7 @@ Feature: Assignment link
         """
         {
             "coverages": [{
+                "news_coverage_status": {"qcode": "ncostat:int", "name": "coverage intended", "label": "Planned"},
                 "planning": {
                     "ednote": "test coverage, I want 250 words",
                     "headline": "test headline",
@@ -741,6 +746,7 @@ Feature: Assignment link
         """
         {
             "coverages": [{
+                "news_coverage_status": {"qcode": "ncostat:int", "name": "coverage intended", "label": "Planned"},
                 "planning": {
                     "ednote": "test coverage, I want 250 words",
                     "headline": "test headline",
@@ -813,6 +819,7 @@ Feature: Assignment link
         """
         {
             "coverages": [{
+                "news_coverage_status": {"qcode": "ncostat:int", "name": "coverage intended", "label": "Planned"},
                 "planning": {
                     "ednote": "test coverage, I want 250 words",
                     "slugline": "test slugline"
@@ -901,6 +908,7 @@ Feature: Assignment link
         """
         {
             "coverages": [{
+                "news_coverage_status": {"qcode": "ncostat:int", "name": "coverage intended", "label": "Planned"},
                 "planning": {
                     "ednote": "test coverage, I want 250 words",
                     "headline": "test headline",
@@ -1370,7 +1378,7 @@ Feature: Assignment link
                         "slugline": "test slugline"
                     },
                     "assigned_to": {
-                        "desk": "desk_123",
+                        "desk": "#desks._id#",
                         "user": "507f191e810c19729de870eb",
                         "state": "draft"
                     }
@@ -1400,7 +1408,7 @@ Feature: Assignment link
                     },
                     "assigned_to": {
                         "assignment_id": "#firstassignment#",
-                        "desk": "desk_123",
+                        "desk": "#desks._id#",
                         "user": "507f191e810c19729de870eb",
                         "state": "draft"
                     }
@@ -1429,12 +1437,12 @@ Feature: Assignment link
                     },
                     "assigned_to": {
                         "assignment_id": "#firstassignment#",
-                        "desk": "desk_123",
+                        "desk": "#desks._id#",
                         "user": "507f191e810c19729de870eb"
                     },
                     "scheduled_updates": [{
                         "assigned_to": {
-                            "desk": "desk_123",
+                            "desk": "#desks._id#",
                             "user": "507f191e810c19729de870eb",
                             "state": "draft"
                         },
@@ -1448,7 +1456,7 @@ Feature: Assignment link
                     },
                     {
                         "assigned_to": {
-                            "desk": "desk_123",
+                            "desk": "#desks._id#",
                             "user": "507f191e810c19729de870eb",
                             "state": "draft"
                         },
@@ -1491,13 +1499,13 @@ Feature: Assignment link
                     },
                     "assigned_to": {
                         "assignment_id": "#firstassignment#",
-                        "desk": "desk_123",
+                        "desk": "#desks._id#",
                         "user": "507f191e810c19729de870eb"
                     },
                     "scheduled_updates": [{
                         "assigned_to": {
                             "assignment_id": "#firstscheduledassignment#",
-                            "desk": "desk_123",
+                            "desk": "#desks._id#",
                             "user": "507f191e810c19729de870eb",
                             "state": "draft"
                         },
@@ -1514,7 +1522,7 @@ Feature: Assignment link
                     {
                         "assigned_to": {
                             "assignment_id": "#secondscheduledassignment#",
-                            "desk": "desk_123",
+                            "desk": "#desks._id#",
                             "user": "507f191e810c19729de870eb",
                             "state": "draft"
                         },
@@ -1548,14 +1556,14 @@ Feature: Assignment link
                     },
                     "assigned_to": {
                         "assignment_id": "#firstassignment#",
-                        "desk": "desk_123",
+                        "desk": "#desks._id#",
                         "user": "507f191e810c19729de870eb"
                     },
                     "scheduled_updates": [{
                         "scheduled_update_id": "#firstscheduled#",
                         "assigned_to": {
                             "assignment_id": "#firstscheduledassignment#",
-                            "desk": "desk_123",
+                            "desk": "#desks._id#",
                             "user": "507f191e810c19729de870eb",
                             "state": "active"
                         },
@@ -1571,7 +1579,7 @@ Feature: Assignment link
                         "scheduled_update_id": "#secondscheduled#",
                         "assigned_to": {
                             "assignment_id": "#secondscheduledassignment#",
-                            "desk": "desk_123",
+                            "desk": "#desks._id#",
                             "user": "507f191e810c19729de870eb",
                             "state": "active"
                         },
@@ -1643,7 +1651,7 @@ Feature: Assignment link
                         "slugline": "test slugline"
                     },
                     "assigned_to": {
-                        "desk": "desk_123",
+                        "desk": "#desks._id#",
                         "user": "507f191e810c19729de870eb",
                         "state": "draft"
                     }
@@ -1673,7 +1681,7 @@ Feature: Assignment link
                     },
                     "assigned_to": {
                         "assignment_id": "#firstassignment#",
-                        "desk": "desk_123",
+                        "desk": "#desks._id#",
                         "user": "507f191e810c19729de870eb",
                         "state": "draft"
                     }
@@ -1702,12 +1710,12 @@ Feature: Assignment link
                     },
                     "assigned_to": {
                         "assignment_id": "#firstassignment#",
-                        "desk": "desk_123",
+                        "desk": "#desks._id#",
                         "user": "507f191e810c19729de870eb"
                     },
                     "scheduled_updates": [{
                         "assigned_to": {
-                            "desk": "desk_123",
+                            "desk": "#desks._id#",
                             "user": "507f191e810c19729de870eb",
                             "state": "draft"
                         },
@@ -1721,7 +1729,7 @@ Feature: Assignment link
                     },
                     {
                         "assigned_to": {
-                            "desk": "desk_123",
+                            "desk": "#desks._id#",
                             "user": "507f191e810c19729de870eb",
                             "state": "draft"
                         },
@@ -1764,13 +1772,13 @@ Feature: Assignment link
                     },
                     "assigned_to": {
                         "assignment_id": "#firstassignment#",
-                        "desk": "desk_123",
+                        "desk": "#desks._id#",
                         "user": "507f191e810c19729de870eb"
                     },
                     "scheduled_updates": [{
                         "assigned_to": {
                             "assignment_id": "#firstscheduledassignment#",
-                            "desk": "desk_123",
+                            "desk": "#desks._id#",
                             "user": "507f191e810c19729de870eb",
                             "state": "draft"
                         },
@@ -1787,7 +1795,7 @@ Feature: Assignment link
                     {
                         "assigned_to": {
                             "assignment_id": "#secondscheduledassignment#",
-                            "desk": "desk_123",
+                            "desk": "#desks._id#",
                             "user": "507f191e810c19729de870eb",
                             "state": "draft"
                         },
@@ -1821,14 +1829,14 @@ Feature: Assignment link
                     },
                     "assigned_to": {
                         "assignment_id": "#firstassignment#",
-                        "desk": "desk_123",
+                        "desk": "#desks._id#",
                         "user": "507f191e810c19729de870eb"
                     },
                     "scheduled_updates": [{
                         "scheduled_update_id": "#firstscheduled#",
                         "assigned_to": {
                             "assignment_id": "#firstscheduledassignment#",
-                            "desk": "desk_123",
+                            "desk": "#desks._id#",
                             "user": "507f191e810c19729de870eb",
                             "state": "active"
                         },
@@ -1844,7 +1852,7 @@ Feature: Assignment link
                         "scheduled_update_id": "#secondscheduled#",
                         "assigned_to": {
                             "assignment_id": "#secondscheduledassignment#",
-                            "desk": "desk_123",
+                            "desk": "#desks._id#",
                             "user": "507f191e810c19729de870eb",
                             "state": "active"
                         },
@@ -1943,7 +1951,7 @@ Feature: Assignment link
                         "slugline": "test slugline"
                     },
                     "assigned_to": {
-                        "desk": "desk_123",
+                        "desk": "#desks._id#",
                         "user": "507f191e810c19729de870eb",
                         "state": "draft"
                     }
@@ -1973,7 +1981,7 @@ Feature: Assignment link
                     },
                     "assigned_to": {
                         "assignment_id": "#firstassignment#",
-                        "desk": "desk_123",
+                        "desk": "#desks._id#",
                         "user": "507f191e810c19729de870eb",
                         "state": "draft"
                     }
@@ -2002,20 +2010,18 @@ Feature: Assignment link
                     },
                     "assigned_to": {
                         "assignment_id": "#firstassignment#",
-                        "desk": "desk_123",
+                        "desk": "#desks._id#",
                         "user": "507f191e810c19729de870eb"
                     },
                     "scheduled_updates": [{
                         "assigned_to": {
-                            "desk": "desk_123",
+                            "desk": "#desks._id#",
                             "user": "507f191e810c19729de870eb",
                             "state": "draft"
                         },
                         "coverage_id": "#firstcoverage#",
                         "workflow_status": "draft",
-                        "news_coverage_status": {
-                          "qcode": "ncostat:int"
-                        },
+                        "news_coverage_status": {"qcode": "ncostat:int", "name": "coverage intended", "label": "Planned"},
                         "planning": {
                             "internal_note": "Int. note",
                             "scheduled": "2029-11-27T14:00:00.000Z"
@@ -2023,15 +2029,13 @@ Feature: Assignment link
                     },
                     {
                         "assigned_to": {
-                            "desk": "desk_123",
+                            "desk": "#desks._id#",
                             "user": "507f191e810c19729de870eb",
                             "state": "draft"
                         },
                         "coverage_id": "#firstcoverage#",
                         "workflow_status": "draft",
-                        "news_coverage_status": {
-                          "qcode": "ncostat:int"
-                        },
+                        "news_coverage_status": {"qcode": "ncostat:int", "name": "coverage intended", "label": "Planned"},
                         "planning": {
                             "internal_note": "Int. note",
                             "scheduled": "2029-11-28T14:00:00+0000"
@@ -2068,13 +2072,13 @@ Feature: Assignment link
                     },
                     "assigned_to": {
                         "assignment_id": "#firstassignment#",
-                        "desk": "desk_123",
+                        "desk": "#desks._id#",
                         "user": "507f191e810c19729de870eb"
                     },
                     "scheduled_updates": [{
                         "assigned_to": {
                             "assignment_id": "#firstscheduledassignment#",
-                            "desk": "desk_123",
+                            "desk": "#desks._id#",
                             "user": "507f191e810c19729de870eb",
                             "state": "draft"
                         },
@@ -2091,7 +2095,7 @@ Feature: Assignment link
                     {
                         "assigned_to": {
                             "assignment_id": "#secondscheduledassignment#",
-                            "desk": "desk_123",
+                            "desk": "#desks._id#",
                             "user": "507f191e810c19729de870eb",
                             "state": "draft"
                         },
@@ -2116,9 +2120,7 @@ Feature: Assignment link
                 {
                     "coverage_id": "#firstcoverage#",
                     "workflow_status": "active",
-                    "news_coverage_status": {
-                      "qcode": "ncostat:int"
-                    },
+                    "news_coverage_status": {"qcode": "ncostat:int", "name": "coverage intended", "label": "Planned"},
                     "planning": {
                         "ednote": "test coverage, I want 250 words",
                         "headline": "test headline",
@@ -2127,22 +2129,20 @@ Feature: Assignment link
                     },
                     "assigned_to": {
                         "assignment_id": "#firstassignment#",
-                        "desk": "desk_123",
+                        "desk": "#desks._id#",
                         "user": "507f191e810c19729de870eb"
                     },
                     "scheduled_updates": [{
                         "scheduled_update_id": "#firstscheduled#",
                         "assigned_to": {
                             "assignment_id": "#firstscheduledassignment#",
-                            "desk": "desk_123",
+                            "desk": "#desks._id#",
                             "user": "507f191e810c19729de870eb",
                             "state": "active"
                         },
                         "coverage_id": "#firstcoverage#",
                         "workflow_status": "active",
-                        "news_coverage_status": {
-                          "qcode": "ncostat:int"
-                        },
+                        "news_coverage_status": {"qcode": "ncostat:int", "name": "coverage intended", "label": "Planned"},
                         "planning": {
                             "internal_note": "Int. note",
                             "scheduled": "2029-11-27T14:00:00.000Z"
@@ -2152,15 +2152,13 @@ Feature: Assignment link
                         "scheduled_update_id": "#secondscheduled#",
                         "assigned_to": {
                             "assignment_id": "#secondscheduledassignment#",
-                            "desk": "desk_123",
+                            "desk": "#desks._id#",
                             "user": "507f191e810c19729de870eb",
                             "state": "active"
                         },
                         "coverage_id": "#firstcoverage#",
                         "workflow_status": "active",
-                        "news_coverage_status": {
-                          "qcode": "ncostat:int"
-                        },
+                        "news_coverage_status": {"qcode": "ncostat:int", "name": "coverage intended", "label": "Planned"},
                         "planning": {
                             "internal_note": "Int. note",
                             "scheduled": "2029-11-28T14:00:00+0000"
@@ -2261,16 +2259,14 @@ Feature: Assignment link
             "coverages": [
                 {
                     "workflow_status": "draft",
-                    "news_coverage_status": {
-                      "qcode": "ncostat:int"
-                    },
+                    "news_coverage_status": {"qcode": "ncostat:int", "name": "coverage intended", "label": "Planned"},
                     "planning": {
                         "ednote": "test coverage, I want 250 words",
                         "headline": "test headline",
                         "slugline": "test slugline"
                     },
                     "assigned_to": {
-                        "desk": "desk_123",
+                        "desk": "#desks._id#",
                         "user": "507f191e810c19729de870eb",
                         "state": "draft"
                     }
@@ -2300,7 +2296,7 @@ Feature: Assignment link
                     },
                     "assigned_to": {
                         "assignment_id": "#firstassignment#",
-                        "desk": "desk_123",
+                        "desk": "#desks._id#",
                         "user": "507f191e810c19729de870eb",
                         "state": "draft"
                     }
@@ -2320,9 +2316,7 @@ Feature: Assignment link
                 {
                     "coverage_id": "#firstcoverage#",
                     "workflow_status": "draft",
-                    "news_coverage_status": {
-                      "qcode": "ncostat:int"
-                    },
+                    "news_coverage_status": {"qcode": "ncostat:int", "name": "coverage intended", "label": "Planned"},
                     "planning": {
                         "ednote": "test coverage, I want 250 words",
                         "headline": "test headline",
@@ -2331,7 +2325,7 @@ Feature: Assignment link
                     },
                     "assigned_to": {
                         "assignment_id": "#firstassignment#",
-                        "desk": "desk_123",
+                        "desk": "#desks._id#",
                         "user": "507f191e810c19729de870eb"
                     },
                     "scheduled_updates": [{
@@ -2342,9 +2336,7 @@ Feature: Assignment link
                         },
                         "coverage_id": "#firstcoverage#",
                         "workflow_status": "draft",
-                        "news_coverage_status": {
-                          "qcode": "ncostat:int"
-                        },
+                        "news_coverage_status": {"qcode": "ncostat:int", "name": "coverage intended", "label": "Planned"},
                         "planning": {
                             "internal_note": "Int. note",
                             "scheduled": "2029-11-27T14:00:00.000Z"
@@ -2352,15 +2344,13 @@ Feature: Assignment link
                     },
                     {
                         "assigned_to": {
-                            "desk": "desk_123",
+                            "desk": "#desks._id#",
                             "user": "507f191e810c19729de870eb",
                             "state": "draft"
                         },
                         "coverage_id": "#firstcoverage#",
                         "workflow_status": "draft",
-                        "news_coverage_status": {
-                          "qcode": "ncostat:int"
-                        },
+                        "news_coverage_status": {"qcode": "ncostat:int", "name": "coverage intended", "label": "Planned"},
                         "planning": {
                             "internal_note": "Int. note",
                             "scheduled": "2029-11-28T14:00:00+0000"
@@ -2397,7 +2387,7 @@ Feature: Assignment link
                     },
                     "assigned_to": {
                         "assignment_id": "#firstassignment#",
-                        "desk": "desk_123",
+                        "desk": "#desks._id#",
                         "user": "507f191e810c19729de870eb"
                     },
                     "scheduled_updates": [{
@@ -2420,7 +2410,7 @@ Feature: Assignment link
                     {
                         "assigned_to": {
                             "assignment_id": "#secondscheduledassignment#",
-                            "desk": "desk_123",
+                            "desk": "#desks._id#",
                             "user": "507f191e810c19729de870eb",
                             "state": "draft"
                         },
@@ -2445,9 +2435,7 @@ Feature: Assignment link
                 {
                     "coverage_id": "#firstcoverage#",
                     "workflow_status": "active",
-                    "news_coverage_status": {
-                      "qcode": "ncostat:int"
-                    },
+                    "news_coverage_status": {"qcode": "ncostat:int", "name": "coverage intended", "label": "Planned"},
                     "planning": {
                         "ednote": "test coverage, I want 250 words",
                         "headline": "test headline",
@@ -2456,7 +2444,7 @@ Feature: Assignment link
                     },
                     "assigned_to": {
                         "assignment_id": "#firstassignment#",
-                        "desk": "desk_123",
+                        "desk": "#desks._id#",
                         "user": "507f191e810c19729de870eb"
                     },
                     "scheduled_updates": [{
@@ -2469,9 +2457,7 @@ Feature: Assignment link
                         },
                         "coverage_id": "#firstcoverage#",
                         "workflow_status": "active",
-                        "news_coverage_status": {
-                          "qcode": "ncostat:int"
-                        },
+                        "news_coverage_status": {"qcode": "ncostat:int", "name": "coverage intended", "label": "Planned"},
                         "planning": {
                             "internal_note": "Int. note",
                             "scheduled": "2029-11-27T14:00:00.000Z"
@@ -2481,15 +2467,13 @@ Feature: Assignment link
                         "scheduled_update_id": "#secondscheduled#",
                         "assigned_to": {
                             "assignment_id": "#secondscheduledassignment#",
-                            "desk": "desk_123",
+                            "desk": "#desks._id#",
                             "user": "507f191e810c19729de870eb",
                             "state": "active"
                         },
                         "coverage_id": "#firstcoverage#",
                         "workflow_status": "active",
-                        "news_coverage_status": {
-                          "qcode": "ncostat:int"
-                        },
+                        "news_coverage_status": {"qcode": "ncostat:int", "name": "coverage intended", "label": "Planned"},
                         "planning": {
                             "internal_note": "Int. note",
                             "scheduled": "2029-11-28T14:00:00+0000"
@@ -2588,16 +2572,14 @@ Feature: Assignment link
             "coverages": [
                 {
                     "workflow_status": "draft",
-                    "news_coverage_status": {
-                      "qcode": "ncostat:int"
-                    },
+                    "news_coverage_status": {"qcode": "ncostat:int", "name": "coverage intended", "label": "Planned"},
                     "planning": {
                         "ednote": "test coverage, I want 250 words",
                         "headline": "test headline",
                         "slugline": "test slugline"
                     },
                     "assigned_to": {
-                        "desk": "desk_123",
+                        "desk": "#desks._id#",
                         "user": "507f191e810c19729de870eb",
                         "state": "draft"
                     }
@@ -2627,7 +2609,7 @@ Feature: Assignment link
                     },
                     "assigned_to": {
                         "assignment_id": "#firstassignment#",
-                        "desk": "desk_123",
+                        "desk": "#desks._id#",
                         "user": "507f191e810c19729de870eb",
                         "state": "draft"
                     }
@@ -2647,9 +2629,7 @@ Feature: Assignment link
                 {
                     "coverage_id": "#firstcoverage#",
                     "workflow_status": "draft",
-                    "news_coverage_status": {
-                      "qcode": "ncostat:int"
-                    },
+                    "news_coverage_status": {"qcode": "ncostat:int", "name": "coverage intended", "label": "Planned"},
                     "planning": {
                         "ednote": "test coverage, I want 250 words",
                         "headline": "test headline",
@@ -2658,7 +2638,7 @@ Feature: Assignment link
                     },
                     "assigned_to": {
                         "assignment_id": "#firstassignment#",
-                        "desk": "desk_123",
+                        "desk": "#desks._id#",
                         "user": "507f191e810c19729de870eb"
                     },
                     "scheduled_updates": [{
@@ -2669,9 +2649,7 @@ Feature: Assignment link
                         },
                         "coverage_id": "#firstcoverage#",
                         "workflow_status": "draft",
-                        "news_coverage_status": {
-                          "qcode": "ncostat:int"
-                        },
+                        "news_coverage_status": {"qcode": "ncostat:int", "name": "coverage intended", "label": "Planned"},
                         "planning": {
                             "internal_note": "Int. note",
                             "scheduled": "2029-11-27T14:00:00.000Z"
@@ -2679,15 +2657,13 @@ Feature: Assignment link
                     },
                     {
                         "assigned_to": {
-                            "desk": "desk_123",
+                            "desk": "#desks._id#",
                             "user": "507f191e810c19729de870eb",
                             "state": "draft"
                         },
                         "coverage_id": "#firstcoverage#",
                         "workflow_status": "draft",
-                        "news_coverage_status": {
-                          "qcode": "ncostat:int"
-                        },
+                        "news_coverage_status": {"qcode": "ncostat:int", "name": "coverage intended", "label": "Planned"},
                         "planning": {
                             "internal_note": "Int. note",
                             "scheduled": "2029-11-28T14:00:00+0000"
@@ -2724,7 +2700,7 @@ Feature: Assignment link
                     },
                     "assigned_to": {
                         "assignment_id": "#firstassignment#",
-                        "desk": "desk_123",
+                        "desk": "#desks._id#",
                         "user": "507f191e810c19729de870eb"
                     },
                     "scheduled_updates": [{
@@ -2747,7 +2723,7 @@ Feature: Assignment link
                     {
                         "assigned_to": {
                             "assignment_id": "#secondscheduledassignment#",
-                            "desk": "desk_123",
+                            "desk": "#desks._id#",
                             "user": "507f191e810c19729de870eb",
                             "state": "draft"
                         },
@@ -2772,9 +2748,7 @@ Feature: Assignment link
                 {
                     "coverage_id": "#firstcoverage#",
                     "workflow_status": "active",
-                    "news_coverage_status": {
-                      "qcode": "ncostat:int"
-                    },
+                    "news_coverage_status": {"qcode": "ncostat:int", "name": "coverage intended", "label": "Planned"},
                     "planning": {
                         "ednote": "test coverage, I want 250 words",
                         "headline": "test headline",
@@ -2783,7 +2757,7 @@ Feature: Assignment link
                     },
                     "assigned_to": {
                         "assignment_id": "#firstassignment#",
-                        "desk": "desk_123",
+                        "desk": "#desks._id#",
                         "user": "507f191e810c19729de870eb"
                     },
                     "scheduled_updates": [{
@@ -2796,9 +2770,7 @@ Feature: Assignment link
                         },
                         "coverage_id": "#firstcoverage#",
                         "workflow_status": "active",
-                        "news_coverage_status": {
-                          "qcode": "ncostat:int"
-                        },
+                        "news_coverage_status": {"qcode": "ncostat:int", "name": "coverage intended", "label": "Planned"},
                         "planning": {
                             "internal_note": "Int. note",
                             "scheduled": "2029-11-27T14:00:00.000Z"
@@ -2808,15 +2780,13 @@ Feature: Assignment link
                         "scheduled_update_id": "#secondscheduled#",
                         "assigned_to": {
                             "assignment_id": "#secondscheduledassignment#",
-                            "desk": "desk_123",
+                            "desk": "#desks._id#",
                             "user": "507f191e810c19729de870eb",
                             "state": "active"
                         },
                         "coverage_id": "#firstcoverage#",
                         "workflow_status": "active",
-                        "news_coverage_status": {
-                          "qcode": "ncostat:int"
-                        },
+                        "news_coverage_status": {"qcode": "ncostat:int", "name": "coverage intended", "label": "Planned"},
                         "planning": {
                             "internal_note": "Int. note",
                             "scheduled": "2029-11-28T14:00:00+0000"
@@ -2930,16 +2900,14 @@ Feature: Assignment link
             "coverages": [
                 {
                     "workflow_status": "draft",
-                    "news_coverage_status": {
-                      "qcode": "ncostat:int"
-                    },
+                    "news_coverage_status": {"qcode": "ncostat:int", "name": "coverage intended", "label": "Planned"},
                     "planning": {
                         "ednote": "test coverage, I want 250 words",
                         "headline": "test headline",
                         "slugline": "test slugline"
                     },
                     "assigned_to": {
-                        "desk": "desk_123",
+                        "desk": "#desks._id#",
                         "user": "507f191e810c19729de870eb",
                         "state": "draft"
                     }
@@ -2969,7 +2937,7 @@ Feature: Assignment link
                     },
                     "assigned_to": {
                         "assignment_id": "#firstassignment#",
-                        "desk": "desk_123",
+                        "desk": "#desks._id#",
                         "user": "507f191e810c19729de870eb",
                         "state": "draft"
                     }
@@ -2989,9 +2957,7 @@ Feature: Assignment link
                 {
                     "coverage_id": "#firstcoverage#",
                     "workflow_status": "draft",
-                    "news_coverage_status": {
-                      "qcode": "ncostat:int"
-                    },
+                    "news_coverage_status": {"qcode": "ncostat:int", "name": "coverage intended", "label": "Planned"},
                     "planning": {
                         "ednote": "test coverage, I want 250 words",
                         "headline": "test headline",
@@ -3000,7 +2966,7 @@ Feature: Assignment link
                     },
                     "assigned_to": {
                         "assignment_id": "#firstassignment#",
-                        "desk": "desk_123",
+                        "desk": "#desks._id#",
                         "user": "507f191e810c19729de870eb"
                     },
                     "scheduled_updates": [{
@@ -3011,9 +2977,7 @@ Feature: Assignment link
                         },
                         "coverage_id": "#firstcoverage#",
                         "workflow_status": "draft",
-                        "news_coverage_status": {
-                          "qcode": "ncostat:int"
-                        },
+                        "news_coverage_status": {"qcode": "ncostat:int", "name": "coverage intended", "label": "Planned"},
                         "planning": {
                             "internal_note": "Int. note",
                             "scheduled": "2029-11-27T14:00:00.000Z"
@@ -3021,15 +2985,13 @@ Feature: Assignment link
                     },
                     {
                         "assigned_to": {
-                            "desk": "desk_123",
+                            "desk": "#desks._id#",
                             "user": "507f191e810c19729de870eb",
                             "state": "draft"
                         },
                         "coverage_id": "#firstcoverage#",
                         "workflow_status": "draft",
-                        "news_coverage_status": {
-                          "qcode": "ncostat:int"
-                        },
+                        "news_coverage_status": {"qcode": "ncostat:int", "name": "coverage intended", "label": "Planned"},
                         "planning": {
                             "internal_note": "Int. note",
                             "scheduled": "2029-11-28T14:00:00+0000"
@@ -3066,7 +3028,7 @@ Feature: Assignment link
                     },
                     "assigned_to": {
                         "assignment_id": "#firstassignment#",
-                        "desk": "desk_123",
+                        "desk": "#desks._id#",
                         "user": "507f191e810c19729de870eb"
                     },
                     "scheduled_updates": [{
@@ -3089,7 +3051,7 @@ Feature: Assignment link
                     {
                         "assigned_to": {
                             "assignment_id": "#secondscheduledassignment#",
-                            "desk": "desk_123",
+                            "desk": "#desks._id#",
                             "user": "507f191e810c19729de870eb",
                             "state": "draft"
                         },
@@ -3114,9 +3076,7 @@ Feature: Assignment link
                 {
                     "coverage_id": "#firstcoverage#",
                     "workflow_status": "active",
-                    "news_coverage_status": {
-                      "qcode": "ncostat:int"
-                    },
+                    "news_coverage_status": {"qcode": "ncostat:int", "name": "coverage intended", "label": "Planned"},
                     "planning": {
                         "ednote": "test coverage, I want 250 words",
                         "headline": "test headline",
@@ -3125,7 +3085,7 @@ Feature: Assignment link
                     },
                     "assigned_to": {
                         "assignment_id": "#firstassignment#",
-                        "desk": "desk_123",
+                        "desk": "#desks._id#",
                         "user": "507f191e810c19729de870eb"
                     },
                     "scheduled_updates": [{
@@ -3138,9 +3098,7 @@ Feature: Assignment link
                         },
                         "coverage_id": "#firstcoverage#",
                         "workflow_status": "active",
-                        "news_coverage_status": {
-                          "qcode": "ncostat:int"
-                        },
+                        "news_coverage_status": {"qcode": "ncostat:int", "name": "coverage intended", "label": "Planned"},
                         "planning": {
                             "internal_note": "Int. note",
                             "scheduled": "2029-11-27T14:00:00.000Z"
@@ -3150,15 +3108,13 @@ Feature: Assignment link
                         "scheduled_update_id": "#secondscheduled#",
                         "assigned_to": {
                             "assignment_id": "#secondscheduledassignment#",
-                            "desk": "desk_123",
+                            "desk": "#desks._id#",
                             "user": "507f191e810c19729de870eb",
                             "state": "active"
                         },
                         "coverage_id": "#firstcoverage#",
                         "workflow_status": "active",
-                        "news_coverage_status": {
-                          "qcode": "ncostat:int"
-                        },
+                        "news_coverage_status": {"qcode": "ncostat:int", "name": "coverage intended", "label": "Planned"},
                         "planning": {
                             "internal_note": "Int. note",
                             "scheduled": "2029-11-28T14:00:00+0000"
@@ -3268,6 +3224,7 @@ Feature: Assignment link
         """
         {
             "coverages": [{
+                "news_coverage_status": {"qcode": "ncostat:int", "name": "coverage intended", "label": "Planned"},
                 "planning": {
                     "ednote": "text coverage, I want 250 words",
                     "slugline": "test slugline",
@@ -3278,6 +3235,7 @@ Feature: Assignment link
                     "user": "#CONTEXT_USER_ID#"
                 }
             }, {
+                "news_coverage_status": {"qcode": "ncostat:int", "name": "coverage intended", "label": "Planned"},
                 "planning": {
                     "ednote": "photo coverage, I want 250 words",
                     "slugline": "test slugline",

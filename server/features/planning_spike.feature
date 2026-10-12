@@ -35,7 +35,7 @@ Feature: Planning Spike
                     "internal_note": "Cover something please!"
                 },
                 "workflow_status": "draft",
-                "news_coverage_status": {"qcode": "ncostat:int", "name": "coverage intended", "label": "Planned"},
+                "news_coverage_status": {"qcode": "ncostat:int", "name": "coverage intended", "label": "Planned"}
             }]
 
         }]
@@ -63,9 +63,14 @@ Feature: Planning Spike
         }
         """
         When we get "/planning_history?where={\"item_id\": \"#planning._id#\"}"
-        Then we get list with 1 items
+        Then we get list with 2 items
         """
         {"_items": [{
+            "item_id": "#planning._id#",
+            "item_type": "planning",
+            "operation": "create",
+            "update": {"state": "draft"}
+        }, {
             "item_id": "#planning._id#",
             "item_type": "planning",
             "operation": "spiked",
@@ -108,9 +113,14 @@ Feature: Planning Spike
         }
         """
         When we get "/planning_history?where={\"item_id\": \"#planning._id#\"}"
-        Then we get list with 1 items
+        Then we get list with 2 items
         """
         {"_items": [{
+            "item_id": "#planning._id#",
+            "item_type": "planning",
+            "operation": "create",
+            "update": {"state": "spiked"}
+        }, {
             "item_id": "#planning._id#",
             "item_type": "planning",
             "operation": "unspiked",
@@ -249,6 +259,7 @@ Feature: Planning Spike
         When we patch "/planning/#planning._id#"
         """
         {"coverages": [{
+            "news_coverage_status": {"qcode": "ncostat:int", "name": "coverage intended", "label": "Planned"},
             "planning": {
                 "ednote": "test coverage, I want 250 words",
                 "headline": "test headline",
@@ -333,6 +344,7 @@ Feature: Planning Spike
         When we patch "/planning/#planning._id#"
         """
         {"coverages": [{
+            "news_coverage_status": {"qcode": "ncostat:int", "name": "coverage intended", "label": "Planned"},
             "planning": {
                 "ednote": "test coverage, I want 250 words",
                 "headline": "test headline",

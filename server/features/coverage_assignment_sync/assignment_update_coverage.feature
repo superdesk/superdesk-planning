@@ -211,6 +211,7 @@ Feature: Coverages are updated when an Assignment is updated
             "slugline": "test slugline",
             "planning_date": "2035-06-30T14:00:00+0000",
             "coverages": [{
+                "news_coverage_status": {"qcode": "ncostat:int", "name": "coverage intended", "label": "Planned"},
                 "coverage_id": "#COVERAGE_ID#",
                 "planning": {
                     "g2_content_type": "text",

@@ -47,6 +47,7 @@ Feature: Assignment Complete
         """
         {
             "coverages": [{
+                "news_coverage_status": {"qcode": "ncostat:int", "name": "coverage intended", "label": "Planned"},
                 "planning": {
                     "ednote": "test coverage, I want 250 words",
                     "headline": "test headline",
@@ -183,6 +184,7 @@ Feature: Assignment Complete
         """
         {
             "coverages": [{
+                "news_coverage_status": {"qcode": "ncostat:int", "name": "coverage intended", "label": "Planned"},
                 "planning": {
                     "ednote": "test coverage, I want 250 words",
                     "headline": "test headline",
@@ -241,6 +243,7 @@ Feature: Assignment Complete
         """
         {
             "coverages": [{
+                "news_coverage_status": {"qcode": "ncostat:int", "name": "coverage intended", "label": "Planned"},
                 "planning": {
                     "ednote": "test coverage, I want 250 words",
                     "headline": "test headline",
@@ -315,6 +318,7 @@ Feature: Assignment Complete
         """
         {
             "coverages": [{
+                "news_coverage_status": {"qcode": "ncostat:int", "name": "coverage intended", "label": "Planned"},
                 "planning": {
                     "ednote": "test coverage, I want 250 words",
                     "headline": "test headline",
@@ -375,6 +379,7 @@ Feature: Assignment Complete
     """
     {
         "coverages": [{
+            "news_coverage_status": {"qcode": "ncostat:int", "name": "coverage intended", "label": "Planned"},
             "planning": {
                 "ednote": "test coverage, I want 250 words",
                 "headline": "test headline",
@@ -456,6 +461,7 @@ Feature: Assignment Complete
         """
         {
             "coverages": [{
+                "news_coverage_status": {"qcode": "ncostat:int", "name": "coverage intended", "label": "Planned"},
                 "planning": {
                     "ednote": "test coverage, I want 250 words",
                     "headline": "test headline",

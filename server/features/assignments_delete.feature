@@ -273,6 +273,7 @@ Feature: Assignments Delete
         """
         {
             "coverages": [{
+                "news_coverage_status": {"qcode": "ncostat:int", "name": "coverage intended", "label": "Planned"},
                 "coverage_id": "#coverageId#",
                 "planning": {
                     "ednote": "test coverage, I want 250 words",
@@ -1100,6 +1101,7 @@ Feature: Assignments Delete
             "_id": "#planning._id#",
             "type": "planning",
             "coverages": [{
+                "news_coverage_status": {"qcode": "ncostat:int", "name": "coverage intended", "label": "Planned"},
                 "coverage_id": "#coverageId#",
                 "planning": {
                     "ednote": "test coverage, I want 250 words",
@@ -1171,6 +1173,7 @@ Feature: Assignments Delete
         When we patch "/planning/#planning._id#"
         """
         {"coverages": [{
+            "news_coverage_status": {"qcode": "ncostat:int", "name": "coverage intended", "label": "Planned"},
             "coverage_id": "#coverageId#",
             "planning": {
                 "ednote": "test coverage, I want 250 words",

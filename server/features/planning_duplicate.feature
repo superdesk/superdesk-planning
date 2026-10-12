@@ -18,6 +18,7 @@ Feature: Duplicate Planning
         {
             "coverages": [
                 {
+                    "news_coverage_status": {"qcode": "ncostat:int", "name": "coverage intended", "label": "Planned"},
                     "planning": {
                         "ednote": "test coverage, 250 words",
                         "headline": "test headline",
@@ -207,6 +208,7 @@ Feature: Duplicate Planning
         {
             "coverages": [
                 {
+                    "news_coverage_status": {"qcode": "ncostat:int", "name": "coverage intended", "label": "Planned"},
                     "planning": {
                         "ednote": "test coverage, 250 words",
                         "headline": "test headline",
@@ -521,6 +523,7 @@ Feature: Duplicate Planning
             "ednote" : "This is the ednote in planning",
             "coverages": [
                 {
+                    "news_coverage_status": {"qcode": "ncostat:int", "name": "coverage intended", "label": "Planned"},
                     "planning": {
                         "ednote": "test coverage, 250 words",
                         "headline": "test headline",
@@ -592,6 +595,7 @@ Feature: Duplicate Planning
             "state_reason": "A reason why this is rescheduled.",
             "coverages": [
                 {
+                    "news_coverage_status": {"qcode": "ncostat:int", "name": "coverage intended", "label": "Planned"},
                     "planning": {
                         "ednote": "test coverage, 250 words",
                         "headline": "test headline",

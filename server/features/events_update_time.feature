@@ -85,7 +85,7 @@ Feature: Events Update Time
                 "tz": "Australia/Sydney"
             },
             "lock_user": "#CONTEXT_USER_ID#",
-            "lock_session": "session123",
+            "lock_session": "#FAKE_SESSION_ID#",
             "lock_action": "update_time",
             "lock_time": "#DATE#"
         }, {
@@ -96,8 +96,8 @@ Feature: Events Update Time
                 "end": "2029-11-21T14:00:00.000Z",
                 "tz": "Australia/Sydney"
             },
-            "lock_user": "user123",
-            "lock_session": "session456",
+            "lock_user": "#FAKE_USER_ID#",
+            "lock_session": "#FAKE_SESSION_ID#",
             "lock_action": "update_time",
             "lock_time": "#DATE#"
         }, {
