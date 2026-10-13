@@ -235,10 +235,11 @@ const addEventToCurrentAgenda = (
         return promise
             .then(() => {
                 // The `planning:created` notification can be handled before the events are refreshed,
-                // so the planning items of their expanded rows are loaded from the refreshed copies (SDBELGA-1157)
+                // so the planning items of their expanded rows are loaded from the refreshed copies (SDBELGA-1157).
+                // Not returned: failing to load them must not fail the creation
                 const storedEvents = selectors.events.storedEvents(getState());
 
-                return dispatch(eventsActions.ui.expandRelatedPlannings(
+                dispatch(eventsActions.ui.expandRelatedPlannings(
                     eventsList.map((event) => storedEvents[event._id]).filter((event) => event != null)
                 ));
             })

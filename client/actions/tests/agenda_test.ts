@@ -407,6 +407,30 @@ describe('agenda', () => {
                     .catch(done.fail)
                     .finally(() => restoreSinonStub(eventsUi.expandRelatedPlannings));
             });
+
+            it('addEventToCurrentAgenda succeeds when loading the related plannings fails', (done) => {
+                apiSpy.query = sinon.spy(() => (Promise.resolve({_items: plannings})));
+                initialState.events = {events: {e1: events[0]}};
+                sinon.stub(eventsUi, 'expandRelatedPlannings').callsFake(() => {
+                    const failedLoad = Promise.reject(new Error('Failed to load'));
+
+                    // The action leaves this promise alone, so the rejection is handled here
+                    failedLoad.catch(() => undefined);
+                    return failedLoad;
+                });
+
+                return actions.addEventToCurrentAgenda(events[0])(dispatch, getState, {
+                    notify,
+                    $timeout,
+                })
+                    .then(() => {
+                        expect(eventsUi.expandRelatedPlannings.callCount).toBe(1);
+                        expect(notify.success.callCount).toBe(2);
+                        done();
+                    })
+                    .catch(done.fail)
+                    .finally(() => restoreSinonStub(eventsUi.expandRelatedPlannings));
+            });
         });
 
         describe('fetchSelectedAgendaPlannings', () => {
