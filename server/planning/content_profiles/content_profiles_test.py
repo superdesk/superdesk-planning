@@ -43,7 +43,7 @@ class ContentProfilesTestCase(TestCase):
             ],
         )
 
-    async def test_non_coverage_profile_type_unique_index(self):
+    async def test_non_coverage_profile_unique_index_without_name_or_content_type(self):
         self.async_app.mongo.create_resource_indexes("planning_types")
         service = PlanningProfileResource.get_service()
 
@@ -52,13 +52,9 @@ class ContentProfilesTestCase(TestCase):
                 continue
 
             with self.subTest(profile_type=profile_type):
-                await service.mongo_async.insert_one(
-                    {"type": profile_type.value, "name": "Shared profile", "content_type": "text"}
-                )
+                await service.mongo_async.insert_one({"type": profile_type.value})
                 with self.assertRaises(DuplicateKeyError):
-                    await service.mongo_async.insert_one(
-                        {"type": profile_type.value, "name": "Different profile", "content_type": "picture"}
-                    )
+                    await service.mongo_async.insert_one({"type": profile_type.value})
 
     async def test_non_coverage_profile_type_validation(self):
         service = PlanningProfileResource.get_service()
