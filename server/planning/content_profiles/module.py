@@ -40,10 +40,28 @@ planning_types_resource_config = ResourceConfig(
     mongo=MongoResourceConfig(
         indexes=[
             MongoIndexOptions(
-                name="item_type_1_name_1",
-                keys=[("type", 1), ("name", 1)],
+                name="item_type_1_name_1",  # keeping old name to override the previous index
+                keys=[("type", 1), ("name", 1), ("content_type", 1)],
                 unique=True,
             ),
+            # Disabled while MongoDB 4.4 is supported: $in in partial indexes requires MongoDB 6.0+.
+            # The compound index above enforces uniqueness for matching name/content_type values;
+            # validate_unique_profile_type also checks non-coverage types at the application level.
+            # MongoIndexOptions(
+            #     name="non_coverage_type_1",
+            #     keys=[("type", 1)],
+            #     unique=True,
+            #     sparse=False,
+            #     partialFilterExpression={
+            #         "type": {
+            #             "$in": [
+            #                 profile_type.value
+            #                 for profile_type in PlanningProfileType
+            #                 if profile_type != PlanningProfileType.COVERAGE
+            #             ]
+            #         }
+            #     },
+            # ),
         ]
     ),
     rest_endpoints=RestEndpointConfig(

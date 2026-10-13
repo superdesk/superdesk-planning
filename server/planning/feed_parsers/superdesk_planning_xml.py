@@ -84,7 +84,7 @@ class PlanningMLParser(NewsMLTwoFeedParser):
 
         try:
             guid = await self.get_item_id(tree)
-            original: Optional[Planning] = planning_service.find_one(req=None, _id=guid)
+            original: Optional[Planning] = await planning_service.find_one_async(req=None, _id=guid)
             item = await self.parse_item(tree, original)
             return [item] if item is not None else []
         except Exception as ex:
