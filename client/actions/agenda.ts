@@ -7,7 +7,7 @@ import {planningApi} from '../superdeskApi';
 
 import {AGENDA, MODALS, EVENTS} from '../constants';
 import {getErrorMessage, gettext, planningUtils, eventUtils} from '../utils';
-import {planning, showModal, main} from './index';
+import {planning, showModal, main, events as eventsActions} from './index';
 import {convertStringFields} from '../utils/strings';
 import planningApis from '../actions/planning/api';
 import eventsApis from '../actions/events/api';
@@ -233,6 +233,16 @@ const addEventToCurrentAgenda = (
         }
         // reload the plannings of the current calendar
         return promise
+            .then(() => {
+                // The `planning:created` notification can be handled before the events are refreshed,
+                // so the planning items of their expanded rows are loaded from the refreshed copies (SDBELGA-1157).
+                // Not returned: failing to load them must not fail the creation
+                const storedEvents = selectors.events.storedEvents(getState());
+
+                dispatch(eventsActions.ui.expandRelatedPlannings(
+                    eventsList.map((event) => storedEvents[event._id]).filter((event) => event != null)
+                ));
+            })
             .then(() => {
                 const firstPlanning = planningUtils.modifyForClient(plannings[0]);
 

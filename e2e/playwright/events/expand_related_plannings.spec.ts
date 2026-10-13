@@ -1,6 +1,6 @@
 import {test, expect} from '@playwright/test';
 
-import {setup, login, addItems, waitForPageLoad, overrideClientConfig} from '../utils/common';
+import {setup, login, addItems, waitForPageLoad, overrideClientConfig, delayResponses} from '../utils/common';
 import {PlanningList} from '../page-object-models/planning';
 import {createEventFor} from '../utils/fixtures/events';
 import {createPlanningFor} from '../utils/fixtures/planning';
@@ -54,4 +54,46 @@ test.describe('Planning.Events: related plannings expanded by default', () => {
             await expect(plannings).toHaveCount(1);
         });
     }
+
+    test('lists a planning item created from the menu of an event in the "Events only" view', async ({page}) => {
+        await setup(page, 'planning_prepopulate_data', '/#/planning?filter=EVENTS');
+        await addItems(page.request, 'events', [createEventFor.today({
+            guid: EVENT_ID,
+            name: 'Event',
+            slugline: 'Event',
+        })]);
+        await login(page);
+        await waitForPageLoad.planning(page);
+
+        // On a slow connection the `planning:created` notification is handled
+        // before the app has refreshed the event that got the planning item
+        await delayResponses(page, `**/api/events/${EVENT_ID}?*`, 1000);
+
+        await list.clickAction(0, 'Create Planning Item');
+
+        await expect(list.associatedPlanningToggle(0)).toContainText('Hide 1 planning item');
+        await expect(list.nestedPlanningItems(0)).toHaveCount(1);
+    });
+
+    test('lists a planning item created from the menu of a recurring event in the "Events only" view', async ({page}) => {
+        const event = createEventFor.today({name: 'Event', slugline: 'Event'});
+
+        await setup(page, 'planning_prepopulate_data', '/#/planning?filter=EVENTS');
+        await addItems(page.request, 'events', [{
+            ...event,
+            dates: {
+                ...event.dates,
+                recurring_rule: {frequency: 'DAILY', interval: 1, count: 2, endRepeatMode: 'count'},
+            },
+        }]);
+        await login(page);
+        await waitForPageLoad.planning(page);
+
+        // The planning item of a recurring event is announced as `planning:created:recurring`,
+        // which the app does not handle, so no notification loads it into the row
+        await list.clickAction(0, 'Create Planning Item');
+
+        await expect(list.associatedPlanningToggle(0)).toContainText('Hide 1 planning item');
+        await expect(list.nestedPlanningItems(0)).toHaveCount(1);
+    });
 });

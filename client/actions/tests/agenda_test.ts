@@ -6,6 +6,7 @@ import {cloneDeep} from 'lodash';
 import * as selectors from '../../selectors';
 import {getTestActionStore, restoreSinonStub} from '../../utils/testUtils';
 import planningUi from '../../actions/planning/ui';
+import eventsUi from '../../actions/events/ui';
 
 describe('agenda', () => {
     describe('actions', () => {
@@ -387,6 +388,48 @@ describe('agenda', () => {
                         done();
                     })
                     .catch(done.fail);
+            });
+
+            it('addEventToCurrentAgenda loads the related plannings of the refreshed events', (done) => {
+                apiSpy.query = sinon.spy(() => (Promise.resolve({_items: plannings})));
+                initialState.events = {events: {e1: events[0]}};
+                sinon.stub(eventsUi, 'expandRelatedPlannings').callsFake(() => (Promise.resolve()));
+
+                return actions.addEventToCurrentAgenda(events[0])(dispatch, getState, {
+                    notify,
+                    $timeout,
+                })
+                    .then(() => {
+                        expect(eventsUi.expandRelatedPlannings.callCount).toBe(1);
+                        expect(eventsUi.expandRelatedPlannings.args[0]).toEqual([[events[0]]]);
+                        done();
+                    })
+                    .catch(done.fail)
+                    .finally(() => restoreSinonStub(eventsUi.expandRelatedPlannings));
+            });
+
+            it('addEventToCurrentAgenda succeeds when loading the related plannings fails', (done) => {
+                apiSpy.query = sinon.spy(() => (Promise.resolve({_items: plannings})));
+                initialState.events = {events: {e1: events[0]}};
+                sinon.stub(eventsUi, 'expandRelatedPlannings').callsFake(() => {
+                    const failedLoad = Promise.reject(new Error('Failed to load'));
+
+                    // The action leaves this promise alone, so the rejection is handled here
+                    failedLoad.catch(() => undefined);
+                    return failedLoad;
+                });
+
+                return actions.addEventToCurrentAgenda(events[0])(dispatch, getState, {
+                    notify,
+                    $timeout,
+                })
+                    .then(() => {
+                        expect(eventsUi.expandRelatedPlannings.callCount).toBe(1);
+                        expect(notify.success.callCount).toBe(2);
+                        done();
+                    })
+                    .catch(done.fail)
+                    .finally(() => restoreSinonStub(eventsUi.expandRelatedPlannings));
             });
         });
 

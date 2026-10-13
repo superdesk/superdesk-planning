@@ -97,6 +97,22 @@ export async function overrideClientConfig(page: Page, config: {[key: string]: a
 }
 
 /**
+ * Delays the responses to matching requests, to show the app what a user on a slow connection gets
+ * when a response and a websocket notification race each other.
+ *
+ * @param {Page} page - The Playwright page object that sends the requests.
+ * @param {string | RegExp} url - The URL pattern of the requests to delay.
+ * @param {number} ms - How long to hold each request before it is sent on.
+ * @return {Promise<void>} A promise that resolves once the delay is in place.
+ */
+export async function delayResponses(page: Page, url: string | RegExp, ms: number): Promise<void> {
+    await page.route(url, async (route) => {
+        await new Promise((resolve) => setTimeout(resolve, ms));
+        await route.continue();
+    });
+}
+
+/**
  * Changes the current workspace by interacting with the workspace navigation element on the given page.
  *
  * @param {Page} page - The Playwright Page object representing the active browser page.
