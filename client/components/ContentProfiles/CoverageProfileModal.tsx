@@ -201,6 +201,7 @@ export class CoverageProfilesModal extends React.Component<IProps, IState> {
                 closeOnEscape
                 onHide={this.closeModal}
                 headerTemplate={gettext('Manage Coverage Profiles')}
+                data-test-id="coverage-profile-modal"
                 footerTemplate={(
                     <Spacer gap="4" alignItems="end" justifyContent="end" h noGrow>
                         <Button
@@ -216,6 +217,7 @@ export class CoverageProfilesModal extends React.Component<IProps, IState> {
                                 isLoading={this.state.saving}
                                 text={gettext('Save All')}
                                 type="primary"
+                                data-test-id="coverage-profile-modal--save"
                                 onClick={this.save}
                                 disabled={this.state.saving}
                             />

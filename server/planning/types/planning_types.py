@@ -32,8 +32,7 @@ DEFAULT_PROFILE_ID = ObjectId("67be81e46f53273f423a2901")
 
 
 async def _validate_unique_profile_name(item: "PlanningProfileResource", name: str) -> None:
-    if item.item_type not in (PlanningProfileType.EVENT, PlanningProfileType.PLANNING, PlanningProfileType.COVERAGE):
-        # Name validation is only required for Events, Planning & Coverages
+    if item.item_type != PlanningProfileType.COVERAGE:
         return
 
     service = PlanningProfileResource.get_service()
@@ -44,19 +43,25 @@ async def _validate_unique_profile_name(item: "PlanningProfileResource", name: s
     }
 
     content_type = item.content_type.strip()
-    if item.item_type == PlanningProfileType.COVERAGE and content_type:
+    if content_type:
         query["content_type"] = content_type
 
     if await service.count(query, use_mongo=True):
-        error_msg: str
-        if item.item_type == PlanningProfileType.PLANNING:
-            error_msg = gettext("Planning profile already exists with that name")
-        elif item.item_type == PlanningProfileType.COVERAGE:
-            error_msg = gettext(f"{content_type.capitalize()} Coverage profile already exists with that name")
-        else:
-            error_msg = gettext("Event profile already exists with that name")
+        raise PydanticCustomError(
+            "unique", gettext(f"{content_type.capitalize()} Coverage profile already exists with that name")
+        )
 
-        raise PydanticCustomError("unique", error_msg)
+
+async def _validate_unique_profile_type(item: "PlanningProfileResource", item_type: PlanningProfileType) -> None:
+    if item_type == PlanningProfileType.COVERAGE:
+        return
+
+    service = PlanningProfileResource.get_service()
+    if await service.count({"_id": {"$ne": item.id}, "type": item_type}, use_mongo=True):
+        raise PydanticCustomError(
+            "unique",
+            gettext("A profile already exists for this type"),
+        )
 
 
 async def _validate_coverage_content_type(item: "PlanningProfileResource", content_type: str) -> None:
@@ -83,13 +88,16 @@ async def _validate_coverage_content_type(item: "PlanningProfileResource", conte
 
 
 validate_unique_profile_name = AsyncValidator(_validate_unique_profile_name, "planning_types")
+validate_unique_profile_type = AsyncValidator(_validate_unique_profile_type, "planning_types")
 validate_coverage_content_type = AsyncValidator(_validate_coverage_content_type, "planning_types")
 
 
 class PlanningProfileResource(AuditInformation, ResourceModelWithObjectId):
     # The name identifies the form in the UI to which the type relates
     name: Annotated[fields.Keyword, validate_unique_profile_name, Field(description="Name of the PlanningProfile")]
-    item_type: PlanningProfileType = Field(alias="type", description="The item type the PlanningProfile is used for")
+    item_type: Annotated[PlanningProfileType, validate_unique_profile_type] = Field(
+        alias="type", description="The item type the PlanningProfile is used for (one profile per non-coverage type)"
+    )
 
     editor: dict[str, Any] = Field(
         default_factory=dict,

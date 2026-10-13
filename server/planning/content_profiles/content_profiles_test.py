@@ -8,11 +8,16 @@
 # AUTHORS and LICENSE files distributed with this source code, or
 # at https://www.sourcefabric.org/superdesk/license
 
+from copy import deepcopy
+
 from superdesk.tests import utils
+from pymongo.errors import DuplicateKeyError
+from pydantic import ValidationError
 
 from planning.types import PlanningProfileResource, PlanningProfileType, DEFAULT_PROFILE_ID
 from planning.tests import TestCase
 
+from .profiles import DEFAULT_PROFILES
 from .utils import get_multilingual_fields, ContentProfileData
 
 
@@ -37,6 +42,106 @@ class ContentProfilesTestCase(TestCase):
                 }
             ],
         )
+
+    async def test_non_coverage_profile_type_unique_index(self):
+        self.async_app.mongo.create_resource_indexes("planning_types")
+        service = PlanningProfileResource.get_service()
+
+        for profile_type in PlanningProfileType:
+            if profile_type == PlanningProfileType.COVERAGE:
+                continue
+
+            with self.subTest(profile_type=profile_type):
+                await service.mongo_async.insert_one(
+                    {"type": profile_type.value, "name": "Shared profile", "content_type": "text"}
+                )
+                with self.assertRaises(DuplicateKeyError):
+                    await service.mongo_async.insert_one(
+                        {"type": profile_type.value, "name": "Different profile", "content_type": "picture"}
+                    )
+
+    async def test_non_coverage_profile_type_validation(self):
+        service = PlanningProfileResource.get_service()
+
+        for profile_type in PlanningProfileType:
+            if profile_type == PlanningProfileType.COVERAGE:
+                continue
+
+            with self.subTest(profile_type=profile_type):
+                profile = (
+                    await service.create(
+                        [
+                            PlanningProfileResource(
+                                name="Original profile",
+                                item_type=profile_type,
+                                content_type="text",
+                                editor=deepcopy(DEFAULT_PROFILES[profile_type].editor),
+                            )
+                        ]
+                    )
+                )[0]
+                with self.assertRaises(ValidationError) as context:
+                    await service.create(
+                        [
+                            PlanningProfileResource(
+                                name="Different profile", item_type=profile_type, content_type="picture"
+                            )
+                        ]
+                    )
+                error = context.exception.errors()[0]
+                self.assertEqual(error["type"], "unique")
+                self.assertEqual(error["msg"], "A profile already exists for this type")
+
+                await service.update(profile.id, {"name": "Renamed profile"})
+                self.assertEqual((await service.find_by_id(profile.id)).name, "Renamed profile")
+
+    async def test_non_coverage_profile_type_update_validation(self):
+        service = PlanningProfileResource.get_service()
+        await service.create([PlanningProfileResource(name="Event profile", item_type=PlanningProfileType.EVENT)])
+        planning_profile = (
+            await service.create(
+                [PlanningProfileResource(name="Planning profile", item_type=PlanningProfileType.PLANNING)]
+            )
+        )[0]
+
+        with self.assertRaises(ValidationError) as context:
+            await service.update(planning_profile.id, {"type": "event"})
+        self.assertEqual(context.exception.errors()[0]["msg"], "A profile already exists for this type")
+        self.assertEqual((await service.find_by_id(planning_profile.id)).item_type, PlanningProfileType.PLANNING)
+
+    async def test_coverage_profile_name_unique_index(self):
+        self.async_app.mongo.create_resource_indexes("planning_types")
+        service = PlanningProfileResource.get_service()
+
+        for content_type in ("text", "picture"):
+            await service.mongo_async.insert_one(
+                {"type": "coverage", "name": "Shared profile", "content_type": content_type}
+            )
+
+        with self.assertRaises(DuplicateKeyError):
+            await service.mongo_async.insert_one({"type": "coverage", "name": "Shared profile", "content_type": "text"})
+
+    async def test_coverage_profile_name_validation(self):
+        service = PlanningProfileResource.get_service()
+
+        for content_type in ("text", "picture"):
+            await service.create(
+                [
+                    PlanningProfileResource(
+                        name="Shared profile", item_type=PlanningProfileType.COVERAGE, content_type=content_type
+                    )
+                ]
+            )
+
+        with self.assertRaises(ValidationError) as context:
+            await service.create(
+                [
+                    PlanningProfileResource(
+                        name="Shared profile", item_type=PlanningProfileType.COVERAGE, content_type="text"
+                    )
+                ]
+            )
+        self.assertEqual(context.exception.errors()[0]["msg"], "Text Coverage profile already exists with that name")
 
     async def test_get_multilingual_fields(self):
         async with self.app.app_context():
@@ -159,6 +264,7 @@ class ContentProfilesTestCase(TestCase):
         self.assertIsNotNone(profile)
         self.assertEqual(profile.item_type, PlanningProfileType.COVERAGE)
         self.assertEqual(profile.content_type, "text")
+
         self.assertTrue(profile.editor["anpa_category"]["enabled"])
         self.assertFalse(profile.editor["headline"]["enabled"])
 
@@ -197,3 +303,14 @@ class ContentProfilesTestCase(TestCase):
         self.assertEqual(profile.content_type, "text")
         self.assertTrue(profile.editor["anpa_category"]["enabled"])
         self.assertFalse(profile.editor["headline"]["enabled"])
+
+    async def test_coverage_profiles_can_share_name_across_content_types(self):
+        profile_ids = await utils.post_items(
+            "planning_types",
+            [
+                {"name": "coverage", "type": "coverage", "content_type": "text"},
+                {"name": "coverage", "type": "coverage", "content_type": "picture"},
+            ],
+        )
+
+        self.assertEqual(len(profile_ids), 2)
