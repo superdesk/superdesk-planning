@@ -74,4 +74,26 @@ test.describe('Planning.Events: related plannings expanded by default', () => {
         await expect(list.associatedPlanningToggle(0)).toContainText('Hide 1 planning item');
         await expect(list.nestedPlanningItems(0)).toHaveCount(1);
     });
+
+    test('lists a planning item created from the menu of a recurring event in the "Events only" view', async ({page}) => {
+        const event = createEventFor.today({name: 'Event', slugline: 'Event'});
+
+        await setup(page, 'planning_prepopulate_data', '/#/planning?filter=EVENTS');
+        await addItems(page.request, 'events', [{
+            ...event,
+            dates: {
+                ...event.dates,
+                recurring_rule: {frequency: 'DAILY', interval: 1, count: 2, endRepeatMode: 'count'},
+            },
+        }]);
+        await login(page);
+        await waitForPageLoad.planning(page);
+
+        // The planning item of a recurring event is announced as `planning:created:recurring`,
+        // which the app does not handle, so no notification loads it into the row
+        await list.clickAction(0, 'Create Planning Item');
+
+        await expect(list.associatedPlanningToggle(0)).toContainText('Hide 1 planning item');
+        await expect(list.nestedPlanningItems(0)).toHaveCount(1);
+    });
 });
