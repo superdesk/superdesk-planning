@@ -11,6 +11,7 @@ import {
     TreeSelect,
     TimePickerInput,
     UrgencyTreeSelectInput,
+    CoverageUserSelectInput,
     clickAll,
 } from '../../utils/common';
 import {PlanningList} from './planningList';
@@ -231,6 +232,30 @@ export class AdvancedSearch {
         await Promise.all([
             this.waitForSearch(),
             button.click(),
+        ]);
+    }
+
+    get assignedToFilter(): Locator {
+        return this.page.getByTestId('assigned-to-filter');
+    }
+
+    async filterByAssignedUser(username: string): Promise<void> {
+        const input = new CoverageUserSelectInput(
+            this.page,
+            () => this.assignedToFilter,
+            '[data-test-id="select-user-dropdown"]',
+        );
+
+        await Promise.all([
+            this.waitForSearch(),
+            input.type(username),
+        ]);
+    }
+
+    async clearAssignedUser(): Promise<void> {
+        await Promise.all([
+            this.waitForSearch(),
+            this.assignedToFilter.getByTestId('clear-value').click(),
         ]);
     }
 

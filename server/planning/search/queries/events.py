@@ -25,6 +25,7 @@ from .common import (
     FilterFunctionType,
     Params,
 )
+from .planning import search_coverage_assigned_user
 
 
 def get_advanced_search(params: Dict[str, Any]):
@@ -388,6 +389,7 @@ EVENT_SEARCH_FILTERS: list[FilterFunctionType] = [
     search_accreditation_info,
     search_invitation_details,
     search_registration,
+    search_coverage_assigned_user,
 ]
 
 EVENT_SEARCH_FILTERS.extend(COMMON_SEARCH_FILTERS)
@@ -404,6 +406,7 @@ EVENT_PARAMS = [
     "accreditation_info",
     "reference",
     "registration",
+    "coverage_user_id",
 ]
 
 EVENT_PARAMS.extend(COMMON_PARAMS)

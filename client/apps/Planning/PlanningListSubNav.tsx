@@ -32,6 +32,7 @@ interface IProps {
     setJumpInterval(interval: 'DAY' | 'WEEK' | 'MONTH'): void;
     activefilter: PLANNING_VIEW;
     coverageUser?: IUser['_id'];
+    eventCoveragesEnabled: boolean;
 }
 
 interface IState {
@@ -46,7 +47,8 @@ const mapStateToProps = (state) => ({
     sortField: selectors.main.getCurrentSortField(state),
     users: selectors.general.users(state),
     activefilter: selectors.main.activeFilter(state),
-    coverageUser: selectors.main.getCoverageUser(state)
+    coverageUser: selectors.main.getCoverageUser(state),
+    eventCoveragesEnabled: selectors.forms.eventProfile(state)?.editor?.coverages?.enabled === true,
 });
 
 const mapDispatchToProps = (dispatch) => ({
@@ -187,7 +189,7 @@ class PlanningListSubNavComponent extends React.Component<IProps, IState> {
                     <ButtonGroup align="inline">
                         <FilterSubnavDropdown viewSize={this.state.viewSize} />
 
-                        {this.props.activefilter == PLANNING_VIEW.EVENTS
+                        {this.props.activefilter == PLANNING_VIEW.EVENTS && !this.props.eventCoveragesEnabled
                             ? ' '
                             : (
                                 <>
@@ -195,7 +197,10 @@ class PlanningListSubNavComponent extends React.Component<IProps, IState> {
                                         {gettext('Assigned to:')}
                                     </span>
 
-                                    <div style={{minHeight: '4.8rem', display: 'flex', alignItems: 'center'}}>
+                                    <div
+                                        style={{minHeight: '4.8rem', display: 'flex', alignItems: 'center'}}
+                                        data-test-id="assigned-to-filter"
+                                    >
                                         <div>{/** empty div needed so styles above don't affect SelectUser component */}
                                             <SelectUser
                                                 selectedUserId={this.props.users.find(
