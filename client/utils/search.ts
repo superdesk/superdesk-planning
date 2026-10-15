@@ -161,6 +161,7 @@ export function eventParamsToSearchParams(params: IEventSearchParams): ISearchPa
         location: params.advancedSearch?.location,
         no_calendar_assigned: params.noCalendarAssigned,
         calendars: params.calendars,
+        coverage_user_id: params.coverage_user_id,
         accreditation_info: params.advancedSearch?.accreditation_info,
         invitation_details: params.advancedSearch?.invitation_details,
         accreditation_details: params.advancedSearch?.accreditation_details,
@@ -180,6 +181,7 @@ export function searchParamsToEventParams(params: ISearchParams): IEventSearchPa
         calendars: params.calendars,
         noCalendarAssigned: params.no_calendar_assigned,
         recurrenceId: params.recurrence_id,
+        coverage_user_id: params.coverage_user_id,
         advancedSearch: {
             ...common.advancedSearch,
             location: params.location,

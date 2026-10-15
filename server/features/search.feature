@@ -653,3 +653,47 @@ Feature: Search Feature
         """
         When we get "/events_planning_search?repo=planning&coverage_user_id=#users._id#"
         Then we get list with 1 items
+
+    @auth
+    Scenario: Search events by assigned user
+        Given "users"
+        """
+        [{"username": "John"}]
+        """
+        Given "events"
+        """
+        [
+            {
+                "guid": "event_123",
+                "name": "event with assigned coverage",
+                "dates": {
+                    "start": "2035-07-31T00:00:00+0000",
+                    "end": "2035-07-31T02:00:00+0000",
+                    "tz": "Australia/Sydney"
+                },
+                "coverages": [
+                    {
+                        "workflow_status": "draft",
+                        "news_coverage_status": {"qcode": "ncostat:int", "name": "coverage intended", "label": "Planned"},
+                        "assigned_to": {"user": "#users._id#"}
+                    }
+                ]
+            },
+            {
+                "guid": "event_456",
+                "name": "event without coverages",
+                "dates": {
+                    "start": "2035-07-31T00:00:00+0000",
+                    "end": "2035-07-31T02:00:00+0000",
+                    "tz": "Australia/Sydney"
+                }
+            }
+        ]
+        """
+        When we get "/events_planning_search?repo=events"
+        Then we get list with 2 items
+        When we get "/events_planning_search?repo=events&coverage_user_id=#users._id#"
+        Then we get list with 1 items
+        """
+        {"_items": [{"_id": "event_123"}]}
+        """

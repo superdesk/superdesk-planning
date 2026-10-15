@@ -28,6 +28,7 @@ function convertEventParams(params: ISearchParams): Partial<ISearchAPIParams> {
         location: params.location?.qcode,
         calendars: cvsToString(params.calendars),
         no_calendar_assigned: params.no_calendar_assigned,
+        coverage_user_id: params.coverage_user_id,
         priority: arrayToString(params.priority),
         invitation_details: params.invitation_details,
         accreditation_details: params.accreditation_details,
