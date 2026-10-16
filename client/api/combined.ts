@@ -25,6 +25,9 @@ function convertCombinedParams(params: ISearchParams): Partial<ISearchAPIParams>
         agendas: arrayToString(params.agendas),
         source: cvsToString(params.source, 'id'),
         coverage_user_id: params.coverage_user_id,
+        coverage_assignment_status: params.coverage_assignment_status,
+        no_coverage: params.no_coverage,
+        g2_content_type: params.g2_content_type?.qcode,
         priority: arrayToString(params.priority),
     };
 }

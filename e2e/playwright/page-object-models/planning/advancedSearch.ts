@@ -259,6 +259,15 @@ export class AdvancedSearch {
         ]);
     }
 
+    field(name: string): Locator {
+        return this.getParent().getByTestId(`field-${name}`);
+    }
+
+    async openSearchPanel(): Promise<void> {
+        await this.toggleSearchPanel();
+        await this.openAllToggleBoxes();
+    }
+
     async toggleSearchPanel(): Promise<void> {
         await this.filtersBar
             .getByRole('button', {name: 'Toggle advanced Filters', exact: true})

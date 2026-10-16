@@ -25,7 +25,12 @@ from .common import (
     FilterFunctionType,
     Params,
 )
-from .planning import search_coverage_assigned_user
+from .planning import (
+    search_coverage_assigned_user,
+    search_no_coverage,
+    search_g2_content_type,
+    search_coverage_assignment_status,
+)
 
 
 def get_advanced_search(params: Dict[str, Any]):
@@ -390,6 +395,9 @@ EVENT_SEARCH_FILTERS: list[FilterFunctionType] = [
     search_invitation_details,
     search_registration,
     search_coverage_assigned_user,
+    search_no_coverage,
+    search_g2_content_type,
+    search_coverage_assignment_status,
 ]
 
 EVENT_SEARCH_FILTERS.extend(COMMON_SEARCH_FILTERS)
@@ -407,6 +415,9 @@ EVENT_PARAMS = [
     "reference",
     "registration",
     "coverage_user_id",
+    "no_coverage",
+    "g2_content_type",
+    "coverage_assignment_status",
 ]
 
 EVENT_PARAMS.extend(COMMON_PARAMS)

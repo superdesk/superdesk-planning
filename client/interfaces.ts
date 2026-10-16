@@ -1046,6 +1046,8 @@ export interface IEventSearchParams extends ICommonSearchParams<IEventItem> {
         definition_short?: string;
         definition_long?: string;
         registration?: string;
+        g2_content_type?: IG2ContentType;
+        noCoverage?: boolean;
     };
 }
 
@@ -1070,6 +1072,8 @@ export interface IPlanningSearchParams extends ICommonSearchParams<IPlanningItem
 export interface ICombinedSearchParams extends ICommonSearchParams<IEventOrPlanningItem> {
     advancedSearch?: ICommonAdvancedSearchParams & {
         reference?: string;
+        g2_content_type?: IG2ContentType;
+        noCoverage?: boolean;
     };
 }
 
