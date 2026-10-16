@@ -173,7 +173,7 @@ async def _update_recurring_items(req: ItemUpdateRequest) -> None:
                 [calendar for calendar in updated_calendars if calendar["qcode"] not in original_qcodes]
             )
         elif mark_completed:
-            await mark_event_complete(req, mark_complete_validated)
+            await mark_event_complete(req, event, mark_complete_validated)
             # It is validated if the previous function did not raise an error
             mark_complete_validated = True
 
@@ -184,7 +184,6 @@ async def _update_recurring_items(req: ItemUpdateRequest) -> None:
         # If this item is to be posted, make sure it passes validation
         # before we proceed with updating all the affected Events
         if post_on_update_required(req):
-            # if post_required(req.updates, event):
             merged = event.clone_with(new_updates)
             await events_post_service.validate_item(merged.to_dict())
 
@@ -192,6 +191,9 @@ async def _update_recurring_items(req: ItemUpdateRequest) -> None:
 
     # Finally, update the affected Events
     for event_id, new_updates in updates_to_apply:
+        # Make sure the updates include `skip_on_update`, otherwise the recurring series will be re-processed
+        new_updates.pop("update_method", None)
+        new_updates["skip_on_update"] = True
         await items_service.update(event_id, new_updates)
 
         # Make sure to call Eve based signals as well (is this needed?)
