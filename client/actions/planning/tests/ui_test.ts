@@ -372,6 +372,7 @@ describe('actions.planning.ui', () => {
 
     describe('saveFromAuthoring', () => {
         let modalProps;
+        let addedCoverage;
 
         beforeEach(() => {
             restoreSinonStub(planningUi.saveFromAuthoring);
@@ -396,18 +397,68 @@ describe('actions.planning.ui', () => {
             };
 
             data.plannings[0].coverages.pop();
+            addedCoverage = {
+                coverage_id: 'added-coverage',
+                planning: {slugline: 'Second article'},
+                assigned_to: {assignment_id: 'added-assignment'},
+            };
+            planningApis.save.callsFake(() => Promise.resolve({
+                ...data.plannings[0],
+                coverages: [...data.plannings[0].coverages, addedCoverage],
+            }));
         });
 
-        it('calls save', () => {
+        it('calls save', () => (
             store.dispatch(planningUi.saveFromAuthoring(
                 data.plannings[0],
                 {...data.plannings[0], slugline: 'New Slugger'}
-            ));
+            )).then(() => {
+                expect(planningApis.save.callCount).toBe(1);
+                expect(planningApis.save.args[0]).toEqual([
+                    data.plannings[0],
+                    {...data.plannings[0], slugline: 'New Slugger'},
+                ]);
+            })
+        ));
 
-            expect(planningApis.save.callCount).toBe(1);
-            expect(planningApis.save.args[0]).toEqual([
-                data.plannings[0],
-                {...data.plannings[0], slugline: 'New Slugger'},
+        for (const firstcreated of [undefined, '2017-10-01T14:01:11+0000', '2017-10-04T14:01:11+0000']) {
+            it(`links the added coverage by ID when its firstcreated is ${firstcreated}`, async() => {
+                addedCoverage.firstcreated = firstcreated;
+
+                await store.dispatch(planningUi.saveFromAuthoring(data.plannings[0]));
+
+                expect(assignmentApi.link.calledOnce).toBe(true);
+                expect(assignmentApi.link.args[0]).toEqual([
+                    addedCoverage.assigned_to, modalProps.newsItem, false,
+                ]);
+                expect(services.notify.error.called).toBe(false);
+            });
+        }
+
+        it('reports a missing added assignment instead of linking an existing coverage', async() => {
+            planningApis.save.resolves(data.plannings[0]);
+
+            try {
+                await store.dispatch(planningUi.saveFromAuthoring(data.plannings[0]));
+                fail('Expected the missing assignment to be reported');
+            } catch (error) {
+                expect(error._message).toBe('Failed to find the assignment for the added coverage.');
+                expect(assignmentApi.link.called).toBe(false);
+                expect(services.notify.error.calledOnce).toBe(true);
+                expect(modalProps.$scope.reject.calledOnce).toBe(true);
+                expect(store.dispatch.calledWith({type: 'ACTION_IN_PROGRESS', payload: false})).toBe(true);
+            }
+        });
+
+        it('links the coverage when creating a planning item', async() => {
+            planningApis.save.resolves({...data.plannings[0], coverages: [addedCoverage]});
+
+            await store.dispatch(planningUi.saveFromAuthoring({}, data.plannings[0]));
+
+            expect(planningApis.save.calledOnce).toBe(true);
+            expect(assignmentApi.link.calledOnce).toBe(true);
+            expect(assignmentApi.link.args[0]).toEqual([
+                addedCoverage.assigned_to, modalProps.newsItem, false,
             ]);
         });
 
@@ -467,12 +518,7 @@ describe('actions.planning.ui', () => {
 
                     expect(assignmentApi.link.callCount).toBe(1);
                     expect(assignmentApi.link.args[0]).toEqual([
-                        {
-                            user: 'ident1',
-                            desk: 'desk2',
-                            assignment_id: 'as2',
-                            state: 'draft',
-                        },
+                        addedCoverage.assigned_to,
                         {
                             _id: 'news1',
                             slugline: 'slug',

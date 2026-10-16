@@ -1,6 +1,6 @@
-import {get, orderBy, cloneDeep} from 'lodash';
+import {get, cloneDeep} from 'lodash';
 
-import {IPlanningSearchParams} from '../../interfaces';
+import {IPlanningItem, IPlanningSearchParams} from '../../interfaces';
 import {planningApi} from '../../superdeskApi';
 
 import {showModal} from '../index';
@@ -523,9 +523,15 @@ const saveFromAuthoring = (original, updates?: Partial<IPlanningItem>) => (
             .then((newPlan) => {
                 const newsItem = get(selectors.general.modalProps(getState()), 'newsItem') ||
                     get(selectors.general.previousModalProps(getState()), 'newsItem');
-                const coverages = orderBy(newPlan.coverages, ['firstcreated'], ['desc']);
-                const coverage = coverages[0];
+                const originalCoverageIds = new Set(
+                    (original.coverages ?? []).map((coverage) => coverage.coverage_id)
+                );
+                const coverage = newPlan.coverages.find((item) => !originalCoverageIds.has(item.coverage_id));
                 const reassign = false;
+
+                if (coverage?.assigned_to?.assignment_id == null) {
+                    throw {_message: gettext('Failed to find the assignment for the added coverage.')};
+                }
 
                 return dispatch(actions.assignments.api.link(coverage.assigned_to, newsItem, reassign))
                     .then(() => {
