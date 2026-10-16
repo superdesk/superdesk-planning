@@ -17,7 +17,16 @@ interface Desk {
     incoming_stage: string;
 }
 
-test.describe('Planning.Add to Planning: recover from a rejected second article', () => {
+interface Planning {
+    lock_user?: string | null;
+    lock_session?: string | null;
+    coverages: Array<{
+        planning: {slugline: string};
+        assigned_to: {assignment_id: string};
+    }>;
+}
+
+test.describe('Planning.Add to Planning: link two articles to separate coverages', () => {
     const PLANNING_ID = 'planning-for-two-articles';
     const PLANNING = 'Planning for articles One and Two';
 
@@ -31,6 +40,14 @@ test.describe('Planning.Add to Planning: recover from a rejected second article'
             `${baseBackendUrl}/archive/${encodeURIComponent(article._id)}`,
             {failOnStatusCode: true},
         );
+
+        return response.json();
+    }
+
+    async function getPlanning(page: Page): Promise<Planning> {
+        const response = await page.request.get(`${baseBackendUrl}/planning/${PLANNING_ID}`, {
+            failOnStatusCode: true,
+        });
 
         return response.json();
     }
@@ -56,7 +73,7 @@ test.describe('Planning.Add to Planning: recover from a rejected second article'
         }
 
         articles = [];
-        for (const headline of ['One', 'Two']) {
+        for (const headline of ['One', 'Two', 'Three']) {
             const articleResponse = await page.request.post(`${baseBackendUrl}/archive`, {
                 failOnStatusCode: true,
                 data: {
@@ -65,7 +82,7 @@ test.describe('Planning.Add to Planning: recover from a rejected second article'
                     state: 'draft',
                     headline,
                     slugline: headline,
-                    abstract: 'Article for the rejected planning link regression.',
+                    abstract: 'Article for the separate planning coverage regression.',
                     task: {desk: desk._id, stage: desk.incoming_stage},
                 },
             });
@@ -78,7 +95,7 @@ test.describe('Planning.Add to Planning: recover from a rejected second article'
         await monitoring.selectDesk(desk.name);
     });
 
-    test('keeps controls usable and releases locks after rejecting the second link', async ({page}) => {
+    test('links each article to its own coverage without errors and releases locks', async ({page}) => {
         await monitoring.openArticle('One');
         await authoring.addToPlanning();
         await modal.waitTillOpen();
@@ -91,23 +108,43 @@ test.describe('Planning.Add to Planning: recover from a rejected second article'
         await monitoring.openArticle('Two');
         await authoring.addToPlanning();
         await modal.waitTillOpen();
-        await modal.selectPlanningItem(PLANNING);
-        await modal.editor.saveButton.click();
+        await modal.addAsCoverage(PLANNING);
+        await expect.poll(async () => (await getArticle(page, articles[1])).assignment_id).toBeTruthy();
 
-        await expect(page.getByTestId('notification--error').filter({
-            hasText: 'Content already exists for the assignment',
-        })).toBeVisible();
-        await expect(modal.editor.closeButton).toBeEnabled();
-        await modal.cancel();
+        const secondAssignment = (await getArticle(page, articles[1])).assignment_id;
 
+        expect(secondAssignment).not.toBe(firstAssignment);
+        await expect(page.getByTestId('notification--error')).toHaveCount(0);
         await expect(authoring.actionsButton).toBeEnabled();
+        await expect.poll(async () => {
+            const planning = await getPlanning(page);
+
+            return {
+                planningLocked: Boolean(planning.lock_user || planning.lock_session),
+                coverages: planning.coverages.map((coverage) => ({
+                    slugline: coverage.planning.slugline,
+                    assignment: coverage.assigned_to.assignment_id,
+                })),
+            };
+        }).toEqual({
+            planningLocked: false,
+            coverages: [
+                {slugline: 'One', assignment: firstAssignment},
+                {slugline: 'Two', assignment: secondAssignment},
+            ],
+        });
+
+        await authoring.close();
+        await monitoring.openArticle('Three');
+        await authoring.addToPlanning();
+        await modal.waitTillOpen();
+        await modal.previewPlanningItem(PLANNING);
+        await expect(modal.preview.coverageCards).toHaveCount(2);
+        await modal.dismiss();
         await authoring.close();
 
         await expect.poll(async () => {
-            const response = await page.request.get(`${baseBackendUrl}/planning/${PLANNING_ID}`, {
-                failOnStatusCode: true,
-            });
-            const planning: {lock_user?: string | null; lock_session?: string | null} = await response.json();
+            const planning = await getPlanning(page);
             const one = await getArticle(page, articles[0]);
             const two = await getArticle(page, articles[1]);
 
@@ -120,7 +157,7 @@ test.describe('Planning.Add to Planning: recover from a rejected second article'
             };
         }).toEqual({
             oneAssignment: firstAssignment,
-            twoAssignment: null,
+            twoAssignment: secondAssignment,
             articleLocked: false,
             firstArticleLocked: false,
             planningLocked: false,

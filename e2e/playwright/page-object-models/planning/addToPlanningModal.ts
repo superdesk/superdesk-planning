@@ -1,13 +1,16 @@
 import {Page, Locator} from '@playwright/test';
 import {PlanningEditor} from './planning';
+import {PlanningPreview} from './planningPreview';
 
 export class AddToPlanningModal {
     page: Page;
     editor: PlanningEditor;
+    preview: PlanningPreview;
 
     constructor(page: Page) {
         this.page = page;
         this.editor = new PlanningEditor(page);
+        this.preview = new PlanningPreview(page);
     }
 
     get element(): Locator {
@@ -31,8 +34,17 @@ export class AddToPlanningModal {
     async cancel(): Promise<void> {
         await this.editor.closeButton.click();
         await this.editor.waitTillClosed();
+        await this.dismiss();
+    }
+
+    async dismiss(): Promise<void> {
         await this.element.getByRole('button', {name: "Don't add", exact: true}).click();
         await this.waitTillClosed();
+    }
+
+    async previewPlanningItem(planningText: string): Promise<void> {
+        await this.planningItem(planningText).click();
+        await this.preview.waitTillOpen();
     }
 
     async addAsCoverage(planningText: string): Promise<void> {
