@@ -108,6 +108,11 @@ export const EVENTS = {
             actionName: 'onEditEventModal',
             lock_action: 'edit',
         },
+        EDIT_COVERAGES: {
+            label: 'Edit Coverages',
+            icon: 'icon-pencil',
+            actionName: 'onEditEventCoverages',
+        },
         ASSIGN_TO_CALENDAR: {
             label: 'Assign to calendar',
             icon: 'icon-list-plus',
@@ -165,6 +170,7 @@ export function assignEventConstantTranslations() {
     EVENTS.ITEM_ACTIONS.POST_EVENT.label = gettext('Post');
     EVENTS.ITEM_ACTIONS.EDIT_EVENT.label = gettext('Edit');
     EVENTS.ITEM_ACTIONS.EDIT_EVENT_MODAL.label = gettext('Edit in popup');
+    EVENTS.ITEM_ACTIONS.EDIT_COVERAGES.label = gettext('Edit Coverages');
     EVENTS.ITEM_ACTIONS.ASSIGN_TO_CALENDAR.label = gettext('Assign to calendar');
     EVENTS.ITEM_ACTIONS.SAVE_AS_TEMPLATE.label = gettext('Save event as a template');
     EVENTS.ITEM_ACTIONS.MARK_AS_COMPLETED.label = gettext('Mark as completed');

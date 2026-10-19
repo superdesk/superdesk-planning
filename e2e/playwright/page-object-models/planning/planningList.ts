@@ -47,6 +47,18 @@ export class PlanningList {
         await (await getMenuItem(this.page, this.item(index), label)).click();
     }
 
+    async openActionMenu(index: number): Promise<Locator> {
+        await this.item(index).click();
+        await this.item(index).hover();
+        await this.item(index).getByTestId('menu-button').click();
+
+        const menu = this.page.getByTestId('menu');
+
+        await menu.waitFor({state: 'visible'});
+
+        return menu;
+    }
+
     async expectEmpty(): Promise<void> {
         await this.items().waitFor({state: 'hidden'});
     }

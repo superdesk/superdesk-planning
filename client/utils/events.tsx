@@ -334,6 +334,20 @@ function canEditEvent(event: IEventItem, session: ISession, privileges: IPrivile
     );
 }
 
+// The item must not be locked at all, as the coverages modal takes its own lock
+function canEditEventCoverages(
+    event: IEventItem,
+    session: ISession,
+    privileges: IPrivileges,
+    locks: ILockedItems
+): boolean {
+    return (
+        canEditEvent(event, session, privileges, locks) &&
+        !lockUtils.isItemLocked(event, locks) &&
+        !isItemCancelled(event)
+    );
+}
+
 function canUpdateEvent(event: IEventItem, session: ISession, privileges: IPrivileges, locks: ILockedItems): boolean {
     return (
         canEditEvent(event, session, privileges, locks) &&
@@ -695,6 +709,8 @@ function getEventItemActions(
             canEditEvent(event, session, privileges, locks),
         [EVENTS.ITEM_ACTIONS.EDIT_EVENT_MODAL.actionName]: () =>
             canEditEvent(event, session, privileges, locks),
+        [EVENTS.ITEM_ACTIONS.EDIT_COVERAGES.actionName]: () =>
+            canEditEventCoverages(event, session, privileges, locks),
         [EVENTS.ITEM_ACTIONS.ASSIGN_TO_CALENDAR.actionName]: () =>
             canAssignEventToCalendar(event, session, privileges, locks),
         [EVENTS.ITEM_ACTIONS.MARK_AS_COMPLETED.actionName]: () =>
@@ -983,6 +999,7 @@ function getEventActions(
         EVENTS.ITEM_ACTIONS.PREVIEW.actionName,
         EVENTS.ITEM_ACTIONS.EDIT_EVENT.actionName,
         EVENTS.ITEM_ACTIONS.EDIT_EVENT_MODAL.actionName,
+        EVENTS.ITEM_ACTIONS.EDIT_COVERAGES.actionName,
         EVENTS.ITEM_ACTIONS.DUPLICATE.actionName,
         EVENTS.ITEM_ACTIONS.ASSIGN_TO_CALENDAR.actionName,
         EVENTS.ITEM_ACTIONS.CANCEL_EVENT.actionName,
@@ -1629,6 +1646,7 @@ const self = {
     canPostEvent,
     canUnpostEvent,
     canEditEvent,
+    canEditEventCoverages,
     canUpdateEvent,
     getEventItemActions,
     canCancelEvent,
