@@ -78,6 +78,11 @@ const onEventLocked = (_e, data) => (
 
             return dispatch(eventsApi.getEvent(data.item, false))
                 .then((eventInStore) => {
+                    if (eventInStore == null) {
+                        // This user might not have the permission to view/manage this Event
+                        return Promise.resolve();
+                    }
+
                     const evtInStore = {
                         ...eventInStore,
                         lock_action: data.lock_action || 'edit',

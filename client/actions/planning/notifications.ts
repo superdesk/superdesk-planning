@@ -117,6 +117,11 @@ const onPlanningLocked = (e: {}, data: IWebsocketMessageData['ITEM_LOCKED']) => 
 
             return dispatch(planningApis.getPlanning(data.item, false))
                 .then((planInStore) => {
+                    if (planInStore == null) {
+                        // This user might not have the permission to view/manage this Planning item
+                        return Promise.resolve();
+                    }
+
                     let plan = {
                         ...planInStore,
                         lock_action: data.lock_action,
