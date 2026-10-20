@@ -26,27 +26,38 @@ import {LineItems} from '../../components/UI/List/LineItems';
 import {eventFirstLineConfig, eventSecondLineConfig} from '../../config';
 import {isSameDay} from '../../helpers';
 import {ILineConfig} from 'globals';
+import * as selectors from '../../selectors';
+import {EditCoveragesModal} from '../Coverages/EditCoveragesModal';
 
 interface IState {
     hover: boolean;
+    showCoverageModal: boolean;
 }
 
-interface IProps extends IEventListItemProps {
+interface IReduxStateProps {
+    eventCoveragesEnabled: boolean;
+}
+
+interface IProps extends IEventListItemProps, IReduxStateProps {
     dispatch(action: any): void;
 }
 
 class EventItemComponent extends React.Component<IProps, IState> {
     constructor(props) {
         super(props);
-        this.state = {hover: false};
+        this.state = {hover: false, showCoverageModal: false};
         this.onItemHoverOn = this.onItemHoverOn.bind(this);
         this.onItemHoverOff = this.onItemHoverOff.bind(this);
+        this.openCoverageModal = this.openCoverageModal.bind(this);
+        this.closeCoverageModal = this.closeCoverageModal.bind(this);
         this.renderItemActions = this.renderItemActions.bind(this);
     }
 
     shouldComponentUpdate(nextProps: Readonly<IProps>, nextState: Readonly<IState>) {
         return isItemDifferent(this.props, nextProps) ||
             this.state.hover !== nextState.hover ||
+            this.state.showCoverageModal !== nextState.showCoverageModal ||
+            this.props.eventCoveragesEnabled !== nextProps.eventCoveragesEnabled ||
             this.props.minTimeWidth !== nextProps.minTimeWidth ||
             this.props.lockedItems != nextProps.lockedItems ||
             (this.props.relatedEventsUI && this.props.relatedEventsUI.visible != nextProps.relatedEventsUI.visible) ||
@@ -59,6 +70,14 @@ class EventItemComponent extends React.Component<IProps, IState> {
 
     onItemHoverOff() {
         this.setState({hover: false});
+    }
+
+    openCoverageModal() {
+        this.setState({showCoverageModal: true});
+    }
+
+    closeCoverageModal() {
+        this.setState({showCoverageModal: false});
     }
 
     renderItemActions() {
@@ -77,6 +96,10 @@ class EventItemComponent extends React.Component<IProps, IState> {
                 this.props[EVENTS.ITEM_ACTIONS.EDIT_EVENT.actionName].bind(null, item, true),
             [EVENTS.ITEM_ACTIONS.EDIT_EVENT_MODAL.actionName]:
                 this.props[EVENTS.ITEM_ACTIONS.EDIT_EVENT_MODAL.actionName].bind(null, item, false, true),
+            // Only offer Edit Coverages when the event profile has coverages enabled
+            ...(this.props.eventCoveragesEnabled ? {
+                [EVENTS.ITEM_ACTIONS.EDIT_COVERAGES.actionName]: this.openCoverageModal,
+            } : {}),
             [EVENTS.ITEM_ACTIONS.DUPLICATE.actionName]:
                 this.props[EVENTS.ITEM_ACTIONS.DUPLICATE.actionName].bind(null, item),
             [EVENTS.ITEM_ACTIONS.CREATE_PLANNING.actionName]:
@@ -270,10 +293,17 @@ class EventItemComponent extends React.Component<IProps, IState> {
                     />
                 )}
 
+                {this.state.showCoverageModal && (
+                    <EditCoveragesModal item={item} onClose={this.closeCoverageModal} />
+                )}
                 {this.renderItemActions()}
             </Item>
         );
     }
 }
 
-export const EventItem = connect()(EventItemComponent);
+const mapStateToProps = (state): IReduxStateProps => ({
+    eventCoveragesEnabled: selectors.forms.eventProfile(state)?.editor?.coverages?.enabled === true,
+});
+
+export const EventItem = connect(mapStateToProps)(EventItemComponent);
