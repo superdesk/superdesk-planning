@@ -162,6 +162,9 @@ export function eventParamsToSearchParams(params: IEventSearchParams): ISearchPa
         no_calendar_assigned: params.noCalendarAssigned,
         calendars: params.calendars,
         coverage_user_id: params.coverage_user_id,
+        coverage_assignment_status: params.coverage_assignment_status,
+        no_coverage: params.advancedSearch?.noCoverage,
+        g2_content_type: params.advancedSearch?.g2_content_type,
         accreditation_info: params.advancedSearch?.accreditation_info,
         invitation_details: params.advancedSearch?.invitation_details,
         accreditation_details: params.advancedSearch?.accreditation_details,
@@ -182,8 +185,11 @@ export function searchParamsToEventParams(params: ISearchParams): IEventSearchPa
         noCalendarAssigned: params.no_calendar_assigned,
         recurrenceId: params.recurrence_id,
         coverage_user_id: params.coverage_user_id,
+        coverage_assignment_status: params.coverage_assignment_status,
         advancedSearch: {
             ...common.advancedSearch,
+            g2_content_type: params.g2_content_type,
+            noCoverage: params.no_coverage,
             location: params.location,
             reference: params.reference,
             accreditation_info: params.accreditation_info,
@@ -202,6 +208,9 @@ export function combinedParamsToSearchParams(params: ICombinedSearchParams): ISe
         ...commonParamsToSearchParams(params),
         reference: params.advancedSearch?.reference,
         coverage_user_id: params.coverage_user_id,
+        coverage_assignment_status: params.coverage_assignment_status,
+        no_coverage: params.advancedSearch?.noCoverage,
+        g2_content_type: params.advancedSearch?.g2_content_type,
     };
 }
 
@@ -211,9 +220,12 @@ export function searchParamsToCombinedParams(params: ISearchParams): ICombinedSe
     return {
         ...common,
         coverage_user_id: params.coverage_user_id,
+        coverage_assignment_status: params.coverage_assignment_status,
         advancedSearch: {
             ...common.advancedSearch,
             reference: params.reference,
+            g2_content_type: params.g2_content_type,
+            noCoverage: params.no_coverage,
         },
     };
 }

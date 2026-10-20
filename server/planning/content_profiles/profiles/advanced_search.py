@@ -169,6 +169,27 @@ DEFAULT_ADVANCED_SEARCH_PROFILE = PlanningProfileResource(
                 "search_enabled": True,
                 "filter_enabled": True,
             },
+            "no_coverage": {
+                "enabled": True,
+                "index": 5,
+                "group": "events",
+                "search_enabled": True,
+                "filter_enabled": True,
+            },
+            "g2_content_type": {
+                "enabled": True,
+                "index": 6,
+                "group": "events",
+                "search_enabled": True,
+                "filter_enabled": True,
+            },
+            "coverage_assignment_status": {
+                "enabled": True,
+                "index": 7,
+                "group": "events",
+                "search_enabled": True,
+                "filter_enabled": True,
+            },
         },
         "planning": {
             # Common Fields
@@ -509,6 +530,27 @@ DEFAULT_ADVANCED_SEARCH_PROFILE = PlanningProfileResource(
             "agendas": {
                 "enabled": True,
                 "index": 1,
+                "group": "planning",
+                "search_enabled": True,
+                "filter_enabled": True,
+            },
+            "no_coverage": {
+                "enabled": True,
+                "index": 2,
+                "group": "planning",
+                "search_enabled": True,
+                "filter_enabled": True,
+            },
+            "g2_content_type": {
+                "enabled": True,
+                "index": 3,
+                "group": "planning",
+                "search_enabled": True,
+                "filter_enabled": True,
+            },
+            "coverage_assignment_status": {
+                "enabled": True,
+                "index": 4,
                 "group": "planning",
                 "search_enabled": True,
                 "filter_enabled": True,

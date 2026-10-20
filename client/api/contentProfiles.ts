@@ -34,6 +34,7 @@ function getAll(): Promise<Array<IPlanningContentProfile>> {
         .then((response) => {
             response._items.forEach(sortProfileGroups);
             enablePriorityInSearchProfile(response._items);
+            disableEventCoverageFiltersInSearchProfile(response._items);
 
             return response._items;
         });
@@ -70,6 +71,22 @@ function enablePriorityInSearchProfile(profiles: Array<IPlanningContentProfile>)
     if (priorityEnabled.planning) {
         searchProfile.planning.priority = priorityField;
     }
+}
+
+// Coverage filters do nothing for events if the event profile has no coverages
+function disableEventCoverageFiltersInSearchProfile(profiles: Array<IPlanningContentProfile>) {
+    const eventProfile = profiles.find((profile) => profile.type === 'event');
+    const searchProfile = profiles.find((profile) => profile.type === 'advanced_search');
+
+    if (eventProfile?.editor?.coverages?.enabled === true || searchProfile?.editor?.event == null) {
+        return;
+    }
+
+    ['no_coverage', 'g2_content_type', 'coverage_assignment_status'].forEach((field) => {
+        if (searchProfile.editor.event[field] != null) {
+            searchProfile.editor.event[field].enabled = false;
+        }
+    });
 }
 
 function getProfile(contentType: string): IPlanningContentProfile {

@@ -697,3 +697,140 @@ Feature: Search Feature
         """
         {"_items": [{"_id": "event_123"}]}
         """
+
+    @auth
+    Scenario: Search events and combined by coverage filters
+        Given "assignments"
+        """
+        [{
+            "_id": "507f1f77bcf86cd799439011",
+            "planning_item": "plan1",
+            "planning": {"scheduled": "2035-07-31T00:00:00+0000"},
+            "assigned_to": {"desk": "Politic Desk", "user": "507f191e810c19729de860ea", "state": "assigned"}
+        }]
+        """
+        Given "events"
+        """
+        [
+            {
+                "guid": "event_some_assigned",
+                "name": "event with one of two coverages assigned",
+                "dates": {"start": "2035-07-31T00:00:00+0000", "end": "2035-07-31T02:00:00+0000", "tz": "Australia/Sydney"},
+                "coverages": [
+                    {
+                        "coverage_id": "cov_1",
+                        "workflow_status": "active",
+                        "news_coverage_status": {"qcode": "ncostat:int", "name": "coverage intended", "label": "Planned"},
+                        "planning": {"g2_content_type": "text"},
+                        "assigned_to": {"assignment_id": "#assignments._id#"}
+                    },
+                    {
+                        "coverage_id": "cov_2",
+                        "workflow_status": "draft",
+                        "news_coverage_status": {"qcode": "ncostat:int", "name": "coverage intended", "label": "Planned"},
+                        "planning": {"g2_content_type": "picture"}
+                    }
+                ]
+            },
+            {
+                "guid": "event_all_assigned",
+                "name": "event with all coverages assigned",
+                "dates": {"start": "2035-07-31T00:00:00+0000", "end": "2035-07-31T02:00:00+0000", "tz": "Australia/Sydney"},
+                "coverages": [
+                    {
+                        "coverage_id": "cov_3",
+                        "workflow_status": "active",
+                        "news_coverage_status": {"qcode": "ncostat:int", "name": "coverage intended", "label": "Planned"},
+                        "planning": {"g2_content_type": "text"},
+                        "assigned_to": {"assignment_id": "#assignments._id#"}
+                    }
+                ]
+            },
+            {
+                "guid": "event_none_assigned",
+                "name": "event with no coverages assigned",
+                "dates": {"start": "2035-07-31T00:00:00+0000", "end": "2035-07-31T02:00:00+0000", "tz": "Australia/Sydney"},
+                "coverages": [
+                    {
+                        "coverage_id": "cov_4",
+                        "workflow_status": "draft",
+                        "news_coverage_status": {"qcode": "ncostat:int", "name": "coverage intended", "label": "Planned"},
+                        "planning": {"g2_content_type": "picture"}
+                    }
+                ]
+            },
+            {
+                "guid": "event_no_coverage",
+                "name": "event without coverages",
+                "dates": {"start": "2035-07-31T00:00:00+0000", "end": "2035-07-31T02:00:00+0000", "tz": "Australia/Sydney"}
+            }
+        ]
+        """
+        Given "planning"
+        """
+        [
+            {
+                "guid": "planning_video",
+                "slugline": "planning with video coverage",
+                "planning_date": "2035-07-31T00:00:00+0000",
+                "coverages": [
+                    {
+                        "coverage_id": "cov_5",
+                        "workflow_status": "draft",
+                        "news_coverage_status": {"qcode": "ncostat:int", "name": "coverage intended", "label": "Planned"},
+                        "planning": {"g2_content_type": "video"}
+                    }
+                ]
+            }
+        ]
+        """
+        When we get "/events_planning_search?repo=events&g2_content_type=text"
+        Then we get list with 2 items
+        """
+        {"_items": [{"_id": "event_some_assigned"}, {"_id": "event_all_assigned"}]}
+        """
+        When we get "/events_planning_search?repo=events&g2_content_type=picture"
+        Then we get list with 2 items
+        """
+        {"_items": [{"_id": "event_some_assigned"}, {"_id": "event_none_assigned"}]}
+        """
+        When we get "/events_planning_search?repo=events&no_coverage=true"
+        Then we get list with 1 items
+        """
+        {"_items": [{"_id": "event_no_coverage"}]}
+        """
+        When we get "/events_planning_search?repo=events&coverage_assignment_status=null"
+        Then we get list with 1 items
+        """
+        {"_items": [{"_id": "event_none_assigned"}]}
+        """
+        When we get "/events_planning_search?repo=events&coverage_assignment_status=some"
+        Then we get list with 1 items
+        """
+        {"_items": [{"_id": "event_some_assigned"}]}
+        """
+        When we get "/events_planning_search?repo=events&coverage_assignment_status=all"
+        Then we get list with 1 items
+        """
+        {"_items": [{"_id": "event_all_assigned"}]}
+        """
+        When we get "/events_planning_search?repo=combined&g2_content_type=video"
+        Then we get list with 1 items
+        """
+        {"_items": [{"_id": "planning_video"}]}
+        """
+        When we get "/events_planning_search?repo=combined&g2_content_type=picture"
+        Then we get list with 2 items
+        """
+        {"_items": [{"_id": "event_some_assigned"}, {"_id": "event_none_assigned"}]}
+        """
+        When we get "/events_planning_search?repo=combined&no_coverage=true"
+        Then we get list with 1 items
+        """
+        {"_items": [{"_id": "event_no_coverage"}]}
+        """
+        When we get "/events_planning_search?repo=combined&coverage_assignment_status=null"
+        Then we get list with 2 items
+        """
+        {"_items": [{"_id": "event_none_assigned"}, {"_id": "planning_video"}]}
+        """
