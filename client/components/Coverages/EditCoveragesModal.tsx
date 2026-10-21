@@ -176,7 +176,9 @@ class EditCoveragesModalComponent extends React.Component<IProps, IState> {
                     createCoverage={(qcode) => ({
                         planning: {
                             g2_content_type: qcode,
-                            language: null,
+                            // Default to the item's language like the coverage editor does. The server rejects
+                            // a null language and applies its own default when the field is missing.
+                            ...(this.props.item.language ? {language: this.props.item.language} : {}),
                         },
                         workflow_status: 'draft',
                     })}
