@@ -283,3 +283,118 @@ Feature: Recurring Events - Mark as Completed
         }
         """
         Then we get OK response
+
+    @auth
+    Scenario: Completion date must be within the range of the recurring series
+        When we post to "events"
+        """
+        [{
+            "name": "Daily Event",
+            "dates": {
+                "start": "#DATE-3#",
+                "end": "#DATE-2#",
+                "tz": "Australia/Sydney",
+                "recurring_rule": {"frequency": "DAILY", "interval": 1, "count": 4, "endRepeatMode": "count"}
+            }
+        }]
+        """
+        Then we get OK response
+        Then we store "EVENT1" with first item
+        When we post to "planning/#EVENT1._id#/lock"
+        """
+        {"lock_action": "mark_completed"}
+        """
+        Then we get OK response
+        When we patch "/events/#EVENT1._id#"
+        """
+        {"completed": true, "actioned_date": "#DATE-5#"}
+        """
+        Then we get error 400
+        """
+        {
+            "_status": "ERR",
+            "_issues": {"validator exception": "400: Completed date is before Recurring series start date."}
+        }
+        """
+        When we patch "/events/#EVENT1._id#"
+        """
+        {"completed": true, "actioned_date": "#DATE+5#"}
+        """
+        Then we get error 400
+        """
+        {
+            "_status": "ERR",
+            "_issues": {"validator exception": "400: Completed date is after Recurring series end date."}
+        }
+        """
+        When we patch "/events/#EVENT1._id#"
+        """
+        {"completed": true, "actioned_date": "#DATE-1#"}
+        """
+        Then we get OK response
+
+    @auth
+    Scenario: Mark completed fails if recurring series has already completed
+        When we post to "events"
+        """
+        [{
+            "name": "Daily Event",
+            "dates": {
+                "start": "#DATE-9#",
+                "end": "#DATE-8#",
+                "tz": "Australia/Sydney",
+                "recurring_rule": {"frequency": "DAILY", "interval": 1, "count": 4, "endRepeatMode": "count"}
+            }
+        }]
+        """
+        Then we get OK response
+        Then we store "EVENT1" with first item
+        When we post to "planning/#EVENT1._id#/lock"
+        """
+        {"lock_action": "mark_completed"}
+        """
+        Then we get OK response
+        When we patch "/events/#EVENT1._id#"
+        """
+        {"completed": true}
+        """
+        Then we get error 400
+        """
+        {
+            "_status": "ERR",
+            "_issues": {"validator exception": "400: Recurring series has already finished."}
+        }
+        """
+
+    @auth
+    Scenario: Mark completed fails if recurring series hasn't started yet
+        When we post to "events"
+        """
+        [{
+            "name": "Daily Event",
+            "dates": {
+                "start": "#DATE+2#",
+                "end": "#DATE+3#",
+                "tz": "Australia/Sydney",
+                "recurring_rule": {"frequency": "DAILY", "interval": 1, "count": 4, "endRepeatMode": "count"}
+            }
+        }]
+        """
+        Then we get OK response
+        Then we store "EVENT1" with first item
+        When we post to "planning/#EVENT1._id#/lock"
+        """
+        {"lock_action": "mark_completed"}
+        """
+        Then we get OK response
+        When we patch "/events/#EVENT1._id#"
+        """
+        {"completed": true}
+        """
+        Then we get error 400
+        """
+        {
+            "_status": "ERR",
+            "_issues": {"validator exception": "400: Recurring series has not started."}
+        }
+        """
