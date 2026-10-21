@@ -1136,7 +1136,9 @@ function getEventsByDate(
     }
 
     sortedEvents.forEach((event) => {
-        const eventEndDate = event.actioned_date ? moment(event.actioned_date) : getLocalEndDate(event);
+        const eventEndDate = event.actioned_date && (!event.recurrence_id || !event.completed)
+            ? moment(event.actioned_date)
+            : getLocalEndDate(event);
         const eventStartDate = getLocalStartDate(event);
 
         const displayStartDate = eventStartDate.isSameOrAfter(startDate) ? eventStartDate : startDate;

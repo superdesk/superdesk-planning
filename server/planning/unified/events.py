@@ -1,3 +1,6 @@
+from datetime import datetime, time, timezone
+from zoneinfo import ZoneInfo
+
 from quart_babel import gettext
 
 from superdesk.errors import SuperdeskApiError
@@ -53,8 +56,9 @@ async def on_event_update(req: ItemUpdateRequest) -> None:
         req.updates.pop("dates", None)
         req.updated.dates = req.original.dates
 
-    if req.original.lock_action == "mark_completed" and req.updates.get("actioned_date"):
-        await mark_event_complete(req, False)
+    if req.updated.lock_action == "mark_completed" and not req.original.recurrence_id:
+        validate_mark_event_complete(req, req.original, req.original)
+        await cancel_related_planning_coverages(req.original.id)
 
 
 async def on_event_updated(updates: dict, original: UnifiedPlanningResource) -> None:
@@ -97,19 +101,75 @@ async def _add_recurrence_id_to_planning(event_id: str, recurrence_id: str) -> N
         )
 
 
-async def mark_event_complete(req: ItemUpdateRequest, mark_complete_validated: bool) -> None:
-    # If the entire series is in future, raise an error
-    if req.original.recurrence_id:
-        if not mark_complete_validated:
-            if req.original.dates.start.date() > req.updates["actioned_date"].date():
-                raise SuperdeskApiError.badRequestError(gettext("Recurring series has not started."))
+def validate_mark_event_complete(
+    req: ItemUpdateRequest, first_event: UnifiedPlanningResource, last_event: UnifiedPlanningResource
+) -> None:
+    """
+    Validates and assigns the `actioned_date` for marking a single event or a series of recurring events
+    as complete. Ensures that the completion date is within the bounds of the event's start and end dates.
 
-        # If we are marking an event as completed
-        # Update only those which are behind the 'actioned_date'
-        if req.original.dates.start < req.updates["actioned_date"]:
-            return
+    :param req: Instance of `ItemUpdateRequest` containing the updated request data.
+    :param first_event: Instance of `UnifiedPlanningResource` representing the first event in the series.
+    :param last_event: Instance of `UnifiedPlanningResource` representing the last event in the series.
+    """
 
-    cursor = await get_related_planning_for_events([req.original.id], RelatedEventLinkType.PRIMARY)
+    event_tz = ZoneInfo(req.updated.dates.tz) if req.updated.dates.tz else timezone.utc
+    today_in_event_tz = datetime.now(event_tz).date()
+    start_date = (
+        first_event.dates.start.date()
+        if first_event.dates.all_day
+        else first_event.dates.start.astimezone(event_tz).date()
+    )
+    end = last_event.dates.end or last_event.dates.start
+    end_date = (
+        end.date()
+        if last_event.dates.all_day or (last_event.dates.no_end_time and last_event.dates.end is not None)
+        else end.astimezone(event_tz).date()
+    )
+
+    if not req.updated.actioned_date:
+        # ``actioned_date`` was not provided, assign one now (defaults to today in the Event's timezone)
+        req.updated.actioned_date = datetime.combine(today_in_event_tz, time.min, tzinfo=event_tz)
+
+    actioned_date = req.updated.actioned_date.astimezone(event_tz).date()
+
+    # If the Event or Recurring Event is in future, raise an error
+    if start_date > today_in_event_tz:
+        if not req.original.recurrence_id:
+            raise SuperdeskApiError.badRequestError(gettext("Event has not started."))
+        else:
+            raise SuperdeskApiError.badRequestError(gettext("Recurring series has not started."))
+    elif end_date < today_in_event_tz:
+        if not req.original.recurrence_id:
+            raise SuperdeskApiError.badRequestError(gettext("Event has already finished."))
+        else:
+            raise SuperdeskApiError.badRequestError(gettext("Recurring series has already finished."))
+    elif start_date > actioned_date:
+        if not req.original.recurrence_id:
+            raise SuperdeskApiError.badRequestError(gettext("Completed date is before Event start date."))
+        else:
+            raise SuperdeskApiError.badRequestError(gettext("Completed date is before Recurring series start date."))
+    elif actioned_date > end_date:
+        if not req.original.recurrence_id:
+            raise SuperdeskApiError.badRequestError(gettext("Completed date is after Event end date."))
+        else:
+            raise SuperdeskApiError.badRequestError(gettext("Completed date is after Recurring series end date."))
+
+
+async def cancel_related_planning_coverages(event_id: str) -> None:
+    """
+    Cancels all related planning coverages for a given event.
+
+    This function retrieves all related planning items linked to an event
+    using the specified event ID. For each related planning item, if its
+    state is not already set to "CANCELLED" and it contains coverages, the
+    planning item is processed to cancel all associated coverages with a
+    specific cancellation reason.
+
+    :param event_id: ID of the event for which the related planning coverages need to be cancelled.
+    """
+
+    cursor = await get_related_planning_for_events([event_id], RelatedEventLinkType.PRIMARY)
     async for plan in cursor:
         if plan.state != WorkflowState.CANCELLED and plan.coverages:
             await process_cancel_planning_item(
