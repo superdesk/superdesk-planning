@@ -37,7 +37,7 @@ from .common import (
     get_recurring_timeline,
     generate_recurring_dates,
 )
-from .events import mark_event_complete
+from .events import validate_mark_event_complete, cancel_related_planning_coverages
 
 
 __all__ = [
@@ -75,8 +75,10 @@ async def on_update_recurring(req: ItemUpdateRequest) -> None:
         if req.updated.update_method not in {UpdateMethods.SINGLE, None}:
             await _update_recurring_planning_items(req)
         return
-
-    if not req.original.dates.recurring_rule:
+    elif req.updated.lock_action == "mark_completed" and req.original.recurrence_id:
+        await _mark_recurring_series_as_completed(req)
+        return
+    elif not req.original.dates.recurring_rule:
         req.updated.update_method = UpdateMethods.SINGLE
     elif req.original.dates.recurring_rule != req.updated.dates.recurring_rule:
         req.updated.update_method = UpdateMethods.ALL
@@ -142,9 +144,6 @@ async def _update_recurring_items(req: ItemUpdateRequest) -> None:
         calendar for calendar in req.updates.get("calendars") or [] if calendar["qcode"] not in original_calendar_qcodes
     ]
 
-    mark_completed = req.original.lock_action == "mark_completed" and req.updates.get("actioned_date")
-    mark_complete_validated = False
-
     events_post_service = get_resource_service("events_post")
     updates_to_apply: list[tuple[str, dict]] = []
     items_service = UnifiedPlanningResource.get_service()
@@ -172,10 +171,6 @@ async def _update_recurring_items(req: ItemUpdateRequest) -> None:
             new_updates["calendars"].extend(
                 [calendar for calendar in updated_calendars if calendar["qcode"] not in original_qcodes]
             )
-        elif mark_completed:
-            await mark_event_complete(req, event, mark_complete_validated)
-            # It is validated if the previous function did not raise an error
-            mark_complete_validated = True
 
         # Remove ``embedded_planning`` before updating this event, as this should only be handled
         # by the event provided to this update request
@@ -201,6 +196,70 @@ async def _update_recurring_items(req: ItemUpdateRequest) -> None:
         await app.on_updated_events.call_async(new_updates, {"_id": event_id})
 
     # And finally push a notification to connected clients
+    push_notification(
+        "events:updated:recurring",
+        item=req.original.id,
+        recurrence_id=req.original.recurrence_id,
+        user=str(req.updates.get("version_creator", "")),
+    )
+
+
+async def _mark_recurring_series_as_completed(req: ItemUpdateRequest) -> None:
+    """
+    Marks a recurring series of events as completed by processing each event in the
+    series sequentially and updating or cancelling associated resources where necessary.
+
+    The function validates the events in the recurring series and applies updates to
+    them based on the provided request. It also ensures that associated planning
+    coverages are cancelled for events that occur after the specified actioned date.
+    Finally, it notifies connected clients about the updates.
+
+    :param req: The update request containing the original event, update data, and other metadata for processing
+    """
+
+    events_post_service = get_resource_service("events_post")
+    items_service = UnifiedPlanningResource.get_service()
+
+    # First, gather the whole series in chronological order
+    historic, past, future = await get_recurring_timeline(req.original)
+    series = historic + past + [req.original] + future
+    first_event = series[0]
+    last_event = series[-1]
+
+    updates: dict = deepcopy(req.updates)
+    updates.pop("update_method", None)
+    updates["skip_on_update"] = True
+
+    # Validate all Events in the series before updating them
+    validate_mark_event_complete(req, first_event, last_event)
+    # Ignore type, as the function above places a default value for us
+    actioned_date = req.updated.actioned_date.date()  # type: ignore[union-attr]
+
+    if post_on_update_required(req):
+        for event in series:
+            merged = event.clone_with(updates)
+            await events_post_service.validate_item(merged.to_dict())
+
+    # Next, cancel associated Planning Coverages and update the Events
+    for event in series:
+        if event.dates.start.date() >= actioned_date:
+            # Only cancel associated Planning's Coverages if the Event is scheduled
+            # after the ``actioned_date``
+            await cancel_related_planning_coverages(event.id)
+
+        if event.id == req.original.id:
+            # No need to update this specific Event, as this will be handled
+            # by the API request itself in the resource service
+            continue
+
+        # Use a copy of ``updates`` in case any side effects modify it
+        event_updates = deepcopy(updates)
+        await items_service.update(event.id, event_updates)
+        # Make sure to call Eve based signals as well (is this needed?)
+        app = get_current_app().as_any()
+        await app.on_updated_events.call_async(event_updates, {"_id": event.id})
+
+    # Finally push a notification to connected clients
     push_notification(
         "events:updated:recurring",
         item=req.original.id,
