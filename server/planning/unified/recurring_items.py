@@ -2,6 +2,7 @@ from copy import deepcopy
 import itertools
 from collections.abc import AsyncGenerator
 from datetime import datetime, date, timezone
+from zoneinfo import ZoneInfo
 import logging
 
 import pytz
@@ -233,8 +234,10 @@ async def _mark_recurring_series_as_completed(req: ItemUpdateRequest) -> None:
     # Validate all Events in the series before updating them
     validate_mark_event_complete(req, first_event, last_event)
     updates["actioned_date"] = req.updated.actioned_date
+
+    event_tz = ZoneInfo(req.updated.dates.tz) if req.updated.dates.tz else timezone.utc
     # Ignore type, as the function above places a default value for us
-    actioned_date = req.updated.actioned_date.date()  # type: ignore[union-attr]
+    actioned_date = req.updated.actioned_date.astimezone(event_tz).date()  # type: ignore[union-attr]
 
     if post_on_update_required(req):
         for event in series:
@@ -243,7 +246,8 @@ async def _mark_recurring_series_as_completed(req: ItemUpdateRequest) -> None:
 
     # Next, cancel associated Planning Coverages and update the Events
     for event in series:
-        if event.dates.start.date() >= actioned_date:
+        event_date = event.dates.start.date() if event.dates.all_day else event.dates.start.astimezone(event_tz).date()
+        if event_date >= actioned_date:
             # Only cancel associated Planning's Coverages if the Event is scheduled
             # after the ``actioned_date``
             await cancel_related_planning_coverages(event.id)
