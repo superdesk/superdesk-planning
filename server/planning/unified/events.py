@@ -115,14 +115,23 @@ def validate_mark_event_complete(
 
     event_tz = ZoneInfo(req.updated.dates.tz) if req.updated.dates.tz else timezone.utc
     today_in_event_tz = datetime.now(event_tz).date()
-    start_date = first_event.dates.start.astimezone(event_tz).date()
-    end_date = (last_event.dates.end or last_event.dates.start).astimezone(event_tz).date()
+    start_date = (
+        first_event.dates.start.date()
+        if first_event.dates.all_day
+        else first_event.dates.start.astimezone(event_tz).date()
+    )
+    end = last_event.dates.end or last_event.dates.start
+    end_date = (
+        end.date()
+        if last_event.dates.all_day or (last_event.dates.no_end_time and last_event.dates.end is not None)
+        else end.astimezone(event_tz).date()
+    )
 
     if not req.updated.actioned_date:
         # ``actioned_date`` was not provided, assign one now (defaults to today in the Event's timezone)
         req.updated.actioned_date = datetime.combine(today_in_event_tz, time.min, tzinfo=event_tz)
 
-    actioned_date = req.updated.actioned_date.date()
+    actioned_date = req.updated.actioned_date.astimezone(event_tz).date()
 
     # If the Event or Recurring Event is in future, raise an error
     if start_date > today_in_event_tz:

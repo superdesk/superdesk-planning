@@ -222,7 +222,7 @@ async def _mark_recurring_series_as_completed(req: ItemUpdateRequest) -> None:
 
     # First, gather the whole series in chronological order
     historic, past, future = await get_recurring_timeline(req.original)
-    series = historic + past + [req.original] + future
+    series = sorted(historic + past + [req.original] + future, key=lambda event: event.dates.start)
     first_event = series[0]
     last_event = series[-1]
 
@@ -232,6 +232,7 @@ async def _mark_recurring_series_as_completed(req: ItemUpdateRequest) -> None:
 
     # Validate all Events in the series before updating them
     validate_mark_event_complete(req, first_event, last_event)
+    updates["actioned_date"] = req.updated.actioned_date
     # Ignore type, as the function above places a default value for us
     actioned_date = req.updated.actioned_date.date()  # type: ignore[union-attr]
 
