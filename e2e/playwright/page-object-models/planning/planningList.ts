@@ -85,22 +85,33 @@ export class PlanningList {
             .click();
     }
 
+    async selectItem(index: number): Promise<void> {
+        await this.item(index).hover();
+        await this.item(index).getByTestId('multi-select-checkbox').click();
+    }
+
+    get selectionToolbar(): Locator {
+        return this.page.getByTestId('sliding-toolbar');
+    }
+
     /**
      * The multi-select toolbar renders its actions as icon buttons carrying only an aria-label,
      * so this is a role lookup rather than a test id.
      */
-    async addSelectedToWorkflow(index: number): Promise<void> {
-        await this.item(index).hover();
-        await this.item(index).getByTestId('multi-select-checkbox').click();
-
+    async addToWorkflow(resource: 'planning' | 'events' = 'planning'): Promise<void> {
         // The action patches each selected item; without waiting for that response a reload
         // straight afterwards races the in-flight request and sees the coverage still in draft
         const patched = this.page.waitForResponse((response) => (
-            response.request().method() === 'PATCH' && response.url().includes('/planning/')
+            response.request().method() === 'PATCH' && response.url().includes(`/${resource}/`)
         ));
 
-        await this.page.getByRole('button', {name: 'Add to workflow'}).click();
+        await this.selectionToolbar.getByRole('button', {name: 'Add to workflow'}).click();
         await patched;
+    }
+
+    async addSelectedToWorkflow(index: number): Promise<void> {
+        await this.selectItem(index);
+        await this.addToWorkflow();
     }
 
     async setDateInterval(interval: 'Day' | 'Week' | 'Month') {

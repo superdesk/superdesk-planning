@@ -15,8 +15,10 @@ import {planningApi, superdeskApi} from '../superdeskApi';
 import {EVENTS, TEMP_ID_PREFIX} from '../constants';
 
 import {arrayToString, convertCommonParams, cvsToString, searchRaw, searchRawGetAll} from './search';
-import {eventUtils} from '../utils';
+import {eventUtils, planningUtils, getErrorMessage} from '../utils';
+import {modifyCoverageForServer} from '../utils/planning';
 import {eventProfile, eventSearchProfile} from '../selectors/forms';
+import * as selectors from '../selectors';
 import planningApis from '../actions/planning/api';
 import eventsApi from '../actions/events/api';
 import {searchPlanning} from './planning';
@@ -243,6 +245,47 @@ function getLinkedPlanningItems(eventId: string): Promise<Array<IPlanningItem>> 
     return searchPlanning({only_future: false, event_item: [eventId]}).then(({_items}) => _items);
 }
 
+function bulkAddCoverageToWorkflow(eventItems: Array<IEventItem>): Promise<Array<IEventItem>> {
+    const {getState, dispatch} = planningApi.redux.store;
+    const {gettext} = superdeskApi.localization;
+    const {notify} = superdeskApi.ui;
+
+    const coverageStatuses = selectors.general.newsCoverageStatus(getState());
+    const eventsToUpdate: Array<IEventItem> = eventItems.filter((item) => item.lock_action !== 'edit');
+    const allUpdates = eventsToUpdate.map((event) => {
+        const coverages = (event.coverages ?? [])
+            .map((coverage) => planningUtils.addCoverageToWorkflow(coverage, coverageStatuses));
+
+        coverages.forEach((coverage) => modifyCoverageForServer(coverage));
+
+        // Patch only the coverages, and only on this event of a series
+        return update(event, {
+            coverages: coverages,
+            update_method: EVENTS.UPDATE_METHODS[0].value,
+        } as Partial<IEventItem>)
+            .then(([updatedEvent]) => {
+                dispatch<any>(eventsApi.receiveEvents([updatedEvent]));
+
+                return updatedEvent;
+            });
+    });
+
+    return Promise.all(allUpdates)
+        .then((result) => {
+            notify.success(gettext('Coverages added to workflow.'));
+
+            return result;
+        })
+        .catch((error) => {
+            notify.error(getErrorMessage(
+                error,
+                gettext('Failed to add coverages to workflow')
+            ));
+
+            return Promise.reject(error);
+        });
+}
+
 export const events: IPlanningAPI['events'] = {
     search: searchEvents,
     searchGetAll: searchEventsGetAll,
@@ -253,4 +296,5 @@ export const events: IPlanningAPI['events'] = {
     create: create,
     update: update,
     getLinkedPlanningItems: getLinkedPlanningItems,
+    bulkAddCoverageToWorkflow: bulkAddCoverageToWorkflow,
 };

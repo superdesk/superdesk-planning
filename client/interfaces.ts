@@ -471,6 +471,9 @@ export interface IEventItem extends IBaseRestApiResponse {
     anpa_category?: Array<IANPACategory>;
     files?: Array<string>;
     coverages?: Array<IPlanningCoverageItem>;
+    flags?: {
+        overide_auto_assign_to_workflow?: boolean;
+    };
     relationships?: {
         broader?: string;
         narrower?: string;
@@ -2454,6 +2457,7 @@ export interface IPlanningAPI {
         create(updates: Partial<IEventItem>): Promise<Array<IEventItem>>;
         update(original: IEventItem, updates: Partial<IEventItem>): Promise<Array<IEventItem>>;
         getLinkedPlanningItems(eventId: string): Promise<Array<IPlanningItem>>;
+        bulkAddCoverageToWorkflow(events: Array<IEventItem>): Promise<Array<IEventItem>>;
     };
     planning: {
         search(params: ISearchParams): Promise<IRestApiResponse<IPlanningItem>>;

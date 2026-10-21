@@ -195,6 +195,13 @@ const bulkAddPlanningCoveragesToWorkflow = (items) => (
         }))
 );
 
+const bulkAddEventCoveragesToWorkflow = (items) => (
+    (dispatch) => planningApi.events.bulkAddCoverageToWorkflow(items)
+        .then(() => dispatch({
+            type: MULTISELECT.ACTIONS.DESELECT_ALL_EVENTS,
+        }))
+);
+
 const exportAsArticle = (items: Array<IEventOrPlanningItem>, download: boolean = false) => (
     (dispatch, getState, {api, desks}) => {
         const {gettext} = superdeskApi.localization;
@@ -283,6 +290,7 @@ const self = {
     itemBulkUnSpikeModal,
     exportAsArticle,
     bulkAddPlanningCoveragesToWorkflow,
+    bulkAddEventCoveragesToWorkflow,
 };
 
 export default self;

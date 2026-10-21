@@ -3,18 +3,22 @@ import {connect} from 'react-redux';
 import * as actions from '../actions';
 import * as selectors from '../selectors';
 import {every} from 'lodash';
-import {appConfig} from 'appConfig';
 import {eventUtils, planningUtils, gettext} from '../utils';
 import {MAIN} from '../constants';
 import {SlidingToolBar} from './UI/SubNav';
 import {IEventItem, ILockedItems, IPlanningItem, IPrivileges, ISession} from 'interfaces';
 import {addSomeEventsAsRelatedToPlanningEditor, canAddSomeEventsAsRelatedToPlanningEditor} from '../utils/events';
 import {superdeskApi} from '../superdeskApi';
-import {addSomeRelatedPlanningsToEventEditor, canAddSomeRelatedPlanningsToEventEditor} from '../utils/planning';
+import {
+    addSomeRelatedPlanningsToEventEditor,
+    canAddSomeRelatedPlanningsToEventEditor,
+    canBulkAddCoveragesToWorkflow,
+} from '../utils/planning';
 import {IconButton} from 'superdesk-ui-framework/react';
 
 interface IReduxState {
     selectedEvents: Array<any>;
+    eventCoveragesEnabled: boolean;
     eventsInList: Array<any>;
     selectedPlannings: Array<IPlanningItem>;
     privileges: IPrivileges;
@@ -32,6 +36,7 @@ interface IDispatchProps {
     selectAllPlannings(): void;
     deSelectAllPlannings(): void;
     addToWorkflow(items): void;
+    addEventsToWorkflow(items): void;
     exportAsArticle(items, download): void;
     spikeItems(items): void;
     unspikeItems(items): void;
@@ -120,17 +125,9 @@ export class MultiSelectActionsComponent extends React.PureComponent<IProps> {
 
         const showExport = selectedPlannings.every((planning) => planning.flags.marked_for_not_publication !== true);
 
-        // Coverages on an item that auto assigns to workflow are already in it, so the action has
-        // nothing to do. An item that sets the override flag is left out of auto assign, so adding
-        // its coverages by hand stays the only way in.
-        const showAddToWorkflow = selectedPlannings.every((planning) => (
-            appConfig.planning_auto_assign_to_workflow !== true ||
-            planning.flags?.overide_auto_assign_to_workflow === true
-        ));
-
         let tools = [];
 
-        if (showAddToWorkflow && selectedPlannings.every((planning) => planning.lock_action == null)) {
+        if (canBulkAddCoveragesToWorkflow(selectedPlannings)) {
             tools.push(
                 <IconButton
                     key={0}
@@ -205,6 +202,7 @@ export class MultiSelectActionsComponent extends React.PureComponent<IProps> {
             privileges,
             session,
             lockedItems,
+            eventCoveragesEnabled,
         } = this.props;
 
         const showSpike = every(
@@ -224,21 +222,35 @@ export class MultiSelectActionsComponent extends React.PureComponent<IProps> {
 
         const {gettextPlural} = superdeskApi.localization;
 
-        let tools = [(
+        let tools = [];
+
+        if (eventCoveragesEnabled && canBulkAddCoveragesToWorkflow(selectedEvents)) {
+            tools.push(
+                <IconButton
+                    key={6}
+                    icon="assign"
+                    ariaValue={gettext('Add to workflow')}
+                    onClick={() => {
+                        this.props.addEventsToWorkflow(this.getItemList());
+                    }}
+                />
+            );
+        }
+
+        tools.push(
             <IconButton
                 key={0}
                 icon="upload"
                 ariaValue={gettext('Export')}
                 onClick={this.exportArticle}
-            />
-        ), (
+            />,
             <IconButton
                 key={1}
                 icon="download"
                 ariaValue={gettext('Download')}
                 onClick={this.exportArticle.bind(null, true)}
             />
-        )];
+        );
 
         if (showCreatePlan) {
             tools.push(
@@ -356,6 +368,7 @@ export class MultiSelectActionsComponent extends React.PureComponent<IProps> {
 const mapStateToProps = (state): IReduxState => ({
     activeFilter: selectors.main.activeFilter(state),
     selectedEvents: selectors.multiSelect.selectedEvents(state),
+    eventCoveragesEnabled: selectors.forms.eventProfile(state)?.editor?.coverages?.enabled === true,
     eventsInList: selectors.events.eventIdsInList(state),
     selectedPlannings: selectors.multiSelect.selectedPlannings(state),
     plansInList: selectors.planning.planIdsInList(state),
@@ -376,6 +389,7 @@ const mapDispatchToProps = (dispatch): IDispatchProps => ({
     unspikeItems: (items) => dispatch(actions.multiSelect.itemBulkUnSpikeModal(items)),
     exportAsArticle: (items, download) => dispatch(actions.multiSelect.exportAsArticle(items, download)),
     addToWorkflow: (items) => dispatch(actions.multiSelect.bulkAddPlanningCoveragesToWorkflow(items)),
+    addEventsToWorkflow: (items) => dispatch(actions.multiSelect.bulkAddEventCoveragesToWorkflow(items)),
 });
 
 

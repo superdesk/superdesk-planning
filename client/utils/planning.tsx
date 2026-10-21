@@ -594,6 +594,22 @@ export function addRelatedPlannings(
 }
 
 /**
+ * Whether the bulk "Add to workflow" action applies to the selected items.
+ * Coverages on an item that auto assigns to workflow are already in it, so the action has
+ * nothing to do. An item that sets the override flag is left out of auto assign, so adding
+ * its coverages by hand stays the only way in.
+ */
+export function canBulkAddCoveragesToWorkflow(items: Array<IPlanningItem | IEventItem>): boolean {
+    return items.every((item) => (
+        (
+            appConfig.planning_auto_assign_to_workflow !== true ||
+            item.flags?.overide_auto_assign_to_workflow === true
+        ) &&
+        item.lock_action == null
+    ));
+}
+
+/**
  * Will return true if there is at least one planning item that can be added
  */
 export function canAddSomeRelatedPlanningsToEventEditor(
