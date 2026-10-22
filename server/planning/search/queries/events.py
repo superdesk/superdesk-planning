@@ -308,7 +308,13 @@ def search_date_default(params: Dict[str, Any], query: elastic.ElasticQuery):
 
     if not date_filter and not start_date and not end_date and only_future:
         query.filter.append(
-            elastic.date_range(elastic.ElasticRangeParams(field="dates.end", gte="now/d", time_zone=time_zone))
+            elastic.date_range(
+                elastic.ElasticRangeParams(
+                    field="dates.end",
+                    gte=elastic.local_day_start(time_zone),
+                    time_zone=time_zone,
+                )
+            )
         )
 
 
