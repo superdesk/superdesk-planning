@@ -17,6 +17,15 @@ Planning items link events to coverage sets.  Here we can also define some defau
 
 See NewsML-G2-Implementation_Guide Section 16
 
+## Production API storage
+
+The read-only production API events and planning endpoints share the
+`unified_planning` storage source, filtered by document type. Event history uses
+`planning_history`. The `planning.prod_api` extension registers these internal
+sources in Eve's `DOMAIN` configuration for datasource lookups; this does not
+expose additional API endpoints. The main application creates the shared
+Elasticsearch index.
+
 ## Coverage
 **api/coverage**
 
