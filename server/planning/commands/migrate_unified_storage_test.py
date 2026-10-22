@@ -12,12 +12,13 @@ from datetime import timedelta
 from unittest import mock
 
 from bson import ObjectId
+from click.testing import CliRunner
 
 from superdesk.utc import utcnow
 
 from planning.tests import TestCase
 from planning.types.unified import UnifiedPlanningResource
-from .migrate_unified_storage import MigrateUnifiedStorageCommand
+from .migrate_unified_storage import MigrateUnifiedStorageCommand, migrate_unified_storage_command
 
 
 now = utcnow()
@@ -285,3 +286,275 @@ class MigrateUnifiedStorageTest(TestCase):
 
         # The later phases are not run once it stops
         self.assertEqual(len(await self._find("planning_autosave")), 1)
+
+    async def _link_coverage_to_event(self):
+        await self.db["planning"].update_one({"_id": "plan2"}, {"$set": {"event_item": "event1"}})
+        await self.db["assignments"].insert_many(
+            [
+                {"_id": ObjectId(), "planning_item": "plan2", "coverage_item": "cov1"},
+                {
+                    "_id": ObjectId(),
+                    "planning_item": "plan2",
+                    "coverage_item": "cov1",
+                    "scheduled_update_id": "update1",
+                },
+                {"_id": ObjectId(), "planning_item": "unlinked", "coverage_item": "other"},
+            ]
+        )
+        await self.db["delivery"].insert_many(
+            [
+                {"_id": ObjectId(), "planning_id": "plan2", "coverage_id": "cov1", "item_id": "article1"},
+                {
+                    "_id": ObjectId(),
+                    "planning_id": "plan2",
+                    "coverage_id": "cov1",
+                    "scheduled_update_id": "update1",
+                    "item_id": "article2",
+                },
+                {"_id": ObjectId(), "planning_id": "unlinked", "coverage_id": "other"},
+            ]
+        )
+
+    def test_event_coverages_cli_option(self):
+        result = CliRunner().invoke(migrate_unified_storage_command, ["--help"])
+        self.assertEqual(result.exit_code, 0, result.output)
+        self.assertIn("--event-coverages", result.output)
+
+    async def test_default_mode_keeps_planning_and_assignment_links(self):
+        await self._link_coverage_to_event()
+        async with self.app.app_context():
+            self.assertEqual(await self.command.run(only=["items"]), 0)
+        self.assertIsNotNone(await self.db["unified_planning"].find_one({"_id": "plan2"}))
+        self.assertEqual(len(await self._find("assignments", planning_item="plan2")), 2)
+        self.assertEqual(len(await self._find("delivery", planning_id="plan2")), 2)
+        self.assertFalse((await self.db["unified_planning"].find_one({"_id": "event1"})).get("coverages"))
+
+    async def test_event_coverages_moves_coverages_and_assignments(self):
+        await self._link_coverage_to_event()
+        await self.db["planning"].update_one(
+            {"_id": "plan2"},
+            {"$set": {"coverages.0.planning.description_text": "Coverage description"}},
+        )
+        async with self.app.app_context():
+            self.assertEqual(await self.command.run(event_coverages=True, only=["items"]), 0)
+
+        items = {item["_id"]: item for item in await self._find("unified_planning")}
+        self.assertEqual(set(items), {"event1", "event2"})
+        self.assertEqual(items["event1"]["coverages"][0]["coverage_id"], "cov1")
+        self.assertEqual(items["event1"]["coverages"][0]["planning"]["definition_long"], "Coverage description")
+        self.assertIn(
+            {"coverage_id": "cov1", "scheduled": now + timedelta(hours=3)},
+            items["event1"]["_planning_schedule"],
+        )
+        assignments = await self._find("assignments")
+        self.assertEqual(sum(item["planning_item"] == "event1" for item in assignments), 2)
+        self.assertEqual(sum(item["planning_item"] == "unlinked" for item in assignments), 1)
+        self.assertEqual(len(await self._find("delivery", planning_id="event1")), 2)
+        self.assertEqual(len(await self._find("delivery", planning_id="unlinked")), 1)
+        self.assertEqual((await self.db["planning"].find_one({"_id": "plan2"}))["event_item"], "event1")
+        self.assertNotIn("coverages", await self.db["events"].find_one({"_id": "event1"}))
+
+    async def test_event_coverages_skips_unlinked_planning(self):
+        async with self.app.app_context():
+            self.assertEqual(await self.command.run(event_coverages=True, only=["items"]), 0)
+        self.assertEqual({item["_id"] for item in await self._find("unified_planning")}, {"event1", "event2"})
+        self.assertFalse((await self.db["unified_planning"].find_one({"_id": "event1"})).get("coverages"))
+
+    async def test_event_coverages_merges_multiple_plans_and_reruns(self):
+        await self._link_coverage_to_event()
+        plan = await self.db["planning"].find_one({"_id": "plan2"})
+        plan["_id"] = plan["guid"] = "plan3"
+        plan.pop("event_item")
+        plan["related_events"] = [{"_id": "event1", "link_type": "primary"}]
+        plan["coverages"][0]["coverage_id"] = "cov2"
+        await self.db["planning"].insert_one(plan)
+
+        async with self.app.app_context():
+            for force in (False, False, True):
+                self.assertEqual(
+                    await self.command.run(event_coverages=True, only=["items"], batch_size=1, force=force), 0
+                )
+                event = await self.db["unified_planning"].find_one({"_id": "event1"})
+                self.assertEqual([coverage["coverage_id"] for coverage in event["coverages"]], ["cov1", "cov2"])
+
+    async def test_event_coverages_dry_run_writes_nothing(self):
+        await self._link_coverage_to_event()
+        async with self.app.app_context():
+            self.assertEqual(await self.command.run(event_coverages=True, dry_run=True, only=["items"]), 0)
+        self.assertEqual(await self._find("unified_planning"), [])
+        self.assertEqual(len(await self._find("assignments", planning_item="plan2")), 2)
+        self.assertEqual(len(await self._find("delivery", planning_id="plan2")), 2)
+
+    async def test_event_coverages_copies_only_referenced_coverage_files(self):
+        await self._link_coverage_to_event()
+        attachment_id, xmp_id = ObjectId(), ObjectId()
+        await self.db["planning_files"].insert_many(
+            [
+                {"_id": attachment_id, "media": "coverage-attachment", "mimetype": "image/jpeg"},
+                {"_id": xmp_id, "media": "coverage-xmp", "mimetype": "application/xml"},
+            ]
+        )
+        await self.db["planning"].update_one(
+            {"_id": "plan2"},
+            {"$set": {"coverages.0.planning.files": [attachment_id], "coverages.0.planning.xmp_file": xmp_id}},
+        )
+        async with self.app.app_context():
+            self.assertEqual(await self.command.run(event_coverages=True, dry_run=True), 0)
+            self.assertEqual(self.command.stats["files"].copied, 2)
+            self.assertEqual(len(await self._find("delivery", planning_id="plan2")), 2)
+            self.assertEqual(len(await self._find("events_files")), 1)
+            self.assertEqual(await self.command.run(event_coverages=True, only=["items"]), 0)
+            self.assertEqual(len(await self._find("events_files")), 1)
+            for force in (False, False, True):
+                self.assertEqual(
+                    await self.command.run(event_coverages=True, only=["files"], force=force, batch_size=1), 0
+                )
+                self.assertEqual(
+                    {doc["media"] for doc in await self._find("events_files")},
+                    {"media2", "coverage-attachment", "coverage-xmp"},
+                )
+        self.assertEqual(len(await self._find("delivery", planning_id="event1")), 2)
+
+    async def test_event_coverages_files_dry_run_preserves_storage(self):
+        attachment = (await self._find("planning_files"))[0]
+        await self.db["unified_planning"].insert_one(
+            {"_id": "event1", "type": "event", "coverages": [{"planning": {"files": [attachment["_id"]]}}]}
+        )
+        files_before = await self._find("events_files")
+        async with self.app.app_context():
+            self.assertEqual(await self.command.run(event_coverages=True, only=["files"], dry_run=True), 0)
+        self.assertEqual(await self._find("events_files"), files_before)
+        self.assertEqual(self.command.stats["files"].copied, 1)
+
+    async def test_event_coverages_missing_event_is_reported(self):
+        await self._link_coverage_to_event()
+        await self.db["planning"].update_one({"_id": "plan2"}, {"$set": {"event_item": "missing"}})
+        async with self.app.app_context():
+            self.assertEqual(await self.command.run(event_coverages=True, only=["items"]), 1)
+        self.assertEqual(self.command.stats["items"].failed_ids, ["plan2"])
+        self.assertEqual(len(await self._find("assignments", planning_item="plan2")), 2)
+        self.assertEqual(len(await self._find("delivery", planning_id="plan2")), 2)
+
+    async def test_event_coverages_skips_planning_files_phase(self):
+        await self._link_coverage_to_event()
+        files_before = await self._find("events_files")
+        async with self.app.app_context():
+            self.assertEqual(await self.command.run(event_coverages=True, only=["files"]), 0)
+        self.assertEqual(await self._find("unified_planning"), [])
+        self.assertEqual(len(await self._find("assignments", planning_item="plan2")), 2)
+        self.assertEqual(await self._find("events_files"), files_before)
+        self.assertEqual(self.command.stats["files"].skipped, 1)
+
+    async def test_event_coverages_leaves_planning_history_untouched(self):
+        history_before = await self._find("planning_history")
+        async with self.app.app_context():
+            self.assertEqual(await self.command.run(event_coverages=True, only=["history"]), 0)
+        history = await self._find("planning_history")
+        self.assertEqual([item for item in history if item["_id"] == history_before[0]["_id"]], history_before)
+        event_history = [item for item in history if item.get("item_type") == "event"]
+        self.assertEqual(len(event_history), 1)
+        self.assertEqual(event_history[0]["item_id"], "event1")
+        self.assertEqual(self.command.stats["history"].updated, 0)
+
+    async def test_event_coverages_skips_planning_history_and_files_on_full_run(self):
+        history_before = await self._find("planning_history")
+        files_before = await self._find("events_files")
+        async with self.app.app_context():
+            for force in (False, False, True):
+                self.assertEqual(await self.command.run(event_coverages=True, force=force), 0)
+                self.assertEqual(await self._find("planning_history", planning_id="plan1"), history_before)
+                self.assertEqual(len(await self._find("planning_history")), 2)
+                self.assertEqual(await self._find("events_files"), files_before)
+
+    async def test_event_coverages_full_dry_run_leaves_history_and_files_untouched(self):
+        history_before = await self._find("planning_history")
+        files_before = await self._find("events_files")
+        async with self.app.app_context():
+            self.assertEqual(await self.command.run(event_coverages=True, dry_run=True), 0)
+        self.assertEqual(await self._find("planning_history"), history_before)
+        self.assertEqual(await self._find("events_files"), files_before)
+        self.assertEqual(self.command.stats["history"].updated, 0)
+        self.assertEqual(self.command.stats["files"].copied, 0)
+        self.assertEqual(self.command.stats["files"].skipped, 1)
+
+    async def test_event_coverages_preserves_existing_coverages_and_updates(self):
+        await self._link_coverage_to_event()
+        plan = await self.db["planning"].find_one({"_id": "plan2"})
+        coverage = plan["coverages"][0]
+        await self.db["planning"].update_one(
+            {"_id": "plan2"},
+            {
+                "$set": {
+                    "coverages.0.scheduled_updates": [
+                        {
+                            "coverage_id": "cov1",
+                            "scheduled_update_id": "update1",
+                            "news_coverage_status": coverage["news_coverage_status"],
+                            "planning": {"scheduled": now + timedelta(hours=4)},
+                        }
+                    ]
+                }
+            },
+        )
+        async with self.app.app_context():
+            await self.command.run(only=["items"])
+            coverage["coverage_id"] = "existing"
+            await self.db["unified_planning"].update_one({"_id": "event1"}, {"$set": {"coverages": [coverage]}})
+            self.assertEqual(await self.command.run(event_coverages=True, only=["items"]), 0)
+
+        event = await self.db["unified_planning"].find_one({"_id": "event1"})
+        self.assertEqual([item["coverage_id"] for item in event["coverages"]], ["existing", "cov1"])
+        self.assertEqual(
+            event["_updates_schedule"],
+            [{"scheduled_update_id": "update1", "scheduled": now + timedelta(hours=4)}],
+        )
+        self.assertEqual(event["coverages"][1]["scheduled_updates"][0]["scheduled_update_id"], "update1")
+
+    async def test_event_coverages_selects_primary_event(self):
+        await self._link_coverage_to_event()
+        await self.db["planning"].update_one(
+            {"_id": "plan2"},
+            {
+                "$set": {
+                    "related_events": [
+                        {"_id": "event2", "link_type": "secondary"},
+                        {"_id": "event1", "link_type": "primary"},
+                    ]
+                }
+            },
+        )
+        async with self.app.app_context():
+            self.assertEqual(await self.command.run(event_coverages=True, only=["items"]), 0)
+        self.assertEqual(len(await self._find("assignments", planning_item="event1")), 2)
+        self.assertFalse((await self.db["unified_planning"].find_one({"_id": "event2"})).get("coverages"))
+
+    async def test_event_coverages_invalid_coverage_does_not_relink_assignments(self):
+        await self._link_coverage_to_event()
+        await self.db["planning"].update_one({"_id": "plan2"}, {"$unset": {"coverages.0.news_coverage_status": ""}})
+        async with self.app.app_context():
+            self.assertEqual(await self.command.run(event_coverages=True, only=["items"]), 1)
+        self.assertEqual(self.command.stats["items"].failed_ids, ["plan2"])
+        self.assertEqual(len(await self._find("assignments", planning_item="plan2")), 2)
+        self.assertFalse((await self.db["unified_planning"].find_one({"_id": "event1"})).get("coverages"))
+
+    async def test_event_coverages_debug_reports_ambiguous_event(self):
+        await self._link_coverage_to_event()
+        await self.db["planning"].update_one(
+            {"_id": "plan2"},
+            {
+                "$set": {
+                    "related_events": [
+                        {"_id": "event1", "link_type": "primary"},
+                        {"_id": "event2", "link_type": "primary"},
+                    ]
+                }
+            },
+        )
+        with mock.patch("builtins.print") as mocked_print:
+            async with self.app.app_context():
+                self.assertEqual(await self.command.run(event_coverages=True, debug=True), 1)
+        output = "\n".join(str(call.args[0]) for call in mocked_print.call_args_list if call.args)
+        self.assertIn("Failed to migrate 'plan2' from 'planning'", output)
+        self.assertIn("Stopped on the first error (--debug)", output)
+        self.assertEqual(len(await self._find("assignments", planning_item="plan2")), 2)
+        self.assertEqual(len(await self._find("events_files")), 1)

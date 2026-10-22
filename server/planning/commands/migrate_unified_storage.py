@@ -14,7 +14,7 @@ from copy import deepcopy
 from dataclasses import dataclass, field
 from datetime import date, datetime
 from pprint import pformat
-from typing import Any, AsyncGenerator, Callable, Sequence
+from typing import Any, AsyncGenerator, Awaitable, Callable, Sequence
 
 import click
 from motor.motor_asyncio import AsyncIOMotorCollection, AsyncIOMotorDatabase
@@ -63,8 +63,14 @@ class MigrationAborted(Exception):
 @click.option("--only", multiple=True, type=click.Choice(PHASES), help="Run only the given phase(s)")
 @click.option("--force", is_flag=True, default=False, help="Overwrite documents already present in the target")
 @click.option("--debug", is_flag=True, default=False, help="Stop on the first error, printing it and the source item")
+@click.option(
+    "--event-coverages",
+    is_flag=True,
+    default=False,
+    help="Move linked planning coverages to events and skip all planning items",
+)
 async def migrate_unified_storage_command(
-    dry_run: bool, batch_size: int, only: tuple[str, ...], force: bool, debug: bool
+    dry_run: bool, batch_size: int, only: tuple[str, ...], force: bool, debug: bool, event_coverages: bool = False
 ):
     """Migrate the legacy Event & Planning collections into the unified ones
 
@@ -97,6 +103,21 @@ async def migrate_unified_storage_command(
     --only            Run only the given phase(s): items, history, files
     --force           Overwrite documents that already exist in the target collection
     --debug           Stop on the first error, printing the traceback and the source document
+    --event-coverages  Move planning coverages to their primary linked event, updating assignments.
+                      Skip planning items without coverages or without an event.
+
+    With --event-coverages, no planning documents are copied. Legacy events and planning
+    remain untouched; existing unified planning documents are not deleted. A missing or
+    ambiguous linked event is reported as a failure. Coverage IDs are preserved and reruns
+    do not duplicate coverages. Legacy planning history is left untouched. Only planning files
+    referenced by event coverages are copied; planning-item-only files are skipped. Event history
+    is still migrated. Assignment and delivery planning links are updated in MongoDB, so also
+    rebuild their indices::
+
+        python manage.py app:index_from_mongo --from=assignments
+        python manage.py app:index_from_mongo --from=delivery
+
+    When using --only, run items before files so coverage file references exist in the target.
     """
 
     failed = await MigrateUnifiedStorageCommand().run(
@@ -105,6 +126,7 @@ async def migrate_unified_storage_command(
         only=list(only),
         force=force,
         debug=debug,
+        event_coverages=event_coverages,
     )
 
     if failed:
@@ -119,6 +141,7 @@ class MigrateUnifiedStorageCommand:
         only: Sequence[str] | None = None,
         force: bool = False,
         debug: bool = False,
+        event_coverages: bool = False,
     ) -> int:
         """Run the migration, returning the number of documents that failed to migrate"""
 
@@ -126,6 +149,8 @@ class MigrateUnifiedStorageCommand:
         self.batch_size = batch_size or DEFAULT_BATCH_SIZE
         self.force = force
         self.debug = debug
+        self.event_coverages = event_coverages
+        self.dry_run_coverage_file_ids: set[Any] = set()
         self.phases = list(only) if only else list(PHASES)
         self.stats: dict[str, PhaseStats] = {}
         self.db: AsyncIOMotorDatabase = UnifiedPlanningResource.get_service().mongo_async.database
@@ -191,6 +216,9 @@ class MigrateUnifiedStorageCommand:
         target = self.db[UNIFIED_COLLECTION]
 
         for source, item_type in (("events", PlanningItemType.EVENT), ("planning", PlanningItemType.PLANNING)):
+            if source == "planning" and self.event_coverages:
+                await self.migrate_event_coverages(stats)
+                continue
             await self.copy_documents(
                 source=self.db[source],
                 target=target,
@@ -201,14 +229,86 @@ class MigrateUnifiedStorageCommand:
         print(f"  {stats}")
         return stats
 
+    async def migrate_event_coverages(self, stats: PhaseStats) -> None:
+        target = self.db[UNIFIED_COLLECTION]
+        async for batch in self.iter_batches(self.db["planning"]):
+            for doc in batch:
+                original = deepcopy(doc) if self.debug else doc
+                try:
+                    self.convert_deprecated_event_item(doc)
+                    links = doc.get("related_events") or []
+                    if not doc.get("coverages") or not links:
+                        stats.skipped += 1
+                        continue
+
+                    primary_links = [link for link in links if link.get("link_type") == "primary"]
+                    candidates = primary_links or links
+                    if len(candidates) != 1:
+                        raise ValueError("Expected one primary linked event for planning coverages")
+                    event_id = candidates[0]["_id"]
+                    event = await target.find_one({"_id": event_id})
+                    if event is None and self.dry_run:
+                        event = await self.db["events"].find_one({"_id": event_id})
+                        if event is not None:
+                            event = self.normalise_item(event, PlanningItemType.EVENT)
+                    if event is None or event.get("type") != PlanningItemType.EVENT.value:
+                        raise ValueError(f"Linked event '{event_id}' is missing or was not migrated")
+
+                    convert_legacy_planning_to_unified_format(doc)
+                    coverages = event.get("coverages") or []
+                    coverage_ids = {coverage["coverage_id"] for coverage in coverages}
+                    for coverage in doc["coverages"]:
+                        coverage_id = coverage["coverage_id"]
+                        if not coverage_id:
+                            raise ValueError("Cannot move coverage without a coverage_id")
+                        if coverage_id not in coverage_ids:
+                            coverages.append(coverage)
+                            coverage_ids.add(coverage_id)
+                    event["coverages"] = coverages
+                    event.pop("_planning_schedule", None)
+                    event.pop("_updates_schedule", None)
+                    migrated = self.normalise_item(event, PlanningItemType.EVENT)
+                    if self.dry_run:
+                        for coverage in migrated["coverages"]:
+                            planning = coverage.get("planning") or {}
+                            self.dry_run_coverage_file_ids.update(planning.get("files") or [])
+                            if planning.get("xmp_file"):
+                                self.dry_run_coverage_file_ids.add(planning["xmp_file"])
+                    else:
+                        await target.update_one(
+                            {"_id": event_id},
+                            {
+                                "$set": {
+                                    name: migrated[name]
+                                    for name in ("coverages", "_planning_schedule", "_updates_schedule")
+                                }
+                            },
+                        )
+                        await self.db["assignments"].update_many(
+                            {"planning_item": doc["_id"]}, {"$set": {"planning_item": event_id}}
+                        )
+                        await self.db["delivery"].update_many(
+                            {"planning_id": doc["_id"]}, {"$set": {"planning_id": event_id}}
+                        )
+                    stats.updated += 1
+                    stats.skipped += 1
+                except Exception as err:
+                    stats.failed += 1
+                    stats.failed_ids.append(doc["_id"])
+                    logger.warning("Failed to move coverages from %s: %s", doc["_id"], err)
+                    if self.debug:
+                        self.print_failure("planning", original)
+                        raise MigrationAborted() from err
+
     async def migrate_history(self) -> PhaseStats:
         print("")
         print(f"Migrating 'events_history' into '{HISTORY_COLLECTION}'")
         stats = self.stats.setdefault(PHASE_HISTORY, PhaseStats())
         target = self.db[HISTORY_COLLECTION]
 
-        stats.updated += await self.rename_field(target, "planning_id", "item_id")
-        stats.updated += await self.set_missing_field(target, "item_type", PlanningItemType.PLANNING.value)
+        if not self.event_coverages:
+            stats.updated += await self.rename_field(target, "planning_id", "item_id")
+            stats.updated += await self.set_missing_field(target, "item_type", PlanningItemType.PLANNING.value)
         await self.copy_documents(
             source=self.db["events_history"],
             target=target,
@@ -228,12 +328,30 @@ class MigrateUnifiedStorageCommand:
             source=self.db["planning_files"],
             target=self.db[FILES_COLLECTION],
             stats=stats,
+            include=self.coverage_references_file if self.event_coverages else None,
         )
 
         print(f"  {stats}")
         return stats
 
     # ----------------------------------------------------------------- helpers
+
+    async def coverage_references_file(self, doc: dict[str, Any]) -> bool:
+        if self.dry_run and doc["_id"] in self.dry_run_coverage_file_ids:
+            return True
+        return (
+            await self.db[UNIFIED_COLLECTION].find_one(
+                {
+                    "type": PlanningItemType.EVENT.value,
+                    "$or": [
+                        {"coverages.planning.files": doc["_id"]},
+                        {"coverages.planning.xmp_file": doc["_id"]},
+                    ],
+                },
+                {"_id": 1},
+            )
+            is not None
+        )
 
     @staticmethod
     def normalise_event_history(doc: dict[str, Any]) -> dict[str, Any]:
@@ -350,6 +468,7 @@ class MigrateUnifiedStorageCommand:
         target: AsyncIOMotorCollection,
         stats: PhaseStats,
         transform: Callable[[dict[str, Any]], dict[str, Any]] | None = None,
+        include: Callable[[dict[str, Any]], Awaitable[bool]] | None = None,
     ) -> None:
         async for batch in self.iter_batches(source):
             existing_ids = await self.get_existing_ids(target, [doc["_id"] for doc in batch])
@@ -363,6 +482,9 @@ class MigrateUnifiedStorageCommand:
 
                 original = deepcopy(doc) if self.debug else doc
                 try:
+                    if include is not None and not await include(doc):
+                        stats.skipped += 1
+                        continue
                     # ``transform`` mutates the document, so keep the original around to print on failure
                     migrated = transform(doc) if transform is not None else doc
                 except Exception as err:
