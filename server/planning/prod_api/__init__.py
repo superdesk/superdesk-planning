@@ -16,6 +16,10 @@ from planning.prod_api.planning import init_app as init_planning_app
 
 
 def init_app(app: Eve):
+    # Shared storage sources need DOMAIN entries for schema and notification lookups.
+    for source in ("unified_planning", "planning_history"):
+        app.config["DOMAIN"].setdefault(source, {"notifications": False})
+
     init_assignments_app(app)
     init_events_app(app)
     init_planning_app(app)

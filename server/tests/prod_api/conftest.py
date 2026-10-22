@@ -17,11 +17,6 @@ from planning.assignments.assignments import assignments_schema
 from planning.prod_api.assignments.resource import AssignmentsResource
 
 
-# DOMAIN entries for the repointed sources so fixture writes' notification lookup resolves
-# (ProdAPI is read-only in production, so this write path never runs there).
-UNIFIED_SOURCES = ("unified_planning", "planning_history")
-
-
 def _init_unified_planning_index(app):
     # eve_elastic's init_index skips resources whose source != endpoint, so the repointed
     # Events/Planning resources never get their unified_planning index. In production the
@@ -47,9 +42,6 @@ async def prodapi_app(request):
     PlanningResource.schema = deepcopy(planning_schema)
 
     app = await get_test_prodapi_app(extra_config)
-
-    for source in UNIFIED_SOURCES:
-        app.config["DOMAIN"].setdefault(source, {"notifications": False})
 
     async with app.app_context():
         _init_unified_planning_index(app)
