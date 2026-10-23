@@ -36,6 +36,7 @@ export const SlidingToolBar = ({
 
     return (
         <div
+            data-test-id="sliding-toolbar"
             className={classNames(
                 'subnav__sliding-toolbar',
                 {'ng-hide': hideDefault})}
