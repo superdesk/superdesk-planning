@@ -395,6 +395,15 @@ Feature: Planning Search
             {"_id": "planning_6"}
         ]}
         """
+        When we get "/events_planning_search?repo=planning&only_future=false&with_coverage=true"
+        Then we get list with 3 items
+        """
+        {"_items": [
+            {"_id": "planning_1"},
+            {"_id": "planning_2"},
+            {"_id": "planning_3"}
+        ]}
+        """
         When we get "/events_planning_search?repo=planning&only_future=false&featured=true"
         Then we get list with 1 items
         """

@@ -68,6 +68,17 @@ export class AdvancedSearch extends React.PureComponent<IProps> {
                 }
             }
 
+            // "Without Coverage" and "With Coverages only" cancel each other out
+            if (!this.props.params.no_coverage && nextProps.params.no_coverage && nextProps.params.with_coverage) {
+                updates.with_coverage = false;
+            } else if (
+                !this.props.params.with_coverage
+                && nextProps.params.with_coverage
+                && nextProps.params.no_coverage
+            ) {
+                updates.no_coverage = false;
+            }
+
             if (Object.keys(updates).length) {
                 this.props.onChangeMultiple(updates);
             }

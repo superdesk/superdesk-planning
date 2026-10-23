@@ -36,6 +36,7 @@ export function convertPlanningParams(params: ISearchParams): Partial<ISearchAPI
         ad_hoc_planning: params.ad_hoc_planning,
         exclude_rescheduled_and_cancelled: params.exclude_rescheduled_and_cancelled,
         no_coverage: params.no_coverage,
+        with_coverage: params.with_coverage,
         urgency: params.urgency?.qcode,
         featured: params.featured,
         include_scheduled_updates: params.include_scheduled_updates,

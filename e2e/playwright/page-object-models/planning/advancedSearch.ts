@@ -104,6 +104,11 @@ export class AdvancedSearch {
                 this.getParent,
                 '[data-test-id=field-no_coverage]'
             ),
+            with_coverage: new ToggleInput(
+                page,
+                this.getParent,
+                '[data-test-id=field-with_coverage]'
+            ),
             include_scheduled_updates: new ToggleInput(
                 page,
                 this.getParent,
