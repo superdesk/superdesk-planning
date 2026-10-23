@@ -73,7 +73,7 @@ import {isItemAction, isMenuDivider} from '../helpers';
 import {confirmAddingRelatedItems} from './confirmAddingRelatedItems';
 import {getOpenEditorType} from './editor';
 import {coverageProfiles} from '../selectors/forms';
-import {getEndDate} from './events';
+import eventUtils, {getEndDate} from './events';
 
 export const isCoverageAssigned = (coverage: IPlanningCoverageItem) => coverage.assigned_to?.desk != null;
 
@@ -593,19 +593,36 @@ export function addRelatedPlannings(
     };
 }
 
+export function hasDraftCoverages(item: IEventOrPlanningItem): boolean {
+    return (item.coverages ?? []).some((coverage) => coverage.workflow_status === WORKFLOW_STATE.DRAFT);
+}
+
 /**
  * Whether the bulk "Add to workflow" action applies to the selected items.
  * Coverages on an item that auto assigns to workflow are already in it, so the action has
  * nothing to do. An item that sets the override flag is left out of auto assign, so adding
  * its coverages by hand stays the only way in.
+ * Every item must allow editing its coverages, the same as the "Edit Coverages" action,
+ * and at least one must have a coverage not yet in workflow.
  */
-export function canBulkAddCoveragesToWorkflow(items: Array<IPlanningItem | IEventItem>): boolean {
-    return items.every((item) => (
+export function canBulkAddCoveragesToWorkflow(
+    items: Array<(IPlanningItem & {event?: IEventItem}) | IEventItem>,
+    session: ISession,
+    privileges: IPrivileges,
+    lockedItems: ILockedItems,
+): boolean {
+    return items.some(hasDraftCoverages) && items.every((item) => (
         (
             appConfig.planning_auto_assign_to_workflow !== true ||
             item.flags?.overide_auto_assign_to_workflow === true
         ) &&
-        item.lock_action == null
+        item.lock_action == null &&
+        (
+            item.type === 'event' ?
+                eventUtils.canEditEventCoverages(item, session, privileges, lockedItems) :
+                canModifyPlanning(item, item.event == null ? [] : [item.event], privileges, lockedItems) &&
+                    !isItemExpired(item)
+        )
     ));
 }
 

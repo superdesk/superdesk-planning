@@ -21,10 +21,10 @@ import {arrayToString, convertCommonParams, searchRaw, searchRawGetAll, cvsToStr
 import {planningApi, superdeskApi} from '../superdeskApi';
 import {IRestApiResponse} from 'superdesk-api';
 import {planningUtils, getErrorMessage} from '../utils';
-import {modifyCoverageForServer} from '../utils/planning';
+import {hasDraftCoverages, modifyCoverageForServer} from '../utils/planning';
 import {planningProfile, planningSearchProfile} from '../selectors/forms';
 import {featured} from './featured';
-import {EVENTS, PLANNING} from '../constants';
+import {EVENTS, PLANNING, WORKFLOW_STATE} from '../constants';
 import * as selectors from '../selectors';
 import planningApis from '../actions/planning/api';
 import eventsApi from '../actions/events/api';
@@ -283,11 +283,14 @@ function saveItemCoverages(
     const {dispatch} = planningApi.redux.store;
 
     if (item.type === 'event') {
-        coverages.forEach((coverage) => modifyCoverageForServer(coverage));
+        // Untouched coverages are still the stored objects, so modify a copy
+        const coveragesForServer = cloneDeep(coverages);
+
+        coveragesForServer.forEach((coverage) => modifyCoverageForServer(coverage));
 
         // Patch only the coverages, and only on this event of a series
         return planningApi.events.update(item, {
-            coverages: coverages,
+            coverages: coveragesForServer,
             update_method: EVENTS.UPDATE_METHODS[0].value,
         } as Partial<IEventItem>)
             .then(([updatedEvent]) => {
@@ -311,10 +314,21 @@ function bulkAddCoverageToWorkflow(items: Array<IEventOrPlanningItem>): Promise<
     const {notify} = superdeskApi.ui;
 
     const coverageStatuses = selectors.general.newsCoverageStatus(getState());
-    const itemsToUpdate = items.filter((item) => item.lock_action !== 'edit');
+    const itemsToUpdate = items.filter((item) => item.lock_action !== 'edit' && hasDraftCoverages(item));
+
+    if (itemsToUpdate.length === 0) {
+        notify.warning(gettext('No coverages to add to workflow.'));
+
+        return Promise.resolve([]);
+    }
+
     const allUpdates = itemsToUpdate.map((item) => saveItemCoverages(
         item,
-        (item.coverages ?? []).map((coverage) => planningUtils.addCoverageToWorkflow(coverage, coverageStatuses)),
+        (item.coverages ?? []).map((coverage) => (
+            coverage.workflow_status === WORKFLOW_STATE.DRAFT ?
+                planningUtils.addCoverageToWorkflow(coverage, coverageStatuses) :
+                coverage
+        )),
     ));
 
     return Promise.all(allUpdates)

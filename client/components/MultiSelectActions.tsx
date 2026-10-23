@@ -127,7 +127,7 @@ export class MultiSelectActionsComponent extends React.PureComponent<IProps> {
 
         let tools = [];
 
-        if (canBulkAddCoveragesToWorkflow(selectedPlannings)) {
+        if (canBulkAddCoveragesToWorkflow(selectedPlannings, session, privileges, lockedItems)) {
             tools.push(
                 <IconButton
                     key={0}
@@ -224,7 +224,7 @@ export class MultiSelectActionsComponent extends React.PureComponent<IProps> {
 
         let tools = [];
 
-        if (eventCoveragesEnabled && canBulkAddCoveragesToWorkflow(selectedEvents)) {
+        if (eventCoveragesEnabled && canBulkAddCoveragesToWorkflow(selectedEvents, session, privileges, lockedItems)) {
             tools.push(
                 <IconButton
                     key={6}
