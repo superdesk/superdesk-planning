@@ -35,8 +35,10 @@ class BaseJsonFormatter(Formatter):
         "lock_user",
         "_etag",
         "_planning_schedule",
+        "_updates_schedule",
         "expiry",
         "original_creator",
+        "version_creator",
         "_reschedule_from_schedule",
         "_current_version",
     }
@@ -93,6 +95,7 @@ class BaseJsonFormatter(Formatter):
 
     async def _format_files(self, item: dict) -> None:
         if not self.include_files:
+            item.pop("files", None)
             return
 
         for field, resource in self.include_files:
@@ -121,7 +124,7 @@ class BaseJsonFormatter(Formatter):
         if not self.include_coverages:
             return
 
-        for coverage in item.get("coverages", []):
+        for coverage in item.get("coverages") or []:
             await self._expand_coverage_contacts(coverage)
 
             deliveries, workflow_state = await self._expand_delivery(coverage)
@@ -166,7 +169,7 @@ class BaseJsonFormatter(Formatter):
         }
         expanded = []
         agenda_service = AgendasResourceModel.get_service()
-        for agenda in item.get("agendas", []):
+        for agenda in item.get("agendas") or []:
             agenda_details = await agenda_service.find_by_id_raw(agenda)
             if agenda_details and agenda_details.get("is_enabled"):
                 for f in remove_agenda_fields:
