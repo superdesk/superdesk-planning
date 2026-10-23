@@ -1332,6 +1332,10 @@ function modifyForServer(event: IEventItem, removeNullLinks: boolean = false) {
         event.dates.recurring_rule.until = until.endOf('day').toISOString();
     }
 
+    if (event.actioned_date != null && moment.isMoment(event.actioned_date)) {
+        event.actioned_date = event.actioned_date.toISOString();
+    }
+
     (event.coverages ?? []).forEach((coverage) => modifyCoverageForServer(coverage));
 
     return event;
