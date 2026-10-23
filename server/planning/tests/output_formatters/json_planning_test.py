@@ -16,7 +16,7 @@ from bson.objectid import ObjectId
 
 from superdesk.tests import utils as test_utils, fixtures
 
-from planning.tests import TestCase
+from planning.tests import TestCase, fixtures as planning_fixtures
 from planning.output_formatters.json_planning import JsonPlanningFormatter
 from planning.types import PlanningRelatedEventLink
 
@@ -419,7 +419,17 @@ class JsonPlanningTestCase(TestCase):
         item = deepcopy(self.item)
         self.assertEqual((await self.format(item))["event_item"], "event_prim_1")
 
-        await self.app.data.insert_async("events", [{"_id": "event_prim_1", "name": "Event 1"}])
+        await self.app.data.insert_async(
+            "events",
+            [
+                {
+                    **planning_fixtures.events.event1(),
+                    "_id": "event_prim_1",
+                    "guid": "event_prim_1",
+                    "name": "Event 1",
+                }
+            ],
+        )
 
         item["related_events"] = [
             PlanningRelatedEventLink(

@@ -14,6 +14,8 @@ class ContentApiEventFormatter(JsonEventFormatter):
     remove_fields = None
     translate_names = None
     include_files = None
+    include_coverages = False
+    include_agendas = False
 
     async def _format_item(self, item: dict, subscribers: list[dict] | None = None) -> dict:
         return await self._get_resource_instance(await super()._format_item(item), subscribers)

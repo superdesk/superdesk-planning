@@ -53,7 +53,7 @@ class UnifiedResourcePlanningTestCase(TestCase):
         self.assertIsNotNone(new_plan.id)
 
     async def test_legacy_service_updates_featured_metadata(self) -> None:
-        self.headers = []
+        self.headers: list = []
         await setup_db_user(self, fixtures.users.admin().to_dict())
         planning = UnifiedPlanningResource.from_dict(
             {

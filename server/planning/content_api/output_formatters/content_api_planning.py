@@ -16,6 +16,7 @@ class ContentApiPlanningFormatter(JsonPlanningFormatter):
     remove_fields = None
     translate_names = None
     include_files = None
+    include_contacts = False
 
     async def _format_item(self, item: dict, subscribers: list[dict] | None = None) -> dict:
         # TODO-UNIFIED: Remove once we upgrade ContentAPI to new schema
