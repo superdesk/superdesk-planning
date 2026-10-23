@@ -29,7 +29,7 @@ test.describe('Events: mark completed', () => {
     });
 
     test('can mark an Event as completed', async ({page}) => {
-        // Create the Recurring Events and close the editor
+        // Create the Event and close the editor
         event = {
             'dates.start.date': moment()
                 .subtract(1, 'day')
@@ -45,7 +45,7 @@ test.describe('Events: mark completed', () => {
         await editor.waitForAutosave();
         await editor.createButton.click();
 
-        // Wait for the recurring series to be available in the list
+        // Wait for the Event to be available in the list
         await list.expectItemCount(3);
         await list.expectItemText(0, 'Multi day Event');
         await list.expectItemText(1, 'Multi day Event');
@@ -67,7 +67,7 @@ test.describe('Events: mark completed', () => {
         await list.expectItemCount(1);
         await list.expectItemText(0, 'Event Completed');
 
-        // Make sure we can still edit any Event in the series afterwards
+        // Make sure we can still edit the Event
         await list.item(0).dblclick();
         await editor.waitTillOpen();
         await editor.waitLoadingComplete();
