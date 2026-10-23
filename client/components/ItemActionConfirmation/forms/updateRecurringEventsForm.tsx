@@ -357,6 +357,7 @@ export class UpdateRecurringEventsComponent extends React.Component<IProps, ISta
                             inlineLabel={true}
                             value={this.state.eventUpdateMethod}
                             onChange={this.onEventUpdateMethodChange}
+                            data-test-id="field-update_method"
                         >
                             <Option value={EVENTS.UPDATE_METHODS[0].value}>
                                 {gettext('This event only')}

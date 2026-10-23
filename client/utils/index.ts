@@ -874,6 +874,7 @@ export const itemsEqual = (nextItem, currentItem) => {
         'dates.end',
         'dates.recurring_rule.until',
         'planning_date',
+        'actioned_date',
     ];
 
     const formatDate = (item, field) => {
