@@ -31,6 +31,7 @@ function convertEventParams(params: ISearchParams): Partial<ISearchAPIParams> {
         coverage_user_id: params.coverage_user_id,
         coverage_assignment_status: params.coverage_assignment_status,
         no_coverage: params.no_coverage,
+        with_coverage: params.with_coverage,
         g2_content_type: params.g2_content_type?.qcode,
         priority: arrayToString(params.priority),
         invitation_details: params.invitation_details,

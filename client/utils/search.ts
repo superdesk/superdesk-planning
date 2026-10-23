@@ -115,6 +115,7 @@ export function planningParamsToSearchParams(params: IPlanningSearchParams): ISe
         ad_hoc_planning: params.adHocPlanning,
         exclude_rescheduled_and_cancelled: params.excludeRescheduledAndCancelled,
         no_coverage: params.advancedSearch?.noCoverage,
+        with_coverage: params.advancedSearch?.withCoverage,
         urgency: params.advancedSearch?.urgency,
         g2_content_type: params.advancedSearch?.g2_content_type,
         featured: params.featured ?? params.advancedSearch?.featured,
@@ -146,6 +147,7 @@ export function searchParamsToPlanningParams(params: ISearchParams): IPlanningSe
             featured: params.featured,
             g2_content_type: params.g2_content_type,
             noCoverage: params.no_coverage,
+            withCoverage: params.with_coverage,
             urgency: params.urgency,
             description_text: params.description_text,
             headline: params.headline,
@@ -164,6 +166,7 @@ export function eventParamsToSearchParams(params: IEventSearchParams): ISearchPa
         coverage_user_id: params.coverage_user_id,
         coverage_assignment_status: params.coverage_assignment_status,
         no_coverage: params.advancedSearch?.noCoverage,
+        with_coverage: params.advancedSearch?.withCoverage,
         g2_content_type: params.advancedSearch?.g2_content_type,
         accreditation_info: params.advancedSearch?.accreditation_info,
         invitation_details: params.advancedSearch?.invitation_details,
@@ -190,6 +193,7 @@ export function searchParamsToEventParams(params: ISearchParams): IEventSearchPa
             ...common.advancedSearch,
             g2_content_type: params.g2_content_type,
             noCoverage: params.no_coverage,
+            withCoverage: params.with_coverage,
             location: params.location,
             reference: params.reference,
             accreditation_info: params.accreditation_info,
@@ -210,6 +214,7 @@ export function combinedParamsToSearchParams(params: ICombinedSearchParams): ISe
         coverage_user_id: params.coverage_user_id,
         coverage_assignment_status: params.coverage_assignment_status,
         no_coverage: params.advancedSearch?.noCoverage,
+        with_coverage: params.advancedSearch?.withCoverage,
         g2_content_type: params.advancedSearch?.g2_content_type,
     };
 }
@@ -226,6 +231,7 @@ export function searchParamsToCombinedParams(params: ISearchParams): ICombinedSe
             reference: params.reference,
             g2_content_type: params.g2_content_type,
             noCoverage: params.no_coverage,
+            withCoverage: params.with_coverage,
         },
     };
 }

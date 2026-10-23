@@ -799,6 +799,11 @@ Feature: Search Feature
         """
         {"_items": [{"_id": "event_no_coverage"}]}
         """
+        When we get "/events_planning_search?repo=events&with_coverage=true"
+        Then we get list with 3 items
+        """
+        {"_items": [{"_id": "event_some_assigned"}, {"_id": "event_all_assigned"}, {"_id": "event_none_assigned"}]}
+        """
         When we get "/events_planning_search?repo=events&coverage_assignment_status=null"
         Then we get list with 1 items
         """
@@ -828,6 +833,16 @@ Feature: Search Feature
         Then we get list with 1 items
         """
         {"_items": [{"_id": "event_no_coverage"}]}
+        """
+        When we get "/events_planning_search?repo=combined&with_coverage=true"
+        Then we get list with 4 items
+        """
+        {"_items": [
+            {"_id": "event_some_assigned"},
+            {"_id": "event_all_assigned"},
+            {"_id": "event_none_assigned"},
+            {"_id": "planning_video"}
+        ]}
         """
         When we get "/events_planning_search?repo=combined&coverage_assignment_status=null"
         Then we get list with 2 items

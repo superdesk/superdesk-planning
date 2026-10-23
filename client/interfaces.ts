@@ -1051,6 +1051,7 @@ export interface IEventSearchParams extends ICommonSearchParams<IEventItem> {
         registration?: string;
         g2_content_type?: IG2ContentType;
         noCoverage?: boolean;
+        withCoverage?: boolean;
     };
 }
 
@@ -1066,6 +1067,7 @@ export interface IPlanningSearchParams extends ICommonSearchParams<IPlanningItem
         featured?: boolean;
         g2_content_type?: IG2ContentType;
         noCoverage?: boolean;
+        withCoverage?: boolean;
         urgency?: IUrgency;
         description_text?: string;
         headline?: string;
@@ -1077,6 +1079,7 @@ export interface ICombinedSearchParams extends ICommonSearchParams<IEventOrPlann
         reference?: string;
         g2_content_type?: IG2ContentType;
         noCoverage?: boolean;
+        withCoverage?: boolean;
     };
 }
 
@@ -1323,6 +1326,7 @@ export interface IPlanningSearchProfile {
     slugline: IAdvancedSearchFormProfileField;
     content_type: IAdvancedSearchFormProfileField;
     no_coverage: IAdvancedSearchFormProfileField;
+    with_coverage: IAdvancedSearchFormProfileField;
     featured: IAdvancedSearchFormProfileField;
     anpa_category: IAdvancedSearchFormProfileField;
     subject: IAdvancedSearchFormProfileField;
@@ -1524,6 +1528,7 @@ export interface ISearchParams {
     ad_hoc_planning?: boolean;
     exclude_rescheduled_and_cancelled?: boolean;
     no_coverage?: boolean;
+    with_coverage?: boolean;
     urgency?: IUrgency;
     g2_content_type?: IG2ContentType;
     coverage_assignment_status?: ICoverageAssigned['qcode'];
@@ -1590,6 +1595,7 @@ export interface ISearchAPIParams {
     ad_hoc_planning?: boolean;
     exclude_rescheduled_and_cancelled?: boolean;
     no_coverage?: boolean;
+    with_coverage?: boolean;
     urgency?: IUrgency['qcode'];
     g2_content_type?: IG2ContentType['qcode'];
     featured?: boolean;
