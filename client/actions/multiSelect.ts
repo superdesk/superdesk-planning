@@ -196,7 +196,7 @@ const bulkAddPlanningCoveragesToWorkflow = (items) => (
 );
 
 const bulkAddEventCoveragesToWorkflow = (items) => (
-    (dispatch) => planningApi.events.bulkAddCoverageToWorkflow(items)
+    (dispatch) => planningApi.planning.coverages.bulkAddCoverageToWorkflow(items)
         .then(() => dispatch({
             type: MULTISELECT.ACTIONS.DESELECT_ALL_EVENTS,
         }))

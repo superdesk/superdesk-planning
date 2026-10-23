@@ -2,6 +2,7 @@ import {cloneDeep} from 'lodash';
 
 import {
     FILTER_TYPE, IEventItem,
+    IEventOrPlanningItem,
     IG2ContentType,
     IPlanningAPI,
     IPlanningCoverageItem,
@@ -20,11 +21,13 @@ import {arrayToString, convertCommonParams, searchRaw, searchRawGetAll, cvsToStr
 import {planningApi, superdeskApi} from '../superdeskApi';
 import {IRestApiResponse} from 'superdesk-api';
 import {planningUtils, getErrorMessage} from '../utils';
+import {modifyCoverageForServer} from '../utils/planning';
 import {planningProfile, planningSearchProfile} from '../selectors/forms';
 import {featured} from './featured';
-import {PLANNING} from '../constants';
+import {EVENTS, PLANNING} from '../constants';
 import * as selectors from '../selectors';
 import planningApis from '../actions/planning/api';
+import eventsApi from '../actions/events/api';
 
 export function convertPlanningParams(params: ISearchParams): Partial<ISearchAPIParams> {
     return {
@@ -273,26 +276,46 @@ function setDefaultValues(
     );
 }
 
-function bulkAddCoverageToWorkflow(planningItems: Array<IPlanningItem>): Promise<Array<IPlanningItem>> {
-    const {getState, dispatch} = planningApi.redux.store;
+function saveItemCoverages(
+    item: IEventOrPlanningItem,
+    coverages: Array<IPlanningCoverageItem>,
+): Promise<IEventOrPlanningItem> {
+    const {dispatch} = planningApi.redux.store;
+
+    if (item.type === 'event') {
+        coverages.forEach((coverage) => modifyCoverageForServer(coverage));
+
+        // Patch only the coverages, and only on this event of a series
+        return planningApi.events.update(item, {
+            coverages: coverages,
+            update_method: EVENTS.UPDATE_METHODS[0].value,
+        } as Partial<IEventItem>)
+            .then(([updatedEvent]) => {
+                dispatch<any>(eventsApi.receiveEvents([updatedEvent]));
+
+                return updatedEvent;
+            });
+    }
+
+    return planning.update(item, {coverages: coverages})
+        .then((updatedPlan) => {
+            dispatch<any>(planningApis.receivePlannings([updatedPlan]));
+
+            return updatedPlan;
+        });
+}
+
+function bulkAddCoverageToWorkflow(items: Array<IEventOrPlanningItem>): Promise<Array<IEventOrPlanningItem>> {
+    const {getState} = planningApi.redux.store;
     const {gettext} = superdeskApi.localization;
     const {notify} = superdeskApi.ui;
 
     const coverageStatuses = selectors.general.newsCoverageStatus(getState());
-    const planningItemsToUpdate: Array<IPlanningItem> = planningItems.filter((item) => item.lock_action !== 'edit');
-    const allUpdates = planningItemsToUpdate.map((plan) => {
-        const updates = {coverages: cloneDeep(plan.coverages)};
-
-        updates.coverages = plan.coverages
-            .map((coverage) => planningUtils.addCoverageToWorkflow(coverage, coverageStatuses));
-
-        return planning.update(plan, updates)
-            .then((updatedPlan) => {
-                dispatch<any>(planningApis.receivePlannings([updatedPlan]));
-
-                return updatedPlan;
-            });
-    });
+    const itemsToUpdate = items.filter((item) => item.lock_action !== 'edit');
+    const allUpdates = itemsToUpdate.map((item) => saveItemCoverages(
+        item,
+        (item.coverages ?? []).map((coverage) => planningUtils.addCoverageToWorkflow(coverage, coverageStatuses)),
+    ));
 
     return Promise.all(allUpdates)
         .then((result) => {
