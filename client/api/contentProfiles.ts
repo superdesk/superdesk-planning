@@ -82,7 +82,7 @@ function disableEventCoverageFiltersInSearchProfile(profiles: Array<IPlanningCon
         return;
     }
 
-    ['no_coverage', 'g2_content_type', 'coverage_assignment_status'].forEach((field) => {
+    ['no_coverage', 'with_coverage', 'g2_content_type', 'coverage_assignment_status'].forEach((field) => {
         if (searchProfile.editor.event[field] != null) {
             searchProfile.editor.event[field].enabled = false;
         }

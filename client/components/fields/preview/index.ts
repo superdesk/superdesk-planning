@@ -133,6 +133,10 @@ const fieldOptions: {[key: string]: IPreviewHocOptions} = {
         props: () => ({label: superdeskApi.localization.gettext('No Coverge')}),
         getValue: getPreviewBooleanString,
     },
+    with_coverage: {
+        props: () => ({label: superdeskApi.localization.gettext('With Coverages only')}),
+        getValue: getPreviewBooleanString,
+    },
     posted: {
         props: () => ({label: superdeskApi.localization.gettext('Posted')}),
         getValue: getPreviewBooleanString,

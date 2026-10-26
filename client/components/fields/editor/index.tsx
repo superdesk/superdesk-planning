@@ -5,6 +5,7 @@ import {EditorFieldIngestSource} from './IngestSource';
 import {EditorFieldItemType} from './ItemType';
 import {EditorFieldLocation} from './Location';
 import {EditorFieldNoCoverage} from './NoCoverage';
+import {EditorFieldWithCoverage} from './WithCoverage';
 import {EditorFieldOnlyPosted} from './OnlyPosted';
 import {EditorFieldPlace} from './Place';
 import {EditorFieldRelativeDate} from './RelativeDate';
@@ -70,6 +71,8 @@ const DEFAULT_EDITOR_FIELDS: typeof FIELD_TO_EDITOR_COMPONENT = {
 
     noCoverage: EditorFieldNoCoverage,
     no_coverage: EditorFieldNoCoverage,
+    withCoverage: EditorFieldWithCoverage,
+    with_coverage: EditorFieldWithCoverage,
 
     spikeState: EditorFieldSpikeState,
     spike_state: EditorFieldSpikeState,

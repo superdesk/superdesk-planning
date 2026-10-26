@@ -143,6 +143,11 @@ def search_no_coverage(params: Dict[str, Any], query: elastic.ElasticQuery):
         query.must_not.append(elastic.bool_and([elastic.field_exists("coverages.coverage_id")], "coverages"))
 
 
+def search_with_coverage(params: Dict[str, Any], query: elastic.ElasticQuery):
+    if strtobool(params.get("with_coverage", False)):
+        query.must.append(elastic.bool_and([elastic.field_exists("coverages.coverage_id")], "coverages"))
+
+
 def search_featured(params: Dict[str, Any], query: elastic.ElasticQuery):
     if strtobool(params.get("featured", False)):
         query.must.append(elastic.term(field="featured", value=True))
@@ -362,6 +367,7 @@ PLANNING_SEARCH_FILTERS: list[FilterFunctionType] = [
     search_urgency,
     search_g2_content_type,
     search_no_coverage,
+    search_with_coverage,
     search_featured,
     search_by_events,
     search_dates,
@@ -383,6 +389,7 @@ PLANNING_PARAMS = [
     "ad_hoc_planning",
     "exclude_rescheduled_and_cancelled",
     "no_coverage",
+    "with_coverage",
     "urgency",
     "g2_content_type",
     "featured",

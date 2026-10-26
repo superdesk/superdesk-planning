@@ -176,16 +176,23 @@ DEFAULT_ADVANCED_SEARCH_PROFILE = PlanningProfileResource(
                 "search_enabled": True,
                 "filter_enabled": True,
             },
-            "g2_content_type": {
+            "with_coverage": {
                 "enabled": True,
                 "index": 6,
                 "group": "events",
                 "search_enabled": True,
                 "filter_enabled": True,
             },
-            "coverage_assignment_status": {
+            "g2_content_type": {
                 "enabled": True,
                 "index": 7,
+                "group": "events",
+                "search_enabled": True,
+                "filter_enabled": True,
+            },
+            "coverage_assignment_status": {
+                "enabled": True,
+                "index": 8,
                 "group": "events",
                 "search_enabled": True,
                 "filter_enabled": True,
@@ -344,44 +351,51 @@ DEFAULT_ADVANCED_SEARCH_PROFILE = PlanningProfileResource(
                 "search_enabled": True,
                 "filter_enabled": True,
             },
-            "g2_content_type": {
+            "with_coverage": {
                 "enabled": True,
                 "index": 4,
                 "group": "planning",
                 "search_enabled": True,
                 "filter_enabled": True,
             },
-            "urgency": {
+            "g2_content_type": {
                 "enabled": True,
                 "index": 5,
                 "group": "planning",
                 "search_enabled": True,
                 "filter_enabled": True,
             },
+            "urgency": {
+                "enabled": True,
+                "index": 6,
+                "group": "planning",
+                "search_enabled": True,
+                "filter_enabled": True,
+            },
             "coverage_assignment_status": {
-                "enabled": True,
-                "index": 6,
-                "group": "planning",
-                "search_enabled": True,
-                "filter_enabled": True,
-            },
-            "ad_hoc_planning": {
-                "enabled": True,
-                "index": 6,
-                "group": "planning",
-                "search_enabled": True,
-                "filter_enabled": True,
-            },
-            "featured": {
                 "enabled": True,
                 "index": 7,
                 "group": "planning",
                 "search_enabled": True,
                 "filter_enabled": True,
             },
-            "include_scheduled_updates": {
+            "ad_hoc_planning": {
+                "enabled": True,
+                "index": 7,
+                "group": "planning",
+                "search_enabled": True,
+                "filter_enabled": True,
+            },
+            "featured": {
                 "enabled": True,
                 "index": 8,
+                "group": "planning",
+                "search_enabled": True,
+                "filter_enabled": True,
+            },
+            "include_scheduled_updates": {
+                "enabled": True,
+                "index": 9,
                 "group": "planning",
                 "search_enabled": True,
                 "filter_enabled": True,
@@ -541,16 +555,23 @@ DEFAULT_ADVANCED_SEARCH_PROFILE = PlanningProfileResource(
                 "search_enabled": True,
                 "filter_enabled": True,
             },
-            "g2_content_type": {
+            "with_coverage": {
                 "enabled": True,
                 "index": 3,
                 "group": "planning",
                 "search_enabled": True,
                 "filter_enabled": True,
             },
-            "coverage_assignment_status": {
+            "g2_content_type": {
                 "enabled": True,
                 "index": 4,
+                "group": "planning",
+                "search_enabled": True,
+                "filter_enabled": True,
+            },
+            "coverage_assignment_status": {
+                "enabled": True,
+                "index": 5,
                 "group": "planning",
                 "search_enabled": True,
                 "filter_enabled": True,

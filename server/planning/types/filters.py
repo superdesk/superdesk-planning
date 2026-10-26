@@ -78,6 +78,7 @@ class FilterParams(Dataclass):
     ad_hoc_planning: bool | None = None
     exclude_rescheduled_and_cancelled: bool | None = None
     no_coverage: bool | None = None
+    with_coverage: bool | None = None
     urgency: CVItemInt | None = None
     g2_content_type: G2ContentType | None = None
     featured: bool | None = None

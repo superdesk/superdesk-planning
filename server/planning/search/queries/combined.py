@@ -88,6 +88,10 @@ def search_no_coverage(params: Dict[str, Any], query: elastic.ElasticQuery):
     planning.search_no_coverage(params, query)
 
 
+def search_with_coverage(params: Dict[str, Any], query: elastic.ElasticQuery):
+    planning.search_with_coverage(params, query)
+
+
 def search_g2_content_type(params: Dict[str, Any], query: elastic.ElasticQuery):
     planning.search_g2_content_type(params, query)
 
@@ -104,6 +108,7 @@ COMBINED_SEARCH_FILTERS: list[common.FilterFunctionType] = [
     search_created_date,
     search_coverage_assigned_user,
     search_no_coverage,
+    search_with_coverage,
     search_g2_content_type,
     search_coverage_assignment_status,
 ]
@@ -118,6 +123,7 @@ COMBINED_PARAMS: List[str] = [
     "include_associated_planning",
     "coverage_user_id",
     "no_coverage",
+    "with_coverage",
     "g2_content_type",
     "coverage_assignment_status",
 ]
