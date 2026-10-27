@@ -165,12 +165,10 @@ class PlanningEditorComponent extends React.Component<IProps, IState> {
             return;
         }
 
-        let updatedPlanning: DeepPartial<IPlanningItem>;
-
         // If we are creating a new planning item for 'add-to-planning'
         if (!this.props.itemExists) {
             // Should check here to determine if current item is populated already
-            updatedPlanning = planningUtils.createNewPlanningFromNewsItem(
+            const updatedPlanning = planningUtils.createNewPlanningFromNewsItem(
                 this.props.addNewsItemToPlanning,
                 this.props.newsCoverageStatus,
                 this.props.desk,
@@ -179,8 +177,9 @@ class PlanningEditorComponent extends React.Component<IProps, IState> {
             );
 
             this.fillCurrentAgenda(updatedPlanning);
+            this.props.onChangeHandler(null, updatedPlanning);
         } else {
-            updatedPlanning = cloneDeep(this.props.item);
+            const updatedPlanning: DeepPartial<IPlanningItem> = cloneDeep(this.props.item);
 
             updatedPlanning.coverages.push(
                 planningUtils.createCoverageFromNewsItem(
@@ -191,9 +190,7 @@ class PlanningEditorComponent extends React.Component<IProps, IState> {
                     this.props.coverageProfilesMap,
                 )
             );
-        }
 
-        if (updatedPlanning) {
             this.props.onChangeHandler(null, updatedPlanning);
         }
     }

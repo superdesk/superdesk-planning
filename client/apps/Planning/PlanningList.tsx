@@ -51,6 +51,9 @@ interface IProps {
     itemActions: {[key: string]: () => void}; // List of item action dispatches (i.e. Cancel Event)
     hideItemActions?: boolean;
     showAddCoverage?: boolean;
+    // When true, double-clicking a planning item behaves like the "Add as coverage" action
+    // instead of opening/locking it for full editing
+    useAddCoverageOnDoubleClick?: boolean;
     calendars: Array<ICalendar>;
     isAllListItemsLoaded: boolean;
     previewId: IEventOrPlanningItem['_id'];
@@ -123,6 +126,15 @@ export class PlanningListComponent extends React.PureComponent<IProps> {
         super(props);
 
         this.handleItemSelection = this.handleItemSelection.bind(this);
+        this.handleDoubleClick = this.handleDoubleClick.bind(this);
+    }
+
+    handleDoubleClick(item: IEventOrPlanningItem) {
+        if (this.props.useAddCoverageOnDoubleClick && getItemType(item) === ITEM_TYPE.PLANNING) {
+            this.props.onAddCoverageClick(item as IPlanningItem);
+        } else {
+            this.props.edit(item);
+        }
     }
 
     componentDidMount() {
@@ -173,7 +185,6 @@ export class PlanningListComponent extends React.PureComponent<IProps> {
             desks,
             users,
             openPreview,
-            edit,
             itemActions,
             hideItemActions,
             showAddCoverage,
@@ -193,7 +204,7 @@ export class PlanningListComponent extends React.PureComponent<IProps> {
                 <ListPanel
                     groups={groups}
                     onItemClick={openPreview}
-                    onDoubleClick={edit}
+                    onDoubleClick={this.handleDoubleClick}
                     agendas={agendas}
                     lockedItems={lockedItems}
                     session={session}
