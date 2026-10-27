@@ -10,6 +10,7 @@ from superdesk.publish_async.utils import generate_sequence_number
 from apps.archive.common import ARCHIVE
 
 from planning.types import AgendasResourceModel, AssignmentWorkflowState, WorkflowState
+from planning.unified.common import convert_unified_planning_to_legacy_format
 
 from .utils import get_matching_products, expand_contact_info
 from .json_utils import translate_names
@@ -73,6 +74,11 @@ class BaseJsonFormatter(Formatter):
 
     async def _format_item(self, item: dict, subscribers: list[dict] | None = None) -> dict:
         """Format the item to json planning"""
+
+        # Before any formatting, make sure we're working with the legacy format
+        # and not the newer UnifiedPlanning format
+        convert_unified_planning_to_legacy_format(item)
+
         if self.include_products:
             item["products"] = await get_matching_products(item)
 
