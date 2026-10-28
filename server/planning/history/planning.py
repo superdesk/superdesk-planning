@@ -259,7 +259,7 @@ class UnifiedPlanningHistoryService(HistoryAsyncService[UnifiedPlanningHistoryRe
 
         new_plan = duplicate.to_dict()
         new_plan["duplicate_id"] = parent.id
-        await self._save_history({ID_FIELD: parent.id, "type": parent.item_type}, new_plan, "duplicate_from")
+        await self._save_history({ID_FIELD: duplicate.id, "type": duplicate.item_type}, new_plan, "duplicate_from")
 
         # Update any Event history as well
         item_service = UnifiedPlanningResource.get_service()
@@ -274,9 +274,7 @@ class UnifiedPlanningHistoryService(HistoryAsyncService[UnifiedPlanningHistoryRe
                     "versioncreated": original_event.versioncreated,
                 },
             )
-            await self.on_item_updated(
-                {"planning_id": duplicate[ID_FIELD]}, original_event.to_dict(), "planning_created"
-            )
+            await self.on_item_updated({"planning_id": duplicate.id}, original_event.to_dict(), "planning_created")
 
     async def on_update_repetitions(self, updates: dict[str, Any], event_id: str, operation: str | None = None):
         await self.on_item_updated(
