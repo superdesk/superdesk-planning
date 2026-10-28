@@ -12,51 +12,32 @@
 
 import logging
 from copy import deepcopy
-from itertools import chain
-from io import BytesIO
 
 from quart_babel import gettext as _
 
-from lxml import etree
 from eve.methods.common import resolve_document_etag
 from eve.utils import ParsedRequest
 
-from superdesk.core import get_app_config, get_current_app
+from superdesk.core import get_app_config
 from superdesk.eve_async.service import AsyncBaseService
 from superdesk.eve_async.cursors import AsyncEveCursor
 from superdesk.resource_fields import ID_FIELD
-from superdesk import get_resource_service, Resource
+from superdesk import Resource
 from superdesk.errors import SuperdeskApiError
-from superdesk.utc import utcnow
 from superdesk.metadata.utils import item_url
 from superdesk.users.services import current_user_has_privilege
-from superdesk.notification import push_notification
 from superdesk.publish_async.utils import get_next_sequence_number
-from apps.archive.common import get_auth
 
-from planning.types import Planning, PLANNING_RELATED_EVENT_LINK_TYPE
-from planning.types.unified import PlanningItemType
+from planning.types import PlanningItemType
 from planning.common import (
-    WORKFLOW_STATE,
     prepare_ingested_item_for_storage,
-    get_coverage_type_name,
     TO_BE_CONFIRMED_FIELD,
-    get_planning_xmp_assignment_mapping,
-    get_planning_xmp_slugline_mapping,
-    get_planning_use_xmp_for_pic_slugline,
-    get_planning_use_xmp_for_pic_assignments,
     set_ingest_version_datetime,
     is_new_version,
     update_ingest_on_patch,
 )
 
-from planning.history.planning import UnifiedPlanningHistoryService
 from planning.signals import planning_ingested
-from planning.utils import (
-    get_related_planning_for_events_async,
-    get_first_related_event_id_for_planning,
-    get_related_event_items_for_planning_async,
-)
 from planning.unified.common import convert_unified_planning_to_legacy_format, convert_legacy_planning_to_unified_format
 
 logger = logging.getLogger(__name__)
@@ -127,40 +108,6 @@ class PlanningService(AsyncBaseService):
     async def post_async(self, docs: list[dict], **kwargs):
         return await self.create_async(docs, skip_signals=False)
 
-    async def _update_event_history(self, doc: Planning):
-        events_service = get_resource_service("events")
-        events_history_service = UnifiedPlanningHistoryService()
-
-        # TODO-PR: Move this to history section (maybe using a signal?)
-        for original_event in await get_related_event_items_for_planning_async(doc, "primary"):
-            await events_service.system_update_async(
-                original_event[ID_FIELD],
-                {
-                    "expiry": None,
-                    # Event hasn't actually been updated
-                    # So we leave these version dates alone
-                    "_updated": original_event["_updated"],
-                    "versioncreated": original_event["versioncreated"],
-                },
-                original_event,
-            )
-            await events_history_service.on_item_updated(
-                {"planning_id": doc[ID_FIELD]}, original_event, "planning_created"
-            )
-
-    async def on_duplicated(self, doc, parent_id):
-        await self._update_event_history(doc)
-        session_id = get_auth().get("_id")
-        push_notification(
-            "planning:duplicated",
-            item=str(doc.get(ID_FIELD)),
-            original=str(parent_id),
-            user=str(doc.get("original_creator", "")),
-            added_agendas=doc.get("agendas") or [],
-            removed_agendas=[],
-            session=session_id,
-        )
-
     def should_update(self, old_item, new_item, provider):
         return True
 
@@ -229,352 +176,6 @@ class PlanningService(AsyncBaseService):
         lookup["type"] = PlanningItemType.PLANNING.value
         return await self.backend.get_async(self.datasource, req=req, lookup=lookup)
 
-    async def get_all_items_in_relationship(
-        self, item: Planning, event_link_type: PLANNING_RELATED_EVENT_LINK_TYPE = "primary"
-    ):
-        event_id = get_first_related_event_id_for_planning(item, event_link_type)
-        if not event_id:
-            return []
-
-        events_service = get_resource_service("events")
-        if item.get("recurrence_id"):
-            # One call wil get all items in the recurring series from event service
-            return await events_service.get_all_items_in_relationship(
-                {"recurrence_id": item["recurrence_id"]}, event_link_type
-            )
-        else:
-            # Get associated event
-            all_items = await (await events_service.find_async(where={"_id": event_id})).to_list()
-            # Get all associated planning items
-            return chain(all_items, await get_related_planning_for_events_async([event_id], event_link_type))
-
-    # TODO-UNIFIED: Remove once ContentAPI is upgraded
-    def set_planning_schedule(self, updates, original=None):
-        """This set the list of schedule based on the coverage and planning.
-
-        Sorting currently works on two fields "planning_date" and "scheduled" date.
-        "planning_date" is stored on the planning and is equal to event start date for planning items
-        created from event or current date for adhoc planning item
-        "scheduled" is stored on the coverage nested document and it is optional.
-        Hence to sort and filter planning based on these two dates a
-        nested documents of scheduled date is required
-
-        :param dict updates: planning update document
-        :param dict original: planning original document
-        """
-
-        coverages = updates.get("coverages", [])
-        planning_date = updates.get("planning_date") or (original or {}).get("planning_date") or utcnow()
-
-        add_default_schedule = True
-        add_default_updates_schedule = True
-        schedule = []
-        updates_schedule = []
-        for coverage in coverages:
-            if coverage.get("planning", {}).get("scheduled"):
-                add_default_schedule = False
-
-            schedule.append(
-                {
-                    "coverage_id": coverage.get("coverage_id"),
-                    "scheduled": coverage.get("planning", {}).get("scheduled"),
-                }
-            )
-
-            for s in coverage.get("scheduled_updates") or []:
-                if s.get("planning", {}).get("scheduled") and add_default_updates_schedule:
-                    add_default_updates_schedule = False
-
-                updates_schedule.append(
-                    {
-                        "scheduled_update_id": s.get("scheduled_update_id"),
-                        "scheduled": s.get("planning", {}).get("scheduled"),
-                    }
-                )
-
-        if add_default_schedule:
-            schedule.append({"coverage_id": None, "scheduled": planning_date or utcnow()})
-
-        if add_default_updates_schedule:
-            updates_schedule.append({"scheduled_update_id": None, "scheduled": planning_date or utcnow()})
-
-        updates["_planning_schedule"] = schedule
-        updates["_updates_schedule"] = updates_schedule
-
-    # TODO-UNIFIED: Remove once Planning action service is upgraded
-    async def cancel_coverage(
-        self,
-        coverage,
-        coverage_cancel_state,
-        original_workflow_status,
-        assignment=None,
-        reason=None,
-        event_cancellation=False,
-        event_reschedule=False,
-    ):
-        await self._perform_coverage_cancel(
-            coverage,
-            coverage_cancel_state,
-            original_workflow_status,
-            assignment,
-            reason,
-            event_cancellation,
-            event_reschedule,
-        )
-
-        for s in coverage.get("scheduled_updates") or []:
-            await self._perform_coverage_cancel(
-                s,
-                coverage_cancel_state,
-                original_workflow_status,
-                None,
-                reason,
-                event_cancellation,
-                event_reschedule,
-            )
-
-    # TODO-UNIFIED: Remove once Planning action service is upgraded
-    async def _perform_coverage_cancel(
-        self,
-        coverage,
-        coverage_cancel_state,
-        original_workflow_status,
-        assignment,
-        reason,
-        event_cancellation,
-        event_reschedule,
-    ):
-        # If coverage is already cancelled, don't change it's state_reason
-        if coverage.get("previous_status"):
-            return
-
-        coverage["news_coverage_status"] = coverage_cancel_state
-        coverage["previous_status"] = original_workflow_status
-        coverage["workflow_status"] = WORKFLOW_STATE.CANCELLED
-        coverage["planning"]["workflow_status_reason"] = reason
-
-        # Cancel assignment if the coverage has an assignment
-        if coverage.get("assigned_to"):
-            coverage["assigned_to"]["state"] = WORKFLOW_STATE.CANCELLED
-            assignment_service = get_resource_service("assignments")
-            if not assignment:
-                assignment = await assignment_service.find_one_async(
-                    req=None, _id=coverage["assigned_to"].get("assignment_id")
-                )
-
-            if assignment:
-                await assignment_service.cancel_assignment(assignment, coverage, event_cancellation, event_reschedule)
-
-    # TODO-UNIFIED: Remove once PlanningHistory has been upgraaded
-    def is_coverage_planning_modified(self, updates, original):
-        for key in updates.get("planning").keys():
-            if not key.startswith("_") and updates.get("planning")[key] != (original.get("planning") or {}).get(key):
-                return True
-
-        if (
-            TO_BE_CONFIRMED_FIELD in original
-            and TO_BE_CONFIRMED_FIELD in updates
-            and original[TO_BE_CONFIRMED_FIELD] != updates[TO_BE_CONFIRMED_FIELD]
-        ):
-            return True
-
-        return False
-
-    # TODO-UNIFIED: Remove once PlanningHistory has been upgraaded
-    def is_coverage_assignment_modified(self, updates, original):
-        if (updates or {}).get("assigned_to"):
-            keys = ["desk", "user", "state", "coverage_provider", "contact"]
-            for key in keys:
-                if key in updates.get("assigned_to") and updates["assigned_to"][key] != (
-                    original.get("assigned_to") or {}
-                ).get(key):
-                    return True
-
-            if updates["assigned_to"].get("priority") and updates["assigned_to"]["priority"] != original.get(
-                "priority"
-            ):
-                return True
-
-        return False
-
-    # async def duplicate_xmp_file(self, coverage):
-    #     cov_plan = coverage.get("planning") or {}
-    #     if not (
-    #         cov_plan.get("xmp_file")
-    #         and get_coverage_type_name(cov_plan.get("g2_content_type")) in ["Picture", "picture"]
-    #     ):
-    #         return
-    #
-    #     file_id = coverage["planning"]["xmp_file"]
-    #     xmp_file = await get_resource_service("planning_files").find_one_async(req=None, _id=file_id)
-    #     coverage_msg = "Duplicating Coverage: {}".format(coverage["coverage_id"])
-    #     if not xmp_file:
-    #         logger.error("XMP File {} attached to coverage not found. {}".format(file_id, coverage_msg))
-    #         return
-    #
-    #     app = get_current_app()
-    #     xmp_file = app.media.get(xmp_file["media"], resource="planning_files")
-    #     if not xmp_file:
-    #         logger.error("Media file for XMP File {} not found. {}".format(file_id, coverage_msg))
-    #         return
-    #
-    #     try:
-    #         buf = BytesIO()
-    #         buf.write(xmp_file.read())
-    #         buf.seek(0)
-    #         media_id = app.media.put(
-    #             buf,
-    #             resource="planning_files",
-    #             filename=xmp_file.name,
-    #             content_type="application/octet-stream",
-    #         )
-    #     except Exception as e:
-    #         logger.exception("Error creating media file. {}. Exception: {}".format(coverage_msg, e))
-    #     planning_file_ids = await get_resource_service("planning_files").post_async([{"media": media_id}])
-    #     coverage["planning"]["xmp_file"] = planning_file_ids[0]
-
-    # TODO-UNIFIED: Implement when fixing recurring events
-    # async def _update_recurring_planning_items(self, updates, original, update_method):
-    #     SKIP_PLANNING_FIELDS = {
-    #         "_id",
-    #         "guid",
-    #         "unique_id",
-    #         "original_creator",
-    #         "firstcreated",
-    #         "lock_user",
-    #         "lock_time",
-    #         "lock_session",
-    #         "lock_action",
-    #         "revert_state",
-    #         "ingest_provider",
-    #         "source",
-    #         "original_source",
-    #         "ingest_provider_sequence",
-    #         "ingest_firstcreated",
-    #         "ingest_versioncreated",
-    #         "related_events",
-    #         "state",
-    #         "pubstatus",
-    #         "expiry",
-    #         "expired",
-    #         "featured",
-    #         "_planning_schedule",
-    #         "_updates_schedule",
-    #         "planning_date",
-    #         "state_reason",
-    #     }
-    #     SKIP_COVERAGE_FIELDS = {
-    #         "coverage_id",
-    #         "original_coverage_id",
-    #         "guid",
-    #         "original_creator",
-    #         "firstcreated",
-    #         "previous_status",
-    #     }
-    #     app = get_current_app().as_any()
-    #     for plan in self._iter_recurring_plannings_to_update(updates, original, update_method):
-    #         plan_updates = deepcopy(updates)
-    #         for field in SKIP_PLANNING_FIELDS:
-    #             plan_updates.pop(field, None)
-    #
-    #         try:
-    #             planning_date_diff = updates["planning_date"] - original["planning_date"]
-    #             if planning_date_diff:
-    #                 plan_updates["planning_date"] = plan["planning_date"] + planning_date_diff
-    #         except KeyError:
-    #             pass
-    #
-    #         if len(updates.get("coverages") or []) and len(plan.get("coverages") or []):
-    #             plan_updates["coverages"] = deepcopy(plan["coverages"])
-    #             for coverage in plan_updates["coverages"]:
-    #                 try:
-    #                     original_coverage_id = coverage["original_coverage_id"]
-    #                 except KeyError:
-    #                     continue
-    #
-    #                 coverage_updates = get_coverage_by_id(updates, original_coverage_id, "original_coverage_id")
-    #                 if coverage_updates is None:
-    #                     continue
-    #
-    #                 for field, value in coverage_updates.items():
-    #                     if field in SKIP_COVERAGE_FIELDS:
-    #                         continue
-    #                     elif field == "assigned_to":
-    #                         if coverage.get("workflow_status") != WORKFLOW_STATE.DRAFT:
-    #                             # This coverage has already been added to the workflow
-    #                             # ``assigned_to`` information should be managed from the Assignment not Coverage
-    #                             continue
-    #
-    #                         # Copy the ``assigned_to`` data, keeping the original ``assignment_id`` (if any)
-    #                         original_assignment_id = coverage.get("assignment_id")
-    #                         coverage[field] = deepcopy(value)
-    #                         if original_assignment_id is not None:
-    #                             coverage[field]["assignment_id"] = original_assignment_id
-    #                     elif field == "planning":
-    #                         original_scheduled = (coverage.get("planning") or {}).get("scheduled")
-    #                         coverage["planning"] = deepcopy(value)
-    #                         coverage_original = get_coverage_by_id(
-    #                             original, original_coverage_id, "original_coverage_id"
-    #                         )
-    #                         if coverage_original is not None:
-    #                             scheduled_diff = value["scheduled"] - coverage_original["planning"]["scheduled"]
-    #                             coverage["planning"]["scheduled"] = original_scheduled + scheduled_diff
-    #                         else:
-    #                             coverage["planning"]["scheduled"] = original_scheduled
-    #                     else:
-    #                         coverage[field] = deepcopy(value)
-    #
-    #             # Add new Coverages that were added during this update request
-    #             for coverage in updates["coverages"]:
-    #                 if get_coverage_by_id(original, coverage["coverage_id"]) is not None:
-    #                     # Skip this one, as this Coverage exists in the original
-    #                     continue
-    #
-    #                 new_coverage = deepcopy(coverage)
-    #                 for field in SKIP_COVERAGE_FIELDS:
-    #                     new_coverage.pop(field, None)
-    #
-    #                 # Remove the Assignment ID (if any)
-    #                 try:
-    #                     new_coverage["assigned_to"].pop("assignment_id", None)
-    #                 except (KeyError, TypeError):
-    #                     pass
-    #
-    #                 # Set the new scheduled date, relative to the planning date
-    #                 try:
-    #                     plan_date = plan_updates.get("planning_date") or plan["planning_date"]
-    #                     if plan_date:
-    #                         scheduled_diff = coverage["planning"]["scheduled"] - (
-    #                             updates.get("planning_date") or original.get("planning_date")
-    #                         )
-    #                         new_coverage["planning"]["scheduled"] = plan_date + scheduled_diff
-    #                 except (KeyError, TypeError):
-    #                     pass
-    #
-    #                 plan_updates["coverages"].append(new_coverage)
-    #
-    #         await self.patch_async(plan["_id"], plan_updates)
-    #         await app.on_updated_planning.call_async(plan_updates, {"_id": plan["_id"]})
-
-    # def _iter_recurring_plannings_to_update(self, updates, original, update_method):
-    #     selected_start = updates.get("planning_date") or original.get("planning_date")
-    #     # Make sure we are working with a datetime instance
-    #     if not isinstance(selected_start, datetime):
-    #         selected_start = datetime.strptime(selected_start, "%Y-%m-%dT%H:%M:%S%z")
-    #
-    #     try:
-    #         lookup = {"planning_recurrence_id": original["planning_recurrence_id"]}
-    #     except KeyError:
-    #         return
-    #
-    #     for plan in self.get_from_mongo(req=None, lookup=lookup):
-    #         if plan["_id"] == original["_id"]:
-    #             # Skip this Planning item, as it is the same item provided to the update request
-    #             continue
-    #         elif update_method == UPDATE_FUTURE and plan["planning_date"] < selected_start:
-    #             continue
-    #         yield plan
-
 
 class PlanningResource(Resource):
     """Resource for planning data model
@@ -584,7 +185,6 @@ class PlanningResource(Resource):
 
     endpoint_name = url = "planning"
     item_url = item_url
-    # schema = planning_schema
     allow_unknown = True
     datasource = {
         "source": "planning",

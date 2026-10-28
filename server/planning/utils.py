@@ -31,7 +31,7 @@ from superdesk.core import json, get_app_config
 from superdesk.core.resources.service import AsyncResourceService
 
 from planning import types
-from planning.types import EventResourceModel, PlanningResourceModel, AssignmentResourceModel, BasePlanningModel
+from planning.types import UnifiedPlanningResource, AssignmentResourceModel, BasePlanningModel
 from planning.types import Event, Planning, PLANNING_RELATED_EVENT_LINK_TYPE, PlanningRelatedEventLink
 
 
@@ -51,8 +51,8 @@ MULTI_DAY_SECONDS = 24 * 60 * 60  # Number of seconds for an multi-day event
 ALL_DAY_SECONDS = MULTI_DAY_SECONDS - 1  # Number of seconds for an all-day event
 
 RESOURCE_MAPPING: dict[str, Type[BasePlanningModel]] = {
-    "events": EventResourceModel,
-    "planning": PlanningResourceModel,
+    "events": UnifiedPlanningResource,
+    "planning": UnifiedPlanningResource,
     "assignments": AssignmentResourceModel,
 }
 
@@ -239,29 +239,6 @@ def get_first_related_event_id_for_planning(
         return get_related_event_links_for_planning(plan, link_type)[0]["_id"]
     except (KeyError, IndexError, TypeError):
         return None
-
-
-def get_related_event_items_for_planning(
-    plan: Planning, link_type: Optional[PLANNING_RELATED_EVENT_LINK_TYPE] = None
-) -> List[Event]:
-    event_ids = get_related_event_ids_for_planning(plan, link_type)
-    if not len(event_ids):
-        return []
-
-    # TODO-ASYNC[EventsService] - Convert this to async when function is updated to async
-    events = list(get_resource_service("events").find(where={"_id": {"$in": event_ids}}))
-
-    if len(event_ids) != len(events):
-        logger.warning(
-            "Not all Events were found for the Planning item",
-            extra=dict(
-                plan_id=plan[ID_FIELD],
-                event_ids_requested=event_ids,
-                events_ids_found=[event[ID_FIELD] for event in events],
-            ),
-        )
-
-    return events
 
 
 async def get_related_event_items_for_planning_async(

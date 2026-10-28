@@ -321,6 +321,7 @@ def _get_coverage_planning_metadata(planning: dict, coverage: dict) -> dict:
             )
 
     planning_metadata.update(deepcopy(coverage.get("planning") or {}))
+    planning_metadata["news_coverage_status"] = coverage.get("news_coverage_status")
     return planning_metadata
 
 

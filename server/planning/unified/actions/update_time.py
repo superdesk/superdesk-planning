@@ -29,7 +29,8 @@ from planning.events.events_utils import (
     get_recurring_event_updates_iterator,
     set_planning_schedule,
 )
-from planning.types import PlanningSchedule, UnifiedPlanningResource, PlanningItemType
+from planning.types import UnifiedPlanningResource, PlanningItemType
+from planning.types.unified import ItemScheduleEntry
 
 
 async def update_single_event(updates: dict[str, Any]):
@@ -37,7 +38,7 @@ async def update_single_event(updates: dict[str, Any]):
     remove_lock_information(updates)
 
     # Set '_planning_schedule' on the Event item
-    updates["_planning_schedule"] = [PlanningSchedule(scheduled=updates["dates"].get("start")).to_dict()]
+    updates["_planning_schedule"] = [ItemScheduleEntry(scheduled=updates["dates"].get("start")).to_dict()]
 
 
 async def update_recurring_events(updates: dict[str, Any], original: dict[str, Any], update_method: str):

@@ -1,12 +1,9 @@
 import arrow
-import re
-from dateutil import parser
-import pytz
 from copy import deepcopy
 
-from datetime import date, datetime, time
-from dateutil.rrule import rrule, DAILY, WEEKLY, MONTHLY, YEARLY, MO, TU, WE, TH, FR, SA, SU
-from typing import AsyncGenerator, Any, Generator, Tuple, Literal, cast
+from datetime import date, datetime
+from dateutil.rrule import DAILY, WEEKLY, MONTHLY, YEARLY, MO, TU, WE, TH, FR, SA, SU
+from typing import AsyncGenerator, Any, Tuple, Literal
 from eve.utils import ParsedRequest
 
 from apps.archive.common import get_auth
@@ -15,16 +12,12 @@ from apps.auth import get_user_id
 from quart_babel import gettext as _
 
 from superdesk import get_resource_service, json
-from superdesk.core.types import SortParam, SortListParam
 from superdesk.errors import SuperdeskApiError
 from superdesk.notification import push_notification
 from superdesk.utc import utcnow, utc_to_local, local_to_utc
 from superdesk.resource_fields import ID_FIELD
-from superdesk.metadata.item import GUID_NEWSML
-from superdesk.metadata.utils import generate_guid
 
 from planning.common import (
-    TEMP_ID_PREFIX,
     UPDATE_SINGLE,
     UPDATE_FUTURE,
     WORKFLOW_STATE,
@@ -33,9 +26,7 @@ from planning.common import (
     is_valid_event_planning_reason,
     update_post_item,
 )
-from planning.types import EventResourceModel, UpdateMethods, UnifiedPlanningResource
-from planning.types.unified import PlanningItemType
-from planning.types.event import EmbeddedPlanning, EmbeddedPlanningCoverage
+from planning.types import PlanningItemType, UnifiedPlanningResource
 from apps.item_lock.components.item_lock import LOCK_USER, LOCK_SESSION, LOCK_ACTION
 
 
@@ -57,27 +48,6 @@ DAYS = {
     "SA": SA,
     "SU": SU,
 }
-
-
-def get_events_embedded_planning(event: dict[str, Any] | EventResourceModel) -> list[EmbeddedPlanning]:
-    if isinstance(event, dict):
-        event = EventResourceModel.from_dict(event)
-        event = cast(EventResourceModel, event)
-
-    def _get_coverage_id(coverage: EmbeddedPlanningCoverage) -> str:
-        if not coverage.coverage_id:
-            coverage.coverage_id = TEMP_ID_PREFIX + "-" + generate_guid(type=GUID_NEWSML)
-        return coverage.coverage_id
-
-    return [
-        EmbeddedPlanning(
-            planning_id=planning.planning_id,
-            update_method=planning.update_method or UpdateMethods.SINGLE,
-            coverages={_get_coverage_id(coverage): coverage for coverage in planning.coverages.values()},
-        )
-        for planning in event.embedded_planning or []
-        if planning.coverages
-    ]
 
 
 async def get_series(query: dict, sort: str | None = None, max_results: int = 25) -> AsyncGenerator[dict, None]:
@@ -211,7 +181,6 @@ async def validate_event_action(
     Generic validation for event actions that can be called outside normal resource/service model
     Based off validate() from old event_base_service
     """
-    event_service = get_resource_service("events")
 
     if not original:
         raise SuperdeskApiError.notFoundError()
@@ -241,7 +210,11 @@ async def validate_event_action(
                 message=_("The lock must be for the `{}` action").format(ACTION.lower().replace("_", " "))
             )
 
-    event_service.validate_event(updates, original)
+    # Use the Pydantic model to run validation on the updated item
+    updated = deepcopy(original)
+    updated.update(updates)
+    item = UnifiedPlanningResource(**updated)
+    await item.validate_async()
 
 
 async def post_update_event_actions(

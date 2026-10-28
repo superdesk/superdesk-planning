@@ -14,25 +14,13 @@ from datetime import datetime
 from .content_profiles import ContentFieldSchema, ContentFieldEditor, BaseProfile, ContentProfile, CoverageProfile
 
 from .base import BasePlanningModel
-from .common import (
-    PlanningSchedule,
-    PlanningCoverage,
-    CoverageAssignedTo,
-    SubjectListType,
-    SlugLineField,
-    Place,
-    NewsCoverageStatus,
-    MatchingProduct,
-    KeywordQCodeName,
-)
+from .common import MatchingProduct
 from .delivery import DeliveryResourceModel
-from .event import EventResourceModel
 from .history import (
     HistoryResourceModel,
     UnifiedPlanningHistoryResource,
     AssignmentsHistoryResourceModel,
 )
-from .planning import PlanningResourceModel
 from .assignment import AssignmentResourceModel, CoverageProvider
 from .published import PublishedPlanningModel
 from .enums import (
@@ -71,9 +59,7 @@ from .template import PlanningTemplateResource
 __all__ = [
     "BasePlanningModel",
     "DeliveryResourceModel",
-    "EventResourceModel",
     "HistoryResourceModel",
-    "PlanningResourceModel",
     "UnifiedPlanningHistoryResource",
     "AssignmentResourceModel",
     "CoverageProvider",
@@ -81,15 +67,7 @@ __all__ = [
     "PlanningProfileResource",
     "PlanningProfileType",
     "DEFAULT_PROFILE_ID",
-    "PlanningSchedule",
-    "PlanningCoverage",
-    "CoverageAssignedTo",
-    "SubjectListType",
-    "SlugLineField",
-    "Place",
-    "NewsCoverageStatus",
     "MatchingProduct",
-    "KeywordQCodeName",
     "PostStates",
     "UpdateMethods",
     "WorkflowState",

@@ -5,7 +5,7 @@ from bson import ObjectId
 
 from superdesk.core.resources import AsyncResourceService
 from superdesk.utc import utcnow
-from planning.types import EventResourceModel, PlanningResourceModel, AssignmentResourceModel
+from planning.types import UnifiedPlanningResource, AssignmentResourceModel
 from planning.tests import TestCase
 
 
@@ -22,7 +22,7 @@ class FixAnpaCategorySchemeTestCase(TestCase):
         self.assertEqual(set([item["_id"] async for item in self.data_update.iterate_items(service)]), item_ids)
 
     async def test_upgrade_events(self):
-        service = EventResourceModel.get_service()
+        service = UnifiedPlanningResource.get_service()
         dates = {"start": now, "end": now + timedelta(hours=1)}
         await self.app.data.insert_async(
             "events",
@@ -58,7 +58,7 @@ class FixAnpaCategorySchemeTestCase(TestCase):
         )
 
     async def test_upgrade_planning(self):
-        service = PlanningResourceModel.get_service()
+        service = UnifiedPlanningResource.get_service()
         await self.app.data.insert_async(
             "planning",
             [

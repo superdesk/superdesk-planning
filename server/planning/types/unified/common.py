@@ -29,6 +29,9 @@ class Subject(Dataclass):
     parent: fields.Keyword | None = Field(description="ID of the parent subject item, if any", default=None)
 
 
+SubjectListType = Annotated[list[Subject] | None, fields.nested_list(include_in_parent=True, dynamic=False)]
+
+
 CVItemTranslations = Annotated[
     dict[str, dict[str, str]],
     Field(

@@ -13,11 +13,7 @@ from planning.content_api import (
     content_api_planning_resource_config,
 )
 
-from planning.events import events_resource_config
-from planning.planning import (
-    planning_resource_config,
-    planning_featured_resource_config,
-)
+from planning.planning import planning_featured_resource_config
 from planning.events.views import events_endpoints_group
 from planning.planning.views import planning_endpoint_group
 from planning.locations import locations_resource_config
@@ -84,8 +80,6 @@ module = Module(
         template_endpoints,
     ],
     resources=[
-        events_resource_config,
-        planning_resource_config,
         assignments_resource_config,
         published_resource_config,
         delivery_resource_config,
