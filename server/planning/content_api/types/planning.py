@@ -5,7 +5,8 @@ from pydantic import Field
 
 from superdesk.core.resources import fields
 
-from planning.types import SlugLineField, LinkType, NewsCoverageStatus, AgendaItem, KeywordQCodeName
+from planning.types import LinkType, AgendaItem
+from planning.types.unified import NewsCoverageStatus, CVItem
 from .common import BasePlanningContentAPIResource, BaseContentAPIDataclass
 
 
@@ -31,11 +32,11 @@ class CoverageAssignedDesk(BaseContentAPIDataclass):
 class ContentAPICoveragePlanning(BaseContentAPIDataclass):
     ednote: fields.HTML | None = None
     g2_content_type: fields.Keyword | None = None
-    genre: list[KeywordQCodeName] | None = None
+    genre: list[CVItem] | None = None
     headline: fields.HTML | None = None
     keyword: list[str] | None = None
     language: fields.Keyword | None = None
-    slugline: SlugLineField | None = None
+    slugline: fields.Slugline | None = None
     workflow_status_reason: str | None = None
     priority: int | None = None
     scheduled: datetime | None = None

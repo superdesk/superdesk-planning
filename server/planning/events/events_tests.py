@@ -3,17 +3,15 @@ from typing import Any
 import pytz
 import arrow
 from copy import deepcopy
-from mock import Mock, patch
 from datetime import datetime, timedelta
 
-from planning.types.unified import UnifiedPlanningResource, PlanningItemType
-from planning.types.common import RelatedEvent
 from superdesk.utc import utcnow
 from superdesk import get_resource_service
 from superdesk.errors import SuperdeskApiError
 from superdesk.flask import g
 from superdesk.tests import utils as test_utils, fixtures
 
+from planning.types.unified import UnifiedPlanningResource, PlanningItemType, RelatedEventLink
 from planning.tests import TestCase, fixtures as planning_fixtures
 from planning.common import format_address, POST_STATE, TO_BE_CONFIRMED_FIELD
 from planning.types import PlanningRelatedEventLink
@@ -51,11 +49,8 @@ class EventTestCase(EventsBaseTestCase):
                         }
                         if end_day < 21:
                             with self.assertRaisesRegex(SuperdeskApiError, "END DATE should be after START DATE"):
-                                self.events_service._validate_dates(event)
-                            with self.assertRaisesRegex(SuperdeskApiError, "END DATE should be after START DATE"):
                                 UnifiedPlanningResource.from_dict(event)
                         else:
-                            self.events_service._validate_dates(event)
                             UnifiedPlanningResource.from_dict(event)
 
     def test_tbc_compares_timed_dates_in_toronto(self):
@@ -68,7 +63,6 @@ class EventTestCase(EventsBaseTestCase):
                 "tz": "America/Toronto",
             },
         }
-        self.events_service._validate_dates(event)
         UnifiedPlanningResource.from_dict(event)
 
     def test_tbc_allows_end_time_before_start_time_on_same_local_date(self):
@@ -81,7 +75,6 @@ class EventTestCase(EventsBaseTestCase):
                 "tz": "Australia/Sydney",
             },
         }
-        self.events_service._validate_dates(event)
         UnifiedPlanningResource.from_dict(event)
 
     def test_tbc_rejects_end_date_before_start_date(self):
@@ -94,8 +87,6 @@ class EventTestCase(EventsBaseTestCase):
                 "tz": "Australia/Sydney",
             },
         }
-        with self.assertRaises(SuperdeskApiError):
-            self.events_service._validate_dates(event)
         with self.assertRaises(SuperdeskApiError):
             UnifiedPlanningResource.from_dict(event)
 
@@ -477,7 +468,7 @@ class EventsRelatedPlanningAutoPublish(EventsBaseTestCase):
                     "planning_date": datetime(2099, 11, 21, 12, 00, 00, tzinfo=pytz.UTC),
                     "name": "Demo 1",
                     "type": "planning",
-                    "related_events": [RelatedEvent(id=new_events[0], link_type="primary").to_dict()],
+                    "related_events": [RelatedEventLink(_id=new_events[0]).to_dict()],
                 }
             ]
         )

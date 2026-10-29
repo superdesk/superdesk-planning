@@ -13,11 +13,9 @@
 
 import pytz
 import logging
-import itertools
 
 from typing import Dict, Any, Optional
 from datetime import datetime
-from dateutil import parser
 
 from eve.methods.common import resolve_document_etag
 from eve.utils import ParsedRequest
@@ -26,7 +24,6 @@ from quart_babel import gettext as _
 import superdesk
 from superdesk.core import get_app_config, get_current_app
 from superdesk.resource_fields import ID_FIELD
-from superdesk import get_resource_service
 from superdesk.eve_async.service import AsyncBaseService
 from superdesk.eve_async.cursors import AsyncEveCursor
 from superdesk.errors import SuperdeskApiError
@@ -34,20 +31,15 @@ from superdesk.users.services import current_user_has_privilege
 from superdesk.publish_async.utils import get_next_sequence_number
 
 from planning.history.planning import UnifiedPlanningHistoryService
-from planning.types import Event, PLANNING_RELATED_EVENT_LINK_TYPE
+from planning.types import Event
 from planning.types.unified import PlanningItemType
 from planning.common import (
     prepare_ingested_item_for_storage,
     format_address,
-    get_event_max_multi_day_duration,
-    LOCK_ACTION,
-    TO_BE_CONFIRMED_FIELD,
-    sanitize_input_data,
     set_ingest_version_datetime,
     is_new_version,
     update_ingest_on_patch,
 )
-from planning.utils import get_related_planning_for_events_async
 from planning.unified.common import get_related_planning_for_events
 
 
@@ -165,25 +157,6 @@ class EventsService(AsyncBaseService):
         lookup["type"] = PlanningItemType.EVENT.value
         return await self.backend.get_async(self.datasource, req=req, lookup=lookup)
 
-    async def get_all_items_in_relationship(
-        self, item: Event, event_link_type: PLANNING_RELATED_EVENT_LINK_TYPE = "primary"
-    ):
-        # Get recurring items
-        if item.get("recurrence_id"):
-            all_items = self.find(where={"recurrence_id": item.get("recurrence_id")})
-            # Now, get associated planning items with the same recurrence
-            return itertools.chain(
-                all_items,
-                await (
-                    await get_resource_service("planning").find_async(
-                        where={"recurrence_id": item.get("recurrence_id")}
-                    )
-                ).to_list(),
-            )
-        else:
-            # Get associated planning items
-            return await get_related_planning_for_events_async([item[ID_FIELD]], event_link_type)
-
     async def on_locked_event(self, doc, user_id):
         await self._enhance_event_item(doc)
 
@@ -216,140 +189,6 @@ class EventsService(AsyncBaseService):
             raise SuperdeskApiError.notFoundError(_(f"Item with id {id} not found"))
 
         return await self.update_async(id, updates, original, skip_signals=False)
-
-    # TODO-UNIFIED: Remove once all event actions are upgraded
-    def validate_event(self, updates, original=None):
-        """Validate the event
-
-        @:param dict event: event created or updated
-        """
-        self._validate_multiday_event_duration(updates)
-        self._validate_dates(updates, original)
-        self._validate_convert_to_recurring(updates, original)
-        self._validate_template(updates, original)
-
-        # if len(updates.get('calendars', [])) > 0:
-        # existing_calendars = get_resource_service('vocabularies').find_one(req=None, _id='event_calendars')
-        # for calendar in updates['calendars']:
-        # cal = [x for x in existing_calendars.get('items', []) if x['qcode'] == calendar.get('qcode')]
-        # if not cal:
-        # raise SuperdeskApiError(message="Calendar does not exist.")
-        # if not cal[0].get('is_active'):
-        # raise SuperdeskApiError(message="Disabled calendar cannot be selected.")
-
-        # Remove duplicated calendars
-        # uniq_qcodes = list_uniq_with_order([o['qcode'] for o in updates['calendars']])
-        # updates['calendars'] = [cal for cal in existing_calendars.get('items', []) if cal['qcode'] in uniq_qcodes]
-        sanitize_input_data(updates)
-
-    def _validate_convert_to_recurring(self, updates, original):
-        """Validates if the convert to recurring action is valid.
-
-        :param updates:
-        :param original:
-        :return:
-        """
-        if not original:
-            return
-
-        if (
-            original.get(LOCK_ACTION) == "convert_recurring"
-            and updates.get("dates", {}).get("recurring_rule", None) is None
-        ):
-            raise SuperdeskApiError(message="Event recurring rules are mandatory for convert to recurring action.")
-        if original.get(LOCK_ACTION) == "convert_recurring" and original.get("recurrence_id"):
-            raise SuperdeskApiError(message="Event is already converted to recurring event.")
-
-    def _validate_dates(self, updates, original=None):
-        """Validate the dates
-
-        @:param dict event:
-        """
-        event = updates if updates.get("dates") or not original else original
-        dates = event.get("dates", {})
-        start_date = dates.get("start")
-        end_date = dates.get("end")
-
-        if not start_date or not end_date:
-            raise SuperdeskApiError(message="Event START DATE and END DATE are mandatory.")
-
-        to_be_confirmed = updates.get(TO_BE_CONFIRMED_FIELD, (original or {}).get(TO_BE_CONFIRMED_FIELD))
-
-        if to_be_confirmed:
-            timezone = dates.get("tz")
-            local_start = start_date if dates.get("all_day") else get_local_date(start_date, timezone)
-            local_end = (
-                end_date if dates.get("no_end_time") or dates.get("all_day") else get_local_date(end_date, timezone)
-            )
-            if local_end.date() < local_start.date():
-                raise SuperdeskApiError(message="END DATE should be after START DATE")
-        elif (
-            dates.get("no_end_time") is True
-            and end_date.date() < get_local_date(dates.get("start"), dates.get("tz")).date()
-        ):
-            raise SuperdeskApiError(message="END TIME should be after START TIME")
-        elif dates.get("no_end_time") is not True and end_date < start_date:
-            raise SuperdeskApiError(message="END TIME should be after START TIME")
-
-        if (
-            event.get("dates", {}).get("recurring_rule")
-            and not event["dates"]["recurring_rule"].get("until")
-            and not event["dates"]["recurring_rule"].get("count")
-        ):
-            raise SuperdeskApiError(message="Recurring event should have an end (until or count)")
-
-    def _validate_multiday_event_duration(self, event):
-        """Validate that the multiday event duration is not greater than PLANNING_MAX_MULTI_DAY_DURATION
-
-        @:param dict event: event created or updated
-        """
-        max_duration = get_event_max_multi_day_duration()
-        if not max_duration > 0:
-            return
-
-        if not event.get("dates"):
-            return
-
-        dates = event.get("dates")
-        if not dates:
-            return
-
-        start = dates.get("start")
-        end = dates.get("end")
-
-        if not start or not end:
-            return
-
-        # Parse dates
-        start = parser.parse(start) if isinstance(start, str) else start
-        end = parser.parse(end) if isinstance(end, str) else end
-
-        event_duration = end - start
-
-        if event_duration.days > max_duration:
-            raise SuperdeskApiError.badRequestError(
-                message="Event duration is greater than {} days.".format(max_duration)
-            )
-
-    @staticmethod
-    def _validate_template(updates, original):
-        """Ensures that event template can't be changed
-
-        :param updates: updates to event that should be saved
-        :type updates: dict
-        :param original: original event before update
-        :type original: dict
-        :return:
-        """
-        if not original:
-            return
-
-        # we can't change `template` id
-        if "template" in updates and updates["template"] != original["template"]:
-            raise SuperdeskApiError.badRequestError(
-                message="Request is not valid",
-                payload={"template": "This value can't be changed."},
-            )
 
     @staticmethod
     def can_edit(item, user_id):
@@ -396,7 +235,6 @@ class EventsResource(superdesk.Resource):
     """
 
     endpoint_name = url = "events"
-    # schema = events_schema
     item_url = r'regex("[\w,.:-]+")'
     resource_methods = ["GET", "POST"]
     datasource = {

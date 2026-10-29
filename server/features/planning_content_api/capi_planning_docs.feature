@@ -185,12 +185,13 @@ Feature: ContentAPI Planning docs
                     "name": {"type": "string"}
                 }
             },
-            "KeywordQCodeName": {
+            "CVItem": {
                 "type": "object",
                 "required": ["qcode", "name"],
                 "properties": {
                     "qcode": {"type": "string"},
-                    "name": {"type": "string"}
+                    "name": {"type": "string"},
+                    "translations": {"type": "object"}
                 }
             },
             "Subject": {
@@ -200,7 +201,7 @@ Feature: ContentAPI Planning docs
                     "qcode": {"type": "string"},
                     "name": {"type": "string"},
                     "scheme": {"type": "string"},
-                    "translations": {"type": "object", "additionalProperties": true}
+                    "translations": {"type": "object"}
                 }
             },
             "PostStates": {
@@ -256,7 +257,7 @@ Feature: ContentAPI Planning docs
                     "source": {"type": "string"},
                     "original_source": {"type": "string"},
                     "name": {"type": "string"},
-                    "anpa_category": {"type": "array", "items": {"$ref": "#/components/schemas/KeywordQCodeName"}},
+                    "anpa_category": {"type": "array", "items": {"$ref": "#/components/schemas/CVItem"}},
                     "priority": {"type": "integer"},
                     "subject": {"type": "array", "items": {"$ref": "#/components/schemas/Subject"}},
                     "slugline": {"type": "string"},
@@ -283,9 +284,9 @@ Feature: ContentAPI Planning docs
                     "links": {"type": "array", "items": {"type": "string"}},
                     "dates": {"$ref": "#/components/schemas/DatesObject"},
                     "occur_status": {"$ref": "#/components/schemas/OccurStatus"},
-                    "location": {"type": "array", "items": {"$ref": "#/components/schemas/EventLocation"}},
+                    "location": {"type": "array", "items": {"$ref": "#/components/schemas/ItemLocation"}},
                     "event_contact_info": {"type": "array", "items": {"$ref": "#/components/schemas/ContactsResource"}},
-                    "calendars": {"type": "array", "items": {"$ref": "#/components/schemas/KeywordQCodeName"}},
+                    "calendars": {"type": "array", "items": {"$ref": "#/components/schemas/CVItem"}},
                     "related_items": {"type": "array", "items": {"$ref": "#/components/schemas/RelatedItem"}},
                     "plans": {"type": "array", "items": {"type": "string"}}
                 }
@@ -353,12 +354,24 @@ Feature: ContentAPI Planning docs
             "OccurStatus": {
                 "type": "object",
                 "properties": {
-                    "qcode": {"type": "string"},
+                    "qcode": {"$ref": "#/components/schemas/OccurStatusCodes"},
                     "name": {"type": "string"},
                     "label": {"type": "string"}
                 }
             },
-            "EventLocation": {
+            "OccurStatusCodes": {
+                "type": "string",
+                "enum": [
+                    "eocstat:eos0",
+                    "eocstat:eos1",
+                    "eocstat:eos2",
+                    "eocstat:eos3",
+                    "eocstat:eos4",
+                    "eocstat:eos5",
+                    "eocstat:eos6"
+                ]
+            },
+            "ItemLocation": {
                 "type": "object",
                 "properties": {
                     "name": {"type": "string"},
@@ -466,7 +479,7 @@ Feature: ContentAPI Planning docs
                     "source": {"type": "string"},
                     "original_source": {"type": "string"},
                     "name": {"type": "string"},
-                    "anpa_category": {"type": "array", "items": {"$ref": "#/components/schemas/KeywordQCodeName"}},
+                    "anpa_category": {"type": "array", "items": {"$ref": "#/components/schemas/CVItem"}},
                     "priority": {"type": "integer"},
                     "subject": {"type": "array", "items": {"$ref": "#/components/schemas/Subject"}},
                     "slugline": {"type": "string"},
@@ -520,10 +533,19 @@ Feature: ContentAPI Planning docs
             "NewsCoverageStatus": {
                 "type": "object",
                 "properties": {
-                    "qcode": {"type": "string"},
+                    "qcode": {"$ref": "#/components/schemas/NewsCoverageQcodes"},
                     "name": {"type": "string"},
                     "label": {"type": "string"}
                 }
+            },
+            "NewsCoverageQcodes": {
+                "type": "string",
+                "enum": [
+                    "ncostat:int",
+                    "ncostat:notint",
+                    "ncostat:notdec",
+                    "ncostat:onreq"
+                ]
             },
             "CoverageDelivery": {
                 "type": "object",
@@ -539,7 +561,7 @@ Feature: ContentAPI Planning docs
                 "properties": {
                     "ednote": {"type": "string", "format": "html"},
                     "g2_content_type": {"type": "string"},
-                    "genre": {"type": "array", "items": {"$ref": "#/components/schemas/KeywordQCodeName"}},
+                    "genre": {"type": "array", "items": {"$ref": "#/components/schemas/CVItem"}},
                     "headline": {"type": "string", "format": "html"},
                     "keyword": {"type": "array", "items": {"type": "string"}},
                     "language": {"type": "string"},

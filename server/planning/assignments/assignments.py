@@ -67,7 +67,7 @@ from planning.common import (
     set_original_creator,
 )
 
-from planning.types import EventResourceModel, AssignmentResourceModel, UnifiedPlanningResource, WorkflowState
+from planning.types import AssignmentResourceModel, UnifiedPlanningResource, WorkflowState
 from planning.planning_notifications import PlanningNotifications
 from planning.common import format_address, get_assginment_name, assignment_allows_multiple_content_linked
 from planning.history.assignments import AssignmentsHistoryService, AssignmentHistoryActions
@@ -1095,7 +1095,7 @@ class AssignmentsService(AsyncBaseService):
             if assignment.get(LOCK_SESSION) and user_id:
                 await unlock_item(AssignmentResourceModel.from_dict(assignment))
 
-    async def on_events_updated(self, updates: dict[str, Any], original: EventResourceModel):
+    async def on_events_updated(self, updates: dict[str, Any], original: UnifiedPlanningResource):
         """Send assignment notifications if any relevant Event metadata has changed"""
 
         event = deepcopy(original.to_dict())

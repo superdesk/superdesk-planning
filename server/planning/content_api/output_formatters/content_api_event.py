@@ -1,4 +1,4 @@
-from planning.types import PlanningSchedule
+from planning.types.unified import ItemScheduleEntry
 from planning.output_formatters.json_event import JsonEventFormatter
 
 from ..utils import format_base_content_api_item
@@ -37,5 +37,5 @@ class ContentApiEventFormatter(JsonEventFormatter):
             event_contact_info=item["event_contact_info"],
             calendars=item.get("calendars"),
             related_items=item.get("related_items"),
-            _planning_schedule=[PlanningSchedule(scheduled=item["dates"]["start"])],
+            _planning_schedule=[ItemScheduleEntry(scheduled=item["dates"]["start"])],
         )

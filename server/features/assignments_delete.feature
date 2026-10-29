@@ -49,7 +49,7 @@ Feature: Assignments Delete
         Then we store assignment id in "assignmentId" from coverage 0
 
     @auth
-    @notification @wip
+    @notification
     Scenario: Cannot delete an Assignment if assignment is not locked
         When we delete "/assignments/#assignmentId#"
         Then we get error 403
@@ -1150,7 +1150,7 @@ Feature: Assignments Delete
         """
 
     @auth
-    @notification @wip
+    @notification
     Scenario: Remove Coverage assignee also removes the linked Assignment
         When we post to "/archive"
         """

@@ -10,8 +10,7 @@ from planning.common import (
     get_version_item_for_post,
     enqueue_planning_item,
 )
-from planning.planning.planning_service import PlanningAsyncService
-from planning.types import PlanningFeaturedResourceModel
+from planning.types import PlanningFeaturedResourceModel, UnifiedPlanningResource
 from superdesk import get_resource_service, logger
 from superdesk.errors import SuperdeskApiError
 from superdesk.utc import utcnow
@@ -83,16 +82,16 @@ class PlanningFeaturedAsyncService(BasePlanningAsyncService[PlanningFeaturedReso
                 logger.error("Failed to save planning_featured version for featured item id {}".format(plan["_id"]))
 
     async def validate_featured_attrribute(self, planning_ids: list):
-        planning_service = PlanningAsyncService()
+        planning_service = UnifiedPlanningResource.get_service()
         for planning_id in planning_ids:
-            planning_item = await planning_service.find_by_id_raw(planning_id)
+            planning_item = await planning_service.find_by_id_raw(planning_id, projection=["featured"])
             if planning_item and not planning_item.get("featured"):
                 raise SuperdeskApiError.badRequestError(message=_("A planning item in the list is not featured."))
 
     async def validate_post_status(self, planning_ids: list):
-        planning_service = PlanningAsyncService()
+        planning_service = UnifiedPlanningResource.get_service()
         for planning_id in planning_ids:
-            planning_item = await planning_service.find_by_id_raw(planning_id)
+            planning_item = await planning_service.find_by_id_raw(planning_id, projection=["pubstatus"])
             if planning_item and not planning_item.get("pubstatus", None):
                 raise SuperdeskApiError.badRequestError(
                     message="Not all planning items are posted. Aborting post action."

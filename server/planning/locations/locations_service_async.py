@@ -1,8 +1,7 @@
 from typing import Any
 
 from planning.core.service import BasePlanningAsyncService
-from planning.events.events_service import EventsAsyncService
-from planning.types import LocationResourceModel
+from planning.types import LocationResourceModel, UnifiedPlanningResource
 
 from superdesk.resource_fields import ID_FIELD
 
@@ -15,7 +14,7 @@ class LocationsAsyncService(BasePlanningAsyncService[LocationResourceModel]):
         if lookup:
             location = await self.find_by_id(lookup[ID_FIELD])
             if location:
-                events_count = await EventsAsyncService().count({"location.qcode": str(location.guid)})
+                events_count = await UnifiedPlanningResource.get_service().count({"location.qcode": str(location.guid)})
                 if events_count > 0:
                     # Update the unique name in case the location get recreated
                     await self.update(

@@ -19,18 +19,11 @@ from .planning import PlanningResource, PlanningService  # noqa
 from .planning_schema import coverage_schema  # noqa
 from planning.files import PlanningFilesResource, FilesAsyncService
 
-from .module import (
-    planning_resource_config,
-    planning_resource_config,
-    planning_featured_resource_config,
-)
-from .planning_service import PlanningAsyncService
+from .module import planning_featured_resource_config
 from .planning_featured_async_service import PlanningFeaturedAsyncService
 
 
 __all__ = [
-    "planning_resource_config",
-    "PlanningAsyncService",
     "PlanningFeaturedAsyncService",
     "planning_featured_resource_config",
 ]

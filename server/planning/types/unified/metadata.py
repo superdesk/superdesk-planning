@@ -8,7 +8,7 @@ from superdesk.core import get_config
 from superdesk.core.resources import Dataclass, fields
 from superdesk.core.resources.validators import AsyncValidator, validate_data_relation_async
 
-from .common import CVItem, Subject, ItemLocation
+from .common import CVItem, SubjectListType, ItemLocation
 
 
 def _to_object_id_if_valid(value: Any) -> Any:
@@ -66,9 +66,7 @@ class ItemDescription(BaseModel):
 
 
 class ItemMetadata(BaseModel):
-    subject: Annotated[list[Subject] | None, fields.nested_list(include_in_parent=True, dynamic=False)] = Field(
-        description="Subject(s) associated with the item", default=None
-    )
+    subject: SubjectListType = Field(description="Subject(s) associated with the item", default=None)
     anpa_category: list[CVItem] | None = Field(
         description="List of ANPA categories associated with the item", default=None
     )

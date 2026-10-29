@@ -15,18 +15,19 @@ duplicated client-side by creating a new item with ``duplicate_from`` set, which
 is handled generically by ``UnifiedPlanningResourceService.on_created``.
 """
 
-from copy import deepcopy
 from typing import Any
 
 from quart_babel import gettext as _
 
 from superdesk.core import get_app_config
-from superdesk import get_resource_service
 from superdesk.errors import SuperdeskApiError
 from superdesk.resource_fields import ID_FIELD
 from superdesk.metadata.utils import generate_guid
 from superdesk.metadata.item import GUID_NEWSML
 from superdesk.utc import utcnow, utc_to_local
+from superdesk.notification import push_notification
+
+from apps.auth import get_auth
 
 from planning.common import (
     ITEM_STATE,
@@ -37,8 +38,8 @@ from planning.common import (
     get_config_planning_duplicate_retain_coverage_status,
 )
 from planning.history.planning import UnifiedPlanningHistoryService
-from planning.types.unified import PlanningItemType
-from planning.utils import get_related_event_links_for_planning, get_related_event_items_for_planning
+from planning.types import PlanningItemType, UnifiedPlanningResource, WorkflowState
+from planning.unified.common import get_related_events, get_related_event_links
 
 
 async def process_duplicate(original: dict[str, Any]) -> dict[str, Any]:
@@ -47,30 +48,36 @@ async def process_duplicate(original: dict[str, Any]) -> dict[str, Any]:
         raise SuperdeskApiError.badRequestError(
             message=_("Event duplication is performed via item creation, not the duplicate action.")
         )
-    return await process_planning_item_duplicate(original)
+
+    item = await UnifiedPlanningResource.get_service().find_by_id(original[ID_FIELD])
+    if not item:
+        raise SuperdeskApiError.notFoundError(_("Planning item not found"))
+    return (await process_planning_item_duplicate(item)).to_dict()
 
 
-def duplicate_planning_item(original: dict[str, Any]) -> dict:
-    new_plan = deepcopy(original)
-    related_events = get_related_event_links_for_planning(original)
+async def duplicate_planning_item(original: UnifiedPlanningResource) -> dict:
+    new_plan = original.to_dict(context={"use_objectid": True})
+    related_events_links = get_related_event_links(original)
 
-    if len(related_events):
-        if original.get("expired") or original.get(ITEM_STATE) == WORKFLOW_STATE.RESCHEDULED:
+    if len(related_events_links):
+        if original.expired or original.state == WorkflowState.RESCHEDULED:
             # If the Planning item has expired, or has been rescheduled, and is associated with an Event
             # then we remove the link to the associated Events as the Event would have been expired also.
             new_plan["related_events"] = []
-        elif original.get(ITEM_STATE) == WORKFLOW_STATE.CANCELLED:
+        elif original.state == WorkflowState.CANCELLED:
             events_to_remove = []
 
-            for related_event in get_related_event_items_for_planning(original):
-                if related_event.get(ITEM_STATE) == WORKFLOW_STATE.CANCELLED:
+            for related_event in await get_related_events(original):
+                if related_event.state == WorkflowState.CANCELLED:
                     # If both the Planning and Events are cancelled, then unlink this Event
-                    events_to_remove.append(related_event[ID_FIELD])
+                    events_to_remove.append(related_event.id)
 
             # Remove any of the Event's flagged to be removed from above
             if len(events_to_remove):
                 new_plan["related_events"] = [
-                    related_event for related_event in related_events if related_event["_id"] not in events_to_remove
+                    related_event.to_dict()
+                    for related_event in related_events_links
+                    if related_event._id not in events_to_remove
                 ]
 
     for f in (
@@ -97,10 +104,10 @@ def duplicate_planning_item(original: dict[str, Any]) -> dict:
     new_plan["guid"] = generate_guid(type=GUID_NEWSML)
 
     default_timezone = get_app_config("DEFAULT_TIMEZONE")
-    planning_datetime = utc_to_local(default_timezone, new_plan.get("planning_date"))
+    planning_datetime = utc_to_local(default_timezone, original.dates.start)
     local_datetime = utc_to_local(default_timezone, utcnow())
     if planning_datetime.date() < local_datetime.date():
-        new_plan["planning_date"] = new_plan["planning_date"] + (local_datetime.date() - planning_datetime.date())
+        new_plan["dates"]["start"] = original.dates.start + (local_datetime.date() - planning_datetime.date())
 
     for cov in new_plan.get("coverages") or []:
         cov.get("planning", {}).pop("workflow_status_reason", None)
@@ -113,7 +120,7 @@ def duplicate_planning_item(original: dict[str, Any]) -> dict:
         if coverage_scheduled:
             coverage_datetime = utc_to_local(default_timezone, coverage_scheduled)
             if coverage_datetime.date() < local_datetime.date():
-                cov.get("planning", {})["scheduled"] = new_plan.get("planning_date")
+                cov.get("planning", {})["scheduled"] = new_plan["dates"]["start"]
 
         if not get_config_planning_duplicate_retain_coverage_status():
             cov["news_coverage_status"] = get_coverage_status_from_cv("ncostat:int")
@@ -128,24 +135,31 @@ def duplicate_planning_item(original: dict[str, Any]) -> dict:
     return new_plan
 
 
-async def process_planning_item_duplicate(parent_plan: dict[str, Any]) -> dict[str, Any]:
+async def process_planning_item_duplicate(parent_plan: UnifiedPlanningResource) -> UnifiedPlanningResource:
     """
     Function to duplicate planning item.
 
-    :param original: The original planning item.
+    :param parent_plan: The original planning item.
     :return: List of new planning item guid.
     """
-    planning_service = get_resource_service("planning")
+
+    planning_service = UnifiedPlanningResource.get_service()
     history_service = UnifiedPlanningHistoryService()
+    new_plan = UnifiedPlanningResource.from_dict(await duplicate_planning_item(parent_plan))
 
-    parent_id = parent_plan[ID_FIELD]
-    new_plan = duplicate_planning_item(parent_plan)
-
-    await planning_service.on_create_async([new_plan])
-    await planning_service.create_async([new_plan])
-
+    await planning_service.on_create([new_plan])
+    await planning_service.create([new_plan], skip_signals=True)
     await history_service.on_duplicate(parent_plan, new_plan)
-    await history_service.on_duplicate_from(new_plan, parent_id)
-    await planning_service.on_duplicated(new_plan, parent_id)
+
+    session_id = get_auth().get("_id")
+    push_notification(
+        "planning:duplicated",
+        item=new_plan.id,
+        original=parent_plan.id,
+        user=str(new_plan.original_creator or ""),
+        added_agendas=new_plan.agendas or [],
+        removed_agendas=[],
+        session=session_id,
+    )
 
     return new_plan

@@ -5,15 +5,8 @@ from pydantic import Field
 
 from superdesk.core.resources import ResourceModel, fields, Dataclass, default_model_config, BaseModel
 
-from planning.types import (
-    PlanningSchedule,
-    SubjectListType,
-    SlugLineField,
-    PostStates,
-    Place,
-    MatchingProduct,
-    KeywordQCodeName,
-)
+from planning.types import PostStates, MatchingProduct
+from planning.types.unified import SubjectListType, ItemScheduleEntry, Place, CVItem
 
 
 planning_capi_model_config: dict = {
@@ -94,7 +87,7 @@ class BasePlanningContentAPIResource(ResourceModel):
     # It will store the dates.start of the event.
     # Exclude from API response & docs
     planning_schedule: Annotated[
-        list[PlanningSchedule],
+        list[ItemScheduleEntry],
         fields.nested_list(),
         Field(alias="_planning_schedule", default_factory=list),
         fields.exclude_from_docs(),
@@ -112,11 +105,11 @@ class BasePlanningContentAPIResource(ResourceModel):
     original_source: fields.Keyword | None = None
 
     name: str | None = None
-    anpa_category: list[KeywordQCodeName] | None = None
+    anpa_category: list[CVItem] | None = None
     priority: int | None = None
 
-    subject: SubjectListType | None = None
-    slugline: SlugLineField | None = None
+    subject: SubjectListType = None
+    slugline: fields.Slugline | None = None
 
     language: fields.Keyword | None = None
 

@@ -7,7 +7,7 @@ from .schedule import (
     ItemDates,
     ItemRecurringDates,
 )
-from .metadata import RelatedEventLink, RelatedEventLinkType, FieldTranslation
+from .metadata import RelatedEventLink, RelatedEventLinkType, FieldTranslation, Place
 from .coverage import (
     CoverageItem,
     CoverageScheduledUpdate,
@@ -17,7 +17,7 @@ from .coverage import (
     CoverageAssignedTo,
     CoveragePlanning,
 )
-from .common import Subject, CVItem
+from .common import Subject, SubjectListType, CVItem
 from .system import LockFields, AuditInformation
 
 
@@ -29,6 +29,7 @@ __all__ = [
     "RelatedEventLink",
     "RelatedEventLinkType",
     "FieldTranslation",
+    "Place",
     "ItemScheduleEntry",
     "ItemUpdateScheduleEntry",
     "ItemDates",
@@ -41,6 +42,7 @@ __all__ = [
     "CoverageAssignedTo",
     "CoveragePlanning",
     "Subject",
+    "SubjectListType",
     "CVItem",
     "LockFields",
     "AuditInformation",

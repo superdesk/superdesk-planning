@@ -8,13 +8,15 @@ from superdesk.default_settings import strtobool
 
 from apps.item_lock.components.item_lock import LOCK_ACTION
 
-from planning.types import UnifiedPlanningHistoryResource, PlanningItemType
+from planning.types import UnifiedPlanningHistoryResource, UnifiedPlanningResource, PlanningItemType
+from planning.types.unified import RelatedEventLinkType
 from planning.types.enums import AssignmentHistoryActions, AssignmentWorkflowState, ItemActions, WorkflowState
 from planning.utils import (
     get_related_event_links_for_planning,
     is_coverage_planning_modified,
     is_coverage_assignment_modified,
 )
+from planning.unified.common import get_related_events
 
 from .base_service import HistoryAsyncService
 
@@ -246,19 +248,33 @@ class UnifiedPlanningHistoryService(HistoryAsyncService[UnifiedPlanningHistoryRe
     async def on_unspike(self, updates: dict[str, Any], original: dict[str, Any]):
         await super().on_unspike(updates, original)
 
-    async def on_duplicate(self, parent: dict[str, Any], duplicate: dict[str, Any]):
+    async def on_duplicate(self, parent: UnifiedPlanningResource, duplicate: UnifiedPlanningResource):
         """Function to save a history entry when a planning item is duplicated."""
+
         await self._save_history(
-            {ID_FIELD: str(parent[ID_FIELD]), "type": parent.get("type")},
-            {"duplicate_id": str(duplicate[ID_FIELD])},
+            {ID_FIELD: parent.id, "type": parent.item_type},
+            {"duplicate_id": duplicate.id},
             "duplicate",
         )
 
-    async def on_duplicate_from(self, item: dict[str, Any], duplicate_id: str):
-        """Function to save a history entry for an item duplicated from another item."""
-        new_plan = deepcopy(item)
-        new_plan["duplicate_id"] = duplicate_id
-        await self._save_history({ID_FIELD: str(item[ID_FIELD]), "type": item.get("type")}, new_plan, "duplicate_from")
+        new_plan = duplicate.to_dict()
+        new_plan["duplicate_id"] = parent.id
+        await self._save_history({ID_FIELD: duplicate.id, "type": duplicate.item_type}, new_plan, "duplicate_from")
+
+        # Update any Event history as well
+        item_service = UnifiedPlanningResource.get_service()
+        for original_event in await get_related_events(parent, RelatedEventLinkType.PRIMARY):
+            await item_service.system_update(
+                original_event.id,
+                {
+                    "expiry": None,
+                    # Event hasn't actually been updated
+                    # So we leave these version dates alone
+                    "_updated": original_event.updated,
+                    "versioncreated": original_event.versioncreated,
+                },
+            )
+            await self.on_item_updated({"planning_id": duplicate.id}, original_event.to_dict(), "planning_created")
 
     async def on_update_repetitions(self, updates: dict[str, Any], event_id: str, operation: str | None = None):
         await self.on_item_updated(

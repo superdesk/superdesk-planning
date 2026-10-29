@@ -5,8 +5,9 @@ from pydantic import Field
 
 from superdesk.core.resources import fields
 
-from planning.types import KeywordQCodeName
-from planning.types.event import EventDates, OccurStatus, EventLocation
+from planning.types.unified import CVItem
+from planning.types.unified.schedule import ItemDates, OccurStatus
+from planning.types.unified.common import ItemLocation
 from .common import BasePlanningContentAPIResource, ContactsResource, BaseContentAPIDataclass
 
 
@@ -38,10 +39,10 @@ class ContentAPIEventResource(BasePlanningContentAPIResource):
     links: list[str] | None = None
 
     # NewsML-G2 Event properties See IPTC-G2-Implementation_Guide 15.4.3
-    dates: EventDates | None = None
+    dates: ItemDates | None = None
     occur_status: OccurStatus | None = None
-    location: list[EventLocation] | None = None
+    location: list[ItemLocation] | None = None
     event_contact_info: list[ContactsResource] | None = None
 
-    calendars: list[KeywordQCodeName] | None = None
+    calendars: list[CVItem] | None = None
     related_items: list[RelatedItem] | None = None

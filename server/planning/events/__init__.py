@@ -18,15 +18,6 @@ from planning.history.planning import UnifiedPlanningHistoryService
 from .events import EventsResource, EventsService
 from planning.files import EventsFilesResource, FilesAsyncService
 
-from .events_service import EventsAsyncService
-from .module import events_resource_config
-
-
-__all__ = [
-    "EventsAsyncService",
-    "events_resource_config",
-]
-
 
 def init_app(app):
     """Initialize events
