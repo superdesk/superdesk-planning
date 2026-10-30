@@ -19,7 +19,7 @@ from planning.types import UnifiedPlanningResource, AssignmentResourceModel
 class DataUpdate(BaseDataUpdate):
     """Remove ``anpa_category.scheme`` from the database"""
 
-    resource = "events"
+    resource = "unified_planning"
     use_async_resources = True
 
     async def forwards(self, _collection: AsyncIOMotorCollection, _database: AsyncIOMotorDatabase) -> None:
