@@ -13,7 +13,7 @@ from dateutil.rrule import rrule, HOURLY, MINUTELY
 import pytz
 
 from superdesk.core import get_app_config
-from superdesk.utc import local_to_utc
+from superdesk.utc import local_to_utc, utc_to_local
 
 from planning.tests import TestCase
 from planning.commands.export_scheduled_filters import ExportScheduledFilters
@@ -340,6 +340,58 @@ class ExportScheduledFiltersTestCase(TestCase):
 
         self.assertFalse(ExportScheduledFilters().should_export(report, same_hour))
         self.assertTrue(ExportScheduledFilters().should_export(report, next_hour))
+
+    def test_new_hourly_schedule_waits_for_next_hour(self):
+        local_tz = pytz.timezone(get_app_config("DEFAULT_TIMEZONE"))
+        saved_at = local_to_utc(get_app_config("DEFAULT_TIMEZONE"), datetime(2018, 6, 30, 10, 43, 14))
+        schedule = {"frequency": "hourly", "hour": -1}
+        command = ExportScheduledFilters()
+
+        # Same hour as the save
+        for minute in (43, 44, 59):
+            now_local = local_tz.localize(datetime(2018, 6, 30, 10, minute))
+            self.assertFalse(command.should_export(schedule, now_local, saved_at))
+
+        # Next hour
+        self.assertTrue(command.should_export(schedule, local_tz.localize(datetime(2018, 6, 30, 11, 0)), saved_at))
+
+        # Next hour, when the run on the hour was missed
+        self.assertTrue(command.should_export(schedule, local_tz.localize(datetime(2018, 6, 30, 11, 17)), saved_at))
+
+    def test_hourly_last_sent_takes_priority_over_saved_at(self):
+        local_tz = pytz.timezone(get_app_config("DEFAULT_TIMEZONE"))
+        last_sent = local_to_utc(get_app_config("DEFAULT_TIMEZONE"), datetime(2018, 6, 30, 10, 0))
+        saved_at = local_to_utc(get_app_config("DEFAULT_TIMEZONE"), datetime(2018, 6, 30, 11, 30))
+        schedule = {"frequency": "hourly", "hour": -1, "_last_sent": last_sent}
+
+        # Editing a filter does not hold back a schedule that has already been sent
+        now_local = local_tz.localize(datetime(2018, 6, 30, 11, 31))
+        self.assertTrue(ExportScheduledFilters().should_export(schedule, now_local, saved_at))
+
+    def test_saved_at_is_ignored_for_non_hourly_schedules(self):
+        local_tz = pytz.timezone(get_app_config("DEFAULT_TIMEZONE"))
+        saved_at = local_to_utc(get_app_config("DEFAULT_TIMEZONE"), datetime(2018, 6, 30, 9, 0))
+        schedule = {"frequency": "daily", "hour": -1, "hours": ["10:00"]}
+
+        now_local = local_tz.localize(datetime(2018, 6, 30, 10, 0))
+        self.assertTrue(ExportScheduledFilters().should_export(schedule, now_local, saved_at))
+
+    async def test_new_hourly_schedule_does_not_export_in_the_hour_it_was_saved(self):
+        desk_id = self.app.data.insert("desks", [{"name": "Sports"}])[0]
+        schedule = {"frequency": "hourly", "hour": -1, "hours": [], "day": -1, "week_days": [], "desk": desk_id}
+        await EventsPlanningFiltersAsyncService().create(
+            [{"name": "Hourly", "item_type": "combined", "params": {}, "schedules": [schedule]}]
+        )
+
+        command = ExportScheduledFilters()
+        search_filter = (await command.get_filters_with_schedules())[0]
+        saved_at = search_filter["_updated"]
+        saved_local = utc_to_local(get_app_config("DEFAULT_TIMEZONE"), saved_at)
+
+        self.assertFalse(command.should_export(search_filter["schedules"][0], saved_local, saved_at))
+        self.assertTrue(
+            command.should_export(search_filter["schedules"][0], saved_local + timedelta(hours=1), saved_at)
+        )
 
     def test_daily_frequency_runs_only_once_per_day_with_hour_field(self):
         report = {
