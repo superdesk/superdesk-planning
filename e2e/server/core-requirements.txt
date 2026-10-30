@@ -114,7 +114,7 @@ cryptography==48.0.0
     #   authlib
     #   jwcrypto
     #   moto
-dnspython==2.8.0
+dnspython==2.9.0
     # via pymongo
 draftjs-exporter[lxml]==5.2.0
     # via superdesk-core
