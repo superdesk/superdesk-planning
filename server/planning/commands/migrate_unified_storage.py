@@ -109,10 +109,11 @@ async def migrate_unified_storage_command(
     With --event-coverages, no planning documents are copied. Legacy events and planning
     remain untouched; existing unified planning documents are not deleted. A missing or
     ambiguous linked event is reported as a failure. Coverage IDs are preserved and reruns
-    do not duplicate coverages. Legacy planning history is left untouched. Only planning files
-    referenced by event coverages are copied; planning-item-only files are skipped. Event history
-    is still migrated. Assignment and delivery planning links are updated in MongoDB, so also
-    rebuild their indices::
+    do not duplicate coverages. Coverages without IDs are logged and skipped. Missing coverage
+    deadlines default to the source planning date. Legacy planning history is left untouched.
+    Only planning files referenced by event coverages are copied; planning-item-only files are
+    skipped. Event history is still migrated. Assignment and delivery planning links are updated
+    in MongoDB, so also rebuild their indices::
 
         python manage.py app:index_from_mongo --from=assignments
         python manage.py app:index_from_mongo --from=delivery
@@ -241,6 +242,17 @@ class MigrateUnifiedStorageCommand:
                         stats.skipped += 1
                         continue
 
+                    source_coverages = []
+                    for coverage in doc["coverages"]:
+                        if not coverage.get("coverage_id"):
+                            logger.warning("Skipping coverage without a coverage_id from %s", doc["_id"])
+                            continue
+                        source_coverages.append(coverage)
+                    doc["coverages"] = source_coverages
+                    if not source_coverages:
+                        stats.skipped += 1
+                        continue
+
                     primary_links = [link for link in links if link.get("link_type") == "primary"]
                     candidates = primary_links or links
                     if len(candidates) != 1:
@@ -254,13 +266,11 @@ class MigrateUnifiedStorageCommand:
                     if event is None or event.get("type") != PlanningItemType.EVENT.value:
                         raise ValueError(f"Linked event '{event_id}' is missing or was not migrated")
 
-                    convert_legacy_planning_to_unified_format(doc)
+                    doc = self.normalise_item(doc, PlanningItemType.PLANNING)
                     coverages = event.get("coverages") or []
                     coverage_ids = {coverage["coverage_id"] for coverage in coverages}
                     for coverage in doc["coverages"]:
                         coverage_id = coverage["coverage_id"]
-                        if not coverage_id:
-                            raise ValueError("Cannot move coverage without a coverage_id")
                         if coverage_id not in coverage_ids:
                             coverages.append(coverage)
                             coverage_ids.add(coverage_id)

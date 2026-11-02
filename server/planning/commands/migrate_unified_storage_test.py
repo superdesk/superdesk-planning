@@ -360,6 +360,64 @@ class MigrateUnifiedStorageTest(TestCase):
         self.assertEqual({item["_id"] for item in await self._find("unified_planning")}, {"event1", "event2"})
         self.assertFalse((await self.db["unified_planning"].find_one({"_id": "event1"})).get("coverages"))
 
+    async def test_event_coverages_defaults_to_source_planning_date(self):
+        await self._link_coverage_to_event()
+        planning_date = now + timedelta(days=2)
+        coverage = (await self.db["planning"].find_one({"_id": "plan2"}))["coverages"][0]
+        await self.db["planning"].update_one(
+            {"_id": "plan2"},
+            {
+                "$set": {
+                    "planning_date": planning_date,
+                    "coverages.0.scheduled_updates": [
+                        {
+                            "coverage_id": "cov1",
+                            "scheduled_update_id": "update1",
+                            "news_coverage_status": coverage["news_coverage_status"],
+                            "planning": {},
+                        }
+                    ],
+                },
+                "$unset": {"coverages.0.planning.scheduled": ""},
+            },
+        )
+        async with self.app.app_context():
+            self.assertEqual(await self.command.run(event_coverages=True, only=["items"]), 0)
+
+        event = await self.db["unified_planning"].find_one({"_id": "event1"})
+        coverage = event["coverages"][0]
+        self.assertEqual(coverage["planning"]["scheduled"], planning_date)
+        self.assertEqual(coverage["scheduled_updates"][0]["planning"]["scheduled"], planning_date)
+        self.assertIn({"coverage_id": "cov1", "scheduled": planning_date}, event["_planning_schedule"])
+        self.assertEqual(event["_updates_schedule"], [{"scheduled_update_id": "update1", "scheduled": planning_date}])
+        source = await self.db["planning"].find_one({"_id": "plan2"})
+        self.assertNotIn("scheduled", source["coverages"][0]["planning"])
+
+    async def test_event_coverages_skips_coverages_without_ids(self):
+        await self._link_coverage_to_event()
+        await self.db["planning"].update_one(
+            {"_id": "plan2"},
+            {"$push": {"coverages": {"planning": {}}}},
+        )
+        async with self.app.app_context():
+            with self.assertLogs("planning.commands.migrate_unified_storage", level="WARNING"):
+                self.assertEqual(await self.command.run(event_coverages=True, only=["items"]), 0)
+
+        event = await self.db["unified_planning"].find_one({"_id": "event1"})
+        self.assertEqual([coverage["coverage_id"] for coverage in event["coverages"]], ["cov1"])
+
+    async def test_event_coverages_skips_planning_with_no_coverage_ids(self):
+        await self._link_coverage_to_event()
+        await self.db["planning"].update_one({"_id": "plan2"}, {"$unset": {"coverages.0.coverage_id": ""}})
+        async with self.app.app_context():
+            with self.assertLogs("planning.commands.migrate_unified_storage", level="WARNING"):
+                self.assertEqual(await self.command.run(event_coverages=True, only=["items"]), 0)
+
+        event = await self.db["unified_planning"].find_one({"_id": "event1"})
+        self.assertFalse(event.get("coverages"))
+        self.assertEqual(len(await self._find("assignments", planning_item="plan2")), 2)
+        self.assertEqual(len(await self._find("delivery", planning_id="plan2")), 2)
+
     async def test_event_coverages_merges_multiple_plans_and_reruns(self):
         await self._link_coverage_to_event()
         plan = await self.db["planning"].find_one({"_id": "plan2"})
