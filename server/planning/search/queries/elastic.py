@@ -200,6 +200,12 @@ def _local_today(time_zone: Optional[str]):
     return tz, datetime.now(tz).date()
 
 
+def local_now(time_zone: Optional[str]) -> datetime:
+    time_zone = time_zone or get_app_config("DEFAULT_TIMEZONE")
+    tz = pytz.timezone(time_zone) if time_zone else pytz.utc
+    return datetime.now(tz)
+
+
 def _local_day_start(tz: Any, day, offset_days: int = 0) -> str:
     day = day + timedelta(days=offset_days)
     return tz.localize(datetime(day.year, day.month, day.day)).isoformat()
@@ -425,26 +431,28 @@ def range_last_24_hours(query: ElasticRangeParams):
     )
 
 
-def range_this_week(query: ElasticRangeParams):
+def range_this_week(query: ElasticRangeParams, date: Optional[datetime] = None):
+    date = date if date is not None else local_now(query.time_zone)
     return field_range(
         ElasticRangeParams(
             field=query.field,
             time_zone=query.time_zone,
             value_format=query.value_format,
-            gte=start_of_this_week(query.start_of_week),
-            lt=start_of_next_week(query.start_of_week),
+            gte=start_of_this_week(query.start_of_week, date),
+            lt=start_of_next_week(query.start_of_week, date),
         )
     )
 
 
-def range_next_week(query: ElasticRangeParams):
+def range_next_week(query: ElasticRangeParams, date: Optional[datetime] = None):
+    date = date if date is not None else local_now(query.time_zone)
     return field_range(
         ElasticRangeParams(
             field=query.field,
             time_zone=query.time_zone,
             value_format=query.value_format,
-            gte=start_of_next_week(query.start_of_week),
-            lt=end_of_next_week(query.start_of_week),
+            gte=start_of_next_week(query.start_of_week, date),
+            lt=end_of_next_week(query.start_of_week, date),
         )
     )
 

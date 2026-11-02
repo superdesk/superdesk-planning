@@ -2,6 +2,7 @@ from types import SimpleNamespace
 from unittest import mock
 
 from superdesk.core import json
+from superdesk.errors import SuperdeskApiError
 
 from superdesk import get_resource_service
 from superdesk.flask import g
@@ -156,6 +157,76 @@ class UnifiedResourceCoveragesTestCase(TestCase):
             req=None, _id=updated_planning.coverages[0].assigned_to.assignment_id
         )
         self.assertIsNotNone(assignment)
+
+    async def test_scheduled_update_assignments_survive_partial_updates_and_targeted_removal(self) -> None:
+        assigned_to = {"desk": fixtures.desks.SPORTS_DESK_ID, "user": fixtures.users.ADMIN_USER_ID}
+        news_coverage_status = {"qcode": "ncostat:int", "name": "coverage intended", "label": "Planned"}
+        planning = (
+            await self.planning_service.create(
+                [
+                    {
+                        "type": PlanningItemType.PLANNING,
+                        "state": "draft",
+                        "dates": {"start": "2029-06-30T15:30:55+0000"},
+                        "coverages": [
+                            {
+                                "coverage_id": "coverage-1",
+                                "news_coverage_status": news_coverage_status,
+                                "workflow_status": "draft",
+                                "planning": {"scheduled": "2029-06-30T16:30:55+0000"},
+                                "assigned_to": assigned_to,
+                                "scheduled_updates": [
+                                    {
+                                        "coverage_id": "coverage-1",
+                                        "news_coverage_status": news_coverage_status,
+                                        "workflow_status": "draft",
+                                        "scheduled_update_id": f"tempId-update-{index}",
+                                        "planning": {"scheduled": f"2029-06-30T{17 + index}:30:55+0000"},
+                                        "assigned_to": assigned_to,
+                                    }
+                                    for index in range(2)
+                                ],
+                            }
+                        ],
+                    }
+                ]
+            )
+        )[0]
+        coverage = planning.to_dict()["coverages"][0]
+        self.assertEqual(coverage["workflow_status"], "draft")
+        self.assertEqual(coverage["assigned_to"]["state"], "draft")
+        parent_assignment = coverage["assigned_to"].pop("assignment_id")
+        scheduled_assignments = [update["assigned_to"].pop("assignment_id") for update in coverage["scheduled_updates"]]
+
+        updated = await self.planning_service.update(planning.id, {"coverages": [coverage]})
+        coverage = updated.to_dict()["coverages"][0]
+        self.assertEqual(coverage["assigned_to"]["state"], "draft")
+        self.assertEqual(coverage["assigned_to"]["assignment_id"], parent_assignment)
+        self.assertEqual(
+            [update["assigned_to"]["assignment_id"] for update in coverage["scheduled_updates"]],
+            scheduled_assignments,
+        )
+
+        coverage["scheduled_updates"].pop()
+        await self.planning_service.update(planning.id, {"coverages": [coverage]})
+        self.assertIsNotNone(await self.assignments_service.find_one_async(None, _id=parent_assignment))
+        self.assertIsNotNone(await self.assignments_service.find_one_async(None, _id=scheduled_assignments[0]))
+        self.assertIsNone(await self.assignments_service.find_one_async(None, _id=scheduled_assignments[1]))
+
+        coverage["workflow_status"] = "active"
+        coverage["assigned_to"]["state"] = "assigned"
+        await self.planning_service.update(planning.id, {"coverages": [coverage]})
+        with self.assertRaises(SuperdeskApiError):
+            await self.planning_service.update(planning.id, {"coverages": []})
+        self.assertIsNotNone(await self.assignments_service.find_one_async(None, _id=parent_assignment))
+        self.assertIsNotNone(await self.assignments_service.find_one_async(None, _id=scheduled_assignments[0]))
+
+        coverage["workflow_status"] = "draft"
+        coverage["assigned_to"]["state"] = "draft"
+        await self.planning_service.update(planning.id, {"coverages": [coverage]})
+        await self.planning_service.update(planning.id, {"coverages": []})
+        self.assertIsNone(await self.assignments_service.find_one_async(None, _id=parent_assignment))
+        self.assertIsNone(await self.assignments_service.find_one_async(None, _id=scheduled_assignments[0]))
 
     async def test_event_coverages(self) -> None:
         event = UnifiedPlanningResource.from_dict(

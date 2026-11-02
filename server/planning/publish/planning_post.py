@@ -32,6 +32,7 @@ from planning.common import (
 )
 from planning.history.planning import UnifiedPlanningHistoryService
 from planning.content_profiles.utils import is_cancel_planning_with_event_enabled
+from planning.unified.common import convert_unified_planning_to_legacy_format
 from planning.utils import get_related_event_items_for_planning_async
 from planning.planning.planning_utils import delete_assignments_for_coverages
 
@@ -75,11 +76,13 @@ class PlanningPostService(AsyncBaseService):
                 and any(1 for e in related_events if e.get("pubstatus") == POST_STATE.CANCELLED)
             ):
                 raise SuperdeskApiError(message="Can't post the planning item as event is already unposted/cancelled.")
-            await validate_item_for_publish(plan)
+            plan_for_validation = deepcopy(plan)
+            convert_unified_planning_to_legacy_format(plan_for_validation)
+            await validate_item_for_publish(plan_for_validation)
             # await self.validate_item(plan, related_events, doc["pubstatus"], cancel_plan_with_event_enabled)
 
             if kwargs.get("related_planning"):
-                await self.validate_related_item(plan)
+                await self.validate_related_item(plan_for_validation)
 
             validate_post_state(doc["pubstatus"])
 

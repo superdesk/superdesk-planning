@@ -442,6 +442,47 @@ async def test_event_planning_links_include_coverage_summaries(prodapi_app_with_
             assert coverage["g2_content_type"] == "text"
 
 
+async def test_event_planning_links_include_all_pages(prodapi_app, prodapi_app_with_data_client, monkeypatch):
+    event_id = "event-with-planning-pages"
+    planning_ids = [f"related-planning-{index}" for index in range(3)]
+    monkeypatch.setattr("planning.utils.RELATED_PLANNING_PAGE_SIZE", 1)
+
+    async with prodapi_app.app_context():
+        prodapi_app.data.insert(
+            "events",
+            [
+                {
+                    "_id": event_id,
+                    "guid": event_id,
+                    "type": "event",
+                    "name": "Event with related planning",
+                    "dates": {"start": "2026-06-30T13:00:00Z", "end": "2026-06-30T15:00:00Z"},
+                }
+            ],
+        )
+        prodapi_app.data.insert(
+            "planning",
+            [
+                {
+                    "_id": planning_id,
+                    "guid": planning_id,
+                    "type": "planning",
+                    "dates": {"start": "2026-06-30T13:00:00Z"},
+                    "related_events": [{"_id": event_id, "link_type": "primary"}],
+                }
+                for planning_id in planning_ids
+            ],
+        )
+
+    async with prodapi_app.test_request_context("/"):
+        resp = await prodapi_app_with_data_client.get(url_for("events|item_lookup", _id=event_id))
+        assert resp.status_code == 200
+        response_data = await resp.get_json()
+        assert [link["href"] for link in response_data["_links"]["plannings"]] == [
+            f"planning/{planning_id}" for planning_id in planning_ids
+        ]
+
+
 async def test_event_assignments_links_optional(prodapi_app_with_data, prodapi_app_with_data_client):
     """Ensure assignment links can be excluded via query param."""
 

@@ -9,6 +9,7 @@
 # at https://www.sourcefabric.org/superdesk/license
 import logging
 
+from bson import ObjectId
 from eve.utils import ParsedRequest
 from eve.methods.common import resolve_embedded_fields, resolve_embedded_documents
 
@@ -19,7 +20,7 @@ from superdesk.eve_async.cursors import AsyncListCursor
 
 from planning.events import EventsResource
 from planning.planning import PlanningResource
-from planning.types import PlanningFeaturedResourceModel
+from planning.types import AgendasResourceModel, PlanningFeaturedResourceModel
 
 logger = logging.getLogger(__name__)
 
@@ -35,12 +36,28 @@ class PublishedPlanningService(AsyncBaseService):
         if not req:
             return
 
+        item = doc.get("published_item") or {}
+        if item.get("files"):
+            item["files"] = [
+                ObjectId(file_id) if isinstance(file_id, str) and ObjectId.is_valid(file_id) else file_id
+                for file_id in item["files"]
+            ]
+
         if doc.get("type") == "event":
             # get the embedded fields from events resources
             fields = resolve_embedded_fields(EventsResource.endpoint_name, req) or []
             await resolve_embedded_documents(doc.get("published_item"), EventsResource.endpoint_name, fields)
         elif doc.get("type") == "planning":
             fields = resolve_embedded_fields(PlanningResource.endpoint_name, req) or []
+            if "agendas" in fields:
+                item = doc["published_item"]
+                agenda_ids = item.get("agendas") or []
+                agendas = await AgendasResourceModel.get_service().find_by_ids(agenda_ids)
+                agendas_by_id = {str(agenda.id): agenda.to_dict() for agenda in agendas}
+                item["agendas"] = [
+                    agendas_by_id[str(agenda_id)] for agenda_id in agenda_ids if str(agenda_id) in agendas_by_id
+                ]
+                fields.remove("agendas")
             await resolve_embedded_documents(doc.get("published_item"), PlanningResource.endpoint_name, fields)
         elif doc.get("type") == "planning_featured":
             fields = resolve_embedded_fields(PlanningFeaturedResourceModel.model_resource_name, req) or []

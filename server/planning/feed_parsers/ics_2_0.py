@@ -126,11 +126,10 @@ class IcsTwoFeedParser(FileFeedParser):
                     item["versioncreated"] = utcnow()
                     items.append(item)
             original_source_ids = [_["original_source"] for _ in items if _.get("original_source", None)]
-            existing_items = list(
-                get_resource_service("events").get_from_mongo(
-                    req=None, lookup={"original_source": {"$in": original_source_ids}}
-                )
+            existing_items_cursor = await get_resource_service("events").get_from_mongo_async(
+                req=None, lookup={"original_source": {"$in": original_source_ids}}
             )
+            existing_items = [item async for item in existing_items_cursor]
 
             def original_source_exists(item):
                 """Return true if the item exists in `existing_items`"""

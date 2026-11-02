@@ -645,7 +645,7 @@ Feature: Planning
                   "planning": {
                       "ednote": "test coverage, 250 words",
                       "g2_content_type": "text",
-                      "internal_note" : "------------------------------------------------------------\nCoverage cancelled"
+                      "internal_note" : "\n\n------------------------------------------------------------\nCoverage cancelled\n"
                   },
                   "news_coverage_status": {
                       "name": "coverage not intended",
@@ -797,7 +797,7 @@ Feature: Planning
         }
         """
         When we get "activity"
-        Then we get list with 4 items
+        Then we get list with 3 items
         """
         {"_items":[
             {
@@ -805,7 +805,7 @@ Feature: Planning
                 "message": "Work on {{coverage_type}} coverage {{slugline}} has been cancelled and the assignment removed from workflow by {{user}}",
                 "data": {
                     "desk": "Politic Desk",
-                    "user": "test_user",
+                    "user": "You",
                     "slugline": "test slugline"
                  },
                  "recipients": [{"user_id": "#CONTEXT_USER_ID#"}]
@@ -2617,7 +2617,7 @@ Feature: Planning
                         "assigned_to": {
                             "desk": "#desks_0._id#",
                             "user": "#CONTEXT_USER_ID#",
-                            "state": "active"
+                            "state": "assigned"
                         },
                         "coverage_id": "#firstcoverage#",
                         "workflow_status": "active",
@@ -2666,7 +2666,7 @@ Feature: Planning
                     "assigned_to": {
                         "desk": "#desks_0._id#",
                         "user": "#CONTEXT_USER_ID#",
-                        "state": "active"
+                        "state": "assigned"
                     }
                 }
             ]
@@ -2694,7 +2694,7 @@ Feature: Planning
                     "assigned_to": {
                         "desk": "#desks_0._id#",
                         "user": "#CONTEXT_USER_ID#",
-                        "state": "active"
+                        "state": "assigned"
                     }
                 }
             ]
@@ -2722,7 +2722,7 @@ Feature: Planning
                         "assigned_to": {
                             "desk": "#desks_0._id#",
                             "user": "#CONTEXT_USER_ID#",
-                            "state": "active"
+                            "state": "assigned"
                         },
                         "coverage_id": "#firstcoverage#",
                         "workflow_status": "active",
@@ -2763,7 +2763,7 @@ Feature: Planning
                         "assigned_to": {
                             "desk": "#desks_0._id#",
                             "user": "#CONTEXT_USER_ID#",
-                            "state": "active"
+                            "state": "assigned"
                         },
                         "coverage_id": "#firstcoverage#",
                         "workflow_status": "active",
@@ -3139,7 +3139,7 @@ Feature: Planning
                         "assigned_to": {
                             "desk": "#desks_0._id#",
                             "user": "#CONTEXT_USER_ID#",
-                            "state": "active"
+                            "state": "assigned"
                         },
                         "coverage_id": "#firstcoverage#",
                         "workflow_status": "active",
@@ -3153,7 +3153,7 @@ Feature: Planning
                         "assigned_to": {
                             "desk": "#desks_0._id#",
                             "user": "#CONTEXT_USER_ID#",
-                            "state": "active"
+                            "state": "assigned"
                         },
                         "coverage_id": "#firstcoverage#",
                         "workflow_status": "active",
@@ -3194,7 +3194,7 @@ Feature: Planning
                         "assigned_to": {
                             "desk": "#desks_0._id#",
                             "user": "#CONTEXT_USER_ID#",
-                            "state": "active"
+                            "state": "assigned"
                         },
                         "coverage_id": "#firstcoverage#",
                         "workflow_status": "active",
@@ -3208,7 +3208,7 @@ Feature: Planning
                         "assigned_to": {
                             "desk": "#desks_0._id#",
                             "user": "#CONTEXT_USER_ID#",
-                            "state": "active"
+                            "state": "assigned"
                         },
                         "coverage_id": "#firstcoverage#",
                         "workflow_status": "active",
@@ -3443,7 +3443,7 @@ Feature: Planning
                             "assignment_id": "#firstscheduledassignment#",
                             "desk": "#desks._id#",
                             "user": "#CONTEXT_USER_ID#",
-                            "state": "active"
+                            "state": "assigned"
                         },
                         "coverage_id": "#firstcoverage#",
                         "workflow_status": "active",
@@ -3459,7 +3459,7 @@ Feature: Planning
                             "assignment_id": "#secondscheduledassignment#",
                             "desk": "#desks._id#",
                             "user": "#CONTEXT_USER_ID#",
-                            "state": "active"
+                            "state": "assigned"
                         },
                         "coverage_id": "#firstcoverage#",
                         "workflow_status": "active",
@@ -4062,6 +4062,7 @@ Feature: Planning
             "slugline": "file test",
             "planning_date": "2016-01-02",
             "type": "planning",
+            "state": "scheduled",
             "coverages": [
                 {
                     "workflow_status": "draft",
@@ -4269,7 +4270,7 @@ Feature: Planning
             "coverages": [{
                 "planning": {
                     "slugline": "test slugline",
-                    "anpa_category": null,
+                    "anpa_category": "__none__",
                     "subject": [
                         {"qcode": "b", "name": "Option B", "scheme": "my_options"}
                     ]

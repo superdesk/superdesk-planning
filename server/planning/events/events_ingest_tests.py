@@ -5,9 +5,34 @@ from planning.tests import TestCase
 from superdesk.flask import g
 
 from planning.history.planning import UnifiedPlanningHistoryService
+from planning.types import UnifiedPlanningResource
 
 
 class EventIngestTestCase(TestCase):
+    async def test_ingest_uses_guid_as_id(self):
+        for item_type in ("event", "planning"):
+            service = get_resource_service("events" if item_type == "event" else "planning")
+            start = datetime.now()
+            guid = f"external-{item_type}-id"
+            item = {
+                "_id": f"generated-{item_type}-id",
+                "guid": guid,
+                "type": item_type,
+                "name": "Ingested item",
+                "dates": {"start": start, "end": start + timedelta(hours=1)},
+                "planning_date": start,
+            }
+
+            ids = await service.post_in_mongo([item])
+
+            self.assertEqual(ids, [guid])
+            self.assertEqual(item["_id"], guid)
+            stored_item = await UnifiedPlanningResource.get_service().find_by_id(guid)
+            self.assertIsNotNone(stored_item)
+            self.assertEqual(stored_item.guid, guid)
+            self.assertEqual(stored_item.to_dict()["_id"], guid)
+            self.assertIsNone(await UnifiedPlanningResource.get_service().find_by_id(f"generated-{item_type}-id"))
+
     # TODO-ASYNC: Understand the logic and figure out why it is failing
     @pytest.mark.skip(reason="Figure out why it fails")
     async def test_ingest_updated_event(self):

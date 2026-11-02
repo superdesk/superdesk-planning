@@ -1,5 +1,11 @@
 Feature: Assignment Complete
 
+  Background:
+    Given "desks"
+    """
+    [{"name": "Politic Desk", "members": [{"user": "#CONTEXT_USER_ID#"}]}]
+    """
+
   @auth
   @notification
   @vocabularies
@@ -154,11 +160,11 @@ Feature: Assignment Complete
         """
         {"_items": [
             {
-                "assignment_id": "#firstassignment#",
+                "item_id": "#firstassignment#",
                 "operation": "create"
             },
             {
-                "assignment_id": "#firstassignment#",
+                "item_id": "#firstassignment#",
                 "operation": "complete"
             }
         ]}
@@ -192,7 +198,7 @@ Feature: Assignment Complete
                     "g2_content_type": "text"
                 },
                 "assigned_to": {
-                    "desk": "Politic Desk",
+                    "desk": "#desks._id#",
                     "user": "#CONTEXT_USER_ID#",
                     "state": "assigned"
                 }
@@ -214,7 +220,7 @@ Feature: Assignment Complete
                 "g2_content_type": "text"
             },
             "assigned_to": {
-                "desk": "Politic Desk",
+                "desk": "#desks._id#",
                 "user": "#CONTEXT_USER_ID#",
                 "state": "assigned"
             }
@@ -251,7 +257,7 @@ Feature: Assignment Complete
                     "g2_content_type": "video"
                 },
                 "assigned_to": {
-                    "desk": "Politic Desk",
+                    "desk": "#desks._id#",
                     "user": "#CONTEXT_USER_ID#",
                     "state": "assigned"
                 }
@@ -274,7 +280,7 @@ Feature: Assignment Complete
                 "g2_content_type": "video"
             },
             "assigned_to": {
-                "desk": "Politic Desk",
+                "desk": "#desks._id#",
                 "user": "#CONTEXT_USER_ID#",
                 "state": "assigned"
             }
@@ -293,7 +299,7 @@ Feature: Assignment Complete
                 "g2_content_type": "video"
             },
             "assigned_to": {
-                "desk": "Politic Desk",
+                "desk": "#desks._id#",
                 "user": "#CONTEXT_USER_ID#",
                 "state": "completed"
             }
@@ -326,7 +332,7 @@ Feature: Assignment Complete
                     "g2_content_type": "video"
                 },
                 "assigned_to": {
-                    "desk": "Politic Desk",
+                    "desk": "#desks._id#",
                     "user": "#CONTEXT_USER_ID#",
                     "state": "cancelled"
                 }
@@ -349,7 +355,7 @@ Feature: Assignment Complete
                 "g2_content_type": "video"
             },
             "assigned_to": {
-                "desk": "Politic Desk",
+                "desk": "#desks._id#",
                 "user": "#CONTEXT_USER_ID#",
                 "state": "cancelled"
             }
@@ -387,7 +393,7 @@ Feature: Assignment Complete
                 "g2_content_type":"live_video"
             },
             "assigned_to": {
-                "desk": "desk123",
+                "desk": "#desks._id#",
                 "user": "#CONTEXT_USER_ID#",
                 "state": "assigned"
             }
@@ -408,7 +414,7 @@ Feature: Assignment Complete
             "slugline": "test slugline"
         },
         "assigned_to": {
-            "desk": "desk123",
+            "desk": "#desks._id#",
             "user": "#CONTEXT_USER_ID#",
             "state": "assigned"
         }
@@ -436,7 +442,7 @@ Feature: Assignment Complete
             "slugline": "test slugline"
         },
         "assigned_to": {
-            "desk": "desk123",
+            "desk": "#desks._id#",
             "user": "#CONTEXT_USER_ID#",
             "state": "completed",
             "revert_state": "assigned"
@@ -469,7 +475,7 @@ Feature: Assignment Complete
                     "g2_content_type": "picture"
                 },
                 "assigned_to": {
-                    "desk": "Politic Desk",
+                    "desk": "#desks._id#",
                     "user": "#CONTEXT_USER_ID#",
                     "state": "assigned"
                 }
@@ -492,7 +498,7 @@ Feature: Assignment Complete
                 "g2_content_type": "picture"
             },
             "assigned_to": {
-                "desk": "Politic Desk",
+                "desk": "#desks._id#",
                 "user": "#CONTEXT_USER_ID#",
                 "state": "assigned"
             }
@@ -518,7 +524,7 @@ Feature: Assignment Complete
                 "g2_content_type": "picture"
             },
             "assigned_to": {
-                "desk": "Politic Desk",
+                "desk": "#desks._id#",
                 "user": "#CONTEXT_USER_ID#",
                 "state": "completed"
             }

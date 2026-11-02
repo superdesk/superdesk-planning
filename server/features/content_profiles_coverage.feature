@@ -342,6 +342,7 @@ Feature: Coverage Content Profiles
 
     @auth
     Scenario: Can only have 1 default coverage profile in the DB
+        Given empty "planning_types"
         # Creating 2 Coverage profiles without a `content_type` should fail
         When we post to "planning_types"
         """
@@ -369,7 +370,7 @@ Feature: Coverage Content Profiles
             "_issues": {"content_type": {"unique": "Only 1 default Coverage profile supported"}}
         }
         """
-        # But creating 2 Event profiles without `content_type` should pass
+        # A non-coverage profile may have only one profile for its type
         When we post to "planning_types"
         """
         {
@@ -389,4 +390,10 @@ Feature: Coverage Content Profiles
             "schema": {"headline": {"required": true}}
         }
         """
-        Then we get OK response
+        Then we get error 400
+        """
+        {
+            "_status": "ERR",
+            "_issues": {"item_type": {"unique": "A profile already exists for this type"}}
+        }
+        """

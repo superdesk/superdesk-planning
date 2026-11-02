@@ -106,7 +106,7 @@ Feature: Assignments
             "coverages": [
                 {
                   "assigned_to": {
-                    "coverage_provider": {"name": "Stringer"},
+                    "coverage_provider": {"name": "Stringer", "qcode": "stringer"},
                     "desk": "#desks._id#",
                     "priority": 2,
                     "state": "draft",
@@ -139,7 +139,7 @@ Feature: Assignments
             "assigned_to": {
                 "desk": "#desks._id#",
                 "user": "#CONTEXT_USER_ID#",
-                "coverage_provider": {"name": "Stringer"},
+                "coverage_provider": {"name": "Stringer", "qcode": "stringer"},
                 "state": "draft"
             },
             "description_text": "test description"
@@ -242,7 +242,7 @@ Feature: Assignments
                         "desk": "#desks._id#",
                         "user": "#CONTEXT_USER_ID#",
                         "assignment_id": "#firstassignment#",
-                        "coverage_provider": {"name": "Stringer"},
+                        "coverage_provider": {"name": "Stringer", "qcode": "stringer"},
                         "state": "draft"
                     }
                 }
@@ -264,7 +264,7 @@ Feature: Assignments
             "assigned_to": {
                 "desk": "#desks._id#",
                 "user": "#CONTEXT_USER_ID#",
-                "coverage_provider": {"name": "Stringer"},
+                "coverage_provider": {"name": "Stringer", "qcode": "stringer"},
                 "state": "draft"
             },
             "description_text": "test description"
@@ -275,7 +275,7 @@ Feature: Assignments
         """
         {"_items": [
             {
-                "assignment_id": "#firstassignment#",
+                "item_id": "#firstassignment#",
                 "operation": "create"
             }
         ]}
@@ -305,7 +305,7 @@ Feature: Assignments
                         "desk": "#desks._id#",
                         "user": "#CONTEXT_USER_ID#",
                         "assignment_id": "#firstassignment#",
-                        "coverage_provider": {"name": "Stringer"},
+                        "coverage_provider": {"name": "Stringer", "qcode": "stringer"},
                         "state": "draft"
                     },
                     "news_coverage_status": {"qcode": "ncostat:int", "name": "coverage intended", "label": "Planned"}
@@ -338,7 +338,7 @@ Feature: Assignments
                         "desk": "#desks._id#",
                         "user": "#CONTEXT_USER_ID#",
                         "assignment_id": "#firstassignment#",
-                        "coverage_provider": {"name": "Stringer"},
+                        "coverage_provider": {"name": "Stringer", "qcode": "stringer"},
                         "state": "assigned"
                     }
                 }
@@ -359,7 +359,7 @@ Feature: Assignments
             "assigned_to": {
                 "desk": "#desks._id#",
                 "user": "#CONTEXT_USER_ID#",
-                "coverage_provider": {"name": "Stringer"},
+                "coverage_provider": {"name": "Stringer", "qcode": "stringer"},
                 "state": "assigned"
             },
             "description_text": "second test description"
@@ -370,11 +370,11 @@ Feature: Assignments
         """
         {"_items": [
             {
-                "assignment_id": "#firstassignment#",
+                "item_id": "#firstassignment#",
                 "operation": "create"
             },
             {
-                "assignment_id": "#firstassignment#",
+                "item_id": "#firstassignment#",
                 "operation": "add_to_workflow"
             }
         ]}
@@ -518,7 +518,7 @@ Feature: Assignments
                         "desk": "#desks._id#",
                         "user": "#CONTEXT_USER_ID#",
                         "assignment_id": "#firstassignment#",
-                        "coverage_provider": {"name": "Stringer"},
+                        "coverage_provider": {"name": "Stringer", "qcode": "stringer"},
                         "state": "assigned"
                     }
                 }
@@ -539,7 +539,7 @@ Feature: Assignments
             "assigned_to": {
                 "desk": "#desks._id#",
                 "user": "#CONTEXT_USER_ID#",
-                "coverage_provider": {"name": "Stringer"},
+                "coverage_provider": {"name": "Stringer", "qcode": "stringer"},
                 "state": "assigned"
             },
             "description_text": "test description"
@@ -550,7 +550,7 @@ Feature: Assignments
         """
         {"_items": [
             {
-                "assignment_id": "#firstassignment#",
+                "item_id": "#firstassignment#",
                 "operation": "create"
             }
         ]}
@@ -633,6 +633,13 @@ Feature: Assignments
     @auth
     Scenario: Assignment update syncs coverage assigned_to
         Given empty "assignments"
+        Given "desks"
+        """
+        [
+            {"name": "Desk 1", "members": [{"user": "#CONTEXT_USER_ID#"}]},
+            {"name": "Desk 2", "members": [{"user": "#CONTEXT_USER_ID#"}]}
+        ]
+        """
         When we post to "/planning"
         """
         [
@@ -652,8 +659,8 @@ Feature: Assignments
                             "g2_content_type": "text"
                         },
                         "assigned_to": {
-                            "desk": "desk1",
-                            "user": "507f191e810c19729de87034"
+                            "desk": "#desks_0._id#",
+                            "user": "#CONTEXT_USER_ID#"
                         },
                         "workflow_status": "active"
                     }
@@ -668,8 +675,8 @@ Feature: Assignments
         """
         {
             "assigned_to": {
-                "desk": "desk2",
-                "user": "507f1f77bcf86cd799439011",
+                "desk": "#desks_1._id#",
+                "user": "#CONTEXT_USER_ID#",
                 "coverage_provider": {"qcode": "agencies", "name": "Agencies"}
             }
         }
@@ -686,9 +693,9 @@ Feature: Assignments
                     "coverage_id": "#coverage#",
                     "assigned_to": {
                         "assignment_id": "#assignment#",
-                        "desk": "desk2",
-                        "user": "507f1f77bcf86cd799439011",
-                        "coverage_provider": {"name": "Agencies"}
+                        "desk": "#desks_1._id#",
+                        "user": "#CONTEXT_USER_ID#",
+                        "coverage_provider": {"name": "Agencies", "qcode": "agencies"}
                     }
                 }
             ]
@@ -700,6 +707,19 @@ Feature: Assignments
     Scenario: Notification is sent when coverage is reassigned to another desk and user
         Given empty "assignments"
         Given empty "assignments_history"
+        When we post to "users"
+        """
+        {"username": "assignment_reassign_user", "email": "assignment_reassign_user@example.com", "is_active": true, "sign_off": "abc"}
+        """
+        Then we get OK response
+        Then we store "seconduser" with value "#users._id#" to context
+        Given "desks"
+        """
+        [
+            {"name": "Desk 1", "members": [{"user": "#CONTEXT_USER_ID#"}]},
+            {"name": "Desk 2", "members": [{"user": "#seconduser#"}]}
+        ]
+        """
         When we post to "/planning"
         """
         [
@@ -719,8 +739,8 @@ Feature: Assignments
                             "g2_content_type": "text"
                         },
                         "assigned_to": {
-                            "desk": "desk1",
-                            "user": "507f191e810c19729de87034"
+                            "desk": "#desks_0._id#",
+                            "user": "#CONTEXT_USER_ID#"
                         },
                         "workflow_status": "active"
                     }
@@ -740,8 +760,8 @@ Feature: Assignments
         {
             "_id": "#assignment#",
             "assigned_to": {
-                "desk": "desk1",
-                "user": "507f191e810c19729de87034",
+                "desk": "#desks_0._id#",
+                "user": "#CONTEXT_USER_ID#",
                 "state": "assigned"
             }
         }
@@ -753,8 +773,8 @@ Feature: Assignments
         """
         {
             "assigned_to": {
-                "desk": "desk2",
-                "user": "507f1f77bcf86cd799439011"
+                "desk": "#desks_1._id#",
+                "user": "#seconduser#"
             }
         }
         """
@@ -769,10 +789,10 @@ Feature: Assignments
                 "extra": {
                     "item": "#assignment#",
                     "assignment_state": "assigned",
-                    "assigned_user": "507f1f77bcf86cd799439011",
-                    "assigned_desk": "desk2",
-                    "original_assigned_desk": "desk1",
-                    "original_assigned_user": "507f191e810c19729de87034"
+                    "assigned_user": "#seconduser#",
+                    "assigned_desk": "#desks_1._id#",
+                    "original_assigned_desk": "#desks_0._id#",
+                    "original_assigned_user": "#CONTEXT_USER_ID#"
                 }
             }
         ]
@@ -929,19 +949,19 @@ Feature: Assignments
         """
         {"_items": [
             {
-                "assignment_id": "#firstassignment#",
+                "item_id": "#firstassignment#",
                 "operation": "create"
             },
             {
-                "assignment_id": "#firstassignment#",
+                "item_id": "#firstassignment#",
                 "operation": "content_link"
             },
             {
-                "assignment_id": "#firstassignment#",
+                "item_id": "#firstassignment#",
                 "operation": "reassigned"
             },
             {
-                "assignment_id": "#firstassignment#",
+                "item_id": "#firstassignment#",
                 "operation": "reassigned"
             }
         ]}
@@ -1028,7 +1048,7 @@ Feature: Assignments
         {
             "assigned_to": {
                 "desk": "Sports Desk",
-                "user": "507f191e810c19729de870eb"
+                "user": "507f191e810c19729de87034"
             }
         }
         """
@@ -1048,7 +1068,7 @@ Feature: Assignments
         {
             "assigned_to": {
                 "desk": "Sports Desk",
-                "user": "507f191e810c19729de870eb"
+                "user": "507f191e810c19729de87034"
             }
         }
         """
@@ -1163,7 +1183,7 @@ Feature: Assignments
         {
             "assigned_to": {
                 "desk": "#desks._id#",
-                "user": "507f191e810c19729de870eb"
+                "user": "#CONTEXT_USER_ID#"
             }
         }
         """
@@ -1173,23 +1193,23 @@ Feature: Assignments
         """
         {"_items": [
             {
-                "assignment_id": "#firstassignment#",
+                "item_id": "#firstassignment#",
                 "operation": "create"
             },
             {
-                "assignment_id": "#firstassignment#",
+                "item_id": "#firstassignment#",
                 "operation": "content_link"
             },
             {
-                "assignment_id": "#firstassignment#",
+                "item_id": "#firstassignment#",
                 "operation": "submitted"
             },
             {
-                "assignment_id": "#firstassignment#",
+                "item_id": "#firstassignment#",
                 "operation": "reassigned"
             },
             {
-                "assignment_id": "#firstassignment#",
+                "item_id": "#firstassignment#",
                 "operation": "reassigned"
             }
         ]}
@@ -1206,7 +1226,7 @@ Feature: Assignments
             },
             "assigned_to": {
                 "desk": "#desks._id#",
-                "user": "507f191e810c19729de870eb",
+                "user": "#CONTEXT_USER_ID#",
                 "state": "in_progress"
             }
         }
@@ -1320,19 +1340,19 @@ Feature: Assignments
         """
         {"_items": [
             {
-                "assignment_id": "#firstassignment#",
+                "item_id": "#firstassignment#",
                 "operation": "create"
             },
             {
-                "assignment_id": "#firstassignment#",
+                "item_id": "#firstassignment#",
                 "operation": "content_link"
             },
             {
-                "assignment_id": "#firstassignment#",
+                "item_id": "#firstassignment#",
                 "operation": "submitted"
             },
             {
-                "assignment_id": "#firstassignment#",
+                "item_id": "#firstassignment#",
                 "operation": "reassigned"
             }
         ]}
@@ -1592,7 +1612,7 @@ Feature: Assignments
                     "assign_type":"reassigned",
                     "desk":"Sports",
                     "slugline":"test slugline",
-                    "coverage_type":"text"
+                    "coverage_type":"Text"
                  },
                  "resource":"assignments",
                  "user":"#CONTEXT_USER_ID#",
@@ -1668,7 +1688,7 @@ Feature: Assignments
            {
                     "data" : {
                         "desk" : "Sports",
-                        "coverage_type" : "text",
+                        "coverage_type" : "Text",
                         "assign_type" : "assigned",
                         "slugline" : "test slugline"
                     },
@@ -1715,7 +1735,7 @@ Feature: Assignments
                  "data":{
                     "slugline":"test slugline",
                     "assignee":"test-user-2",
-                    "coverage_type":"text",
+                    "coverage_type":"Text",
                     "desk":"Sports"
                  },
                  "resource":"assignments",
@@ -1726,7 +1746,7 @@ Feature: Assignments
                  "name":"update",
                  "message":"{{coverage_type}} coverage \"{{slugline}}\" has been reassigned to {{assignee}} on desk ({{desk}}) by {{assignor}}",
                  "data" : {
-                    "coverage_type" : "text",
+                    "coverage_type" : "Text",
                     "assignor" : "test-user-2",
                     "desk" : "Sports",
                     "slugline" : "test slugline"
@@ -1827,7 +1847,7 @@ Feature: Assignments
                     ],
             "message" : "{{coverage_type}} coverage \"{{slugline}}\" has been reassigned to {{assignee}} on desk ({{desk}}) by {{assignor}}",
             "data" : {
-                "coverage_type" : "text",
+                "coverage_type" : "Text",
                 "desk" : "Sports",
                 "slugline" : "test slugline",
                 "assignee" : "foo"
@@ -1844,7 +1864,7 @@ Feature: Assignments
             "message" : "You have been assigned {{coverage_type}} coverage \"{{slugline}}\" by {{assignor}}",
             "data" : {
                 "assignor" : "test-user-2",
-                "coverage_type" : "text",
+                "coverage_type" : "Text",
                 "slugline" : "test slugline",
                 "desk" : "Sports"
             }
@@ -1924,7 +1944,7 @@ Feature: Assignments
                     "message" : "{{coverage_type}} coverage \"{{slugline}}\" has been submitted to desk {{desk}} from {{from_desk}}",
                     "data" : {
                         "desk" : "News",
-                        "coverage_type" : "text",
+                        "coverage_type" : "Text",
                         "slugline" : "test slugline",
                         "from_desk" : "Sports"
                     }
@@ -2010,7 +2030,7 @@ Feature: Assignments
                   "assignee":"foo",
                   "old_assignee":"test_user",
                   "slugline":"test slugline",
-                  "coverage_type":"text",
+                  "coverage_type":"Text",
                   "old_desk":"Sports",
                   "desk":"News"
                },
@@ -2028,7 +2048,7 @@ Feature: Assignments
                   "assignee":"foo",
                   "old_assignee":"test_user",
                   "slugline":"test slugline",
-                  "coverage_type":"text",
+                  "coverage_type":"Text",
                   "old_desk":"Sports",
                   "desk":"News"
                },
@@ -2047,6 +2067,7 @@ Feature: Assignments
             "item_class": "item class value",
             "slugline": "test slugline",
             "planning_date": "2016-01-02",
+            "state": "scheduled",
             "coverages": [
                 {
                     "news_coverage_status": {"qcode": "ncostat:int", "name": "coverage intended", "label": "Planned"},
@@ -2081,7 +2102,7 @@ Feature: Assignments
             "coverages": [
                 {
                   "assigned_to": {
-                    "coverage_provider": {"name": "Stringer"},
+                    "coverage_provider": {"name": "Stringer", "qcode": "stringer"},
                     "desk": "#desks._id#",
                     "priority": 2,
                     "state": "assigned",
@@ -2108,7 +2129,8 @@ Feature: Assignments
         [{
             "item_class": "item class value",
             "slugline": "test slugline",
-            "planning_date": "2016-01-02"
+            "planning_date": "2016-01-02",
+            "state": "scheduled"
         }]
         """
         Then we get OK response
@@ -2149,7 +2171,7 @@ Feature: Assignments
             "coverages": [
                 {
                   "assigned_to": {
-                    "coverage_provider": {"name": "Stringer"},
+                    "coverage_provider": {"name": "Stringer", "qcode": "stringer"},
                     "desk": "#desks._id#",
                     "priority": 2,
                     "state": "assigned",
@@ -2213,7 +2235,7 @@ Feature: Assignments
             "coverages": [
                 {
                   "assigned_to": {
-                    "coverage_provider": {"name": "Stringer"},
+                    "coverage_provider": {"name": "Stringer", "qcode": "stringer"},
                     "desk": "#desks._id#",
                     "priority": 2,
                     "state": "draft",
@@ -2500,7 +2522,7 @@ Feature: Assignments
                     "priority": 1
                 },
                 "news_coverage_status": {"qcode": "ncostat:int", "name": "coverage intended", "label": "Planned"},
-                "workflow_status": "assigned"
+                "workflow_status": "active"
             }, {
                 "planning": {
                     "slugline": "test-cov-2",
@@ -2515,7 +2537,7 @@ Feature: Assignments
                     }
                 },
                 "news_coverage_status": {"qcode": "ncostat:int", "name": "coverage intended", "label": "Planned"},
-                "workflow_status": "assigned"
+                "workflow_status": "active"
             }]
         }]
         """
@@ -2570,7 +2592,7 @@ Feature: Assignments
                 "priority": 3
             },
             "news_coverage_status": {"qcode": "ncostat:int", "name": "coverage intended", "label": "Planned"},
-            "workflow_status": "assigned"
+            "workflow_status": "active"
         }, {
             "coverage_id": "#COVERAGE_2_ID#",
             "planning": {
@@ -2584,7 +2606,7 @@ Feature: Assignments
                 "priority": 2
             },
             "news_coverage_status": {"qcode": "ncostat:int", "name": "coverage intended", "label": "Planned"},
-            "workflow_status": "assigned"
+            "workflow_status": "active"
         }]}
         """
         Then we get OK response
@@ -2608,7 +2630,7 @@ Feature: Assignments
                 "priority": 3
             },
             "news_coverage_status": {"qcode": "ncostat:int"},
-            "workflow_status": "assigned"
+            "workflow_status": "active"
         }, {
             "coverage_id": "#COVERAGE_2_ID#",
             "planning": {
@@ -2622,7 +2644,7 @@ Feature: Assignments
                 "priority": 2
             },
             "news_coverage_status": {"qcode": "ncostat:int"},
-            "workflow_status": "assigned"
+            "workflow_status": "active"
         }]}
         """
         When we get "/assignments"

@@ -103,8 +103,16 @@ class UnifiedPlanningResourceService(AsyncResourceService[UnifiedPlanningResourc
         return db_response
 
     async def update_in_dbs(
-        self, item_id: str, original: UnifiedPlanningResource, updates: dict, validated_updates: dict
+        self,
+        item_id: str,
+        original: UnifiedPlanningResource,
+        updates: dict,
+        validated_updates: dict,
+        replace: bool = False,
+        update_mongo: bool = True,
+        update_elastic: bool = True,
     ) -> dict:
+        validated_updates = {key: value for key, value in validated_updates.items() if key != "_id"}
         embedded_planning: list[dict] | None = updates.pop("embedded_planning", [])
 
         # Remove all fields we don't want in storage
@@ -114,7 +122,15 @@ class UnifiedPlanningResourceService(AsyncResourceService[UnifiedPlanningResourc
                 field_values_not_stored[field] = updates.pop(field)
 
         updates["_updated"] = validated_updates["_updated"] = utcnow()
-        rtn = await super().update_in_dbs(item_id, original, updates, validated_updates)
+        rtn = await super().update_in_dbs(
+            item_id,
+            original,
+            updates,
+            validated_updates,
+            replace=replace,
+            update_mongo=update_mongo,
+            update_elastic=update_elastic,
+        )
 
         # And add those values back onto the updates dict
         for field, value in field_values_not_stored.items():

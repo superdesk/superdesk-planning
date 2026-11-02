@@ -163,7 +163,7 @@ Feature: Assignments Delete
            {
                     "data" : {
                     "slugline" : "test slugline",
-                    "coverage_type" : "text"
+                    "coverage_type" : "Text"
                     },
                     "message" : "The {{coverage_type}} assignment {{slugline}} has been removed",
                     "name":"update",
@@ -282,7 +282,7 @@ Feature: Assignments Delete
                     "g2_content_type" : "text"
                 },
                 "assigned_to": {
-                    "assignment_is": "#assignmentId#",
+                    "assignment_id": "#assignmentId#",
                     "desk": "#desks._id#",
                     "user": "#CONTEXT_USER_ID#",
                     "state": "assigned"
@@ -626,7 +626,7 @@ Feature: Assignments Delete
                             "assignment_id": "#firstscheduledassignment#",
                             "desk": "#desks._id#",
                             "user": "#CONTEXT_USER_ID#",
-                            "state": "active"
+                            "state": "assigned"
                         },
                         "coverage_id": "#firstcoverage#",
                         "workflow_status": "active",
@@ -642,7 +642,7 @@ Feature: Assignments Delete
                             "assignment_id": "#secondscheduledassignment#",
                             "desk": "#desks._id#",
                             "user": "#CONTEXT_USER_ID#",
-                            "state": "active"
+                            "state": "assigned"
                         },
                         "coverage_id": "#firstcoverage#",
                         "workflow_status": "active",
@@ -967,7 +967,7 @@ Feature: Assignments Delete
                             "assignment_id": "#firstscheduledassignment#",
                             "desk": "#desks._id#",
                             "user": "#CONTEXT_USER_ID#",
-                            "state": "active"
+                            "state": "assigned"
                         },
                         "coverage_id": "#firstcoverage#",
                         "workflow_status": "active",
@@ -983,7 +983,7 @@ Feature: Assignments Delete
                             "assignment_id": "#secondscheduledassignment#",
                             "desk": "#desks._id#",
                             "user": "#CONTEXT_USER_ID#",
-                            "state": "active"
+                            "state": "assigned"
                         },
                         "coverage_id": "#firstcoverage#",
                         "workflow_status": "active",
@@ -1226,7 +1226,7 @@ Feature: Assignments Delete
         {"_items": [{
             "data" : {
                 "slugline" : "test slugline",
-                "coverage_type" : "text"
+                "coverage_type" : "Text"
             },
             "message" : "The {{coverage_type}} assignment {{slugline}} has been removed",
             "name":"update",
@@ -1241,5 +1241,5 @@ Feature: Assignments Delete
         """
         And we get emails
         """
-        [{"body": "The text assignment test slugline has been removed"}]
+        [{"body": "The Text assignment test slugline has been removed"}]
         """

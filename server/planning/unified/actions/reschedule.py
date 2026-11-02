@@ -34,6 +34,8 @@ from planning.common import (
     get_max_recurrent_events,
     get_coverage_type_name,
     TO_BE_CONFIRMED_FIELD,
+    update_post_item,
+    get_coverage_status_from_cv,
 )
 from planning.events.events_utils import (
     get_recurring_timeline,
@@ -277,8 +279,7 @@ async def reschedule_recurring_event(updates: dict[str, Any], original: dict[str
                 await reschedule_event_plannings(event, reason, state=WORKFLOW_STATE.DRAFT)
 
             else:
-                # skip on_update: its recurring-date branch is an unimplemented TODO that raises
-                new_updates = {"reason": reason, "skip_on_update": True}
+                new_updates = {"reason": reason}
                 mark_event_rescheduled(new_updates, reason)
                 new_updates["state"] = new_state
 
@@ -292,7 +293,8 @@ async def reschedule_recurring_event(updates: dict[str, Any], original: dict[str
                     set_planning_schedule(new_updates)
 
                 # And finally update the Event, and Reschedule associated Planning items
-                await service.update(event[ID_FIELD], new_updates)
+                await service.update(event[ID_FIELD], new_updates, skip_signals=True)
+                await update_post_item(new_updates, event)
                 await reschedule_event_plannings(event, reason, state=WORKFLOW_STATE.DRAFT)
                 await signals.event_reschedule.send(
                     new_updates, {"_id": event[ID_FIELD], "type": PlanningItemType.EVENT}
@@ -333,6 +335,8 @@ async def reschedule_recurring_event(updates: dict[str, Any], original: dict[str
     # Now iterate over the new events and create them
     if new_events:
         await events_service.create_async(new_events)
+        # Run post-create hooks without expanding these individual occurrences into another series.
+        await service.on_created(await service.find_by_ids([event[ID_FIELD] for event in new_events]))
         await app.on_inserted_events.call_async(new_events)
 
     for event in deleted_events.values():
@@ -418,9 +422,14 @@ async def _reschedule_coverage(coverage: dict[str, Any], reason: str):
         coverage["workflow_status"] = WORKFLOW_STATE.CANCELLED
 
     assigned_to = coverage.get("assigned_to")
-    if assigned_to:
+    if assigned_to and assigned_to.get("assignment_id"):
         assignment_service = get_resource_service("assignments")
         assignment = await assignment_service.find_one_async(req=None, _id=assigned_to.get("assignment_id"))
+        if assignment and assignment.get("assigned_to", {}).get("state") != WORKFLOW_STATE.CANCELLED:
+            coverage["news_coverage_status"] = get_coverage_status_from_cv("ncostat:notint")
+            coverage["news_coverage_status"].pop("is_active", None)
+            assigned_to["state"] = WORKFLOW_STATE.CANCELLED
+            await assignment_service.cancel_assignment(assignment, coverage, event_reschedule=True)
         slugline = assignment.get("planning").get("slugline", "")
         coverage_type = assignment.get("planning").get("g2_content_type", "")
         await PlanningNotifications().notify_assignment(

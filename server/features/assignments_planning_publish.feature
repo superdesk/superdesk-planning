@@ -1086,7 +1086,7 @@ Feature: For posted planning item changes in assignment state post a planning it
         """
         When we post to "/assignments/#firstassignment#/lock"
         """
-        [{"lock_action": "complete"}]
+        {"lock_action": "complete"}
         """
         Then we get OK response
         When we perform complete on assignments "#firstassignment#"

@@ -1,5 +1,11 @@
 Feature: Assignment content
     Background: Setup data
+        Given "users"
+        """
+        [
+            {"_id": "507f191e810c19729de870eb", "name": "test user", "email": "test-user@example.com", "username": "test_user"}
+        ]
+        """
         Given "content_types"
         """
         [{"schema": {"body_html": {}, "slugline": {}, "headline": {}, "ednote": null }}]
@@ -81,11 +87,13 @@ Feature: Assignment content
                         "desk": "#desks._id#"
                     },
                     "news_coverage_status": {"qcode": "ncostat:int", "name": "coverage intended", "label": "Planned"},
-                    "workflow_status": "assigned"
+                    "workflow_status": "active"
                 }
             ]
         }
         """
+        Then we get OK response
+        When we get "/planning/#planning._id#"
         Then we get OK response
         Then we store coverage id in "firstcoverage" from coverage 0
         Then we store assignment id in "firstassignment" from coverage 0
@@ -177,11 +185,11 @@ Feature: Assignment content
         """
         {"_items": [
             {
-                "assignment_id": "#firstassignment#",
+                "item_id": "#firstassignment#",
                 "operation": "create"
             },
             {
-                "assignment_id": "#firstassignment#",
+                "item_id": "#firstassignment#",
                 "operation": "start_working"
             }
         ]}
@@ -208,7 +216,7 @@ Feature: Assignment content
                         "state": "assigned"
                     },
                     "news_coverage_status": {"qcode": "ncostat:int", "name": "coverage intended", "label": "Planned"},
-                    "workflow_status": "assigned"
+                    "workflow_status": "active"
                 }
             ]
         }
@@ -408,6 +416,8 @@ Feature: Assignment content
         }
         """
         Then we get OK response
+        When we get "/planning/#planning._id#"
+        Then we get OK response
         Then we store coverage id in "firstcoverage" from coverage 0
         Then we store assignment id in "firstassignment" from coverage 0
         Then we get existing resource
@@ -493,6 +503,8 @@ Feature: Assignment content
             ]
         }
         """
+        When we get "/planning/#planning._id#"
+        Then we get OK response
         Then we store scheduled_update id in "firstscheduled" from scheduled_update 0 of coverage 0
         Then we store scheduled_update id in "secondscheduled" from scheduled_update 1 of coverage 0
         Then we store assignment id in "firstscheduledassignment" from scheduled_update 0 of coverage 0
@@ -586,7 +598,7 @@ Feature: Assignment content
                             "assignment_id": "#firstscheduledassignment#",
                             "desk": "#desks._id#",
                             "user": "507f191e810c19729de870eb",
-                            "state": "active"
+                            "state": "assigned"
                         },
                         "coverage_id": "#firstcoverage#",
                         "workflow_status": "active",
@@ -602,7 +614,7 @@ Feature: Assignment content
                             "assignment_id": "#secondscheduledassignment#",
                             "desk": "#desks._id#",
                             "user": "507f191e810c19729de870eb",
-                            "state": "active"
+                            "state": "assigned"
                         },
                         "coverage_id": "#firstcoverage#",
                         "workflow_status": "active",
@@ -701,6 +713,8 @@ Feature: Assignment content
         }
         """
         Then we get OK response
+        When we get "/planning/#planning._id#"
+        Then we get OK response
         Then we store coverage id in "firstcoverage" from coverage 0
         Then we store assignment id in "firstassignment" from coverage 0
         Then we get existing resource
@@ -786,6 +800,8 @@ Feature: Assignment content
             ]
         }
         """
+        When we get "/planning/#planning._id#"
+        Then we get OK response
         Then we store scheduled_update id in "firstscheduled" from scheduled_update 0 of coverage 0
         Then we store scheduled_update id in "secondscheduled" from scheduled_update 1 of coverage 0
         Then we store assignment id in "firstscheduledassignment" from scheduled_update 0 of coverage 0
@@ -879,7 +895,7 @@ Feature: Assignment content
                             "assignment_id": "#firstscheduledassignment#",
                             "desk": "#desks._id#",
                             "user": "507f191e810c19729de870eb",
-                            "state": "active"
+                            "state": "assigned"
                         },
                         "coverage_id": "#firstcoverage#",
                         "workflow_status": "active",
@@ -895,7 +911,7 @@ Feature: Assignment content
                             "assignment_id": "#secondscheduledassignment#",
                             "desk": "#desks._id#",
                             "user": "507f191e810c19729de870eb",
-                            "state": "active"
+                            "state": "assigned"
                         },
                         "coverage_id": "#firstcoverage#",
                         "workflow_status": "active",
@@ -961,6 +977,8 @@ Feature: Assignment content
         }
         """
         Then we get OK response
+        When we get "/planning/#planning._id#"
+        Then we get OK response
         Then we store coverage id in "firstcoverage" from coverage 0
         Then we store assignment id in "firstassignment" from coverage 0
         Then we get existing resource
@@ -1046,6 +1064,8 @@ Feature: Assignment content
             ]
         }
         """
+        When we get "/planning/#planning._id#"
+        Then we get OK response
         Then we store scheduled_update id in "firstscheduled" from scheduled_update 0 of coverage 0
         Then we store scheduled_update id in "secondscheduled" from scheduled_update 1 of coverage 0
         Then we store assignment id in "firstscheduledassignment" from scheduled_update 0 of coverage 0
@@ -1139,7 +1159,7 @@ Feature: Assignment content
                             "assignment_id": "#firstscheduledassignment#",
                             "desk": "#desks._id#",
                             "user": "507f191e810c19729de870eb",
-                            "state": "active"
+                            "state": "assigned"
                         },
                         "coverage_id": "#firstcoverage#",
                         "workflow_status": "active",
@@ -1155,7 +1175,7 @@ Feature: Assignment content
                             "assignment_id": "#secondscheduledassignment#",
                             "desk": "#desks._id#",
                             "user": "507f191e810c19729de870eb",
-                            "state": "active"
+                            "state": "assigned"
                         },
                         "coverage_id": "#firstcoverage#",
                         "workflow_status": "active",
@@ -1231,6 +1251,8 @@ Feature: Assignment content
         }
         """
         Then we get OK response
+        When we get "/planning/#planning._id#"
+        Then we get OK response
         Then we store coverage id in "firstcoverage" from coverage 0
         Then we store assignment id in "firstassignment" from coverage 0
         Then we get existing resource
@@ -1316,6 +1338,8 @@ Feature: Assignment content
             ]
         }
         """
+        When we get "/planning/#planning._id#"
+        Then we get OK response
         Then we store scheduled_update id in "firstscheduled" from scheduled_update 0 of coverage 0
         Then we store scheduled_update id in "secondscheduled" from scheduled_update 1 of coverage 0
         Then we store assignment id in "firstscheduledassignment" from scheduled_update 0 of coverage 0
@@ -1409,7 +1433,7 @@ Feature: Assignment content
                             "assignment_id": "#firstscheduledassignment#",
                             "desk": "#desks._id#",
                             "user": "507f191e810c19729de870eb",
-                            "state": "active"
+                            "state": "assigned"
                         },
                         "coverage_id": "#firstcoverage#",
                         "workflow_status": "active",
@@ -1425,7 +1449,7 @@ Feature: Assignment content
                             "assignment_id": "#secondscheduledassignment#",
                             "desk": "#desks._id#",
                             "user": "507f191e810c19729de870eb",
-                            "state": "active"
+                            "state": "assigned"
                         },
                         "coverage_id": "#firstcoverage#",
                         "workflow_status": "active",

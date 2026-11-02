@@ -1,233 +1,137 @@
 from copy import deepcopy
+from datetime import timedelta
 from types import SimpleNamespace
+from unittest import mock
 
 import pytest
 from bson import ObjectId
 
-from planning.planning import planning as planning_module
+from superdesk.flask import g
+from superdesk.tests import fixtures, utils as test_utils
 
-from planning.planning.planning import PlanningService
-from planning.history.planning import UnifiedPlanningHistoryService
 from planning import common as common_module
+from planning.history.planning import UnifiedPlanningHistoryService
+from planning.planning import planning as planning_module
+from planning.planning.planning import PlanningService
+from planning.tests import TestCase, fixtures as planning_fixtures
+from planning.types import UnifiedPlanningResource
 
 
-class DummyPlanningService(PlanningService):
-    async def validate_on_update(self, updates, original, user):  # type: ignore[override]
-        return None
+class PlanningAttributionTestCase(TestCase):
+    async def asyncSetUp(self):
+        await super().asyncSetUp()
+        await test_utils.post_items("users", fixtures.users.all_users())
+        await test_utils.post_items("vocabularies", planning_fixtures.cvs.all_cvs())
+        self.service = UnifiedPlanningResource.get_service()
+        g.user = fixtures.users.foobar().to_dict()
+        created = await self.service.create(
+            [
+                {
+                    "_id": "planning-id",
+                    "type": "planning",
+                    "dates": {"start": "2099-10-12T14:00:00+0000"},
+                    "slugline": "Original",
+                    "coverages": [
+                        {
+                            "coverage_id": "cov-planning",
+                            "planning": {"headline": "Original headline"},
+                            "news_coverage_status": {
+                                "qcode": "ncostat:int",
+                                "name": "coverage intended",
+                                "label": "Planned",
+                            },
+                        }
+                    ],
+                }
+            ]
+        )
+        self.original = await self.service.find_by_id(created[0].id)
+        self.assertIsNotNone(self.original)
+        self.assertEqual(self.original.version_creator, fixtures.users.FOOBAR_USER_ID)
+        self.assertEqual(self.original.coverages[0].version_creator, fixtures.users.FOOBAR_USER_ID)
+        self.edit_time = self.original.versioncreated + timedelta(minutes=1)
+        g.user = fixtures.users.admin().to_dict()
 
-    async def _set_coverage(self, updates, original=None):  # type: ignore[override]
-        return None
+    def updated_coverage(self):
+        coverage = self.original.coverages[0].to_dict()
+        coverage["planning"]["headline"] = "Updated headline"
+        return coverage
 
-    def set_planning_schedule(self, updates, original=None):  # type: ignore[override]
-        return None
+    async def update_planning(self, updates):
+        with mock.patch("planning.unified.service.utcnow", return_value=self.edit_time):
+            return await self.service.update(self.original.id, updates)
 
-    async def _update_recurring_planning_items(self, updates, original, update_method):  # type: ignore[override]
-        return None
+    async def test_planning_edit_updates_version_creator(self):
+        updated = await self.update_planning({"slugline": "Updated"})
 
+        self.assertEqual(updated.version_creator, fixtures.users.ADMIN_USER_ID)
+        self.assertEqual(updated.versioncreated, self.edit_time)
+        stored = await self.service.find_by_id(updated.id)
+        self.assertEqual(stored.version_creator, fixtures.users.ADMIN_USER_ID)
+        self.assertEqual(stored.versioncreated, self.edit_time)
 
-class RecordingPlanningHistoryService(UnifiedPlanningHistoryService):
-    def __init__(self):
-        super().__init__()
-        self.entries = []
+    async def test_coverage_only_edit_skips_version_creator(self):
+        updated = await self.update_planning({"coverages": [self.updated_coverage()]})
 
-    async def _save_history(self, planning, update, operation):  # type: ignore[override]
-        self.entries.append({"operation": operation, "update": deepcopy(update)})
+        self.assertEqual(updated.version_creator, self.original.version_creator)
+        self.assertEqual(updated.versioncreated, self.original.versioncreated)
+        self.assertEqual(updated.coverages[0].version_creator, fixtures.users.ADMIN_USER_ID)
+        self.assertEqual(updated.coverages[0].planning.headline, "Updated headline")
+        stored = await self.service.find_by_id(updated.id)
+        self.assertEqual(stored.version_creator, self.original.version_creator)
+        self.assertEqual(stored.versioncreated, self.original.versioncreated)
 
+    async def test_mixed_planning_and_coverage_edit_updates_version_creator(self):
+        updated = await self.update_planning(
+            {"slugline": "Updated", "coverages": [self.updated_coverage()]},
+        )
 
-@pytest.mark.asyncio
-async def test_planning_edit_updates_version_creator(monkeypatch):
-    service = DummyPlanningService()
-    admin_id = ObjectId()
-    original = {
-        "_id": "planning-id",
-        "slugline": "Original",
-        "version_creator": ObjectId(),
-    }
-    updates = {"slugline": "Updated"}
-    monkeypatch.setattr(planning_module, "get_user", lambda: {"_id": admin_id})
+        self.assertEqual(updated.version_creator, fixtures.users.ADMIN_USER_ID)
+        self.assertEqual(updated.versioncreated, self.edit_time)
+        self.assertEqual(updated.coverages[0].version_creator, fixtures.users.ADMIN_USER_ID)
 
-    await service.on_update_async(updates, deepcopy(original))
-    assert updates["version_creator"] == admin_id, "Planning field edit should set version_creator"
-    assert "versioncreated" in updates, "Planning field edit should set versioncreated"
+    async def test_system_fields_only_skip_version_creator(self):
+        with mock.patch("planning.unified.planning.update_post_item", new_callable=mock.AsyncMock, return_value=False):
+            updated = await self.update_planning({"state": "scheduled", "pubstatus": "usable"})
 
+        self.assertEqual(updated.version_creator, self.original.version_creator)
+        self.assertEqual(updated.versioncreated, self.original.versioncreated)
+        self.assertEqual(updated.state, "scheduled")
+        self.assertEqual(updated.pubstatus, "usable")
 
-@pytest.mark.asyncio
-async def test_coverage_only_edit_skips_version_creator(monkeypatch):
-    service = DummyPlanningService()
-    admin_id = ObjectId()
-    brian_id = ObjectId()
-    coverage_id = "cov-planning"
-    original = {
-        "_id": "planning-id",
-        "slugline": "Test Item",
-        "version_creator": brian_id,
-        "coverages": [
-            {
-                "coverage_id": coverage_id,
-                "planning": {"headline": "Original headline"},
-            }
-        ],
-    }
-    updates = {
-        "coverages": [
-            {
-                "coverage_id": coverage_id,
-                "planning": {"headline": "Updated headline"},
-            }
-        ]
-    }
-    monkeypatch.setattr(planning_module, "get_user", lambda: {"_id": admin_id})
+    async def test_should_update_version_creator_helper_method(self):
+        for updates, expected in (
+            ({"slugline": "Updated"}, True),
+            ({"slugline": "Original"}, False),
+            ({"coverages": [self.updated_coverage()]}, False),
+            ({"state": "scheduled", "pubstatus": "usable"}, False),
+            ({"slugline": "Updated", "definition_long": "New description"}, True),
+            ({"slugline": "Updated", "coverages": [self.updated_coverage()]}, True),
+        ):
+            with self.subTest(updates=updates):
+                self.assertEqual(self.service._should_update_version_creator(updates, self.original), expected)
 
-    await service.on_update_async(updates, deepcopy(original))
-    assert "version_creator" not in updates, "Coverage-only edit should not set version_creator"
-    assert "versioncreated" not in updates, "Coverage-only edit should not set versioncreated"
+    async def test_history_records_only_coverage_operations(self):
+        history_service = UnifiedPlanningHistoryService()
+        updates = {"coverages": [self.updated_coverage()]}
 
+        await history_service.on_item_updated(updates, self.original.to_dict())
 
-@pytest.mark.asyncio
-async def test_mixed_planning_and_coverage_edit_updates_version_creator(monkeypatch):
-    service = DummyPlanningService()
-    admin_id = ObjectId()
-    coverage_id = "cov-planning"
-    original = {
-        "_id": "planning-id",
-        "slugline": "Original",
-        "description_text": "Original description",
-        "version_creator": ObjectId(),
-        "coverages": [
-            {
-                "coverage_id": coverage_id,
-                "planning": {"headline": "Original headline"},
-            }
-        ],
-    }
-    updates = {
-        "slugline": "Updated",
-        "coverages": [
-            {
-                "coverage_id": coverage_id,
-                "planning": {"headline": "Updated headline"},
-            }
-        ],
-    }
-    monkeypatch.setattr(planning_module, "get_user", lambda: {"_id": admin_id})
-
-    await service.on_update_async(updates, deepcopy(original))
-    assert updates["version_creator"] == admin_id, "Mixed edit should set version_creator"
-    assert "versioncreated" in updates, "Mixed edit should set versioncreated"
-
-
-@pytest.mark.asyncio
-async def test_system_fields_only_skip_version_creator(monkeypatch):
-    service = DummyPlanningService()
-    admin_id = ObjectId()
-    original = {
-        "_id": "planning-id",
-        "slugline": "Test Item",
-        "state": "draft",
-        "version_creator": ObjectId(),
-    }
-    updates = {
-        "state": "scheduled",
-        "pubstatus": "usable",
-    }
-    monkeypatch.setattr(planning_module, "get_user", lambda: {"_id": admin_id})
-
-    await service.on_update_async(updates, deepcopy(original))
-    assert "version_creator" not in updates, "System field changes should not set version_creator"
-    assert "versioncreated" not in updates, "System field changes should not set versioncreated"
-
-
-@pytest.mark.asyncio
-async def test_should_update_version_creator_helper_method():
-    service = DummyPlanningService()
-    original = {
-        "_id": "planning-id",
-        "slugline": "Original",
-        "coverages": [],
-    }
-    updates_planning = {"slugline": "Updated"}
-    assert (
-        service._should_update_version_creator(updates_planning, original) is True
-    ), "Planning field change should return True"
-
-    updates_coverage = {"coverages": [{"coverage_id": "new-cov"}]}
-    assert (
-        service._should_update_version_creator(updates_coverage, original) is False
-    ), "Coverage-only change should return False"
-
-    updates_system = {"state": "scheduled", "pubstatus": "usable"}
-    assert (
-        service._should_update_version_creator(updates_system, original) is False
-    ), "System field change should return False"
-
-    updates_multiple = {"slugline": "Updated", "description_text": "New description"}
-    assert (
-        service._should_update_version_creator(updates_multiple, original) is True
-    ), "Multiple planning field changes should return True"
-
-    updates_mixed = {"slugline": "Updated", "coverages": [{"coverage_id": "new-cov"}]}
-    assert (
-        service._should_update_version_creator(updates_mixed, original) is True
-    ), "Mixed planning and coverage change should return True"
-
-
-@pytest.mark.asyncio
-async def test_history_records_only_coverage_operations(monkeypatch):
-    history_service = RecordingPlanningHistoryService()
-    # stub_planning_service = SimpleNamespace(
-    #     is_coverage_planning_modified=lambda new, old: new.get("planning") != old.get("planning"),
-    #     is_coverage_assignment_modified=lambda new, old: new.get("assigned_to") != old.get("assigned_to"),
-    # )
-
-    # monkeypatch.setattr(history_module, "get_resource_service", lambda name: stub_planning_service)
-    # monkeypatch.setattr(history_module, "request", SimpleNamespace(args={}))
-
-    coverage_id = "cov-planning"
-    original = {
-        "_id": "planning-id",
-        "coverages": [
-            {
-                "coverage_id": coverage_id,
-                "planning": {
-                    "headline": "Original headline",
-                    "slugline": "Test Item",
-                },
-                "assigned_to": {
-                    "desk": "desk1",
-                    "state": "assigned",
-                },
-            }
-        ],
-    }
-
-    updates = {
-        "coverages": [
-            {
-                "coverage_id": coverage_id,
-                "planning": {
-                    "headline": "Updated headline",
-                    "slugline": "Test Item",
-                },
-                "assigned_to": {
-                    "desk": "desk1",
-                    "state": "assigned",
-                },
-            }
-        ]
-    }
-
-    await history_service.on_item_updated(deepcopy(updates), deepcopy(original))
-
-    operations = [entry["operation"] for entry in history_service.entries]
-
-    assert "edited" not in operations, "Coverage-only changes should not create planning-level 'edited' entries"
-    assert operations.count("coverage_edited") == 1, "Coverage history should capture modification"
+        history = await history_service.find({"item_id": self.original.id}, use_mongo=True)
+        entries = [entry async for entry in history]
+        operations = [entry.operation for entry in entries]
+        self.assertNotIn("edited", operations)
+        self.assertEqual(operations.count("coverage_edited"), 1)
+        coverage_entry = next(entry for entry in entries if entry.operation == "coverage_edited")
+        self.assertEqual(coverage_entry.user_id, fixtures.users.ADMIN_USER_ID)
+        self.assertEqual(coverage_entry.update["coverage_id"], "cov-planning")
+        self.assertEqual(coverage_entry.update["planning"]["headline"], "Updated headline")
 
 
 @pytest.mark.asyncio
 async def test_ingest_patch_does_not_modify_version_creator(monkeypatch):
     """Ingest patches should not modify version_creator/versioncreated fields"""
-    service = DummyPlanningService()
+    service = PlanningService()
     captured_document = {}
 
     class StubBackend:

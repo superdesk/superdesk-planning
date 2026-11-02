@@ -478,17 +478,21 @@ Feature: Assignment Search
 
         # Language
         When we get "/events_planning_search?repo=assignments&language=en"
-        Then we get list with 1 items
+        Then we get list with 3 items
         """
         {"_items": [
+            {"_id": "#ASSIGNMENT_2_ID#"},
+            {"_id": "#ASSIGNMENT_3_ID#"},
             {"_id": "#ASSIGNMENT_4_ID#"}
         ]}
         """
         When we get "/events_planning_search?repo=assignments&language=en,fi"
-        Then we get list with 2 items
+        Then we get list with 4 items
         """
         {"_items": [
             {"_id": "#ASSIGNMENT_1_ID#"},
+            {"_id": "#ASSIGNMENT_2_ID#"},
+            {"_id": "#ASSIGNMENT_3_ID#"},
             {"_id": "#ASSIGNMENT_4_ID#"}
         ]}
         """
