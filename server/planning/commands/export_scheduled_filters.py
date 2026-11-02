@@ -105,7 +105,7 @@ class ExportScheduledFilters:
                 )
 
     async def export_filter(self, search_filter, schedule, now_local) -> bool:
-        if not self.should_export(schedule, now_local):
+        if not self.should_export(schedule, now_local, search_filter.get("_updated")):
             return False
 
         search_filter_id = search_filter["_id"]
@@ -118,21 +118,24 @@ class ExportScheduledFilters:
         filters = await event_planning_filters_service.search(lookup={"schedules": {"$exists": True, "$ne": []}})
         return await filters.to_list_raw()
 
-    def should_export(self, schedule, now_local):
+    def should_export(self, schedule, now_local, saved_at=None):
         # Work at minute-level precision
         now_local_minute = now_local.replace(second=0, microsecond=0)
-
-        last_sent = None
-        if schedule.get("_last_sent"):
-            last_sent = utc_to_local(get_app_config("DEFAULT_TIMEZONE"), schedule["_last_sent"]).replace(
-                second=0, microsecond=0
-            )
 
         schedule_hour = schedule.get("hour", -1)
         schedule_day = schedule.get("day", -1)
         schedule_week_days = schedule.get("week_days") or []
         schedule_frequency = schedule.get("frequency") or "hourly"
         schedule_hours = schedule.get("hours") or []
+
+        # A new hourly schedule waits for the next hour, instead of exporting straight away
+        last_sent_utc = schedule.get("_last_sent")
+        if not last_sent_utc and schedule_frequency == "hourly":
+            last_sent_utc = saved_at
+
+        last_sent = None
+        if last_sent_utc:
+            last_sent = utc_to_local(get_app_config("DEFAULT_TIMEZONE"), last_sent_utc).replace(second=0, microsecond=0)
 
         # For non-hourly schedules, default to midnight when no explicit time is provided.
         effective_schedule_hour = schedule_hour
