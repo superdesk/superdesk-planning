@@ -126,7 +126,8 @@ class EventsService(AsyncBaseService):
             raise SuperdeskApiError.notFoundError()
 
         document["_etag"] = updated_item.etag
-        await update_post_item(document, original)
+        if original.get("pubstatus"):
+            await update_post_item(document, original)
         await self.on_updated_async(document, original)
         return response
 

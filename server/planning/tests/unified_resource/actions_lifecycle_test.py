@@ -15,6 +15,7 @@ from planning.unified.actions import (
     event_has_planning_items,
 )
 from planning.unified.actions.cancel import process_cancel_planning_item
+from planning.unified.actions.reschedule import process_reschedule_planning_item
 from planning.unified.common import get_series
 from planning.tests import TestCase, fixtures as planning_fixtures
 
@@ -182,6 +183,50 @@ class UnifiedResourceLifecycleActionsTestCase(TestCase):
         self.assertEqual("draft", unrelated["state"])
 
     # -------------------------------------------------------------- reschedule
+    async def test_reschedule_planning_keeps_assignment_states_in_sync(self):
+        assignments_service = get_resource_service("assignments")
+        for original_state, expected_state in (("assigned", "cancelled"), ("completed", "completed")):
+            with self.subTest(assignment_state=original_state):
+                planning_id = await self._create_planning(
+                    state="draft",
+                    coverages=[
+                        {
+                            "coverage_id": "cov1",
+                            "workflow_status": "active",
+                            "news_coverage_status": {
+                                "qcode": "ncostat:int",
+                                "name": "coverage intended",
+                                "label": "Planned",
+                            },
+                            "planning": {"g2_content_type": "text", "slugline": "story"},
+                            "assigned_to": {
+                                "desk": fixtures.desks.SPORTS_DESK_ID,
+                                "user": g.user["_id"],
+                                "state": original_state,
+                            },
+                        }
+                    ],
+                )
+                original = await self._planning_dict(planning_id)
+                assignment_id = original["coverages"][0]["assigned_to"]["assignment_id"]
+                assignment = await assignments_service.find_one_async(req=None, _id=assignment_id)
+                self.assertEqual(original_state, assignment["assigned_to"]["state"])
+                self.assertEqual(original_state, original["coverages"][0]["assigned_to"]["state"])
+
+                rescheduled = await process_reschedule_planning_item({"reason": "moved"}, original)
+
+                assignment = await assignments_service.find_one_async(req=None, _id=assignment_id)
+                self.assertEqual(expected_state, assignment["assigned_to"]["state"])
+                stored = await self._planning_dict(planning_id)
+                for item in (rescheduled, stored):
+                    self.assertEqual("rescheduled", item["state"])
+                    coverage = item["coverages"][0]
+                    self.assertEqual("cancelled", coverage["workflow_status"])
+                    self.assertEqual("moved", coverage["planning"]["workflow_status_reason"])
+                    self.assertEqual("ncostat:notint", coverage["news_coverage_status"]["qcode"])
+                    self.assertEqual(assignment_id, coverage["assigned_to"]["assignment_id"])
+                    self.assertEqual(expected_state, coverage["assigned_to"]["state"])
+
     async def test_reschedule_event_in_use_duplicates_and_reschedules_planning(self):
         event_id = await self._create_event()
         planning_id = await self._create_planning(

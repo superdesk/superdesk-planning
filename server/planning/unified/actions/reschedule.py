@@ -36,6 +36,7 @@ from planning.common import (
     TO_BE_CONFIRMED_FIELD,
     update_post_item,
     get_coverage_status_from_cv,
+    get_next_assignment_status,
 )
 from planning.events.events_utils import (
     get_recurring_timeline,
@@ -428,7 +429,7 @@ async def _reschedule_coverage(coverage: dict[str, Any], reason: str):
         if assignment and assignment.get("assigned_to", {}).get("state") != WORKFLOW_STATE.CANCELLED:
             coverage["news_coverage_status"] = get_coverage_status_from_cv("ncostat:notint")
             coverage["news_coverage_status"].pop("is_active", None)
-            assigned_to["state"] = WORKFLOW_STATE.CANCELLED
+            assigned_to["state"] = get_next_assignment_status(assignment, WORKFLOW_STATE.CANCELLED)
             await assignment_service.cancel_assignment(assignment, coverage, event_reschedule=True)
         slugline = assignment.get("planning").get("slugline", "")
         coverage_type = assignment.get("planning").get("g2_content_type", "")

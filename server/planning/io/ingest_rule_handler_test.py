@@ -228,8 +228,11 @@ class IngestRuleHandlerTestCase(TestCase):
         original = await events_service.find_one_async(req=None, _id=event["_id"])
         assert original["pubstatus"] == "cancelled"
 
-    async def get_event_history(self):
-        cursor = await UnifiedPlanningHistoryResource.get_service().find({"item_type": "event"}, use_mongo=True)
+    async def get_event_history(self, event_id=None):
+        query = {"item_type": "event"}
+        if event_id is not None:
+            query["item_id"] = event_id
+        cursor = await UnifiedPlanningHistoryResource.get_service().find(query, use_mongo=True)
         return [item async for item in cursor]
 
     async def test_autopost_with_calendars(self):
@@ -278,3 +281,120 @@ class IngestRuleHandlerTestCase(TestCase):
         original = await events_service.find_one_async(req=None, _id=event["_id"])
         assert original["pubstatus"] == "usable"
         assert original["state"] == "ingested"
+
+    async def create_ingested_event(self, event_id, pubstatus=None):
+        event = {
+            "guid": event_id,
+            "type": "event",
+            "name": "Original",
+            "dates": self.event_items[0]["dates"].copy(),
+        }
+        if pubstatus is not None:
+            event["pubstatus"] = pubstatus
+
+        events_service = get_resource_service("events")
+        await events_service.post_in_mongo([event])
+        # A completed ingest batch indexes events after storing them in Mongo.
+        await events_service.backend.create_in_search_async(events_service.datasource, [event])
+        return await events_service.find_one_async(req=None, _id=event_id)
+
+    async def test_ingest_updates_leave_unposted_events_unpublished(self):
+        events_service = get_resource_service("events")
+        cases = (
+            ("default", None, "usable"),
+            ("usable", "usable", "usable"),
+            ("cancelled", "cancelled", "cancelled"),
+        )
+        for label, incoming_status, expected_status in cases:
+            with self.subTest(incoming_status=label):
+                event_id = f"unposted-{label}"
+                original = await self.create_ingested_event(event_id)
+                self.assertIsNone(original.get("pubstatus"))
+
+                updates = {"guid": event_id, "type": "event", "name": "Updated"}
+                if incoming_status is not None:
+                    updates["pubstatus"] = incoming_status
+                if incoming_status == "cancelled":
+                    updates["state"] = "killed"
+                await events_service.patch_in_mongo(event_id, updates, original)
+
+                updated = await events_service.find_one_async(req=None, _id=event_id)
+                self.assertEqual(updated["name"], "Updated")
+                self.assertEqual(updated["ingest_pubstatus"], expected_status)
+                self.assertIsNone(updated.get("pubstatus"))
+                self.assertIsNone(updated.get("firstpublished"))
+                self.assertEqual(updated["state"], "killed" if incoming_status == "cancelled" else "ingested")
+
+                await self.handler.apply_rule({"actions": {"extra": {"autopost": False}}}, updated, {})
+
+                stored = await events_service.find_one_async(req=None, _id=event_id)
+                self.assertIsNone(stored.get("pubstatus"))
+                self.assertEqual(
+                    [entry.operation for entry in await self.get_event_history(event_id)],
+                    ["ingested"],
+                )
+
+    async def test_autopost_rule_posts_previously_unposted_ingest_update(self):
+        events_service = get_resource_service("events")
+        cases = (("default", None, "usable"), ("cancelled", "cancelled", "cancelled"))
+        for label, incoming_status, expected_status in cases:
+            with self.subTest(incoming_status=label):
+                event_id = f"autopost-update-{label}"
+                original = await self.create_ingested_event(event_id)
+                updates = {"guid": event_id, "type": "event", "name": "Updated"}
+                if incoming_status is not None:
+                    updates["pubstatus"] = incoming_status
+                    updates["state"] = "killed"
+                await events_service.patch_in_mongo(event_id, updates, original)
+
+                updated = await events_service.find_one_async(req=None, _id=event_id)
+                self.assertIsNone(updated.get("pubstatus"))
+                await self.handler.apply_rule(AUTOPOST_RULE, updated, {})
+
+                posted = await events_service.find_one_async(req=None, _id=event_id)
+                self.assertEqual(posted["pubstatus"], expected_status)
+                self.assertIsNotNone(posted.get("firstpublished"))
+                self.assertEqual(
+                    [entry.operation for entry in await self.get_event_history(event_id)],
+                    ["ingested", "post"],
+                )
+
+    async def test_ingest_updates_repost_previously_posted_events(self):
+        g.user = {}
+        events_service = get_resource_service("events")
+        cases = (
+            ("usable-default", "usable", None, "usable"),
+            ("usable-cancelled", "usable", "cancelled", "cancelled"),
+            ("cancelled-usable", "cancelled", "usable", "usable"),
+            ("cancelled-cancelled", "cancelled", "cancelled", "cancelled"),
+        )
+        for label, original_status, incoming_status, expected_status in cases:
+            with self.subTest(status_transition=label):
+                event_id = f"posted-{label}"
+                event = await self.create_ingested_event(event_id, original_status)
+                await self.handler.apply_rule(AUTOPOST_RULE, event, {})
+                original = await events_service.find_one_async(req=None, _id=event_id)
+                self.assertEqual(original["pubstatus"], original_status)
+
+                updates = {"guid": event_id, "type": "event", "name": "Updated"}
+                if incoming_status is not None:
+                    updates["pubstatus"] = incoming_status
+                if incoming_status == "cancelled":
+                    updates["state"] = "killed"
+                self.assertTrue(events_service.should_update(original, updates, {}))
+                await events_service.patch_in_mongo(event_id, updates, original)
+
+                updated = await events_service.find_one_async(req=None, _id=event_id)
+                self.assertEqual(updated["name"], "Updated")
+                self.assertEqual(updated["ingest_pubstatus"], expected_status)
+                self.assertEqual(updated["pubstatus"], expected_status)
+                self.assertEqual(
+                    [entry.operation for entry in await self.get_event_history(event_id)],
+                    ["post", "ingested", "post"],
+                )
+
+                await self.handler.apply_rule(AUTOPOST_RULE, updated, {})
+                self.assertEqual(
+                    [entry.operation for entry in await self.get_event_history(event_id)],
+                    ["post", "ingested", "post"],
+                )

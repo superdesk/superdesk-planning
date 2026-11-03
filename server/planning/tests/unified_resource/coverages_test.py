@@ -118,6 +118,63 @@ class UnifiedResourceCoveragesTestCase(TestCase):
         )
         self.assertIsNotNone(assignment)
 
+    async def test_auto_assign_scheduled_updates_on_create_and_update(self) -> None:
+        self.app.config["PLANNING_AUTO_ASSIGN_TO_WORKFLOW"] = True
+        assigned_to = {"desk": fixtures.desks.SPORTS_DESK_ID, "user": fixtures.users.ADMIN_USER_ID}
+        news_coverage_status = {"qcode": "ncostat:int", "name": "coverage intended", "label": "Planned"}
+        for operation in ("create", "update"):
+            with self.subTest(operation=operation):
+                scheduled_update = {
+                    "coverage_id": "tempId-coverage",
+                    "news_coverage_status": news_coverage_status,
+                    "workflow_status": "draft",
+                    "planning": {"scheduled": "2029-06-30T17:30:55+0000"},
+                    "assigned_to": assigned_to,
+                }
+                coverage = {
+                    "coverage_id": "tempId-coverage",
+                    "news_coverage_status": news_coverage_status,
+                    "workflow_status": "draft",
+                    "planning": {"scheduled": "2029-06-30T16:30:55+0000"},
+                    "assigned_to": assigned_to,
+                    "scheduled_updates": [scheduled_update] if operation == "create" else [],
+                }
+                planning = (
+                    await self.planning_service.create(
+                        [
+                            {
+                                "type": PlanningItemType.PLANNING,
+                                "state": "scheduled",
+                                "dates": {"start": "2029-06-30T15:30:55+0000"},
+                                "coverages": [coverage],
+                            }
+                        ]
+                    )
+                )[0]
+                if operation == "update":
+                    coverage = planning.to_dict()["coverages"][0]
+                    coverage["scheduled_updates"] = [scheduled_update]
+                    planning = await self.planning_service.update(planning.id, {"coverages": [coverage]})
+
+                self.assertFalse(hasattr(planning.coverages[0].scheduled_updates[0], "add_coverage_to_workflow"))
+                stored = await self.planning_service.find_by_id(planning.id)
+                for item in (planning, stored):
+                    coverage = item.to_dict()["coverages"][0]
+                    scheduled_update = coverage["scheduled_updates"][0]
+                    self.assertEqual(coverage["workflow_status"], "active")
+                    self.assertTrue(coverage["add_coverage_to_workflow"])
+                    self.assertEqual(scheduled_update["workflow_status"], "active")
+                    self.assertEqual(scheduled_update["coverage_id"], coverage["coverage_id"])
+                    self.assertFalse(scheduled_update["scheduled_update_id"].startswith("tempId"))
+                    for entity in (coverage, scheduled_update):
+                        self.assertEqual(entity["assigned_to"]["state"], "assigned")
+                        assignment = await self.assignments_service.find_one_async(
+                            req=None, _id=entity["assigned_to"]["assignment_id"]
+                        )
+                        self.assertIsNotNone(assignment)
+                        self.assertEqual(assignment["assigned_to"]["state"], "assigned")
+                        self.assertEqual(assignment["planning_item"], planning.id)
+
     async def test_updating_coverages(self) -> None:
         # Start with empty coverages
         planning = UnifiedPlanningResource.from_dict(
@@ -227,6 +284,59 @@ class UnifiedResourceCoveragesTestCase(TestCase):
         await self.planning_service.update(planning.id, {"coverages": []})
         self.assertIsNone(await self.assignments_service.find_one_async(None, _id=parent_assignment))
         self.assertIsNone(await self.assignments_service.find_one_async(None, _id=scheduled_assignments[0]))
+
+    async def test_rejected_scheduled_update_removal_preserves_all_assignments(self) -> None:
+        assigned_to = {"desk": fixtures.desks.SPORTS_DESK_ID, "user": fixtures.users.ADMIN_USER_ID}
+        news_coverage_status = {"qcode": "ncostat:int", "name": "coverage intended", "label": "Planned"}
+        planning = (
+            await self.planning_service.create(
+                [
+                    {
+                        "type": PlanningItemType.PLANNING,
+                        "state": "draft",
+                        "dates": {"start": "2029-06-30T15:30:55+0000"},
+                        "coverages": [
+                            {
+                                "coverage_id": "coverage-1",
+                                "news_coverage_status": news_coverage_status,
+                                "workflow_status": "active",
+                                "planning": {"scheduled": "2029-06-30T16:30:55+0000"},
+                                "assigned_to": assigned_to,
+                                "scheduled_updates": [
+                                    {
+                                        "coverage_id": "coverage-1",
+                                        "news_coverage_status": news_coverage_status,
+                                        "workflow_status": workflow_status,
+                                        "scheduled_update_id": f"tempId-update-{index}",
+                                        "planning": {"scheduled": f"2029-06-30T{17 + index}:30:55+0000"},
+                                        "assigned_to": assigned_to,
+                                    }
+                                    for index, workflow_status in enumerate(("draft", "active"))
+                                ],
+                            }
+                        ],
+                    }
+                ]
+            )
+        )[0]
+        coverage = planning.to_dict()["coverages"][0]
+        scheduled_updates = coverage["scheduled_updates"]
+        self.assertEqual([update["assigned_to"]["state"] for update in scheduled_updates], ["draft", "assigned"])
+        assignment_ids = [update["assigned_to"]["assignment_id"] for update in scheduled_updates]
+        for assignment_id, expected_state in zip(assignment_ids, ("draft", "assigned")):
+            assignment = await self.assignments_service.find_one_async(None, _id=assignment_id)
+            self.assertIsNotNone(assignment)
+            self.assertEqual(assignment["assigned_to"]["state"], expected_state)
+
+        with self.assertRaisesRegex(SuperdeskApiError, "Assignment already exists") as context:
+            await self.planning_service.update(planning.id, {"coverages": [{**coverage, "scheduled_updates": []}]})
+        self.assertEqual(context.exception.status_code, 400)
+
+        stored = await self.planning_service.find_by_id(planning.id)
+        self.assertEqual(stored.to_dict()["coverages"][0]["scheduled_updates"], scheduled_updates)
+        for assignment_id in assignment_ids:
+            with self.subTest(assignment_id=assignment_id):
+                self.assertIsNotNone(await self.assignments_service.find_one_async(None, _id=assignment_id))
 
     async def test_event_coverages(self) -> None:
         event = UnifiedPlanningResource.from_dict(

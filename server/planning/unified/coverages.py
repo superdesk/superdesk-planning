@@ -586,11 +586,17 @@ async def _remove_scheduled_updates(
     if not original_coverage.scheduled_updates:
         return
 
-    updated_scheduled_updates = {entry.scheduled_update_id: entry for entry in updated_coverage.scheduled_updates or []}
-    for original_scheduled_update in original_coverage.scheduled_updates:
-        updated_scheduled_update = updated_scheduled_updates.get(original_scheduled_update.scheduled_update_id)
-        if not updated_scheduled_update:
-            await _remove_coverage_entity(req, original_scheduled_update)
+    updated_scheduled_updates = {entry.scheduled_update_id for entry in updated_coverage.scheduled_updates or []}
+    removed_scheduled_updates = [
+        entry
+        for entry in original_coverage.scheduled_updates
+        if entry.scheduled_update_id not in updated_scheduled_updates
+    ]
+    for scheduled_update in removed_scheduled_updates:
+        _validate_coverage_removal(req, scheduled_update)
+
+    for scheduled_update in removed_scheduled_updates:
+        await _remove_coverage_entity(req, scheduled_update)
 
 
 async def _cancel_coverage(
@@ -683,11 +689,10 @@ def _set_coverage_active(item: UnifiedPlanningResource, coverage: CoverageItem |
         return
 
     coverage.workflow_status = WorkflowState.ACTIVE
-    coverage.add_coverage_to_workflow = True
 
-    if coverage.scheduled_updates:
-        # set all scheduled_updates to be activated as well
-        for scheduled_update in coverage.scheduled_updates:
+    if isinstance(coverage, CoverageItem):
+        coverage.add_coverage_to_workflow = True
+        for scheduled_update in coverage.scheduled_updates or []:
             if scheduled_update.assigned_to and scheduled_update.workflow_status == WorkflowState.DRAFT:
                 scheduled_update.workflow_status = WorkflowState.ACTIVE
 
