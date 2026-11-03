@@ -92,6 +92,15 @@ async def on_coverage_update(req: ItemUpdateRequest) -> None:
         coverage.coverage_id or f"{TEMP_ID_PREFIX}-{generate_guid(type=GUID_NEWSML)}": coverage
         for coverage in req.updated.coverages or []
     }
+
+    # Reject invalid removals before any coverage processing can mutate assignments.
+    for coverage_id, coverage in original_coverages_map.items():
+        updated_coverage = coverage_updates_map.get(coverage_id)
+        if updated_coverage is None:
+            _validate_coverage_removal(req, coverage)
+        for scheduled_update in _get_removed_scheduled_updates(coverage, updated_coverage):
+            _validate_coverage_removal(req, scheduled_update)
+
     for coverage_id in original_coverages_map.keys() | coverage_updates_map.keys():
         original_coverage = original_coverages_map.get(coverage_id)
         updated_coverage = coverage_updates_map.get(coverage_id)
@@ -580,18 +589,25 @@ async def _update_scheduled_updates(
         await _create_or_update_assignment(req, original_scheduled_update, scheduled_update)
 
 
+def _get_removed_scheduled_updates(
+    original_coverage: CoverageItem, updated_coverage: CoverageItem | None
+) -> list[CoverageScheduledUpdate]:
+    updated_scheduled_updates = updated_coverage.scheduled_updates if updated_coverage is not None else []
+    updated_scheduled_update_ids = {entry.scheduled_update_id for entry in updated_scheduled_updates or []}
+    return [
+        entry
+        for entry in original_coverage.scheduled_updates or []
+        if entry.scheduled_update_id not in updated_scheduled_update_ids
+    ]
+
+
 async def _remove_scheduled_updates(
     req: ItemUpdateRequest, original_coverage: CoverageItem, updated_coverage: CoverageItem
 ):
     if not original_coverage.scheduled_updates:
         return
 
-    updated_scheduled_updates = {entry.scheduled_update_id for entry in updated_coverage.scheduled_updates or []}
-    removed_scheduled_updates = [
-        entry
-        for entry in original_coverage.scheduled_updates
-        if entry.scheduled_update_id not in updated_scheduled_updates
-    ]
+    removed_scheduled_updates = _get_removed_scheduled_updates(original_coverage, updated_coverage)
     for scheduled_update in removed_scheduled_updates:
         _validate_coverage_removal(req, scheduled_update)
 

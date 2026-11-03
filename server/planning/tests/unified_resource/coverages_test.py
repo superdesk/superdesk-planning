@@ -31,6 +31,10 @@ class UnifiedResourceCoveragesTestCase(TestCase):
         await test_utils.post_items("desks", fixtures.desks.all_desks())
         await test_utils.post_items("stages", fixtures.stages.all_stages())
 
+    async def _get_planning_assignments(self, planning_id: str) -> dict:
+        cursor = await self.assignments_service.find_async({"planning_item": planning_id})
+        return {assignment["_id"]: assignment async for assignment in cursor}
+
     async def test_embedded_coverage_genre_omitted_vs_cleared(self) -> None:
         planning = UnifiedPlanningResource.from_dict(
             {
@@ -337,6 +341,115 @@ class UnifiedResourceCoveragesTestCase(TestCase):
         for assignment_id in assignment_ids:
             with self.subTest(assignment_id=assignment_id):
                 self.assertIsNotNone(await self.assignments_service.find_one_async(None, _id=assignment_id))
+
+    async def test_rejected_coverage_removal_preserves_all_assignments(self) -> None:
+        coverage_ids = ("coverage-1", "coverage-2")
+        # Match the mutation loop's set order so the draft removal is attempted first.
+        draft_coverage_id = next(iter(dict.fromkeys(coverage_ids).keys() | {}.keys()))
+        planning = (
+            await self.planning_service.create(
+                [
+                    {
+                        "type": PlanningItemType.PLANNING,
+                        "state": "draft",
+                        "dates": {"start": "2029-06-30T15:30:55+0000"},
+                        "coverages": [
+                            {
+                                "coverage_id": coverage_id,
+                                "workflow_status": "draft" if coverage_id == draft_coverage_id else "active",
+                                "news_coverage_status": {
+                                    "qcode": "ncostat:int",
+                                    "name": "coverage intended",
+                                    "label": "Planned",
+                                },
+                                "planning": {"scheduled": "2029-06-30T16:30:55+0000"},
+                                "assigned_to": {
+                                    "desk": fixtures.desks.SPORTS_DESK_ID,
+                                    "user": fixtures.users.ADMIN_USER_ID,
+                                },
+                            }
+                            for coverage_id in coverage_ids
+                        ],
+                    }
+                ]
+            )
+        )[0]
+        planning = await self.planning_service.find_by_id(planning.id)
+        original_coverages = planning.to_dict()["coverages"]
+        original_assignments = await self._get_planning_assignments(planning.id)
+        self.assertEqual(len(original_assignments), 2)
+        self.assertEqual(
+            {assignment["assigned_to"]["state"] for assignment in original_assignments.values()},
+            {
+                "draft",
+                "assigned",
+            },
+        )
+
+        with self.assertRaisesRegex(SuperdeskApiError, "Assignment already exists") as context:
+            await self.planning_service.update(planning.id, {"coverages": []})
+        self.assertEqual(context.exception.status_code, 400)
+
+        stored = await self.planning_service.find_by_id(planning.id)
+        self.assertEqual(stored.to_dict()["coverages"], original_coverages)
+        self.assertEqual(await self._get_planning_assignments(planning.id), original_assignments)
+
+    async def test_rejected_scheduled_update_removal_does_not_create_assignments(self) -> None:
+        assigned_to = {"desk": fixtures.desks.SPORTS_DESK_ID, "user": fixtures.users.ADMIN_USER_ID}
+        news_coverage_status = {"qcode": "ncostat:int", "name": "coverage intended", "label": "Planned"}
+        planning = (
+            await self.planning_service.create(
+                [
+                    {
+                        "type": PlanningItemType.PLANNING,
+                        "state": "draft",
+                        "dates": {"start": "2029-06-30T15:30:55+0000"},
+                        "coverages": [
+                            {
+                                "coverage_id": "coverage-1",
+                                "workflow_status": "active",
+                                "news_coverage_status": news_coverage_status,
+                                "planning": {"scheduled": "2029-06-30T16:30:55+0000"},
+                                "assigned_to": assigned_to,
+                                "scheduled_updates": [
+                                    {
+                                        "coverage_id": "coverage-1",
+                                        "workflow_status": "active",
+                                        "news_coverage_status": news_coverage_status,
+                                        "planning": {"scheduled": "2029-06-30T17:30:55+0000"},
+                                        "assigned_to": assigned_to,
+                                    }
+                                ],
+                            }
+                        ],
+                    }
+                ]
+            )
+        )[0]
+        planning = await self.planning_service.find_by_id(planning.id)
+        original_coverages = planning.to_dict()["coverages"]
+        original_assignments = await self._get_planning_assignments(planning.id)
+        self.assertEqual(len(original_assignments), 2)
+        coverage = {
+            **original_coverages[0],
+            "scheduled_updates": [
+                {
+                    "coverage_id": "coverage-1",
+                    "workflow_status": "draft",
+                    "news_coverage_status": news_coverage_status,
+                    "planning": {"scheduled": "2029-06-30T18:30:55+0000"},
+                    "assigned_to": assigned_to,
+                }
+            ],
+        }
+
+        with self.assertRaisesRegex(SuperdeskApiError, "Assignment already exists") as context:
+            await self.planning_service.update(planning.id, {"coverages": [coverage]})
+        self.assertEqual(context.exception.status_code, 400)
+
+        stored = await self.planning_service.find_by_id(planning.id)
+        self.assertEqual(stored.to_dict()["coverages"], original_coverages)
+        self.assertEqual(await self._get_planning_assignments(planning.id), original_assignments)
 
     async def test_event_coverages(self) -> None:
         event = UnifiedPlanningResource.from_dict(
