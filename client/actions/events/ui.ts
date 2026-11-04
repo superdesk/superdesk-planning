@@ -336,7 +336,7 @@ const rescheduleEvent = (original, updates) => (
                             editorModalItemId === itemId
                         ));
                     } else {
-                        dispatch(main.openForEdit(item, !openInModal, openInModal));
+                        dispatch(main.openForEdit(item, true, openInModal));
                     }
                 };
 

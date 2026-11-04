@@ -551,7 +551,7 @@ describe('actions.events.ui', () => {
             store.test(done, eventsUi.rescheduleEvent(data.events[0]))
                 .then(() => {
                     expect(main.openForEdit.callCount).toBe(1);
-                    expect(main.openForEdit.args[0]).toEqual([data.events[1], false, true]);
+                    expect(main.openForEdit.args[0]).toEqual([data.events[1], true, true]);
 
                     done();
                 })
