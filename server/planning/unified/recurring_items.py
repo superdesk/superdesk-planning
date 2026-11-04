@@ -27,6 +27,7 @@ from planning.types import (
 from planning.types.unified import RecurringEndMode
 from planning.common import TO_BE_CONFIRMED_FIELD
 from planning.utils import get_planning_event_link_method
+from planning.publish.common import validate_item_for_publish
 
 from .actions.reschedule import reschedule_single_event
 from .common import (
@@ -145,7 +146,6 @@ async def _update_recurring_items(req: ItemUpdateRequest) -> None:
         calendar for calendar in req.updates.get("calendars") or [] if calendar["qcode"] not in original_calendar_qcodes
     ]
 
-    events_post_service = get_resource_service("events_post")
     updates_to_apply: list[tuple[str, dict]] = []
     items_service = UnifiedPlanningResource.get_service()
 
@@ -181,7 +181,7 @@ async def _update_recurring_items(req: ItemUpdateRequest) -> None:
         # before we proceed with updating all the affected Events
         if post_on_update_required(req):
             merged = event.clone_with(new_updates)
-            await events_post_service.validate_item(merged.to_dict())
+            await validate_item_for_publish(merged.to_dict())
 
         updates_to_apply.append((event_id, new_updates))
 
@@ -218,7 +218,6 @@ async def _mark_recurring_series_as_completed(req: ItemUpdateRequest) -> None:
     :param req: The update request containing the original event, update data, and other metadata for processing
     """
 
-    events_post_service = get_resource_service("events_post")
     items_service = UnifiedPlanningResource.get_service()
 
     # First, gather the whole series in chronological order
@@ -242,7 +241,7 @@ async def _mark_recurring_series_as_completed(req: ItemUpdateRequest) -> None:
     if post_on_update_required(req):
         for event in series:
             merged = event.clone_with(updates)
-            await events_post_service.validate_item(merged.to_dict())
+            await validate_item_for_publish(merged.to_dict())
 
     # Next, cancel associated Planning Coverages and update the Events
     for event in series:
