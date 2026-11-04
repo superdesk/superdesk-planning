@@ -312,7 +312,7 @@ six==1.17.0
     #   flask-oidc-ex
     #   oauth2client
     #   python-dateutil
-superdesk-core @ git+https://github.com/superdesk/superdesk-core.git@develop
+superdesk-core @ git+https://github.com/superdesk/superdesk-core.git@release/3.6
     # via -r core-requirements.in
 types-pytz==2026.2.0.20260506
     # via quart-babel
