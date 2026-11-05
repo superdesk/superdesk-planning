@@ -96,6 +96,7 @@ events_schema = {
             },
         },
     },
+    "agendas": planning_schema["agendas"],
     "files": {
         "type": "list",
         "nullable": True,

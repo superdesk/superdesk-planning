@@ -79,7 +79,6 @@ class PlanningPostService(AsyncBaseService):
             plan_for_validation = deepcopy(plan)
             convert_unified_planning_to_legacy_format(plan_for_validation)
             await validate_item_for_publish(plan_for_validation)
-            # await self.validate_item(plan, related_events, doc["pubstatus"], cancel_plan_with_event_enabled)
 
             if kwargs.get("related_planning"):
                 await self.validate_related_item(plan_for_validation)

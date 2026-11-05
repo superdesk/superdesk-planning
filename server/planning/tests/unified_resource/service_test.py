@@ -57,16 +57,21 @@ class TestUnifiedPlanningResourceService(TestCase):
     async def test_published_agendas_preserve_reference_order(self):
         agendas = await AgendasResourceModel.get_service().create([{"name": "First"}, {"name": "Second"}])
         agenda_ids = [agendas[1].id, agendas[0].id]
-        document = {"type": "planning", "published_item": {"agendas": agenda_ids}}
         request = ParsedRequest()
         request.embedded = '{"agendas": 1}'
 
-        await get_resource_service("published_planning")._resolve_embedded_item(document, request)
+        for item_type in ("event", "planning"):
+            for serialized in (False, True):
+                with self.subTest(item_type=item_type, serialized=serialized):
+                    references = [str(agenda_id) for agenda_id in agenda_ids] if serialized else agenda_ids
+                    document = {"type": item_type, "published_item": {"agendas": references}}
 
-        self.assertEqual(
-            [agenda["_id"] for agenda in document["published_item"]["agendas"]],
-            [str(agenda_id) for agenda_id in agenda_ids],
-        )
+                    await get_resource_service("published_planning")._resolve_embedded_item(document, request)
+
+                    self.assertEqual(
+                        [agenda["_id"] for agenda in document["published_item"]["agendas"]],
+                        [str(agenda_id) for agenda_id in agenda_ids],
+                    )
 
     async def test_duplicate_link_update_does_not_record_an_edited_history_entry(self):
         event = (

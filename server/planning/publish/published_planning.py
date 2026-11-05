@@ -43,12 +43,9 @@ class PublishedPlanningService(AsyncBaseService):
                 for file_id in item["files"]
             ]
 
-        if doc.get("type") == "event":
-            # get the embedded fields from events resources
-            fields = resolve_embedded_fields(EventsResource.endpoint_name, req) or []
-            await resolve_embedded_documents(doc.get("published_item"), EventsResource.endpoint_name, fields)
-        elif doc.get("type") == "planning":
-            fields = resolve_embedded_fields(PlanningResource.endpoint_name, req) or []
+        if doc.get("type") in ("event", "planning"):
+            resource = EventsResource.endpoint_name if doc["type"] == "event" else PlanningResource.endpoint_name
+            fields = resolve_embedded_fields(resource, req) or []
             if "agendas" in fields:
                 item = doc["published_item"]
                 agenda_ids = item.get("agendas") or []
@@ -58,7 +55,7 @@ class PublishedPlanningService(AsyncBaseService):
                     agendas_by_id[str(agenda_id)] for agenda_id in agenda_ids if str(agenda_id) in agendas_by_id
                 ]
                 fields.remove("agendas")
-            await resolve_embedded_documents(doc.get("published_item"), PlanningResource.endpoint_name, fields)
+            await resolve_embedded_documents(doc.get("published_item"), resource, fields)
         elif doc.get("type") == "planning_featured":
             fields = resolve_embedded_fields(PlanningFeaturedResourceModel.model_resource_name, req) or []
             await resolve_embedded_documents(
