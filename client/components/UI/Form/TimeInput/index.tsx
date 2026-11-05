@@ -263,7 +263,10 @@ export class TimeInput extends React.Component {
         }
 
         if ((this.props.fullWidth === false) && this.dom.inputField) {
-            const characterCount = this.state.viewValue.length;
+            const {gettext} = superdeskApi.localization;
+            const placeholder = this.props.placeholder || gettext('Time');
+            // Keep the empty input wide enough to show the placeholder and be clickable
+            const characterCount = this.state.viewValue.length || placeholder.length;
 
             const additionalPixelWidth = this.inputPadding
             + this.dom.iconWrapper.offsetWidth
