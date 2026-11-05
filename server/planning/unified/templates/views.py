@@ -32,18 +32,15 @@ async def get_recent_templates_endpoint(args: None, params: RecentTemplateParams
     template_service = PlanningTemplateResource.get_service()
     templates_ids = [item["_id"] async for item in resource_service.mongo_async.aggregate(pipeline)]
 
-    templates = [
-        template async for template in await template_service.find({"_id": {"$in": templates_ids}}, use_mongo=True)
-    ]
+    # use raw docs, as model instances fail to serialize BSON types (e.g. ObjectId) stored in `data`
+    templates = await (await template_service.find({"_id": {"$in": templates_ids}}, use_mongo=True)).to_list_raw()
 
     # keep `templates_ids` ordering
     template_id_order = {template_id: index for index, template_id in enumerate(templates_ids)}
-    templates.sort(key=lambda template: template_id_order.get(template.id, len(template_id_order)))
+    templates.sort(key=lambda template: template_id_order.get(template["_id"], len(template_id_order)))
 
     # query not used templates
-    templates += [
-        template async for template in await template_service.find({"_id": {"$nin": templates_ids}}, use_mongo=True)
-    ]
+    templates += await (await template_service.find({"_id": {"$nin": templates_ids}}, use_mongo=True)).to_list_raw()
 
     num_of_templates = len(templates)
     response = RestGetResponse(

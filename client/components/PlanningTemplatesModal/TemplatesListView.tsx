@@ -39,8 +39,9 @@ export const TemplatesListView: React.FC<ITemplatesListViewProps> = ({
                 qcode: 'no-calendar',
             },
 
-            // Get the templates without calendar
-            templates: searchQueryTemplateMatches.filter((template) => (template.data.calendars?.length ?? 0) < 1)
+            // Get the templates without calendar, or whose calendars no longer exist
+            templates: searchQueryTemplateMatches.filter((template) => !(template.data.calendars ?? [])
+                .some(({qcode}) => calendars.some((calendar) => calendar.qcode === qcode)))
         })
         .filter((group) => activeCalendarFilter
             ? group.calendar.qcode === activeCalendarFilter
