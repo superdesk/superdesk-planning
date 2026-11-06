@@ -85,7 +85,9 @@ the prepopulate profile; that is deferred backend work. Until then, per-test
 and reseeds from the named profile). The standard profile is
 `planning_prepopulate_data`.
 
-For state beyond the profile, add it with `addItems` after `setup`:
+For state beyond the profile, add it with `addItems` after `setup` and before
+`login`. Seeding while logged in sends creation notifications to the client;
+their delayed refetches can race the search assertions.
 
 ```ts
 await addItems(
