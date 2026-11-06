@@ -101,6 +101,11 @@ await addItems(
 planning-only; there is no equivalent in client-core. Fixture builders such as
 `createEventFor` live under `utils/fixtures/`.
 
+The `next_week` event and planning fixtures use Monday of the next Sunday-based
+week, so they never share a date with the `tomorrow` fixtures. Run date-search
+tests with `TZ=Australia/Sydney`, as in CI; Friday afternoon in Europe is
+already Saturday there.
+
 Build preconditions with `addItems`, not by driving the UI in a setup loop. A
 single atomic UI action as a precondition is fine, but repeating UI mutations to
 seed several items is fragile (the editor reflows between actions) and slow. If
