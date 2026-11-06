@@ -160,6 +160,10 @@ avoided because macOS AirPlay Receiver answers on it.
   the actual condition with a web-first assertion, which auto-retries.
 - "Passes solo, fails in a suite" is a shared-state problem. Make sure
   `setup(...)` runs in `beforeEach`.
+- Create date-relative fixtures such as `createEventFor.today(...)` inside the
+  test, not at module scope. For parameterized cases, store fixture factories
+  and call them when seeding: a suite crossing midnight can otherwise seed
+  yesterday's items, which the default future-only list hides.
 - The only acceptable product-source change from a test is adding a
   `data-test-id` attribute. Anything more belongs in a separate PR with product
   review.

@@ -13,31 +13,31 @@ const COVERAGE = {
     planning: {g2_content_type: 'text', language: 'en'},
 };
 
-const UNCHANGED_ITEMS: Array<{title: string; resource: 'events' | 'planning'; item: {[key: string]: any}}> = [
+const UNCHANGED_ITEMS: Array<{title: string; resource: 'events' | 'planning'; item: () => {[key: string]: any}}> = [
     {
         title: 'draft event',
         resource: 'events',
-        item: createEventFor.today({slugline: 'Unchanged', name: 'Unchanged'}),
+        item: () => createEventFor.today({slugline: 'Unchanged', name: 'Unchanged'}),
     },
     {
         title: 'posted event',
         resource: 'events',
-        item: createEventFor.today({slugline: 'Unchanged', name: 'Unchanged', ...POSTED}),
+        item: () => createEventFor.today({slugline: 'Unchanged', name: 'Unchanged', ...POSTED}),
     },
     {
         title: 'draft planning item',
         resource: 'planning',
-        item: createPlanningFor.today({slugline: 'Unchanged'}),
+        item: () => createPlanningFor.today({slugline: 'Unchanged'}),
     },
     {
         title: 'planning item with a coverage',
         resource: 'planning',
-        item: createPlanningFor.today({slugline: 'Unchanged', coverages: [COVERAGE]}),
+        item: () => createPlanningFor.today({slugline: 'Unchanged', coverages: [COVERAGE]}),
     },
     {
         title: 'posted planning item',
         resource: 'planning',
-        item: createPlanningFor.today({slugline: 'Unchanged', ...POSTED}),
+        item: () => createPlanningFor.today({slugline: 'Unchanged', ...POSTED}),
     },
 ];
 
@@ -269,7 +269,7 @@ test.describe('Planning.IgnoreCancelSaveModal', () => {
         test(`closes an unchanged ${title} without asking to save`, async({page}) => {
             const itemEditor = resource === 'events' ? new EventEditor(page) : new PlanningEditor(page);
 
-            await addItems(page.request, resource, [item]);
+            await addItems(page.request, resource, [item()]);
             await page.reload();
             await waitForPageLoad.planning(page);
 
