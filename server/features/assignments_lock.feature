@@ -1,5 +1,20 @@
 Feature: Assignments Locking
 
+    Background:
+        Given "planning"
+        """
+        [{
+            "_id": "plan1",
+            "guid": "plan1",
+            "slugline": "Test planning",
+            "planning_date": "2016-01-02"
+        }]
+        """
+        Given "desks"
+        """
+        [{"name": "Politic Desk", "members": [{"user": "#CONTEXT_USER_ID#"}]}]
+        """
+
     @auth
     Scenario: Lock assignment fails if workflow state has conflict
         Given "assignments"
@@ -11,10 +26,11 @@ Feature: Assignments Locking
                 "ednote": "test coverage, I want 250 words",
                 "headline": "test headline",
                 "slugline": "test slugline",
-                "scheduled": "2016-01-02T14:00:00+0000"
+                "scheduled": "2016-01-02T14:00:00+0000",
+                "news_coverage_status": {"qcode": "ncostat:int", "name": "coverage intended", "label": "Planned"}
             },
             "assigned_to": {
-                "desk": "Politic Desk",
+                "desk": "#desks._id#",
                 "user": "#CONTEXT_USER_ID#",
                 "state": "cancelled"
             }
@@ -40,10 +56,11 @@ Feature: Assignments Locking
                 "ednote": "test coverage, I want 250 words",
                 "headline": "test headline",
                 "slugline": "test slugline",
-                "scheduled": "2016-01-02T14:00:00+0000"
+                "scheduled": "2016-01-02T14:00:00+0000",
+                "news_coverage_status": {"qcode": "ncostat:int", "name": "coverage intended", "label": "Planned"}
             },
             "assigned_to": {
-                "desk": "Politic Desk",
+                "desk": "#desks._id#",
                 "user": "#CONTEXT_USER_ID#",
                 "state": "assigned"
             }
@@ -62,10 +79,11 @@ Feature: Assignments Locking
                 "ednote": "test coverage, I want 250 words",
                 "headline": "test headline",
                 "slugline": "test slugline",
-                "scheduled": "2016-01-02T14:00:00+0000"
+                "scheduled": "2016-01-02T14:00:00+0000",
+                "news_coverage_status": {"qcode": "ncostat:int", "name": "coverage intended", "label": "Planned"}
             },
             "assigned_to": {
-                "desk": "Politic Desk",
+                "desk": "#desks._id#",
                 "user": "#CONTEXT_USER_ID#",
                 "state": "assigned"
             },
@@ -86,11 +104,12 @@ Feature: Assignments Locking
                 "ednote": "test coverage, I want 250 words",
                 "headline": "test headline",
                 "slugline": "test slugline",
-                "scheduled": "2016-01-02T14:00:00+0000"
+                "scheduled": "2016-01-02T14:00:00+0000",
+                "news_coverage_status": {"qcode": "ncostat:int", "name": "coverage intended", "label": "Planned"}
             },
             "assigned_to": {
-                "desk": "Politic Desk",
-                "user": "507f191e810c19729de870eb",
+                "desk": "#desks._id#",
+                "user": "#CONTEXT_USER_ID#",
                 "state": "assigned"
             }
         }]
@@ -124,11 +143,12 @@ Feature: Assignments Locking
                 "ednote": "test coverage, I want 250 words",
                 "headline": "test headline",
                 "slugline": "test slugline",
-                "scheduled": "2016-01-02T14:00:00+0000"
+                "scheduled": "2016-01-02T14:00:00+0000",
+                "news_coverage_status": {"qcode": "ncostat:int", "name": "coverage intended", "label": "Planned"}
             },
             "assigned_to": {
-                "desk": "Politic Desk",
-                "user": "507f191e810c19729de870eb",
+                "desk": "#desks._id#",
+                "user": "#CONTEXT_USER_ID#",
                 "state": "assigned"
             }
         }]
@@ -162,11 +182,12 @@ Feature: Assignments Locking
                 "ednote": "test coverage, I want 250 words",
                 "headline": "test headline",
                 "slugline": "test slugline",
-                "scheduled": "2016-01-02T14:00:00+0000"
+                "scheduled": "2016-01-02T14:00:00+0000",
+                "news_coverage_status": {"qcode": "ncostat:int", "name": "coverage intended", "label": "Planned"}
             },
             "assigned_to": {
-                "desk": "Politic Desk",
-                "user": "507f191e810c19729de870eb",
+                "desk": "#desks._id#",
+                "user": "#CONTEXT_USER_ID#",
                 "state": "assigned"
             }
         }]
@@ -255,9 +276,9 @@ Feature: Assignments Locking
         """
         {"lock_action": "edit"}
         """
-        Then we get error 400
+        Then we get error 403
         """
-        {"_message": "Archive item is locked by another user."}
+        {"_message": "Item is locked by another user."}
         """
 
     @auth
@@ -271,10 +292,11 @@ Feature: Assignments Locking
                 "ednote": "test coverage, I want 250 words",
                 "headline": "test headline",
                 "slugline": "test slugline",
-                "scheduled": "2016-01-02T14:00:00+0000"
+                "scheduled": "2016-01-02T14:00:00+0000",
+                "news_coverage_status": {"qcode": "ncostat:int", "name": "coverage intended", "label": "Planned"}
             },
             "assigned_to": {
-                "desk": "Politic Desk",
+                "desk": "#desks._id#",
                 "user": "#CONTEXT_USER_ID#",
                 "state": "assigned"
             }
@@ -293,10 +315,11 @@ Feature: Assignments Locking
                 "ednote": "test coverage, I want 250 words",
                 "headline": "test headline",
                 "slugline": "test slugline",
-                "scheduled": "2016-01-02T14:00:00+0000"
+                "scheduled": "2016-01-02T14:00:00+0000",
+                "news_coverage_status": {"qcode": "ncostat:int", "name": "coverage intended", "label": "Planned"}
             },
             "assigned_to": {
-                "desk": "Politic Desk",
+                "desk": "#desks._id#",
                 "user": "#CONTEXT_USER_ID#",
                 "state": "assigned"
             },
@@ -318,10 +341,11 @@ Feature: Assignments Locking
                 "ednote": "test coverage, I want 250 words",
                 "headline": "test headline",
                 "slugline": "test slugline",
-                "scheduled": "2016-01-02T14:00:00+0000"
+                "scheduled": "2016-01-02T14:00:00+0000",
+                "news_coverage_status": {"qcode": "ncostat:int", "name": "coverage intended", "label": "Planned"}
             },
             "assigned_to": {
-                "desk": "Politic Desk",
+                "desk": "#desks._id#",
                 "user": "#CONTEXT_USER_ID#",
                 "state": "assigned"
             },

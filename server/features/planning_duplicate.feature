@@ -1,5 +1,11 @@
 Feature: Duplicate Planning
 
+    Background:
+        Given "desks"
+        """
+        [{"name": "Politic Desk", "members": [{"user": "#CONTEXT_USER_ID#"}]}]
+        """
+
     @auth @notification @vocabulary
     Scenario: Duplicate a Planning item
         When we post to "planning" with success
@@ -28,8 +34,8 @@ Feature: Duplicate Planning
                     },
                     "workflow_status": "draft",
                     "assigned_to": {
-                        "desk": "Politic Desk",
-                        "user": "507f191e810c19729de870eb"
+                        "desk": "#desks._id#",
+                        "user": "#CONTEXT_USER_ID#"
                     }
                 }
             ]
@@ -61,8 +67,8 @@ Feature: Duplicate Planning
                         "g2_content_type": "text"
                     },
                     "assigned_to": {
-                        "desk": "Politic Desk",
-                        "user": "507f191e810c19729de870eb",
+                        "desk": "#desks._id#",
+                        "user": "#CONTEXT_USER_ID#",
                         "assignment_id": "__any_value__"
                     }
                 }
@@ -110,8 +116,8 @@ Feature: Duplicate Planning
             },
             {
                 "operation": "post",
-                "item_id": "123"
-                "item_type": "planning",
+                "item_id": "123",
+                "item_type": "planning"
             },
             {
                 "operation": "coverage_created",
@@ -217,8 +223,8 @@ Feature: Duplicate Planning
                         "g2_content_type": "text"
                     },
                     "assigned_to": {
-                        "desk": "Politic Desk",
-                        "user": "507f191e810c19729de870eb"
+                        "desk": "#desks._id#",
+                        "user": "#CONTEXT_USER_ID#"
                     },
                     "workflow_status": "active"
                 }
@@ -251,8 +257,8 @@ Feature: Duplicate Planning
                         "g2_content_type": "text"
                     },
                     "assigned_to": {
-                        "desk": "Politic Desk",
-                        "user": "507f191e810c19729de870eb",
+                        "desk": "#desks._id#",
+                        "user": "#CONTEXT_USER_ID#",
                         "assignment_id": "__any_value__"
                     },
                     "workflow_status": "active"
@@ -395,7 +401,7 @@ Feature: Duplicate Planning
         Then coverage 0 has current date
         Then we get existing resource
         """
-        {"expired": "__no_value__"}
+        {"expired": false}
         """
 
     @auth @vocabulary
@@ -440,7 +446,7 @@ Feature: Duplicate Planning
             "state": "draft",
             "planning_date": "2029-11-21T14:00:00+0000",
             "related_events": [{"_id": "event1", "link_type": "primary"}],
-            "expired": "__no_value__"
+            "expired": false
         }
         """
 
@@ -473,6 +479,11 @@ Feature: Duplicate Planning
             "expired": true
         }]
         """
+        When we patch "/planning/plan1"
+        """
+        {"expired": true}
+        """
+        Then we get OK response
         When we post to "/planning/plan1/duplicate" with success
         """
         [{}]
@@ -488,7 +499,7 @@ Feature: Duplicate Planning
             "state": "draft",
             "planning_date": "2029-11-21T14:00:00+0000",
             "related_events": "__empty__",
-            "expired": "__no_value__"
+            "expired": false
         }
         """
 
@@ -535,8 +546,8 @@ Feature: Duplicate Planning
                     },
                     "workflow_status": "cancelled",
                     "assigned_to": {
-                        "desk": "Politic Desk",
-                        "user": "507f191e810c19729de870eb"
+                        "desk": "#desks._id#",
+                        "user": "#CONTEXT_USER_ID#"
                     }
                 }
             ]
@@ -557,7 +568,7 @@ Feature: Duplicate Planning
             "state": "draft",
             "planning_date": "2029-11-21T14:00:00+0000",
             "related_events": "__empty__",
-            "expired": "__no_value__",
+            "expired": false,
             "state_reason": "__no_value__",
             "ednote": "This is the ednote in planning",
             "coverages": [{"planning": {"ednote": "This is the ednote in planning", "workflow_status_reason": "__no_value__"}}]
@@ -607,8 +618,8 @@ Feature: Duplicate Planning
                     },
                     "workflow_status": "rescheduled",
                     "assigned_to": {
-                        "desk": "Politic Desk",
-                        "user": "507f191e810c19729de870eb"
+                        "desk": "#desks._id#",
+                        "user": "#CONTEXT_USER_ID#"
                     }
                 }
             ]
@@ -629,7 +640,7 @@ Feature: Duplicate Planning
             "state": "draft",
             "planning_date": "2029-11-21T14:00:00+0000",
             "related_events": "__empty__",
-            "expired": "__no_value__",
+            "expired": false,
             "ednote": "This is the ednote in planning",
             "state_reason": "__no_value__",
             "coverages": [{"planning": {"ednote": "This is the ednote in planning", "workflow_status_reason": "__no_value__"}}]
@@ -643,7 +654,7 @@ Feature: Duplicate Planning
         """
         [
             {
-                "guid": "123",
+                "guid": "event-123",
                 "name": "TestEvent",
                 "dates": {
                     "start": "2029-11-21T12:00:00.000Z",
@@ -667,11 +678,11 @@ Feature: Duplicate Planning
             "slugline": "test slugline",
             "state": "scheduled",
             "pubstatus": "usable",
-            "related_events": [{"_id": "123", "link_type": "primary"}],
+            "related_events": [{"_id": "event-123", "link_type": "primary"}],
             "planning_date": "2029-11-21T14:00:00.000Z"
         }]
         """
-        When we perform cancel on events "123"
+        When we perform cancel on events "event-123"
         """
         {"reason": "Cancelling the Event"}
         """
@@ -680,7 +691,7 @@ Feature: Duplicate Planning
         Then we get a list with 1 items
         """
         {"_items": [{
-            "_id": "123",
+            "_id": "event-123",
             "state": "cancelled",
             "lock_user": null,
             "lock_session": null,
@@ -694,7 +705,7 @@ Feature: Duplicate Planning
         {
             "_id": "123",
             "state": "cancelled",
-            "related_events": [{"_id": "123", "link_type": "primary"}]
+            "related_events": [{"_id": "event-123", "link_type": "primary"}]
         }
         """
         When we post to "/planning/123/duplicate" with success
@@ -719,7 +730,7 @@ Feature: Duplicate Planning
         """
         [
             {
-                "guid": "123",
+                "guid": "event-123",
                 "name": "TestEvent",
                 "dates": {
                     "start": "2029-11-21T12:00:00.000Z",
@@ -742,11 +753,11 @@ Feature: Duplicate Planning
             "slugline": "test slugline",
             "state": "scheduled",
             "pubstatus": "usable",
-            "related_events": [{"_id": "123", "link_type": "primary"}],
+            "related_events": [{"_id": "event-123", "link_type": "primary"}],
             "planning_date": "2029-11-21T14:00:00.000Z"
         }]
         """
-        When we perform reschedule on events "123"
+        When we perform reschedule on events "event-123"
         """
         {
             "reason": "",
@@ -762,7 +773,7 @@ Feature: Duplicate Planning
         Then we get a list with 2 items
         """
         {"_items": [{
-            "_id": "123",
+            "_id": "event-123",
             "state": "rescheduled",
             "lock_user": null,
             "lock_session": null,
@@ -776,7 +787,7 @@ Feature: Duplicate Planning
         {
             "_id": "123",
             "state": "rescheduled",
-            "related_events": [{"_id": "123", "link_type": "primary"}]
+            "related_events": [{"_id": "event-123", "link_type": "primary"}]
         }
         """
         When we post to "/planning/123/duplicate" with success

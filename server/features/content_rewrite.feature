@@ -891,7 +891,7 @@ Feature: Rewrite content
                 "assigned_to": {
                     "desk": "#desks._id#",
                     "user": "#CONTEXT_USER_ID#",
-                    "state": "active"
+                    "state": "assigned"
                 },
                 "workflow_status": "active",
                 "flags": { "no_content_linking": true }
@@ -907,7 +907,7 @@ Feature: Rewrite content
                 "assigned_to": {
                     "desk": "#desks._id#",
                     "user": "#CONTEXT_USER_ID#",
-                    "state": "active"
+                    "state": "assigned"
                 },
                 "workflow_status": "active"
             }]
@@ -950,7 +950,7 @@ Feature: Rewrite content
                             "assigned_to": {
                                 "desk": "#desks._id#",
                                 "user": "#CONTEXT_USER_ID#",
-                                "state": "active"
+                                "state": "assigned"
                             },
                             "workflow_status": "active"
                         },
@@ -965,7 +965,7 @@ Feature: Rewrite content
                             "assigned_to": {
                                 "desk": "#desks._id#",
                                 "user": "#CONTEXT_USER_ID#",
-                                "state": "active"
+                                "state": "assigned"
                             },
                             "workflow_status": "active"
                         }]
@@ -989,7 +989,7 @@ Feature: Rewrite content
                     "scheduled": "2029-10-12T14:00:00+0000"
                 },
                 "news_coverage_status": {"qcode": "ncostat:int"},
-                "workflow_status": "active",
+                "workflow_status": "assigned",
                 "deliveries": []
             },
             {
@@ -1000,7 +1000,7 @@ Feature: Rewrite content
                     "scheduled": "2029-10-12T14:00:00+0000"
                 },
                 "news_coverage_status": {"qcode": "ncostat:int"},
-                "workflow_status": "active",
+                "workflow_status": "assigned",
                 "deliveries": []
             }]
         }
@@ -1059,7 +1059,7 @@ Feature: Rewrite content
                             "assigned_to": {
                                 "desk": "#desks._id#",
                                 "user": "#CONTEXT_USER_ID#",
-                                "state": "active"
+                                "state": "assigned"
                             },
                             "workflow_status": "active"
                         }]
@@ -1097,7 +1097,7 @@ Feature: Rewrite content
                     "scheduled": "2029-10-12T16:00:00+0000"
                 },
                 "news_coverage_status": {"qcode": "ncostat:int"},
-                "workflow_status": "active",
+                "workflow_status": "assigned",
                 "deliveries": []
             }]
         }

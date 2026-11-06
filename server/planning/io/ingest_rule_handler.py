@@ -80,9 +80,9 @@ class PlanningRoutingRuleHandler(RoutingRuleHandler):
         if attributes.get("autopost", False):
             await self.process_autopost(ingest_item, updates)
 
-    def _is_original_posted(self, ingest_item: Dict[str, Any]):
+    async def _is_original_posted(self, ingest_item: Dict[str, Any]):
         service = get_resource_service("events" if ingest_item[ITEM_TYPE] == CONTENT_TYPE.EVENT else "planning")
-        original = service.find_one(req=None, _id=ingest_item.get(ID_FIELD))
+        original = await service.find_one_async(req=None, _id=ingest_item.get(ID_FIELD))
 
         return (
             original is not None
@@ -136,10 +136,11 @@ class PlanningRoutingRuleHandler(RoutingRuleHandler):
             # No need to continue if we're not adding any agenda(s)
             return None
 
+        existing_agenda_ids = {str(agenda_id) for agenda_id in ingest_item["agendas"]}
         requested_agenda_ids = [
             ObjectId(agenda_id)
             for agenda_id in attributes["agendas"]
-            if ObjectId.is_valid(agenda_id) and ObjectId(agenda_id) not in ingest_item["agendas"]
+            if ObjectId.is_valid(agenda_id) and str(ObjectId(agenda_id)) not in existing_agenda_ids
         ]
 
         if not len(requested_agenda_ids):
@@ -175,7 +176,7 @@ class PlanningRoutingRuleHandler(RoutingRuleHandler):
 
     async def process_autopost(self, ingest_item: dict[str, Any], updates: dict | None):
         """Automatically post this item"""
-        if self._is_original_posted(ingest_item):
+        if await self._is_original_posted(ingest_item):
             # No need to autopost this item
             # As the original is already posted
             # And any updates from ingest should automatically re-post this item

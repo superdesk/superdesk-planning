@@ -94,8 +94,7 @@ async def post_spike_event_actions(original: dict[str, Any]) -> None:
     # If there were any failures in removing assignments
     # Send those notifications here
     if len(spiked_items) > 0:
-        query = {"query": {"bool": {"must": {"terms": {"planning_item": spiked_items}}}}}
-        results = await assignments_service.search(query)
+        results = await assignments_service.search({"planning_item": {"$in": spiked_items}}, use_mongo=True)
         assignments = await results.to_list_raw()
 
         if len(assignments) > 0:

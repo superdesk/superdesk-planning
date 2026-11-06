@@ -787,12 +787,15 @@ Feature: Events Post
         """
         Then we get OK response
         When we get "published_planning"
-        Then we get list with 3 items
+        Then we get list with 4 items
         """
         {
             "_items": [
                 {
                     "item_id": "#planning._id#"
+                },
+                {
+                    "item_id": "#events._id#"
                 },
                 {
                     "item_id": "#planning._id#",
@@ -1115,8 +1118,8 @@ Feature: Events Post
         [{
             "name": "Friday Club",
             "dates": {
-                "start": "2029-11-22T01:00:00.000Z",
-                "end": "2029-11-22T02:00:00.000Z",
+                "start": "#DATE-3#",
+                "end": "#DATE-2#",
                 "tz": "Australia/Sydney",
                 "recurring_rule": {
                     "frequency": "DAILY",
@@ -1133,11 +1136,12 @@ Feature: Events Post
         Then we store "EVENT2" with 2 item
         Then we store "EVENT3" with 3 item
         Then we store "EVENT4" with 4 item
+        Then we store "COMPLETED_DATE" with value "#DATE-1#" to context
         When we patch "/events/#EVENT3._id#"
         """
         {
             "lock_action": "mark_completed",
-            "actioned_date": "2029-11-24T02:00:00.000Z",
+            "actioned_date": "#COMPLETED_DATE#",
             "completed": true
         }
         """
@@ -1147,7 +1151,7 @@ Feature: Events Post
         """
         {
             "_id": "#EVENT3._id#",
-            "actioned_date": "2029-11-24T02:00:00+0000",
+            "actioned_date": "#COMPLETED_DATE#",
             "completed": true
         }
         """
@@ -1166,7 +1170,7 @@ Feature: Events Post
         """
         {
             "_id": "#EVENT3._id#",
-            "actioned_date": "2029-11-24T02:00:00+0000",
+            "actioned_date": "#COMPLETED_DATE#",
             "completed": true
         }
         """

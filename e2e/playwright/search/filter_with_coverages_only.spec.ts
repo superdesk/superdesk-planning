@@ -56,14 +56,13 @@ test.describe('Search: With Coverages only filter', () => {
     });
 
     test('Events only shows only events with coverages', async ({page}) => {
-        await login(page);
-        await waitForPageLoad.planning(page);
-
         await addItems(page.request, 'events', [
             eventWithCoverage('Event with coverage'),
             createEventFor.today({name: 'Event without coverages', slugline: 'none'}),
         ]);
 
+        await login(page);
+        await waitForPageLoad.planning(page);
         await search.viewEventsOnly();
         await list.expectItemCount(2);
 
@@ -87,14 +86,13 @@ test.describe('Search: With Coverages only filter', () => {
     });
 
     test('Planning only shows only planning items with coverages', async ({page}) => {
-        await login(page);
-        await waitForPageLoad.planning(page);
-
         await addItems(page.request, 'planning', [
             createPlanningFor.today({slugline: 'Planning with coverage', coverages: [COVERAGE]}),
             createPlanningFor.today({slugline: 'Planning without coverages'}),
         ]);
 
+        await login(page);
+        await waitForPageLoad.planning(page);
         await search.viewPlanningOnly();
         await list.expectItemCount(2);
 
@@ -106,9 +104,6 @@ test.describe('Search: With Coverages only filter', () => {
     });
 
     test('Events & Planning shows only items with coverages', async ({page}) => {
-        await login(page);
-        await waitForPageLoad.planning(page);
-
         await addItems(page.request, 'events', [
             eventWithCoverage('Event with coverage'),
             createEventFor.today({name: 'Event without coverages', slugline: 'none'}),
@@ -118,6 +113,8 @@ test.describe('Search: With Coverages only filter', () => {
             createPlanningFor.today({slugline: 'Planning without coverages'}),
         ]);
 
+        await login(page);
+        await waitForPageLoad.planning(page);
         await search.viewEventsAndPlanning();
         await list.expectItemCount(4);
 

@@ -405,7 +405,7 @@ Feature: Events Cancel
             "state": "draft",
             "coverages": [{
                 "coverage_id": "cov1",
-                "workflow_status": "draft",
+                "workflow_status": "active",
                 "slugline": "TestCoverage 1",
                 "planning": {
                     "internal_note": "Cover something please!",
@@ -933,7 +933,7 @@ Feature: Events Cancel
             "guid": "plan2",
             "slugline": "test-plan",
             "planning_date": "2029-05-29T12:00:00+0000",
-            "related_events": [{"_id": "event1"}]
+            "related_events": [{"_id": "event1", "link_type": "secondary"}]
         }]
         """
         When we perform cancel on events "event1"

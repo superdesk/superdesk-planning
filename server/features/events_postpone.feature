@@ -370,7 +370,7 @@ Feature: Events Postpone
             "state": "draft",
             "coverages": [{
                 "coverage_id": "cov1",
-                "workflow_status": "draft",
+                "workflow_status": "active",
                 "slugline": "TestCoverage 1",
                 "planning": {
                     "internal_note": "Cover something please!"

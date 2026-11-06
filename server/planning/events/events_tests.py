@@ -4,6 +4,7 @@ import pytz
 import arrow
 from copy import deepcopy
 from datetime import datetime, timedelta
+from unittest import mock
 
 from superdesk.utc import utcnow
 from superdesk import get_resource_service
@@ -14,8 +15,10 @@ from superdesk.tests import utils as test_utils, fixtures
 from planning.types.unified import UnifiedPlanningResource, PlanningItemType, RelatedEventLink
 from planning.tests import TestCase, fixtures as planning_fixtures
 from planning.common import format_address, POST_STATE, TO_BE_CONFIRMED_FIELD
+from planning.content_profiles.utils import is_post_planning_with_event_enabled
 from planning.types import PlanningRelatedEventLink
 from planning.unified.actions import process_reschedule_event, process_update_time
+from planning.utils import get_related_planning_for_events_async
 
 
 class EventsBaseTestCase(TestCase):
@@ -329,6 +332,125 @@ class EventPlanningSchedule(EventsBaseTestCase):
 
 
 class EventsRelatedPlanningAutoPublish(EventsBaseTestCase):
+    async def test_publishes_all_related_planning_search_pages(self):
+        planning_service = get_resource_service("planning")
+        new_events = await self.events_service.post_async(
+            [
+                {
+                    "type": "event",
+                    "name": "Event with several plans",
+                    "state": "draft",
+                    "dates": {
+                        "start": datetime(2099, 11, 21, 11, 0, tzinfo=pytz.UTC),
+                        "end": datetime(2099, 11, 21, 12, 0, tzinfo=pytz.UTC),
+                    },
+                }
+            ]
+        )
+        new_plannings = await planning_service.post_async(
+            [
+                {
+                    "type": "planning",
+                    "name": f"Planning {index}",
+                    "planning_date": datetime(2099, 11, 21, 12, 0, tzinfo=pytz.UTC),
+                    "related_events": [{"_id": new_events[0], "link_type": "primary"}],
+                }
+                for index in range(3)
+            ]
+        )
+        await test_utils.post_items(
+            "planning_types",
+            [
+                {
+                    "name": "event",
+                    "type": "event",
+                    "editor": {"related_plannings": {"enabled": True}},
+                    "schema": {"related_plannings": {"planning_auto_publish": True}},
+                }
+            ],
+        )
+        post_request = {
+            "event": new_events[0],
+            "pubstatus": "usable",
+            "update_method": "single",
+            "failed_planning_ids": [],
+        }
+        with mock.patch("planning.utils.RELATED_PLANNING_PAGE_SIZE", 1):
+            related_plannings = await get_related_planning_for_events_async(new_events, "primary")
+            self.assertEqual([planning["_id"] for planning in related_plannings], sorted(new_plannings))
+            filtered_plannings = await get_related_planning_for_events_async(
+                new_events, "primary", exclude_planning_ids=[new_plannings[1]]
+            )
+            self.assertEqual(
+                {planning["_id"] for planning in filtered_plannings}, set(new_plannings) - {new_plannings[1]}
+            )
+            await get_resource_service("events_post").post_async([post_request])
+
+        self.assertEqual(post_request["failed_planning_ids"], [])
+        for planning_id in new_plannings:
+            planning_item = await planning_service.find_one_async(req=None, _id=planning_id)
+            self.assertEqual(planning_item["state"], "scheduled")
+
+    async def test_related_planning_validation_errors_are_reported(self):
+        planning_service = get_resource_service("planning")
+        event_ids = await self.events_service.post_async(
+            [
+                {
+                    "type": "event",
+                    "name": "Event",
+                    "state": "draft",
+                    "dates": {
+                        "start": datetime(2099, 11, 21, 11, 0, tzinfo=pytz.UTC),
+                        "end": datetime(2099, 11, 21, 12, 0, tzinfo=pytz.UTC),
+                    },
+                }
+            ]
+        )
+        planning_ids = await planning_service.post_async(
+            [
+                {
+                    "type": "planning",
+                    "name": "Planning without a slugline",
+                    "planning_date": datetime(2099, 11, 21, 12, 0, tzinfo=pytz.UTC),
+                    "related_events": [{"_id": event_ids[0], "link_type": "primary"}],
+                }
+            ]
+        )
+        await test_utils.post_items(
+            "planning_types",
+            [
+                {
+                    "name": "event",
+                    "type": "event",
+                    "editor": {"related_plannings": {"enabled": True}},
+                    "schema": {"related_plannings": {"planning_auto_publish": True}},
+                },
+                {
+                    "name": "planning",
+                    "type": "planning",
+                    "editor": {"slugline": {"enabled": True}},
+                    "schema": {"slugline": {"type": "string", "required": True}},
+                },
+            ],
+        )
+        post_request = {
+            "event": event_ids[0],
+            "pubstatus": "usable",
+            "update_method": "single",
+            "failed_planning_ids": [],
+        }
+
+        await get_resource_service("events_post").post_async([post_request])
+
+        self.assertEqual(
+            post_request["failed_planning_ids"],
+            [{"_id": planning_ids[0], "error": ["Related planning : SLUGLINE is a required field"]}],
+        )
+        event_item = await self.events_service.find_one_async(req=None, _id=event_ids[0])
+        planning_item = await planning_service.find_one_async(req=None, _id=planning_ids[0])
+        self.assertEqual(event_item["state"], "scheduled")
+        self.assertEqual(planning_item["state"], "draft")
+
     async def test_planning_item_is_published_with_events(self):
         planning_service = get_resource_service("planning")
         event = {
@@ -401,9 +523,10 @@ class EventsRelatedPlanningAutoPublish(EventsBaseTestCase):
             "planning_types",
             [
                 {
-                    "_id": "event",
+                    "_id": "65a000000000000000000003",
                     "name": "event",
                     "type": "event",
+                    "item_type": "event",
                     "editor": {
                         "language": {"enabled": True},
                         "related_plannings": {"enabled": True},
@@ -412,10 +535,18 @@ class EventsRelatedPlanningAutoPublish(EventsBaseTestCase):
                 }
             ],
         )
+        self.assertTrue(await is_post_planning_with_event_enabled())
+        related_plannings = await get_related_planning_for_events_async(new_events, "primary")
+        self.assertEqual([planning["_id"] for planning in related_plannings], new_plannings)
         now = utcnow()
-        await get_resource_service("events_post").post_async(
-            [{"event": new_events[0], "pubstatus": "usable", "update_method": "single", "failed_planning_ids": []}]
-        )
+        post_request = {
+            "event": new_events[0],
+            "pubstatus": "usable",
+            "update_method": "single",
+            "failed_planning_ids": [],
+        }
+        await get_resource_service("events_post").post_async([post_request])
+        self.assertEqual(post_request["failed_planning_ids"], [])
 
         event_item = await self.events_service.find_one_async(req=None, _id=new_events[0])
         self.assertEqual(len([event_item]), 1)
@@ -459,9 +590,14 @@ class EventsRelatedPlanningAutoPublish(EventsBaseTestCase):
                 }
             ]
         )
-        await get_resource_service("events_post").post_async(
-            [{"event": new_events[0], "pubstatus": "usable", "update_method": "single", "failed_planning_ids": []}]
-        )
+        post_request = {
+            "event": new_events[0],
+            "pubstatus": "usable",
+            "update_method": "single",
+            "failed_planning_ids": [],
+        }
+        await get_resource_service("events_post").post_async([post_request])
+        self.assertEqual(post_request["failed_planning_ids"], [])
         new_plannings = await planning_service.post_async(
             [
                 {
@@ -531,7 +667,7 @@ class EventsRelatedPlanningAutoPublish(EventsBaseTestCase):
                         "scheduled": datetime(2099, 11, 21, 12, 00, 00, tzinfo=pytz.UTC),
                         "g2_content_type": "text",
                         "language": "en",
-                        "genre": "None",
+                        "genre": [],
                     },
                     "news_coverage_status": {
                         "qcode": "ncostat:int",
@@ -549,9 +685,10 @@ class EventsRelatedPlanningAutoPublish(EventsBaseTestCase):
             "planning_types",
             [
                 {
-                    "_id": "event",
+                    "_id": "65a000000000000000000001",
                     "name": "event",
                     "type": "event",
+                    "item_type": "event",
                     "editor": {
                         "related_plannings": {"enabled": True},
                     },
@@ -560,16 +697,29 @@ class EventsRelatedPlanningAutoPublish(EventsBaseTestCase):
                     },
                 },
                 {
-                    "_id": "planning",
+                    "_id": "65a000000000000000000002",
                     "name": "planning",
-                    "editor": {"subject": {"enabled": False}},
-                    "schema": {"subject": {"required": True}},
+                    "type": "planning",
+                    "item_type": "planning",
+                    "editor": {"subject": {"enabled": False}, "planning_date": {"enabled": True}},
+                    "schema": {
+                        "subject": {"required": True},
+                        "planning_date": {"type": "datetime", "required": True, "validate_on_post": True},
+                    },
                 },
             ],
         )
-        await get_resource_service("events_post").post_async(
-            [{"event": new_events[0], "pubstatus": "usable", "update_method": "single", "failed_planning_ids": []}]
-        )
+        self.assertTrue(await is_post_planning_with_event_enabled())
+        related_plannings = await get_related_planning_for_events_async(new_events, "primary")
+        self.assertEqual([planning["_id"] for planning in related_plannings], new_plannings)
+        post_request = {
+            "event": new_events[0],
+            "pubstatus": "usable",
+            "update_method": "single",
+            "failed_planning_ids": [],
+        }
+        await get_resource_service("events_post").post_async([post_request])
+        self.assertEqual(post_request["failed_planning_ids"], [])
 
         event_item = await self.events_service.find_one_async(req=None, _id=new_events[0])
         self.assertEqual(len([event_item]), 1)
@@ -578,3 +728,5 @@ class EventsRelatedPlanningAutoPublish(EventsBaseTestCase):
         planning_item = await planning_service.find_one_async(req=None, _id=new_plannings[0])
         self.assertEqual(len([planning_item]), 1)
         self.assertEqual(planning_item.get("state"), "scheduled")
+        stored_plan = await UnifiedPlanningResource.get_service().find_by_id(new_plannings[0])
+        self.assertEqual(stored_plan.dates.start, datetime(2099, 11, 21, 12, 0, tzinfo=pytz.UTC))

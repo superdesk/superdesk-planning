@@ -21,6 +21,7 @@ from superdesk.tests import utils as test_utils, fixtures
 from planning.feed_parsers.events_ml import EventsMLParser
 from planning.common import POST_STATE
 from planning.tests import TestCase, fixtures as planning_fixtures
+from planning.types.unified import UnifiedPlanningResource
 
 
 class EventsMLFeedParserTestCase(TestCase):
@@ -96,7 +97,9 @@ class EventsMLFeedParserTestCase(TestCase):
                             "label": "Planned, then cancelled",
                         },
                     ],
-                }
+                },
+                planning_fixtures.cvs.newscoveragestatus(),
+                planning_fixtures.cvs.genre(),
             ],
         )
 
@@ -273,9 +276,13 @@ class EventsMLFeedParserTestCase(TestCase):
         # Ingest first version
         ingested, ids = await ingest_item(source, provider=self.provider, feeding_service={})
         self.assertTrue(ingested)
-        self.assertIn(source["guid"], ids)
-        dest = list(service.get_from_mongo(req=None, lookup={"guid": source["guid"]}))[0]
+        self.assertEqual(ids, [source["guid"]])
+        dest = await service.find_one_async(req=None, guid=source["guid"])
         self.assertEqual(dest["name"], "Pesäpallo: Miesten Superpesis, klo 18 Hyvinkää-Kankaanpää")
+        self.assertEqual(dest["_id"], source["guid"])
+        stored_event = await UnifiedPlanningResource.get_service().find_by_id(ids[0])
+        self.assertIsNotNone(stored_event)
+        await service.backend.create_in_search_async(service.datasource, [stored_event.to_dict()])
 
         # Attempt to update with same version
         source["ingest_versioncreated"] += timedelta(hours=1)
@@ -294,8 +301,8 @@ class EventsMLFeedParserTestCase(TestCase):
         await test_utils.patch_item("ingest_providers", self.provider["_id"], {"disable_item_updates": False})
         ingested, ids = await ingest_item(source, provider=self.provider, feeding_service={})
         self.assertTrue(ingested)
-        self.assertIn(source["guid"], ids)
-        dest = list(service.get_from_mongo(req=None, lookup={"guid": source["guid"]}))[0]
+        self.assertEqual(ids, [source["guid"]])
+        dest = await service.find_one_async(req=None, guid=source["guid"])
         self.assertEqual(dest["name"], "Test name")
 
     async def test_update_published_event(self):
@@ -308,11 +315,18 @@ class EventsMLFeedParserTestCase(TestCase):
         source = deepcopy(original_source)
 
         # Ingest first version
-        await ingest_item(source, provider=self.provider, feeding_service={})
+        _, ids = await ingest_item(source, provider=self.provider, feeding_service={})
+        self.assertEqual(ids, [original_source["guid"]])
+        event_id = ids[0]
+        stored_event = await UnifiedPlanningResource.get_service().find_by_id(event_id)
+        self.assertIsNotNone(stored_event)
+        search_document = stored_event.to_dict()
+        self.assertEqual(search_document["_id"], event_id)
+        await service.backend.create_in_search_async(service.datasource, [search_document])
 
         # Publish the Event
         await service.patch_async(
-            source["guid"],
+            event_id,
             {
                 "pubstatus": POST_STATE.USABLE,
                 "state": CONTENT_STATE.SCHEDULED,
@@ -320,8 +334,8 @@ class EventsMLFeedParserTestCase(TestCase):
         )
 
         # Make sure the Event has been added to the ``published_planning`` collection
-        self.assertEqual(await published_service.count_async({"item_id": source["guid"]}), 1)
-        dest = list(service.get_from_mongo(req=None, lookup={"guid": source["guid"]}))[0]
+        self.assertEqual(await published_service.count_async({"item_id": event_id}), 1)
+        dest = await service.find_one_async(req=None, guid=source["guid"])
         self.assertEqual(dest["state"], CONTENT_STATE.SCHEDULED)
         self.assertEqual(dest["pubstatus"], POST_STATE.USABLE)
 
@@ -329,8 +343,8 @@ class EventsMLFeedParserTestCase(TestCase):
         source = deepcopy(original_source)
         source["versioncreated"] += timedelta(hours=1)
         await ingest_item(source, provider=self.provider, feeding_service={})
-        self.assertEqual(published_service.get(req=None, lookup={"item_id": source["guid"]}).count(), 2)
-        dest = list(service.get_from_mongo(req=None, lookup={"guid": source["guid"]}))[0]
+        self.assertEqual(await published_service.count_async({"item_id": event_id}), 2)
+        dest = await service.find_one_async(req=None, guid=source["guid"])
 
         # Make sure the item state has not changed after ingest
         self.assertEqual(dest["state"], CONTENT_STATE.SCHEDULED)
@@ -341,8 +355,8 @@ class EventsMLFeedParserTestCase(TestCase):
         source["versioncreated"] += timedelta(hours=2)
         source["pubstatus"] = POST_STATE.CANCELLED
         await ingest_item(source, provider=self.provider, feeding_service={})
-        self.assertEqual(published_service.get(req=None, lookup={"item_id": source["guid"]}).count(), 3)
-        dest = list(service.get_from_mongo(req=None, lookup={"guid": source["guid"]}))[0]
+        self.assertEqual(await published_service.count_async({"item_id": event_id}), 3)
+        dest = await service.find_one_async(req=None, guid=source["guid"])
 
         # Make sure the item state was changed after ingest
         self.assertEqual(dest["state"], CONTENT_STATE.KILLED)

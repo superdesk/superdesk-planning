@@ -218,6 +218,7 @@ Feature: Assignments updated when Coverages are updated
             "planning": {"g2_content_type": "text"}
         }
         """
+        And we store response in "ORIGINAL_ASSIGNMENT"
         When we patch "/planning/#planning._id#"
         """
         {"coverages": [{
@@ -266,7 +267,7 @@ Feature: Assignments updated when Coverages are updated
                 "desk": "#SPORTS_DESK._id#",
                 "user": "#CONTEXT_USER_ID#",
                 "coverage_provider": {"name": "Stringer", "qcode": "stringer"},
-                "assigned_date_desk": "__now__",
+                "assigned_date_desk": "#ORIGINAL_ASSIGNMENT.assigned_to.assigned_date_desk#",
                 "assigned_date_user": "__now__",
                 "assignor_desk": "#CONTEXT_USER_ID#",
                 "assignor_user": "#CONTEXT_USER_ID#"

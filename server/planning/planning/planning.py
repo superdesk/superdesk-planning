@@ -39,6 +39,7 @@ from planning.common import (
 
 from planning.signals import planning_ingested
 from planning.unified.common import convert_unified_planning_to_legacy_format, convert_legacy_planning_to_unified_format
+from .planning_schema import planning_schema
 
 logger = logging.getLogger(__name__)
 
@@ -50,6 +51,7 @@ class PlanningService(AsyncBaseService):
         """Post an ingested item(s)"""
 
         for doc in docs:
+            doc[ID_FIELD] = doc["guid"]
             prepare_ingested_item_for_storage(doc)
             self._resolve_defaults(doc)
             set_ingest_version_datetime(doc)
@@ -67,7 +69,7 @@ class PlanningService(AsyncBaseService):
         prepare_ingested_item_for_storage(document)
         update_ingest_on_patch(document, original)
         response = await self.backend.update_in_mongo_async(self.datasource, id, document, original)
-        await self.on_updated_async(document, original, from_ingest=True)
+        await self.on_updated_async(document, original)
         await planning_ingested.send(document, original)
         return response
 
@@ -185,6 +187,11 @@ class PlanningResource(Resource):
 
     endpoint_name = url = "planning"
     item_url = item_url
+    schema = {
+        "_id": {"type": "string"},
+        "agendas": planning_schema["agendas"],
+        "files": planning_schema["files"],
+    }
     allow_unknown = True
     datasource = {
         "source": "planning",

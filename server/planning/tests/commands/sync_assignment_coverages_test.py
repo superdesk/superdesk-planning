@@ -67,13 +67,6 @@ class SyncAssignmentCoveragesCommandTestCase(TestCase):
         planning_service = UnifiedPlanningResource.get_service()
 
         async with self.app.app_context():
-            # The assignments reference a planning item in the legacy resource (SDBELGA-1122)
-            await get_service("planning").create(
-                [{"_id": planning_id, "guid": planning_id, "planning_date": "2026-01-20T00:00:00+0000"}]
-            )
-            await get_service("assignments").create([assignment_doc, update_assignment_doc])
-
-            # Unified planning item; set the out-of-sync coverages via a raw mongo write
             await planning_service.create(
                 [
                     {
@@ -84,6 +77,9 @@ class SyncAssignmentCoveragesCommandTestCase(TestCase):
                     }
                 ]
             )
+            await get_service("assignments").create([assignment_doc, update_assignment_doc])
+
+            # Set the out-of-sync coverages via a raw mongo write.
             await planning_service.mongo_async.update_one({"_id": planning_id}, {"$set": {"coverages": coverages}})
 
             await SyncAssignmentCoveragesCommand().run(dry_run=False)

@@ -174,6 +174,7 @@ def search_date_this_week(params: Dict[str, Any], query: elastic.ElasticQuery):
     if params.get("date_filter") == elastic.DATE_RANGE.THIS_WEEK:
         time_zone = params.get("time_zone")
         start_of_week = int(params.get("start_of_week") or 0)
+        date = elastic.local_now(time_zone)
 
         query.filter.append(
             elastic.bool_or(
@@ -183,28 +184,30 @@ def search_date_this_week(params: Dict[str, Any], query: elastic.ElasticQuery):
                             field="dates.start",
                             time_zone=time_zone,
                             start_of_week=start_of_week,
-                        )
+                        ),
+                        date,
                     ),
                     elastic.range_this_week(
                         elastic.ElasticRangeParams(
                             field="dates.end",
                             time_zone=time_zone,
                             start_of_week=start_of_week,
-                        )
+                        ),
+                        date,
                     ),
                     elastic.bool_and(
                         [
                             elastic.field_range(
                                 elastic.ElasticRangeParams(
                                     field="dates.start",
-                                    lt=elastic.start_of_this_week(start_of_week),
+                                    lt=elastic.start_of_this_week(start_of_week, date),
                                     time_zone=time_zone,
                                 )
                             ),
                             elastic.field_range(
                                 elastic.ElasticRangeParams(
                                     field="dates.end",
-                                    gte=elastic.start_of_next_week(start_of_week),
+                                    gte=elastic.start_of_next_week(start_of_week, date),
                                     time_zone=time_zone,
                                 )
                             ),
@@ -219,6 +222,7 @@ def search_date_next_week(params: Dict[str, Any], query: elastic.ElasticQuery):
     if params.get("date_filter") == elastic.DATE_RANGE.NEXT_WEEK:
         time_zone = params.get("time_zone")
         start_of_week = int(params.get("start_of_week") or 0)
+        date = elastic.local_now(time_zone)
 
         query.filter.append(
             elastic.bool_or(
@@ -228,28 +232,30 @@ def search_date_next_week(params: Dict[str, Any], query: elastic.ElasticQuery):
                             field="dates.start",
                             time_zone=time_zone,
                             start_of_week=start_of_week,
-                        )
+                        ),
+                        date,
                     ),
                     elastic.range_next_week(
                         elastic.ElasticRangeParams(
                             field="dates.end",
                             time_zone=time_zone,
                             start_of_week=start_of_week,
-                        )
+                        ),
+                        date,
                     ),
                     elastic.bool_and(
                         [
                             elastic.field_range(
                                 elastic.ElasticRangeParams(
                                     field="dates.start",
-                                    lt=elastic.start_of_next_week(start_of_week),
+                                    lt=elastic.start_of_next_week(start_of_week, date),
                                     time_zone=time_zone,
                                 )
                             ),
                             elastic.field_range(
                                 elastic.ElasticRangeParams(
                                     field="dates.end",
-                                    gte=elastic.end_of_next_week(start_of_week),
+                                    gte=elastic.end_of_next_week(start_of_week, date),
                                     time_zone=time_zone,
                                 )
                             ),

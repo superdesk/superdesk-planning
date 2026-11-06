@@ -38,7 +38,7 @@ Feature: Assignment with multiple linked content
                     "user": "#CONTEXT_USER_ID#"
                 },
                 "news_coverage_status": {"qcode": "ncostat:int", "name": "coverage intended", "label": "Planned"},
-                "workflow_status": "assigned"
+                "workflow_status": "active"
             }]
         }]
         """
@@ -57,7 +57,7 @@ Feature: Assignment with multiple linked content
         When we get "/assignments_history"
         Then we get list with 1 items
         """
-        {"_items": [{"assignment_id": "#ASSIGNMENT_ID#", "operation": "create"}]}
+        {"_items": [{"item_id": "#ASSIGNMENT_ID#", "operation": "create"}]}
         """
 
     @auth
@@ -78,7 +78,7 @@ Feature: Assignment with multiple linked content
                     "user": "#CONTEXT_USER_ID#"
                 },
                 "news_coverage_status": {"qcode": "ncostat:int", "name": "coverage intended", "label": "Planned"},
-                "workflow_status": "assigned"
+                "workflow_status": "active"
             }]
         }
         """
@@ -146,9 +146,9 @@ Feature: Assignment with multiple linked content
         Then we get list with 3 items
         """
         {"_items": [
-            {"assignment_id": "#ASSIGNMENT_ID#", "operation": "create"},
-            {"assignment_id": "#ASSIGNMENT_ID#", "operation": "start_working"},
-            {"assignment_id": "#ASSIGNMENT_ID#", "operation": "start_working"}
+            {"item_id": "#ASSIGNMENT_ID#", "operation": "create"},
+            {"item_id": "#ASSIGNMENT_ID#", "operation": "start_working"},
+            {"item_id": "#ASSIGNMENT_ID#", "operation": "start_working"}
         ]}
         """
 
@@ -208,9 +208,9 @@ Feature: Assignment with multiple linked content
         Then we get list with 3 items
         """
         {"_items": [
-            {"assignment_id": "#ASSIGNMENT_ID#", "operation": "create"},
-            {"assignment_id": "#ASSIGNMENT_ID#", "operation": "start_working"},
-            {"assignment_id": "#ASSIGNMENT_ID#", "operation": "start_working"}
+            {"item_id": "#ASSIGNMENT_ID#", "operation": "create"},
+            {"item_id": "#ASSIGNMENT_ID#", "operation": "start_working"},
+            {"item_id": "#ASSIGNMENT_ID#", "operation": "start_working"}
         ]}
         """
 
@@ -292,11 +292,11 @@ Feature: Assignment with multiple linked content
         Then we get list with 5 items
         """
         {"_items": [
-            {"assignment_id": "#ASSIGNMENT_ID#", "operation": "create"},
-            {"assignment_id": "#ASSIGNMENT_ID#", "operation": "start_working"},
-            {"assignment_id": "#ASSIGNMENT_ID#", "operation": "start_working"},
-            {"assignment_id": "#ASSIGNMENT_ID#", "operation": "confirm"},
-            {"assignment_id": "#ASSIGNMENT_ID#", "operation": "revert"}
+            {"item_id": "#ASSIGNMENT_ID#", "operation": "create"},
+            {"item_id": "#ASSIGNMENT_ID#", "operation": "start_working"},
+            {"item_id": "#ASSIGNMENT_ID#", "operation": "start_working"},
+            {"item_id": "#ASSIGNMENT_ID#", "operation": "confirm"},
+            {"item_id": "#ASSIGNMENT_ID#", "operation": "revert"}
         ]}
         """
 
@@ -413,11 +413,11 @@ Feature: Assignment with multiple linked content
         Then we get list with 5 items
         """
         {"_items": [
-            {"assignment_id": "#ASSIGNMENT_ID#", "operation": "create"},
-            {"assignment_id": "#ASSIGNMENT_ID#", "operation": "content_link"},
-            {"assignment_id": "#ASSIGNMENT_ID#", "operation": "content_link"},
-            {"assignment_id": "#ASSIGNMENT_ID#", "operation": "unlink"},
-            {"assignment_id": "#ASSIGNMENT_ID#", "operation": "unlink"}
+            {"item_id": "#ASSIGNMENT_ID#", "operation": "create"},
+            {"item_id": "#ASSIGNMENT_ID#", "operation": "content_link"},
+            {"item_id": "#ASSIGNMENT_ID#", "operation": "content_link"},
+            {"item_id": "#ASSIGNMENT_ID#", "operation": "unlink"},
+            {"item_id": "#ASSIGNMENT_ID#", "operation": "unlink"}
         ]}
         """
 
@@ -465,11 +465,11 @@ Feature: Assignment with multiple linked content
         Then we get list with 5 items
         """
         {"_items": [
-            {"assignment_id": "#ASSIGNMENT_ID#", "operation": "create"},
-            {"assignment_id": "#ASSIGNMENT_ID#", "operation": "start_working"},
-            {"assignment_id": "#ASSIGNMENT_ID#", "operation": "start_working"},
-            {"assignment_id": "#ASSIGNMENT_ID#", "operation": "spike_unlink"},
-            {"assignment_id": "#ASSIGNMENT_ID#", "operation": "spike_unlink"}
+            {"item_id": "#ASSIGNMENT_ID#", "operation": "create"},
+            {"item_id": "#ASSIGNMENT_ID#", "operation": "start_working"},
+            {"item_id": "#ASSIGNMENT_ID#", "operation": "start_working"},
+            {"item_id": "#ASSIGNMENT_ID#", "operation": "spike_unlink"},
+            {"item_id": "#ASSIGNMENT_ID#", "operation": "spike_unlink"}
         ]}
         """
 
@@ -668,7 +668,7 @@ Feature: Assignment with multiple linked content
                 "user": "#CONTEXT_USER_ID#"
             },
             "news_coverage_status": {"qcode": "ncostat:int", "name": "coverage intended", "label": "Planned"},
-            "workflow_status": "assigned"
+            "workflow_status": "active"
         }]}
         """
         Then we get OK response

@@ -19,7 +19,7 @@ Feature: Planning autocomplete
             "state": "scheduled",
             "pubstatus": "usable",
             "slugline": "planning-1",
-            "language": "en",
+            "language": "fr",
             "languages": ["en", "fr", "de"],
             "planning_date": "2021-01-11T16:00:00.000Z",
             "translations": [
@@ -85,7 +85,7 @@ Feature: Planning autocomplete
             "state": "scheduled",
             "pubstatus": "usable",
             "slugline": "event-1",
-            "language": "en",
+            "language": "fr",
             "languages": ["en", "fr", "de"],
             "dates": {
                 "start": "2025-01-03T00:00:00+0000",

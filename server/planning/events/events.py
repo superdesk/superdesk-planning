@@ -31,7 +31,7 @@ from superdesk.users.services import current_user_has_privilege
 from superdesk.publish_async.utils import get_next_sequence_number
 
 from planning.history.planning import UnifiedPlanningHistoryService
-from planning.types import Event
+from planning.types import Event, UnifiedPlanningResource
 from planning.types.unified import PlanningItemType
 from planning.common import (
     prepare_ingested_item_for_storage,
@@ -39,8 +39,10 @@ from planning.common import (
     set_ingest_version_datetime,
     is_new_version,
     update_ingest_on_patch,
+    update_post_item,
 )
 from planning.unified.common import get_related_planning_for_events
+from .events_schema import events_schema
 
 
 logger = logging.getLogger(__name__)
@@ -91,6 +93,7 @@ class EventsService(AsyncBaseService):
         """Post an ingested item(s)"""
 
         for doc in docs:
+            doc[ID_FIELD] = doc["guid"]
             prepare_ingested_item_for_storage(doc)
             self._resolve_defaults(doc)
             set_ingest_version_datetime(doc)
@@ -118,7 +121,14 @@ class EventsService(AsyncBaseService):
         await events_history.on_item_updated(document, original, "ingested")
 
         response = await self.backend.update_in_mongo_async(self.datasource, _id, document, original)
-        await self.on_updated_async(document, original, from_ingest=True)
+        updated_item = await UnifiedPlanningResource.get_service().find_by_id(_id)
+        if updated_item is None:
+            raise SuperdeskApiError.notFoundError()
+
+        document["_etag"] = updated_item.etag
+        if original.get("pubstatus"):
+            await update_post_item(document, original)
+        await self.on_updated_async(document, original)
         return response
 
     def is_new_version(self, new_item, old_item):
@@ -236,6 +246,11 @@ class EventsResource(superdesk.Resource):
 
     endpoint_name = url = "events"
     item_url = r'regex("[\w,.:-]+")'
+    schema = {
+        "_id": {"type": "string"},
+        "agendas": events_schema["agendas"],
+        "files": events_schema["files"],
+    }
     resource_methods = ["GET", "POST"]
     datasource = {
         "source": "events",

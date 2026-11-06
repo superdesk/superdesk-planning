@@ -175,15 +175,15 @@ Feature: Assignment Unlink
         """
         {"_items": [
             {
-                "assignment_id": "#assignmentId#",
+                "item_id": "#assignmentId#",
                 "operation": "create"
             },
             {
-                "assignment_id": "#assignmentId#",
+                "item_id": "#assignmentId#",
                 "operation": "content_link"
             },
             {
-                "assignment_id": "#assignmentId#",
+                "item_id": "#assignmentId#",
                 "operation": "unlink"
             }
         ]}

@@ -183,7 +183,7 @@ def _copy_destination_assignment(updates: dict, assignment: dict, coverage: dict
         destination_updated = True
     else:
         # We're attempting to update an existing Assignment'
-        if assignment["assigned_to"]["state"] in [
+        if assignment["assigned_to"].get("state") in [
             ASSIGNMENT_WORKFLOW_STATE.COMPLETED,
             ASSIGNMENT_WORKFLOW_STATE.CANCELLED,
         ]:

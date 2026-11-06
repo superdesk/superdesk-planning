@@ -92,6 +92,15 @@ async def on_coverage_update(req: ItemUpdateRequest) -> None:
         coverage.coverage_id or f"{TEMP_ID_PREFIX}-{generate_guid(type=GUID_NEWSML)}": coverage
         for coverage in req.updated.coverages or []
     }
+
+    # Reject invalid removals before any coverage processing can mutate assignments.
+    for coverage_id, coverage in original_coverages_map.items():
+        updated_coverage = coverage_updates_map.get(coverage_id)
+        if updated_coverage is None:
+            _validate_coverage_removal(req, coverage)
+        for scheduled_update in _get_removed_scheduled_updates(coverage, updated_coverage):
+            _validate_coverage_removal(req, scheduled_update)
+
     for coverage_id in original_coverages_map.keys() | coverage_updates_map.keys():
         original_coverage = original_coverages_map.get(coverage_id)
         updated_coverage = coverage_updates_map.get(coverage_id)
@@ -151,6 +160,10 @@ async def on_coverage_updated(original: UnifiedPlanningResource, updates: dict) 
 
 
 async def _remove_coverage(req: ItemUpdateRequest, coverage: CoverageItem) -> None:
+    _validate_coverage_removal(req, coverage)
+    for scheduled_update in coverage.scheduled_updates or []:
+        _validate_coverage_removal(req, scheduled_update)
+
     if coverage.scheduled_updates:
         for scheduled_update in coverage.scheduled_updates:
             await _remove_coverage_entity(req, scheduled_update)
@@ -177,7 +190,7 @@ async def add_coverage(item: UnifiedPlanningResource, coverage: CoverageItem) ->
 
     await sync_item_to_coverage(item, coverage)
     _set_coverage_active(item, coverage)
-    await _set_slugline_from_xmp(coverage, coverage)
+    await _set_slugline_from_xmp(None, coverage)
     await _create_assignment_from_coverage(item, coverage)
     await _add_scheduled_updates(item, coverage)
 
@@ -227,9 +240,10 @@ def _coverage_changed(original: CoverageItem, updated: CoverageItem) -> bool:
 
 
 async def _set_slugline_from_xmp(
-    original_coverage: CoverageItem | CoverageScheduledUpdate, coverage_updates: CoverageItem | CoverageScheduledUpdate
+    original_coverage: CoverageItem | CoverageScheduledUpdate | None,
+    coverage_updates: CoverageItem | CoverageScheduledUpdate,
 ) -> None:
-    xmp_file = await _get_xmp_file_for_updates(original_coverage, coverage_updates)
+    xmp_file = await _get_xmp_file_for_updates(original_coverage, coverage_updates, for_slugline=True)
     if not xmp_file:
         return
 
@@ -241,11 +255,11 @@ async def _set_slugline_from_xmp(
 
 
 async def _get_xmp_file_for_updates(
-    original: CoverageItem | CoverageScheduledUpdate,
+    original: CoverageItem | CoverageScheduledUpdate | None,
     updates: CoverageItem | CoverageScheduledUpdate,
     for_slugline: bool = False,
 ) -> SuperdeskAsyncFile | None:
-    if not updates.planning.xmp_file:
+    if not getattr(updates.planning, "xmp_file", None):
         return None
 
     coverage_type_name = await get_coverage_type_name_async(updates.planning.g2_content_type)
@@ -290,9 +304,11 @@ async def _get_xmp_file_for_updates(
 
 
 def _is_xmp_updated(
-    original: CoverageItem | CoverageScheduledUpdate, updates: CoverageItem | CoverageScheduledUpdate
+    original: CoverageItem | CoverageScheduledUpdate | None, updates: CoverageItem | CoverageScheduledUpdate
 ) -> bool:
-    return bool(updates.planning.xmp_file) and original.planning.xmp_file != updates.planning.xmp_file
+    updated_xmp_file = getattr(updates.planning, "xmp_file", None)
+    original_xmp_file = getattr(getattr(original, "planning", None), "xmp_file", None)
+    return bool(updated_xmp_file) and original_xmp_file != updated_xmp_file
 
 
 async def set_assignment_xmp_file_info(assignment: dict) -> None:
@@ -354,7 +370,7 @@ async def set_assignment_xmp_file_info(assignment: dict) -> None:
             filename=media_file.filename,
             content_type="application/octet-stream",
         )
-        await files_service.patch_async(xmp_file_id, {"filemeta": {"media_id": media_id}, "media": media_id})
+        await files_service.patch_async(xmp_file["_id"], {"filemeta": {"media_id": media_id}, "media": media_id})
         push_notification("planning_files:updated", item=xmp_file_id)
     except Exception:
         logger.error(
@@ -364,16 +380,19 @@ async def set_assignment_xmp_file_info(assignment: dict) -> None:
         )
 
 
-async def _remove_coverage_entity(req: ItemUpdateRequest, coverage: CoverageItem | CoverageScheduledUpdate) -> None:
+def _validate_coverage_removal(req: ItemUpdateRequest, coverage: CoverageItem | CoverageScheduledUpdate) -> None:
     assigned_to = coverage.assigned_to
     if req.original.state == WorkflowState.CANCELLED:
         raise SuperdeskApiError.badRequestError(gettext("Cannot remove coverage of a cancelled planning item"))
     elif assigned_to and assigned_to.state not in [WorkflowState.DRAFT, WorkflowState.CANCELLED, None]:
         raise SuperdeskApiError.badRequestError(gettext("Assignment already exists. Coverage cannot be deleted."))
 
-    coverage_updated = coverage.clone()
-    coverage_updated.assigned_to = None
-    await _create_or_update_assignment(req, coverage, coverage_updated)
+
+async def _remove_coverage_entity(req: ItemUpdateRequest, coverage: CoverageItem | CoverageScheduledUpdate) -> None:
+    _validate_coverage_removal(req, coverage)
+    assigned_to = coverage.assigned_to
+    if assigned_to and assigned_to.assignment_id:
+        await get_resource_service("assignments").delete_async(lookup={"_id": assigned_to.assignment_id})
 
 
 async def _create_or_update_assignment(
@@ -424,6 +443,8 @@ async def _create_assignment_from_coverage(
         coverage.assigned_to.priority = assignment_updates["priority"]
 
     coverage.assigned_to.assignment_id = new_assignment_id
+    if coverage.assigned_to.state == AssignmentWorkflowState.DRAFT:
+        await set_assignment_xmp_file_info({**assignment_updates, "_id": new_assignment_id})
 
 
 async def _update_assignment_from_coverage(
@@ -451,6 +472,7 @@ async def _update_assignment_from_coverage(
 
     if not updated_coverage.assigned_to:
         updated_coverage.assigned_to = original_coverage.assigned_to
+    updated_coverage.assigned_to.assignment_id = existing_assignment_id
 
     await _set_slugline_from_xmp(original_coverage, updated_coverage)
 
@@ -507,6 +529,7 @@ async def _update_assignment_from_coverage(
     if _is_xmp_updated(original_coverage, updated_coverage):
         updated_assignment = deepcopy(original_assignment)
         updated_assignment.update(assignment_updates)
+        await set_assignment_xmp_file_info(updated_assignment)
         await PlanningNotifications().notify_assignment(
             coverage_status=updated_coverage.workflow_status,
             target_desk=updated_coverage.assigned_to.desk if not updated_coverage.assigned_to.user else None,
@@ -535,7 +558,7 @@ async def _add_scheduled_updates(item: UnifiedPlanningResource, coverage: Covera
         raise SuperdeskApiError.badRequestError(gettext("Not configured to create scheduled updates to a coverage"))
 
     for scheduled_update in coverage.scheduled_updates:
-        if scheduled_update.scheduled_update_id or not scheduled_update.scheduled_update_id.startswith(TEMP_ID_PREFIX):
+        if not scheduled_update.scheduled_update_id.startswith(TEMP_ID_PREFIX):
             # If this schedule already has an ID, it has already been created, skipping this one
             continue
 
@@ -566,17 +589,30 @@ async def _update_scheduled_updates(
         await _create_or_update_assignment(req, original_scheduled_update, scheduled_update)
 
 
+def _get_removed_scheduled_updates(
+    original_coverage: CoverageItem, updated_coverage: CoverageItem | None
+) -> list[CoverageScheduledUpdate]:
+    updated_scheduled_updates = updated_coverage.scheduled_updates if updated_coverage is not None else []
+    updated_scheduled_update_ids = {entry.scheduled_update_id for entry in updated_scheduled_updates or []}
+    return [
+        entry
+        for entry in original_coverage.scheduled_updates or []
+        if entry.scheduled_update_id not in updated_scheduled_update_ids
+    ]
+
+
 async def _remove_scheduled_updates(
     req: ItemUpdateRequest, original_coverage: CoverageItem, updated_coverage: CoverageItem
 ):
     if not original_coverage.scheduled_updates:
         return
 
-    updated_scheduled_updates = {entry.scheduled_update_id: entry for entry in updated_coverage.scheduled_updates or []}
-    for original_scheduled_update in original_coverage.scheduled_updates:
-        updated_scheduled_update = updated_scheduled_updates.get(original_scheduled_update.scheduled_update_id)
-        if updated_scheduled_update:
-            await _remove_coverage_entity(req, original_scheduled_update)
+    removed_scheduled_updates = _get_removed_scheduled_updates(original_coverage, updated_coverage)
+    for scheduled_update in removed_scheduled_updates:
+        _validate_coverage_removal(req, scheduled_update)
+
+    for scheduled_update in removed_scheduled_updates:
+        await _remove_coverage_entity(req, scheduled_update)
 
 
 async def _cancel_coverage(
@@ -669,11 +705,10 @@ def _set_coverage_active(item: UnifiedPlanningResource, coverage: CoverageItem |
         return
 
     coverage.workflow_status = WorkflowState.ACTIVE
-    coverage.add_coverage_to_workflow = True
 
-    if coverage.scheduled_updates:
-        # set all scheduled_updates to be activated as well
-        for scheduled_update in coverage.scheduled_updates:
+    if isinstance(coverage, CoverageItem):
+        coverage.add_coverage_to_workflow = True
+        for scheduled_update in coverage.scheduled_updates or []:
             if scheduled_update.assigned_to and scheduled_update.workflow_status == WorkflowState.DRAFT:
                 scheduled_update.workflow_status = WorkflowState.ACTIVE
 

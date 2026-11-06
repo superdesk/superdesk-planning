@@ -23,9 +23,15 @@ class IngestCancelledTestCase(TestCase):
             "_id": "p1",
             "name": "planning item",
             "type": "planning",
+            "dates": {"start": "2026-01-20T00:00:00+0000"},
             "coverages": [
                 {
                     "coverage_id": "c1",
+                    "news_coverage_status": {
+                        "qcode": "ncostat:int",
+                        "name": "coverage intended",
+                        "label": "Planned",
+                    },
                     "planning": {},
                     "assigned_to": {
                         "assignment_id": assignments[0]["_id"],

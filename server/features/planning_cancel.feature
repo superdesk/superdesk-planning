@@ -23,7 +23,7 @@ Feature: Cancel all coverage
                     "g2_content_type": "text"
                 },
                 "workflow_status": "draft",
-                "news_coverage_status": {"qcode": "ncostat:int", "name": "coverage intended", "label": "Planned"},
+                "news_coverage_status": {"qcode": "ncostat:int", "name": "coverage intended", "label": "Planned"}
             }
           ]
       }]
@@ -661,19 +661,19 @@ Feature: Cancel all coverage
         """
         {"_items": [
             {
-                "assignment_id": "#firstassignment#",
+                "item_id": "#firstassignment#",
                 "operation": "create"
             },
             {
-                "assignment_id": "#firstassignment#",
+                "item_id": "#firstassignment#",
                 "operation": "content_link"
             },
             {
-                "assignment_id": "#firstassignment#",
+                "item_id": "#firstassignment#",
                 "operation": "unlink"
             },
             {
-                "assignment_id": "#firstassignment#",
+                "item_id": "#firstassignment#",
                 "operation": "cancelled"
             }
         ]}

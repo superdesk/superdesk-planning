@@ -409,7 +409,7 @@ Feature: Post Planning
             "planning_date": "2016-01-02"
         }]
         """
-        Then we get error 403
+        Then we get error 400
 
     @auth
     Scenario: Can not update planning with a disabled agenda

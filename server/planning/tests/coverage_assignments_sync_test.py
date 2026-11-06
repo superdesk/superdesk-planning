@@ -30,7 +30,11 @@ class SyncAssignmentCoverageTest(TestCase):
                         {
                             "coverage_id": "c2",
                             "workflow_status": "draft",
-                            "news_coverage_status": {"qcode": "ncostat:int"},
+                            "news_coverage_status": {
+                                "qcode": "ncostat:int",
+                                "name": "coverage intended",
+                                "label": "Planned",
+                            },
                             "planning": {"scheduled": now},
                             "assigned_to": {
                                 "desk": fixtures.desks.SPORTS_DESK_ID,
@@ -85,7 +89,11 @@ class SyncAssignmentCoverageTest(TestCase):
                         {
                             "coverage_id": "c3",
                             "workflow_status": "draft",
-                            "news_coverage_status": {"qcode": "ncostat:int"},
+                            "news_coverage_status": {
+                                "qcode": "ncostat:int",
+                                "name": "coverage intended",
+                                "label": "Planned",
+                            },
                             "planning": {"scheduled": now},
                             "assigned_to": {
                                 "desk": fixtures.desks.SPORTS_DESK_ID,
@@ -141,7 +149,11 @@ class SyncAssignmentCoverageTest(TestCase):
                         {
                             "coverage_id": "c4",
                             "workflow_status": "draft",
-                            "news_coverage_status": {"qcode": "ncostat:int"},
+                            "news_coverage_status": {
+                                "qcode": "ncostat:int",
+                                "name": "coverage intended",
+                                "label": "Planned",
+                            },
                             "planning": {"scheduled": now},
                             "assigned_to": {
                                 "desk": fixtures.desks.SPORTS_DESK_ID,
@@ -196,7 +208,11 @@ class SyncAssignmentCoverageTest(TestCase):
                         {
                             "coverage_id": "c5",
                             "workflow_status": "draft",
-                            "news_coverage_status": {"qcode": "ncostat:int"},
+                            "news_coverage_status": {
+                                "qcode": "ncostat:int",
+                                "name": "coverage intended",
+                                "label": "Planned",
+                            },
                             "planning": {"scheduled": now},
                             "assigned_to": {
                                 "desk": fixtures.desks.SPORTS_DESK_ID,
@@ -256,7 +272,11 @@ class SyncAssignmentCoverageTest(TestCase):
                         {
                             "coverage_id": "c1",
                             "workflow_status": "draft",
-                            "news_coverage_status": {"qcode": "ncostat:int"},
+                            "news_coverage_status": {
+                                "qcode": "ncostat:int",
+                                "name": "coverage intended",
+                                "label": "Planned",
+                            },
                             "planning": {"scheduled": now},
                             "assigned_to": {
                                 "desk": fixtures.desks.SPORTS_DESK_ID,

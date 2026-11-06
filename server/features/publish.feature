@@ -190,12 +190,9 @@ Feature: Publish
     Scenario: Post non existing event
         When we post to "/events/post"
         """
-        {"event": "foo", "etag": "foo"}
+        {"event": "foo", "etag": "foo", "pubstatus": "usable"}
         """
-        Then we get error 400
-        """
-        {"_issues": {"event": "__any_value__"}}
-        """
+        Then we get error 412
 
 
     @auth
@@ -403,4 +400,3 @@ Feature: Publish
             "event_contact_info": ["#contacts._id#"]
         }
         """
-

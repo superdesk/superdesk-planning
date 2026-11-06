@@ -42,7 +42,7 @@ class FixAnpaCategorySchemeTestCase(TestCase):
         )
 
         await self.assertItemsToFix(service, {"e2", "e3"})
-        await self.data_update._fix_events()
+        await self.data_update._fix_unified_planning()
         await self.assertItemsToFix(service, set())
         events = await service.get_all_map_raw()
         self.assertDictContains(events["e2"], {"anpa_category": [{"qcode": "a", "name": "A", "scheme": None}]})
@@ -75,6 +75,11 @@ class FixAnpaCategorySchemeTestCase(TestCase):
                     "coverages": [
                         {
                             "coverage_id": "c1",
+                            "news_coverage_status": {
+                                "qcode": "ncostat:int",
+                                "name": "coverage intended",
+                                "label": "Planned",
+                            },
                             "planning": {
                                 "anpa_category": [{"qcode": "b", "name": "B", "scheme": "categories"}],
                             },
@@ -87,6 +92,11 @@ class FixAnpaCategorySchemeTestCase(TestCase):
                     "coverages": [
                         {
                             "coverage_id": "c2",
+                            "news_coverage_status": {
+                                "qcode": "ncostat:int",
+                                "name": "coverage intended",
+                                "label": "Planned",
+                            },
                             "planning": {
                                 "anpa_category": [{"qcode": "c", "name": "C", "scheme": "categories"}],
                             },
@@ -97,7 +107,7 @@ class FixAnpaCategorySchemeTestCase(TestCase):
         )
 
         await self.assertItemsToFix(service, {"p2", "p3", "p4"})
-        await self.data_update._fix_planning()
+        await self.data_update._fix_unified_planning()
         await self.assertItemsToFix(service, set())
 
         planning = await service.get_all_map_raw()

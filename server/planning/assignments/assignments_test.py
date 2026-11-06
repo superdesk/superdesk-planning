@@ -50,11 +50,6 @@ class AssignmentsTestCase(TestCase):
             {
                 "coverage_id": "cov1",
                 "news_coverage_status": {"qcode": "ncostat:int", "name": "coverage intended", "label": "Planned"},
-                "assigned_to": {
-                    "user": users[0]["_id"],
-                    "desk": desks[0]["_id"],
-                    "state": "in_progress",
-                },
                 "planning": {"g2_content_type": "text"},
             }
         ],

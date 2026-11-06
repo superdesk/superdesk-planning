@@ -27,6 +27,7 @@ from planning.common import (
     get_coverage_type_name,
     get_next_assignment_status,
     get_coverage_for_assignment,
+    assignment_allows_multiple_content_linked,
 )
 from planning.planning_notifications import PlanningNotifications
 from planning.coverage_assignments import update_planning_from_assignment_changes
@@ -58,7 +59,9 @@ class AssignmentsCompleteService(AsyncBaseService):
         AssignmentsService.set_type(updates, original)
         assignments_service = get_resource_service("assignments")
         await assignments_service.validate_assignment_action(original)
-        text_assignment = await assignments_service.is_text_assignment(original)
+        text_assignment = await assignments_service.is_text_assignment(
+            original
+        ) and not assignment_allows_multiple_content_linked(original)
 
         if text_assignment:
             if original.get("scheduled_update_id"):
@@ -113,7 +116,9 @@ class AssignmentsCompleteService(AsyncBaseService):
 
         assignments_service = get_resource_service("assignments")
         # If we are confirming availability, save the revert state for revert action
-        text_assignment = await assignments_service.is_text_assignment(original)
+        text_assignment = await assignments_service.is_text_assignment(
+            original
+        ) and not assignment_allows_multiple_content_linked(original)
         if not text_assignment:
             updates["assigned_to"]["revert_state"] = updates["assigned_to"]["state"]
 

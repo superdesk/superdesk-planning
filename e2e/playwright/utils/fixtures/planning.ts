@@ -11,34 +11,40 @@ const BASE_PLANNING = {
 };
 
 export const TEST_PLANNINGS = {
-    draft: getPlanningForDate(getDateStringFor.today(), {
-        ...BASE_PLANNING,
-        slugline: 'Original',
-        anpa_category: [
-            {name: 'Overseas Sport', qcode: 's'},
-            {name: 'International News', qcode: 'i'},
-        ],
-        subject: [
-            {qcode: '01001000', name: 'archaeology', parent: '01000000'},
-            {qcode: '01011000', name: 'music', parent: '01000000'},
-            {qcode: 'foo', name: 'Foo', scheme: 'event_types'},
-            {qcode: 'bar', name: 'Bar'},
-        ],
-        description_text: 'description text',
-        name: 'planning name',
-        ednote: 'editorial note',
-        headline: 'planning headline',
-    }),
-    spiked: getPlanningForDate(getDateStringFor.today(), {
-        ...BASE_PLANNING,
-        slugline: 'Spiker',
-        state: 'spiked',
-    }),
-    featured: getPlanningForDate(getDateStringFor.today(), {
-        ...BASE_PLANNING,
-        slugline: 'Featured Planning',
-        featured: true,
-    }),
+    get draft() {
+        return getPlanningForDate(getDateStringFor.today(), {
+            ...BASE_PLANNING,
+            slugline: 'Original',
+            anpa_category: [
+                {name: 'Overseas Sport', qcode: 's'},
+                {name: 'International News', qcode: 'i'},
+            ],
+            subject: [
+                {qcode: '01001000', name: 'archaeology', parent: '01000000'},
+                {qcode: '01011000', name: 'music', parent: '01000000'},
+                {qcode: 'foo', name: 'Foo', scheme: 'event_types'},
+                {qcode: 'bar', name: 'Bar'},
+            ],
+            description_text: 'description text',
+            name: 'planning name',
+            ednote: 'editorial note',
+            headline: 'planning headline',
+        });
+    },
+    get spiked() {
+        return getPlanningForDate(getDateStringFor.today(), {
+            ...BASE_PLANNING,
+            slugline: 'Spiker',
+            state: 'spiked',
+        });
+    },
+    get featured() {
+        return getPlanningForDate(getDateStringFor.today(), {
+            ...BASE_PLANNING,
+            slugline: 'Featured Planning',
+            featured: true,
+        });
+    },
     plan_date_01_02_2045: {
         ...BASE_PLANNING,
         slugline: 'Plan Feb 1',

@@ -267,7 +267,8 @@ async def then_we_store_assignment_id_from_scheduled_update_coverage(context, ta
     coverage = (response.get("coverages") or [])[coverage_index]
     assert len(coverage.get("scheduled_updates")), "scheduled_updates are not defined."
     scheduled_update = coverage["scheduled_updates"][index]
-    set_placeholder(context, tag, scheduled_update.get("assigned_to", {}).get("assignment_id"))
+    assignment_id = scheduled_update.get("assigned_to", {}).get("assignment_id")
+    set_placeholder(context, tag, assignment_id)
 
 
 @then("the assignment not created for coverage {index}")

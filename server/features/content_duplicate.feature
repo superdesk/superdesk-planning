@@ -33,7 +33,7 @@ Feature: Assignment with multiple linked content
                     "user": "#CONTEXT_USER_ID#"
                 },
                 "news_coverage_status": {"qcode": "ncostat:int", "name": "coverage intended", "label": "Planned"},
-                "workflow_status": "assigned"
+                "workflow_status": "active"
             }, {
                 "coverage_id": "txt-multi",
                 "planning": {
@@ -46,7 +46,7 @@ Feature: Assignment with multiple linked content
                     "user": "#CONTEXT_USER_ID#"
                 },
                 "news_coverage_status": {"qcode": "ncostat:int", "name": "coverage intended", "label": "Planned"},
-                "workflow_status": "assigned"
+                "workflow_status": "active"
             }]
         }]
         """

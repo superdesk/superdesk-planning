@@ -1,5 +1,6 @@
 import pytz
 from dateutil.parser import parse as parse_datetime
+from unittest import mock
 
 from planning.tests import TestCase
 from datetime import datetime
@@ -93,6 +94,27 @@ class TestDateRangeFunctions(TestCase):
 
         self.assertEqual(start, "2024-05-13")
         self.assertEqual(end, "2024-05-20")
+
+    @mock.patch("planning.search.queries.elastic.datetime", wraps=datetime)
+    def test_week_ranges_use_the_query_timezone(self, mock_datetime):
+        now = datetime(2026, 10, 25, 1, 0, tzinfo=pytz.UTC)
+        mock_datetime.now.side_effect = lambda tz: now.astimezone(tz)
+        query = elastic.ElasticRangeParams(field="versioncreated", time_zone="America/Toronto")
+
+        self.assertEqual(
+            elastic.range_this_week(query),
+            {"range": {"versioncreated": {"gte": "2026-10-18", "lt": "2026-10-25", "time_zone": "America/Toronto"}}},
+        )
+        self.assertEqual(
+            elastic.range_next_week(query),
+            {"range": {"versioncreated": {"gte": "2026-10-25", "lt": "2026-11-01", "time_zone": "America/Toronto"}}},
+        )
+
+        query.time_zone = "Pacific/Auckland"
+        self.assertEqual(
+            elastic.range_this_week(query),
+            {"range": {"versioncreated": {"gte": "2026-10-25", "lt": "2026-11-01", "time_zone": "Pacific/Auckland"}}},
+        )
 
 
 class TestCreatedDateSearch(TestCase):

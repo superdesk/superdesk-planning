@@ -204,7 +204,11 @@ class MigrateUnifiedStorageTest(TestCase):
         self.assertEqual(plan1["_planning_schedule"], [{"coverage_id": None, "scheduled": now}])
 
         self.assertEqual(
-            items["plan2"]["_planning_schedule"], [{"coverage_id": "cov1", "scheduled": now + timedelta(hours=3)}]
+            items["plan2"]["_planning_schedule"],
+            [
+                {"coverage_id": None, "scheduled": now},
+                {"coverage_id": "cov1", "scheduled": now + timedelta(hours=3)},
+            ],
         )
 
         # The legacy collections are left untouched

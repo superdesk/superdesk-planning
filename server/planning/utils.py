@@ -49,6 +49,7 @@ class FormattedContact(TypedDict):
 
 MULTI_DAY_SECONDS = 24 * 60 * 60  # Number of seconds for an multi-day event
 ALL_DAY_SECONDS = MULTI_DAY_SECONDS - 1  # Number of seconds for an all-day event
+RELATED_PLANNING_PAGE_SIZE = 25
 
 RESOURCE_MAPPING: dict[str, Type[BasePlanningModel]] = {
     "events": UnifiedPlanningResource,
@@ -204,11 +205,27 @@ async def get_related_planning_for_events_async(
         bool_query["must_not"] = {"terms": {"_id": exclude_planning_ids}}
 
     req = ParsedRequest()
-    req.args = {"source": json.dumps({"query": {"bool": bool_query}})}
+    req.args = {
+        "source": json.dumps(
+            {
+                "query": {"bool": bool_query},
+                "sort": [{"dates.start": "asc"}, {"guid": "asc"}],
+            }
+        )
+    }
+    req.max_results = RELATED_PLANNING_PAGE_SIZE
     if projection:
         req.projection = json.dumps(projection) if isinstance(projection, dict) else projection
 
-    return [cast_item(item) async for item in await get_resource_service("planning").get_async(req=req, lookup=None)]
+    items: list[Planning] = []
+    while True:
+        page = [
+            cast_item(item) async for item in await get_resource_service("planning").get_async(req=req, lookup=None)
+        ]
+        items.extend(page)
+        if len(page) < req.max_results:
+            return items
+        req.page += 1
 
 
 def event_has_planning_items(event_id: str, link_type: Optional[PLANNING_RELATED_EVENT_LINK_TYPE] = None) -> bool:

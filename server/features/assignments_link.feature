@@ -1,5 +1,12 @@
 Feature: Assignment link
     Background: Initial setup
+        Given "users"
+        """
+        [
+            {"_id": "507f191e810c19729de870eb", "name": "test user", "email": "test-user@example.com", "username": "test_user"},
+            {"_id": "54fe3b8c10245412eac572bd", "name": "other user", "email": "other-user@example.com", "username": "other_test_user"}
+        ]
+        """
         Given the "validators"
         """
         [
@@ -110,11 +117,11 @@ Feature: Assignment link
         """
         {"_items": [
             {
-                "assignment_id": "#firstassignment#",
+                "item_id": "#firstassignment#",
                 "operation": "create"
             },
             {
-                "assignment_id": "#firstassignment#",
+                "item_id": "#firstassignment#",
                 "operation": "content_link"
             }
         ]}
@@ -1565,7 +1572,7 @@ Feature: Assignment link
                             "assignment_id": "#firstscheduledassignment#",
                             "desk": "#desks._id#",
                             "user": "507f191e810c19729de870eb",
-                            "state": "active"
+                            "state": "assigned"
                         },
                         "coverage_id": "#firstcoverage#",
                         "workflow_status": "active",
@@ -1581,7 +1588,7 @@ Feature: Assignment link
                             "assignment_id": "#secondscheduledassignment#",
                             "desk": "#desks._id#",
                             "user": "507f191e810c19729de870eb",
-                            "state": "active"
+                            "state": "assigned"
                         },
                         "coverage_id": "#firstcoverage#",
                         "workflow_status": "active",
@@ -1838,7 +1845,7 @@ Feature: Assignment link
                             "assignment_id": "#firstscheduledassignment#",
                             "desk": "#desks._id#",
                             "user": "507f191e810c19729de870eb",
-                            "state": "active"
+                            "state": "assigned"
                         },
                         "coverage_id": "#firstcoverage#",
                         "workflow_status": "active",
@@ -1854,7 +1861,7 @@ Feature: Assignment link
                             "assignment_id": "#secondscheduledassignment#",
                             "desk": "#desks._id#",
                             "user": "507f191e810c19729de870eb",
-                            "state": "active"
+                            "state": "assigned"
                         },
                         "coverage_id": "#firstcoverage#",
                         "workflow_status": "active",
@@ -2138,7 +2145,7 @@ Feature: Assignment link
                             "assignment_id": "#firstscheduledassignment#",
                             "desk": "#desks._id#",
                             "user": "507f191e810c19729de870eb",
-                            "state": "active"
+                            "state": "assigned"
                         },
                         "coverage_id": "#firstcoverage#",
                         "workflow_status": "active",
@@ -2154,7 +2161,7 @@ Feature: Assignment link
                             "assignment_id": "#secondscheduledassignment#",
                             "desk": "#desks._id#",
                             "user": "507f191e810c19729de870eb",
-                            "state": "active"
+                            "state": "assigned"
                         },
                         "coverage_id": "#firstcoverage#",
                         "workflow_status": "active",
@@ -2453,7 +2460,7 @@ Feature: Assignment link
                             "assignment_id": "#firstscheduledassignment#",
                             "desk": "#desks._id#",
                             "user": "507f191e810c19729de870eb",
-                            "state": "active"
+                            "state": "assigned"
                         },
                         "coverage_id": "#firstcoverage#",
                         "workflow_status": "active",
@@ -2469,7 +2476,7 @@ Feature: Assignment link
                             "assignment_id": "#secondscheduledassignment#",
                             "desk": "#desks._id#",
                             "user": "507f191e810c19729de870eb",
-                            "state": "active"
+                            "state": "assigned"
                         },
                         "coverage_id": "#firstcoverage#",
                         "workflow_status": "active",
@@ -2766,7 +2773,7 @@ Feature: Assignment link
                             "assignment_id": "#firstscheduledassignment#",
                             "desk": "#desks._id#",
                             "user": "507f191e810c19729de870eb",
-                            "state": "active"
+                            "state": "assigned"
                         },
                         "coverage_id": "#firstcoverage#",
                         "workflow_status": "active",
@@ -2782,7 +2789,7 @@ Feature: Assignment link
                             "assignment_id": "#secondscheduledassignment#",
                             "desk": "#desks._id#",
                             "user": "507f191e810c19729de870eb",
-                            "state": "active"
+                            "state": "assigned"
                         },
                         "coverage_id": "#firstcoverage#",
                         "workflow_status": "active",
@@ -3094,7 +3101,7 @@ Feature: Assignment link
                             "assignment_id": "#firstscheduledassignment#",
                             "desk": "#desks._id#",
                             "user": "507f191e810c19729de870eb",
-                            "state": "active"
+                            "state": "assigned"
                         },
                         "coverage_id": "#firstcoverage#",
                         "workflow_status": "active",
@@ -3110,7 +3117,7 @@ Feature: Assignment link
                             "assignment_id": "#secondscheduledassignment#",
                             "desk": "#desks._id#",
                             "user": "507f191e810c19729de870eb",
-                            "state": "active"
+                            "state": "assigned"
                         },
                         "coverage_id": "#firstcoverage#",
                         "workflow_status": "active",
