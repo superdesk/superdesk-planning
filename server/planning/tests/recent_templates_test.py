@@ -1,3 +1,4 @@
+from bson import ObjectId
 from superdesk.core.utils import str_to_date
 from superdesk.tests import fixtures
 from superdesk.tests import setup_db_user
@@ -132,3 +133,28 @@ class RecentTemplatesTestCase(TestCase):
                 "Grand Prix 4 - Unused",
             ],
         )
+
+    async def test_listing_templates_with_object_ids_in_data(self):
+        resource_service = UnifiedPlanningResource.get_service()
+        template_service = PlanningTemplateResource.get_service()
+
+        event = {**planning_fixtures.events.event1(), "_created": str_to_date("2026-06-10T09:00:00+0000")}
+        await resource_service.mongo_async.insert_one(event)
+        await template_service.create([PlanningTemplateResource(template_name="Created", based_on_event=event["guid"])])
+
+        # templates from older data can hold BSON types in `data`
+        user_id = ObjectId()
+        await template_service.mongo_async.insert_one(
+            {
+                "template_name": "Older data",
+                "based_on_event": event["guid"],
+                "data": {"name": "Event 1", "original_creator": user_id},
+            }
+        )
+
+        response = await self.test_client.get("/api/recent_events_template", headers=self.headers)
+        self.assertEqual(response.status_code, 200)
+        body = await response.get_json()
+        self.assertEqual(body["_meta"]["total"], 2)
+        self.assertEqual([template["template_name"] for template in body["_items"]], ["Created", "Older data"])
+        self.assertEqual(body["_items"][1]["data"]["original_creator"], str(user_id))
