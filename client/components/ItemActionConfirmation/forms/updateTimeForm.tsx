@@ -32,6 +32,11 @@ function datesFlagsChanged(diff, original): boolean {
         !!diff.dates?.no_end_time !== !!original.dates?.no_end_time;
 }
 
+function seriesUpdateNotSupported(diff, original): boolean {
+    return diff.update_method.value !== EVENTS.UPDATE_METHODS[0].value &&
+        (datesFlagsChanged(diff, original) || isDateOnly(diff.dates, 'end'));
+}
+
 export class UpdateTimeComponent extends React.Component {
     constructor(props) {
         super(props);
@@ -85,20 +90,24 @@ export class UpdateTimeComponent extends React.Component {
         let diff = cloneDeep(this.state.diff);
         const tz = get(this.props.original, 'dates.tz');
 
-        diff._startTime = timeUtils.getDateInRemoteTimeZone(this.props.original._startTime, tz);
-        diff._endTime = timeUtils.getDateInRemoteTimeZone(this.props.original._endTime, tz);
+        diff._startTime = this.props.original._startTime == null ?
+            null : timeUtils.getDateInRemoteTimeZone(this.props.original._startTime, tz);
+        diff._endTime = this.props.original._endTime == null ?
+            null : timeUtils.getDateInRemoteTimeZone(this.props.original._endTime, tz);
         diff[TO_BE_CONFIRMED_FIELD] = true;
 
         const dirty = diff[TO_BE_CONFIRMED_FIELD] !== this.props.original[TO_BE_CONFIRMED_FIELD];
+        const unsupportedSeriesUpdate = seriesUpdateNotSupported(diff, this.props.original);
 
         this.setState({
             diff: diff,
             dirty: dirty,
             errorMessages: [],
             errors: {},
+            unsupportedSeriesUpdate: unsupportedSeriesUpdate,
         });
 
-        if (dirty) {
+        if (dirty && !unsupportedSeriesUpdate) {
             this.props.enableSaveInModal();
         } else {
             this.props.disableSaveInModal();
@@ -117,10 +126,15 @@ export class UpdateTimeComponent extends React.Component {
             const endDay = this.getDay(diff.dates, 'end');
 
             if (value && moment.isMoment(value) && value.isValid()) {
-                const endIsDateOnly = isDateOnly(diff.dates, 'end');
+                const pendingEndTime = diff.dates.all_day && diff._endTime;
+                const endIsDateOnly = isDateOnly(diff.dates, 'end') && !pendingEndTime;
 
                 diff.dates.start = this.combineDayAndTime(startDay, value);
                 diff._startTime = diff.dates.start.clone();
+                if (pendingEndTime) {
+                    diff.dates.end = this.combineDayAndTime(endDay, pendingEndTime);
+                    diff._endTime = diff.dates.end.clone();
+                }
                 diff.dates.all_day = false;
                 diff.dates.no_end_time = endIsDateOnly;
             } else {
@@ -135,8 +149,10 @@ export class UpdateTimeComponent extends React.Component {
             const endDay = this.getDay(diff.dates, 'end');
 
             if (value && moment.isMoment(value) && value.isValid()) {
-                diff.dates.end = this.combineDayAndTime(endDay, value);
-                diff._endTime = diff.dates.end.clone();
+                diff._endTime = this.combineDayAndTime(endDay, value);
+                if (!diff.dates.all_day) {
+                    diff.dates.end = diff._endTime.clone();
+                }
                 diff.dates.no_end_time = false;
             } else {
                 diff.dates.end = moment.utc(endDay);
@@ -169,23 +185,21 @@ export class UpdateTimeComponent extends React.Component {
             fieldsToValidate
         );
 
-        // Changing all day / no end time flags is only supported for a single event,
-        // the server doesn't propagate them to the rest of the recurring series
-        const flagsChangeNotSupported = datesFlagsChanged(diff, this.props.original) &&
-            diff.update_method.value !== EVENTS.UPDATE_METHODS[0].value;
+        // The server neither propagates date-only flags nor preserves date-only ends across a series.
+        const unsupportedSeriesUpdate = seriesUpdateNotSupported(diff, this.props.original);
 
         this.setState({
             diff: diff,
             dirty: !isEqual(this.props.original, diff),
             errors: errors,
             relatedEvents: relatedEvents,
-            flagsChangeNotSupported: flagsChangeNotSupported,
+            unsupportedSeriesUpdate: unsupportedSeriesUpdate,
         });
 
         if ((eventUtils.eventsDatesSame(diff, this.props.original, TIME_COMPARISON_GRANULARITY.MINUTE) &&
                 !datesFlagsChanged(diff, this.props.original) &&
                 diff.update_method.value === EVENTS.UPDATE_METHODS[0].value) ||
-            flagsChangeNotSupported ||
+            unsupportedSeriesUpdate ||
             !isEqual(errorMessages, [])
         ) {
             this.props.disableSaveInModal();
@@ -194,11 +208,8 @@ export class UpdateTimeComponent extends React.Component {
         }
     }
 
-    // Times are entered in the event timezone when it differs from the local one
-    getInputTimeZone(): string | undefined {
-        return timeUtils.isEventInDifferentTimeZone(this.props.original) ?
-            this.props.original.dates?.tz :
-            undefined;
+    getInputTimeZone(): string {
+        return this.props.original.dates?.tz || appConfig.default_timezone;
     }
 
     getDay(dates, which: 'start' | 'end'): string {
@@ -208,13 +219,13 @@ export class UpdateTimeComponent extends React.Component {
             return moment.utc(dates[which]).format('YYYY-MM-DD');
         }
 
-        return (tz ? moment.tz(dates[which], tz) : moment(dates[which])).format('YYYY-MM-DD');
+        return moment.tz(dates[which], tz).format('YYYY-MM-DD');
     }
 
     combineDayAndTime(day: string, time: moment.Moment): moment.Moment {
         const tz = this.getInputTimeZone();
 
-        return (tz ? moment.tz(day, tz) : moment(day))
+        return moment.tz(day, tz)
             .hour(time.hour())
             .minute(time.minute())
             .second(0);
@@ -248,7 +259,11 @@ export class UpdateTimeComponent extends React.Component {
         let start, end;
 
         start = isDateOnly(this.state.diff.dates, 'start') ? null : get(this.state.diff.dates, 'start');
-        end = isDateOnly(this.state.diff.dates, 'end') ? null : get(this.state.diff.dates, 'end');
+        if (this.state.diff.dates?.all_day) {
+            end = this.state.diff._endTime;
+        } else {
+            end = isDateOnly(this.state.diff.dates, 'end') ? null : get(this.state.diff.dates, 'end');
+        }
 
         if (isRemoteTimeZone) {
             start = start && timeUtils.getDateInRemoteTimeZone(start, tz);
@@ -367,9 +382,11 @@ export class UpdateTimeComponent extends React.Component {
                     {...fieldProps}
                 />
 
-                {this.state.flagsChangeNotSupported && (
+                {this.state.unsupportedSeriesUpdate && (
                     <div className="sd-alert sd-alert--hollow sd-alert--alert sd-alert--flex-direction">
-                        <strong>{gettext('Select "This event only" to add or clear times')}</strong>
+                        <strong>
+                            {gettext('Select "This event only" to update all-day events or events without an end time')}
+                        </strong>
                     </div>
                 )}
 

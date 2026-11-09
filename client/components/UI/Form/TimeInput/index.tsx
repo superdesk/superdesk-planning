@@ -232,7 +232,8 @@ export class TimeInput extends React.Component {
         newMoment.minute(newTime.minute());
         newMoment.second(0);
 
-        if (!newMoment.isSame(value) || !value || toBeConfirmed) {
+        if (!newMoment.isSame(value) || !value || toBeConfirmed ||
+            (moment.isMoment(value) && (newTime.hour() !== value.hour() || newTime.minute() !== value.minute()))) {
             if (this.isValidInput(newValue) && this.state.invalid) {
                 this.setState({
                     invalid: false,
