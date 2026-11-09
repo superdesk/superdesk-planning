@@ -1,6 +1,6 @@
 mypy==1.19.1
 types-mock~=5.2.0
 types-python-dateutil~=2.9.0
-types-pytz~=2025.2.0
+types-pytz~=2026.2.0
 typing-extensions==4.15.0
 types-requests~=2.32.4
