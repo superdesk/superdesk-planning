@@ -40,7 +40,7 @@ export function getStartOfNextWeek(): moment.Moment {
  * - today: Returns the date string for today, setting the time to 00:00.
  * - yesterday: Returns the date string for yesterday, setting the time to 00:00.
  * - tomorrow: Returns the date string for tomorrow, setting the time to 00:00.
- * - next_week: Returns the date string for the start of the next week.
+ * - next_week: Returns the date string for Monday next week, distinct from tomorrow.
  *
  * Note: All dates are formatted using the 'YYYY-MM-DD' format.
  */
@@ -57,6 +57,7 @@ export const getDateStringFor = {
         .add(1, 'd')
         .format('YYYY-MM-DD'),
     next_week: () => getStartOfNextWeek()
+        .add(1, 'day') // Avoid overlapping tomorrow when today is Saturday.
         .format('YYYY-MM-DD'),
 };
 
