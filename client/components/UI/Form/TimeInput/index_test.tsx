@@ -11,7 +11,7 @@ describe('TimeInput', () => {
     let onChange;
 
     const mountInput = (props = {}) => {
-        onChange = sinon.spy();
+        onChange = sinon.stub();
         wrapper = mount(
             <TimeInput
                 field="time"
@@ -58,6 +58,26 @@ describe('TimeInput', () => {
 
         expect(wrapper.find('input').prop('value')).toBe('');
         expect(onChange.calledWith('time', null)).toBe(true);
+    });
+
+    it('does not restore a removed time after clearing and then entering invalid input', () => {
+        mountInput();
+        onChange.callsFake(() => {
+            expect(wrapper.state('invalid')).toBe(false);
+            expect(wrapper.state('previousValidValue')).toBe('');
+            wrapper.setProps({value: null});
+        });
+        changeAndBlur('');
+
+        expect(onChange.calledWith('time', null)).toBe(true);
+        onChange.resetHistory();
+        onChange.resetBehavior();
+        changeAndBlur('25:00');
+
+        expect(wrapper.find('input').prop('value')).toBe('');
+        expect(wrapper.state('invalid')).toBe(false);
+        expect(onChange.callCount).toBe(1);
+        expect(onChange.calledWithExactly('time', null)).toBe(true);
     });
 
     it('keeps the previous valid value empty for To Be Confirmed', () => {

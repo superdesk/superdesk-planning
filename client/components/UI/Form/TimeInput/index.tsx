@@ -143,7 +143,11 @@ export class TimeInput extends React.Component {
         const {viewValue, invalid} = this.state;
 
         if (viewValue === '') {
-            this.onChange(viewValue);
+            this.setState({
+                previousValidValue: '',
+                invalid: false,
+                showLocalValidation: false,
+            }, () => this.onChange(viewValue));
             return;
         }
 
