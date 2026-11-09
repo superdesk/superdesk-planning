@@ -245,8 +245,9 @@ async def test_planning_source_malformed_elasticsearch_query(prodapi_app_with_da
         resp_data = json.loads((await resp.get_data()).decode("utf-8"))
 
         assert resp.status_code == 400
-        assert "_message" in resp_data
-        assert "Invalid planning_source query" in resp_data["_message"]
+        assert resp_data["_status"] == "ERR"
+        assert resp_data["_error"]["code"] == 400
+        assert "Invalid planning_source query" in resp_data["_error"]["message"]
 
 
 async def test_planning_source_pagination(prodapi_app, prodapi_app_with_data_client):
