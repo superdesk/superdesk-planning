@@ -90,7 +90,10 @@ export class TimeInput extends React.Component {
             value.format(appConfig.planning.timeformat) :
             (value || '');
 
-        this.setState({viewValue}, this.updateInputWidth);
+        this.setState({
+            viewValue: viewValue,
+            previousValidValue: this.props.toBeConfirmed ? '' : viewValue,
+        }, this.updateInputWidth);
     }
 
     toggleOpenTimePicker() {

@@ -2,7 +2,7 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import {connect} from 'react-redux';
 import classNames from 'classnames';
-import moment from 'moment';
+import moment from 'moment-timezone';
 import {get, set, cloneDeep, isEqual} from 'lodash';
 
 import {appConfig} from 'appConfig';
