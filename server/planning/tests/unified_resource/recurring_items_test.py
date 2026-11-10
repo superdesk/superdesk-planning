@@ -161,6 +161,56 @@ class RecurringItemsTestCase(BaseRecurringTestCase):
         items = await self.get_all_events()
         self.assert_planning_schedule(items, 10)
 
+    async def test_save_and_post_recurring_event_with_direct_coverages(self):
+        event = planning_fixtures.recurring.daily_series()
+        event.dates.start = datetime(2099, 11, 21, 12, tzinfo=timezone.utc)
+        event.dates.end = event.dates.start + timedelta(hours=1)
+        event.dates.recurring_rule.count = 3
+        coverage = {
+            "coverage_id": "tempId-text",
+            "planning": {
+                "g2_content_type": "text",
+                "scheduled": event.dates.end + timedelta(hours=1),
+            },
+            "news_coverage_status": {
+                "qcode": "ncostat:int",
+                "name": "coverage intended",
+                "label": "Planned",
+            },
+        }
+        await self.items_service.create([event.clone_with({"coverages": [coverage]})])
+        events = await self.get_all_events()
+        selected = events[1]
+        coverages = selected.to_dict()["coverages"]
+        coverages.append(
+            {
+                **coverage,
+                "coverage_id": "tempId-picture",
+                "planning": {
+                    "g2_content_type": "picture",
+                    "scheduled": selected.dates.end + timedelta(hours=1),
+                },
+            }
+        )
+
+        await self.items_service.update(
+            selected.id,
+            {
+                "coverages": coverages,
+                "pubstatus": "usable",
+                "state": "scheduled",
+                "update_method": "all",
+            },
+        )
+
+        for item in await self.get_all_events():
+            self.assertEqual(item.pubstatus, "usable")
+            self.assertEqual(item.state, "scheduled")
+            self.assertEqual(
+                [coverage.planning.g2_content_type for coverage in item.coverages],
+                ["text", "picture"],
+            )
+
     async def test_planning_schedule_update_repetitions(self):
         event = {
             "name": "Friday Club",

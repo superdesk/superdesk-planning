@@ -205,6 +205,9 @@ Page Objects), so use them directly:
   `page.request` to simulate a second user.
 - `playwright/modals.spec.ts` - a smaller starting point when the scenario is a
   single dialog interaction rather than a full editor flow.
+- `playwright/events/recurring_event_coverages.spec.ts` - creates a series with
+  direct event coverages, adds another coverage, saves and posts all occurrences,
+  then reloads and checks both coverages on every occurrence.
 
 Note the cross-repo difference: planning resets state per test with
 `setup`/`addItems` and logs in explicitly, whereas client-core relies on a

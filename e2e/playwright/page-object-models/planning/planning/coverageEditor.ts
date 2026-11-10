@@ -132,7 +132,7 @@ export class CoverageEditor extends Editor {
     }
 
     async expand(): Promise<void> {
-        await this.element.locator('.sd-collapse-box__header').click();
+        await this.element.getByTestId('collapse-box--header').click();
     }
 
     async toggleAddToWorkflow(): Promise<void> {
