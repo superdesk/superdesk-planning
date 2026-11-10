@@ -374,14 +374,14 @@ describe('<UpdateTimeForm />', () => {
             expect(wrapper.find('[name="_startTime"]').prop('value')).toBe('15:00');
         });
 
-        it('uses the default timezone when the event has no timezone', () => {
+        it('uses the local timezone when the event has no timezone', () => {
             original.dates.tz = null;
             mountEvent(original);
             enterTime('_startTime', '10:00');
             const diff = wrapper.find(UpdateTimeComponent).instance().state.diff;
 
-            expect(diff.dates.tz).toBe('Australia/Sydney');
-            expect(diff.dates.start.toISOString()).toBe('2040-01-01T23:00:00.000Z');
+            expect(diff.dates.tz).toBe('UTC');
+            expect(diff.dates.start.toISOString()).toBe('2040-01-02T10:00:00.000Z');
             expect(diff.dates.end.toISOString()).toBe('2040-01-02T00:00:00.000Z');
             expect(wrapper.find('[name="_startTime"]').prop('value')).toBe('10:00');
         });

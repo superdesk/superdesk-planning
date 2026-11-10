@@ -5,7 +5,6 @@ import classNames from 'classnames';
 import moment from 'moment-timezone';
 import {get, set, cloneDeep, isEqual} from 'lodash';
 
-import {appConfig} from 'appConfig';
 import {IEventItem} from '../../../interfaces';
 
 import * as actions from '../../../actions';
@@ -172,8 +171,7 @@ export class UpdateTimeComponent extends React.Component {
         }
 
         if (diff.dates != null && !diff.dates.tz) {
-            // if no timezone use default one
-            diff.dates.tz = appConfig.default_timezone;
+            diff.dates.tz = this.getInputTimeZone();
         }
 
         diff[TO_BE_CONFIRMED_FIELD] = false;
@@ -209,7 +207,7 @@ export class UpdateTimeComponent extends React.Component {
     }
 
     getInputTimeZone(): string {
-        return this.props.original.dates?.tz || appConfig.default_timezone;
+        return this.props.original.dates?.tz || timeUtils.localTimeZone();
     }
 
     getDay(dates, which: 'start' | 'end'): string {
