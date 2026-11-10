@@ -13,4 +13,10 @@ export class TimePickerInput extends Input {
         await this.element.clear();
         await this.element.fill(valToType);
     }
+
+    async clearTime(): Promise<void> {
+        await this.element.click();
+        await this.element.clear();
+        await this.element.press('Tab');
+    }
 }

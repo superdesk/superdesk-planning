@@ -2,10 +2,9 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import {connect} from 'react-redux';
 import classNames from 'classnames';
-import moment from 'moment';
+import moment from 'moment-timezone';
 import {get, set, cloneDeep, isEqual} from 'lodash';
 
-import {appConfig} from 'appConfig';
 import {IEventItem} from '../../../interfaces';
 
 import * as actions from '../../../actions';
@@ -21,6 +20,21 @@ import {EVENTS, ITEM_TYPE, TIME_COMPARISON_GRANULARITY, TO_BE_CONFIRMED_FIELD} f
 import {validateItem} from '../../../validators';
 
 import '../style.scss';
+
+// All day events and events without end time store the date only (UTC midnight) instead of a datetime
+function isDateOnly(dates, which: 'start' | 'end'): boolean {
+    return dates?.all_day === true || (which === 'end' && dates?.no_end_time === true);
+}
+
+function datesFlagsChanged(diff, original): boolean {
+    return !!diff.dates?.all_day !== !!original.dates?.all_day ||
+        !!diff.dates?.no_end_time !== !!original.dates?.no_end_time;
+}
+
+function seriesUpdateNotSupported(diff, original): boolean {
+    return diff.update_method.value !== EVENTS.UPDATE_METHODS[0].value &&
+        (datesFlagsChanged(diff, original) || isDateOnly(diff.dates, 'end'));
+}
 
 export class UpdateTimeComponent extends React.Component {
     constructor(props) {
@@ -46,9 +60,12 @@ export class UpdateTimeComponent extends React.Component {
 
         if (isRemoteTimeZone) {
             diff.dates.start = timeUtils.getDateInRemoteTimeZone(diff.dates.start, tz);
-            diff.dates.end = timeUtils.getDateInRemoteTimeZone(diff.dates.end, tz);
             diff._startTime = timeUtils.getDateInRemoteTimeZone(diff._startTime, tz);
-            diff._endTime = timeUtils.getDateInRemoteTimeZone(diff._endTime, tz);
+
+            if (!isDateOnly(diff.dates, 'end')) {
+                diff.dates.end = timeUtils.getDateInRemoteTimeZone(diff.dates.end, tz);
+                diff._endTime = timeUtils.getDateInRemoteTimeZone(diff._endTime, tz);
+            }
         }
 
         if (get(this.props, 'original.recurrence_id')) {
@@ -72,20 +89,24 @@ export class UpdateTimeComponent extends React.Component {
         let diff = cloneDeep(this.state.diff);
         const tz = get(this.props.original, 'dates.tz');
 
-        diff._startTime = timeUtils.getDateInRemoteTimeZone(this.props.original._startTime, tz);
-        diff._endTime = timeUtils.getDateInRemoteTimeZone(this.props.original._endTime, tz);
+        diff._startTime = this.props.original._startTime == null ?
+            null : timeUtils.getDateInRemoteTimeZone(this.props.original._startTime, tz);
+        diff._endTime = this.props.original._endTime == null ?
+            null : timeUtils.getDateInRemoteTimeZone(this.props.original._endTime, tz);
         diff[TO_BE_CONFIRMED_FIELD] = true;
 
         const dirty = diff[TO_BE_CONFIRMED_FIELD] !== this.props.original[TO_BE_CONFIRMED_FIELD];
+        const unsupportedSeriesUpdate = seriesUpdateNotSupported(diff, this.props.original);
 
         this.setState({
             diff: diff,
             dirty: dirty,
             errorMessages: [],
             errors: {},
+            unsupportedSeriesUpdate: unsupportedSeriesUpdate,
         });
 
-        if (dirty) {
+        if (dirty && !unsupportedSeriesUpdate) {
             this.props.enableSaveInModal();
         } else {
             this.props.disableSaveInModal();
@@ -100,18 +121,42 @@ export class UpdateTimeComponent extends React.Component {
         const fieldsToValidate = Object.keys(diff);
 
         if (field === '_startTime') {
+            const startDay = this.getDay(diff.dates, 'start');
+            const endDay = this.getDay(diff.dates, 'end');
+
             if (value && moment.isMoment(value) && value.isValid()) {
-                diff.dates.start.hour(value.hour()).minute(value.minute());
+                const pendingEndTime = diff.dates.all_day && diff._endTime;
+                const endIsDateOnly = isDateOnly(diff.dates, 'end') && !pendingEndTime;
+
+                diff.dates.start = this.combineDayAndTime(startDay, value);
                 diff._startTime = diff.dates.start.clone();
+                if (pendingEndTime) {
+                    diff.dates.end = this.combineDayAndTime(endDay, pendingEndTime);
+                    diff._endTime = diff.dates.end.clone();
+                }
+                diff.dates.all_day = false;
+                diff.dates.no_end_time = endIsDateOnly;
             } else {
-                diff._startTime = value;
+                diff.dates.start = moment.utc(startDay);
+                diff.dates.end = moment.utc(endDay);
+                diff._startTime = null;
+                diff._endTime = null;
+                diff.dates.all_day = true;
+                diff.dates.no_end_time = true;
             }
         } else if (field === '_endTime') {
+            const endDay = this.getDay(diff.dates, 'end');
+
             if (value && moment.isMoment(value) && value.isValid()) {
-                diff.dates.end.hour(value.hour()).minute(value.minute());
-                diff._endTime = diff.dates.end.clone();
+                diff._endTime = this.combineDayAndTime(endDay, value);
+                if (!diff.dates.all_day) {
+                    diff.dates.end = diff._endTime.clone();
+                }
+                diff.dates.no_end_time = false;
             } else {
-                diff._endTime = value;
+                diff.dates.end = moment.utc(endDay);
+                diff._endTime = null;
+                diff.dates.no_end_time = true;
             }
         } else if (field === 'update_method') {
             const event = eventUtils.getRelatedEventsForRecurringEvent(
@@ -126,8 +171,7 @@ export class UpdateTimeComponent extends React.Component {
         }
 
         if (diff.dates != null && !diff.dates.tz) {
-            // if no timezone use default one
-            diff.dates.tz = appConfig.default_timezone;
+            diff.dates.tz = this.getInputTimeZone();
         }
 
         diff[TO_BE_CONFIRMED_FIELD] = false;
@@ -139,21 +183,50 @@ export class UpdateTimeComponent extends React.Component {
             fieldsToValidate
         );
 
+        // The server neither propagates date-only flags nor preserves date-only ends across a series.
+        const unsupportedSeriesUpdate = seriesUpdateNotSupported(diff, this.props.original);
+
         this.setState({
             diff: diff,
             dirty: !isEqual(this.props.original, diff),
             errors: errors,
             relatedEvents: relatedEvents,
+            unsupportedSeriesUpdate: unsupportedSeriesUpdate,
         });
 
         if ((eventUtils.eventsDatesSame(diff, this.props.original, TIME_COMPARISON_GRANULARITY.MINUTE) &&
+                !datesFlagsChanged(diff, this.props.original) &&
                 diff.update_method.value === EVENTS.UPDATE_METHODS[0].value) ||
+            unsupportedSeriesUpdate ||
             !isEqual(errorMessages, [])
         ) {
             this.props.disableSaveInModal();
         } else {
             this.props.enableSaveInModal();
         }
+    }
+
+    getInputTimeZone(): string {
+        return this.props.original.dates?.tz || timeUtils.localTimeZone();
+    }
+
+    getDay(dates, which: 'start' | 'end'): string {
+        const tz = this.getInputTimeZone();
+
+        if (isDateOnly(dates, which)) {
+            return moment.utc(dates[which]).format('YYYY-MM-DD');
+        }
+
+        return moment.tz(dates[which], tz).format('YYYY-MM-DD');
+    }
+
+    combineDayAndTime(day: string, time: moment.Moment): moment.Moment {
+        const tz = this.getInputTimeZone();
+
+        return moment.tz(day, tz)
+            .hour(time.hour())
+            .minute(time.minute())
+            .second(0);
     }
 
     submit() {
@@ -183,12 +256,16 @@ export class UpdateTimeComponent extends React.Component {
         });
         let start, end;
 
-        start = get(this.state.diff.dates, 'start');
-        end = get(this.state.diff.dates, 'end');
+        start = isDateOnly(this.state.diff.dates, 'start') ? null : get(this.state.diff.dates, 'start');
+        if (this.state.diff.dates?.all_day) {
+            end = this.state.diff._endTime;
+        } else {
+            end = isDateOnly(this.state.diff.dates, 'end') ? null : get(this.state.diff.dates, 'end');
+        }
 
         if (isRemoteTimeZone) {
-            start = timeUtils.getDateInRemoteTimeZone(start, tz);
-            end = timeUtils.getDateInRemoteTimeZone(end, tz);
+            start = start && timeUtils.getDateInRemoteTimeZone(start, tz);
+            end = end && timeUtils.getDateInRemoteTimeZone(end, tz);
         }
 
         const fieldProps = {
@@ -253,6 +330,7 @@ export class UpdateTimeComponent extends React.Component {
                         toBeConfirmed={get(this.state.diff, TO_BE_CONFIRMED_FIELD)}
                         showDate={true}
                         fullWidth={false}
+                        canClear={true}
                         {...fieldProps}
                     />
                 </FormRow>
@@ -277,6 +355,7 @@ export class UpdateTimeComponent extends React.Component {
                         toBeConfirmed={get(this.state.diff, TO_BE_CONFIRMED_FIELD)}
                         showDate={true}
                         fullWidth={false}
+                        canClear={true}
                         {...fieldProps}
                     />
                 </FormRow>
@@ -300,6 +379,14 @@ export class UpdateTimeComponent extends React.Component {
                     action="update time"
                     {...fieldProps}
                 />
+
+                {this.state.unsupportedSeriesUpdate && (
+                    <div className="sd-alert sd-alert--hollow sd-alert--alert sd-alert--flex-direction">
+                        <strong>
+                            {gettext('Select "This event only" to update all-day events or events without an end time')}
+                        </strong>
+                    </div>
+                )}
 
                 <div ref={(node) => this.dom.popupContainer = node} />
             </div>

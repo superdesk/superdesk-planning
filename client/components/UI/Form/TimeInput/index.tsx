@@ -90,7 +90,10 @@ export class TimeInput extends React.Component {
             value.format(appConfig.planning.timeformat) :
             (value || '');
 
-        this.setState({viewValue}, this.updateInputWidth);
+        this.setState({
+            viewValue: viewValue,
+            previousValidValue: this.props.toBeConfirmed ? '' : viewValue,
+        }, this.updateInputWidth);
     }
 
     toggleOpenTimePicker() {
@@ -140,7 +143,11 @@ export class TimeInput extends React.Component {
         const {viewValue, invalid} = this.state;
 
         if (viewValue === '') {
-            this.onChange(viewValue);
+            this.setState({
+                previousValidValue: '',
+                invalid: false,
+                showLocalValidation: false,
+            }, () => this.onChange(viewValue));
             return;
         }
 
@@ -232,7 +239,8 @@ export class TimeInput extends React.Component {
         newMoment.minute(newTime.minute());
         newMoment.second(0);
 
-        if (!newMoment.isSame(value) || !value || toBeConfirmed) {
+        if (!newMoment.isSame(value) || !value || toBeConfirmed ||
+            (moment.isMoment(value) && (newTime.hour() !== value.hour() || newTime.minute() !== value.minute()))) {
             if (this.isValidInput(newValue) && this.state.invalid) {
                 this.setState({
                     invalid: false,
@@ -263,7 +271,10 @@ export class TimeInput extends React.Component {
         }
 
         if ((this.props.fullWidth === false) && this.dom.inputField) {
-            const characterCount = this.state.viewValue.length;
+            const {gettext} = superdeskApi.localization;
+            const placeholder = this.props.placeholder || gettext('Time');
+            // Keep the empty input wide enough to show the placeholder and be clickable
+            const characterCount = this.state.viewValue.length || placeholder.length;
 
             const additionalPixelWidth = this.inputPadding
             + this.dom.iconWrapper.offsetWidth
