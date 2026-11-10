@@ -14,6 +14,10 @@ export class Modal extends Popup {
         return this.footer.getByRole('button', {name: label, exact: true});
     }
 
+    async selectUpdateMethod(method: 'single' | 'future' | 'all'): Promise<void> {
+        await this.element.getByTestId('field-update_method').selectOption(method);
+    }
+
     async shouldContainTitle(title: string): Promise<void> {
         await expect(this.element.locator('.modal__heading')).toContainText(title);
     }
