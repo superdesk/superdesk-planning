@@ -117,7 +117,6 @@ const eventFirstLineConfigDefaults: Array<ILineConfig> = [
     {fieldId: 'internalnote'},
     {fieldId: 'name'},
     {fieldId: 'calendars'},
-    {fieldId: 'location'},
     {fieldId: 'event_datetime', position: 'end'},
 ];
 
