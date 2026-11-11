@@ -6,7 +6,7 @@ import {superdeskApi} from '../../../superdeskApi';
 
 import {DaysOfWeekInput} from './DaysOfWeekInput';
 import {Spacer, Select, Option, DatePicker, Input} from 'superdesk-ui-framework/react';
-import {appConfig} from 'appConfig';
+import {appConfig, userInterfaceLanguage} from 'appConfig';
 
 interface IProps {
     recurring_rule: NonNullable<IEventItem['dates']>['recurring_rule'];
@@ -143,6 +143,10 @@ export class RecurringRulesInput extends React.PureComponent<IProps> {
                                     onChange('dates.recurring_rule.until', next);
                                 }}
                                 dateFormat={appConfig.view.dateformat}
+                                locale={{
+                                    type: 'full',
+                                    payload: superdeskApi.ui.framework.getLocaleForDatePicker(userInterfaceLanguage),
+                                }}
                                 disabled={readOnly}
                                 invalid={!!errors.until}
                                 error={errors.until}
