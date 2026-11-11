@@ -69,48 +69,53 @@ describe('<UpdateTimeForm />', () => {
             wrapper.update();
         };
 
-        const expectBlocked = () => {
-            expect(disableSave.called).toBe(true);
-            expect(enableSave.called).toBe(false);
-            expect(wrapper.text()).toContain(
-                'Select "This event only" to update all-day events or events without an end time'
-            );
+        const expectAllowed = () => {
+            expect(enableSave.called).toBe(true);
+            expect(disableSave.called).toBe(false);
         };
 
         afterEach(() => {
             wrapper.unmount();
         });
 
-        it('blocks future and all updates for unchanged date-only ends, but allows a single event', () => {
+        it('allows all events to keep a date-only end', () => {
             mountForm(false, true);
             changeRecurringTime('_startTime', '10:00');
-            expect(enableSave.called).toBe(true);
-
-            ['future', 'all'].forEach((method) => {
-                enableSave.resetHistory();
-                disableSave.resetHistory();
-                selectMethod(method);
-                expectBlocked();
-            });
-
-            enableSave.resetHistory();
-            disableSave.resetHistory();
-            changeRecurringTime('_startTime', '11:00');
-            expectBlocked();
-
-            enableSave.resetHistory();
-            selectMethod('single');
-            expect(enableSave.called).toBe(true);
-            expect(wrapper.text()).not.toContain('Select "This event only"');
-        });
-
-        it('blocks unchanged all-day schedules for series updates', () => {
-            mountForm(true, true);
             selectMethod('all');
-            expectBlocked();
+            expectAllowed();
+            expect(wrapper.find('[name="_endTime"]').prop('value')).toBe('');
         });
 
-        it('keeps blocking series updates when date-only flags change', () => {
+        it('allows setting a start time on an all-day series', () => {
+            mountForm(true, true);
+            changeRecurringTime('_startTime', '10:00');
+            selectMethod('all');
+            expectAllowed();
+            const diff = wrapper.find(UpdateTimeComponent).instance().state.diff;
+
+            expect(diff.dates.all_day).toBe(false);
+            expect(diff.dates.no_end_time).toBe(true);
+        });
+
+        it('allows setting both times on an all-day series', () => {
+            mountForm(true, true);
+            changeRecurringTime('_startTime', '10:00');
+            changeRecurringTime('_endTime', '11:00');
+            selectMethod('all');
+            expectAllowed();
+        });
+
+        it('still rejects an end time before the start time for all events', () => {
+            mountForm(true, true);
+            changeRecurringTime('_startTime', '10:00');
+            changeRecurringTime('_endTime', '09:00');
+            enableSave.resetHistory();
+            selectMethod('all');
+            expect(enableSave.called).toBe(false);
+            expect(disableSave.called).toBe(true);
+        });
+
+        it('allows clearing the end time of future events', () => {
             mountForm(false, false);
             selectMethod('future');
             enableSave.resetHistory();
@@ -118,16 +123,16 @@ describe('<UpdateTimeForm />', () => {
             wrapper.find('[name="_endTime"]').simulate('change', {target: {value: ''}});
             wrapper.find('[name="_endTime"]').simulate('blur');
             wrapper.update();
-            expectBlocked();
+            expectAllowed();
         });
 
-        it('blocks series updates when a date-only end becomes timed', () => {
+        it('allows adding an end time to all events', () => {
             mountForm(false, true);
             selectMethod('all');
             enableSave.resetHistory();
             disableSave.resetHistory();
             changeRecurringTime('_endTime', '15:00');
-            expectBlocked();
+            expectAllowed();
         });
 
         it('allows ordinary timed series updates', () => {
@@ -136,20 +141,18 @@ describe('<UpdateTimeForm />', () => {
             enableSave.resetHistory();
             disableSave.resetHistory();
             selectMethod('all');
-            expect(enableSave.called).toBe(true);
-            expect(disableSave.called).toBe(false);
-            expect(wrapper.text()).not.toContain('Select "This event only"');
+            expectAllowed();
         });
 
-        it('does not re-enable a blocked series update when marking the time to be confirmed', () => {
+        it('allows marking times to be confirmed for all events', () => {
             mountForm(false, true);
-            selectMethod('future');
+            selectMethod('all');
             enableSave.resetHistory();
             disableSave.resetHistory();
             wrapper.find(UpdateTimeComponent).instance()
                 .handleToBeConfirmed();
             wrapper.update();
-            expectBlocked();
+            expectAllowed();
         });
     });
 

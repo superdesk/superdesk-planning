@@ -2,7 +2,7 @@ import {test, expect, Page} from '@playwright/test';
 import moment from 'moment-timezone';
 
 import {setup, login, waitForPageLoad, addItems, Modal, getMenuItem} from '../utils/common';
-import {TimePickerInput} from '../utils/common/inputs';
+import {SelectInput, TimePickerInput} from '../utils/common/inputs';
 import {PlanningList} from '../page-object-models/planning';
 import {createEventFor} from '../utils/fixtures/events';
 import {getDateStringFor, TIMEZONE} from '../utils/time';
@@ -62,6 +62,85 @@ test.describe('Planning.Events: update time', () => {
         await waitForPageLoad.planning(page);
         await check();
     }
+
+    async function openAllDaySeries(page: Page) {
+        const date = getDateStringFor.tomorrow();
+
+        await addItems(page.request, 'events', [{
+            ...createEventFor.tomorrow({name: 'All-day series', slugline: 'All-day series'}),
+            dates: {
+                start: date + 'T00:00:00+0000',
+                end: date + 'T00:00:00+0000',
+                tz: TIMEZONE,
+                all_day: true,
+                no_end_time: true,
+                recurring_rule: {frequency: 'DAILY', interval: 1, count: 3, endRepeatMode: 'count'},
+            },
+        }]);
+        await login(page);
+        await waitForPageLoad.planning(page);
+        await list.expectItemCount(3);
+        await (await getMenuItem(page, list.item(1), 'Update time')).click();
+        await modal.waitTillOpen();
+
+        return {
+            startTime: new TimePickerInput(page, () => modal.element, 'input[name="_startTime"]'),
+            endTime: new TimePickerInput(page, () => modal.element, 'input[name="_endTime"]'),
+            saveButton: modal.getFooterButton('Update Time'),
+            updateMethod: new SelectInput(page, () => modal.element, 'select[name="update_method"]'),
+        };
+    }
+
+    test('updates every all-day occurrence immediately without adding duplicates', async({page}) => {
+        const {startTime, endTime, saveButton, updateMethod} = await openAllDaySeries(page);
+
+        await startTime.type('10:00');
+        await startTime.element.press('Tab');
+        await updateMethod.type('all');
+        await expect(endTime.element).toHaveValue('');
+        await expectNoValidationErrors();
+        await expect(saveButton).toBeEnabled();
+        await saveButton.click();
+        await modal.waitTillClosed();
+
+        await expectEventTimeAfterReload(page, async() => {
+            await list.expectItemCount(3);
+            await expect(list.items().getByTestId('event-datetime')).toHaveText([
+                /10:00/, /10:00/, /10:00/,
+            ]);
+            await expect(list.items().getByText('All day', {exact: true})).toHaveCount(0);
+        });
+
+        await (await getMenuItem(page, list.item(0), 'Update time')).click();
+        await modal.waitTillOpen();
+        await expect(startTime.element).toHaveValue('10:00');
+        await expect(endTime.element).toHaveValue('');
+        await modal.getFooterButton('Cancel').click();
+    });
+
+    test('updates this and future all-day occurrences with both times', async({page}) => {
+        const {startTime, endTime, saveButton, updateMethod} = await openAllDaySeries(page);
+
+        await startTime.type('10:00');
+        await endTime.type('11:00');
+        await endTime.element.press('Tab');
+        await updateMethod.type('future');
+        await expectNoValidationErrors();
+        await expect(saveButton).toBeEnabled();
+        await saveButton.click();
+        await modal.waitTillClosed();
+
+        await expectEventTimeAfterReload(page, async() => {
+            await list.expectItemCount(3);
+            await expect(list.item(0).getByTestId('event-datetime')).toContainText('All day');
+            await expect(list.item(1).getByTestId('event-datetime')).toContainText('10:00');
+            await expect(list.item(1).getByTestId('event-datetime')).toContainText('11:00');
+            await expect(list.item(2).getByTestId('event-datetime')).toContainText('10:00');
+            await expect(list.item(2).getByTestId('event-datetime')).toContainText('11:00');
+            await expect(list.item(1).getByTestId('event-datetime')).not.toContainText('All day');
+            await expect(list.item(2).getByTestId('event-datetime')).not.toContainText('All day');
+        });
+    });
 
     test('can clear the end time', async({page}) => {
         const {endTime, saveButton} = await openUpdateTime(page, timedEvent());

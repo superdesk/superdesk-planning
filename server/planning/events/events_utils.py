@@ -1,7 +1,7 @@
 import arrow
 from copy import deepcopy
 
-from datetime import date, datetime
+from datetime import datetime, time, timezone
 from dateutil.rrule import DAILY, WEEKLY, MONTHLY, YEARLY, MO, TU, WE, TH, FR, SA, SU
 from typing import AsyncGenerator, Any, Tuple, Literal
 from eve.utils import ParsedRequest
@@ -346,20 +346,24 @@ async def get_recurring_event_updates_iterator(
 
         return
 
-    # Get the timezone from the original Event (as the series was created with that timezone in mind)
-    timezone = original["dates"]["tz"]
+    event_timezone = updates["dates"].get("tz") or original["dates"].get("tz") or "UTC"
+
+    def local_datetime(dates: dict, field: str) -> datetime:
+        if dates.get("all_day") or (field == "end" and dates.get("no_end_time")):
+            return dates[field]
+        return utc_to_local(event_timezone, dates[field])
 
     # First get the local date/time for both the original and the updated schedule
-    original_start_local = utc_to_local(timezone, original["dates"]["start"])
-    updated_start_local = utc_to_local(timezone, updates["dates"]["start"])
+    original_start_local = local_datetime(original["dates"], "start")
+    updated_start_local = local_datetime(updates["dates"], "start")
 
     # Then calculate the difference between the two dates (ignoring the time values)
     date_delta = updated_start_local.date() - original_start_local.date()
 
-    # Next convert the updated start time to seconds since midnight (which gives us a timedelta instance)
-    delta_since_midnight = datetime.combine(date.min, updated_start_local.time()) - datetime.min
-
-    # And calculate the new duration of the events
+    all_day = bool(updates["dates"].get("all_day"))
+    no_end_time = bool(updates["dates"].get("no_end_time"))
+    end_is_date_only = all_day or no_end_time
+    end_day_delta = local_datetime(updates["dates"], "end").date() - updated_start_local.date()
     duration = updates["dates"]["end"] - updates["dates"]["start"]
 
     for event in new_series:
@@ -371,24 +375,26 @@ async def get_recurring_event_updates_iterator(
             "skip_on_update": True,
         }
 
-        # Calculate midnight in local time for this occurrence
-        start_of_day_local = utc_to_local(timezone, event["dates"]["start"]).replace(hour=0, minute=0, second=0)
-
-        # Shift the date if needed
-        if date_delta:
-            start_of_day_local += date_delta
-
-        # Then convert midnight in local time to UTC
-        start_date_time = local_to_utc(timezone, start_of_day_local)
-
-        # Finally add the delta since midnight
-        start_date_time += delta_since_midnight
+        start_day = local_datetime(event["dates"], "start").date() + date_delta
+        start_local = datetime.combine(start_day, updated_start_local.time())
+        # Localize the final wall time, not midnight: a DST transition can occur between them.
+        start_date_time = (
+            start_local.replace(tzinfo=timezone.utc) if all_day else local_to_utc(event_timezone, start_local)
+        )
+        end_date_time = (
+            datetime.combine(start_day + end_day_delta, time.min, tzinfo=timezone.utc)
+            if end_is_date_only
+            else start_date_time + duration
+        )
 
         # Set the new start and end times
         new_updates["dates"].update(
             {
                 "start": start_date_time,
-                "end": start_date_time + duration,
+                "end": end_date_time,
+                "all_day": all_day,
+                "no_end_time": no_end_time,
+                "tz": event_timezone,
             }
         )
         set_planning_schedule(new_updates)
