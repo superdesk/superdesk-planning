@@ -89,7 +89,9 @@ export class EditorFieldEventSchedule extends React.PureComponent<IEventSchedule
             [TO_BE_CONFIRMED_FIELD]: false,
         };
 
-        if (this.props.item.dates?.no_end_time == null) {
+        if (this.props.item.dates?.all_day === true) {
+            changes['dates.no_end_time'] = this.props.item._endTime == null;
+        } else if (this.props.item.dates?.no_end_time == null) {
             changes['dates.no_end_time'] = true;
         }
 
