@@ -171,8 +171,8 @@ class EventPlanningSchedule(EventsBaseTestCase):
                 {
                     "name": "All-day series",
                     "dates": {
-                        "start": datetime(2040, 3, 10, tzinfo=pytz.UTC),
-                        "end": datetime(2040, 3, 10, tzinfo=pytz.UTC),
+                        "start": datetime(2035, 3, 10, tzinfo=pytz.UTC),
+                        "end": datetime(2035, 3, 10, tzinfo=pytz.UTC),
                         "tz": "America/Toronto",
                         "all_day": True,
                         "no_end_time": True,
@@ -315,7 +315,7 @@ class EventPlanningSchedule(EventsBaseTestCase):
         selected = original_events[1]
         schedule = deepcopy(selected["dates"])
         schedule.update(
-            start=pytz.timezone("America/Toronto").localize(datetime(2040, 3, 11, 10)),
+            start=pytz.timezone("America/Toronto").localize(datetime(2035, 3, 11, 10)),
             all_day=False,
             no_end_time=True,
         )
@@ -324,12 +324,19 @@ class EventPlanningSchedule(EventsBaseTestCase):
 
         events = sorted(await self._get_all_events_raw(), key=lambda event: event["dates"]["start"])
         self.assertEqual([event["_id"] for event in original_events], [event["_id"] for event in events])
-        for day, event in zip((10, 11, 12), events):
+        timezone = pytz.timezone("America/Toronto")
+        self.assertEqual(
+            [event["dates"]["start"].astimezone(timezone).utcoffset() for event in events],
+            [timedelta(hours=-5), timedelta(hours=-4), timedelta(hours=-4)],
+        )
+        for day, event in enumerate(events, start=10):
             with self.subTest(day=day):
                 dates = event["dates"]
-                expected_start = pytz.timezone("America/Toronto").localize(datetime(2040, 3, day, 10))
+                local_start = dates["start"].astimezone(timezone)
+                self.assertEqual(local_start.replace(tzinfo=None), datetime(2035, 3, day, 10))
+                expected_start = timezone.localize(datetime(2035, 3, day, 10))
                 self.assertEqual(dates["start"], expected_start)
-                self.assertEqual(dates["end"], datetime(2040, 3, day, tzinfo=pytz.UTC))
+                self.assertEqual(dates["end"], datetime(2035, 3, day, tzinfo=pytz.UTC))
                 self.assertFalse(dates["all_day"])
                 self.assertTrue(dates["no_end_time"])
                 self.assertEqual(event["_planning_schedule"][0]["scheduled"], expected_start)
@@ -340,8 +347,8 @@ class EventPlanningSchedule(EventsBaseTestCase):
         selected = original_events[1]
         schedule = deepcopy(selected["dates"])
         schedule.update(
-            start=pytz.timezone("America/Toronto").localize(datetime(2040, 3, 11, 10)),
-            end=pytz.timezone("America/Toronto").localize(datetime(2040, 3, 11, 11)),
+            start=pytz.timezone("America/Toronto").localize(datetime(2035, 3, 11, 10)),
+            end=pytz.timezone("America/Toronto").localize(datetime(2035, 3, 11, 11)),
             all_day=False,
             no_end_time=False,
         )
@@ -354,8 +361,8 @@ class EventPlanningSchedule(EventsBaseTestCase):
         for day, event in zip((11, 12), events[1:]):
             with self.subTest(day=day):
                 dates = event["dates"]
-                self.assertEqual(dates["start"], pytz.timezone("America/Toronto").localize(datetime(2040, 3, day, 10)))
-                self.assertEqual(dates["end"], pytz.timezone("America/Toronto").localize(datetime(2040, 3, day, 11)))
+                self.assertEqual(dates["start"], pytz.timezone("America/Toronto").localize(datetime(2035, 3, day, 10)))
+                self.assertEqual(dates["end"], pytz.timezone("America/Toronto").localize(datetime(2035, 3, day, 11)))
                 self.assertFalse(dates["all_day"])
                 self.assertFalse(dates["no_end_time"])
 
@@ -363,8 +370,8 @@ class EventPlanningSchedule(EventsBaseTestCase):
         events = await self._create_all_day_series()
         schedule = deepcopy(events[1]["dates"])
         schedule.update(
-            start=pytz.timezone("America/Toronto").localize(datetime(2040, 3, 11, 23, 30)),
-            end=pytz.timezone("America/Toronto").localize(datetime(2040, 3, 12, 0, 30)),
+            start=pytz.timezone("America/Toronto").localize(datetime(2035, 3, 11, 23, 30)),
+            end=pytz.timezone("America/Toronto").localize(datetime(2035, 3, 12, 0, 30)),
             all_day=False,
             no_end_time=False,
         )
@@ -373,8 +380,8 @@ class EventPlanningSchedule(EventsBaseTestCase):
         timed_events = sorted(await self._get_all_events_raw(), key=lambda event: event["dates"]["start"])
         schedule = deepcopy(timed_events[1]["dates"])
         schedule.update(
-            start=datetime(2040, 3, 11, tzinfo=pytz.UTC),
-            end=datetime(2040, 3, 12, tzinfo=pytz.UTC),
+            start=datetime(2035, 3, 11, tzinfo=pytz.UTC),
+            end=datetime(2035, 3, 12, tzinfo=pytz.UTC),
             all_day=True,
             no_end_time=True,
         )
@@ -385,8 +392,8 @@ class EventPlanningSchedule(EventsBaseTestCase):
         for day, event in zip((10, 11, 12), events):
             with self.subTest(day=day):
                 dates = event["dates"]
-                self.assertEqual(dates["start"], datetime(2040, 3, day, tzinfo=pytz.UTC))
-                self.assertEqual(dates["end"], datetime(2040, 3, day + 1, tzinfo=pytz.UTC))
+                self.assertEqual(dates["start"], datetime(2035, 3, day, tzinfo=pytz.UTC))
+                self.assertEqual(dates["end"], datetime(2035, 3, day + 1, tzinfo=pytz.UTC))
                 self.assertTrue(dates["all_day"])
                 self.assertTrue(dates["no_end_time"])
                 self.assertEqual(event["_planning_schedule"][0]["scheduled"], dates["start"])
@@ -396,8 +403,8 @@ class EventPlanningSchedule(EventsBaseTestCase):
         events = await self._create_all_day_series()
         schedule = deepcopy(events[1]["dates"])
         schedule.update(
-            start=pytz.timezone("America/Toronto").localize(datetime(2040, 3, 11, 23, 30)),
-            end=pytz.timezone("America/Toronto").localize(datetime(2040, 3, 12, 0, 30)),
+            start=pytz.timezone("America/Toronto").localize(datetime(2035, 3, 11, 23, 30)),
+            end=pytz.timezone("America/Toronto").localize(datetime(2035, 3, 12, 0, 30)),
             all_day=False,
             no_end_time=False,
         )
@@ -405,18 +412,23 @@ class EventPlanningSchedule(EventsBaseTestCase):
 
         events = sorted(await self._get_all_events_raw(), key=lambda event: event["dates"]["start"])
         schedule = deepcopy(events[1]["dates"])
-        schedule.update(end=datetime(2040, 3, 12, tzinfo=pytz.UTC), no_end_time=True)
+        schedule.update(end=datetime(2035, 3, 12, tzinfo=pytz.UTC), no_end_time=True)
         await process_update_time({"dates": schedule, "update_method": "all"}, events[1], False)
 
         events = sorted(await self._get_all_events_raw(), key=lambda event: event["dates"]["start"])
         self.assertEqual(len(events), 3)
-        for day, event in zip((10, 11, 12), events):
+        timezone = pytz.timezone("America/Toronto")
+        self.assertEqual(
+            [event["dates"]["start"].astimezone(timezone).utcoffset() for event in events],
+            [timedelta(hours=-5), timedelta(hours=-4), timedelta(hours=-4)],
+        )
+        for day, event in enumerate(events, start=10):
             with self.subTest(day=day):
                 dates = event["dates"]
-                self.assertEqual(
-                    dates["start"], pytz.timezone("America/Toronto").localize(datetime(2040, 3, day, 23, 30))
-                )
-                self.assertEqual(dates["end"], datetime(2040, 3, day + 1, tzinfo=pytz.UTC))
+                local_start = dates["start"].astimezone(timezone)
+                self.assertEqual(local_start.replace(tzinfo=None), datetime(2035, 3, day, 23, 30))
+                self.assertEqual(dates["start"], timezone.localize(datetime(2035, 3, day, 23, 30)))
+                self.assertEqual(dates["end"], datetime(2035, 3, day + 1, tzinfo=pytz.UTC))
                 self.assertFalse(dates["all_day"])
                 self.assertTrue(dates["no_end_time"])
 
