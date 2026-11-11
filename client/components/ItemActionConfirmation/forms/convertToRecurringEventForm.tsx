@@ -201,7 +201,7 @@ const mapDispatchToProps = (dispatch) => ({
             );
         }
 
-        return dispatch(actions.main.save(original, newUpdates, false));
+        return dispatch(actions.main.saveAndUnlockItem(original, newUpdates));
     },
 
     onHide: (original: IEventItem, modalProps) => onItemActionModalHide(

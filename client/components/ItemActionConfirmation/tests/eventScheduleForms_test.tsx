@@ -108,7 +108,7 @@ describe('Event action forms with date-only schedules', () => {
     });
 
     it('converts an all-day event to recurring with a start time and no end time', () => {
-        const save = sinon.stub(actions.main, 'save').returns(() => Promise.resolve());
+        const save = sinon.stub(actions.main, 'saveAndUnlockItem').returns(() => Promise.resolve());
 
         try {
             mountRecurringForm();
