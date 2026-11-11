@@ -21,6 +21,7 @@ import {TextAreaInput, Field} from '../../UI/Form';
 
 import '../style.scss';
 import {isSameDay} from './../../../helpers';
+import {convertEventDatesForTimezone} from '../../../utils/events';
 
 export class RescheduleEventComponent extends React.Component {
     constructor(props) {
@@ -43,13 +44,12 @@ export class RescheduleEventComponent extends React.Component {
     }
 
     componentWillMount() {
-        const dates = cloneDeep(this.props.original.dates);
-        const isRemoteTimeZone = timeUtils.isEventInDifferentTimeZone(this.props.original || {});
+        const diff = {
+            dates: cloneDeep(this.props.original.dates),
+            [TO_BE_CONFIRMED_FIELD]: this.props.original[TO_BE_CONFIRMED_FIELD],
+        };
 
-        if (isRemoteTimeZone) {
-            dates.start = timeUtils.getDateInRemoteTimeZone(dates.start, dates.tz);
-            dates.end = timeUtils.getDateInRemoteTimeZone(dates.end, dates.tz);
-        }
+        convertEventDatesForTimezone(diff, diff.dates.tz);
 
         let reasonInvalid = false;
 
@@ -58,12 +58,7 @@ export class RescheduleEventComponent extends React.Component {
         }
 
         this.setState({
-            diff: {
-                dates: dates,
-                _startTime: cloneDeep(dates.start),
-                _endTime: cloneDeep(dates.end),
-                [TO_BE_CONFIRMED_FIELD]: this.props.original[TO_BE_CONFIRMED_FIELD],
-            },
+            diff: diff,
             reasonInvalid: reasonInvalid,
         });
     }

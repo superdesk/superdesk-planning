@@ -15,6 +15,7 @@ import {Field} from '../../UI/Form';
 import {validateItem} from '../../../validators';
 import {updateFormValues, eventUtils, timeUtils, gettext} from '../../../utils';
 import {onItemActionModalHide} from './utils';
+import {convertEventDatesForTimezone} from '../../../utils/events';
 
 import '../style.scss';
 
@@ -38,15 +39,9 @@ export class ConvertToRecurringEventComponent extends React.Component <IProps> {
 
     componentWillMount() {
         let diff = {dates: cloneDeep(this.props.original.dates)};
-        const isRemoteTimeZone = timeUtils.isEventInDifferentTimeZone(this.props.original || {});
 
         this.currentDate = cloneDeep(this.props.original.dates);
-        if (isRemoteTimeZone) {
-            diff.dates.start = timeUtils.getDateInRemoteTimeZone(diff.dates.start, diff.dates.tz);
-            diff.dates.end = timeUtils.getDateInRemoteTimeZone(diff.dates.end, diff.dates.tz);
-        }
-
-        eventUtils.fillEventTime(diff);
+        convertEventDatesForTimezone(diff, diff.dates.tz);
 
         diff.dates.recurring_rule = {
             frequency: 'DAILY',
