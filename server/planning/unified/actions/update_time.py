@@ -27,18 +27,21 @@ from planning.events.events_utils import (
     post_update_event_actions,
     pre_update_event_actions,
     get_recurring_event_updates_iterator,
-    set_planning_schedule,
 )
 from planning.types import UnifiedPlanningResource, PlanningItemType
-from planning.types.unified import ItemScheduleEntry
+from planning.unified.common import get_planning_schedule
+
+
+def set_updated_schedule(updates: dict[str, Any], original: dict[str, Any]) -> None:
+    event = UnifiedPlanningResource.from_dict({**original, **updates})
+    schedule, updates_schedule = get_planning_schedule(event)
+    updates["_planning_schedule"] = [entry.to_dict() for entry in schedule]
+    updates["_updates_schedule"] = [entry.to_dict() for entry in updates_schedule]
 
 
 async def update_single_event(updates: dict[str, Any]):
     # Release the Lock on the selected Event
     remove_lock_information(updates)
-
-    # Set '_planning_schedule' on the Event item
-    updates["_planning_schedule"] = [ItemScheduleEntry(scheduled=updates["dates"].get("start")).to_dict()]
 
 
 async def update_recurring_events(updates: dict[str, Any], original: dict[str, Any], update_method: str):
@@ -47,9 +50,8 @@ async def update_recurring_events(updates: dict[str, Any], original: dict[str, A
     # Release the Lock on the selected Event
     remove_lock_information(updates)
 
-    # The iterator sets `skip_on_update` on each sibling: its recurring-date branch
-    # is an unimplemented TODO that raises
     async for event, new_updates in get_recurring_event_updates_iterator(original, updates, update_method):
+        set_updated_schedule(new_updates, event)
         await service.update(event[ID_FIELD], new_updates)
         await signals.event_time_updated.send(new_updates, {"_id": event[ID_FIELD], "type": PlanningItemType.EVENT})
 
@@ -81,7 +83,7 @@ async def process_update_time(
 
     # Clean updates before persisting change
     updates.pop("update_method", None)
-    set_planning_schedule(updates)
+    set_updated_schedule(updates, original)
 
     updated_event = (await service.update(original[ID_FIELD], updates, skip_signals=True)).to_dict()
 

@@ -31,11 +31,6 @@ function datesFlagsChanged(diff, original): boolean {
         !!diff.dates?.no_end_time !== !!original.dates?.no_end_time;
 }
 
-function seriesUpdateNotSupported(diff, original): boolean {
-    return diff.update_method.value !== EVENTS.UPDATE_METHODS[0].value &&
-        (datesFlagsChanged(diff, original) || isDateOnly(diff.dates, 'end'));
-}
-
 export class UpdateTimeComponent extends React.Component {
     constructor(props) {
         super(props);
@@ -96,17 +91,15 @@ export class UpdateTimeComponent extends React.Component {
         diff[TO_BE_CONFIRMED_FIELD] = true;
 
         const dirty = diff[TO_BE_CONFIRMED_FIELD] !== this.props.original[TO_BE_CONFIRMED_FIELD];
-        const unsupportedSeriesUpdate = seriesUpdateNotSupported(diff, this.props.original);
 
         this.setState({
             diff: diff,
             dirty: dirty,
             errorMessages: [],
             errors: {},
-            unsupportedSeriesUpdate: unsupportedSeriesUpdate,
         });
 
-        if (dirty && !unsupportedSeriesUpdate) {
+        if (dirty) {
             this.props.enableSaveInModal();
         } else {
             this.props.disableSaveInModal();
@@ -183,21 +176,16 @@ export class UpdateTimeComponent extends React.Component {
             fieldsToValidate
         );
 
-        // The server neither propagates date-only flags nor preserves date-only ends across a series.
-        const unsupportedSeriesUpdate = seriesUpdateNotSupported(diff, this.props.original);
-
         this.setState({
             diff: diff,
             dirty: !isEqual(this.props.original, diff),
             errors: errors,
             relatedEvents: relatedEvents,
-            unsupportedSeriesUpdate: unsupportedSeriesUpdate,
         });
 
         if ((eventUtils.eventsDatesSame(diff, this.props.original, TIME_COMPARISON_GRANULARITY.MINUTE) &&
                 !datesFlagsChanged(diff, this.props.original) &&
                 diff.update_method.value === EVENTS.UPDATE_METHODS[0].value) ||
-            unsupportedSeriesUpdate ||
             !isEqual(errorMessages, [])
         ) {
             this.props.disableSaveInModal();
@@ -379,14 +367,6 @@ export class UpdateTimeComponent extends React.Component {
                     action="update time"
                     {...fieldProps}
                 />
-
-                {this.state.unsupportedSeriesUpdate && (
-                    <div className="sd-alert sd-alert--hollow sd-alert--alert sd-alert--flex-direction">
-                        <strong>
-                            {gettext('Select "This event only" to update all-day events or events without an end time')}
-                        </strong>
-                    </div>
-                )}
 
                 <div ref={(node) => this.dom.popupContainer = node} />
             </div>

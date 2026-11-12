@@ -36,6 +36,19 @@ Identifiers
 
     Internal id for recurrence events.  All recurrence events for a particular recurring event will share this id.
 
+Updating series times
+---------------------
+
+The Update Time action supports changes between all-day events, events with only
+a start time, and events with both start and end times. Changes can apply to this
+event, this and future events, or all events in the series.
+
+Series updates preserve each occurrence's date in the event timezone and apply
+the new time and ``all_day`` / ``no_end_time`` flags to every affected occurrence.
+All-day dates and end dates without a time remain date-only values stored at UTC
+midnight. Updating a series changes its existing occurrences; it does not create
+additional events.
+
 Audit Information
 -------------------
 
