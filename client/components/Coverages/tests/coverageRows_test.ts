@@ -41,7 +41,7 @@ const statusOnMerit = {qcode: 'ncostat:notdec', name: 'coverage not decided yet'
 
 // The label differs from the hardcoded fallback in `getNewsCoverageStatusPlanned` so that
 // assertions on it fail if the vocabulary lookup stops working
-const statusPlanned = {qcode: 'ncostat:int', name: 'coverage intended', label: 'Planned (cv)'};
+const statusPlanned = {qcode: 'ncostat:int', name: 'Coverage intended', label: 'Planned'};
 
 // `getDefaultCoverageStatus` takes the first entry, so new rows start on 'On merit'
 const newsCoverageStatus = [statusOnMerit, statusPlanned] as Array<IPlanningNewsCoverageStatus>;
@@ -106,7 +106,11 @@ describe('coverageRows', () => {
         } as typeof planningApi.contentProfiles;
     };
 
-    const getRows = () => createRowsFromContentTypes(contentTypes, desks, newsCoverageStatus);
+    const getRows = () => createRowsFromContentTypes(
+        event,
+        contentTypes,
+        desks,
+    );
     const rules = {plannedOnDesk: true, deskRequiredForWorkflow: true};
 
     describe('applyDeskChange', () => {
@@ -170,8 +174,8 @@ describe('coverageRows', () => {
             applyDeskChange(row, desks[1], users, languages, rules);
 
             expect(row.desk).toBe(null);
-            expect(row.status).toEqual(statusOnMerit);
-            expect(row.planning.language).toBe(null);
+            expect(row.status).toEqual(statusPlanned);
+            expect(row.planning.language).toBe('en');
         });
     });
 
@@ -220,7 +224,7 @@ describe('coverageRows', () => {
         it('inserts a disabled copy after the source row, keeping qcode and language', () => {
             const rows = getRows();
             const source = {...rows[0], enabled: true, desk: desks[1], planning: {language: 'fr-CA'} as any};
-            const updated = duplicateRow([source, rows[1]], source, newsCoverageStatus, desks);
+            const updated = duplicateRow(event, [source, rows[1]], source, desks);
 
             expect(updated.length).toBe(3);
             expect(updated[0]).toBe(source);
@@ -328,7 +332,7 @@ describe('coverageRows', () => {
             const [text] = getRows();
             const [coverage] = buildNewCoverages([{...text, enabled: true}], createCoverage, event);
 
-            expect(coverage.planning).toEqual({g2_content_type: 'text', language: null});
+            expect(coverage.planning).toEqual({g2_content_type: 'text', language: 'en', slugline: 'slugline en'});
         });
 
         it('does not copy translated fields without an event', () => {
