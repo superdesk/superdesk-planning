@@ -211,6 +211,109 @@ class RecurringItemsTestCase(BaseRecurringTestCase):
                 ["text", "picture"],
             )
 
+    def get_coverage(self, coverage_id: str, scheduled: datetime, content_type: str = "text") -> dict:
+        return {
+            "coverage_id": coverage_id,
+            "planning": {"g2_content_type": content_type, "scheduled": scheduled},
+            "news_coverage_status": {"qcode": "ncostat:int", "name": "coverage intended", "label": "Planned"},
+        }
+
+    async def create_series(self, coverages: list[dict] | None = None) -> list[UnifiedPlanningResource]:
+        event = planning_fixtures.recurring.daily_series()
+        event.dates.start = datetime(2099, 11, 21, 12, tzinfo=timezone.utc)
+        event.dates.end = event.dates.start + timedelta(hours=1)
+        assert event.dates.recurring_rule is not None
+        event.dates.recurring_rule.count = 3
+        await self.items_service.create([event.clone_with({"coverages": coverages or []})])
+        return await self.get_all_events()
+
+    def assert_series_coverages(
+        self, events: list[UnifiedPlanningResource], content_type: str, offset: timedelta
+    ) -> list[str]:
+        """Check each Event has its own copy of the Coverage, due relative to the Event's own start"""
+
+        coverage_ids = []
+        original_ids = set()
+        for event in events:
+            coverage = next(item for item in event.coverages or [] if item.planning.g2_content_type == content_type)
+            self.assertEqual(coverage.planning.scheduled, event.dates.start + offset)
+            self.assertFalse(coverage.coverage_id.startswith("tempId-"))
+            coverage_ids.append(coverage.coverage_id)
+            original_ids.add(coverage.original_coverage_id)
+
+        self.assertEqual(len(set(coverage_ids)), len(events))
+        self.assertEqual(len(original_ids), 1)
+        self.assertIn(original_ids.pop(), coverage_ids)
+        return coverage_ids
+
+    async def test_recurring_event_coverages_follow_each_occurrence(self):
+        start = datetime(2099, 11, 21, 12, tzinfo=timezone.utc)
+        events = await self.create_series([self.get_coverage("tempId-text", start + timedelta(hours=2))])
+
+        self.assertEqual(len(events), 3)
+        self.assert_series_coverages(events, "text", timedelta(hours=2))
+
+    async def test_convert_to_recurring_event_coverages_follow_each_occurrence(self):
+        start = datetime(2099, 11, 21, 12, tzinfo=timezone.utc)
+        event = {
+            "name": "Friday Club",
+            "type": PlanningItemType.EVENT,
+            "dates": {"start": start, "end": start + timedelta(hours=2), "tz": "Australia/Sydney"},
+            "coverages": [self.get_coverage("tempId-text", start + timedelta(hours=3))],
+        }
+        await self.items_service.create([event])
+        event = (await self.get_all_events())[0]
+        await lock_item(event, LockFields(lock_action="convert_recurring"))
+
+        schedule = deepcopy(event.to_dict()["dates"])
+        schedule["recurring_rule"] = {"frequency": "DAILY", "interval": 1, "count": 3, "end_repeat_mode": "count"}
+        await self.items_service.update(event.id, {"dates": schedule})
+
+        events = await self.get_all_events()
+        self.assertEqual(len(events), 3)
+        self.assert_series_coverages(events, "text", timedelta(hours=3))
+
+    async def test_add_coverage_to_all_events_in_series(self):
+        events = await self.create_series()
+        selected = events[1]
+
+        await self.items_service.update(
+            selected.id,
+            {
+                "coverages": [self.get_coverage("tempId-text", selected.dates.start + timedelta(hours=7))],
+                "update_method": "all",
+            },
+        )
+
+        events = await self.get_all_events()
+        self.assertEqual([len(event.coverages or []) for event in events], [1, 1, 1])
+        self.assert_series_coverages(events, "text", timedelta(hours=7))
+
+    async def test_update_coverage_in_all_events_in_series(self):
+        start = datetime(2099, 11, 21, 12, tzinfo=timezone.utc)
+        events = await self.create_series([self.get_coverage("tempId-text", start + timedelta(hours=2))])
+        coverage_ids = self.assert_series_coverages(events, "text", timedelta(hours=2))
+        selected = events[1]
+        coverages = selected.to_dict()["coverages"]
+        coverages[0]["planning"]["scheduled"] += timedelta(hours=1)
+        coverages[0]["planning"]["internal_note"] = "Moved one hour later"
+
+        await self.items_service.update(selected.id, {"coverages": coverages, "update_method": "all"})
+
+        events = await self.get_all_events()
+        self.assertEqual(self.assert_series_coverages(events, "text", timedelta(hours=3)), coverage_ids)
+        for event in events:
+            self.assertEqual(event.coverages[0].planning.internal_note, "Moved one hour later")
+
+    async def test_remove_coverage_from_all_events_in_series(self):
+        start = datetime(2099, 11, 21, 12, tzinfo=timezone.utc)
+        events = await self.create_series([self.get_coverage("tempId-text", start + timedelta(hours=2))])
+
+        await self.items_service.update(events[1].id, {"coverages": [], "update_method": "all"})
+
+        events = await self.get_all_events()
+        self.assertEqual([len(event.coverages or []) for event in events], [0, 0, 0])
+
     async def test_planning_schedule_update_repetitions(self):
         event = {
             "name": "Friday Club",

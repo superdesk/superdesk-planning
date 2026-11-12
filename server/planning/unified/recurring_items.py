@@ -24,8 +24,8 @@ from planning.types import (
     PostStates,
     UnifiedPlanningHistoryResource,
 )
-from planning.types.unified import RecurringEndMode
-from planning.common import TO_BE_CONFIRMED_FIELD
+from planning.types.unified import RecurringEndMode, CoverageItem
+from planning.common import TO_BE_CONFIRMED_FIELD, TEMP_ID_PREFIX
 from planning.utils import get_planning_event_link_method
 from planning.publish.common import validate_item_for_publish
 
@@ -40,6 +40,7 @@ from .common import (
     generate_recurring_dates,
 )
 from .events import validate_mark_event_complete, cancel_related_planning_coverages
+from .coverages import add_coverage
 
 
 __all__ = [
@@ -60,9 +61,13 @@ async def on_create_recurring(item: UnifiedPlanningResource) -> list[UnifiedPlan
         # If `created_externally` is true, generate_recurring_events is restricted.
         return []
 
+    series_start = item.dates.start
     recurring_items = generate_recurring_events(item)
     if not recurring_items:
         return []
+
+    for recurring_item in recurring_items:
+        await _add_coverages_to_series_event(recurring_item, series_start)
 
     item.recurrence_id = item.id
 
@@ -176,6 +181,10 @@ async def _update_recurring_items(req: ItemUpdateRequest) -> None:
         # Remove ``embedded_planning`` before updating this event, as this should only be handled
         # by the event provided to this update request
         new_updates.pop("embedded_planning", None)
+
+        if "coverages" in req.updates:
+            event_start = (new_updates.get("dates") or {}).get("start") or event.dates.start
+            new_updates["coverages"] = await _get_series_event_coverages(req, event, event_start)
 
         # If this item is to be posted, make sure it passes validation
         # before we proceed with updating all the affected Events
@@ -491,6 +500,9 @@ async def _convert_to_recurring_event(req: ItemUpdateRequest) -> list[UnifiedPla
         req.updated.lock_time = None
         req.updated.lock_action = None
 
+    for event in generated_events:
+        await _add_coverages_to_series_event(event, req.original.dates.start)
+
     # Create the new events and generate their history
     created_items = await events_service.create(generated_events, skip_signals=True)
     for event in generated_events:
@@ -539,6 +551,126 @@ def duplicate_event_for_series(
     set_planning_schedule(new_event)
 
     return new_event
+
+
+async def _add_coverages_to_series_event(event: UnifiedPlanningResource, series_start: datetime) -> None:
+    """Give each Coverage copied to a new Event in the series its own ID and move it to the Event's day"""
+
+    schedule_delta = event.dates.start - series_start
+    event.coverages = [deepcopy(coverage) for coverage in event.coverages or []]
+
+    for coverage in event.coverages:
+        coverage.original_coverage_id = coverage.coverage_id
+        coverage.coverage_id = generate_guid(type=GUID_NEWSML)
+        coverage.planning.scheduled += schedule_delta
+        if coverage.assigned_to:
+            coverage.assigned_to.assignment_id = None
+
+        for scheduled_update in coverage.scheduled_updates or []:
+            scheduled_update.scheduled_update_id = f"{TEMP_ID_PREFIX}{generate_guid(type=GUID_NEWSML)}"
+            scheduled_update.planning.scheduled += schedule_delta
+            if scheduled_update.assigned_to:
+                scheduled_update.assigned_to.assignment_id = None
+
+        await add_coverage(event, coverage)
+
+
+async def _get_series_event_coverages(
+    req: ItemUpdateRequest, event: UnifiedPlanningResource, event_start: datetime
+) -> list[dict]:
+    """Apply the Coverage changes of the edited Event to another Event in the series
+
+    Coverages are matched on ``original_coverage_id``, and due dates stay relative to each Event's own date.
+    """
+
+    SKIP_COVERAGE_FIELDS = {
+        "coverage_id",
+        "original_coverage_id",
+        "guid",
+        "original_creator",
+        "firstcreated",
+        "previous_status",
+    }
+
+    def get_series_coverage_id(coverage) -> str:
+        return coverage.original_coverage_id or coverage.coverage_id
+
+    original_coverages = {get_series_coverage_id(coverage): coverage for coverage in req.original.coverages or []}
+    updated_coverages = {get_series_coverage_id(coverage): coverage for coverage in req.updated.coverages or []}
+    coverages: list[dict] = []
+
+    for event_coverage in event.coverages or []:
+        series_coverage_id = get_series_coverage_id(event_coverage)
+        coverage = event_coverage.to_dict()
+
+        if series_coverage_id in original_coverages and series_coverage_id not in updated_coverages:
+            # This Coverage was removed from the edited Event
+            continue
+
+        updated_coverage = updated_coverages.get(series_coverage_id)
+        if updated_coverage is None:
+            coverages.append(coverage)
+            continue
+
+        original_scheduled = event_coverage.planning.scheduled
+        for field, value in updated_coverage.to_dict().items():
+            if field in SKIP_COVERAGE_FIELDS or field == "scheduled_updates":
+                # Scheduled updates stay as they are on each Event
+                continue
+            elif field == "assigned_to":
+                if coverage.get("workflow_status") != WorkflowState.DRAFT:
+                    # This Coverage is already in the workflow, its Assignment manages ``assigned_to``
+                    continue
+
+                original_assignment_id = (coverage.get("assigned_to") or {}).get("assignment_id")
+                coverage[field] = deepcopy(value)
+                if coverage[field] is not None:
+                    coverage[field]["assignment_id"] = original_assignment_id
+            elif field == "planning":
+                coverage["planning"] = deepcopy(value)
+                edited_coverage = original_coverages.get(series_coverage_id)
+                scheduled_diff = (
+                    updated_coverage.planning.scheduled - edited_coverage.planning.scheduled
+                    if edited_coverage is not None
+                    else None
+                )
+                coverage["planning"]["scheduled"] = (
+                    original_scheduled + scheduled_diff if scheduled_diff is not None else original_scheduled
+                )
+            else:
+                coverage[field] = deepcopy(value)
+
+        coverages.append(coverage)
+
+    # Add the Coverages that were added to the edited Event, relative to this Event's date
+    for updated_coverage in req.updated.coverages or []:
+        series_coverage_id = get_series_coverage_id(updated_coverage)
+        if series_coverage_id in original_coverages:
+            continue
+
+        new_coverage = updated_coverage.to_dict()
+        for field in SKIP_COVERAGE_FIELDS:
+            new_coverage.pop(field, None)
+
+        schedule_delta = event_start - req.updated.dates.start
+        new_coverage["coverage_id"] = f"{TEMP_ID_PREFIX}{generate_guid(type=GUID_NEWSML)}"
+        new_coverage["original_coverage_id"] = series_coverage_id
+        new_coverage["planning"]["scheduled"] = updated_coverage.planning.scheduled + schedule_delta
+        if new_coverage.get("assigned_to"):
+            new_coverage["assigned_to"].pop("assignment_id", None)
+
+        for scheduled_update in new_coverage.get("scheduled_updates") or []:
+            scheduled_update["scheduled_update_id"] = f"{TEMP_ID_PREFIX}{generate_guid(type=GUID_NEWSML)}"
+            scheduled_update["planning"]["scheduled"] += schedule_delta
+            if scheduled_update.get("assigned_to"):
+                scheduled_update["assigned_to"].pop("assignment_id", None)
+
+        # The Event is saved with ``skip_on_update``, so add the Coverage here (new ID, Assignment etc)
+        coverage_item = CoverageItem.from_dict(new_coverage)
+        await add_coverage(event, coverage_item)
+        coverages.append(coverage_item.to_dict())
+
+    return coverages
 
 
 async def _update_recurring_planning_items(req: ItemUpdateRequest) -> None:
