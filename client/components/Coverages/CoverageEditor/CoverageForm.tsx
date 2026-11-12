@@ -25,7 +25,7 @@ import {WORKFLOW_STATE} from '../../../constants';
 import {EditorFieldSelect} from '../../fields/editor/base/select';
 import {renderFieldsForPanel} from '../../fields';
 import {getCoverageFields} from '../../../api/editor/item_planning';
-import {coverageProfiles} from '../../../selectors/forms';
+import {coverageProfiles, defaultCoverageProfile} from '../../../selectors/forms';
 
 import '../style.scss';
 import {VOCABULARIES_TO_BE_EXCLUDED} from '../../../utils/contentProfiles';
@@ -51,6 +51,8 @@ interface IOwnProps {
     language: IVocabularyItem['qcode'];
     coverages: Array<IPlanningCoverageItem>;
     profile: IPlanningContentProfile;
+    coverageTypeProfile?: IPlanningContentProfile;
+    fieldProps?: Dictionary<keyof IPlanningCoverageItem, any>;
 
     // Functions
     onChange(field: string, value: any): void;
@@ -368,8 +370,21 @@ export class CoverageFormComponent extends React.Component<IProps, IState> {
 
     render() {
         const contentTypeQcode = this.props.value.planning?.g2_content_type;
-        const {searchProfile, profile} = getCoverageFields(contentTypeQcode);
+        let coverageTypeProfile: IPlanningContentProfile;
 
+        if (this.props.coverageTypeProfile != null) {
+            coverageTypeProfile = this.props.coverageTypeProfile;
+        } else {
+            const state = planningApi.redux.store.getState();
+            const allProfiles = coverageProfiles(state);
+
+            coverageTypeProfile = (
+                allProfiles.find((x) => x._id === this.props.value.profile)
+                || defaultCoverageProfile(state)
+            );
+        }
+
+        const {searchProfile, profile} = getCoverageFields(contentTypeQcode, coverageTypeProfile);
         const defaultGenre = (appConfig.default_genre || [{}])[0];
         const showXmpFileInput = planningUtils.showXMPFileUIControl(this.props.value);
         const hideXmpFileInput = this.props.value.planning?.xmp_file != null;
@@ -419,9 +434,7 @@ export class CoverageFormComponent extends React.Component<IProps, IState> {
                     valueStoredAsArray: true,
                 },
             }), {});
-
-        const allProfiles = coverageProfiles(planningApi.redux.store.getState());
-        const coverageProfile = allProfiles.find((x) => x._id === this.props.value.profile);
+        const multipleContentFieldProfile = coverageTypeProfile?.schema?.['multiple_content'] as IProfileSchemaTypeList;
 
         const fieldProps: Dictionary<keyof IPlanningCoverageItem, any> = {
             ...customCVFields,
@@ -497,11 +510,9 @@ export class CoverageFormComponent extends React.Component<IProps, IState> {
                 files: this.props.files,
             },
             multiple_content: {
-                disabled: this.props.disabled
-                    ?? (coverageProfile?.schema?.['multiple_content'] as IProfileSchemaTypeList)?.read_only
-                    ?? false,
+                disabled: this.props.disabled ?? multipleContentFieldProfile?.read_only ?? false,
                 field: 'planning.multiple_content',
-                defaultValue: (coverageProfile?.schema?.['multiple_content'] as IProfileSchemaTypeList)?.default_value,
+                defaultValue: multipleContentFieldProfile?.default_value,
             },
             news_coverage_status: {
                 readOnly: this.props.disabled || readOnlyFields.newsCoverageStatus,
@@ -515,6 +526,9 @@ export class CoverageFormComponent extends React.Component<IProps, IState> {
                 onToBeConfirmed: this.onTimeToBeConfirmed,
                 onChange: this.onScheduleChanged,
                 canClearTime: false,
+                canClear: false,
+                required: true,
+                fullWidth: true,
             },
             no_content_linking: {
                 readOnly: this.props.disabled || readOnlyFields.flags,
@@ -539,6 +553,7 @@ export class CoverageFormComponent extends React.Component<IProps, IState> {
                 ),
                 scheduledUpdates: this.props.value.scheduled_updates ?? [],
                 canClearTime: false,
+                canClear: false,
             },
             priority: {field: 'planning.priority'},
         };
@@ -551,32 +566,45 @@ export class CoverageFormComponent extends React.Component<IProps, IState> {
                 || !(isCoverageDraft(value) && isCoverageAssigned(value) && !isItemExpired(diff));
         };
 
-        fieldProps.add_coverage_to_workflow = {
-            onChange: this.toggleAddToWorkflow,
-            planningItem: this.props.item,
+        if (coverageTypeProfile?.editor?.add_coverage_to_workflow?.enabled !== false) {
+            // If `add_coverage_to_workflow` is not explicitly disabled, then we assume it's enabled
+            fieldProps.add_coverage_to_workflow = {
+                onChange: this.toggleAddToWorkflow,
+                planningItem: this.props.item,
+
+                /**
+                 * A coverage can be added to workflow if it is in draft state,
+                 * is assigned and the associated planning item is not expired.
+                 */
+                disabled: shouldDisableToggle(),
+            };
 
             /**
-             * A coverage can be added to workflow if it is in draft state,
-             * is assigned and the associated planning item is not expired.
+             * If auto add to workflow is off, show the field, and make sure it's always first in the editor
              */
-            disabled: shouldDisableToggle(),
-        };
+            if (!isAutoAddToWorkflowOn) {
+                searchProfile.add_coverage_to_workflow = {
+                    enabled: true,
+                    index: -1,
+                };
+            }
+        }
+
+        if (this.props.fieldProps) {
+            // Merge the supplied fieldProps with the one built above
+            for (const field of Object.keys(this.props.fieldProps)) {
+                fieldProps[field] = {
+                    ...fieldProps[field],
+                    ...this.props.fieldProps[field],
+                };
+            }
+        }
 
         /**
          * `editor.dom.fields` aren't being passed anymore because we no longer have access to it
          * after decoupling this component from `IEditorAPI`.
          */
         const editorDomFields = {};
-
-        /**
-         * If auto add to workflow is off, show the field, and make sure it's always first in the editor
-         */
-        if (!isAutoAddToWorkflowOn) {
-            searchProfile['add_coverage_to_workflow'] = {
-                enabled: true,
-                index: -1,
-            };
-        }
 
         return (
             <div className="coverage-editor">

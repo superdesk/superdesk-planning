@@ -5,6 +5,7 @@ import {uniqueId} from 'lodash';
 import {
     IG2ContentType,
     IPlanningNewsCoverageStatus,
+    IEventOrPlanningItem,
 } from '../../interfaces';
 import {IDesk, IUser, IVocabularyItem} from 'superdesk-api';
 
@@ -38,6 +39,7 @@ interface IReduxDispatchProps {
 }
 
 interface IOwnProps {
+    item: DeepPartial<IEventOrPlanningItem>;
     field: string;
     value: Array<DeepPartial<ICoverageLineItem>>;
     coverageAddAdvancedMode: boolean;
@@ -116,7 +118,7 @@ class CoverageAddAdvancedModalComponent extends React.Component<IProps, IState> 
 
         const combinedCoverages = [
             ...savedCoverages,
-            ...createRowsFromContentTypes(remainingContentTypes, desks, newsCoverageStatus),
+            ...createRowsFromContentTypes(this.props.item, remainingContentTypes, desks),
         ];
 
         // focus the first row with an enabled checkbox; active coverages are
@@ -174,9 +176,9 @@ class CoverageAddAdvancedModalComponent extends React.Component<IProps, IState> 
 
     duplicate = (coverage: Partial<ICoverageLineItem>) => {
         const coverages = duplicateRow(
+            this.props.item,
             this.state.coverages,
             coverage,
-            this.props.newsCoverageStatus,
             this.props.desks
         );
         const sourceIndex = coverages.findIndex((row) => row.rowId === coverage.rowId);
@@ -207,9 +209,12 @@ class CoverageAddAdvancedModalComponent extends React.Component<IProps, IState> 
 
     save = () => {
         const coverages = this.state.coverages
-            .filter((coverage) => coverage.enabled || coverage.coverage_id != null)
+            .filter((coverage) => (
+                coverage.enabled
+                || (coverage.coverage_id != null && !coverage.coverage_id.startsWith('tempId-'))),
+            )
             .map((coverage) => {
-                if (coverage.coverage_id == null) {
+                if (coverage.coverage_id == null || coverage.coverage_id.startsWith('tempId-')) {
                     return buildNewCoverage(coverage, this.props.createCoverage);
                 }
 

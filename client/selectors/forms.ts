@@ -55,6 +55,21 @@ export const getCoverageProfilesMap = createSelector<
     }
 );
 
+export const getCoverageProfilesIdMap = createSelector<
+    IPlanningAppState,
+    Array<IPlanningContentProfile>,
+    Record<string, IPlanningContentProfile>
+>(
+    [coverageProfiles],
+    (profiles) => (
+        profiles.reduce((acc, p) => {
+            acc[p._id] = p;
+
+            return acc;
+        }, {} as Record<string, IPlanningContentProfile>)
+    )
+);
+
 
 export const searchProfile = createSelector(
     [profiles, activeFilter],

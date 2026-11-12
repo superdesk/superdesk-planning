@@ -1,10 +1,11 @@
 import React from 'react';
-import {IG2ContentType, IPlanningCoverageItem} from '../../../interfaces';
+import {IG2ContentType, IPlanningCoverageItem, IEventOrPlanningItem} from '../../../interfaces';
 import {IDesk} from 'superdesk-api';
 import {AddCoveragesWrapper} from './AddCoveragesWrapper';
 import {Button} from 'superdesk-ui-framework/react';
 
 interface IProps {
+    item: DeepPartial<IEventOrPlanningItem>;
     field: string;
     value: Array<IPlanningCoverageItem>;
     className?: string;
@@ -42,6 +43,7 @@ export class CoverageAddButton extends React.Component<IProps> {
         return (
             <AddCoveragesWrapper
                 {...this.props}
+                item={this.props.item}
                 onChange={this.onChange}
                 target="icon-plus-large"
                 button={({toggleMenu}) => (
