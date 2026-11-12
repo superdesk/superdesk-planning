@@ -30,11 +30,19 @@ import {isTemporaryId} from '../../utils';
 import {appConfig} from 'superdesk-core/scripts/appConfig';
 
 export function getCoverageFields(
-    type: ICoverageType,
+    type: ICoverageType, coverageProfile?: IPlanningContentProfile,
 ): {searchProfile: ISearchProfile; profile: IPlanningContentProfile} {
     const storeState = planningApi.redux.store.getState();
-    const allProfiles = coverageProfiles(storeState);
-    const newProfile = allProfiles.find((x) => x.content_type === type);
+    let newProfile: IPlanningContentProfile | undefined;
+
+    if (coverageProfile != null) {
+        newProfile = coverageProfile;
+    } else {
+        const allProfiles = coverageProfiles(storeState);
+
+        newProfile = allProfiles.find((x) => x.content_type === type);
+    }
+
     const profile = newProfile ?
         newProfile :
         omit(defaultCoverageProfile(storeState), '_id') as IPlanningContentProfile;

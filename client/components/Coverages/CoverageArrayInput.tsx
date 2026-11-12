@@ -8,6 +8,7 @@ import {
     ICoverageProvider,
     ICoverageType,
     IEventFormProfile,
+    IPlanningFormProfile,
     IEventItem,
     IEventOrPlanningItem,
     IFile,
@@ -60,6 +61,7 @@ interface IOwnProps {
 
 interface IReduxStateProps {
     eventProfile: IEventFormProfile;
+    planningProfile: IPlanningFormProfile;
     users: Array<IUser>;
     desks: Array<IDesk>;
     genres: Array<IGenre>;
@@ -92,6 +94,7 @@ const mapStateToProps = (state): IReduxStateProps => ({
     coverageAddAdvancedMode: selectors.general.coverageAddAdvancedMode(state),
     defaultDesk: selectors.general.defaultDesk(state),
     eventProfile: selectors.forms.eventProfile(state),
+    planningProfile: selectors.forms.planningProfile(state),
 });
 
 const mapDispatchToProps = (dispatch): IReduxDispatchProps => ({
@@ -183,6 +186,7 @@ class CoverageArrayInputComponent extends React.Component<IProps, IState> {
             useLocalNavigation,
             event,
             eventProfile,
+            planningProfile,
             testId,
             editorType,
             children,
@@ -197,9 +201,9 @@ class CoverageArrayInputComponent extends React.Component<IProps, IState> {
         const {desks, users, coverageAddAdvancedMode} = this.props;
         const language = this.props.item.language;
         const createCoverage = this.createCoverage;
-
-        const inlineFormEnabled = eventProfile.editor?.coverages?.inline_form === true;
-        const showInlineForm = inlineFormEnabled && !disabled && item.type === 'event';
+        const itemProfile = this.props.item.type === 'planning' ? planningProfile : eventProfile;
+        const inlineFormEnabled = itemProfile.editor?.coverages?.inline_form === true;
+        const showInlineForm = inlineFormEnabled && !disabled; // && item.type === 'event';
         const inlineFormElement = !showInlineForm ? null : (
             <CoverageAddInlineForm
                 contentTypes={contentTypes}

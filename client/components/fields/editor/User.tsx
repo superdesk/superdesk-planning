@@ -27,6 +27,7 @@ export class EditorFieldUser extends React.PureComponent<IEditorFieldUserProps> 
                     {this.props.label}
                 </label>
                 <SelectUser
+                    key={this.props.deskId ?? '__all_users__'}
                     deskId={this.props.deskId}
                     onSelect={(user) => {
                         this.props.onChange(this.props.field, this.props.valueStoredAsArray ? [user?._id] : user?._id);

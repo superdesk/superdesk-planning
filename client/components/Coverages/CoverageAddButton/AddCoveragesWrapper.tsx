@@ -3,7 +3,12 @@ import {connect} from 'react-redux';
 import {memoize} from 'lodash';
 
 import {IDesk, IUser} from 'superdesk-api';
-import {IG2ContentType, IPlanningCoverageItem, IPlanningNewsCoverageStatus} from '../../../interfaces';
+import {
+    IG2ContentType,
+    IPlanningCoverageItem,
+    IPlanningNewsCoverageStatus,
+    IEventOrPlanningItem,
+} from '../../../interfaces';
 
 import {planningUtils, onEventCapture} from '../../../utils';
 import {getVocabularyItemFieldTranslated} from '../../../utils/vocabularies';
@@ -14,6 +19,7 @@ import {CoverageAddAdvancedModal} from '../CoverageAddAdvancedModal';
 import {planningApi} from '../../../superdeskApi';
 
 interface IOwnProps {
+    item: DeepPartial<IEventOrPlanningItem>;
     field: string;
     value: Array<DeepPartial<IPlanningCoverageItem>>;
     target: string;

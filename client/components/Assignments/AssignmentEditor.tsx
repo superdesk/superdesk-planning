@@ -28,11 +28,10 @@ import {isAssignmentDeskValid} from '../../validators/assignments';
 import {assignmentFieldsConfig} from '../Coverages/assignmentFieldsConfig';
 
 interface IReduxStateProps {
-    contactTypes: Array<IContactType>
+    contactTypes: Array<IContactType>;
 
     priorities?: Array<IAssignmentPriority>;
     desks?: Array<IDesk>;
-    users: Array<IUser>;
     coverageProviders?: Array<ICoverageProvider>;
 }
 
@@ -72,10 +71,7 @@ export class AssignmentEditorComponent extends React.PureComponent<IProps> {
     }
 
     getFilteredDesks = (userId?: IUser['_id']): Array<IDesk> => {
-        return getDesksForUser(
-            this.props.users.find((user) => user._id === userId),
-            this.props.desks
-        );
+        return getDesksForUser(userId, this.props.desks);
     }
 
     getContactType = (providerQcode: ICoverageProvider['qcode']): IContactType | null => {
@@ -272,7 +268,6 @@ const mapStateToProps = (state) => ({
     contactTypes: selectors.vocabs.getContactTypes(state),
     priorities: selectors.getAssignmentPriorities(state),
     desks: selectors.general.desks(state),
-    users: selectors.general.users(state),
     coverageProviders: selectors.vocabs.coverageProviders(state),
 });
 

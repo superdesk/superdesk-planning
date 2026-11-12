@@ -75,8 +75,10 @@ export async function login(page: Page): Promise<void> {
  * @return {Promise<void>} A promise that resolves once the setup process is complete.
  */
 export async function setup(page: Page, profile: string, url: string) {
-    await page.goto(url);
-    await resetApp(page.request, profile);
+    await Promise.all([
+        page.goto(url, {waitUntil: 'domcontentloaded'}),
+        resetApp(page.request, profile),
+    ]);
 }
 
 /**

@@ -1,5 +1,7 @@
 import {expect} from '@playwright/test';
-import type {Locator} from '@playwright/test';
+import type {Locator, Page} from '@playwright/test';
+
+import {Input, SelectInput, ActionMenu, ToggleInput, UrgencyTreeSelectInput, UserSelectInput} from '../../../utils/common';
 
 /**
  * Wrapper around the inline "Coverage Types" form, rendered under the coverages of the
@@ -112,5 +114,40 @@ export class CoverageInlineForm {
             this.element.locator('[data-test-id^="coverage-inline-form__fields--"]')
         ).toHaveCount(0);
         await expect(this.element.locator('input[type="checkbox"]:checked')).toHaveCount(0);
+    }
+}
+
+export class CoverageInlineEditor {
+    coverageTypeQcode: string;
+    parentForm: CoverageInlineForm;
+    fields: {
+        desk: SelectInput;
+        user: UserSelectInput;
+        genre: SelectInput;
+        slugline: Input;
+        status: SelectInput;
+        internal_note: Input;
+        scheduled_date: Input;
+        scheduled_time: Input;
+    };
+
+    constructor(page: Page, parentForm: CoverageInlineForm, coverageTypeQcode: string) {
+        this.coverageTypeQcode = coverageTypeQcode;
+
+        this.parentForm = parentForm;
+        this.fields = {
+            desk: new SelectInput(page, this.getParent, '[data-test-id="field-desk"] select'),
+            user: new UserSelectInput(page, this.getParent, '[data-test-id="field-user"] button'),
+            genre: new SelectInput(page, this.getParent, '[data-test-id="field-genre"] select'),
+            slugline: new Input(page, this.getParent, '[data-test-id="field-slugline"] input'),
+            status: new SelectInput(page, this.getParent, '[data-test-id="field-news_coverage_status"] select'),
+            internal_note: new Input(page, this.getParent, '[data-test-id="field-internal_note"] textarea'),
+            scheduled_date: new Input(page, this.getParent, '[data-test-id="field-scheduled-date"]'),
+            scheduled_time: new Input(page, this.getParent, '[data-test-id="field-scheduled-time"]'),
+        };
+    }
+
+    getParent = (): Locator => {
+        return this.parentForm.fields(this.coverageTypeQcode);
     }
 }

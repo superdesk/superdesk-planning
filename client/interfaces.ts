@@ -2437,7 +2437,7 @@ export interface IEditorAPI {
             unlinkEvent(item: DeepPartial<IEventItem>): void;
             getRelatedEventsDomRef(eventId: IEventItem['_id']): React.RefObject<any>;
             getCoverageFields(
-                type: ICoverageType,
+                type: ICoverageType, coverageProfile?: IPlanningContentProfile,
             ): {searchProfile: ISearchProfile; profile: IPlanningContentProfile};
             getCoverageFieldDomRef(coverageId: IPlanningCoverageItem['coverage_id']): React.RefObject<any>;
             addCoverages(coverages: Array<DeepPartial<IPlanningCoverageItem>>): void;

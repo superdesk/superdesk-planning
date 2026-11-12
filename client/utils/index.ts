@@ -17,7 +17,7 @@ import {
     JUMP_INTERVAL,
     ICoverageScheduledUpdate,
 } from '../interfaces';
-import {IArticle, IUser} from 'superdesk-api';
+import {IArticle, IUser, IDesk} from 'superdesk-api';
 import {superdeskApi} from '../superdeskApi';
 
 import planningApp from '../reducers';
@@ -547,11 +547,11 @@ export const getUsersForDesk = (desk, globalUserList = []) => {
     return globalUserList.filter(({_id}) => deskMembersSet.has(_id));
 };
 
-export const getDesksForUser = (user, desksList = []) => {
-    if (!user) return desksList;
+export const getDesksForUser = (userId?: IUser['_id'], desksList: Array<IDesk> = []): Array<IDesk> => {
+    if (!userId) return desksList;
 
     return desksList.filter((desk) =>
-        map(desk.members, 'user').indexOf(user._id) !== -1);
+        map(desk.members, 'user').indexOf(userId) !== -1);
 };
 
 export const getItemType = (item) => {
