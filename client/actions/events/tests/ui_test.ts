@@ -573,7 +573,7 @@ describe('actions.events.ui', () => {
                     expect(eventsApi.fetchById.callCount).toBe(0);
 
                     expect(main.openForEdit.callCount).toBe(1);
-                    expect(main.openForEdit.args[0]).toEqual([data.events[0]]);
+                    expect(main.openForEdit.args[0]).toEqual([data.events[0], true, false]);
 
                     expect(services.notify.error.callCount).toBe(0);
                     expect(services.notify.success.callCount).toBe(1);
@@ -599,11 +599,29 @@ describe('actions.events.ui', () => {
                     expect(eventsApi.fetchById.args[0]).toEqual(['e2']);
 
                     expect(main.openForEdit.callCount).toBe(1);
-                    expect(main.openForEdit.args[0]).toEqual([data.events[1]]);
+                    expect(main.openForEdit.args[0]).toEqual([data.events[1], true, false]);
 
                     expect(services.notify.error.callCount).toBe(0);
                     expect(services.notify.success.callCount).toBe(1);
                     expect(services.notify.success.args[0]).toEqual(['Event has been rescheduled']);
+
+                    done();
+                })
+                .catch(done.fail);
+        });
+
+        it('opens the rescheduled Event in the popup editor if the original was open there', (done) => {
+            restoreSinonStub(eventsApi.rescheduleEvent);
+            sinon.stub(eventsApi, 'rescheduleEvent').callsFake((item) => Promise.resolve({
+                ...item,
+                reschedule_to: 'e2',
+                state: 'rescheduled',
+            }));
+            store.initialState.forms.editors.modal.itemId = data.events[0]._id;
+            store.test(done, eventsUi.rescheduleEvent(data.events[0]))
+                .then(() => {
+                    expect(main.openForEdit.callCount).toBe(1);
+                    expect(main.openForEdit.args[0]).toEqual([data.events[1], true, true]);
 
                     done();
                 })

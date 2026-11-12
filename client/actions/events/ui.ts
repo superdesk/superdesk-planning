@@ -326,6 +326,7 @@ const rescheduleEvent = (original, updates) => (
                 notify.success(gettext('Event has been rescheduled'));
 
                 const duplicatedEvent = get(updatedEvent, 'reschedule_to');
+                const openInModal = selectors.forms.currentItemIdModal(getState()) === getItemId(original);
                 const openEditor = (item) => {
                     const itemId = getItemId(item);
                     const editorItemId = selectors.forms.currentItemId(getState());
@@ -337,7 +338,7 @@ const rescheduleEvent = (original, updates) => (
                             editorModalItemId === itemId
                         ));
                     } else {
-                        dispatch(main.openForEdit(item));
+                        dispatch(main.openForEdit(item, true, openInModal));
                     }
                 };
 

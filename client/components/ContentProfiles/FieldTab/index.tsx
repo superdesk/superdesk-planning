@@ -37,6 +37,14 @@ interface IState {
     selectedField?: IProfileFieldEntry;
 }
 
+function getSchemaForRemovedField(schema: IProfileFieldEntry['schema']): IProfileFieldEntry['schema'] {
+    if (schema?.type === 'custom_vocabulary') {
+        return undefined;
+    }
+
+    return schema?.type === 'custom_text' ? {...schema, required: false} : schema;
+}
+
 export class FieldTab extends React.Component<IProps, IState> {
     private customVocabularies: Array<IVocabulary>;
 
@@ -215,7 +223,8 @@ export class FieldTab extends React.Component<IProps, IState> {
                     // otherwise if required is set to true UI issues will occur.
                     // We check for schema.type === 'custom_vocabulary' because some field names might have ids
                     // of a custom vocabulary, while registered as static fields
-                    schema: item.schema.type === 'custom_vocabulary' ? undefined : item.schema,
+                    // A custom_text schema is reused when the field is added again, so only required is cleared
+                    schema: getSchemaForRemovedField(item.schema),
                     field: {
                         ...item.field,
                         enabled: false,

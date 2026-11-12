@@ -160,8 +160,7 @@ export class RescheduleEventComponent extends React.Component {
             {
                 ...this.state.diff,
                 reason: reason,
-            },
-            get(this.props, 'modalProps.onCloseModal')
+            }
         );
     }
 
@@ -330,7 +329,7 @@ const mapStateToProps = (state) => ({
 });
 
 const mapDispatchToProps = (dispatch) => ({
-    onSubmit: (original, updates, onCloseModal) => {
+    onSubmit: (original, updates) => {
         let newUpdates = cloneDeep(updates);
 
         if (timeUtils.isEventInDifferentTimeZone(updates)) {
@@ -344,15 +343,10 @@ const mapDispatchToProps = (dispatch) => ({
             );
         }
 
-        const promise = dispatch(
+        // rescheduleEvent reopens the editor, so onCloseModal must not reopen it too
+        return dispatch(
             actions.events.ui.rescheduleEvent(original, newUpdates)
         );
-
-        if (onCloseModal) {
-            promise.then(onCloseModal);
-        }
-
-        return promise;
     },
 
     onHide: (original: IEventItem, modalProps) => onItemActionModalHide(

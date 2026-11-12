@@ -5,6 +5,17 @@ on:
   pull_request:
   schedule:
     - cron: "0 2 * * *"
+  # Lets superdesk-ui-framework run this suite against its own build.
+  workflow_call:
+    inputs:
+      ref:
+        description: 'superdesk-planning ref to test'
+        type: string
+        default: 'develop'
+      ui-framework-artifact:
+        description: 'Artifact (from the calling run) with the superdesk-ui-framework build to use'
+        type: string
+        default: ''
 
 jobs:
   e2e:
@@ -30,6 +41,11 @@ jobs:
         working-directory: ./e2e
     steps:
       - uses: actions/checkout@v6
+        with:
+          # `inputs.ref` is only set when called from another repo, where checkout
+          # would otherwise default to the caller's repository.
+          repository: ${{ inputs.ref && 'superdesk/superdesk-planning' || github.repository }}
+          ref: ${{ inputs.ref }}
       - uses: actions/setup-node@v6
         with:
           node-version: ${{ matrix.node-version }}
@@ -49,6 +65,15 @@ jobs:
         working-directory: ./
       - name: Install E2E Client
         run: npm install
+      - name: Download superdesk-ui-framework build
+        if: inputs.ui-framework-artifact
+        uses: actions/download-artifact@v8
+        with:
+          name: ${{ inputs.ui-framework-artifact }}
+          path: ${{ runner.temp }}/ui-framework
+      - name: Use superdesk-ui-framework build
+        if: inputs.ui-framework-artifact
+        run: bash "$RUNNER_TEMP/ui-framework/use-ui-framework-build.sh" . .
       - name: Build Client
         run: npm run build
       - name: Start Services

@@ -82,6 +82,7 @@ registerEditorField(
         field: 'priority',
         allowMultiple: false,
         valueAsString: true,
+        required: props.schema?.required,
         getId: (item: any) => item.qcode,
         getLabel: (item: any) => item.name,
         getOptions: () => [],
@@ -126,6 +127,7 @@ registerEditorField(
         field: 'urgency',
         allowMultiple: false,
         valueAsString: true,
+        required: props.schema?.required,
         getId: (item: any) => item.qcode,
         getLabel: (item: any) => item.name,
         getOptions: () => [],
@@ -182,6 +184,7 @@ registerEditorField(
         return {
             field: 'anpa_category',
             label: superdeskApi.localization.gettext('ANPA Category'),
+            required: props.schema?.required,
             allowMultiple: !(props.singleSelect ?? (vocabulary.selection_type !== 'multi selection')),
             getId: (item: IVocabularyItem) => item.qcode,
             getLabel: (item: IVocabularyItem) => (
