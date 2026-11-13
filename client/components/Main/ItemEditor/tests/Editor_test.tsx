@@ -13,6 +13,8 @@ import * as helpers from '../../../tests/helpers';
 import {main, autosave} from '../../../../actions';
 
 import {Editor} from '../../';
+import {EditorComponent} from '../Editor';
+import {EDITOR_TYPE} from '../../../../interfaces';
 
 describe('Main.ItemEditor.Editor', () => {
     let store;
@@ -134,6 +136,42 @@ describe('Main.ItemEditor.Editor', () => {
             edit: new helpers.ui.Button(header, 'Edit', 0, wrapper),
         };
     };
+
+    it('cleans up only once when closing an unchanged editor while unlock is pending', async() => {
+        const onCancel = sinon.spy();
+        const editor = new EditorComponent({
+            dispatch: astore.dispatch,
+            itemType: ITEM_TYPE.EVENT,
+            itemAction: 'edit',
+            editorType: EDITOR_TYPE.INLINE,
+            onCancel: onCancel,
+        });
+
+        editor.state = {
+            ...editor.state,
+            initialValues: item,
+            diff: item,
+        };
+        sinon.stub(editor, 'setState');
+        sinon.stub(editor.autoSave, 'flushAutosave').returns(Promise.resolve());
+
+        let resolveUnlock: () => void;
+        const unlocking = new Promise<[]>((resolve) => {
+            resolveUnlock = () => resolve([]);
+        });
+        const unlockAndCancel = sinon.stub(editor.itemManager, 'unlockAndCancel').returns(unlocking);
+        const closing = editor.cancelFromHeader();
+
+        await Promise.resolve();
+        expect(unlockAndCancel.callCount).toBe(1);
+
+        resolveUnlock();
+        await closing;
+        await Promise.resolve();
+
+        expect(unlockAndCancel.callCount).toBe(1);
+        expect(onCancel.callCount).toBe(1);
+    });
 
     describe('Post', () => {
         xit('EditorHeader button states on posting', (done) => {

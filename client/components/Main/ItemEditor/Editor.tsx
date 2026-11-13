@@ -216,7 +216,7 @@ export class EditorComponent extends React.Component<IEditorProps, IEditorState>
             return;
         }
 
-        this.autoSave.flushAutosave().then(() => {
+        return this.autoSave.flushAutosave().then(() => {
             const {openCancelModal, itemId, itemType, addNewsItemToPlanning} = this.props;
             const {errorMessages, initialValues, diff} = this.state;
             const updateStates = !addNewsItemToPlanning;
@@ -262,9 +262,7 @@ export class EditorComponent extends React.Component<IEditorProps, IEditorState>
                     onSaveAndPost: onSaveAndPost,
                 });
             } else {
-                this.itemManager.unlockAndCancel().then(() => {
-                    this.onCancel();
-                });
+                return this.onCancel();
             }
         });
     }
