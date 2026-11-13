@@ -4,7 +4,7 @@ import {Provider} from 'react-redux';
 import sinon from 'sinon';
 import moment from 'moment';
 
-import {createTestStore} from '../../../../utils';
+import {createTestStore, generateTempId} from '../../../../utils';
 import {getTestActionStore, restoreSinonStub, waitFor} from '../../../../utils/testUtils';
 import {EVENTS, PLANNING, ITEM_TYPE, WORKFLOW_STATE, POST_STATE} from '../../../../constants';
 
@@ -14,7 +14,11 @@ import {main, autosave} from '../../../../actions';
 
 import {Editor} from '../../';
 import {EditorComponent} from '../Editor';
-import {EDITOR_TYPE} from '../../../../interfaces';
+import {EDITOR_TYPE, IEditorProps} from '../../../../interfaces';
+import {planningApi, superdeskApi} from '../../../../superdeskApi';
+import {
+    EditorFieldEventRelatedPlanningsComponent,
+} from '../../../fields/editor/EventRelatedPlannings/EventRelatedPlannings';
 
 describe('Main.ItemEditor.Editor', () => {
     let store;
@@ -171,6 +175,104 @@ describe('Main.ItemEditor.Editor', () => {
 
         expect(unlockAndCancel.callCount).toBe(1);
         expect(onCancel.callCount).toBe(1);
+    });
+
+    it('cancels an unchanged temporary event with related plannings mounted', async() => {
+        item._id = generateTempId();
+        item.associated_plannings = [];
+        delete item._etag;
+
+        initStore();
+        planningApi.redux.store = store;
+        const profile = store.getState().forms.profiles.event;
+
+        profile.editor = {
+            dates: {enabled: false, all_day: {enabled: true}},
+            related_plannings: {enabled: true, group: 'related_plannings', index: 0},
+        };
+        profile.groups = {
+            related_plannings: {
+                _id: 'related_plannings',
+                name: 'Related Plannings',
+                index: 0,
+                useToggleBox: false,
+            },
+        };
+
+        const autosaveGet = sinon.stub(planningApi.autosave, 'getById').resolves(item);
+        const autosaveDelete = sinon.stub(planningApi.autosave, 'delete').resolves();
+        const DropZone = superdeskApi.components.DropZone;
+
+        Object.assign(superdeskApi.components, {
+            DropZone: function DropZone({children}) {
+                return <div>{children}</div>;
+            },
+        });
+
+        try {
+            const state = store.getState();
+            const editorProps: IEditorProps = {
+                itemType: 'event',
+                session: selectors.general.session(state),
+                privileges: selectors.general.privileges(state),
+                lockedItems: selectors.locks.getLockedItems(state),
+                users: selectors.general.users(state),
+                formProfiles: state.forms.profiles,
+                occurStatuses: selectors.vocabs.eventOccurStatuses(state),
+                itemActions: {},
+                showUnlock: false,
+                hideItemActions: false,
+                hideMinimize: false,
+                createAndPost: false,
+                newsCoverageStatus: selectors.general.newsCoverageStatus(state),
+                contentTypes: selectors.general.contentTypes(state),
+                inModalView: false,
+                hideExternalEdit: false,
+                defaultDesk: selectors.general.defaultDesk(state),
+                currentWorkspace: selectors.general.currentWorkspace(state),
+                editorType: EDITOR_TYPE.INLINE,
+                groups: [],
+                minimize: sinon.spy(),
+                openCancelModal: sinon.spy(),
+                notifyValidationErrors: sinon.spy(),
+                saveDiffToStore: sinon.spy(),
+                dispatch: store.dispatch,
+            };
+
+            wrapper = mount(
+                <Provider store={store}>
+                    <Editor {...editorProps} />
+                </Provider>
+            );
+            store.dispatch(main.openEditorAction(item, 'edit', false));
+
+            await waitFor(() => {
+                wrapper.update();
+                return wrapper.find(EditorFieldEventRelatedPlanningsComponent).length === 1;
+            });
+
+            const editor: EditorComponent = wrapper.find(EditorComponent).instance();
+            const cleanup = sinon.spy(editor.itemManager, 'unlockAndCancel');
+
+            expect(editor.isDirty(editor.state.initialValues, editor.state.diff)).toBe(false);
+            expect(wrapper.find(EditorFieldEventRelatedPlanningsComponent).prop('disabled')).not.toBe(true);
+
+            await editor.cancelFromHeader();
+            wrapper.update();
+
+            expect(cleanup.callCount).toBe(1);
+            expect(autosaveDelete.callCount).toBe(1);
+            expect(selectors.forms.currentItemId(store.getState())).toBe(null);
+            expect(wrapper.find(EditorFieldEventRelatedPlanningsComponent).length).toBe(0);
+            expect(editor.state.diff).toEqual({});
+        } finally {
+            if (wrapper != null) {
+                wrapper.unmount();
+            }
+            autosaveGet.restore();
+            autosaveDelete.restore();
+            Object.assign(superdeskApi.components, {DropZone: DropZone});
+        }
     });
 
     describe('Post', () => {

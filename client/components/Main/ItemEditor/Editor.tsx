@@ -270,10 +270,6 @@ export class EditorComponent extends React.Component<IEditorProps, IEditorState>
     finishEditing(updateStates: boolean, callback?: () => void) {
         if (updateStates) {
             this.setState({submitting: false});
-
-            if (this.tearDownRequired || !isExistingItem(this.state.initialValues)) {
-                this.tearDownEditorState();
-            }
         }
 
         if (this.editorApi.dom.headerInstance?.current != null) {
