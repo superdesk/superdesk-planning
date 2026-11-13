@@ -13,6 +13,7 @@ import {MAIN, EVENTS, ITEM_TYPE} from '../../../constants';
 import {appConfig} from 'appConfig';
 
 import {getTestActionStore, restoreSinonStub} from '../../../utils/testUtils';
+import {timeUtils} from '../../../utils';
 
 describe('actions.events.ui', () => {
     let errorMessage;
@@ -102,6 +103,62 @@ describe('actions.events.ui', () => {
                 done();
             })
     ).catch(done.fail));
+
+    describe('onMarkEventCompleted', () => {
+        let clock;
+
+        beforeEach(() => {
+            // 22:30 UTC, which is already the next day in Pacific/Kiritimati (UTC+14)
+            clock = sinon.useFakeTimers({now: Date.parse('2026-11-12T22:30:00Z'), toFake: ['Date']});
+            sinon.stub(main, 'saveAndUnlockItem').callsFake(() => () => Promise.resolve());
+        });
+
+        afterEach(() => {
+            clock.restore();
+            restoreSinonStub(main.saveAndUnlockItem);
+        });
+
+        const markCompleted = (event, done) => (
+            store.test(done, eventsUi.onMarkEventCompleted(event))
+                .then(() => {
+                    const modal = store.dispatch.args.find(([action]) => action?.type === 'SHOW_MODAL')[0];
+
+                    return modal.modalProps.action();
+                })
+                .then(() => main.saveAndUnlockItem.args[0][1])
+        );
+
+        it('sets actioned_date to the start of today in the Event timezone', (done) => {
+            const event = {
+                ...data.events[1],
+                recurrence_id: 'rec1',
+                dates: {...data.events[1].dates, tz: 'Pacific/Kiritimati'},
+            };
+
+            markCompleted(event, done)
+                .then((updates) => {
+                    expect(moment(updates.actioned_date).toISOString()).toBe('2026-11-12T10:00:00.000Z');
+                    expect(updates.completed).toBe(true);
+                    expect(updates.update_method).toEqual({value: 'all'});
+                    done();
+                })
+                .catch(done.fail);
+        });
+
+        it('uses the local timezone if the Event has none', (done) => {
+            const event = {...data.events[1], dates: {...data.events[1].dates, tz: undefined}};
+
+            markCompleted(event, done)
+                .then((updates) => {
+                    const localStartOfDay = moment.tz('2026-11-12T22:30:00Z', timeUtils.localTimeZone())
+                        .startOf('day');
+
+                    expect(moment(updates.actioned_date).toISOString()).toBe(localStartOfDay.toISOString());
+                    done();
+                })
+                .catch(done.fail);
+        });
+    });
 
     it('openCancelModal calls `_openActionModalFromEditor`', () => {
         eventsUi.openCancelModal(data.events[1]);

@@ -983,7 +983,8 @@ const onMarkEventCompleted = (event, editor = false) => (
         let updates = {
             _id: event._id,
             type: event.type,
-            actioned_date: timeUtils.getDateInRemoteTimeZone(moment().startOf('day'), get(event, 'dates.tz')),
+            // Today in the Event's timezone, as the server validates against that
+            actioned_date: moment.tz(get(event, 'dates.tz') || timeUtils.localTimeZone()).startOf('day'),
             completed: true,
         };
 
