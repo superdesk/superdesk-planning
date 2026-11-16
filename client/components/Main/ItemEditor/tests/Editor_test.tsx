@@ -177,6 +177,28 @@ describe('Main.ItemEditor.Editor', () => {
         expect(onCancel.callCount).toBe(1);
     });
 
+    it('tears down editor state when cancelling Add to Planning', async() => {
+        const editor = new EditorComponent({
+            itemAction: 'edit',
+            inModalView: true,
+            addNewsItemToPlanning: {_id: 'news-item'},
+        });
+
+        editor.state = {
+            ...editor.state,
+            initialValues: item,
+            diff: {...item, name: 'Changed event'},
+        };
+        sinon.stub(editor, 'setState');
+        sinon.stub(editor.autoSave, 'flushAutosave').resolves();
+        sinon.stub(editor.itemManager, 'unlockAndCancel').resolves([]);
+        const tearDown = sinon.spy(editor, 'tearDownEditorState');
+
+        await editor.cancelFromHeader();
+
+        expect(tearDown.callCount).toBe(1);
+    });
+
     it('cancels an unchanged temporary event with related plannings mounted', async() => {
         item._id = generateTempId();
         item.associated_plannings = [];

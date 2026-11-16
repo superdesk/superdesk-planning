@@ -269,6 +269,10 @@ export class EditorComponent extends React.Component<IEditorProps, IEditorState>
 
     finishEditing(updateStates: boolean, callback?: () => void) {
         if (updateStates) {
+            if (this.tearDownRequired) {
+                this.tearDownEditorState();
+            }
+
             this.setState({submitting: false});
         }
 
