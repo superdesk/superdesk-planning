@@ -87,10 +87,11 @@ async def migrate_unified_storage_command(
     ``planning_files``      ``events_files``
     ======================  ======================
 
-    This only migrates MongoDB. Once it has completed, rebuild the Elastic indices with::
+    This only migrates MongoDB. Once it has completed, rebuild the unified planning Elastic index with::
 
         python manage.py app:index_from_mongo --from=unified_planning
-        python manage.py app:index_from_mongo --from=planning_history
+
+    History and files are stored only in MongoDB and must not be indexed into Elasticsearch.
 
     Usage::
 
