@@ -27,36 +27,31 @@ const mapStateToProps = (state) => ({
 export class EditorFieldDeskIdComponent extends React.PureComponent<IProps> {
     render() {
         const {gettext} = superdeskApi.localization;
-        let desks: Array<IDesk>;
+        const {restrictToUser, userId, desks, userDesks, includePersonal, clearable, defaultValue} = this.props;
+        let deskOptions: Array<IDesk>;
 
-        if (this.props.restrictToUser) {
-            desks = this.props.userId != null
-                ? getDesksForUser(this.props.userId, this.props.desks)
-                : Array.from(this.props.userDesks);
+        if (restrictToUser) {
+            deskOptions = userId != null ? getDesksForUser(userId, desks) : [...userDesks];
         } else {
-            desks = Array.from(this.props.desks);
+            deskOptions = [...desks];
         }
 
-        if (this.props.includePersonal) {
-            desks.push(PERSONAL_WORKSPACE);
+        if (includePersonal) {
+            deskOptions.push(PERSONAL_WORKSPACE);
         }
 
-        let defaultValue = this.props.defaultValue;
-
-        if (!this.props.clearable && !defaultValue) {
-            defaultValue = desks[0]?._id;
-        }
+        const defaultDesk = !clearable && !defaultValue ? deskOptions[0]?._id : defaultValue;
 
         return (
             <EditorFieldSelect
                 {...this.props}
                 field={this.props.field ?? 'desk'}
                 label={this.props.label ?? gettext('Desk')}
-                options={desks}
+                options={deskOptions}
                 labelField={'name'}
                 keyField={'_id'}
                 valueAsString={true}
-                defaultValue={defaultValue}
+                defaultValue={defaultDesk}
             />
         );
     }
