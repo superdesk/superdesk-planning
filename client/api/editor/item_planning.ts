@@ -1,11 +1,9 @@
 import {createRef, RefObject} from 'react';
-import {cloneDeep, omit} from 'lodash';
+import {cloneDeep} from 'lodash';
 
 import {
     BOOKMARK_TYPE,
     EDITOR_TYPE,
-    IPlanningContentProfile,
-    ICoverageType,
     IEditorAPI,
     IEditorBookmark,
     IEditorFormGroup,
@@ -13,58 +11,14 @@ import {
     IPlanningCoverageItem,
     IPlanningItem,
     IPlanningRelatedEventLink,
-    ISearchProfile,
 } from '../../interfaces';
 import {planningApi, superdeskApi} from '../../superdeskApi';
 
-import {
-    getBookmarksFromFormGroups,
-    getEditorFormGroupsFromProfile,
-    getGroupFieldsSorted,
-} from '../../utils/contentProfiles';
+import {getBookmarksFromFormGroups, getEditorFormGroupsFromProfile} from '../../utils/contentProfiles';
 
 import {CoveragesBookmark, AddCoverageBookmark} from '../../components/Editor/bookmarks';
 import {AssociatedEventItem} from '../../components/fields/editor/AssociatedEventItem';
-import {coverageProfiles, defaultCoverageProfile} from '../../selectors/forms';
 import {isTemporaryId} from '../../utils';
-import {appConfig} from 'superdesk-core/scripts/appConfig';
-
-export function getCoverageFields(
-    type: ICoverageType, coverageProfile?: IPlanningContentProfile,
-): {searchProfile: ISearchProfile; profile: IPlanningContentProfile} {
-    const storeState = planningApi.redux.store.getState();
-    let newProfile: IPlanningContentProfile | undefined;
-
-    if (coverageProfile != null) {
-        newProfile = coverageProfile;
-    } else {
-        const allProfiles = coverageProfiles(storeState);
-
-        newProfile = allProfiles.find((x) => x.content_type === type);
-    }
-
-    const profile = newProfile ?
-        newProfile :
-        omit(defaultCoverageProfile(storeState), '_id') as IPlanningContentProfile;
-    const autoAddToWorkflow = appConfig.planning_auto_assign_to_workflow;
-
-    const fields = getGroupFieldsSorted(profile).filter((item) =>
-        item.field.enabled
-            && autoAddToWorkflow ? item.name != 'add_coverage_to_workflow' : true
-    );
-    const searchProfile: ISearchProfile = {};
-
-    fields.forEach(
-        (field, index) => {
-            searchProfile[field.name] = {
-                enabled: true,
-                index: index,
-            };
-        },
-    );
-
-    return {searchProfile, profile};
-}
 
 export function getPlanningInstance(type: EDITOR_TYPE): IEditorAPI['item']['planning'] {
     function getGroupsForItem(item: Partial<IPlanningItem>): {
@@ -236,7 +190,6 @@ export function getPlanningInstance(type: EDITOR_TYPE): IEditorAPI['item']['plan
 
     return {
         getGroupsForItem,
-        getCoverageFields,
         getRelatedEventsDomRef,
         unlinkEvent,
         getCoverageFieldDomRef,

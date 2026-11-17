@@ -2436,9 +2436,6 @@ export interface IEditorAPI {
             updateEventItem(item: IEventItem, updates: IEventItem, scrollOnChange: boolean): Promise<void>;
             unlinkEvent(item: DeepPartial<IEventItem>): void;
             getRelatedEventsDomRef(eventId: IEventItem['_id']): React.RefObject<any>;
-            getCoverageFields(
-                type: ICoverageType, coverageProfile?: IPlanningContentProfile,
-            ): {searchProfile: ISearchProfile; profile: IPlanningContentProfile};
             getCoverageFieldDomRef(coverageId: IPlanningCoverageItem['coverage_id']): React.RefObject<any>;
             addCoverages(coverages: Array<DeepPartial<IPlanningCoverageItem>>): void;
         };
@@ -2581,6 +2578,8 @@ export interface IPlanningAPI {
     contentProfiles: {
         getAll(): Promise<Array<IPlanningContentProfile>>;
         get(contentType: string): IPlanningContentProfile;
+        getCoverageProfile(coverage: IPlanningCoverageItem): IPlanningContentProfile;
+        getSearchProfile(profile: IPlanningContentProfile): ISearchProfile;
         multilingual: {
             getLanguageSchema(profile: IPlanningContentProfile): IProfileSchemaTypeString
             isEnabled(profile: IPlanningContentProfile): boolean;

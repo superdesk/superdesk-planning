@@ -1,3 +1,5 @@
+import {omit} from 'lodash';
+
 import {appConfig} from 'appConfig';
 import {IVocabularyItem} from 'superdesk-api';
 import {
@@ -7,14 +9,14 @@ import {
     IPlanningCoverageItem,
     IProfileMultilingualDetails,
     IProfileSchemaTypeString,
-    IFormState,
+    ISearchProfile, IProfileFieldEntry,
 } from '../interfaces';
 import {planningApi, superdeskApi} from '../superdeskApi';
 
-import {profiles} from '../selectors/forms';
+import {profiles, coverageProfiles, defaultCoverageProfile} from '../selectors/forms';
 import {updateContentProfiles} from '../actions/forms';
 
-import {sortProfileGroups} from '../utils/contentProfiles';
+import {sortProfileGroups, getGroupFieldsSorted} from '../utils/contentProfiles';
 
 import {showModalConnectedToStore} from '../utils/ui';
 import {ContentProfileModal} from '../components/ContentProfiles/ContentProfileModal';
@@ -233,9 +235,59 @@ function getDefaultValues(
     );
 }
 
+function getCoverageProfile(coverage: IPlanningCoverageItem): IPlanningContentProfile {
+    const storeState = planningApi.redux.store.getState();
+    const allProfiles = coverageProfiles(storeState);
+    const contentType = coverage.planning?.g2_content_type;
+    let coverageProfile: IPlanningContentProfile | undefined;
+
+    if (coverage.profile != null) {
+        coverageProfile = allProfiles.find((profile) => profile._id === coverage.profile);
+
+        if (coverageProfile != null) {
+            return coverageProfile;
+        }
+
+        console.warn(`Coverage profile "${coverage.profile}" not found, falling back to coverage content profile`);
+    }
+
+    if (contentType != null) {
+        coverageProfile = allProfiles.find((profile) => profile.content_type === contentType);
+
+        if (coverageProfile != null) {
+            return coverageProfile;
+        }
+    }
+
+    return omit(defaultCoverageProfile(storeState), '_id') as IPlanningContentProfile;
+}
+
+function getSearchProfile(profile: IPlanningContentProfile): ISearchProfile {
+    const searchProfile: ISearchProfile = {};
+    const autoAddToWorkflow = appConfig.planning_auto_assign_to_workflow;
+    const isFieldEnabled = profile.type !== 'coverage'
+        ? (item: IProfileFieldEntry) => item.field.enabled
+        : (item: IProfileFieldEntry) => (
+            item.field.enabled && autoAddToWorkflow ? item.name !== 'add_coverage_to_workflow' : true
+        );
+
+    getGroupFieldsSorted(profile)
+        .filter(isFieldEnabled)
+        .forEach((field, index) => {
+            searchProfile[field.name] = {
+                enabled: true,
+                index: index,
+            };
+        });
+
+    return searchProfile;
+}
+
 export const contentProfiles: IPlanningAPI['contentProfiles'] = {
     getAll: getAll,
     get: getProfile,
+    getCoverageProfile: getCoverageProfile,
+    getSearchProfile: getSearchProfile,
     getDefaultValues: getDefaultValues,
     patch: patch,
     showManagePlanningProfileModal: showManagePlanningProfileModal,

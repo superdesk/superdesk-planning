@@ -24,8 +24,7 @@ import {planningUtils, generateTempId, assignmentUtils, isItemExpired} from '../
 import {WORKFLOW_STATE} from '../../../constants';
 import {EditorFieldSelect} from '../../fields/editor/base/select';
 import {renderFieldsForPanel} from '../../fields';
-import {getCoverageFields} from '../../../api/editor/item_planning';
-import {coverageProfiles, defaultCoverageProfile} from '../../../selectors/forms';
+import {coverageProfiles} from '../../../selectors/forms';
 
 import '../style.scss';
 import {VOCABULARIES_TO_BE_EXCLUDED} from '../../../utils/contentProfiles';
@@ -308,7 +307,7 @@ export class CoverageFormComponent extends React.Component<IProps, IState> {
                         g2_content_type: value,
                         genre: null,
                     },
-                    profile: profile._id,
+                    profile: profile?._id,
                 },
             ],
         );
@@ -369,22 +368,9 @@ export class CoverageFormComponent extends React.Component<IProps, IState> {
     }
 
     render() {
+        const profile = planningApi.contentProfiles.getCoverageProfile(this.props.value);
+        const searchProfile = planningApi.contentProfiles.getSearchProfile(profile);
         const contentTypeQcode = this.props.value.planning?.g2_content_type;
-        let coverageTypeProfile: IPlanningContentProfile;
-
-        if (this.props.coverageTypeProfile != null) {
-            coverageTypeProfile = this.props.coverageTypeProfile;
-        } else {
-            const state = planningApi.redux.store.getState();
-            const allProfiles = coverageProfiles(state);
-
-            coverageTypeProfile = (
-                allProfiles.find((x) => x._id === this.props.value.profile)
-                || defaultCoverageProfile(state)
-            );
-        }
-
-        const {searchProfile, profile} = getCoverageFields(contentTypeQcode, coverageTypeProfile);
         const defaultGenre = (appConfig.default_genre || [{}])[0];
         const showXmpFileInput = planningUtils.showXMPFileUIControl(this.props.value);
         const hideXmpFileInput = this.props.value.planning?.xmp_file != null;
@@ -434,7 +420,7 @@ export class CoverageFormComponent extends React.Component<IProps, IState> {
                     valueStoredAsArray: true,
                 },
             }), {});
-        const multipleContentFieldProfile = coverageTypeProfile?.schema?.['multiple_content'] as IProfileSchemaTypeList;
+        const multipleContentFieldProfile = profile?.schema?.['multiple_content'] as IProfileSchemaTypeList;
 
         const fieldProps: Dictionary<keyof IPlanningCoverageItem, any> = {
             ...customCVFields,
@@ -566,7 +552,7 @@ export class CoverageFormComponent extends React.Component<IProps, IState> {
                 || !(isCoverageDraft(value) && isCoverageAssigned(value) && !isItemExpired(diff));
         };
 
-        if (coverageTypeProfile?.editor?.add_coverage_to_workflow?.enabled !== false) {
+        if (profile?.editor?.add_coverage_to_workflow?.enabled !== false) {
             // If `add_coverage_to_workflow` is not explicitly disabled, then we assume it's enabled
             fieldProps.add_coverage_to_workflow = {
                 onChange: this.toggleAddToWorkflow,

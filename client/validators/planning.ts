@@ -8,7 +8,6 @@ import {gettext, getItemInArrayById} from '../utils';
 import {getVocabularyItemsForScheme, validateField, validators} from './index';
 import type {IPlanningContentProfile, IPlanningCoverageItem, IPlanningItem} from 'interfaces';
 import {planningApi, superdeskApi} from '../superdeskApi';
-import {getCoverageFields} from '../api/editor/item_planning';
 import {vocabularies} from '../api/vocabularies';
 import type {Dictionary} from 'superdesk-api';
 
@@ -95,7 +94,7 @@ export const validateCoverages = ({
             get(coverage, 'coverage_id'),
             'coverage_id'
         );
-        const coverageProfile = getCoverageFields(coverage.planning.g2_content_type).profile;
+        const coverageProfile = planningApi.contentProfiles.getCoverageProfile(coverage);
 
         validateCoverageVocabularyFields(coverageProfile, errors, messages, diff.coverages[index]);
         validateCoverageCustomTextFields(coverageProfile, errors, messages, diff.coverages[index]);

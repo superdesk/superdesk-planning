@@ -2,7 +2,7 @@ import React from 'react';
 
 import {IDesk, IUser} from 'superdesk-api';
 import {appConfig} from 'appConfig';
-import {superdeskApi} from '../../superdeskApi';
+import {superdeskApi, planningApi} from '../../superdeskApi';
 import {
     IEventOrPlanningItem,
     IFile,
@@ -11,7 +11,6 @@ import {
 } from '../../interfaces';
 
 import {getFileDownloadURL} from '../../utils';
-import {getCoverageFields} from '../../api/editor/item_planning';
 import {CoveragePreview} from './CoveragePreview';
 
 interface IProps {
@@ -29,7 +28,7 @@ export class CoveragesPreview extends React.PureComponent<IProps> {
     // subtree is not remounted (and its CollapseBox state lost) on every render
     renderCoveragePreview(coverage: IPlanningCoverageItem, index: number) {
         const {item, users, desks, newsCoverageStatus, inner, files} = this.props;
-        const {profile} = getCoverageFields(coverage.planning.g2_content_type);
+        const profile = planningApi.contentProfiles.getCoverageProfile(coverage);
 
         return (
             <CoveragePreview
