@@ -368,7 +368,8 @@ export class CoverageFormComponent extends React.Component<IProps, IState> {
     }
 
     render() {
-        const profile = planningApi.contentProfiles.getCoverageProfile(this.props.value);
+        const profile = this.props.coverageTypeProfile
+            ?? planningApi.contentProfiles.getCoverageProfile(this.props.value);
         const searchProfile = planningApi.contentProfiles.getSearchProfile(profile);
         const contentTypeQcode = this.props.value.planning?.g2_content_type;
         const defaultGenre = (appConfig.default_genre || [{}])[0];

@@ -287,8 +287,8 @@ class CoverageAddInlineFormComponent extends React.Component<IProps, IState> {
                 testId={`coverages[${index}]`}
                 field={`coverages[${index}]`}
                 value={coverage}
-                item={this.state}
-                diff={this.state}
+                item={this.props.event}
+                diff={this.props.event}
                 coverages={this.state.rows}
                 disabled={this.props.disabled}
                 onChange={(field, value) => this.updateField(field, index, value)}

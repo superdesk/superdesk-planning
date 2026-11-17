@@ -1,4 +1,4 @@
-import {omit} from 'lodash';
+import {omit, cloneDeep} from 'lodash';
 
 import {appConfig} from 'appConfig';
 import {IVocabularyItem} from 'superdesk-api';
@@ -245,7 +245,7 @@ function getCoverageProfile(coverage: IPlanningCoverageItem): IPlanningContentPr
         coverageProfile = allProfiles.find((profile) => profile._id === coverage.profile);
 
         if (coverageProfile != null) {
-            return coverageProfile;
+            return cloneDeep(coverageProfile);
         }
 
         console.warn(`Coverage profile "${coverage.profile}" not found, falling back to coverage content profile`);
@@ -255,11 +255,11 @@ function getCoverageProfile(coverage: IPlanningCoverageItem): IPlanningContentPr
         coverageProfile = allProfiles.find((profile) => profile.content_type === contentType);
 
         if (coverageProfile != null) {
-            return coverageProfile;
+            return cloneDeep(coverageProfile);
         }
     }
 
-    return omit(defaultCoverageProfile(storeState), '_id') as IPlanningContentProfile;
+    return omit(cloneDeep(defaultCoverageProfile(storeState)), '_id') as IPlanningContentProfile;
 }
 
 function getSearchProfile(profile: IPlanningContentProfile): ISearchProfile {
