@@ -14,6 +14,7 @@ import {gettext, planningUtils, getItemInArrayById} from '../../utils';
 import {getUserInterfaceLanguageFromCV} from '../../utils/users';
 import {getVocabularyItemFieldTranslated} from '../../utils/vocabularies';
 import * as selectors from '../../selectors';
+import {getTranslatedValue} from '../fields';
 import {
     applyDeskChange,
     createRowsFromContentTypes,
@@ -132,7 +133,7 @@ class CoverageAddInlineFormComponent extends React.Component<IProps, IState> {
         this.clearRows();
     }
 
-    updateField = (field: string, index: number, value: any) => {
+    updateField(coverage: Partial<IPlanningCoverageItem>, field: string, index: number, value: any) {
         const relativeField = field.replace(/^coverages\.\d+\./, '');
 
         this.setState((prevState) => {
@@ -153,7 +154,7 @@ class CoverageAddInlineFormComponent extends React.Component<IProps, IState> {
                     updatedCoverage,
                     getItemInArrayById(this.props.desks, value),
                     this.props.users,
-                    getFilteredLanguages(this.props.allLanguages),
+                    getFilteredLanguages(this.props.event.type, this.props.allLanguages),
                     RULES,
                 );
 
@@ -173,6 +174,35 @@ class CoverageAddInlineFormComponent extends React.Component<IProps, IState> {
                 }
             } else {
                 set(updatedCoverage, relativeField, value);
+            }
+
+            if (coverage.planning?.language !== updatedCoverage.planning?.language) {
+                // Coverage language has changed.
+                // Update all multilingual fields from parent to match
+
+                const eventProfile = planningApi.contentProfiles.get(this.props.event.type);
+                const multilingualFields = planningApi.contentProfiles.multilingual.getFields(eventProfile);
+
+                for (const multilingualField of multilingualFields) {
+                    const currentEventValue = getTranslatedValue(
+                        coverage.planning?.language,
+                        this.props.event,
+                        multilingualField,
+                    );
+                    const originalCoverageValue: any = coverage.planning?.[multilingualField];
+
+                    if (currentEventValue === originalCoverageValue) {
+                        // The Coverage value has the same as the Event
+                        // So we update it to use the new language value from the Event
+                        const updatedEventValue = getTranslatedValue(
+                            updatedCoverage.planning?.language,
+                            this.props.event,
+                            multilingualField,
+                        );
+
+                        set(updatedCoverage, `planning.${multilingualField}`, updatedEventValue);
+                    }
+                }
             }
 
             return newState;
@@ -282,6 +312,17 @@ class CoverageAddInlineFormComponent extends React.Component<IProps, IState> {
             profile.editor.add_coverage_to_workflow.enabled = false;
         }
 
+        if (profile.editor.language?.enabled) {
+            // If languages is enabled and parent item is multilingual
+            // make sure the Coverage only allows languages defined in the parent item
+            const {multilingual} = planningApi.contentProfiles;
+            const eventProfile = planningApi.contentProfiles.get(this.props.event.type);
+
+            if (multilingual.isEnabled(eventProfile)) {
+                fieldProps.language = {enabledLanguages: multilingual.getLanguages(eventProfile)};
+            }
+        }
+
         return (
             <CoverageForm
                 testId={`coverages[${index}]`}
@@ -291,7 +332,7 @@ class CoverageAddInlineFormComponent extends React.Component<IProps, IState> {
                 diff={this.props.event}
                 coverages={this.state.rows}
                 disabled={this.props.disabled}
-                onChange={(field, value) => this.updateField(field, index, value)}
+                onChange={(field, value) => this.updateField(coverage, field, index, value)}
                 hasAssignment={planningUtils.isCoverageAssigned(coverage)}
                 index={index}
                 coverageTypeProfile={profile}

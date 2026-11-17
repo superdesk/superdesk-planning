@@ -94,7 +94,7 @@ describe('coverageRows', () => {
         planningApi.contentProfiles = contentProfilesDefault;
     });
 
-    const mockMultilingual = (enabled: boolean, profileLanguages: Array<string> = []) => {
+    const mockMultilingual = (enabled: boolean, profileLanguages: Array<string> = [], multilingualFields: Array<string> = ['slugline', 'headline', 'internal_note', 'ednote']) => {
         planningApi.contentProfiles = {
             ...planningApi.contentProfiles,
             get: () => ({} as IPlanningContentProfile),
@@ -102,6 +102,7 @@ describe('coverageRows', () => {
                 ...planningApi.contentProfiles.multilingual,
                 isEnabled: () => enabled,
                 getLanguages: () => profileLanguages,
+                getFields: () => multilingualFields,
             },
         } as typeof planningApi.contentProfiles;
     };
@@ -210,13 +211,13 @@ describe('coverageRows', () => {
         it('returns every language when the planning profile is not multilingual', () => {
             mockMultilingual(false);
 
-            expect(getFilteredLanguages(languages)).toEqual(languages);
+            expect(getFilteredLanguages('planning', languages)).toEqual(languages);
         });
 
         it('keeps only the languages of the planning profile when it is multilingual', () => {
             mockMultilingual(true, ['fr-CA']);
 
-            expect(getFilteredLanguages(languages)).toEqual([languages[1]]);
+            expect(getFilteredLanguages('planning', languages)).toEqual([languages[1]]);
         });
     });
 
@@ -312,6 +313,7 @@ describe('coverageRows', () => {
         });
 
         it('copies the translated event fields for the language of the row', () => {
+            mockMultilingual(true, ['fr-CA']);
             const [text] = getRows();
             const [coverage] = buildNewCoverages(
                 [{...text, enabled: true, planning: {language: 'fr-CA'} as any}],
@@ -329,6 +331,7 @@ describe('coverageRows', () => {
         });
 
         it('leaves the coverage fields alone when the row has no language', () => {
+            mockMultilingual(true, ['fr-CA']);
             const [text] = getRows();
             const [coverage] = buildNewCoverages([{...text, enabled: true}], createCoverage, event);
 

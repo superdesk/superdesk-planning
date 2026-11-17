@@ -390,6 +390,7 @@ export class CoverageFormComponent extends React.Component<IProps, IState> {
             disabled: this.props.disabled,
             profile: profile,
             editorType: this.props.editorType,
+            parentItem: this.props.diff,
         };
 
         const allVocabularies = superdeskApi.entities.vocabulary.getAll().toArray();

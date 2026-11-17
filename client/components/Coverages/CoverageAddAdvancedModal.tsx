@@ -199,7 +199,7 @@ class CoverageAddAdvancedModalComponent extends React.Component<IProps, IState> 
             selected,
             desk,
             this.props.users,
-            getFilteredLanguages(this.props.allLanguages)
+            getFilteredLanguages(this.props.item.type, this.props.allLanguages),
         ));
     }
 
@@ -352,7 +352,7 @@ class CoverageAddAdvancedModalComponent extends React.Component<IProps, IState> 
                                 {coverage.enabled && (
                                     <CoverageEditableFields
                                         coverage={coverage}
-                                        languages={getFilteredLanguages(this.props.allLanguages)}
+                                        languages={getFilteredLanguages(this.props.item.type, this.props.allLanguages)}
                                         handleDeskChange={this.onDeskChange}
                                         handleUserChange={this.onUserChange}
                                         updateCoverage={this.updateCoverage}

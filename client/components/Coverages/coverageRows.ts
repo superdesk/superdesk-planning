@@ -46,9 +46,6 @@ export interface ICoverageRowRules {
 
 type ILanguageOption = {value: IVocabularyItem};
 
-// Event fields copied into a coverage that has its own language
-const TRANSLATED_FIELDS = ['slugline', 'headline', 'internal_note', 'ednote'];
-
 export function createRow(
     item: DeepPartial<IEventOrPlanningItem>,
     g2contentType: string,
@@ -168,15 +165,18 @@ export function applyUserChange(user: IUser | null, desks: Array<IDesk>): ICover
 /**
  * Languages a coverage may use: all of them, or only the ones the planning profile is configured with
  */
-export function getFilteredLanguages(allLanguages: Array<ILanguageOption>): Array<ILanguageOption> {
+export function getFilteredLanguages(
+    parentItemType: IEventOrPlanningItem['type'],
+    allLanguages: Array<ILanguageOption>,
+): Array<ILanguageOption> {
     const {multilingual} = planningApi.contentProfiles;
-    const planningProfile = planningApi.contentProfiles.get('planning');
+    const itemProfile = planningApi.contentProfiles.get(parentItemType);
 
-    if (!multilingual.isEnabled(planningProfile)) {
+    if (!multilingual.isEnabled(itemProfile)) {
         return allLanguages;
     }
 
-    const profileLanguages = multilingual.getLanguages(planningProfile);
+    const profileLanguages = multilingual.getLanguages(itemProfile);
 
     return allLanguages.filter((language) => profileLanguages.includes(language.value.qcode));
 }
@@ -227,7 +227,10 @@ export function buildNewCoverage(
         };
 
         if (event != null) {
-            TRANSLATED_FIELDS.forEach((field) => {
+            const eventProfile = planningApi.contentProfiles.get(event.type);
+            const multilingualFields = planningApi.contentProfiles.multilingual.getFields(eventProfile);
+
+            multilingualFields.forEach((field) => {
                 const value = getTranslatedValue(language, event, field);
 
                 if (value != null) {

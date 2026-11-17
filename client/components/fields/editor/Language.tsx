@@ -11,6 +11,7 @@ import {Container, ButtonGroup, Button, Switch} from 'superdesk-ui-framework/rea
 
 interface IProps extends IEditorFieldProps {
     languages: Array<{value: IVocabularyItem}>;
+    enabledLanguages?: Array<IVocabularyItem['qcode']>;
     clearable?: boolean;
     valueAsString?: boolean;
     setMainLanguage?(languageQcode?: IVocabularyItem['qcode']): void;
@@ -39,6 +40,23 @@ export class EditorFieldLanguageComponent extends React.PureComponent<IProps> {
         );
     }
 
+    getOptions = () => {
+        const {multilingual} = planningApi.contentProfiles;
+        let languageQcodes: Array<IVocabularyItem['qcode']>;
+
+        if (this.props.enabledLanguages != null) {
+            languageQcodes = this.props.enabledLanguages;
+        } else if (!this.props.profile) {
+            return this.props.languages;
+        } else if (multilingual.isEnabled(this.props.profile)) {
+            languageQcodes = multilingual.getLanguages(this.props.profile);
+        } else {
+            return this.props.languages;
+        }
+
+        return this.props.languages.filter((language) => languageQcodes.includes(language.value.qcode));
+    }
+
     render() {
         const {gettext} = superdeskApi.localization;
         const {multilingual} = planningApi.contentProfiles;
@@ -48,12 +66,6 @@ export class EditorFieldLanguageComponent extends React.PureComponent<IProps> {
         } = this.props;
 
         const isMultilingual = multilingual.isEnabled(this.props.profile);
-        const schemaLanguages = multilingual.getLanguages(this.props.profile);
-        const languages = !isMultilingual ?
-            this.props.languages :
-            this.props.languages.filter((language) => (
-                schemaLanguages.includes(language.value.qcode)
-            ));
         const baseField = this.props.field ?? 'language';
         const field = !isMultilingual ? baseField : `${baseField}s`;
 
@@ -73,7 +85,7 @@ export class EditorFieldLanguageComponent extends React.PureComponent<IProps> {
                 {...props}
                 field={field}
                 label={props.label ?? gettext('Language')}
-                getOptions={() => languages}
+                getOptions={this.getOptions}
                 getId={(item: IVocabularyItem) => item.qcode}
                 getLabel={(item: IVocabularyItem) => item.name}
                 onChange={this.onChange}
