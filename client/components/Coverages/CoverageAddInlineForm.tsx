@@ -8,8 +8,8 @@ import {
     IEventItem,
     IG2ContentType,
     IPlanningCoverageItem,
-    IPlanningContentProfile
 } from '../../interfaces';
+import {planningApi} from '../../superdeskApi';
 import {gettext, planningUtils, getItemInArrayById} from '../../utils';
 import {getUserInterfaceLanguageFromCV} from '../../utils/users';
 import {getVocabularyItemFieldTranslated} from '../../utils/vocabularies';
@@ -50,8 +50,6 @@ interface IOwnProps {
 
 interface IReduxStateProps {
     allLanguages: Array<{value: IVocabularyItem}>;
-    coverageProfiles: {[profileId: string]: IPlanningContentProfile};
-    defaultCoverageProfile: IPlanningContentProfile;
 }
 
 type IProps = IOwnProps & IReduxStateProps;
@@ -228,10 +226,7 @@ class CoverageAddInlineFormComponent extends React.Component<IProps, IState> {
     }
 
     renderEditor(coverage: Partial<IPlanningCoverageItem>, index: number) {
-        const profile = cloneDeep<IPlanningContentProfile>(
-            this.props.coverageProfiles[coverage.profile]
-            || this.props.defaultCoverageProfile
-        );
+        const profile = planningApi.contentProfiles.getCoverageProfile(coverage);
         const fieldProps = {
             desk: {
                 field: 'assigned_to.desk',
@@ -370,8 +365,6 @@ class CoverageAddInlineFormComponent extends React.Component<IProps, IState> {
 
 const mapStateToProps = (state): IReduxStateProps => ({
     allLanguages: selectors.vocabs.getLanguagesForTreeSelectInput(state),
-    coverageProfiles: selectors.forms.getCoverageProfilesIdMap(state),
-    defaultCoverageProfile: selectors.forms.defaultCoverageProfile(state),
 });
 
 export const CoverageAddInlineForm = connect<IReduxStateProps, null, IOwnProps>(
