@@ -237,7 +237,7 @@ class CoverageAddInlineFormComponent extends React.Component<IProps, IState> {
                 field: 'assigned_to.desk',
                 clearable: true,
                 required: false,
-                restrictToUser: true,
+                restrictToUser: coverage.assigned_to?.user != null,
                 userId: coverage.assigned_to?.user,
             },
             user: {
