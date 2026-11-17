@@ -214,7 +214,11 @@ class CoverageAddAdvancedModalComponent extends React.Component<IProps, IState> 
                 || (coverage.coverage_id != null && !coverage.coverage_id.startsWith('tempId-'))),
             )
             .map((coverage) => {
-                if (coverage.coverage_id == null || coverage.coverage_id.startsWith('tempId-')) {
+                const existingCoverageIndex = this.props.value.findIndex(
+                    (existingCoverage) => existingCoverage.coverage_id === coverage.coverage_id,
+                );
+
+                if (existingCoverageIndex < 0) {
                     return buildNewCoverage(coverage, this.props.createCoverage);
                 }
 
