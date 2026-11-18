@@ -1,6 +1,7 @@
 import moment from 'moment';
 import {get, set, isEqual, isEmpty} from 'lodash';
 
+import {appConfig} from 'appConfig';
 import {WORKSPACE, WORKFLOW_STATE, PRIVILEGES} from '../constants';
 import * as selectors from '../selectors';
 import {gettext, getItemInArrayById} from '../utils';
@@ -34,7 +35,7 @@ const validatePlanningScheduleDate = ({getState, field, value, errors, messages,
  * The purpose of v2 is to have a interface cleaner
  * and reduce the number of arguments that have to be passed.
  */
-export function validateCoveragesV2(value: Array<IPlanningCoverageItem>) {
+export function validateCoveragesV2(value: Array<IPlanningCoverageItem>, validateDeskAssignment: boolean = false) {
     let errors = {};
     let messages = [];
 
@@ -50,6 +51,7 @@ export function validateCoveragesV2(value: Array<IPlanningCoverageItem>) {
         item: {},
         errors: errors,
         messages: messages,
+        validateDeskAssignment: validateDeskAssignment,
     });
 
     return {errors, messages};
@@ -63,6 +65,7 @@ interface IValidateCoverages {
     messages: any;
     diff: Partial<IPlanningItem>;
     item: Partial<IPlanningItem>;
+    validateDeskAssignment: boolean;
 }
 
 export const validateCoverages = ({
@@ -73,6 +76,7 @@ export const validateCoverages = ({
     messages,
     diff,
     item,
+    validateDeskAssignment = false,
 }: IValidateCoverages) => {
     const error: Dictionary<string, string> = {};
     const handleErrors = () => {
@@ -140,6 +144,18 @@ export const validateCoverages = ({
                 set(error, `${index}.${keyName}`, coverageErrors[key]);
             }
         });
+
+        if (validateDeskAssignment && coverage.assigned_to?.desk == null) {
+            const deskRequired = (
+                coverage.assigned_to?.user != null
+                || appConfig.planning_auto_assign_to_workflow === true
+            );
+
+            if (deskRequired) {
+                set(error, `${index}.assigned_to.desk`, gettext('Desk is required'));
+                messages.push(gettext('Desk is required'));
+            }
+        }
     });
 
     handleErrors();

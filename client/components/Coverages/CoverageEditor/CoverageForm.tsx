@@ -38,7 +38,7 @@ interface IOwnProps {
     message: string | {[key: string]: any};
     item: IEventOrPlanningItem;
     diff: Partial<IEventOrPlanningItem>;
-    errors: {[key: string]: any}
+    errors: {[key: string]: any};
     showErrors: boolean;
     hasAssignment: boolean;
     addNewsItemToPlanning?: IArticle;
@@ -371,6 +371,7 @@ export class CoverageFormComponent extends React.Component<IProps, IState> {
             profile: profile,
             editorType: this.props.editorType,
             parentItem: this.props.diff,
+            showErrors: this.props.showErrors,
         };
 
         const allVocabularies = superdeskApi.entities.vocabulary.getAll().toArray();

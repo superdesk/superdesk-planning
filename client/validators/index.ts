@@ -203,6 +203,7 @@ export const validators = {
         slugline: [formProfile],
         scheduled_updates: [planningValidators.validateScheduledUpdatesDate],
         language: [formProfile],
+        anpa_category: [formProfile],
     },
     assignment: {
         _all: [validateAssignment],

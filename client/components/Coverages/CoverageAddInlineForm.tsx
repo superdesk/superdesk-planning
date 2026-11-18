@@ -13,6 +13,7 @@ import {planningApi} from '../../superdeskApi';
 import {gettext, planningUtils, getItemInArrayById} from '../../utils';
 import {getUserInterfaceLanguageFromCV} from '../../utils/users';
 import {getVocabularyItemFieldTranslated} from '../../utils/vocabularies';
+import {validateCoveragesV2} from '../../validators/planning';
 import * as selectors from '../../selectors';
 import {getTranslatedValue} from '../fields';
 import {
@@ -57,6 +58,7 @@ type IProps = IOwnProps & IReduxStateProps;
 
 interface IState {
     rows: Array<ICoverageRow>;
+    submitted: boolean;
     open: boolean;
 }
 
@@ -76,14 +78,15 @@ class CoverageAddInlineFormComponent extends React.Component<IProps, IState> {
 
         return {
             rows: createRowsFromContentTypes(event, contentTypes, desks),
+            submitted: false,
             open: true,
         };
     }
 
     clearRows = () => {
-        const {rows} = this.getInitialState();
+        const {rows, submitted} = this.getInitialState();
 
-        this.setState({rows});
+        this.setState({rows, submitted});
     }
 
     cancel = () => {
@@ -107,6 +110,13 @@ class CoverageAddInlineFormComponent extends React.Component<IProps, IState> {
     }
 
     add = () => {
+        const {messages} = validateCoveragesV2(this.state.rows, true);
+
+        if (messages && messages.length > 0) {
+            this.setState({submitted: true});
+            return;
+        }
+
         const fieldsToRemove: Array<keyof ICoverageLineItem> = [
             'enabled', 'qcode', 'desk', 'user', 'status', 'filteredDesks', 'rowId',
         ];
@@ -255,19 +265,17 @@ class CoverageAddInlineFormComponent extends React.Component<IProps, IState> {
         );
     }
 
-    renderEditor(coverage: Partial<IPlanningCoverageItem>, index: number) {
+    renderEditor(coverage: Partial<IPlanningCoverageItem>, index: number, errors: any) {
         const profile = planningApi.contentProfiles.getCoverageProfile(coverage);
         const fieldProps = {
             desk: {
                 field: 'assigned_to.desk',
                 clearable: true,
-                required: false,
                 restrictToUser: coverage.assigned_to?.user != null,
                 userId: coverage.assigned_to?.user,
             },
             user: {
                 field: 'assigned_to.user',
-                required: false,
                 deskId: coverage.assigned_to?.desk,
             },
         };
@@ -295,14 +303,11 @@ class CoverageAddInlineFormComponent extends React.Component<IProps, IState> {
             } else {
                 profile.editor[field] = {enabled: enabled};
             }
-
-            // Turn off all required fields, as we should be able to use defaults
-            schema.required = false;
         }
 
-        profile.schema.desk = {required: true, type: 'dict'};
+        profile.schema.desk = {required: coverage.assigned_to?.user != null, type: 'dict'};
         profile.editor.desk = {enabled: true, index: 0};
-        profile.schema.user = {required: true, type: 'dict'};
+        profile.schema.user = {required: false, type: 'dict'};
         profile.editor.user = {enabled: true, index: 0};
 
         // Remove the `add to workflow` toggle
@@ -337,14 +342,17 @@ class CoverageAddInlineFormComponent extends React.Component<IProps, IState> {
                 index={index}
                 coverageTypeProfile={profile}
                 fieldProps={fieldProps}
+                errors={errors}
+                showErrors={this.state.submitted}
             />
         );
     }
 
     render() {
-        const {rows} = this.state;
+        const {rows, submitted} = this.state;
         const enabledCount = rows.filter((row) => row.enabled === true).length;
         const contentTypes = this.getContentTypesByQcode(this.props.contentTypes);
+        const {errors} = validateCoveragesV2(this.state.rows, true);
 
         if (!this.state.open) {
             return (
@@ -376,7 +384,11 @@ class CoverageAddInlineFormComponent extends React.Component<IProps, IState> {
                                         data-test-id={`coverage-inline-form__fields--${row.qcode}`}
                                     >
                                         <div className="coverage-editable-fields--stacked">
-                                            {this.renderEditor(row, index)}
+                                            {this.renderEditor(
+                                                row,
+                                                index,
+                                                submitted ? errors.coverages?.[index] : undefined,
+                                            )}
                                         </div>
                                     </div>
                                 )}
