@@ -1,7 +1,7 @@
 import {test, expect} from '@playwright/test';
 import type {Locator, Page} from '@playwright/test';
 
-import {setup, login, waitForPageLoad, addItems} from '../utils/common';
+import {setup, login, waitForPageLoad, addItems, SubNavBar} from '../utils/common';
 import {
     CoverageInlineForm,
     CoverageInlineEditor,
@@ -25,6 +25,7 @@ test.describe('Planning.Events: inline coverage form', () => {
     let list: PlanningList;
     let manageProfiles: ManageContentProfiles;
     let manageCoverageProfiles: ManageCoverageProfiles;
+    let subnav: SubNavBar;
 
     test.beforeEach(async ({page}) => {
         editor = new EventEditor(page);
@@ -32,6 +33,7 @@ test.describe('Planning.Events: inline coverage form', () => {
         list = new PlanningList(page);
         manageProfiles = new ManageContentProfiles(page);
         manageCoverageProfiles = new ManageCoverageProfiles(page);
+        subnav = new SubNavBar(page);
 
         await setup(page, 'planning_prepopulate_data', '/#/planning');
         await addItems(page.request, 'events', [createEventFor.today({
@@ -151,7 +153,15 @@ test.describe('Planning.Events: inline coverage form', () => {
         ]);
         await manageCoverageProfiles.saveAll();
 
-        await openEvent(page);
+        await subnav.createEvent();
+        await editor.waitTillOpen();
+        await editor.type({
+            'dates.start.date': '12/11/2099',
+            'dates.start.time': '19:00',
+            'dates.end.time': '20:00',
+            name: 'Inline coverages',
+            slugline: 'inline-coverages',
+        });
         await expect(inlineForm.element).toBeVisible();
 
         await inlineForm.enableType('text');
@@ -171,8 +181,8 @@ test.describe('Planning.Events: inline coverage form', () => {
         await expect(inlineTextCoverage.fields.scheduled_date.element).toBeVisible();
         await expect(inlineTextCoverage.fields.scheduled_time.element).toBeVisible();
         await inlineTextCoverage.fields.slugline.expect('inline-coverages');
-        await inlineTextCoverage.fields.scheduled_date.expect('12/11/2026');
-        await inlineTextCoverage.fields.scheduled_time.expect('19:00');
+        await inlineTextCoverage.fields.scheduled_date.expect('12/11/2099');
+        await inlineTextCoverage.fields.scheduled_time.expect('21:00');
 
         // Picture: Expect the right fields to be visible with the correct value
         await expect(inlinePictureCoverage.getParent().getByTestId('field-add_coverage_to_workflow')).not.toBeVisible();
@@ -185,9 +195,9 @@ test.describe('Planning.Events: inline coverage form', () => {
         await expect(inlinePictureCoverage.fields.scheduled_date.element).toBeVisible();
         await expect(inlinePictureCoverage.fields.scheduled_time.element).toBeVisible();
         await inlinePictureCoverage.fields.slugline.expect('inline-coverages');
-        await inlinePictureCoverage.fields.scheduled_date.expect('12/11/2026');
-        await inlinePictureCoverage.fields.scheduled_time.expect('19:00');
-        await inlinePictureCoverage.fields.scheduled_date.type('13/11/2026');
+        await inlinePictureCoverage.fields.scheduled_date.expect('12/11/2099');
+        await inlinePictureCoverage.fields.scheduled_time.expect('21:00');
+        await inlinePictureCoverage.fields.scheduled_date.type('13/11/2099');
         await inlinePictureCoverage.fields.scheduled_time.type('03:00');
 
         // Enter some values and add the Coverages to the Event
@@ -206,13 +216,13 @@ test.describe('Planning.Events: inline coverage form', () => {
         await expect(textCoverage.fields.add_coverage_to_workflow.element).toBeVisible();
         await expect(textCoverage.element).toContainText('Sports Desk');
         await textCoverage.fields.slugline.expect('text-coverage');
-        await textCoverage.fields.scheduled.date.expect('12/11/2026');
-        await textCoverage.fields.scheduled.time.expect('19:00');
+        await textCoverage.fields.scheduled.date.expect('12/11/2099');
+        await textCoverage.fields.scheduled.time.expect('21:00');
 
         await expect(pictureCoverage.fields.add_coverage_to_workflow.element).toBeVisible();
         await expect(pictureCoverage.element).toContainText('Politic Desk');
         await pictureCoverage.fields.slugline.expect('inline-coverages');
-        await pictureCoverage.fields.scheduled.date.expect('13/11/2026');
+        await pictureCoverage.fields.scheduled.date.expect('13/11/2099');
         await pictureCoverage.fields.scheduled.time.expect('03:00');
     });
 });
