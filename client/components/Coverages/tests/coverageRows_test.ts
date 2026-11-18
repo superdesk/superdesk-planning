@@ -94,7 +94,11 @@ describe('coverageRows', () => {
         planningApi.contentProfiles = contentProfilesDefault;
     });
 
-    const mockMultilingual = (enabled: boolean, profileLanguages: Array<string> = [], multilingualFields: Array<string> = ['slugline', 'headline', 'internal_note', 'ednote']) => {
+    const mockMultilingual = (
+        enabled: boolean,
+        profileLanguages: Array<string> = [],
+        multilingualFields: Array<string> = ['slugline', 'headline', 'internal_note', 'ednote']
+    ) => {
         planningApi.contentProfiles = {
             ...planningApi.contentProfiles,
             get: () => ({} as IPlanningContentProfile),
