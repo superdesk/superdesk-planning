@@ -110,7 +110,7 @@ class CoverageAddInlineFormComponent extends React.Component<IProps, IState> {
     }
 
     add = () => {
-        const {messages} = validateCoveragesV2(this.state.rows, true);
+        const {messages} = this.validate();
 
         if (messages && messages.length > 0) {
             this.setState({submitted: true});
@@ -348,11 +348,44 @@ class CoverageAddInlineFormComponent extends React.Component<IProps, IState> {
         );
     }
 
+    validate(): {messages: Array<string>, errors: {[key: string]: any}} {
+        // 1. Capture enabled Coverages along with their original indices
+        const enabledCoveragesWithIndex = this.state.rows
+            .map((row, index) => ({row, index}))
+            .filter(({row}) => row.enabled === true);
+
+        // If no Coverages are enabled, there are no validations to run
+        if (enabledCoveragesWithIndex.length === 0) {
+            return {messages: [], errors: {}};
+        }
+
+        // 2. Validate only the enabled Coverages
+        const enabledCoverages = enabledCoveragesWithIndex.map(({row}) => row);
+        const {messages, errors} = validateCoveragesV2(enabledCoverages, true);
+
+        // 3. Remap Coverage errors back to their original Coverage indices
+        const remappedCoverageErrors: Array<any> = [];
+
+        enabledCoveragesWithIndex.forEach(({index}, errorIndex) => {
+            if (errors?.coverages?.[errorIndex]) {
+                remappedCoverageErrors[index] = errors.coverages[errorIndex];
+            }
+        });
+
+        return {
+            messages: messages,
+            errors: {
+                ...errors,
+                coverages: remappedCoverageErrors,
+            },
+        };
+    }
+
     render() {
         const {rows, submitted} = this.state;
         const enabledCount = rows.filter((row) => row.enabled === true).length;
         const contentTypes = this.getContentTypesByQcode(this.props.contentTypes);
-        const {errors} = validateCoveragesV2(this.state.rows, true);
+        const {errors} = this.validate();
 
         if (!this.state.open) {
             return (
