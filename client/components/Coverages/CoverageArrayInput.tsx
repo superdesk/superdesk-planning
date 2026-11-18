@@ -244,6 +244,7 @@ class CoverageArrayInputComponent extends React.Component<IProps, IState> {
                     editorType: editorType,
                     eventLanguages: event?.languages ?? [],
                     disabled: disabled,
+                    item: item,
                 }}
                 element={CoverageEditor}
                 createCoverage={createCoverage}
