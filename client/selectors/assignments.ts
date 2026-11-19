@@ -1,4 +1,5 @@
 import {get} from 'lodash';
+import moment from 'moment';
 import {createSelector} from 'reselect';
 
 import {IDesk, IUser} from 'superdesk-api';
@@ -221,10 +222,12 @@ export const getAssignmentSearch = createSelector<
             ...params,
         };
 
-        // Add day field as server-side date filter
+        // Filter by the selected day in the browser's timezone, sent to the server as a UTC range
         if (dayField != null) {
-            searchParams.startDate = dayField;
-            searchParams.endDate = dayField;
+            const toUtc = (date: moment.Moment) => date.utc().format('YYYY-MM-DDTHH:mm:ss');
+
+            searchParams.startDate = toUtc(moment(dayField).startOf('day'));
+            searchParams.endDate = toUtc(moment(dayField).endOf('day'));
         }
 
         return searchParams;

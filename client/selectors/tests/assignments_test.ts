@@ -257,6 +257,28 @@ describe('selectors', () => {
         expect(view).toBe(null);
     });
 
+    it('getAssignmentSearch sends the selected day as a UTC range of the local day', () => {
+        const dayField = '2026-11-25';
+        const search = selectors.getAssignmentSearch({
+            ...state,
+            assignment: {...state.assignment, dayField},
+        });
+
+        // Local midnight and end of day, as UTC without milliseconds
+        const start = new Date(2026, 10, 25, 0, 0, 0).toISOString();
+        const end = new Date(2026, 10, 25, 23, 59, 59).toISOString();
+
+        expect(search.startDate).toEqual(start.slice(0, 19));
+        expect(search.endDate).toEqual(end.slice(0, 19));
+    });
+
+    it('getAssignmentSearch sends no date range without a selected day', () => {
+        const search = selectors.getAssignmentSearch(state);
+
+        expect(search.startDate).toBeUndefined();
+        expect(search.endDate).toBeUndefined();
+    });
+
     it('get default assignment listSettings', () => {
         const assignmentListSettings = selectors.getAssignmentListSettings({});
 
