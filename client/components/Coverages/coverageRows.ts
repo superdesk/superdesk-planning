@@ -8,12 +8,14 @@ import {
     IG2ContentType,
     IPlanningCoverageItem,
     IPlanningNewsCoverageStatus,
+    IEventOrPlanningItem,
 } from '../../interfaces';
 
-import {gettext, getDesksForUser, getUsersForDesk, planningUtils} from '../../utils';
+import {gettext, getDesksForUser, getUsersForDesk, planningUtils, getItemInArrayById} from '../../utils';
 import {getNewsCoverageStatusPlanned} from '../../utils/vocabularies';
 import {getTranslatedValue} from '../fields';
 import {planningApi} from '../../superdeskApi';
+import * as selectors from '../../selectors';
 
 export interface ICoverageLineItem extends IPlanningCoverageItem {
     enabled: boolean;
@@ -44,34 +46,44 @@ export interface ICoverageRowRules {
 
 type ILanguageOption = {value: IVocabularyItem};
 
-// Event fields copied into a coverage that has its own language
-const TRANSLATED_FIELDS = ['slugline', 'headline', 'internal_note', 'ednote'];
-
-function createRow(
-    qcode: string,
-    language: string | null,
+export function createRow(
+    item: DeepPartial<IEventOrPlanningItem>,
+    g2contentType: string,
     desks: Array<IDesk>,
-    newsCoverageStatus: Array<IPlanningNewsCoverageStatus>
 ): ICoverageRow {
+    const state = planningApi.redux.store.getState();
+    const coverageProfilesMap = selectors.forms.getCoverageProfilesMap(state);
+    const preferredCoverageDesks = selectors.general.preferredCoverageDesks(state)?.desks ?? {};
+    const newCoverage = planningUtils.defaultCoverageValues(
+        selectors.general.newsCoverageStatus(state),
+        item,
+        undefined,
+        g2contentType,
+        selectors.general.defaultDesk(state),
+        preferredCoverageDesks,
+        g2contentType ? coverageProfilesMap[g2contentType] : undefined,
+    );
+    const desk = getItemInArrayById(selectors.general.desks(state), newCoverage.assigned_to?.desk);
+
     return {
+        ...newCoverage,
         rowId: uniqueId('coverage-row-'),
         enabled: false,
-        qcode: qcode,
+        qcode: g2contentType,
         workflow_status: 'draft',
-        planning: {language: language} as ICoveragePlanningDetails,
-        desk: null,
+        desk: desk,
         filteredDesks: desks,
-        user: null,
-        status: planningUtils.getDefaultCoverageStatus(newsCoverageStatus),
+        user: undefined,
+        status: newCoverage.news_coverage_status,
     };
 }
 
 export function createRowsFromContentTypes(
+    item: DeepPartial<IEventOrPlanningItem>,
     contentTypes: Array<IG2ContentType>,
     desks: Array<IDesk>,
-    newsCoverageStatus: Array<IPlanningNewsCoverageStatus>
 ): Array<ICoverageRow> {
-    return contentTypes.map((contentType) => createRow(contentType.qcode, null, desks, newsCoverageStatus));
+    return contentTypes.map((contentType) => createRow(item, contentType.qcode, desks));
 }
 
 export function updateRow(
@@ -86,17 +98,21 @@ export function updateRow(
 }
 
 export function duplicateRow(
+    item: DeepPartial<IEventOrPlanningItem>,
     rows: Array<ICoverageRow>,
     row: ICoverageRow,
-    newsCoverageStatus: Array<IPlanningNewsCoverageStatus>,
     desks: Array<IDesk>
 ): Array<ICoverageRow> {
     const index = rows.findIndex((current) => current.rowId === row.rowId);
-    const duplicate = createRow(row.qcode, row.planning?.language ?? null, desks, newsCoverageStatus);
+    const duplicate = createRow(item, row.qcode ?? row.planning?.g2_content_type, desks);
 
     return [
         ...rows.slice(0, index + 1),
-        duplicate,
+        {
+            ...row,
+            ...duplicate,
+            planning: {...row.planning},
+        },
         ...rows.slice(index + 1),
     ];
 }
@@ -130,14 +146,10 @@ export function applyDeskChange(
     if (
         rules.plannedOnDesk === true &&
         desk != null &&
-        row.coverage_id == null &&
+        (row.coverage_id == null || row.coverage_id.startsWith('tempId-')) &&
         appConfig.planning.manual_news_coverage_status !== true
     ) {
-        const planned = getNewsCoverageStatusPlanned();
-
-        if (row.status?.qcode !== planned.qcode) {
-            updates.status = planned;
-        }
+        updates.status = getNewsCoverageStatusPlanned();
     }
 
     return updates;
@@ -146,22 +158,25 @@ export function applyDeskChange(
 export function applyUserChange(user: IUser | null, desks: Array<IDesk>): ICoverageRow {
     return {
         user: user,
-        filteredDesks: getDesksForUser(user, desks),
+        filteredDesks: getDesksForUser(user?._id, desks),
     };
 }
 
 /**
  * Languages a coverage may use: all of them, or only the ones the planning profile is configured with
  */
-export function getFilteredLanguages(allLanguages: Array<ILanguageOption>): Array<ILanguageOption> {
+export function getFilteredLanguages(
+    parentItemType: IEventOrPlanningItem['type'],
+    allLanguages: Array<ILanguageOption>,
+): Array<ILanguageOption> {
     const {multilingual} = planningApi.contentProfiles;
-    const planningProfile = planningApi.contentProfiles.get('planning');
+    const itemProfile = planningApi.contentProfiles.get(parentItemType);
 
-    if (!multilingual.isEnabled(planningProfile)) {
+    if (!multilingual.isEnabled(itemProfile)) {
         return allLanguages;
     }
 
-    const profileLanguages = multilingual.getLanguages(planningProfile);
+    const profileLanguages = multilingual.getLanguages(itemProfile);
 
     return allLanguages.filter((language) => profileLanguages.includes(language.value.qcode));
 }
@@ -179,7 +194,7 @@ export function validateRows(
 
         const deskRequired = row.user != null || (
             rules.deskRequiredForWorkflow === true &&
-            row.coverage_id == null &&
+            (row.coverage_id == null || row.coverage_id.startsWith('tempId-')) &&
             appConfig.planning_auto_assign_to_workflow === true
         );
 
@@ -212,7 +227,10 @@ export function buildNewCoverage(
         };
 
         if (event != null) {
-            TRANSLATED_FIELDS.forEach((field) => {
+            const eventProfile = planningApi.contentProfiles.get(event.type);
+            const multilingualFields = planningApi.contentProfiles.multilingual.getFields(eventProfile);
+
+            multilingualFields.forEach((field) => {
                 const value = getTranslatedValue(language, event, field);
 
                 if (value != null) {
@@ -235,6 +253,6 @@ export function buildNewCoverages(
     event?: IEventItem
 ): Array<DeepPartial<ICoverageLineItem>> {
     return rows
-        .filter((row) => row.enabled === true && row.coverage_id == null)
+        .filter((row) => row.enabled === true && (row.coverage_id == null || row.coverage_id.startsWith('tempId-')))
         .map((row) => buildNewCoverage(row, createCoverage, event));
 }

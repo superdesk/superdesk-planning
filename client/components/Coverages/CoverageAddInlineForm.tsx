@@ -1,19 +1,23 @@
 import React from 'react';
 import {connect} from 'react-redux';
-import {memoize} from 'lodash';
+import {memoize, set, cloneDeep} from 'lodash';
 import {Button, ButtonGroup, Checkbox, IconButton, IconLabel, Tooltip} from 'superdesk-ui-framework/react';
 import {IDesk, IUser, IVocabularyItem} from 'superdesk-api';
 
-import {IEventItem, IG2ContentType, IPlanningNewsCoverageStatus} from '../../interfaces';
-import {gettext, planningUtils} from '../../utils';
+import {
+    IEventItem,
+    IG2ContentType,
+    IPlanningCoverageItem,
+} from '../../interfaces';
+import {planningApi} from '../../superdeskApi';
+import {gettext, planningUtils, getItemInArrayById} from '../../utils';
 import {getUserInterfaceLanguageFromCV} from '../../utils/users';
 import {getVocabularyItemFieldTranslated} from '../../utils/vocabularies';
+import {validateCoveragesV2} from '../../validators/planning';
 import * as selectors from '../../selectors';
-import {CoverageEditableFields} from './CoverageFieldsRow';
+import {getTranslatedValue} from '../fields';
 import {
     applyDeskChange,
-    applyUserChange,
-    buildNewCoverages,
     createRowsFromContentTypes,
     duplicateRow,
     getFilteredLanguages,
@@ -21,8 +25,9 @@ import {
     ICoverageRow,
     ICoverageRowRules,
     updateRow,
-    validateRows,
+    createRow,
 } from './coverageRows';
+import {CoverageForm} from './CoverageEditor/CoverageForm';
 
 import './CoverageAddInlineForm.scss';
 
@@ -37,12 +42,11 @@ function getContentTypesByQcode(contentTypes: Array<IG2ContentType>): Map<string
 
 interface IOwnProps {
     contentTypes: Array<IG2ContentType>;
-    newsCoverageStatus: Array<IPlanningNewsCoverageStatus>;
     desks: Array<IDesk>;
     users: Array<IUser>;
-    event?: IEventItem;
+    event: IEventItem;
+    disabled?: boolean;
 
-    createCoverage(qcode: IG2ContentType['qcode']): DeepPartial<ICoverageLineItem>;
     onAdd(newCoverages: Array<DeepPartial<ICoverageLineItem>>): void;
 }
 
@@ -70,10 +74,10 @@ class CoverageAddInlineFormComponent extends React.Component<IProps, IState> {
     }
 
     getInitialState(): IState {
-        const {contentTypes, desks, newsCoverageStatus} = this.props;
+        const {contentTypes, desks, event} = this.props;
 
         return {
-            rows: createRowsFromContentTypes(contentTypes, desks, newsCoverageStatus),
+            rows: createRowsFromContentTypes(event, contentTypes, desks),
             submitted: false,
             open: true,
         };
@@ -101,34 +105,128 @@ class CoverageAddInlineFormComponent extends React.Component<IProps, IState> {
 
     duplicate = (row: ICoverageRow) => {
         this.setState({
-            rows: duplicateRow(this.state.rows, row, this.props.newsCoverageStatus, this.props.desks),
+            rows: duplicateRow(this.props.event, this.state.rows, row, this.props.desks),
         });
     }
 
-    onDeskChange = (row: ICoverageRow, desk: IDesk | null) => {
-        this.update(row, applyDeskChange(
-            row,
-            desk,
-            this.props.users,
-            getFilteredLanguages(this.props.allLanguages),
-            RULES
-        ));
-    }
-
-    onUserChange = (row: ICoverageRow, user: IUser | null) => {
-        this.update(row, applyUserChange(user, this.props.desks));
-    }
-
     add = () => {
-        const errors = validateRows(this.state.rows, RULES);
+        const {messages} = this.validate();
 
-        if (Object.keys(errors).length > 0) {
+        if (messages && messages.length > 0) {
             this.setState({submitted: true});
             return;
         }
 
-        this.props.onAdd(buildNewCoverages(this.state.rows, this.props.createCoverage, this.props.event));
+        const fieldsToRemove: Array<keyof ICoverageLineItem> = [
+            'enabled', 'qcode', 'desk', 'user', 'status', 'filteredDesks', 'rowId',
+        ];
+        const removeRowFieldsFromCoverage = (coverageLine: Partial<ICoverageLineItem>) => {
+            const coverage = {...coverageLine};
+
+            for (const field of fieldsToRemove) {
+                delete coverage[field];
+            }
+
+            if (coverage.planning.language == null) {
+                coverage.planning.language = this.props.event.language;
+            }
+            return coverage;
+        };
+
+        this.props.onAdd(this.state.rows
+            .filter((row) => (
+                row.enabled === true
+                && (row.coverage_id == null || row.coverage_id.startsWith('tempId-'))
+            ))
+            .map((coverageLine) => removeRowFieldsFromCoverage(coverageLine)),
+        );
         this.clearRows();
+    }
+
+    updateField(coverage: Partial<IPlanningCoverageItem>, field: string, index: number, value: any) {
+        const relativeField = field.replace(/^coverages\.\d+\./, '');
+
+        this.setState((prevState) => {
+            const newState = cloneDeep(prevState);
+
+            if (field === `coverages.${index}`) {
+                // Simply replace the entire coverage object
+                newState.rows[index] = value;
+                return newState;
+            }
+
+            const updatedCoverage = newState.rows[index];
+
+            if (relativeField === 'assigned_to.desk') {
+                updatedCoverage.user = getItemInArrayById(this.props.users, updatedCoverage.assigned_to?.user);
+
+                const rowUpdates = applyDeskChange(
+                    updatedCoverage,
+                    getItemInArrayById(this.props.desks, value),
+                    this.props.users,
+                    getFilteredLanguages(this.props.event.type, this.props.allLanguages),
+                    RULES,
+                );
+
+                if (updatedCoverage.assigned_to == null) {
+                    updatedCoverage.assigned_to = {};
+                }
+
+                updatedCoverage.assigned_to.desk = rowUpdates.desk?._id ?? null;
+                updatedCoverage.assigned_to.user = rowUpdates.user?._id ?? null;
+
+                if (rowUpdates.status != null) {
+                    updatedCoverage.news_coverage_status = rowUpdates.status;
+                }
+
+                if (rowUpdates.planning?.language != null) {
+                    updatedCoverage.planning.language = rowUpdates.planning.language;
+                }
+            } else {
+                set(updatedCoverage, relativeField, value);
+            }
+
+            if (coverage.planning?.language !== updatedCoverage.planning?.language) {
+                // Coverage language has changed.
+                // Update all multilingual fields from parent to match
+
+                const eventProfile = planningApi.contentProfiles.get(this.props.event.type);
+                const multilingualFields = planningApi.contentProfiles.multilingual.getFields(eventProfile);
+
+                for (const multilingualField of multilingualFields) {
+                    const currentEventValue = getTranslatedValue(
+                        coverage.planning?.language,
+                        this.props.event,
+                        multilingualField,
+                    );
+                    const originalCoverageValue: any = coverage.planning?.[multilingualField];
+
+                    if (currentEventValue === originalCoverageValue) {
+                        // The Coverage value has the same as the Event
+                        // So we update it to use the new language value from the Event
+                        const updatedEventValue = getTranslatedValue(
+                            updatedCoverage.planning?.language,
+                            this.props.event,
+                            multilingualField,
+                        );
+
+                        set(updatedCoverage, `planning.${multilingualField}`, updatedEventValue);
+                    }
+                }
+            }
+
+            return newState;
+        });
+    }
+
+    toggleCoverageRow = (row: ICoverageRow) => {
+        if (!row.enabled) {
+            const updatedRow = createRow(this.props.event, row.qcode, this.props.desks);
+
+            this.update(row, {enabled: true, planning: updatedRow.planning});
+        } else {
+            this.update(row, {enabled: false});
+        }
     }
 
     renderTypeLine(row: ICoverageRow, contentTypes: Map<string, IG2ContentType>) {
@@ -142,7 +240,7 @@ class CoverageAddInlineFormComponent extends React.Component<IProps, IState> {
                         <Checkbox
                             label={{text: gettext('Coverage enabled'), hidden: true}}
                             checked={row.enabled === true}
-                            onChange={() => this.update(row, {enabled: row.enabled !== true})}
+                            onChange={this.toggleCoverageRow.bind(this, row)}
                         />
                     </Tooltip>
                 </div>
@@ -167,13 +265,127 @@ class CoverageAddInlineFormComponent extends React.Component<IProps, IState> {
         );
     }
 
+    renderEditor(coverage: Partial<IPlanningCoverageItem>, index: number, errors: any) {
+        const profile = planningApi.contentProfiles.getCoverageProfile(coverage);
+        const fieldProps = {
+            desk: {
+                field: 'assigned_to.desk',
+                clearable: true,
+                restrictToUser: coverage.assigned_to?.user != null,
+                userId: coverage.assigned_to?.user,
+            },
+            user: {
+                field: 'assigned_to.user',
+                deskId: coverage.assigned_to?.desk,
+            },
+        };
+
+        // Enable or Disable fields that are to be shown or hidden
+        for (const field of Object.keys(profile.schema)) {
+            const schema = profile.schema[field];
+            let enabled: boolean = profile.editor[field]?.enabled ?? false;
+
+            if (!enabled) {
+                // This field is already disabled, no need to check anything
+                continue;
+            }
+
+            if (field === 'g2_content_type') {
+                enabled = false;
+            } else if (schema.required) {
+                enabled = true;
+            } else if (!schema.show_in_embedded_editor) {
+                enabled = false;
+            }
+
+            if (profile.editor[field] != null) {
+                profile.editor[field].enabled = enabled;
+            } else {
+                profile.editor[field] = {enabled: enabled};
+            }
+        }
+
+        profile.schema.desk = {required: coverage.assigned_to?.user != null, type: 'dict'};
+        profile.editor.desk = {enabled: true, index: 0};
+        profile.schema.user = {required: false, type: 'dict'};
+        profile.editor.user = {enabled: true, index: 0};
+
+        // Remove the `add to workflow` toggle
+        if (profile.editor.add_coverage_to_workflow == null) {
+            profile.editor.add_coverage_to_workflow = {enabled: false};
+        } else {
+            profile.editor.add_coverage_to_workflow.enabled = false;
+        }
+
+        if (profile.editor.language?.enabled) {
+            // If languages is enabled and parent item is multilingual
+            // make sure the Coverage only allows languages defined in the parent item
+            const {multilingual} = planningApi.contentProfiles;
+            const eventProfile = planningApi.contentProfiles.get(this.props.event.type);
+
+            if (multilingual.isEnabled(eventProfile)) {
+                fieldProps.language = {enabledLanguages: multilingual.getLanguages(eventProfile)};
+            }
+        }
+
+        return (
+            <CoverageForm
+                testId={`coverages[${index}]`}
+                field={`coverages[${index}]`}
+                value={coverage}
+                item={this.props.event}
+                diff={this.props.event}
+                coverages={this.state.rows}
+                disabled={this.props.disabled}
+                onChange={(field, value) => this.updateField(coverage, field, index, value)}
+                hasAssignment={planningUtils.isCoverageAssigned(coverage)}
+                index={index}
+                coverageTypeProfile={profile}
+                fieldProps={fieldProps}
+                errors={errors}
+                showErrors={this.state.submitted}
+            />
+        );
+    }
+
+    validate(): {messages: Array<string>, errors: {[key: string]: any}} {
+        // 1. Capture enabled Coverages along with their original indices
+        const enabledCoveragesWithIndex = this.state.rows
+            .map((row, index) => ({row, index}))
+            .filter(({row}) => row.enabled === true);
+
+        // If no Coverages are enabled, there are no validations to run
+        if (enabledCoveragesWithIndex.length === 0) {
+            return {messages: [], errors: {}};
+        }
+
+        // 2. Validate only the enabled Coverages
+        const enabledCoverages = enabledCoveragesWithIndex.map(({row}) => row);
+        const {messages, errors} = validateCoveragesV2(enabledCoverages, true);
+
+        // 3. Remap Coverage errors back to their original Coverage indices
+        const remappedCoverageErrors: Array<any> = [];
+
+        enabledCoveragesWithIndex.forEach(({index}, errorIndex) => {
+            if (errors?.coverages?.[errorIndex]) {
+                remappedCoverageErrors[index] = errors.coverages[errorIndex];
+            }
+        });
+
+        return {
+            messages: messages,
+            errors: {
+                ...errors,
+                coverages: remappedCoverageErrors,
+            },
+        };
+    }
+
     render() {
-        const {newsCoverageStatus, allLanguages} = this.props;
         const {rows, submitted} = this.state;
-        const errors = validateRows(rows, RULES);
         const enabledCount = rows.filter((row) => row.enabled === true).length;
-        const languages = getFilteredLanguages(allLanguages);
         const contentTypes = this.getContentTypesByQcode(this.props.contentTypes);
+        const {errors} = this.validate();
 
         if (!this.state.open) {
             return (
@@ -195,7 +407,7 @@ class CoverageAddInlineFormComponent extends React.Component<IProps, IState> {
                 </div>
                 <div className="coverage-inline-form__body p-2">
                     <div className="sd-list-item-group sd-list-item-group--space-between-items">
-                        {rows.map((row) => (
+                        {rows.map((row, index) => (
                             <React.Fragment key={row.rowId}>
                                 {this.renderTypeLine(row, contentTypes)}
                                 {row.enabled === true && (
@@ -204,18 +416,13 @@ class CoverageAddInlineFormComponent extends React.Component<IProps, IState> {
                                             'sd-list-item--no-hover sd-shadow--z1'}
                                         data-test-id={`coverage-inline-form__fields--${row.qcode}`}
                                     >
-                                        <CoverageEditableFields
-                                            coverage={row}
-                                            languages={languages}
-                                            handleDeskChange={this.onDeskChange}
-                                            handleUserChange={this.onUserChange}
-                                            updateCoverage={this.update}
-                                            duplicateCoverage={this.duplicate}
-                                            newsCoverageStatus={newsCoverageStatus}
-                                            error={submitted ? errors[row.rowId] : undefined}
-                                            stacked
-                                            showDuplicate={false}
-                                        />
+                                        <div className="coverage-editable-fields--stacked">
+                                            {this.renderEditor(
+                                                row,
+                                                index,
+                                                submitted ? errors.coverages?.[index] : undefined,
+                                            )}
+                                        </div>
                                     </div>
                                 )}
                             </React.Fragment>

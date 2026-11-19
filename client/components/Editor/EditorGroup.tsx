@@ -12,7 +12,6 @@ import {planningApi} from '../../superdeskApi';
 
 import {renderFieldsForPanel} from '../fields';
 import {ToggleBox} from '../UI';
-import {getCoverageFields} from '../../api/editor/item_planning';
 
 interface IProps {
     group: IEditorFormGroup;
@@ -124,7 +123,6 @@ export class EditorGroup extends React.PureComponent<IProps> implements IEditorR
         const group = this.props.group;
         const testId = `editor--group__${group.id}`;
         const profile = this.getProfile();
-        const coverageSearchProfile = getCoverageFields('text').searchProfile;
         const renderedFields = renderFieldsForPanel(
             'editor',
             profile,
@@ -135,7 +133,6 @@ export class EditorGroup extends React.PureComponent<IProps> implements IEditorR
             'enabled',
             this.editorApi.dom.fields,
             this.props.schema,
-            coverageSearchProfile,
         );
 
         return group.useToggleBox ? (

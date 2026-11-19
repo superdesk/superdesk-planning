@@ -123,7 +123,7 @@ export class EditorFieldTreeSelect<T> extends React.PureComponent<IEditorFieldTr
                     error={this.props.showErrors ? error : undefined}
                     readOnly={this.props.disabled}
                     disabled={this.props.disabled}
-                    required={this.props.required}
+                    required={this.props.required ?? this.props.schema?.required}
                     label={this.props.label}
                     tabindex={0}
                     info={this.props.info}

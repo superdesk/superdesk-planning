@@ -41,7 +41,7 @@ const statusOnMerit = {qcode: 'ncostat:notdec', name: 'coverage not decided yet'
 
 // The label differs from the hardcoded fallback in `getNewsCoverageStatusPlanned` so that
 // assertions on it fail if the vocabulary lookup stops working
-const statusPlanned = {qcode: 'ncostat:int', name: 'coverage intended', label: 'Planned (cv)'};
+const statusPlanned = {qcode: 'ncostat:int', name: 'Coverage intended', label: 'Planned'};
 
 // `getDefaultCoverageStatus` takes the first entry, so new rows start on 'On merit'
 const newsCoverageStatus = [statusOnMerit, statusPlanned] as Array<IPlanningNewsCoverageStatus>;
@@ -94,7 +94,11 @@ describe('coverageRows', () => {
         planningApi.contentProfiles = contentProfilesDefault;
     });
 
-    const mockMultilingual = (enabled: boolean, profileLanguages: Array<string> = []) => {
+    const mockMultilingual = (
+        enabled: boolean,
+        profileLanguages: Array<string> = [],
+        multilingualFields: Array<string> = ['slugline', 'headline', 'internal_note', 'ednote']
+    ) => {
         planningApi.contentProfiles = {
             ...planningApi.contentProfiles,
             get: () => ({} as IPlanningContentProfile),
@@ -102,11 +106,16 @@ describe('coverageRows', () => {
                 ...planningApi.contentProfiles.multilingual,
                 isEnabled: () => enabled,
                 getLanguages: () => profileLanguages,
+                getFields: () => multilingualFields,
             },
         } as typeof planningApi.contentProfiles;
     };
 
-    const getRows = () => createRowsFromContentTypes(contentTypes, desks, newsCoverageStatus);
+    const getRows = () => createRowsFromContentTypes(
+        event,
+        contentTypes,
+        desks,
+    );
     const rules = {plannedOnDesk: true, deskRequiredForWorkflow: true};
 
     describe('applyDeskChange', () => {
@@ -170,8 +179,8 @@ describe('coverageRows', () => {
             applyDeskChange(row, desks[1], users, languages, rules);
 
             expect(row.desk).toBe(null);
-            expect(row.status).toEqual(statusOnMerit);
-            expect(row.planning.language).toBe(null);
+            expect(row.status).toEqual(statusPlanned);
+            expect(row.planning.language).toBe('en');
         });
     });
 
@@ -206,13 +215,13 @@ describe('coverageRows', () => {
         it('returns every language when the planning profile is not multilingual', () => {
             mockMultilingual(false);
 
-            expect(getFilteredLanguages(languages)).toEqual(languages);
+            expect(getFilteredLanguages('planning', languages)).toEqual(languages);
         });
 
         it('keeps only the languages of the planning profile when it is multilingual', () => {
             mockMultilingual(true, ['fr-CA']);
 
-            expect(getFilteredLanguages(languages)).toEqual([languages[1]]);
+            expect(getFilteredLanguages('planning', languages)).toEqual([languages[1]]);
         });
     });
 
@@ -220,7 +229,7 @@ describe('coverageRows', () => {
         it('inserts a disabled copy after the source row, keeping qcode and language', () => {
             const rows = getRows();
             const source = {...rows[0], enabled: true, desk: desks[1], planning: {language: 'fr-CA'} as any};
-            const updated = duplicateRow([source, rows[1]], source, newsCoverageStatus, desks);
+            const updated = duplicateRow(event, [source, rows[1]], source, desks);
 
             expect(updated.length).toBe(3);
             expect(updated[0]).toBe(source);
@@ -308,6 +317,7 @@ describe('coverageRows', () => {
         });
 
         it('copies the translated event fields for the language of the row', () => {
+            mockMultilingual(true, ['fr-CA']);
             const [text] = getRows();
             const [coverage] = buildNewCoverages(
                 [{...text, enabled: true, planning: {language: 'fr-CA'} as any}],
@@ -325,10 +335,11 @@ describe('coverageRows', () => {
         });
 
         it('leaves the coverage fields alone when the row has no language', () => {
+            mockMultilingual(true, ['fr-CA']);
             const [text] = getRows();
             const [coverage] = buildNewCoverages([{...text, enabled: true}], createCoverage, event);
 
-            expect(coverage.planning).toEqual({g2_content_type: 'text', language: null});
+            expect(coverage.planning).toEqual({g2_content_type: 'text', language: 'en', slugline: 'slugline en'});
         });
 
         it('does not copy translated fields without an event', () => {
