@@ -100,13 +100,8 @@ export class FieldEditor extends React.Component<IProps, IState> {
 
         const fieldProps = {
             'schema.show_in_embedded_editor': {
-                /**
-                 * Coverage fields don't need this field config option, only planning and event
-                 */
                 enabled: !([nameof('related_plannings'), 'associated_event'].includes(this.props.item.name))
                     && !this.props.systemRequired
-                    && this.props.profile.type !== 'coverage'
-                    && allCoverageProfileIds.includes(this.props.profile._id) === false,
             },
             'schema.required': {enabled: !(this.props.disableRequired || this.props.systemRequired)},
             'schema.read_only': {
@@ -127,7 +122,7 @@ export class FieldEditor extends React.Component<IProps, IState> {
             'schema.format_options': {enabled: fieldType === 'editor_3'},
             'field.all_day.enabled': {enabled: this.props.item.name === 'dates'},
             'field.default_duration_on_change': {enabled: this.props.item.name === 'dates'},
-            'field.inline_form': {enabled: this.props.item.name === 'coverages' && this.props.profile.type === 'event'},
+            'field.inline_form': {enabled: this.props.item.name === 'coverages'},
             'schema.languages': {enabled: (this.props.item.name === 'language' && isMultilingual)},
             'schema.default_language': {enabled: (this.props.item.name === 'language' && isMultilingual)},
             'schema.multilingual': {enabled: this.props.isProfileCoverage ? false : (

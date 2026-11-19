@@ -66,4 +66,12 @@ export class ManageCoverageProfiles extends Modal {
             await expect(field).not.toContainText('Required');
         }
     }
+
+    async enableShowInEmbeddedEditor(fields: Array<string>): Promise<void> {
+        for (const field of fields) {
+            await this.getFieldListItem(field).click();
+            await this.getEditorCheckbox('schema.show_in_embedded_editor').type(true);
+            await this.saveField();
+        }
+    }
 }

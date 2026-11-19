@@ -1652,7 +1652,9 @@ function defaultCoverageValues(
 ): DeepPartial<IPlanningCoverageItem> {
     const {contentProfiles} = planningApi;
     const profile = coverageProfile ?? contentProfiles.get('coverage');
-    const eventItem = relatedEvent ?? (planningItem?.type === 'event' ? planningItem as IEventItem : undefined);
+    const isParentItemEvent = planningItem?.type === 'event';
+    const eventItem = relatedEvent ?? (isParentItemEvent ? planningItem as IEventItem : undefined);
+    const srcItemType = isParentItemEvent ? 'event' : 'planning';
     const defaultValues = contentProfiles.getDefaultValues(profile) as DeepPartial<IPlanningCoverageItem>;
 
     // if new profile hasn't been created for the type don't set to anything, backend also accepts objectid only
@@ -1663,21 +1665,21 @@ function defaultCoverageValues(
         planning: Object.assign(
             {
                 slugline: stringUtils.convertStringFieldForProfileFieldType(
-                    'planning',
+                    srcItemType,
                     'coverage',
                     'slugline',
                     'slugline',
                     planningItem?.slugline
                 ),
                 internal_note: stringUtils.convertStringFieldForProfileFieldType(
-                    'planning',
+                    srcItemType,
                     'coverage',
                     'internal_note',
                     'internal_note',
                     planningItem?.internal_note
                 ),
                 ednote: stringUtils.convertStringFieldForProfileFieldType(
-                    'planning',
+                    srcItemType,
                     'coverage',
                     'ednote',
                     'ednote',

@@ -2,14 +2,20 @@ import * as React from 'react';
 import {Tooltip} from 'superdesk-ui-framework/react';
 import classNames from 'classnames';
 
-import {EDITOR_TYPE, IBookmarkProps, IG2ContentType, IPlanningCoverageItem, IPlanningItem} from '../../../interfaces';
+import {
+    EDITOR_TYPE,
+    IBookmarkProps,
+    IG2ContentType,
+    IPlanningCoverageItem,
+    IEventOrPlanningItem,
+} from '../../../interfaces';
 import {planningApi, superdeskApi} from '../../../superdeskApi';
 
 import {Icon, Button} from 'superdesk-ui-framework/react';
 import {AddCoveragesWrapper} from '../../Coverages/CoverageAddButton/AddCoveragesWrapper';
 
 interface IProps extends IBookmarkProps {
-    item?: DeepPartial<IPlanningItem>;
+    item: DeepPartial<IEventOrPlanningItem>;
 }
 
 export class AddCoverageBookmark extends React.PureComponent<IProps> {
@@ -45,6 +51,7 @@ export class AddCoverageBookmark extends React.PureComponent<IProps> {
         return (
             <AddCoveragesWrapper
                 field={'coverages'}
+                item={this.props.item}
                 value={this.props.item?.coverages ?? []}
                 onChange={this.onChange}
                 createCoverage={this.createCoverage}
@@ -82,6 +89,7 @@ export class AddCoverageBookmark extends React.PureComponent<IProps> {
         return (
             <AddCoveragesWrapper
                 field={'coverages'}
+                item={this.props.item}
                 value={this.props.item?.coverages ?? []}
                 onChange={this.onChange}
                 createCoverage={this.createCoverage}

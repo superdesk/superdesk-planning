@@ -185,6 +185,7 @@ class EditCoveragesModalComponent extends React.Component<IProps, IState> {
                     users={this.props.users}
                     desks={this.props.desks}
                     coverageAddAdvancedMode={this.props.coverageAddAdvancedMode}
+                    item={this.props.item}
                 />
             </div>
         );

@@ -114,9 +114,11 @@ export class EditorFieldMultilingualText extends React.Component<IMultilingualTe
         if (!multilingualEnabled) {
             // If multilingual is not enabled, then we show the input field as a normal text field
             // without translations
+            // Note: Use language in the key, so if the parent item changes the language
+            // and the value, then this forces a re-render of this item (otherwise the input doesn't update)
             return (
                 <EditorFieldDynamicTextType
-                    key={this.props.field}
+                    key={`${this.props.field}.${this.props.language}`}
                     {...this.props}
                 />
             );
