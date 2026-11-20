@@ -257,6 +257,25 @@ describe('selectors', () => {
         expect(view).toBe(null);
     });
 
+    it('getAssignmentSearch sends the selected day as a UTC range of the local day', () => {
+        const dayField = '2026-11-25';
+        const search = selectors.getAssignmentSearch({
+            ...state,
+            assignment: {...state.assignment, dayField},
+        });
+
+        // Tests run in Australia/Sydney (UTC+11 in November)
+        expect(search.startDate).toEqual('2026-11-24T13:00:00');
+        expect(search.endDate).toEqual('2026-11-25T12:59:59');
+    });
+
+    it('getAssignmentSearch sends no date range without a selected day', () => {
+        const search = selectors.getAssignmentSearch(state);
+
+        expect(search.startDate).toBeUndefined();
+        expect(search.endDate).toBeUndefined();
+    });
+
     it('get default assignment listSettings', () => {
         const assignmentListSettings = selectors.getAssignmentListSettings({});
 
