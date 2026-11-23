@@ -1285,6 +1285,10 @@ function modifyForServer(event: IEventItem, removeNullLinks: boolean = false) {
         event.dates.end = event.dates.end.toISOString();
     }
 
+    if (moment.isMoment(event.actioned_date)) {
+        event.actioned_date = event.actioned_date.toISOString();
+    }
+
     const until = timeUtils.dateToMomentDate(event.dates?.recurring_rule?.until, event.dates?.tz);
 
     if (until) {
