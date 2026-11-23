@@ -93,6 +93,24 @@ class EventTestCase(EventsBaseTestCase):
         with self.assertRaises(SuperdeskApiError):
             UnifiedPlanningResource.from_dict(event)
 
+    async def test_reschedule_sets_tbc_on_draft_events_with_or_without_times(self):
+        for all_day in (False, True):
+            with self.subTest(all_day=all_day):
+                dates = {
+                    "start": datetime(2099, 11, 21, 0 if all_day else 12, tzinfo=pytz.UTC),
+                    "end": datetime(2099, 11, 21, 0 if all_day else 14, tzinfo=pytz.UTC),
+                    "tz": "Australia/Sydney",
+                    "all_day": all_day,
+                }
+                (event_id,) = await self.events_service.post_async([{"name": "Draft event", "dates": dates}])
+                original = await self.events_service.find_one_async(req=None, _id=event_id)
+                assert original is not None
+                rescheduled = await process_reschedule_event(
+                    {"dates": dates, TO_BE_CONFIRMED_FIELD: True}, original, require_lock=False
+                )
+                self.assertEqual(event_id, rescheduled["_id"])
+                self.assertIs(rescheduled[TO_BE_CONFIRMED_FIELD], True)
+
     async def test_create_cancelled_event(self):
         await self.events_service.post_async(
             [
