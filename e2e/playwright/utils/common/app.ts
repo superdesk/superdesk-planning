@@ -14,6 +14,8 @@ export async function resetApp(request: APIRequestContext, profile: string): Pro
         `${baseBackendUrl}/prepopulate`,
         {
             failOnStatusCode: true,
+            // Resetting is repeatable; retry a connection reset, but not HTTP errors.
+            maxRetries: 1,
             data: {profile: profile, remove_first: true},
         },
     );
