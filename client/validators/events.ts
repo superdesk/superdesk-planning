@@ -19,7 +19,7 @@ const validateRequiredDates = ({value, errors, messages, diff}) => {
         messages.push(gettext('END DATE is a required field'));
     }
 
-    if (value.tz === undefined && value.all_day !== true) {
+    if (value.tz === undefined && value.all_day !== true && diff?.[TO_BE_CONFIRMED_FIELD] !== true) {
         set(errors, 'tz', gettext('This field is required'));
         messages.push(gettext('TIMEZONE is a required field'));
     }

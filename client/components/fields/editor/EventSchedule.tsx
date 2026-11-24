@@ -243,6 +243,7 @@ export class EditorFieldEventSchedule extends React.PureComponent<IEventSchedule
                     {
                         this.props.showTimeZone &&
                         this.props.item._startTime &&
+                        this.props.item[TO_BE_CONFIRMED_FIELD] !== true &&
                         this.props.item.dates?.all_day !== true && (
                             <TimeZoneInput
                                 testId={`${this.props.testId}_timezone`}
@@ -253,6 +254,9 @@ export class EditorFieldEventSchedule extends React.PureComponent<IEventSchedule
                                 value={this.props.item.dates?.tz}
                                 marginLeftAuto={this.props.showAllDay}
                                 noPadding={true}
+                                required={true}
+                                invalid={this.props.showErrors && this.props.errors?.dates?.tz != null}
+                                message={this.props.showErrors ? this.props.errors?.dates?.tz : undefined}
                             />
                         )
                     }
