@@ -67,6 +67,16 @@ export class EventEditor extends Editor {
                         getParent,
                         '[data-test-id="field-recurring_rules_rules"] [data-test-id="dates.recurring_rule.until"]',
                     ),
+                    endRepeatMode: new SelectInput(
+                        page,
+                        getParent,
+                        '[data-test-id="dates.recurring_rule.endRepeatMode"]',
+                    ),
+                    count: new Input(
+                        page,
+                        getParent,
+                        '[data-test-id="dates.recurring_rule.count"]',
+                    ),
                 },
             },
             occur_status: new SelectInput(page, getParent, '[data-test-id="field-occur_status"] select'),

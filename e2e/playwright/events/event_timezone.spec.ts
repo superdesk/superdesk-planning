@@ -3,7 +3,7 @@ import type {Page} from '@playwright/test';
 import moment from 'moment';
 
 import {setup, login, waitForPageLoad, SubNavBar, CLIENT_FORMAT} from '../utils/common';
-import {EventEditor, PlanningList} from '../page-object-models/planning';
+import {EventEditor, EventRepetitionsModal, PlanningList} from '../page-object-models/planning';
 
 test.describe('Planning.Events: timezone requirements', () => {
     let editor: EventEditor;
@@ -55,6 +55,64 @@ test.describe('Planning.Events: timezone requirements', () => {
             await editor.createAndWait();
             await list.expectItemCount(2);
             await expect(list.item(1)).toContainText('Time TBC');
+        });
+    });
+
+    test('creates and extends a recurring TBC series without a timezone', async ({page}) => {
+        const startDate = await editor.getField('dates.start.date').element.inputValue();
+
+        await test.step('Create three daily TBC occurrences without a timezone', async () => {
+            await editor.setStartTimeToBeConfirmed();
+            await expect(editor.timezone.element).not.toBeVisible();
+            await editor.type({
+                'dates.recurring.enable': true,
+                'dates.recurring.endRepeatMode': 'count',
+                'dates.recurring.count': '3',
+            });
+            await editor.createAndWait();
+            await list.expectItemCount(3);
+            for (let i = 0; i < 3; i++) {
+                await expect(list.item(i)).toContainText('Time TBC');
+                await expect(list.item(i)).toContainText('Draft');
+            }
+            await editor.closeAfterSaving();
+        });
+
+        const originalIds = await list.items().evaluateAll((items) => (
+            items.map((item) => item.getAttribute('data-test-id'))
+        ));
+
+        for (const id of originalIds) {
+            expect(id).toMatch(/^event-item-.+/);
+        }
+
+        await test.step('Extend the series to five occurrences', async () => {
+            await list.clickAction(0, 'Update Repetitions');
+            await new EventRepetitionsModal(page).updateCount(5);
+            await list.expectItemCount(5);
+            await page.reload();
+            await waitForPageLoad.planning(page);
+            await list.expectItemCount(5);
+        });
+
+        await test.step('Verify the original occurrences survive with unchanged dates', async () => {
+            const ids = await list.items().evaluateAll((items) => (
+                items.map((item) => item.getAttribute('data-test-id'))
+            ));
+
+            expect(ids.slice(0, 3)).toEqual(originalIds);
+            for (let i = 0; i < 5; i++) {
+                await expect(list.item(i)).toContainText('Time TBC');
+                await expect(list.item(i)).toContainText('Draft');
+                await list.item(i).dblclick();
+                await editor.waitTillOpen();
+                const date = moment(startDate, CLIENT_FORMAT).add(i, 'day').format(CLIENT_FORMAT);
+
+                await expect(editor.element.getByText(`${date} @ TBC`, {exact: true})).toBeVisible();
+                await expect(editor.element.getByText('Every 1 day(s) for 5 repeats', {exact: true})).toBeVisible();
+                await expect(editor.timezone.element).not.toBeVisible();
+                await editor.closeAfterSaving();
+            }
         });
     });
 
