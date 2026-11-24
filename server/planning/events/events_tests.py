@@ -627,6 +627,44 @@ class EventPlanningSchedule(EventsBaseTestCase):
                 f"got {evt.get(TO_BE_CONFIRMED_FIELD)}",
             )
 
+    async def test_extend_recurring_tbc_event_without_timezone_preserves_occurrences(self):
+        start = datetime(2099, 11, 21, 12, 0, tzinfo=pytz.UTC)
+        end = start + timedelta(hours=2)
+        event = {
+            "name": "TBC Extend Without Timezone",
+            TO_BE_CONFIRMED_FIELD: True,
+            "dates": {
+                "start": start,
+                "end": end,
+                "recurring_rule": {
+                    "frequency": "DAILY",
+                    "interval": 1,
+                    "count": 3,
+                    "endRepeatMode": "count",
+                },
+            },
+        }
+        await self.events_service.post_async([event])
+        original_events = sorted(await self._get_all_events_raw(), key=lambda evt: evt["dates"]["start"])
+        self.assertPlanningSchedule(original_events, 3)
+        original_ids = [evt["_id"] for evt in original_events]
+        original_states = [evt["state"] for evt in original_events]
+
+        schedule = deepcopy(original_events[0]["dates"])
+        schedule["recurring_rule"]["count"] = 5
+        await process_update_repetitions({"dates": schedule}, original_events[0], require_lock=False)
+
+        events = sorted(await self._get_all_events_raw(), key=lambda evt: evt["dates"]["start"])
+        self.assertPlanningSchedule(events, 5)
+        self.assertEqual([evt["_id"] for evt in events[:3]], original_ids)
+        self.assertEqual([evt["state"] for evt in events[:3]], original_states)
+        for i, evt in enumerate(events):
+            self.assertTrue(evt[TO_BE_CONFIRMED_FIELD])
+            self.assertIsNone(evt["dates"].get("tz"))
+            self.assertEqual(evt["dates"]["start"], start + timedelta(days=i))
+            self.assertEqual(evt["dates"]["end"], end + timedelta(days=i))
+            self.assertEqual(evt["dates"]["recurring_rule"]["count"], 5)
+
     async def test_tbc_preserved_for_reschedule_event(self):
         service = get_resource_service("events")
         event = {
