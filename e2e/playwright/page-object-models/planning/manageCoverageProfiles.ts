@@ -17,8 +17,25 @@ export class ManageCoverageProfiles extends Modal {
         await this.waitTillOpen();
     }
 
-    async selectType(type: 'Text' | 'Picture'): Promise<void> {
-        await this.element.locator(`[data-test-id="item"][data-test-value="${type}"]`).click();
+    async selectType(type: 'Text' | 'Picture' | 'Video'): Promise<void> {
+        const item = this.element.locator(`[data-test-id="item"][data-test-value="${type}"]`);
+
+        // The modal builds its coverage-type list once, when it is constructed.
+        // Opened while the content-types vocabulary is still loading, the list
+        // stays empty forever, so reopen the modal rather than keep waiting.
+        await expect(async () => {
+            try {
+                await item.waitFor({state: 'visible', timeout: 3000});
+            } catch {
+                // Both the header icon and the footer button are named 'Close'
+                await this.element.getByRole('button', {name: 'Close', exact: true}).first().click();
+                await this.waitTillClosed();
+                await this.show();
+                await item.waitFor({state: 'visible', timeout: 3000});
+            }
+        }).toPass({timeout: 30000});
+
+        await item.click();
     }
 
     getFieldListItem(fieldName: string): Locator {
@@ -72,6 +89,15 @@ export class ManageCoverageProfiles extends Modal {
             await this.getFieldListItem(field).click();
             await this.getEditorCheckbox('schema.show_in_embedded_editor').type(true);
             await this.saveField();
+        }
+    }
+
+    async markRequired(fields: Array<string>): Promise<void> {
+        for (const field of fields) {
+            await this.getFieldListItem(field).click();
+            await this.getEditorCheckbox('schema.required').type(true);
+            await this.saveField();
+            await this.expectFieldRequired(field, true);
         }
     }
 }
