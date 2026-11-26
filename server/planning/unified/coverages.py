@@ -697,6 +697,8 @@ def _set_scheduled_update_active(
 def _set_coverage_active(item: UnifiedPlanningResource, coverage: CoverageItem | CoverageScheduledUpdate) -> None:
     if not get_config(bool, "PLANNING_AUTO_ASSIGN_TO_WORKFLOW", False):
         return
+    elif coverage.workflow_status == WorkflowState.CANCELLED:
+        return
     elif not coverage.assigned_to or (not coverage.assigned_to.desk and not coverage.assigned_to.user):
         return
     elif item.flags and item.flags.overide_auto_assign_to_workflow:

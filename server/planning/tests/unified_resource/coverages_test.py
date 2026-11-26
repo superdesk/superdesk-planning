@@ -179,6 +179,60 @@ class UnifiedResourceCoveragesTestCase(TestCase):
                         self.assertEqual(assignment["assigned_to"]["state"], "assigned")
                         self.assertEqual(assignment["planning_item"], planning.id)
 
+    async def test_cancel_assigned_coverage_with_auto_workflow(self) -> None:
+        self.app.config["PLANNING_AUTO_ASSIGN_TO_WORKFLOW"] = True
+        assignee = fixtures.users.all_users()[1].to_dict()["_id"]
+        coverage = {
+            "news_coverage_status": {"qcode": "ncostat:int", "name": "coverage intended", "label": "Planned"},
+            "workflow_status": "draft",
+            "planning": {"g2_content_type": "text", "scheduled": "2029-06-30T16:30:55+0000"},
+            "assigned_to": {"desk": fixtures.desks.SPORTS_DESK_ID, "user": assignee},
+        }
+        planning = (
+            await self.planning_service.create(
+                [
+                    {
+                        "type": PlanningItemType.PLANNING,
+                        "state": "scheduled",
+                        "dates": {"start": "2029-06-30T15:30:55+0000"},
+                        "coverages": [coverage],
+                    }
+                ]
+            )
+        )[0]
+        coverage = planning.to_dict()["coverages"][0]
+        assignment_id = coverage["assigned_to"]["assignment_id"]
+        assignment = await self.assignments_service.find_one_async(req=None, _id=assignment_id)
+        self.assertEqual(assignment["assigned_to"]["state"], "assigned")
+
+        coverage["workflow_status"] = "cancelled"
+        coverage["news_coverage_status"] = {
+            "qcode": "ncostat:notint",
+            "name": "coverage not intended",
+            "label": "Not intended",
+        }
+        coverage["assigned_to"]["state"] = "cancelled"
+        coverage["add_coverage_to_workflow"] = False
+        coverage["planning"]["workflow_status_reason"] = "No longer needed"
+        await self.planning_service.update(planning.id, {"coverages": [coverage]})
+
+        stored = await self.planning_service.find_by_id(planning.id)
+        cancelled_coverage = stored.to_dict()["coverages"][0]
+        assignment = await self.assignments_service.find_one_async(req=None, _id=assignment_id)
+        self.assertEqual(cancelled_coverage["workflow_status"], "cancelled")
+        self.assertEqual(cancelled_coverage["previous_status"], "active")
+        self.assertFalse(cancelled_coverage["add_coverage_to_workflow"])
+        self.assertEqual(cancelled_coverage["assigned_to"]["state"], "cancelled")
+        self.assertEqual(assignment["assigned_to"]["state"], "cancelled")
+        self.assertEqual(assignment["assigned_to"]["user"], str(assignee))
+        self.assertEqual(assignment["planning"]["workflow_status_reason"], "No longer needed")
+
+        await self.planning_service.update(planning.id, {"coverages": [cancelled_coverage]})
+        stored = await self.planning_service.find_by_id(planning.id)
+        self.assertEqual(stored.coverages[0].workflow_status, "cancelled")
+        assignment = await self.assignments_service.find_one_async(req=None, _id=assignment_id)
+        self.assertEqual(assignment["assigned_to"]["state"], "cancelled")
+
     async def test_updating_coverages(self) -> None:
         # Start with empty coverages
         planning = UnifiedPlanningResource.from_dict(
