@@ -20,6 +20,10 @@ export class PlanningList {
         return this.items().nth(index);
     }
 
+    itemByText(text: string): Locator {
+        return this.items().filter({hasText: text});
+    }
+
     nestedItems(): Locator {
         return this.panel.getByTestId('has-nested-items');
     }

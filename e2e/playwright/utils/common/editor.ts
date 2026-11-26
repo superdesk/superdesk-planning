@@ -46,8 +46,12 @@ export class Editor {
         return this.element.getByRole('button', {name: /Save & Unpost|Unpost/, exact: true});
     }
 
+    // Scoped to the header: an expanded coverage card is itself a role=button
+    // whose accessible name can contain "Cancel", which breaks strict mode
     get closeButton(): Locator {
-        return this.element.getByRole('button', {name: /Cancel|Close/, exact: true});
+        return this.element
+            .getByTestId('editor-header')
+            .getByRole('button', {name: /Cancel|Close/, exact: true});
     }
 
     get minimiseButton(): Locator {
