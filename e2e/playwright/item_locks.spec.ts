@@ -125,10 +125,10 @@ test.describe('Planning: item locks', () => {
             await addItems(
                 page.request,
                 'events',
-                [{
+                [createEventFor.today({
                     ...TEST_EVENTS.draft,
                     guid: 'event1',
-                }]
+                })]
             );
             await login(page);
             await waitForPageLoad.planning(page);
