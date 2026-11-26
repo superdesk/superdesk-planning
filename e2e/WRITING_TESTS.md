@@ -89,6 +89,9 @@ For state beyond the profile, add it with `addItems` after `setup` and before
 `login`. Seeding while logged in sends creation notifications to the client;
 their delayed refetches can race the search assertions.
 
+The reset request retries a connection reset (`ECONNRESET`) once. HTTP errors
+and repeated connection failures still fail setup.
+
 ```ts
 await addItems(
     page.request,
@@ -105,6 +108,10 @@ The `next_week` event and planning fixtures use Monday of the next Sunday-based
 week, so they never share a date with the `tomorrow` fixtures. Run date-search
 tests with `TZ=Australia/Sydney`, as in CI; Friday afternoon in Europe is
 already Saturday there.
+
+For same-day actions on all-day events, use `test.use({timezoneId: 'UTC'})`
+and `moment.utc()` for fixture dates. All-day event dates are interpreted in
+UTC, which can disagree with the runner's calendar day under CI's timezone.
 
 Build preconditions with `addItems`, not by driving the UI in a setup loop. A
 single atomic UI action as a precondition is fine, but repeating UI mutations to

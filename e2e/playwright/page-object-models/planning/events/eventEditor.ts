@@ -1,4 +1,5 @@
 import type {Page, Locator} from '@playwright/test';
+import {expect} from '@playwright/test';
 import {Editor} from '../../../utils/common/editor';
 import {
     Input,
@@ -146,5 +147,22 @@ export class EventEditor extends Editor {
     getMainLanguageButton(languageQcode: string): Locator {
         return this.element.locator('#editor--language-controls')
             .getByTestId(`main-language--${languageQcode}`);
+    }
+
+    async createAndWait(): Promise<void> {
+        // Creation reopens the saved event; wait for its new autosave before closing it.
+        const autosaveCreated = this.page.waitForResponse((response) => (
+            response.url().includes(this.autosaveUrl) && response.request().method() === 'POST'
+        ));
+
+        await this.createButton.click();
+        expect((await autosaveCreated).ok()).toBe(true);
+        await this.waitLoadingComplete();
+    }
+
+    async closeAfterSaving(): Promise<void> {
+        // While saving, the dirty form still exposes Cancel rather than Close.
+        await this.element.getByRole('button', {name: 'Close', exact: true}).click();
+        await this.waitTillClosed();
     }
 }

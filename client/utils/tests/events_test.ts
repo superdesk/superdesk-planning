@@ -635,6 +635,17 @@ describe('EventUtils', () => {
         });
     });
 
+    describe('modifyForServer', () => {
+        it('serializes the completion date after loading an event for editing', () => {
+            const event = eventUtils.modifyForClient({
+                completed: true,
+                actioned_date: '2026-11-22T23:00:00+0000',
+            });
+
+            expect(eventUtils.modifyForServer(event).actioned_date).toBe('2026-11-22T23:00:00.000Z');
+        });
+    });
+
     describe('modifyForClient', () => {
         beforeEach(() => {
             sinon.stub(moment.tz, 'guess').callsFake(() => 'Australia/Sydney');
