@@ -137,6 +137,10 @@ When an interaction is not covered by an existing method, add a method to the
 relevant Page Object rather than inlining it. Keep Page Objects stateless beyond
 holding the `Page`.
 
+Keep validation styling checks in field Page Objects, not specs.
+`SelectMetaTerms` provides `expectRequired()`, `expectError(message)` (including
+invalid styling), and `expectNoError()`. Required and invalid are distinct states.
+
 An interaction with **known flakiness** (settling waits, a retry/`toPass`, a
 stub) especially belongs in a Page Object: write the robustness once so the next
 spec inherits it instead of re-deriving it.

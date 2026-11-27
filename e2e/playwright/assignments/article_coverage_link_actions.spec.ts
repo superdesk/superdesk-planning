@@ -31,8 +31,13 @@ test.describe('Planning.Assignment: article coverage link actions', () => {
         await addToPlanning.addAsCoverage(PLANNING);
 
         await monitoring.waitForCoverageLink(ARTICLE);
-        await monitoring.openItemActions(ARTICLE);
-        await expect(monitoring.action('Unlink as Coverage')).toBeVisible();
-        await expect(monitoring.action('Add to Planning')).toHaveCount(0);
+        await expect(async () => {
+            if (!(await monitoring.actionsMenu.isVisible())) {
+                await monitoring.openItemActions(ARTICLE);
+            }
+            await expect(monitoring.action('Unlink as Coverage')).toBeVisible({timeout: 1000});
+            await expect(monitoring.action('Add to Planning')).toHaveCount(0);
+            await expect(monitoring.actionsMenu).toBeVisible();
+        }).toPass({timeout: 15000});
     });
 });

@@ -29,7 +29,7 @@ from superdesk import get_resource_service
 
 from planning.types import UnifiedPlanningHistoryResource, UnifiedPlanningResource, PostStates, WorkflowState
 from planning import signals
-from planning.common import remove_lock_information
+from planning.common import get_naive_utc, remove_lock_information
 from planning.events.events_utils import post_update_event_actions, pre_update_event_actions, set_planning_schedule
 from planning.unified.common import get_series, generate_recurring_dates
 from planning.unified.recurring_items import duplicate_event_for_series
@@ -82,11 +82,13 @@ async def delete_event(event: UnifiedPlanningResource, updated_rule: dict[str, A
         await app.on_deleted_item_events.call_async(event.to_dict())
 
 
-async def update_event(updated_rule: dict[str, Any], original: UnifiedPlanningResource):
+async def update_event(updated_rule: dict[str, Any], original: UnifiedPlanningResource, release_lock: bool = False):
     service = UnifiedPlanningResource.get_service()
     events_history_service = UnifiedPlanningHistoryResource.get_service()
 
     updates = _update_rules(original, updated_rule)
+    if release_lock:
+        remove_lock_information(updates)
     set_planning_schedule(updates)
     await service.system_update(original.id, updates)
     await events_history_service.on_update_repetitions(
@@ -106,29 +108,25 @@ async def update_event_repetitions(updates: dict[str, Any], original: UnifiedPla
     existing_events = [event async for event in get_series(original.recurrence_id)]
 
     first_event = existing_events[0]
-    new_dates = [
-        (
-            date
-            if isinstance(date, datetime)
-            else datetime(year=date.year, month=date.month, day=date.day, tzinfo=timezone.utc)
-        )
-        for date in generate_recurring_dates(
-            start=first_event.dates.start,
-            tz=updates["dates"].get("tz") and pytz.timezone(updates["dates"]["tz"] or ""),
-            all_day=bool(updates["dates"].get("all_day")),
-            **updated_rule,
-        )
-    ]
+    new_dates = []
+    for date in generate_recurring_dates(
+        start=first_event.dates.start,
+        tz=updates["dates"].get("tz") and pytz.timezone(updates["dates"]["tz"] or ""),
+        all_day=bool(updates["dates"].get("all_day")),
+        **updated_rule,
+    ):
+        assert isinstance(date, datetime)
+        new_dates.append(get_naive_utc(date))
 
-    original_dates = [
-        date
-        for date in generate_recurring_dates(
-            start=first_event.dates.start,
-            tz=pytz.timezone(original.dates.tz) if original.dates.tz else None,
-            all_day=original.dates.all_day,
-            **original.dates.recurring_rule.to_dict(),
-        )
-    ]
+    original_dates = []
+    for date in generate_recurring_dates(
+        start=first_event.dates.start,
+        tz=pytz.timezone(original.dates.tz) if original.dates.tz else None,
+        all_day=original.dates.all_day,
+        **original.dates.recurring_rule.to_dict(),
+    ):
+        assert isinstance(date, datetime)
+        original_dates.append(get_naive_utc(date))
 
     # Compute the difference between start and end in the updated event
     time_delta = original.dates.end - original.dates.start
@@ -142,13 +140,13 @@ async def update_event_repetitions(updates: dict[str, Any], original: UnifiedPla
     for event in existing_events:
         # if the event does not occur in the new dates, then we need to either
         # delete or cancel this event
-        if event.dates.start not in new_dates:
+        if get_naive_utc(event.dates.start) not in new_dates:
             deleted_events[event.id] = event
 
         # Otherwise this Event does occur in the new dates
         # So just update the recurring_rule to match the new series recurring_rule
         else:
-            await update_event(updated_rule, event)
+            await update_event(updated_rule, event, release_lock=event.id == original.id)
 
     # Create new events that do not fall on the original series
     for date in new_dates:

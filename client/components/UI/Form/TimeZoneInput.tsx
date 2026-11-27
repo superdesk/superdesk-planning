@@ -14,6 +14,7 @@ interface IProps {
     onChange(field: string, value: string): void;
     noMargin?: boolean;
     invalid?: boolean;
+    message?: string;
     required?: boolean;
     halfWidth?: boolean;
     testId?: string;

@@ -234,6 +234,7 @@ class EventItemComponent extends React.Component<IProps, IState> {
 
         return (
             <Item
+                testId={`event-item-${item._id}`}
                 shadow={1}
                 activated={this.props.multiSelected || active}
                 onClick={(e) => {

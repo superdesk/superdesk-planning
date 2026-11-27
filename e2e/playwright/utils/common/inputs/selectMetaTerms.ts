@@ -29,6 +29,20 @@ export class SelectMetaTerms extends Input {
         await expect(this.parent.locator(`${this.selector} .sd-line-input__input li`)).toHaveCount(0);
     }
 
+    async expectRequired(): Promise<void> {
+        await expect(this.element.locator('.sd-line-input')).toHaveClass(/--required\b/);
+    }
+
+    async expectError(message: string): Promise<void> {
+        await expect(this.element.locator('.sd-line-input')).toHaveClass(/--invalid\b/);
+        await expect(this.element.locator('.sd-line-input__message')).toHaveText(message);
+    }
+
+    async expectNoError(): Promise<void> {
+        await expect(this.element.locator('.sd-line-input')).not.toHaveClass(/--invalid\b/);
+        await expect(this.element.locator('.sd-line-input__message')).not.toBeVisible();
+    }
+
     async clear(): Promise<void> {
         await clickAll(this.parent, `${this.selector} .sd-line-input__input li`);
     }

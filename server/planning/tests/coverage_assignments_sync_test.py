@@ -6,7 +6,7 @@ from superdesk.tests import utils as test_utils, fixtures
 from superdesk.tests import setup_db_user
 
 from planning.coverage_assignments import get_metadata_updates_between_entities
-from planning.tests import TestCase
+from planning.tests import TestCase, fixtures as planning_fixtures
 
 
 now = utcnow()
@@ -309,6 +309,75 @@ class SyncAssignmentCoverageTest(TestCase):
 
         planning = await test_utils.find_by_id("planning", "p1")
         self.assertEqual(original_planning_etag, planning["_etag"])
+
+    async def test_auto_assign_does_not_reactivate_cancelled_coverage(self):
+        self.app.config["PLANNING_AUTO_ASSIGN_TO_WORKFLOW"] = True
+        await test_utils.post_items("users", [fixtures.users.admin().to_dict()])
+        await test_utils.post_items("vocabularies", planning_fixtures.cvs.all_cvs())
+        await test_utils.post_items("desks", [fixtures.desks.sports_desk().to_dict()])
+        await test_utils.post_items("stages", [fixtures.stages.sports_working_stage()])
+
+        await test_utils.post_items(
+            "planning",
+            [
+                {
+                    "guid": "p_cancel",
+                    "slugline": "test",
+                    "state": "scheduled",
+                    "planning_date": now,
+                    "coverages": [
+                        {
+                            "coverage_id": "c_cancel",
+                            "workflow_status": "draft",
+                            "news_coverage_status": {
+                                "qcode": "ncostat:int",
+                                "name": "coverage intended",
+                                "label": "Planned",
+                            },
+                            "planning": {"scheduled": now},
+                            "assigned_to": {
+                                "desk": fixtures.desks.SPORTS_DESK_ID,
+                                "user": fixtures.users.ADMIN_USER_ID,
+                                "state": "draft",
+                            },
+                        }
+                    ],
+                }
+            ],
+        )
+
+        planning = await test_utils.find_by_id("planning", "p_cancel")
+        coverage = planning["coverages"][0]
+        self.assertEqual(coverage["workflow_status"], "active")
+        assignment_id = coverage["assigned_to"]["assignment_id"]
+        assignment = await test_utils.find_by_id("assignments", assignment_id)
+        self.assertEqual(assignment["assigned_to"]["state"], "assigned")
+
+        await get_resource_service("planning").patch_async(
+            "p_cancel",
+            {
+                "coverages": [
+                    {
+                        "coverage_id": coverage["coverage_id"],
+                        "workflow_status": "cancelled",
+                        "news_coverage_status": {
+                            "qcode": "ncostat:notint",
+                            "name": "coverage not intended",
+                            "label": "Not planned",
+                        },
+                        "planning": {**coverage["planning"], "workflow_status_reason": "No longer needed"},
+                        "assigned_to": coverage["assigned_to"],
+                    }
+                ]
+            },
+        )
+
+        cancelled_planning = await test_utils.find_by_id("planning", "p_cancel")
+        cancelled_coverage = cancelled_planning["coverages"][0]
+        assignment = await test_utils.find_by_id("assignments", assignment_id)
+        self.assertEqual(cancelled_coverage["workflow_status"], "cancelled")
+        self.assertEqual(cancelled_coverage["assigned_to"]["state"], "cancelled")
+        self.assertEqual(assignment["assigned_to"]["state"], "cancelled")
 
 
 def test_reassignment_resets_assignment_state_to_assigned():

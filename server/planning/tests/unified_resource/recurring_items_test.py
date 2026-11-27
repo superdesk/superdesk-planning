@@ -343,6 +343,27 @@ class RecurringItemsTestCase(BaseRecurringTestCase):
         events = await self.get_all_events()
         self.assert_planning_schedule(events, 5)
 
+    async def test_update_repetitions_releases_selected_event_lock(self):
+        g.auth = {"_id": ObjectId(), "user": g.user["_id"]}
+        events = await self.create_series()
+        locked = await lock_item(events[0], LockFields(lock_action="update_repetitions"))
+        self.assertIsNotNone(locked.lock_user)
+        self.assertIsNotNone(locked.lock_session)
+        self.assertIsNotNone(locked.lock_time)
+
+        schedule = deepcopy(locked.dates.to_dict())
+        schedule["recurring_rule"]["count"] = 5
+        updated = await process_update_repetitions({"dates": schedule}, locked)
+
+        stored = await self.items_service.find_by_id(locked.id)
+        self.assertIsNotNone(stored)
+        for item in (updated, stored):
+            self.assertIsNone(item.lock_user)
+            self.assertIsNone(item.lock_session)
+            self.assertIsNone(item.lock_time)
+            self.assertIsNone(item.lock_action)
+        self.assert_planning_schedule(await self.get_all_events(), 5)
+
     async def test_planning_schedule_convert_to_recurring(self):
         event = {
             "name": "Friday Club",
@@ -441,6 +462,75 @@ class RecurringItemsTestCase(BaseRecurringTestCase):
                 evt.time_to_be_confirmed,
                 f"Event {evt.id} should have _time_to_be_confirmed=True, " f"got {evt.time_to_be_confirmed}",
             )
+
+    async def test_tbc_preserved_for_recurring_event_creation_without_timezone(self):
+        start = datetime(2099, 11, 21, 12, tzinfo=timezone.utc)
+        end = start + timedelta(hours=2)
+        event = {
+            "name": "TBC Recurring Event Without Timezone",
+            "type": PlanningItemType.EVENT,
+            "_time_to_be_confirmed": True,
+            "dates": {
+                "start": start,
+                "end": end,
+                "recurring_rule": {
+                    "frequency": "DAILY",
+                    "interval": 1,
+                    "count": 3,
+                    "end_repeat_mode": "count",
+                },
+            },
+        }
+
+        await self.items_service.create([event])
+        events = await self.get_all_events()
+        self.assert_planning_schedule(events, 3)
+        self.assertTrue(events[0].recurrence_id)
+
+        for index, item in enumerate(events):
+            self.assertTrue(item.time_to_be_confirmed)
+            self.assertIsNone(item.dates.tz)
+            self.assertEqual(item.dates.start, start + timedelta(days=index))
+            self.assertEqual(item.dates.end, end + timedelta(days=index))
+
+    async def test_extend_tbc_recurring_event_without_timezone(self):
+        start = datetime(2099, 11, 21, 12, tzinfo=timezone.utc)
+        end = start + timedelta(hours=2)
+        event = {
+            "name": "TBC Extend Without Timezone",
+            "type": PlanningItemType.EVENT,
+            "_time_to_be_confirmed": True,
+            "dates": {
+                "start": start,
+                "end": end,
+                "recurring_rule": {
+                    "frequency": "DAILY",
+                    "interval": 1,
+                    "count": 3,
+                    "end_repeat_mode": "count",
+                },
+            },
+        }
+        await self.items_service.create([event])
+        original_events = await self.get_all_events()
+        self.assert_planning_schedule(original_events, 3)
+        original_ids = [item.id for item in original_events]
+        original_states = [item.state for item in original_events]
+
+        schedule = deepcopy(original_events[0].dates.to_dict())
+        schedule["recurring_rule"]["count"] = 5
+        await process_update_repetitions({"dates": schedule}, original_events[0], require_lock=False)
+
+        events = await self.get_all_events()
+        self.assert_planning_schedule(events, 5)
+        self.assertEqual([item.id for item in events[:3]], original_ids)
+        self.assertEqual([item.state for item in events[:3]], original_states)
+        for index, item in enumerate(events):
+            self.assertTrue(item.time_to_be_confirmed)
+            self.assertIsNone(item.dates.tz)
+            self.assertEqual(item.dates.start, start + timedelta(days=index))
+            self.assertEqual(item.dates.end, end + timedelta(days=index))
+            self.assertEqual(item.dates.recurring_rule.count, 5)
 
     async def test_generate_dates_for_all_day(self):
         self.assertEqual(

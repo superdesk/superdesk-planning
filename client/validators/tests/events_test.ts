@@ -106,6 +106,12 @@ describe('eventValidators', () => {
             testValidate(eventValidators.validateDates, 'dates', {});
         });
 
+        it('does not require a timezone when time is to be confirmed', () => {
+            event.dates.tz = undefined;
+            event[TO_BE_CONFIRMED_FIELD] = true;
+            testValidate(eventValidators.validateDates, 'dates', {});
+        });
+
         it('fails if end time is set but start time is not', () => {
             const value = {
                 ...event.dates,
