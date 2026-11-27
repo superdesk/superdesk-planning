@@ -19,6 +19,39 @@ function selectedOption(coverage: Locator, field: string): Locator {
     return coverage.getByTestId(field).locator('option:checked');
 }
 
+const TOGGLEABLE_FIELDS = ['genre', 'slugline', 'status', 'internal_note'] as const;
+
+/**
+ * Asserts the exact field set of an inline coverage editor: the always-present
+ * fields, the expected subset of TOGGLEABLE_FIELDS, and nothing else.
+ */
+async function expectEmbeddedFields(
+    coverage: CoverageInlineEditor,
+    visibleFields: Array<typeof TOGGLEABLE_FIELDS[number]>,
+): Promise<void> {
+    await expect(coverage.fields.desk.element).toBeVisible();
+    await expect(coverage.fields.user.element).toBeVisible();
+    await expect(coverage.fields.scheduled_date.element).toBeVisible();
+    await expect(coverage.fields.scheduled_time.element).toBeVisible();
+
+    for (const field of TOGGLEABLE_FIELDS) {
+        if (visibleFields.includes(field)) {
+            await expect(coverage.fields[field].element).toBeVisible();
+        } else {
+            await expect(coverage.fields[field].element).not.toBeVisible();
+        }
+    }
+
+    for (const testId of [
+        'field-g2_content_type',
+        'field-ednote',
+        'field-scheduled_updates',
+        'field-add_coverage_to_workflow',
+    ]) {
+        await expect(coverage.getParent().getByTestId(testId)).not.toBeVisible();
+    }
+}
+
 test.describe('Planning.Events: inline coverage form', () => {
     let editor: EventEditor;
     let inlineForm: CoverageInlineForm;
@@ -36,6 +69,10 @@ test.describe('Planning.Events: inline coverage form', () => {
         subnav = new SubNavBar(page);
 
         await setup(page, 'planning_prepopulate_data', '/#/planning');
+        // The state reset wipes `phone_home.done`, which makes the phone-home
+        // prompt pop up for 'admin' at an arbitrary point after login; its
+        // backdrop then swallows clicks. Mark it done before logging in.
+        await addItems(page.request, 'config', [{_id: 'phone_home', val: {done: 1}}]);
         await addItems(page.request, 'events', [createEventFor.today({
             state: 'draft',
             name: 'Inline coverages',
@@ -224,5 +261,55 @@ test.describe('Planning.Events: inline coverage form', () => {
         await pictureCoverage.fields.slugline.expect('inline-coverages');
         await pictureCoverage.fields.scheduled.date.expect('13/11/2099');
         await pictureCoverage.fields.scheduled.time.expect('03:00');
+    });
+
+    test('shows embedded-form fields plus required fields per coverage profile', async ({page}) => {
+        // Turning the inline form on through the event profile editor is
+        // covered by 'can be turned on from the event profile editor' above.
+        await addItems(page.request, 'planning_types', [EVENT_PROFILE_INLINE_COVERAGES]);
+        await login(page);
+        await waitForPageLoad.planning(page);
+
+        // Each type gets a `required` field with "Show in embedded form" left off,
+        // which must appear in the inline form regardless.
+        const profileConfigs: Array<{
+            type: 'Text' | 'Picture' | 'Video';
+            embedded: Array<string>;
+            required: Array<string>;
+        }> = [
+            {type: 'Text', embedded: ['internal_note'], required: ['slugline']},
+            {type: 'Picture', embedded: ['news_coverage_status'], required: ['internal_note']},
+            {type: 'Video', embedded: ['genre', 'slugline'], required: ['news_coverage_status']},
+        ];
+
+        for (const config of profileConfigs) {
+            // Workaround for a bug, cannot modify multiple new Coverage profiles
+            // in one modal session; save and reopen per type.
+            await manageCoverageProfiles.show();
+            await manageCoverageProfiles.selectType(config.type);
+            await manageCoverageProfiles.enableShowInEmbeddedEditor(config.embedded);
+            await manageCoverageProfiles.markRequired(config.required);
+            await manageCoverageProfiles.saveAll();
+        }
+
+        await openEvent(page);
+        await expect(inlineForm.element).toBeVisible();
+
+        await inlineForm.enableType('text');
+        await inlineForm.enableType('picture');
+        await inlineForm.enableType('video');
+
+        await expectEmbeddedFields(
+            new CoverageInlineEditor(page, inlineForm, 'text'),
+            ['internal_note', 'slugline'],
+        );
+        await expectEmbeddedFields(
+            new CoverageInlineEditor(page, inlineForm, 'picture'),
+            ['status', 'internal_note'],
+        );
+        await expectEmbeddedFields(
+            new CoverageInlineEditor(page, inlineForm, 'video'),
+            ['genre', 'slugline', 'status'],
+        );
     });
 });
