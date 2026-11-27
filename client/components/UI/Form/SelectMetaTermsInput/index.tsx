@@ -29,6 +29,7 @@ export interface IProps {
     maxLength?: number;
     language?: string;
     invalid?: boolean;
+    message?: string;
     ignoreScheme?: boolean;
 }
 

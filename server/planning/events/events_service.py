@@ -695,7 +695,7 @@ class EventsAsyncService(BasePlanningAsyncService[EventResourceModel]):
         max_recurring_events = get_max_recurrent_events()
         recurring_dates = generate_recurring_dates(
             start=event.dates.start,
-            tz=pytz.timezone(event.dates.tz or ""),
+            tz=pytz.timezone(event.dates.tz) if event.dates.tz else None,
             all_day=bool(event.dates.all_day),
             **event.dates.recurring_rule.to_dict(),
         )

@@ -10,13 +10,18 @@ import {
     LinkInput,
     ContactsInput,
     LocationInput,
+    TimePickerInput,
 } from '../../../utils/common/inputs';
 
 export class EventEditor extends Editor {
+    readonly timezone: SelectMetaTerms;
+
     constructor(page: Page, languages: Array<string> = [], multilingualFields: Array<string> = []) {
         super(page, '.icon-event', 'event');
 
         const getParent = () => this.element;
+
+        this.timezone = new SelectMetaTerms(page, getParent, '[data-test-id="field-dates_timezone"]');
 
         this.fields = {
             name: new Input(page, getParent, '[data-test-id="field-name"] input'),
@@ -50,6 +55,7 @@ export class EventEditor extends Editor {
                         '[data-test-id="field-dates_end"] input[name="_endTime"]',
                     ),
                 },
+                tz: this.timezone,
                 recurring: {
                     enable: new ToggleInput(
                         page,
@@ -60,6 +66,16 @@ export class EventEditor extends Editor {
                         page,
                         getParent,
                         '[data-test-id="field-recurring_rules_rules"] [data-test-id="dates.recurring_rule.until"]',
+                    ),
+                    endRepeatMode: new SelectInput(
+                        page,
+                        getParent,
+                        '[data-test-id="dates.recurring_rule.endRepeatMode"]',
+                    ),
+                    count: new Input(
+                        page,
+                        getParent,
+                        '[data-test-id="dates.recurring_rule.count"]',
                     ),
                 },
             },
@@ -95,6 +111,38 @@ export class EventEditor extends Editor {
             }
         } else {
             this.fields.language = new TreeSelect(page, getParent, '[data-test-id=field-language]', false);
+        }
+    }
+
+    async setStartTimeToBeConfirmed(): Promise<void> {
+        const time = new TimePickerInput(
+            this.page,
+            () => this.element,
+            '[data-test-id="field-dates_start"] input[name="_startTime"]',
+        );
+
+        await time.setToBeConfirmed();
+    }
+
+    async setEndTimeToBeConfirmed(): Promise<void> {
+        const time = new TimePickerInput(
+            this.page,
+            () => this.element,
+            '[data-test-id="field-dates_end"] input[name="_endTime"]',
+        );
+
+        await time.setToBeConfirmed();
+    }
+
+    async clearStartTime(usingPopup: boolean = false): Promise<void> {
+        const input = this.getField('dates.start.time').element;
+
+        if (usingPopup) {
+            await input.press('Enter');
+            await this.page.getByTestId('time-popup-clear').click();
+        } else {
+            await input.clear();
+            await input.press('Tab');
         }
     }
 

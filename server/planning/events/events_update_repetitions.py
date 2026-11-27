@@ -10,6 +10,7 @@
 
 import pytz
 from copy import deepcopy
+from datetime import datetime
 from typing import Any
 
 
@@ -25,6 +26,7 @@ from planning.common import (
     WORKFLOW_STATE,
     POST_STATE,
     get_max_recurrent_events,
+    get_naive_utc,
     set_original_creator,
     TO_BE_CONFIRMED_FIELD,
 )
@@ -148,25 +150,25 @@ async def update_event_repetitions(updates: dict[str, Any], original: dict[str, 
     existing_events = await get_internal_series(original)
 
     first_event = existing_events[0]
-    new_dates = [
-        date
-        for date in generate_recurring_dates(
-            start=first_event.get("dates", {}).get("start"),
-            tz=updates["dates"].get("tz") and pytz.timezone(updates["dates"]["tz"] or ""),
-            all_day=bool(updates["dates"].get("all_day")),
-            **updated_rule,
-        )
-    ]
+    new_dates = []
+    for date in generate_recurring_dates(
+        start=first_event.get("dates", {}).get("start"),
+        tz=updates["dates"].get("tz") and pytz.timezone(updates["dates"]["tz"] or ""),
+        all_day=bool(updates["dates"].get("all_day")),
+        **updated_rule,
+    ):
+        assert isinstance(date, datetime)
+        new_dates.append(get_naive_utc(date))
 
-    original_dates = [
-        date
-        for date in generate_recurring_dates(
-            start=first_event.get("dates", {}).get("start"),
-            tz=original["dates"].get("tz") and pytz.timezone(original["dates"]["tz"] or ""),
-            all_day=bool(original["dates"].get("all_day")),
-            **original_rule,
-        )
-    ]
+    original_dates = []
+    for date in generate_recurring_dates(
+        start=first_event.get("dates", {}).get("start"),
+        tz=original["dates"].get("tz") and pytz.timezone(original["dates"]["tz"] or ""),
+        all_day=bool(original["dates"].get("all_day")),
+        **original_rule,
+    ):
+        assert isinstance(date, datetime)
+        original_dates.append(get_naive_utc(date))
 
     # Compute the difference between start and end in the updated event
     time_delta = original["dates"]["end"] - original["dates"]["start"]
@@ -180,7 +182,7 @@ async def update_event_repetitions(updates: dict[str, Any], original: dict[str, 
     for event in existing_events:
         # if the event does not occur in the new dates, then we need to either
         # delete or cancel this event
-        if event["dates"]["start"].replace(tzinfo=None) not in new_dates:
+        if get_naive_utc(event["dates"]["start"]) not in new_dates:
             deleted_events[event[ID_FIELD]] = event
 
         # Otherwise this Event does occur in the new dates
