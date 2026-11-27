@@ -654,6 +654,9 @@ class PlanningService(AsyncBaseService):
                 await self.remove_coverage_entity(coverage, original)
 
     def set_coverage_active(self, coverage, planning, parentCoverage=None):
+        if coverage.get("workflow_status") == WORKFLOW_STATE.CANCELLED:
+            return
+
         # If the coverage is created and assigned to a desk/user and the PLANNING_AUTO_ASSIGN_TO_WORKFLOW is
         # True the coverage will be created in workflow unless the overide flag is set.
         if (
