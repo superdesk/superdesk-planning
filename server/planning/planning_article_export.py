@@ -29,6 +29,7 @@ from superdesk import get_resource_service
 from superdesk.errors import SuperdeskApiError
 
 from apps.auth import get_user_id
+from apps.tasks import apply_onstage_rule
 from apps.templates.content_templates import get_item_from_template
 
 from planning.types import UnifiedPlanningResource, SearchItemType, PlanningItemType
@@ -444,7 +445,19 @@ async def export_items_to_article(export_request: ArticleExportRequest) -> dict:
         else:
             item[key] = val
 
-    return await create_item_from_template(item, fields_to_override)
+    article = await create_item_from_template(item, fields_to_override)
+    if not article.get("task", {}).get("stage"):
+        return article
+
+    # The article lands on the stage without a send or move, so run the stage's rule here
+    try:
+        await apply_onstage_rule(article, article["_id"])
+    except Exception:
+        logger.exception("Failed to apply on stage rule to the exported article")
+        return article
+
+    # The rule may have changed the article, e.g. published it
+    return await get_resource_service("archive").find_one_async(req=None, _id=article["_id"]) or article
 
 
 @planning_article_export_endpoints.endpoint(

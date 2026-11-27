@@ -162,3 +162,52 @@ Feature: Export events with default template
             "body_html": "test"
         }]}
         """
+
+    @auth
+    Scenario: The working stage rule runs on the exported article
+        Given the "validators"
+        """
+        [{"_id": "auto_publish_text", "act": "auto_publish", "type": "text", "schema": {}}]
+        """
+        When we patch "/stages/#desks.working_stage#"
+        """
+        {"onstage_macro": "Auto Publish"}
+        """
+        And we post to "planning_article_export"
+        """
+        {
+            "items": ["#events._id#"],
+            "desk": "#desks._id#",
+            "type": "event"
+        }
+        """
+        Then we get new resource
+        """
+        {"state": "published", "auto_publish": true}
+        """
+        When we get "/published"
+        Then we get list with 1 items
+        """
+        {"_items": [{"slugline": "Foo", "state": "published", "auto_publish": true}]}
+        """
+
+    @auth
+    Scenario: The article is exported even when the working stage rule fails
+        When we patch "/stages/#desks.working_stage#"
+        """
+        {"onstage_macro": "Auto Publish"}
+        """
+        And we post to "planning_article_export"
+        """
+        {
+            "items": ["#events._id#"],
+            "desk": "#desks._id#",
+            "type": "event"
+        }
+        """
+        Then we get new resource
+        """
+        {"slugline": "Foo", "state": "in_progress"}
+        """
+        When we get "/published"
+        Then we get list with 0 items
