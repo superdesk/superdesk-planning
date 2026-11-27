@@ -287,6 +287,19 @@ class ArticleExportTestCase(TestCase):
 
         self.assertIsNone(await get_resource_service("archive").find_one_async(req=None, type="text"))
 
+    async def test_scheduled_export_runs_the_working_stage_rule(self):
+        await test_utils.post_items("validators", [{"_id": "ap", "act": "auto_publish", "type": "text", "schema": {}}])
+        await get_resource_service("stages").patch_async(self.desk["working_stage"], {"onstage_macro": "Auto Publish"})
+        event_id = await self._create_event()
+        # A scheduled export runs with no user
+        g.pop("user", None)
+        g.pop("auth", None)
+
+        article = await export_items_to_article(ArticleExportRequest(items=[event_id], desk=self.desk_id, type="event"))
+
+        self.assertEqual("published", article["state"])
+        self.assertTrue(article["auto_publish"])
+
     async def test_export_events_to_text(self):
         event_id = await self._create_event(name="Downloaded Event")
         items = await get_items([event_id], "events")
