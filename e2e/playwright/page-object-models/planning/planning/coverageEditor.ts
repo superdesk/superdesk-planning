@@ -135,6 +135,22 @@ export class CoverageEditor extends Editor {
         await this.element.getByTestId('collapse-box--header').click();
     }
 
+    // The collapse header is a toggle, so a blind click closes a card that
+    // happened to render open; only click when closed, and retry in case the
+    // editor remounts the card while it finishes loading
+    async ensureExpanded(): Promise<void> {
+        await expect(async() => {
+            const isOpen = await this.element.evaluate(
+                (el) => el.classList.contains('sd-collapse-box--open'),
+            );
+
+            if (!isOpen) {
+                await this.element.getByTestId('collapse-box--header').click();
+            }
+            await expect(this.element).toHaveClass(/sd-collapse-box--open/, {timeout: 2000});
+        }).toPass({timeout: 10000});
+    }
+
     async toggleAddToWorkflow(): Promise<void> {
         await this.element
             .getByTestId('field-add_coverage_to_workflow')
