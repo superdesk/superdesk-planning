@@ -26,7 +26,7 @@ setup(
     author="Edouard Richard",
     author_email="edouard.richard@sourcefabric.org",
     license="AGPLv3",
-    install_requires=["icalendar>=4.0.3,<5.1", "deepdiff"],
+    install_requires=["icalendar>=4.0.3,<7.3", "deepdiff"],
     url="https://github.com/superdesk/superdesk-planning",
     classifiers=[
         "Development Status :: 5 - Production/Stable",
